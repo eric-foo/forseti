@@ -486,6 +486,24 @@ label already exists, choose a new label or ask the operator before deleting
 anything. Choose a non-sensitive state label; the label is later recorded in
 packet metadata.
 
+For sources that need a warm browser posture before manual login, the bootstrap
+runner may use CloakBrowser with a dedicated local user-data label:
+
+```powershell
+python runners/run_source_capture_browser_session_bootstrap.py `
+  --login-url "<ordinary login or target URL>" `
+  --state-label "<local state label>" `
+  --session-mode "<allowed session mode>" `
+  --browser-backend cloakbrowser `
+  --cloakbrowser-user-data-label "<local user-data label>"
+```
+
+This creates or reuses an ignored local CloakBrowser user-data directory under
+`orca-harness/_browser_user_data/`. It is a dedicated browser profile for manual
+login continuity, not direct import of an existing Chrome profile, cookies, or
+tokens. Do not print, stage, commit, copy, or packetize that directory or its
+contents.
+
 Then capture one explicit URL with that saved state:
 
 ```powershell

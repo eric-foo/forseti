@@ -18,6 +18,7 @@ from source_capture.auth_state import (
     validate_auth_state_file,
     write_auth_state_metadata,
 )
+from source_capture.browser_user_data import ensure_browser_user_data_directory
 from source_capture.adapters.browser_snapshot import DEFAULT_TIMEOUT_SECONDS
 
 
@@ -43,8 +44,10 @@ def run_browser_session_bootstrap(
     session_mode: AuthenticatedSessionMode,
     timeout_seconds: float,
     auth_state_root: Path | None = None,
+    browser_user_data_root: Path | None = None,
     browser_backend: str = BROWSER_BACKEND_PLAYWRIGHT,
     cloakbrowser_humanize: bool = False,
+    cloakbrowser_user_data_label: str | None = None,
     engine: BrowserSessionBootstrapEngine | None = None,
 ) -> tuple[int, str]:
     normalized_url = _validate_http_url(login_url)
@@ -53,6 +56,8 @@ def run_browser_session_bootstrap(
         raise ValueError("timeout_seconds must be greater than zero")
     if cloakbrowser_humanize and normalized_browser_backend != BROWSER_BACKEND_CLOAKBROWSER:
         raise ValueError("cloakbrowser_humanize requires browser_backend='cloakbrowser'")
+    if cloakbrowser_user_data_label and normalized_browser_backend != BROWSER_BACKEND_CLOAKBROWSER:
+        raise ValueError("cloakbrowser_user_data_label requires browser_backend='cloakbrowser'")
 
     auth_state_directory = ensure_auth_state_directory(auth_state_root=auth_state_root)
     state_path = auth_state_path_for_label(state_label, auth_state_root=auth_state_directory)
@@ -61,10 +66,19 @@ def run_browser_session_bootstrap(
         raise ValueError(f"auth-state file already exists for label: {state_label}")
     if metadata_path.exists():
         raise ValueError(f"auth-state metadata already exists for label: {state_label}")
+    user_data_dir = (
+        ensure_browser_user_data_directory(
+            cloakbrowser_user_data_label,
+            user_data_root=browser_user_data_root,
+        )
+        if cloakbrowser_user_data_label
+        else None
+    )
 
     bootstrap_engine = engine or _bootstrap_engine_for_backend(
         normalized_browser_backend,
         cloakbrowser_humanize=cloakbrowser_humanize,
+        cloakbrowser_user_data_dir=user_data_dir,
     )
     final_url = bootstrap_engine.save_storage_state(
         login_url=normalized_url,
@@ -87,12 +101,15 @@ def run_browser_session_bootstrap(
 
 
 def _bootstrap_engine_for_backend(
-    browser_backend: str, *, cloakbrowser_humanize: bool
+    browser_backend: str, *, cloakbrowser_humanize: bool, cloakbrowser_user_data_dir: Path | None
 ) -> BrowserSessionBootstrapEngine:
     if browser_backend == BROWSER_BACKEND_PLAYWRIGHT:
         return _PlaywrightSessionBootstrapEngine()
     if browser_backend == BROWSER_BACKEND_CLOAKBROWSER:
-        return _CloakBrowserSessionBootstrapEngine(cloakbrowser_humanize=cloakbrowser_humanize)
+        return _CloakBrowserSessionBootstrapEngine(
+            cloakbrowser_humanize=cloakbrowser_humanize,
+            user_data_dir=cloakbrowser_user_data_dir,
+        )
     raise ValueError("browser_backend must be one of: cloakbrowser, playwright")
 
 
@@ -143,8 +160,9 @@ class _PlaywrightSessionBootstrapEngine:
 
 
 class _CloakBrowserSessionBootstrapEngine:
-    def __init__(self, *, cloakbrowser_humanize: bool) -> None:
+    def __init__(self, *, cloakbrowser_humanize: bool, user_data_dir: Path | None) -> None:
         self.cloakbrowser_humanize = bool(cloakbrowser_humanize)
+        self.user_data_dir = user_data_dir
 
     def save_storage_state(
         self,
@@ -162,6 +180,27 @@ class _CloakBrowserSessionBootstrapEngine:
 
         timeout_ms = timeout_seconds * 1000
         try:
+            if self.user_data_dir is not None:
+                context = cloakbrowser.launch_persistent_context(
+                    self.user_data_dir,
+                    headless=False,
+                    stealth_args=True,
+                    humanize=self.cloakbrowser_humanize,
+                )
+                try:
+                    page = context.pages[0] if context.pages else context.new_page()
+                    page.goto(login_url, wait_until="load", timeout=timeout_ms)
+                    print(
+                        "Manual login bootstrap opened a persistent CloakBrowser window. "
+                        "Complete the permitted login there, then press Enter here to save storage state.",
+                        flush=True,
+                    )
+                    input()
+                    final_url = page.url
+                    context.storage_state(path=str(state_path))
+                    return final_url
+                finally:
+                    context.close()
             browser = cloakbrowser.launch(
                 headless=False,
                 stealth_args=True,
@@ -220,6 +259,14 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Enable CloakBrowser humanized pointer/keyboard timing when using the cloakbrowser backend.",
     )
+    parser.add_argument(
+        "--cloakbrowser-user-data-label",
+        default=None,
+        help=(
+            "Create or reuse an ignored local CloakBrowser user-data directory by label. "
+            "Only valid with --browser-backend cloakbrowser; do not pass profile paths."
+        ),
+    )
     return parser
 
 
@@ -228,6 +275,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.cloakbrowser_humanize and args.browser_backend != BROWSER_BACKEND_CLOAKBROWSER:
         parser.error("--cloakbrowser-humanize requires --browser-backend cloakbrowser")
+    if args.cloakbrowser_user_data_label and args.browser_backend != BROWSER_BACKEND_CLOAKBROWSER:
+        parser.error("--cloakbrowser-user-data-label requires --browser-backend cloakbrowser")
     cloakbrowser_humanize = args.cloakbrowser_humanize or args.browser_backend == BROWSER_BACKEND_CLOAKBROWSER
     try:
         exit_code, message = run_browser_session_bootstrap(
@@ -237,6 +286,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             timeout_seconds=args.timeout_seconds,
             browser_backend=args.browser_backend,
             cloakbrowser_humanize=cloakbrowser_humanize,
+            cloakbrowser_user_data_label=args.cloakbrowser_user_data_label,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture browser session bootstrap failed: {exc}\n")

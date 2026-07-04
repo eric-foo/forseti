@@ -666,7 +666,7 @@ Controlling build authority:
 (local source-observability support).
 
 Generated/gitignored scratch — do not enumerate or treat as authoritative:
-`orca-harness/_test_runs/` (scratch; does not exist yet on a fresh clone), `_auth_state/`, `pytest_*` temp dirs,
+`orca-harness/_test_runs/` (scratch; does not exist yet on a fresh clone), `_auth_state/`, `_browser_user_data/`, `pytest_*` temp dirs,
 `reports/source_observability/*_dry_run.*`, `cases/*/*/scores/`, and
 `memory/logs/`.
 

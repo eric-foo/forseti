@@ -14,6 +14,7 @@ from runners.run_source_capture_browser_session_bootstrap import run_browser_ses
 from source_capture import AuthenticatedSessionMode, CaptureModeCategory
 from source_capture.adapters.browser_snapshot import BrowserSnapshotSuccess
 from source_capture.auth_state import auth_state_path_for_label, validate_auth_state_file, write_auth_state_metadata
+from source_capture.browser_user_data import browser_user_data_path_for_label
 
 
 @pytest.fixture
@@ -46,6 +47,7 @@ def test_authenticated_browser_clis_expose_no_secret_or_password_flags() -> None
         "--profile",
         "--profile-path",
         "--storage-state-path",
+        "--user-data-dir",
     }
     parsers = [
         auth_runner._build_parser(),
@@ -62,6 +64,7 @@ def test_authenticated_browser_clis_expose_no_secret_or_password_flags() -> None
         assert options.isdisjoint(forbidden_options)
     assert "--browser-backend" in options
     assert "--cloakbrowser-humanize" in options
+    assert "--cloakbrowser-user-data-label" in options
 
 
 def test_auth_state_label_rejects_path_traversal(scratch_dir: Path) -> None:
@@ -69,6 +72,13 @@ def test_auth_state_label_rejects_path_traversal(scratch_dir: Path) -> None:
         auth_state_path_for_label("../outside", auth_state_root=scratch_dir)
     with pytest.raises(ValueError, match="auth-state label"):
         auth_state_path_for_label("nested/state", auth_state_root=scratch_dir)
+
+
+def test_browser_user_data_label_rejects_path_traversal(scratch_dir: Path) -> None:
+    with pytest.raises(ValueError, match="browser user-data label"):
+        browser_user_data_path_for_label("../outside", user_data_root=scratch_dir)
+    with pytest.raises(ValueError, match="browser user-data label"):
+        browser_user_data_path_for_label("nested/state", user_data_root=scratch_dir)
 
 
 def test_validate_auth_state_file_rejects_missing_and_bad_shape(scratch_dir: Path) -> None:
@@ -168,6 +178,70 @@ def test_session_bootstrap_rejects_cloakbrowser_humanize_without_cloakbrowser(
             cloakbrowser_humanize=True,
             engine=_FakeBootstrapEngine(),
         )
+
+
+def test_session_bootstrap_rejects_cloakbrowser_user_data_without_cloakbrowser(
+    scratch_dir: Path,
+) -> None:
+    with pytest.raises(ValueError, match="cloakbrowser_user_data_label requires"):
+        run_browser_session_bootstrap(
+            login_url="https://example.com/login",
+            state_label="free-example",
+            session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+            timeout_seconds=5,
+            auth_state_root=scratch_dir / "_auth_state",
+            browser_user_data_root=scratch_dir / "_browser_user_data",
+            browser_backend="playwright",
+            cloakbrowser_user_data_label="google-login",
+            engine=_FakeBootstrapEngine(),
+        )
+
+
+def test_session_bootstrap_checks_existing_state_before_creating_user_data_directory(
+    scratch_dir: Path,
+) -> None:
+    auth_root = scratch_dir / "_auth_state"
+    user_data_root = scratch_dir / "_browser_user_data"
+    auth_root.mkdir(parents=True)
+    state_path = auth_state_path_for_label("free-example", auth_state_root=auth_root)
+    state_path.write_text('{"cookies": [], "origins": []}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="auth-state file already exists"):
+        run_browser_session_bootstrap(
+            login_url="https://example.com/login",
+            state_label="free-example",
+            session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+            timeout_seconds=5,
+            auth_state_root=auth_root,
+            browser_user_data_root=user_data_root,
+            browser_backend="cloakbrowser",
+            cloakbrowser_user_data_label="google-login",
+            engine=_FakeBootstrapEngine(),
+        )
+
+    assert not (user_data_root / "google-login").exists()
+
+
+def test_session_bootstrap_creates_cloakbrowser_user_data_directory(
+    scratch_dir: Path,
+) -> None:
+    auth_root = scratch_dir / "_auth_state"
+    user_data_root = scratch_dir / "_browser_user_data"
+
+    exit_code, _ = run_browser_session_bootstrap(
+        login_url="https://example.com/login",
+        state_label="free-example",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        timeout_seconds=5,
+        auth_state_root=auth_root,
+        browser_user_data_root=user_data_root,
+        browser_backend="cloakbrowser",
+        cloakbrowser_user_data_label="google-login",
+        engine=_FakeBootstrapEngine(),
+    )
+
+    assert exit_code == 0
+    assert (user_data_root / "google-login").is_dir()
 
 
 def test_authenticated_browser_runner_writes_packet_without_state_leakage(
