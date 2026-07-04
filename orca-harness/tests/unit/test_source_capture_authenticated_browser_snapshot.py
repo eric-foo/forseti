@@ -17,6 +17,7 @@ from source_capture import AuthenticatedSessionMode, CaptureModeCategory
 from source_capture.adapters.browser_snapshot import BrowserSnapshotSuccess
 from source_capture.auth_state import auth_state_path_for_label, validate_auth_state_file, write_auth_state_metadata
 from source_capture.browser_user_data import browser_user_data_path_for_label
+from source_capture.proxy_profiles import ProxyProfile
 
 
 @pytest.fixture
@@ -88,6 +89,8 @@ def test_cloakbrowser_profile_warmup_cli_exposes_no_secret_or_path_flags() -> No
     assert destinations.isdisjoint(forbidden_destinations)
     assert options.isdisjoint(forbidden_options)
     assert "--user-data-label" in options
+    assert "--proxy-profile-label" in options
+    assert "--proxy-profile-root" in options
 
 
 def test_auth_state_label_rejects_path_traversal(scratch_dir: Path) -> None:
@@ -150,9 +153,13 @@ def _write_auth_state_pair(
 class _FakeWarmupEngine:
     def __init__(self) -> None:
         self.user_data_dirs: list[Path] = []
+        self.proxy_profiles: list[ProxyProfile | None] = []
 
-    def warm_profile(self, *, login_url: str, user_data_dir: Path) -> str:
+    def warm_profile(
+        self, *, login_url: str, user_data_dir: Path, proxy_profile: ProxyProfile | None
+    ) -> str:
         self.user_data_dirs.append(user_data_dir)
+        self.proxy_profiles.append(proxy_profile)
         return login_url
 
 
@@ -174,6 +181,52 @@ def test_cloakbrowser_profile_warmup_uses_label_indirected_user_data_without_aut
     assert (user_data_root / "google-login").is_dir()
     assert "google-login" in message
     assert str(user_data_root) not in message
+    assert engine.proxy_profiles == [None]
+    assert not (scratch_dir / "_auth_state").exists()
+
+
+def test_cloakbrowser_profile_warmup_uses_proxy_profile_label_without_secret_output(
+    scratch_dir: Path,
+) -> None:
+    user_data_root = scratch_dir / "_browser_user_data"
+    profile_root = scratch_dir / "_proxy_profiles"
+    profile_root.mkdir(parents=True)
+    (profile_root / "reddit-res.json").write_text(
+        json.dumps({"server": "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"}),
+        encoding="utf-8",
+    )
+    (profile_root / "reddit-res.meta.json").write_text(
+        json.dumps(
+            {
+                "profile_file": "reddit-res.json",
+                "proxy_category": "residential_rotating",
+                "geoip_enabled": False,
+                "timezone": "America/New_York",
+                "locale": "en-US",
+            }
+        ),
+        encoding="utf-8",
+    )
+    engine = _FakeWarmupEngine()
+
+    exit_code, message = run_cloakbrowser_profile_warmup(
+        login_url="https://example.com/login",
+        user_data_label="google-login",
+        user_data_root=user_data_root,
+        proxy_profile_label="reddit-res",
+        proxy_profile_root=profile_root,
+        engine=engine,
+    )
+
+    assert exit_code == 0
+    assert engine.user_data_dirs == [user_data_root / "google-login"]
+    assert engine.proxy_profiles[0] is not None
+    assert engine.proxy_profiles[0].proxy_category.value == "residential_rotating"
+    assert "reddit-res" in message
+    assert "residential_rotating" in message
+    assert "SUPER_SECRET_PROXY_VALUE" not in message
+    assert "proxy.example" not in message
+    assert str(profile_root) not in message
     assert not (scratch_dir / "_auth_state").exists()
 
 

@@ -516,9 +516,22 @@ python runners/run_source_capture_cloakbrowser_profile_warmup.py `
 ```
 
 Complete the permitted login in that direct browser, close the browser, then
-press Enter in the warmup terminal. After that, rerun the session bootstrap with
-the same `--cloakbrowser-user-data-label` to save the harness storage-state
-label. The warmup runner writes no packet and saves no auth-state by itself.
+press Enter in the warmup terminal. When a source-access diagnostic needs the
+operator-authorized proxy store, add only the label-indirected proxy flags:
+
+```powershell
+python runners/run_source_capture_cloakbrowser_profile_warmup.py `
+  --login-url "<ordinary login or target URL>" `
+  --user-data-label "<local user-data label>" `
+  --proxy-profile-label "<local proxy profile label>" `
+  --proxy-profile-root "<optional local proxy-profile store root>"
+```
+
+The proxy endpoint and credentials are loaded from the ignored store only for
+the browser launch. Do not print, stage, commit, copy, or packetize the proxy
+profile file or endpoint. After warmup, rerun the session bootstrap with the
+same `--cloakbrowser-user-data-label` to save the harness storage-state label.
+The warmup runner writes no packet and saves no auth-state by itself.
 
 Then capture one explicit URL with that saved state:
 
