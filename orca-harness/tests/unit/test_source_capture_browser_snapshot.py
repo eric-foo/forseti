@@ -969,7 +969,7 @@ def test_cloakbrowser_page_observation_uses_cloak_launch(monkeypatch: pytest.Mon
     )
 
     assert fake_cloakbrowser.launch_kwargs is not None
-    assert fake_cloakbrowser.launch_kwargs["backend"] == "playwright"
+    assert "backend" not in fake_cloakbrowser.launch_kwargs
     assert fake_cloakbrowser.launch_kwargs["stealth_args"] is True
     assert fake_cloakbrowser.launch_kwargs["humanize"] is True
     assert result.metadata["browser_backend"] == "cloakbrowser"

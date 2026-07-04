@@ -1388,7 +1388,6 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
         launch_kwargs: dict[str, object] = {
             "headless": headless,
             "stealth_args": True,
-            "backend": "playwright",
             "humanize": self.cloakbrowser_humanize,
         }
         if proxy_profile is not None:

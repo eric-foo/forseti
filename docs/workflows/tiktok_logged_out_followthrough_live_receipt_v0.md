@@ -318,9 +318,10 @@ Observed result:
   info), but transcript capture did not run because the live probe rejected the
   subtitle URL host as `unsupported_subtitle_url_host_live_probe_v0`; raw subtitle
   URLs/bodies remained unpersisted per contract.
-- Local runtime note: CloakBrowser printed an update notice from installed
-  `0.3.31` to upstream `0.4.7`. This does not invalidate the receipt, but the
-  wrapper should be updated before treating CloakBrowser posture as current.
+- Local runtime note: the receipt was produced before upgrading the installed
+  wrapper from `0.3.31` to `0.4.7`. After upgrade, CloakBrowser `0.4.7` removed
+  the `backend=` launch argument, so the adapter must launch without that
+  argument and then run the adapter smoke before any TikTok probe.
 
 Classification: `accepted_close_with_comment_evidence` by the handoff taxonomy,
 but not registry promotion, not cross-creator durability, and not transcript

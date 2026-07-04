@@ -89,9 +89,11 @@ Use this pin as routing evidence, not admission evidence. The runner surface is
 For TikTok slider/captcha handoff, `--human-challenge-handoff` requires
 `--allow-challenge-close-followthrough` and fires only after scripted X/Close
 actions. Any manual solve is source-access intervention in the receipt, not
-clean capture. This does not prove cross-creator durability, page-owned
-`/api/comment/list` response capture, subtitle transcript capture across
-creators, account safety at volume, or creator-registry promotion.
+clean capture. CloakBrowser `0.4.7` removed the old `backend=` launch argument;
+adapter smoke-test `--browser-backend cloakbrowser` after wrapper upgrades before
+spending TikTok probe budget. This does not prove cross-creator durability,
+page-owned `/api/comment/list` response capture, subtitle transcript capture
+across creators, account safety at volume, or creator-registry promotion.
 
 Current owner source-access redirect: for public TikTok content, an X-able
 slider/captcha/security modal is no longer a hard capture blocker when the
