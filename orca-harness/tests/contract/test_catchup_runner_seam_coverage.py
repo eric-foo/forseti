@@ -41,6 +41,7 @@ EXPECTED_SEAM_CONSUMER_RUNNERS = frozenset(
 
 _REQUIRED_CONSUMPTION_IMPORTS = {"pickup", "append_ack", "reconcile_availability_per_packet"}
 _FORBIDDEN_CONSUMER_CALLS = {"rebuild_availability", "record_availability"}
+_RECONCILE_HELPER = "reconcile_availability_per_packet"
 
 
 def _runner_trees() -> dict[str, ast.AST]:
@@ -58,23 +59,104 @@ def _consumption_imports(tree: ast.AST) -> set[str]:
     return names
 
 
+def _consumption_local_names(tree: ast.AST) -> dict[str, str]:
+    names: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module == "data_lake.consumption":
+            for alias in node.names:
+                names[alias.asname or alias.name] = alias.name
+    return names
+
+
+def _imports_consumption_module(tree: ast.AST) -> bool:
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            if any(alias.name == "data_lake.consumption" for alias in node.names):
+                return True
+        if isinstance(node, ast.ImportFrom) and node.module == "data_lake":
+            if any(alias.name == "consumption" for alias in node.names):
+                return True
+    return False
+
+
+def _uses_consumption(tree: ast.AST) -> bool:
+    return bool(_consumption_imports(tree)) or _imports_consumption_module(tree)
+
+
 def _call_names(tree: ast.AST) -> list[ast.Call]:
     return [node for node in ast.walk(tree) if isinstance(node, ast.Call)]
 
 
-def _called_name(node: ast.Call) -> str:
+def _called_name(node: ast.Call, local_names: dict[str, str] | None = None) -> str:
+    local_names = local_names or {}
     func = node.func
     if isinstance(func, ast.Attribute):
         return func.attr
     if isinstance(func, ast.Name):
-        return func.id
+        return local_names.get(func.id, func.id)
     return ""
 
 
-def test_seam_consumer_runner_surface_is_explicit() -> None:
-    discovered = {
-        name for name, tree in _runner_trees().items() if _consumption_imports(tree)
+def _contains_name(node: ast.AST, name: str) -> bool:
+    return any(
+        isinstance(child, ast.Name) and child.id == name and isinstance(child.ctx, ast.Load)
+        for child in ast.walk(node)
+    )
+
+
+def _visible_reconcile_lines(
+    function: ast.FunctionDef | ast.AsyncFunctionDef, local_names: dict[str, str]
+) -> list[int]:
+    parents = {
+        child: parent
+        for parent in ast.walk(function)
+        for child in ast.iter_child_nodes(parent)
     }
+    assigned: dict[str, int] = {}
+    visible: list[int] = []
+
+    for call in [node for node in ast.walk(function) if isinstance(node, ast.Call)]:
+        if _called_name(call, local_names) != _RECONCILE_HELPER:
+            continue
+        parent = parents.get(call)
+        if isinstance(parent, ast.Call) and _called_name(parent, local_names) == "extend":
+            visible.append(call.lineno)
+        elif isinstance(parent, ast.Return):
+            visible.append(call.lineno)
+        elif isinstance(parent, ast.Assign) and parent.value is call:
+            for target in parent.targets:
+                if isinstance(target, ast.Name):
+                    assigned[target.id] = call.lineno
+
+    for name, line in assigned.items():
+        for node in ast.walk(function):
+            if getattr(node, "lineno", 0) <= line:
+                continue
+            if isinstance(node, (ast.If, ast.Return, ast.Raise)) and _contains_name(node, name):
+                visible.append(line)
+                break
+            if isinstance(node, ast.Call) and _called_name(node, local_names) in {"extend", "append"}:
+                if any(_contains_name(arg, name) for arg in node.args):
+                    visible.append(line)
+                    break
+    return sorted(set(visible))
+
+
+def _pickup_reconcile_false_lines(
+    function: ast.FunctionDef | ast.AsyncFunctionDef, local_names: dict[str, str]
+) -> list[int]:
+    lines: list[int] = []
+    for call in [node for node in ast.walk(function) if isinstance(node, ast.Call)]:
+        if _called_name(call, local_names) != "pickup":
+            continue
+        for kw in call.keywords:
+            if kw.arg == "reconcile" and isinstance(kw.value, ast.Constant) and kw.value.value is False:
+                lines.append(call.lineno)
+    return lines
+
+
+def test_seam_consumer_runner_surface_is_explicit() -> None:
+    discovered = {name for name, tree in _runner_trees().items() if _uses_consumption(tree)}
 
     new_consumers = discovered - EXPECTED_SEAM_CONSUMER_RUNNERS
     assert not new_consumers, (
@@ -97,9 +179,11 @@ def test_seam_consumers_use_pickup_ack_and_the_shared_reconcile() -> None:
         tree = trees[name]
         issues: list[str] = []
         imported = _consumption_imports(tree)
+        local_names = _consumption_local_names(tree)
         missing = _REQUIRED_CONSUMPTION_IMPORTS - imported
         if missing:
             issues.append(f"missing consumption imports: {sorted(missing)}")
+        visible_reconciles = []
         local_defs = {
             node.name
             for node in ast.walk(tree)
@@ -110,8 +194,26 @@ def test_seam_consumers_use_pickup_ack_and_the_shared_reconcile() -> None:
                 "carries a local _reconcile_availability copy; use "
                 "data_lake.consumption.reconcile_availability_per_packet"
             )
+        for function in [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        ]:
+            function_reconciles = _visible_reconcile_lines(function, local_names)
+            visible_reconciles.extend(function_reconciles)
+            for line in _pickup_reconcile_false_lines(function, local_names):
+                if not any(reconcile_line < line for reconcile_line in function_reconciles):
+                    issues.append(
+                        f"pickup at line {line} opts out of reconcile without an earlier "
+                        "same-function visible reconcile_availability_per_packet failure channel"
+                    )
+        if not visible_reconciles:
+            issues.append(
+                "does not visibly use reconcile_availability_per_packet return values; "
+                "import-only or discarded helper calls do not surface reconcile failures"
+            )
         for call in _call_names(tree):
-            called = _called_name(call)
+            called = _called_name(call, local_names)
             if called in _FORBIDDEN_CONSUMER_CALLS:
                 issues.append(
                     f"calls {called} directly at line {call.lineno}; availability "
