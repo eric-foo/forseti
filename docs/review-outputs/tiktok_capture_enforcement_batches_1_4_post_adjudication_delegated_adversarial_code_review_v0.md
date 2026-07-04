@@ -92,7 +92,7 @@ and non-clean-capture semantics). No bounded, in-scope defect was found in the
 ## Non-Claims
 
 This review and its findings are decision input only. They are not approval,
-validation, mandatory remediation, merge authority, account-safety proof,
+validation, mandatory remediation, executor-ready patch authority, merge authority, account-safety proof,
 no-proxy network proof, CAPTCHA-bypass proof, live TikTok success, scale
 readiness, or readiness to merge until the home model adjudicates these
 findings and required gates pass.
