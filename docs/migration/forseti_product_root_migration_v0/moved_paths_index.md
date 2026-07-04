@@ -217,6 +217,7 @@ the root-prefix row below.
 | `orca/product/spines/commission_signal_board/tests/validator_tests.md` | `forseti/product/spines/commission_signal_board/tests/validator_tests.md` |
 | `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` | `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` |
 | `orca/product/spines/creator_signal/README.md` | `forseti/product/spines/creator_signal/README.md` |
+| `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` | `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` |
 | `orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md` | `forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md` |
 | `orca/product/spines/creator_signal/creator_signal_market_sizing_v0.md` | `forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md` |
 | `orca/product/spines/creator_signal/creator_signal_multi_creator_library_client_projection_v0.md` | `forseti/product/spines/creator_signal/creator_signal_multi_creator_library_client_projection_v0.md` |
