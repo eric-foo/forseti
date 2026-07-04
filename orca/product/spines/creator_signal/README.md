@@ -49,6 +49,7 @@ Binding authority:
 | Path | Role |
 | --- | --- |
 | `creator_intelligence_profile_surface_v0.md` | First product surface contract for the one-stop creator intelligence profile. |
+| `aphrodite_carveout_charter_v0.md` | Carveout charter: Aphrodite identity stitch, phase strategy, two-layer moat doctrine, Vetting Sprint offer, decision register (owner-ratified direction, 2026-07-04). |
 | `creator_signal_product_architecture_v0.md` | Pre-ratification product architecture plan for the Creator Signal carve-out and Vetting v0 first increment. |
 | `creator_signal_market_sizing_v0.md` | Internal rough TAM/SAM/SOM market-sizing estimate for the Creator Signal carve-out (not demand validation or buyer proof). |
 | `creator_signal_multi_creator_library_surface_v0.md` | Product-facing display contract for the multi-creator Creator Signal Library surface. |
