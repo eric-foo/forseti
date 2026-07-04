@@ -182,6 +182,19 @@ no contact info and never leave the report.
 
 - **Lead lane: indie/DTC fragrance brands** — they own the exact decision the
   sprint serves.
+  - *Lead-lane sharpening (owner-directed 2026-07-05, non-negotiable inclusion):*
+    the lead lane **explicitly includes dupe-first / clone houses,
+    creator-owned DTC, and pre-designer specialty/indie houses** — the
+    graduation cohort (dupe-first → originals → mainstream retail; the
+    Lattafa / Armaf / Dossier-into-Sephora arc). Rationale: this cohort's
+    recurring decision — *which proven original to chase next, and whether that
+    niche is already saturated* — is the exact decision the sprint and the fit
+    read serve; the dupe-relationship graph plus attention-weighted SoV is
+    buyer-core for them, not enrichment. The ontology tier vocabulary
+    (`clone-house`, `creator-owned-dtc` in
+    `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml`)
+    already carries the classification. Brand-safety / imitation-legality
+    screening stays a per-engagement owner call, never a lane exclusion.
 - **Agencies: conditional** — admitted only when the accountable client
   decision owner joins the readback (house rule inherited from the parent
   proof doctrine; agency interest alone is not proof).
