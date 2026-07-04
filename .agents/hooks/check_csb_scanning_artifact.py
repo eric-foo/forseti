@@ -113,9 +113,34 @@ REQUIRED_CAPTURE_REQUEST_FIELDS = {
     "what_capture_should_verify",
     "decision_window",
     "route_binding_state",
+    "creator_registry_match_preflight",
     "screening_evidence_summary",
     "uncertainty_or_access_limits",
     "not_requested",
+}
+REQUIRED_CREATOR_REGISTRY_PREFLIGHT_FIELDS = {
+    "required_when",
+    "receipt_path",
+    "intended_action",
+    "decision",
+    "action_status",
+    "can_start_new_capture",
+}
+VALID_CREATOR_REGISTRY_REQUIRED_WHEN = {"new_social_creator_account_capture", "not_applicable"}
+NOT_APPLICABLE_ALLOWED_PREFLIGHT_VOCAB = {"", "not_applicable"}
+VALID_CREATOR_REGISTRY_INTENDED_ACTIONS = {"new_capture", "classify", "update_existing", "not_applicable"}
+VALID_CREATOR_REGISTRY_DECISIONS = {"existing_match", "new_candidate", "ambiguous_match", "invalid_candidate", "not_applicable"}
+VALID_CREATOR_REGISTRY_ACTION_STATUSES = {"allowed", "blocked", "not_applicable"}
+PLACEHOLDER_PREFLIGHT_RECEIPT_VALUES = {
+    "",
+    "none",
+    "null",
+    "null_or_path",
+    "not_applicable",
+    "unknown",
+    "unknown_with_reason",
+    "path",
+    "path_to_preflight_receipt_json",
 }
 REQUIRED_CAPTURE_URL_FIELDS = {"url", "venue", "observation_supported", "gate_role"}
 REQUIRED_NOT_REQUESTED = {
@@ -314,6 +339,18 @@ def _has_text(value: Any) -> bool:
 
 def _is_url(value: Any) -> bool:
     return isinstance(value, str) and re.match(r"https?://", value.strip(), re.IGNORECASE) is not None
+
+
+def _as_bool(value: Any) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized == "true":
+            return True
+        if normalized == "false":
+            return False
+    return None
 
 
 def _is_iso_date(value: Any) -> bool:
@@ -546,6 +583,91 @@ def _validate_candidate_observations(blocks: list[Any]) -> list[Finding]:
     return findings
 
 
+def _validate_creator_registry_match_preflight(request_id: Any, request: dict[str, Any]) -> list[Finding]:
+    preflight = request.get("creator_registry_match_preflight")
+    if not isinstance(preflight, dict):
+        return [
+            Finding(
+                "invalid_creator_registry_match_preflight",
+                f"Capture request {request_id} creator_registry_match_preflight must be a mapping with required_when.",
+            )
+        ]
+
+    findings: list[Finding] = []
+    required_when = _normalize_vocab(preflight.get("required_when"))
+    if required_when not in VALID_CREATOR_REGISTRY_REQUIRED_WHEN:
+        findings.append(
+            Finding(
+                "invalid_creator_registry_match_preflight_required_when",
+                "creator_registry_match_preflight.required_when must be new_social_creator_account_capture or not_applicable.",
+            )
+        )
+        return findings
+
+    if required_when == "not_applicable":
+        disallowed = [
+            field
+            for field in ("intended_action", "decision", "action_status")
+            if _normalize_vocab(preflight.get(field)) not in NOT_APPLICABLE_ALLOWED_PREFLIGHT_VOCAB
+        ]
+        if "receipt_path" in preflight and _normalize_vocab(
+            preflight.get("receipt_path")
+        ) not in PLACEHOLDER_PREFLIGHT_RECEIPT_VALUES:
+            disallowed.append("receipt_path")
+        can_start = preflight.get("can_start_new_capture")
+        if _as_bool(can_start) is True or _normalize_vocab(can_start) not in (
+            NOT_APPLICABLE_ALLOWED_PREFLIGHT_VOCAB | {"false"}
+        ):
+            disallowed.append("can_start_new_capture")
+        if disallowed:
+            findings.append(
+                Finding(
+                    "contradictory_creator_registry_match_preflight_not_applicable",
+                    f"Capture request {request_id} creator_registry_match_preflight is not_applicable but also carries: {', '.join(disallowed)}.",
+                )
+            )
+        return findings
+
+    missing = _required_missing(preflight, REQUIRED_CREATOR_REGISTRY_PREFLIGHT_FIELDS)
+    if missing:
+        findings.append(
+            Finding(
+                "missing_creator_registry_match_preflight_fields",
+                f"Capture request {request_id} creator_registry_match_preflight is missing: {', '.join(missing)}.",
+            )
+        )
+        return findings
+
+    receipt_path = preflight.get("receipt_path")
+    if not isinstance(receipt_path, str) or _normalize_vocab(receipt_path) in PLACEHOLDER_PREFLIGHT_RECEIPT_VALUES:
+        findings.append(
+            Finding(
+                "invalid_creator_registry_match_preflight_receipt_path",
+                f"Capture request {request_id} must cite a concrete Creator Registry preflight receipt path.",
+            )
+        )
+
+    intended_action = _normalize_vocab(preflight.get("intended_action"))
+    decision = _normalize_vocab(preflight.get("decision"))
+    action_status = _normalize_vocab(preflight.get("action_status"))
+    can_start = _as_bool(preflight.get("can_start_new_capture"))
+
+    if intended_action not in VALID_CREATOR_REGISTRY_INTENDED_ACTIONS:
+        findings.append(Finding("invalid_creator_registry_preflight_intended_action", f"Capture request {request_id} has invalid intended_action."))
+    if decision not in VALID_CREATOR_REGISTRY_DECISIONS:
+        findings.append(Finding("invalid_creator_registry_preflight_decision", f"Capture request {request_id} has invalid decision."))
+    if action_status not in VALID_CREATOR_REGISTRY_ACTION_STATUSES:
+        findings.append(Finding("invalid_creator_registry_preflight_action_status", f"Capture request {request_id} has invalid action_status."))
+    if intended_action != "new_capture" or decision != "new_candidate" or action_status != "allowed" or can_start is not True:
+        findings.append(
+            Finding(
+                "creator_registry_preflight_does_not_clear_new_capture",
+                f"Capture request {request_id} new social creator/account capture requires intended_action=new_capture, decision=new_candidate, action_status=allowed, and can_start_new_capture=true.",
+            )
+        )
+    return findings
+
+
 def _validate_capture_requests(blocks: list[Any]) -> list[Finding]:
     findings: list[Finding] = []
     for request in _records(blocks, "capture_request_id"):
@@ -553,6 +675,9 @@ def _validate_capture_requests(blocks: list[Any]) -> list[Finding]:
         missing = _required_missing(request, REQUIRED_CAPTURE_REQUEST_FIELDS)
         if missing:
             findings.append(Finding("missing_capture_request_fields", f"Capture request {request_id} is missing: {', '.join(missing)}."))
+
+        if "creator_registry_match_preflight" in request:
+            findings.extend(_validate_creator_registry_match_preflight(request_id, request))
 
         route_state = _normalize_vocab(request.get("route_binding_state"))
         if route_state not in VALID_ROUTE_BINDING_STATES:
