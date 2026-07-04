@@ -1,5 +1,13 @@
 # Aphrodite Depth-Layer Build — Cold Handoff v0
 
+> **SUPERSEDED (2026-07-05)** by
+> `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v1.md`.
+> This packet's own `stale_if` fired: the charter D-1 gate is ratified
+> (register row D-1, 2026-07-05), the recommended single-creator rehearsal
+> slice has since run twice and been graded, and the fragrance ontology it
+> lists as a build task now exists (`fragrance_reference_v0.yaml`). Kept
+> verbatim below as the point-in-time record; do not execute from it.
+
 ```yaml
 retrieval_header_version: 1
 artifact_role: Implementation handoff packet (planning artifact — NOT a build authorization)

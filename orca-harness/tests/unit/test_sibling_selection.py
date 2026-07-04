@@ -136,6 +136,29 @@ def test_rank_then_recency_compose_and_all_bypassed_are_reported() -> None:
     ]
 
 
+def test_collapse_preserves_max_rank_of_identical_content_candidates() -> None:
+    # Observed on the live lake: three distinct ULID derivations of one packet plus a
+    # rank-1 catch-up byte-identical to the newest ULID record. The collapse keeps
+    # the lexically smallest ref as representative, but must CARRY the catch-up's
+    # rank -- otherwise the supersession authority is lost and the three rank-0
+    # records tie ambiguous instead of being superseded.
+    old_a = _candidate(ref="01_old_a.json", content="aaa", instant="2026-06-29T13:48:30Z")
+    old_b = _candidate(ref="01_old_b.json", content="bbb", instant="2026-06-29T13:48:30Z")
+    newest_ulid = _candidate(ref="01_newest.json", content="ccc", instant="2026-06-29T13:48:30Z")
+    catchup_twin = _candidate(
+        ref="zz_catchup.json", content="ccc", instant="2026-06-29T13:48:30Z", rank=1
+    )
+
+    selection = select_current_record_per_subject([old_a, old_b, newest_ulid, catchup_twin])
+
+    assert selection["creator"].selected.record_ref == "01_newest.json"
+    assert selection["creator"].selected.derivation_rank == 1
+    assert sorted(c.record_ref for c in selection["creator"].bypassed) == [
+        "01_old_a.json",
+        "01_old_b.json",
+    ]
+
+
 def test_subjects_are_selected_independently() -> None:
     one = _candidate(subject="one", ref="one.json", content="aaa")
     two = _candidate(subject="two", anchor="packet_b", ref="two.json", content="bbb")

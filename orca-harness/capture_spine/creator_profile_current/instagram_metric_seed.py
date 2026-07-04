@@ -40,14 +40,25 @@ def load_json(path: str | Path) -> dict[str, Any]:
 def discover_instagram_reels_projection_paths_from_lake(data_root: DataLakeRoot) -> list[Path]:
     """Return unique IG reels-grid projection files from flat and sharded lake layouts.
 
-    Physical dedupe is exact-content only. Semantic username/currentness selection
-    stays in ``build_instagram_reels_creator_metric_seed_from_files``.
+    Physical dedupe is exact-content only; semantic username/currentness selection
+    stays in ``build_instagram_reels_creator_metric_seed_from_files``. The
+    representative of identical-content duplicates is RANK-AWARE: keep the path
+    whose record-id class carries the highest declared derivation rank, then the
+    lexically smallest path for determinism. A catch-up record byte-identical to an
+    earlier sibling must survive dedupe as the representative, or its supersession
+    authority over the anchor's OTHER siblings is silently lost before selection
+    ever runs (observed on the live lake, 2026-07-05).
     """
     by_sha256: dict[str, Path] = {}
     for path in _iter_instagram_reels_projection_paths_from_lake(data_root):
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
         current = by_sha256.get(digest)
-        if current is None or str(path) < str(current):
+        if current is None:
+            by_sha256[digest] = path
+            continue
+        path_rank = projection_record_id_derivation_rank(path.name)
+        current_rank = projection_record_id_derivation_rank(current.name)
+        if path_rank > current_rank or (path_rank == current_rank and str(path) < str(current)):
             by_sha256[digest] = path
     return sorted(by_sha256.values(), key=lambda item: str(item))
 

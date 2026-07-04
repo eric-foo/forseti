@@ -16,6 +16,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
@@ -46,6 +47,12 @@ different speeds and carry different authority:
 - `creator_profile_current_record_contract_v0.md` pins the per-profile visible
   field surface, consumer interpretation promise, and declared-deferred global
   metric recipes for `posting_cadence` and `recent_velocity`.
+- `creator_ledger_operational_evolution_contract_v0.md` pins the
+  migration-stable additive-evolution rule, capability routing matrix, and
+  upgrade-intake shape: future
+  capability should add fields, sibling records, resolvers, or views without
+  rewriting existing source truth, and God Tier progress is judged by operational
+  efficacy before audit completeness.
 - Metric observations, rollups, capture receipts, and future audience snapshots
   remain in their owning Capture/Silver producer records. They are not copied
   into the registry index as raw truth.
@@ -73,10 +80,15 @@ useful signal. The registry index only prevents duplicate rows and duplicate wor
 Discovery observes a handle or URL
 -> normalize platform/account/handle
 -> check creator_registry_index_v0.json
--> exact known account: attach discovery evidence to the existing account
+-> exact known account: attach discovery evidence through the owning source-family observation or capture-refresh handoff, keyed to the stable account/subject ids
 -> possible same creator: create or refresh a candidate link review item
 -> unknown account: create a new candidate stub through the owning source lane
 ```
+
+When the next capability is not exact preflight, use the capability routing
+matrix in `creator_ledger_operational_evolution_contract_v0.md` before changing
+record shape. Repeat observations, metric facts, rollups, linkage review, and
+Creator Signal interpretation each have different owning layers.
 
 ## Non-Claims
 

@@ -38,7 +38,7 @@ surfaces the bypassed set as named residuals instead of silently absorbing it.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from typing import Any, Iterable
 
@@ -134,12 +134,37 @@ def _select_one_subject(subject_key: str, group: list[SiblingCandidate]) -> Sele
 
 
 def _collapse_identical_content(group: list[SiblingCandidate]) -> list[SiblingCandidate]:
-    by_hash: dict[str, SiblingCandidate] = {}
+    """Collapse identical-content candidates to one representative per content hash.
+
+    The representative keeps the lexically smallest ``record_ref`` (pure determinism
+    -- identical bytes cannot disagree) but MUST carry the collapsed group's MAX
+    ``derivation_rank`` and newest capture instant: a catch-up re-derivation that is
+    byte-identical to an earlier sibling still carries the catch-up's supersession
+    authority over OTHER distinct-content siblings of the anchor. Dropping the rank
+    here would resurrect the ambiguity the catch-up existed to resolve (observed on
+    the live lake: a rank-1 catch-up byte-identical to the newest of three ULID
+    derivations must supersede the two older ones, not tie with them at rank 0).
+    """
+    grouped: dict[str, list[SiblingCandidate]] = {}
     for candidate in group:
-        current = by_hash.get(candidate.content_hash)
-        if current is None or candidate.record_ref < current.record_ref:
-            by_hash[candidate.content_hash] = candidate
-    return sorted(by_hash.values(), key=lambda item: item.record_ref)
+        grouped.setdefault(candidate.content_hash, []).append(candidate)
+    collapsed: list[SiblingCandidate] = []
+    for candidates in grouped.values():
+        representative = min(candidates, key=lambda item: item.record_ref)
+        top_rank = max(candidate.derivation_rank for candidate in candidates)
+        instants = [
+            candidate.capture_instant_or_none
+            for candidate in candidates
+            if candidate.capture_instant_or_none is not None
+        ]
+        collapsed.append(
+            replace(
+                representative,
+                derivation_rank=top_rank,
+                capture_instant_or_none=max(instants) if instants else None,
+            )
+        )
+    return sorted(collapsed, key=lambda item: item.record_ref)
 
 
 def _apply_anchor_rank(
