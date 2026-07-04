@@ -65,6 +65,28 @@ spot_check:
     existence as 2015 Le Male flanker; La Vie Est Belle gourmand family.
     Confirmed facts carry their URL below; everything else remains
     operator_asserted_pending_source until a fragrance reference is bound.
+fragrantica_sourcing_run:
+  date: 2026-07-04
+  coverage: >
+    15 of 16 products fetched from fragrantica.com public logged-out pages
+    (product:fragrance-one.the-man is not listed there — brand catalog of 23
+    products enumerated — nor found via two bounded Parfumo fallback attempts).
+  method: >
+    Owner-authorized bounded sourcing run per the Source Capture Toolbox
+    anti-blocking ladder, first re-probe rung only (browser-realistic headers;
+    no proxy, no browser automation, no login, no credential use, no
+    access-control bypass). Sequential requests, ~4.5s spacing, 31 total HTTP
+    requests. Product URLs resolved via each house's public designer catalog
+    page, never guessed numeric IDs.
+  yields: >
+    main accords (now the `accords` field, verbatim), note pyramids (now the
+    `notes` field, verbatim), and note_families re-derived via
+    vocabulary.accord_to_family_mapping. tier and occasions were NOT sourced by
+    this run and keep their prior provenance.
+  dupe_data: >
+    none capturable — Fragrantica's "reminds me of" widget hydrates client-side
+    (post-load XHR) and is absent from static HTML; dupe_relationships stays
+    empty pending a citable source.
 
 vocabulary:
   note_families:
@@ -78,7 +100,39 @@ vocabulary:
     provenance: operator_asserted_pending_source
   accords_note: >
     Accords are free-vocabulary strings (schema-light); each product's accord
-    list carries its own provenance line.
+    list carries its own provenance line. As of the 2026-07-04 Fragrantica
+    sourcing run, `accords` holds the source's main accords verbatim and the
+    free-form `notes` field holds the top/middle/base pyramid verbatim.
+  accord_to_family_mapping:
+    rule: >
+      For Fragrantica-sourced products, note_families is DERIVED from the
+      product's main accords via this table (operator-defined 2026-07-04).
+      Accords not in the table stay accords-only and contribute no family; a
+      compound accord may map to two families. The table is data — amend it
+      with provenance like any fact.
+    map:
+      fresh: [fresh]
+      fresh spicy: [fresh, spicy]
+      warm spicy: [spicy]
+      cinnamon: [spicy]
+      citrus: [citrus]
+      aromatic: [aromatic]
+      woody: [woody]
+      amber: [amber]
+      musky: [musk]
+      fruity: [fruity]
+      sweet: [sweet]
+      vanilla: [gourmand]
+      cacao: [gourmand]
+      white floral: [floral]
+      floral: [floral]
+      rose: [floral]
+      powdery: [powdery]
+      green: [green]
+      leather: [leather]
+      marine: [aquatic]
+    unmapped_observed: [smoky, aldehydic, soapy, patchouli]   # accords-only pending a vocabulary decision
+    provenance: "operator-defined mapping, 2026-07-04 (adjudicated with the Fragrantica sourcing run)"
 
 houses:
   brand:dior:
@@ -170,94 +224,133 @@ products:
   product:dior.sauvage:
     name: Sauvage
     house: brand:dior
-    note_families: [aromatic, fresh, amber, spicy]
-    accords: [bergamot, pepper, ambroxan, lavender]
+    note_families: [fresh, spicy, amber, citrus, aromatic, musk, woody]
+    accords: [fresh spicy, amber, citrus, aromatic, musky, woody]
+    notes:
+      top: [Calabrian bergamot, Pepper]
+      middle: [Sichuan Pepper, Lavender, Pink Pepper, Vetiver, Patchouli, Geranium, elemi]
+      base: [Ambroxan, Cedar, Labdanum]
     tier: designer
     occasions: [versatile, daily]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 14940 ('Dior Savage'); docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md top-products table (5 videos)"
-      note_families: operator_asserted_pending_source
-      accords: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 14940 ('Dior Savage'); docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md top-products table (5 videos); https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html (accessed 2026-07-04, title 'Sauvage Dior cologne - a fragrance for men 2015')"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:creed.aventus:
     name: Aventus
     house: brand:creed
-    note_families: [fruity, woody, fresh]
-    accords: [pineapple, birch, blackcurrant, musk]
+    note_families: [fruity, sweet, woody, leather, citrus]
+    accords: [fruity, sweet, woody, leather, citrus, smoky]
+    notes:
+      top: [Bergamot, Black Currant, Apple, Lemon, Pink Pepper]
+      middle: [Pineapple, Patchouli, Moroccan Jasmine]
+      base: [Birch, Musk, oak moss, Cedarwood, Ambroxan]
     tier: niche
     occasions: [versatile]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (Creed Aventus, 5 videos)"
-      note_families: "https://en.wikipedia.org/wiki/Aventus (fruity-chypre; apple/blackcurrant/pineapple top, birch/patchouli heart, musk/oakmoss base; accessed 2026-07-04)"
-      accords: "https://en.wikipedia.org/wiki/Aventus (pineapple, birch, blackcurrant, musk all listed; accessed 2026-07-04)"
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (Creed Aventus, 5 videos); https://www.fragrantica.com/perfume/Creed/Aventus-9828.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Creed/Aventus-9828.html (accessed 2026-07-04); corroborated by https://en.wikipedia.org/wiki/Aventus (fruity-chypre)"
+      accords: "https://www.fragrantica.com/perfume/Creed/Aventus-9828.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Creed/Aventus-9828.html — note pyramid verbatim (accessed 2026-07-04); corroborated by https://en.wikipedia.org/wiki/Aventus (pineapple, birch, blackcurrant, musk all listed)"
       tier: "https://en.wikipedia.org/wiki/Aventus ('the French niche house, Creed'; accessed 2026-07-04)"
       occasions: operator_asserted_pending_source
   product:creed.aventus-absolu:
     name: Aventus Absolu
     house: brand:creed
-    note_families: [fruity, woody, fresh]
-    accords: []
+    note_families: [fruity, citrus, aromatic, spicy, woody, sweet]
+    accords: [fruity, citrus, aromatic, warm spicy, woody, sweet]
+    notes:
+      top: [Pineapple, Black Currant, Grapefruit, Pink Pepper, Lemon, Bergamot]
+      middle: [Cardamom, Cinnamon, Ginger]
+      base: [Vetiver, Patchouli]
     tier: niche
     occasions: []
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 18900 ('Aventus Absolute'; resolution confidence medium-high)"
-      note_families: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 18900 ('Aventus Absolute'; resolution confidence medium-high); https://www.fragrantica.com/perfume/Creed/Absolu-Aventus-106624.html (accessed 2026-07-04; confirmed a DISTINCT Fragrantica entry from plain Aventus via the Creed brand catalog)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Creed/Absolu-Aventus-106624.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Creed/Absolu-Aventus-106624.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Creed/Absolu-Aventus-106624.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
   product:parfums-de-marly.sedley:
     name: Sedley
     house: brand:parfums-de-marly
-    note_families: [fresh, aromatic, fruity]
-    accords: []
+    note_families: [citrus, aromatic, fresh, spicy, woody, amber, green]
+    accords: [citrus, aromatic, fresh spicy, woody, amber, green]
+    notes:
+      top: [Lemon, Mint, Bergamot, Grapefruit, Mandarin Orange]
+      middle: [Lavender, Rosemary, Geranium, Olibanum]
+      base: [Ambroxan, Sandalowood, Cedar, Cashmeran, Vetiver, Patchouli]
     tier: niche
     occasions: [summer]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 21260 (resolution confidence medium)"
-      note_families: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 21260 (resolution confidence medium); https://www.fragrantica.com/perfume/Parfums-de-Marly/Sedley-56273.html (accessed 2026-07-04; resolution confidence raised: page title 'Sedley Parfums de Marly perfume ... 2019' confirms house+product)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Parfums-de-Marly/Sedley-56273.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Parfums-de-Marly/Sedley-56273.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Parfums-de-Marly/Sedley-56273.html — note pyramid verbatim (accessed 2026-07-04; 'Sandalowood' is the page's own spelling)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:chanel.allure-homme-sport:
     name: Allure Homme Sport
     house: brand:chanel
-    note_families: [citrus, fresh, woody]
-    accords: []
+    note_families: [citrus, aromatic, gourmand, aquatic, sweet]
+    accords: [citrus, aromatic, vanilla, aldehydic, marine, sweet]
+    notes:
+      top: [Orange, Sea Notes, Aldehydes, Blood Mandarin]
+      middle: [Pepper, Neroli, Cedar]
+      base: [Vanilla, Tonka Bean, White Musk, Amber, Vetiver, Elemi resin]
     tier: designer
     occasions: [daily, casual]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 25220 ('Allure-Om-Sport')"
-      note_families: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 25220 ('Allure-Om-Sport'); https://www.fragrantica.com/perfume/Chanel/Allure-Homme-Sport-607.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Chanel/Allure-Homme-Sport-607.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Chanel/Allure-Homme-Sport-607.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Chanel/Allure-Homme-Sport-607.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:chanel.bleu-de-chanel:
     name: Bleu de Chanel
     house: brand:chanel
-    note_families: [woody, aromatic, citrus]
-    accords: [grapefruit, incense, cedar]
+    note_families: [citrus, woody, fresh, spicy, aromatic, amber]
+    accords: [citrus, woody, fresh spicy, aromatic, amber, smoky]
+    notes:
+      top: [Grapefruit, Lemon, Mint, Pink Pepper]
+      middle: [Ginger, Nutmeg, Jasmine, Iso E Super]
+      base: [Incense, Cedar, Vetiver, Sandalwood, Patchouli, Labdanum, White Musk]
     tier: designer
     occasions: [versatile, office]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (5 videos)"
-      note_families: "https://en.wikipedia.org/wiki/Bleu_de_Chanel ('woody aromatic fragrance', citrus top notes; accessed 2026-07-04)"
-      accords: "https://en.wikipedia.org/wiki/Bleu_de_Chanel (grapefruit top; incense, cedar base; accessed 2026-07-04)"
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (5 videos); https://www.fragrantica.com/perfume/Chanel/Bleu-de-Chanel-9099.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Chanel/Bleu-de-Chanel-9099.html (accessed 2026-07-04); corroborated by https://en.wikipedia.org/wiki/Bleu_de_Chanel ('woody aromatic fragrance')"
+      accords: "https://www.fragrantica.com/perfume/Chanel/Bleu-de-Chanel-9099.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Chanel/Bleu-de-Chanel-9099.html — note pyramid verbatim (accessed 2026-07-04); corroborated by https://en.wikipedia.org/wiki/Bleu_de_Chanel (grapefruit top; incense, cedar base)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:fragrance-one.office-for-men:
     name: Office (For Men)
     house: brand:fragrance-one
-    note_families: [fresh]
-    accords: []
+    note_families: [amber, musk, citrus, woody, floral, powdery, fresh]
+    accords: [amber, musky, citrus, woody, floral, powdery]
+    notes:
+      top: [Ambroxan, Bergamot, Orris Root]
+      middle: [Woody Notes, Floral Notes, Ambergris, Amber, Jasmine]
+      base: [Woody Notes, Musk, Patchouli, Cashalox]
     tier: creator-owned-dtc
     occasions: [office, daily]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipts DaKd8E9skt8 @ 18000; captions of reels 1,4,5,6,9,10,12"
-      note_families: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — note/accord table ('fresh, long lasting', DaKd8E9skt8 @ 19000)"
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipts DaKd8E9skt8 @ 18000; captions of reels 1,4,5,6,9,10,12; https://www.fragrantica.com/perfume/Fragrance-One/Office-For-Men-55166.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Fragrance-One/Office-For-Men-55166.html (accessed 2026-07-04); 'fresh' additionally from the rehearsal receipt ('fresh, long lasting', DaKd8E9skt8 @ 19000)"
+      accords: "https://www.fragrantica.com/perfume/Fragrance-One/Office-For-Men-55166.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Fragrance-One/Office-For-Men-55166.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — self-brand commerce receipts"
       occasions: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — product named 'the office fragrance' (DaKd8E9skt8 @ 18000)"
   product:fragrance-one.the-man:
@@ -269,113 +362,157 @@ products:
     occasions: []
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 34020 (resolution confidence medium: could be generic phrase)"
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 34020 (resolution confidence medium: could be generic phrase). 2026-07-04 sourcing run: NOT listed on Fragrantica's Fragrance One brand catalog (23 products enumerated) nor found via two bounded Parfumo fallback attempts — existence rests on the rehearsal receipt alone; resolution confidence stays medium-low"
       tier: operator_asserted_pending_source
   product:louis-vuitton.imagination:
     name: Imagination
     house: brand:louis-vuitton
-    note_families: [citrus, fresh]
-    accords: []
+    note_families: [citrus, fresh, spicy, green, amber]
+    accords: [citrus, fresh spicy, fresh, green, amber]
+    notes:
+      top: [Citron, Calabrian bergamot, Sicilian Orange]
+      middle: [Tunisian Neroli, Nigerian Ginger, Ceylon Cinnamon]
+      base: [Chinese Black Tea, Ambroxan, Guaiac Wood, Olibanum]
     tier: luxury
     occasions: []
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 41100 (resolution confidence medium-high)"
-      note_families: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 41100 (resolution confidence medium-high); https://www.fragrantica.com/perfume/Louis-Vuitton/Imagination-67370.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Louis-Vuitton/Imagination-67370.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Louis-Vuitton/Imagination-67370.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Louis-Vuitton/Imagination-67370.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
   product:carolina-herrera.good-girl:
     name: Good Girl
     house: brand:carolina-herrera
-    note_families: [floral, sweet, amber]
-    accords: [tuberose, jasmine, cocoa, tonka]
+    note_families: [sweet, floral, spicy, gourmand, amber]
+    accords: [sweet, white floral, warm spicy, vanilla, amber, cacao]
+    notes:
+      top: [Almond, Coffee, Bergamot, Lemon]
+      middle: [Tuberose, Jasmine Sambac, Orange Blossom, Bulgarian Rose, Orris]
+      base: [Tonka Bean, Cacao, Vanilla, Praline, Sandalwood, Musk, Amber, Cashmere Wood, Patchouli, Cinnamon, Cedar]
     tier: designer
     occasions: [evening]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 46520"
-      note_families: operator_asserted_pending_source
-      accords: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 46520; https://www.fragrantica.com/perfume/Carolina-Herrera/Good-Girl-39681.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Carolina-Herrera/Good-Girl-39681.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Carolina-Herrera/Good-Girl-39681.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Carolina-Herrera/Good-Girl-39681.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:lancome.la-vie-est-belle:
     name: La Vie Est Belle
     house: brand:lancome
-    note_families: [floral, gourmand, sweet]
-    accords: [iris, praline, vanilla]
+    note_families: [sweet, gourmand, fruity, woody, floral]
+    accords: [sweet, vanilla, fruity, patchouli, woody, white floral]
+    notes:
+      top: [Black Currant, Pear]
+      middle: [Iris, Jasmine, Orange Blossom]
+      base: [Praline, Vanilla, Patchouli, Tonka Bean]
     tier: designer
     occasions: [evening, winter]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 47980 ('la vie et belle')"
-      note_families: "gourmand: https://en.wikipedia.org/wiki/Gourmand_(fragrance) (named as example; accessed 2026-07-04); floral/sweet: operator_asserted_pending_source"
-      accords: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 47980 ('la vie et belle'); https://www.fragrantica.com/perfume/Lancome/La-Vie-Est-Belle-14982.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Lancome/La-Vie-Est-Belle-14982.html (accessed 2026-07-04); gourmand corroborated by https://en.wikipedia.org/wiki/Gourmand_(fragrance) (named as example)"
+      accords: "https://www.fragrantica.com/perfume/Lancome/La-Vie-Est-Belle-14982.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Lancome/La-Vie-Est-Belle-14982.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:jean-paul-gaultier.ultra-male:
     name: Ultra Male
     house: brand:jean-paul-gaultier
-    note_families: [sweet, aromatic, fougere]
-    accords: [pear, mint, vanilla, lavender]
+    note_families: [gourmand, fruity, aromatic, sweet, spicy]
+    accords: [vanilla, fruity, aromatic, sweet, cinnamon, warm spicy]
+    notes:
+      top: [Pear, Lavender, Mint, Bergamot, Lemon]
+      middle: [Cinnamon, Clary Sage, Caraway]
+      base: [Black Vanilla Husk, Amber, Patchouli, Cedar]
     tier: designer
     occasions: [night-out, winter]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaLBRQiMJhQ @ 3000; docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md top-products table (4 videos); https://en.wikipedia.org/wiki/Le_Male (Ultra Male = 2015 Le Male flanker; accessed 2026-07-04)"
-      note_families: operator_asserted_pending_source
-      accords: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaLBRQiMJhQ @ 3000; docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md top-products table (4 videos); https://en.wikipedia.org/wiki/Le_Male (Ultra Male = 2015 Le Male flanker; accessed 2026-07-04); https://www.fragrantica.com/perfume/Jean-Paul-Gaultier/Ultra-Male-30947.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Jean-Paul-Gaultier/Ultra-Male-30947.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Jean-Paul-Gaultier/Ultra-Male-30947.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Jean-Paul-Gaultier/Ultra-Male-30947.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:ysl.y-eau-de-parfum:
     name: Y Eau de Parfum
     house: brand:ysl
-    note_families: [aromatic, fresh, woody]
-    accords: [apple, ginger, sage, cedar]
+    note_families: [aromatic, fresh, spicy, woody, fruity, amber]
+    accords: [aromatic, fresh spicy, woody, fruity, fresh, amber]
+    notes:
+      top: [Apple, Ginger, Bergamot]
+      middle: [Sage, Juniper Berries, Geranium]
+      base: [Amberwood, Tonka Bean, Cedar, Vetiver, Olibanum]
     tier: designer
     occasions: [versatile, office]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (5 videos, highest attention-weighted SoV)"
-      note_families: operator_asserted_pending_source
-      accords: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (5 videos, highest attention-weighted SoV); https://www.fragrantica.com/perfume/Yves-Saint-Laurent/Y-Eau-de-Parfum-50757.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Yves-Saint-Laurent/Y-Eau-de-Parfum-50757.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Yves-Saint-Laurent/Y-Eau-de-Parfum-50757.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Yves-Saint-Laurent/Y-Eau-de-Parfum-50757.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:coach.coach-for-men:
     name: Coach for Men
     house: brand:coach
-    note_families: [aromatic, fruity, woody]
-    accords: []
+    note_families: [aromatic, citrus, amber, fresh, spicy, fruity, woody]
+    accords: [aromatic, citrus, amber, fresh spicy, fruity, woody]
+    notes:
+      top: [Pear, Bergamot, Kumquat, Lavender, Grapefruit]
+      middle: [Cardamom, Geranium, Coriander]
+      base: [Ambergris, Suede, Amberwood, Haitian Vetiver]
     tier: designer
     occasions: [daily]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (3 videos)"
-      note_families: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (3 videos); https://www.fragrantica.com/perfume/Coach/Coach-for-Men-45343.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Coach/Coach-for-Men-45343.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Coach/Coach-for-Men-45343.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Coach/Coach-for-Men-45343.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:paco-rabanne.invictus-parfum:
     name: Invictus Parfum
     house: brand:paco-rabanne
-    note_families: [aromatic, amber, woody]
-    accords: []
+    note_families: [musk, aromatic, aquatic, powdery, woody]
+    accords: [musky, aromatic, marine, soapy, powdery, woody]
+    notes:
+      top: [Marine notes, Lavender, Pink Pepper]
+      middle: [Soap, Violet Leaf, Myrtle]
+      base: [Musk, Cashmeran, Sandalwood]
     tier: designer
     occasions: [night-out]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (3 videos)"
-      note_families: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (3 videos); https://www.fragrantica.com/perfume/Rabanne/Invictus-Parfum-90433.html (accessed 2026-07-04; Fragrantica lists the house under the rebranded slug 'Rabanne'; identity confirmed via the Paco-Rabanne designer catalog redirect + title match)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Rabanne/Invictus-Parfum-90433.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Rabanne/Invictus-Parfum-90433.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Rabanne/Invictus-Parfum-90433.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
   product:versace.pour-homme:
     name: Versace Pour Homme
     house: brand:versace
-    note_families: [aromatic, citrus, fougere]
-    accords: []
+    note_families: [citrus, aromatic, fresh, spicy, floral, green]
+    accords: [citrus, aromatic, fresh spicy, floral, rose, green]
+    notes:
+      top: [Lemon, Bergamot, Neroli, Rose de Mai]
+      middle: [Hyacinth, Cedar, Clary Sage, Geranium]
+      base: [Musk, Tonka Bean, Amber]
     tier: designer
     occasions: [summer, daily]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (3 videos)"
-      note_families: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (3 videos); https://www.fragrantica.com/perfume/Versace/Versace-Pour-Homme-2318.html (accessed 2026-07-04)"
+      note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Versace/Versace-Pour-Homme-2318.html (accessed 2026-07-04)"
+      accords: "https://www.fragrantica.com/perfume/Versace/Versace-Pour-Homme-2318.html — main accords verbatim (accessed 2026-07-04)"
+      notes: "https://www.fragrantica.com/perfume/Versace/Versace-Pour-Homme-2318.html — note pyramid verbatim (accessed 2026-07-04)"
       tier: operator_asserted_pending_source
       occasions: operator_asserted_pending_source
 
@@ -385,7 +522,9 @@ products:
 # caption, or page-1 comment"). Per the build's micro-decision lock, a dupe edge
 # enters ONLY with a citable source; none is asserted from memory. The clone-house
 # tail (Lattafa, Afnan, Armaf lines) is the natural first dupe-edge source once a
-# fragrance reference is bound.
+# fragrance reference is bound. 2026-07-04 Fragrantica run: the site's "reminds
+# me of" dupe widget is client-side XHR-hydrated and absent from static HTML, so
+# no citable dupe data was capturable; the graph stays empty, not zero-filled.
 dupe_relationships: []
 
 # Creators as WindCallers (windcaller_kind amendment 2026-07-04): kind is the
