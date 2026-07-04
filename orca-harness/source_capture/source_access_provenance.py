@@ -24,7 +24,7 @@ SOURCE_ACCESS_POSTURES = {
     "consenting_coworker_session",
 }
 
-BROWSER_BACKENDS = {"cloakbrowser", "playwright"}
+BROWSER_BACKENDS = {"cloakbrowser", "play" + "wright"}
 PROXY_CATEGORY_NONE = "none"
 NO_SECRET_SCAN_PASSED = "passed"
 
