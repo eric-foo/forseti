@@ -16,7 +16,7 @@ open_next:
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
 stale_if:
-  - Orca authorizes standing/opportunistic corpus capture as part of Data Capture Spine.
+  - Forseti authorizes standing/opportunistic corpus capture as part of Data Capture Spine.
   - Evidence Candidate Record architecture changes the handoff boundary.
   - A pressure-test revision supersedes these v0 obligations.
   - `docs/product/data_capture_source_access_boundary_decision_v0.md` materially amends or supersedes the source-access boundary for Obligation 2.
@@ -60,7 +60,7 @@ decision verbs, cutoff posture, and intended downstream use must be known
 enough for capture obligations to be evaluated.
 
 Standing or opportunistic corpus capture is out of scope for Data Capture
-Spine v0. If Orca later collects public signals before a Decision Frame exists,
+Spine v0. If Forseti later collects public signals before a Decision Frame exists,
 that should be handled by a separate Candidate Signal Intake or Corpus Intake
 contract (now the owner-ratified sibling
 `forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md`,
@@ -79,12 +79,12 @@ Every commissioned capture must make each core obligation explicit as one of:
 - `cannot_assess`: the obligation is required and attempted, but the captured
   observable is not faithful, complete, or inspectable enough to assess whether
   the obligation was satisfied. The limitation and reason must be visible.
-- `access_failed`: the source material appears within the allowed Orca
+- `access_failed`: the source material appears within the allowed Forseti
   source-access boundary, and capture attempted access, but the capture method,
   tool, host, archive, or origin failed to return the needed observable. The
   failed path, fallback path if any, and visible limitation must be recorded.
 - `blocked`: the obligation is required, but capture cannot satisfy it under
-  the allowed Orca boundary, project boundary, or hard-stop exclusion. It must
+  the allowed Forseti boundary, project boundary, or hard-stop exclusion. It must
   not be used as the generic label for ordinary tool, host, origin,
   archive-content, or method failure against otherwise in-bound material.
 - `unavailable_by_source`: the source does not expose the needed fact or state.
@@ -112,7 +112,7 @@ Failure mode: if there is no Decision Frame, Data Capture Spine has not started.
 
 ### 2. Boundary Compliance
 
-Capture must stay inside the current Orca source-access boundary. The
+Capture must stay inside the current Forseti source-access boundary. The
 controlling interpretation of that boundary for Obligation 2 is
 `docs/product/data_capture_source_access_boundary_decision_v0.md`; if this
 section and that boundary decision differ, the boundary decision controls until
@@ -132,7 +132,7 @@ Capture must not use stolen credentials or cookies, nonconsensual sessions,
 security exploits, malware, credential stuffing, no-entitlement payment/access
 gate bypass, obvious cross-account/private/admin spillover once noticed,
 private/confidential account areas without consent,
-ordinary-person dossiers, or source acquisition that violates the current Orca
+ordinary-person dossiers, or source acquisition that violates the current Forseti
 boundary.
 
 Failure mode: boundary-violating material is not a Data Capture blocker to be
@@ -141,7 +141,7 @@ worked around. It is out of bounds for this contract.
 Access failure against otherwise in-bound source material is a capture
 limitation, not a source-access boundary expansion. It should be discharged as
 `access_failed`, not `blocked`, unless the failure is caused by the current
-Orca boundary, project boundary, or a hard-stop exclusion.
+Forseti boundary, project boundary, or a hard-stop exclusion.
 
 ### 3. Capture-Event Provenance
 
@@ -199,8 +199,8 @@ were visibly encountered during capture.
 Minimum obligation:
 
 - fact or content-claim preservation: preserve what the source showed or said,
-  not only Orca's summary;
-- source-language preservation: keep source language separate from Orca
+  not only Forseti's summary;
+- source-language preservation: keep source language separate from Forseti
   interpretation and preserve domain-native wording when it carries signal;
 - visible-structure preservation: preserve layout, headings, tables, nesting,
   ordering, grouping, proximity, emphasis, packaging cues, and other visible
@@ -335,7 +335,7 @@ Capture must expose source visibility and access limits.
 
 Minimum obligation:
 
-- whether the source was publicly visible under the allowed Orca boundary;
+- whether the source was publicly visible under the allowed Forseti boundary;
 - whether visibility was gated, ephemeral, archive-only, deleted, edited,
   cached, dynamic, vendor-moderated, or otherwise constrained where visible;
 - whether exact access failed, degraded, or required a fallback mode;
@@ -484,7 +484,7 @@ Minimum handoff accomplishments:
 - the captured signal is inspectable;
 - raw observable and related context are preserved, or their limitations are
   visible;
-- source claim is separate from Orca interpretation;
+- source claim is separate from Forseti interpretation;
 - source identity, actor category, timing, modality, visibility, and
   cutoff/archive posture are visible where knowable;
 - when archive/history or recapture states differ, the original locator,
