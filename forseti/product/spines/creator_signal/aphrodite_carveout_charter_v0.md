@@ -372,3 +372,73 @@ direction_change_propagation:
     - not implementation, capture, outreach, or publishing authorization
     - charter is DRAFT pending delegated review and owner ratification
 ```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Durable propagation of the owner-directed lead-lane sharpening landed in
+    §5 by commit d1bbfb2f (PR #710, merged): the Aphrodite lead buyer lane
+    (indie/DTC fragrance brands) explicitly includes the dupe-first/clone-house,
+    creator-owned-DTC, and pre-designer specialty/indie cohort (the
+    Lattafa/Armaf/Dossier graduation arc) as buyer-core, not an enrichment
+    add-on; brand-safety/imitation-legality screening stays per-engagement,
+    never a lane exclusion. That commit's message-body receipt was compact and
+    did not carry the full downstream sweep this record completes. This receipt
+    adds no new doctrine — it is the propagation completion for the
+    already-landed §5 text quoted above.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # §5 sharpening already landed by d1bbfb2f; this receipt completes propagation
+    - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md   # added a dated routing note (2026-07-05): buyer counts/SAM predate the cohort sharpening and are not re-derived here; resizing is its own later unit
+  downstream_surfaces_checked:
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md   # ICP framing ("niche/indie/challenger/DTC fragrance brands", lines 26/95-99) is the broader superset the charter narrows within; consistent, not contradicted — charter's own text says the DEFAULT is "sharpened here," so no edit
+    - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml   # clone-house / creator-owned-dtc tier vocabulary already exists (lines 96,116,120,129); consistent, confirms the sharpening has a classification substrate
+    - forseti/product/spines/creator_signal/README.md   # index rows for the charter and the market-sizing doc still accurately describe each artifact's role after the sizing-note addition; no row text change needed
+    - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md   # describes the separate parent-level indie/DTC beauty/personal-care ICP wedge (a different product lane, not Aphrodite); charter §5 already states proof semantics are "consumed, not redefined" from this lane — consistent, out of scope
+    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md   # same parent buyer-proof grammar; charter explicitly reuses grammar without transferring the demand-substrate gate — consistent, out of scope per task bound (buyer-proof grammar owned elsewhere)
+    - forseti/product/spines/product_lead/icp_wedge/*   # parent ICP-wedge decision chain (pricing-first / consumer-demand-first lineage) is a distinct, superseded-in-place lane unrelated to the Aphrodite carveout lead lane; no lane-naming or vocabulary collision found
+    - docs/workflows/orca_repo_map_v0.md   # no Aphrodite/creator_signal lead-lane enumeration to update; existing precedent routes per-spine artifacts via the spine front door (per the charter's own prior receipt)
+  intentionally_not_updated:
+    - path: forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+      reason: >
+        The charter's §5 header already states the DEFAULT is "per the product
+        architecture, sharpened here" — the architecture doc keeps the broader
+        ICP statement (niche/indie/challenger/DTC) and the sharpening
+        deliberately lives only in the charter, per the charter's own existing
+        (pre-this-receipt) intentionally_not_updated note for this same file.
+    - path: forseti/product/spines/creator_signal/README.md
+      reason: >
+        Both affected artifacts' index-row descriptions remain accurate after
+        this lane's edits (the charter row already names it as the strategy
+        register; the market-sizing row already flags it as a non-validating
+        estimate) — no row text is stale.
+    - path: forseti/product/spines/product_lead/*
+      reason: >
+        Owns a distinct, parent-level ICP/buyer-proof lane and grammar the
+        charter explicitly borrows without redefining (§5); task scope
+        excludes widening into product-proof semantics or buyer-proof grammar.
+        Checked for lane-naming collision only — none found.
+  stale_language_search: >
+    rg -in "lead lane|buyer lane|\bICP\b|indie/DTC|indie-DTC|\bclone\b|\bdupe\b|dupe-cohort|dupe cohort" forseti/product/spines/creator_signal forseti/product/spines/product_lead docs/decisions docs/workflows
+  stale_language_search_result: >
+    Executed 2026-07-05 on branch claude/aphrodite-icp-dcp-propagation (base
+    origin/main e1969efb). ~146 hits. Creator Signal spine hits are the
+    already-landed §5 sharpening (charter), the broader ICP superset statement
+    (product architecture, consistent per above), and the ontology tier
+    vocabulary (consistent, pre-existing substrate). product_lead and
+    docs/decisions hits are exclusively the separate parent ICP-wedge/buyer-proof
+    lane (pricing-first / consumer-demand-first lineage, and the general
+    US-market indie/DTC beauty/personal-care wedge) — a different product line
+    from the Aphrodite carveout, already explicitly decoupled by charter §5's
+    "consumed, not redefined" language; no conflicting or stale routing found
+    requiring edits there. No hit found requiring a change beyond the
+    market-sizing routing note added by this receipt.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not willingness-to-pay evidence
+    - not implementation, capture, outreach, or publishing authorization
+    - not a resizing of the market-sizing estimate (routing note only)
+```
