@@ -97,11 +97,13 @@ unchanged.
 `runners/run_seam_cadence.py`:
 
 - `--run`: every cadence entrypoint executes twice; exit nonzero if the SECOND
-  cycle performs any work or emits any status. Failures never satisfy the
-  signal (unacknowledged work re-surfaces in cycle 2).
+  cycle performs any work or emits any status, or if the final compute-free
+  pending sweep finds remaining backlog. Failures never satisfy the signal
+  (unacknowledged work re-surfaces in cycle 2 or the final pending sweep).
 - `--skip-asr`: skips only ASR execution for compute-free cadences, printing a
   visible `skipped_asr_compute` marker with the live pending count EVERY
-  cycle — never a silent skip.
+  cycle; pending ASR work still fails the final pending sweep, so a skipped lane
+  is visible but not a fake pass.
 - `--check`: compute-free per-entrypoint backlog counts.
 
 Coverage is pinned, not assumed: `tests/contract/test_seam_cadence_coverage.py`
@@ -112,16 +114,16 @@ runner, loudly. Behavioral contract: `tests/unit/test_seam_cadence.py`.
 
 Test-lake two-consecutive-cycle dry-run: passing as a unit test
 (`test_backlog_drains_in_cycle_one_and_second_cycle_is_zero` — cycle 1 drains,
-cycle 2 zero, byte-unchanged idempotence).
+cycle 2 zero, final pending zero, byte-unchanged idempotence).
 
 ## Live dry-run status
 
 **Blocked pending a per-turn owner live-lake read grant** (and owner-operated
-ASR compute, or `--skip-asr`). Never simulated. Expected first-cycle work,
-carried from the predecessor lane's granted read (secondary report — re-verify
-at the dry-run, do not trust this copy): 6 fragrantica + 1 parfumo cleaning
-derivations; fragrance-review / grid / ASR backlogs as found. Second cycle
-must be zero.
+ASR compute, or `--skip-asr` only when the ASR pending count is zero). Never
+simulated. Expected first-cycle work, carried from the predecessor lane's
+granted read (secondary report — re-verify at the dry-run, do not trust this
+copy): 6 fragrantica + 1 parfumo cleaning derivations; fragrance-review / grid /
+ASR backlogs as found. Second cycle and the final pending sweep must be zero.
 
 ## Residual ledger (accumulated, carried)
 

@@ -2,9 +2,10 @@
 
 No network, no credentials, no ASR compute. Commits real packets into a temp
 lake and asserts the cadence contract: cycle 1 drains the backlog, cycle 2 must
-emit nothing (exit 0 = the bronze completion signal), failures re-surface and
-fail the exit code, a skipped ASR lane stays loud every cycle, and one broken
-entrypoint never silently aborts the rest.
+emit nothing, the final pending sweep must be zero (exit 0 = the bronze
+completion signal), failures re-surface and fail the exit code, a skipped ASR
+lane stays loud every cycle, and one broken entrypoint never silently aborts the
+rest.
 """
 from __future__ import annotations
 
@@ -168,9 +169,11 @@ def test_one_broken_entrypoint_is_loud_and_never_aborts_the_rest(
     assert [l["cycle"] for l in lines if l.get("status") == "skipped_asr_compute"] == [1, 2]
 
 
-def test_skip_asr_passes_with_visible_asr_backlog(tmp_path, capsys, monkeypatch) -> None:
-    # The sanctioned compute-free cadence: ASR backlog stays visible in the
-    # marker but does not fail the signal when every driven lane is clean.
+def test_skip_asr_visible_backlog_fails_completion_signal(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    # A skipped ASR lane stays compute-free and visible, but pending ASR work is
+    # still remaining work, so it cannot produce an exit-0 completion signal.
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
 
     patched = tuple(
@@ -179,11 +182,38 @@ def test_skip_asr_passes_with_visible_asr_backlog(tmp_path, capsys, monkeypatch)
     )
     monkeypatch.setattr(cadence, "CADENCE_ENTRYPOINTS", patched)
 
-    assert run_cadence(_ctx(data_root), skip_asr=True) == 0
-    markers = [
-        l for l in _output_lines(capsys) if l.get("status") == "skipped_asr_compute"
-    ]
+    assert run_cadence(_ctx(data_root), skip_asr=True) == 1
+    lines = _output_lines(capsys)
+    markers = [l for l in lines if l.get("status") == "skipped_asr_compute"]
     assert [(l["cycle"], l["pending"]) for l in markers] == [(1, 3), (2, 3)]
+    assert [
+        (l["cycle"], l["entrypoint"], l["pending"])
+        for l in lines
+        if l.get("status") == "post_cycle_pending"
+    ] == [("post", "run_asr_transcript_catchup.py", 3)]
+
+
+def test_post_cycle_pending_sweep_catches_empty_result_fake_pass(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    # Even if a composed runner incorrectly emits no status, the cadence cannot
+    # exit 0 while that runner's pending surface still reports backlog.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+
+    patched = tuple(
+        dataclasses.replace(e, pending=lambda _ctx: 1, run=lambda _ctx: [])
+        if e.runner == "run_ecr_catchup.py"
+        else e
+        for e in cadence.CADENCE_ENTRYPOINTS
+    )
+    monkeypatch.setattr(cadence, "CADENCE_ENTRYPOINTS", patched)
+
+    assert run_cadence(_ctx(data_root), skip_asr=True) == 1
+    assert [
+        (l["cycle"], l["entrypoint"], l["pending"])
+        for l in _output_lines(capsys)
+        if l.get("status") == "post_cycle_pending"
+    ] == [("post", "run_ecr_catchup.py", 1)]
 
 
 def test_failed_skip_pending_check_fails_the_signal(tmp_path, capsys, monkeypatch) -> None:

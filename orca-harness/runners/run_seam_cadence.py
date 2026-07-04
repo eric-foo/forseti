@@ -15,8 +15,9 @@ the seam-consumer surface; ``tests/contract/test_seam_cadence_coverage.py``
 pins this registry to that surface).
 
 Exit semantics (``--run``): cycle 1 is allowed to work (its entries are the
-backlog being drained); cycle 2 must emit ZERO entrypoint status entries.
-Failures never satisfy the signal: a packet that failed in cycle 1 stays
+backlog being drained); cycle 2 must emit ZERO entrypoint status entries, and a
+final compute-free pending sweep must find ZERO remaining backlog. Failures
+never satisfy the signal: a packet that failed in cycle 1 stays
 unacknowledged, re-surfaces in cycle 2, and fails the exit code. One
 entrypoint raising is a visible ``entrypoint_failed`` entry for that lane
 (counted as cycle work), never a silent abort of the remaining lanes.
@@ -26,7 +27,8 @@ unskipped ``--run``. ``--skip-asr`` skips only its execution and prints a
 visible ``skipped_asr_compute`` marker EVERY cycle carrying the compute-free
 pending count — a skipped lane stays loud, never silent. The healthy marker is
 cadence-level output and does not count as cycle-2 work (the sanctioned
-compute-free cadence); a failed skip-path pending check DOES count.
+compute-free cadence); remaining ASR pending work or a failed skip-path pending
+check DOES count in the final pending sweep.
 
 The two LLM extract runners are seam consumers but NOT cadence entrypoints
 (``CLASSIFIED_OUT_SEAM_CONSUMERS``): their extraction is owner-gated per-turn
@@ -189,9 +191,10 @@ def run_check(ctx: CadenceContext) -> int:
 
 def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
     """Two full cycles over every entrypoint. Exit 0 iff cycle 2 emits ZERO
-    entrypoint status entries (the executable completion signal). The healthy
-    skip-asr marker is cadence-level output excluded from that accounting; a
-    failed skip-path pending check is not."""
+    entrypoint status entries and a final compute-free pending sweep finds ZERO
+    remaining backlog (the executable completion signal). The healthy skip-asr
+    marker is cadence-level output excluded from cycle-2 status accounting; a
+    skipped ASR backlog still fails the final pending sweep."""
     second_cycle_entries = 0
     for cycle in (1, 2):
         for entrypoint in CADENCE_ENTRYPOINTS:
@@ -234,14 +237,50 @@ def run_cadence(ctx: CadenceContext, *, skip_asr: bool) -> int:
                 _print({"cycle": cycle, "entrypoint": entrypoint.runner, **result})
             if cycle == 2:
                 second_cycle_entries += len(results)
-    return 1 if second_cycle_entries else 0
+    post_cycle_pending = _post_cycle_pending_failures(ctx)
+    return 1 if second_cycle_entries or post_cycle_pending else 0
+
+
+def _post_cycle_pending_failures(ctx: CadenceContext) -> int:
+    """Final no-work proof: every pending helper must report zero backlog.
+
+    This catches fake-pass paths where an entrypoint returned no status despite
+    leaving work behind, or a later entrypoint made earlier entrypoint work after
+    that earlier entrypoint's cycle-2 turn.
+    """
+    failures = 0
+    for entrypoint in CADENCE_ENTRYPOINTS:
+        try:
+            pending = entrypoint.pending(ctx)
+        except Exception as exc:  # noqa: BLE001 - no-work claim must fail loud
+            _print(
+                {
+                    "cycle": "post",
+                    "entrypoint": entrypoint.runner,
+                    "status": "post_cycle_pending_check_failed",
+                    "error": f"{type(exc).__name__}: {exc}"[:200],
+                }
+            )
+            failures += 1
+            continue
+        if pending != 0:
+            _print(
+                {
+                    "cycle": "post",
+                    "entrypoint": entrypoint.runner,
+                    "status": "post_cycle_pending",
+                    "pending": pending,
+                }
+            )
+            failures += 1
+    return failures
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Seam cadence: run every seam catch-up entrypoint twice; the second "
-            "cycle must perform no work and emit no status."
+            "cycle must perform no work and final pending checks must be zero."
         )
     )
     parser.add_argument(
@@ -252,7 +291,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--run",
         action="store_true",
-        help="Run two full catch-up cycles; exit nonzero if the second cycle emits anything.",
+        help=(
+            "Run two full catch-up cycles; exit nonzero if the second cycle emits "
+            "anything or final pending checks are nonzero."
+        ),
     )
     parser.add_argument(
         "--skip-asr",
