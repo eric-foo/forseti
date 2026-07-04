@@ -26,6 +26,9 @@ The agent may:
 - run Authenticated Browser Snapshot capture against one explicitly supplied URL
   using a previously bootstrapped storage-state label and an allowed session
   mode;
+- run the Creator Registry match preflight runner against candidate social
+  creator/account identities before starting new social creator/account
+  capture;
 - inspect `manifest.json`, `receipt.md`, and `raw/`;
 - report packet path, exit code, preserved files, warnings, and limitations.
 
@@ -128,6 +131,22 @@ must be exactly 14 digits in `YYYYMMDDhhmmss` form. If the operator supplies a
 conflicting, too-short, too-long, or malformed timestamp, stop and ask for a
 corrected value. Do not silently repair the timestamp by guessing the intended
 date.
+
+For social creator/account capture where the operator intends to start a new
+creator capture, run the Creator Registry match preflight before capture and
+carry its receipt in the agent report or handoff. Use
+`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`
+for candidate JSON shape, receipt outcomes, and the runner command. Do not start
+`new_capture` unless the candidate batch was preflighted with
+`intended_action: new_capture` and the resulting receipt row shows `decision:
+new_candidate` and `can_start_new_capture: true` (`action_status: allowed`). A
+row that only shows `decision: new_candidate` and `action_status: allowed` from
+a `classify` or `update_existing` query does not clear `new_capture`; check
+`can_start_new_capture` directly rather than reconstructing the condition.
+`existing_match` routes to updating or working against the matched
+registry identity; `ambiguous_match` and `invalid_candidate` stop the capture
+until resolved. A manual visual scan of the registry or projection is useful
+orientation, but it is not a substitute for the preflight receipt.
 
 For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 
@@ -529,6 +548,8 @@ The agent report must include:
   `manifest.json` when present, even when `limitations` is empty;
 - warnings and limitations from `manifest.json`;
 - any visible access, archive, media, or cutoff limitations;
+- for new social creator/account capture, the Creator Registry match preflight
+  receipt path and row decision/action status;
 - receipt non-claims from `receipt.md` or manifest receipt metadata when
   present.
 
@@ -661,6 +682,11 @@ source_capture_agent_report:
   browser_snapshot_caveat: <if browser packet, viewport screenshot and no content-sufficiency proof; otherwise none>
   authenticated_browser_caveat: <if authenticated browser packet, session mode/state label reported but no state contents or login-wall absence proof; otherwise none>
   visible_stop_if_any: <missing input, access failure, browser-needed, no packet, or none>
+  creator_registry_match_preflight:
+    required_when: <new social creator/account capture; otherwise omit>
+    receipt_path: <path to preflight receipt JSON>
+    row_decision: <existing_match|new_candidate|ambiguous_match|invalid_candidate>
+    action_status: <allowed|blocked>
   non_claims:
     - <receipt non-claim or none>
   mini_god_tier_source_quality_report:
@@ -1023,4 +1049,54 @@ direction_change_propagation:
     - "not source acquisition"
     - "not source-quality scoring"
     - "not ECR, Cleaning, or Judgment authority"
+```
+
+## Direction Change Propagation - Creator Registry Match Preflight
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Source Capture Agent Runbook now requires Creator Registry match preflight receipts before starting new social creator/account capture; visual registry/projection scans are orientation only and do not replace the receipt."
+  trigger: lifecycle_boundary
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+    - "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "orca-harness/README.md"
+    - "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+    - "orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  intentionally_not_updated:
+    - path: "AGENTS.md"
+      reason: "Root instructions do not enumerate source-family preflight details."
+    - path: ".agents/workflow-overlay/source-loading.md"
+      reason: "Source-loading routes did not change; the existing runbook remains the cold-agent entrypoint."
+    - path: "orca-harness/README.md"
+      reason: "It already points agents to this runbook for source-capture runner use."
+    - path: "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+      reason: "Armory component status and capture-tool boundaries did not change."
+    - path: "orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md"
+      reason: "Registry architecture and source split did not change; usage-note/runbook binding owns operator sequencing."
+  stale_language_search: "rg -n \"Creator Registry match preflight|creator_registry_match_preflight|run_creator_registry_match_preflight|visual registry|projection scan|new social creator\" orca-harness/docs/source_capture_agent_runbook.md orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md orca-harness/README.md orca/product/spines/capture/core/source_capture_toolbox/README.md docs/workflows/orca_repo_map_v0.md"
+  stale_language_search_result: >
+    Executed 2026-07-04 after edits. Hits are only the new runbook/usage-note/
+    repo-map text itself (Required Inputs, Agent Boundary, agent-report
+    template, and the runners-index entry) plus this receipt's own quoted
+    search string. orca-harness/README.md, the source_capture_toolbox README,
+    and the creator_registry README carry no hits, consistent with the
+    intentionally_not_updated reasons above.
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not fuzzy duplicate detection"
+    - "not cross-platform identity proof"
+    - "not silver metric refresh"
+    - "not registry mutation"
+    - "not live social search"
 ```
