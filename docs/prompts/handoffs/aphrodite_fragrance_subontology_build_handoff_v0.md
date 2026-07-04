@@ -18,9 +18,16 @@ use_when:
 authority_boundary: retrieval_only
 stale_if:
   - The ontology backbone, its SSOT (ontology.yaml), or the expansion backlog is amended or superseded.
-  - The creator-entity modeling fork is decided by the owner (replace the Open Decision block).
+  - The ontology framing (WindCaller subtyping — see Open Decision) is agreed by the owner (replace the Open Decision block and lift the framing gate).
   - origin/main advances such that the pinned compare targets below no longer resolve.
 ```
+
+> **STATUS (2026-07-04): NOT AUTHORIZED TO RUN — framing-gated.** The owner is
+> not running the ontology build yet. An ontology **framing** must be agreed
+> first (how "kinds of WindCaller" are expressed — see Open Decision). Do not
+> begin the build, scope it, or edit the ontology substrate until the owner
+> both agrees the framing and grants build-authorization. Until then this packet
+> is orientation only.
 
 ## Load Contract
 
@@ -56,22 +63,53 @@ stale_if:
     surfaced resolve to a sub-ontology entry. See Success Signals below for the
     full testable set.
 
-## Open Decision / Fork
+## Open Decision / Fork — the framing gate (must be agreed BEFORE any build)
 
-- decision: **How does the creator ENTITY sit in the ontology?** (Does NOT block the fragrance reference-data build; the houses/products/notes are vertical data regardless. Resolve before the creator entity is referenced by stable ontology id.)
-  - options:
-    - **(A) Creators = `WindCaller` card-set.** The backbone models `windcaller:` as "a leading-indicator account/community/detector" and lists WindCaller as *deferred, awaiting a card-set asset parallel to the venue cards* (`ontology_expansion_backlog_v0.json`). Fragrance creators could be that asset (`windcaller:youtube.gentsscents`). Spends no new type slot.
-    - **(B) New capped `Creator` type.** Spends the ONE open slot in the 18-type cap ("19th in = one out"). Owner-signed, high lock-in. Models the vetting-subject role honestly.
-    - **(C) Creators stay Capture-registry entities, ontology-referenced.** The Capture-owned creator registry keeps creator rows; the ontology references them by id but mints no ontology type. No cap pressure; respects the Capture↔Creator-Signal spine boundary.
-  - already constrained / off the table: minting a new capped type WITHOUT owner sign-off (the cap is owner-signed, §6/§6.1 of the backbone). Forking the SSOT or Layer-2 authority.
-  - trade-offs: (A) reuses an existing noun but bends its "demand leading-indicator" meaning to fit "vetting subject"; (B) honest modeling but permanent cap spend; (C) cleanest boundary + zero cap cost but the creator is not a first-class ontology citizen.
-  - owner of the call: Eric (ontology owner per backbone §6).
-  - recommendation and why: **Lean (C).** The spine promotion binding (`.../creator_signal/...` charter + `orca_creator_signal_spine_promotion_binding_v0.md`) already places creator identity in Capture, not the product ontology. The fit read needs only `product:`/`brand:`/note data plus the creator's mention footprint (already in the registry + captures). (C) spends no cap slot and defers the high-lock-in roster decision until a proven need. Surface, do not auto-decide.
+**Owner direction (2026-07-04): creators ARE WindCallers.** Owner framing,
+verbatim intent: *"creators are wind callers, just at a different scale — a
+channel of emotion toward a particular thing; even a vetted creator has pull."*
+So the earlier three-way fork collapses: a fragrance creator is a **kind of the
+existing `WindCaller` type**, NOT a new capped noun (option B is off the table)
+and NOT divorced into a registry-only entity outside the ontology (the earlier
+registry-only option is off the table — the creator IS an ontology citizen, a
+WindCaller).
+
+**STILL OPEN — the framing to agree first: how are "kinds of WindCaller"
+expressed?** The owner notes WindCaller should span sub-kinds — creators today,
+and potentially editorial/press outlets and companies/brands as WindCallers
+later. This ontology has **no inheritance mechanism** (no child-noun-of-a-parent
+noun) and a **hard 18-type cap**, so "a noun under WindCaller" is not directly
+expressible as a sub-type. The two schema-light, cap-preserving ways to express
+kinds (both are the ontology's own idioms), PROPOSED pending owner agreement:
+
+- **A `windcaller_kind` dimension** — an enum value on the existing WindCaller
+  type (`creator | editorial | brand | community | detector`), per the backbone's
+  *"dimensions, not types"* rule (§2.4). WindCaller already carries
+  `calibration_state` + `carve_out`; this adds `kind` beside them.
+- **A dotted-ID convention** — the flavor lives in the first dotted slug
+  segment: `windcaller:creator.youtube.gentsscents`, `windcaller:editorial.basenotes`,
+  `windcaller:brand.chanel`. The ID grammar already supports dotted sub-parts.
+
+These compose (kind-field for grouping, dotted-ID for addressing), add **zero
+new capped types**, and stay schema-light. A creator's "pull" maps to the
+existing `calibration_state`; "channel of emotion toward a thing" maps to
+`WindCaller —covers→ Vertical` and the creator's mention footprint over
+`product:`/`brand:` objects (which is the fit substrate).
+
+- constrained / off the table: a new capped `Creator` (or `Fragrance`) type;
+  inheritance/sub-type machinery the ontology does not have; forking the SSOT or
+  Layer-2 authority. Even the `windcaller_kind` dimension is a **dated,
+  owner-signed amendment** to the adopted backbone + `ontology.yaml` SSOT — light,
+  but still owner-gated.
+- owner of the call: Eric (ontology owner, backbone §6).
+- status: **the build does not start until this framing is agreed AND
+  build-authorization is granted.** The sender (this lane) proposed the
+  dimension + dotted-ID model above; it is not yet owner-agreed.
 
 ## Drift Guard
 
 - **Schema-light: fragrance specifics are DATA, never new frozen schema or a new capped type.** Backbone §6 kernel rule + charter high-lock-in decision #4 ("vertical specificity as data, not schema"). Violating it forks the backbone and spends lock-in the owner did not authorize.
-- **Do not spend the one open type slot** (add a `Creator`/`Fragrance` type) without the Open Decision resolved by the owner. The cap is owner-signed.
+- **Creators are a KIND of the existing `WindCaller`, not a new noun.** Express kinds via a `windcaller_kind` dimension + dotted-ID (see Open Decision), NOT by spending the one open type slot and NOT via inheritance (the ontology has none). Even the dimension is a dated owner-signed amendment — do not add it until the framing is agreed.
 - **Work on `forseti/` paths on current main, not `orca/`.** origin/main migrated orca/→forseti/ (PR #666). Any `orca/...` path is stale.
 - **Conform to the live ontology machinery; do not build a parallel one.** The SSOT is `ontology.yaml`; new deferred-type graduation goes through `ontology_expansion_backlog_v0.json` + `ontology_cards/`; the four hooks gate it. Adding a sub-ontology outside this is a fork, not an extension.
 - **Respect the Capture ↔ Creator Signal boundary.** Creator Signal owns display/claim language; Capture owns the registry, capture, and computation. The sub-ontology is reference data (a foundation-spine concern), not a Creator-Signal display artifact and not a Capture runner.
@@ -108,10 +146,24 @@ Build the Aphrodite fragrance sub-ontology as schema-light reference DATA on the
 
 ## Exact Next Authorized Action
 
-1. **Obtain explicit owner build-authorization** for this sub-ontology build (this packet grants none) and run the Forseti start-preflight.
-2. Route through `workflow-implementation-scoping` against the live substrate (the four ontology hooks + SSOT define the conformance contract; scope how the fragrance data model attaches to `product:`/`brand:` without a new type).
-3. Surface the **Open Decision (creator entity)** to the owner before any creator entity is given a stable ontology id; the reference-data build proceeds without it.
-4. Validation / stop condition: the build is not done until the Success Signals below pass, including all four ontology hooks green and the cold-retrieval test.
+**GATE 0 (before anything else): agree the ontology framing.** The owner has NOT
+authorized the build. The immediate move is a framing agreement, not a build:
+confirm with the owner the `windcaller_kind` dimension + dotted-ID model for
+expressing creators (and later editorial/company) as kinds of WindCaller (see
+Open Decision). Nothing below runs until that framing is agreed AND
+build-authorization is granted. Do not scope, edit the ontology, or run hooks
+against a change before Gate 0 clears.
+
+After Gate 0 clears (framing agreed + build authorized):
+
+1. Run the Forseti start-preflight; author the WindCaller `kind` amendment as a
+   dated, owner-signed backbone + `ontology.yaml` SSOT amendment (light).
+2. Route through `workflow-implementation-scoping` against the live substrate
+   (the four ontology hooks + SSOT define the conformance contract; scope how the
+   fragrance data model attaches to `product:`/`brand:` and how creators attach as
+   `windcaller:creator.*` — all without a new capped type).
+3. Validation / stop condition: not done until the Success Signals below pass —
+   all four ontology hooks green and the cold-retrieval test.
 
 ## Authority And Source Ledger
 
@@ -149,7 +201,7 @@ Build the Aphrodite fragrance sub-ontology as schema-light reference DATA on the
 
 ## Mutable Questions
 
-- Creator-entity attachment (the Open Decision) — owner-owned.
+- The WindCaller-kind framing (dimension + dotted-ID) — proposed, owner-owned, must be agreed before build (Gate 0). The creator IS a WindCaller (resolved); only the kind-expression mechanics are open.
 - Whether to authorize a fragrance-reference capture (Fragrantica/Parfumo/basenotes) to source facts vs operator-assert-then-verify — resolves the provenance source gap; its own gated decision.
 - Exact card granularity: one card per house with products as data, vs per-product cards — receiver scoping decision, constrained by the existing card pattern + tag-validity hook.
 
@@ -176,7 +228,7 @@ Build the Aphrodite fragrance sub-ontology as schema-light reference DATA on the
 ## Do Not Forget
 
 - Start from `origin/main` (`forseti/` paths), never the sender branch's `orca/` paths.
-- The creator-entity fork is the owner's call and gates only the creator entity, not the reference-data build.
+- Gate 0 first: the build is NOT authorized. Agree the WindCaller-kind framing (dimension + dotted-ID) with the owner before scoping or editing the ontology. Creators are WindCallers (resolved); only the kind-expression mechanics are open.
 - Provenance is co-#1: an unsourced fragrance fact is a liability, not a nice-to-have.
 
 ## Preflight / boundary receipt
