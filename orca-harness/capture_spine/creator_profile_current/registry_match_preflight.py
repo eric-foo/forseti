@@ -50,7 +50,7 @@ def load_json(path: str | Path) -> dict[str, Any]:
     return value
 
 
-def load_creator_registry_match_candidates(path: str | Path) -> list[dict[str, Any]]:
+def load_creator_registry_match_candidates(path: str | Path) -> list[Any]:
     document = load_json(path)
     if CANDIDATES_WRAPPER_KEY in document:
         wrapper = document[CANDIDATES_WRAPPER_KEY]
@@ -63,7 +63,7 @@ def load_creator_registry_match_candidates(path: str | Path) -> list[dict[str, A
         candidates = document.get("candidates")
     if not isinstance(candidates, list) or not candidates:
         raise ValueError("candidate document must carry a non-empty candidates list")
-    return [dict(_require_mapping(candidate, "candidate")) for candidate in candidates]
+    return list(candidates)
 
 
 def dump_creator_registry_match_preflight_receipt(document: Mapping[str, Any]) -> str:
@@ -90,7 +90,7 @@ def build_creator_registry_match_preflight_receipt_from_files(
 
 def build_creator_registry_match_preflight_receipt(
     *,
-    candidates: Sequence[Mapping[str, Any]],
+    candidates: Sequence[Any],
     registry_document: Mapping[str, Any],
     registry_source_pointer: str,
     registry_sha256: str,
@@ -104,7 +104,7 @@ def build_creator_registry_match_preflight_receipt(
         raise ValueError("registry document profiles must be a list")
 
     registry_index = _build_registry_index(profiles)
-    normalized = [_normalize_candidate(candidate, index) for index, candidate in enumerate(candidates)]
+    normalized = [_normalize_candidate_row(candidate, index) for index, candidate in enumerate(candidates)]
     duplicate_candidate_keys = _duplicate_candidate_keys(normalized)
     results = [
         _build_candidate_result(
@@ -197,12 +197,60 @@ def _registry_identity_keys(match: Mapping[str, Any]) -> list[tuple[str, str]]:
     return keys
 
 
+def _normalize_candidate_row(candidate: Any, index: int) -> dict[str, Any]:
+    try:
+        candidate_map = _require_mapping(candidate, "candidate")
+        return _normalize_candidate(candidate_map, index)
+    except ValueError as exc:
+        return _invalid_candidate_shape(candidate, index, str(exc))
+
+
+def _invalid_candidate_shape(candidate: Any, index: int, message: str) -> dict[str, Any]:
+    candidate_map = candidate if isinstance(candidate, Mapping) else {}
+    raw_candidate_id = candidate_map.get("candidate_id")
+    candidate_id = (
+        raw_candidate_id.strip()
+        if isinstance(raw_candidate_id, str) and raw_candidate_id.strip()
+        else f"candidate_index_{index}"
+    )
+    raw_intended_action = candidate_map.get("intended_action")
+    intended_action = (
+        raw_intended_action.strip()
+        if isinstance(raw_intended_action, str) and raw_intended_action.strip() in _ALLOWED_INTENDED_ACTIONS
+        else "classify"
+    )
+    return {
+        "candidate_id": candidate_id,
+        "input_index": index,
+        "intended_action": intended_action,
+        "normalized_candidate": {
+            "platform_or_none": None,
+            "handles": [],
+            "profile_urls": [],
+            "profile_subject_id_or_none": None,
+            "platform_account_id_or_none": None,
+            "platform_public_account_id_or_none": None,
+            "display_name_or_none": None,
+            "source_url_or_none": None,
+        },
+        "identity_keys": [],
+        "errors": [
+            {
+                "code": "invalid_candidate_shape",
+                "message": f"candidate[{index}] {candidate_id!r}: {message}",
+            }
+        ],
+    }
+
+
 def _normalize_candidate(candidate: Mapping[str, Any], index: int) -> dict[str, Any]:
     _reject_unknown_keys(candidate, _ALLOWED_CANDIDATE_KEYS, "candidate")
     candidate_id = _non_empty_str(candidate.get("candidate_id"), "candidate_id")
     intended_action = _non_empty_str(candidate.get("intended_action"), "intended_action")
     if intended_action not in _ALLOWED_INTENDED_ACTIONS:
-        raise ValueError(f"intended_action must be one of {sorted(_ALLOWED_INTENDED_ACTIONS)!r}")
+        raise ValueError(
+            f"intended_action must be one of {sorted(_ALLOWED_INTENDED_ACTIONS)!r}; got {intended_action!r}"
+        )
 
     errors: list[dict[str, str]] = []
     platform = _optional_normalized_platform(candidate.get("platform"))
@@ -226,9 +274,19 @@ def _normalize_candidate(candidate: Mapping[str, Any], index: int) -> dict[str, 
                     "message": "profile URL must be on a supported social host",
                 })
             urls.add(_normalize_url(value))
-            handle_from_url = _handle_from_url(value, inferred or platform)
+            effective_platform = inferred or platform
+            handle_from_url = _handle_from_url(value, effective_platform)
             if handle_from_url:
                 handles.add(handle_from_url)
+            elif _is_non_profile_url_shape(value, effective_platform):
+                errors.append({
+                    "code": "unresolvable_profile_url",
+                    "message": (
+                        "profile URL does not identify a specific account/profile page "
+                        "(looks like a post/share/short link); provide the account profile "
+                        "URL or handle instead"
+                    ),
+                })
         elif field_name == "public_profile_url_or_none":
             errors.append({"code": "invalid_public_profile_url", "message": "public_profile_url_or_none must be a URL"})
         else:
@@ -478,6 +536,25 @@ def _platform_from_url(value: str) -> str | None:
     return None
 
 
+_INSTAGRAM_NON_PROFILE_PATH_SEGMENTS = frozenset(
+    {
+        "p",
+        "reel",
+        "reels",
+        "tv",
+        "stories",
+        "explore",
+        "accounts",
+        "direct",
+        "developer",
+        "about",
+        "legal",
+        "api",
+        "embed",
+    }
+)
+
+
 def _handle_from_url(value: str, platform: str | None) -> str | None:
     if not platform:
         return None
@@ -486,9 +563,25 @@ def _handle_from_url(value: str, platform: str | None) -> str | None:
     if not path_parts:
         return None
     if platform == "instagram":
+        if path_parts[0].lower() in _INSTAGRAM_NON_PROFILE_PATH_SEGMENTS:
+            return None
         return _normalize_handle(path_parts[0])
     if platform == "tiktok":
+        if not path_parts[0].startswith("@"):
+            return None
         return _normalize_handle(path_parts[0])
     if platform == "youtube" and path_parts[0].startswith("@"):
         return _normalize_handle(path_parts[0])
     return None
+
+
+def _is_non_profile_url_shape(value: str, platform: str | None) -> bool:
+    if platform not in ("instagram", "tiktok"):
+        return False
+    parsed = urlparse(value)
+    path_parts = [part for part in parsed.path.split("/") if part]
+    if not path_parts:
+        return False
+    if platform == "instagram":
+        return path_parts[0].lower() in _INSTAGRAM_NON_PROFILE_PATH_SEGMENTS
+    return not path_parts[0].startswith("@")
