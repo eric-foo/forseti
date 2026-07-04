@@ -1,11 +1,11 @@
-# Delegated Review-and-Patch For High-Stakes Authored Artifacts (Provisional)
+﻿# Delegated Review-and-Patch For High-Stakes Authored Artifacts (Provisional)
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
+artifact_role: Forseti overlay authority
 scope: >
   Provisional delegated review-and-patch convention for high-stakes authored
-  Orca artifacts, plus the overlay-interface fields a future skill implementation may read.
+  Forseti artifacts, plus the overlay-interface fields a future skill implementation may read.
 use_when:
   - A Chief Architect is deciding whether to commission a delegated
     review-and-patch hardening pass on a high-stakes authored artifact.
@@ -24,14 +24,14 @@ code-diff commissioning also reads "Code-diff target kind — the
 resolving a novel dispute about it.
 
 **Status — provisional convention.** This is an experimental operating
-convention replicated into Orca from jb's provisional convention (jb branch
+convention replicated into Forseti from jb's provisional convention (jb branch
 `lane/delegated-review-patch-convention`, commit `345397b`), adopted on limited
-cross-project evidence (see *Evidence* below). It is not bound Orca review
+cross-project evidence (see *Evidence* below). It is not bound Forseti review
 doctrine and not a machine-routable review lane: it carries no strict, formal,
 or operational lane authority, and `.agents/workflow-overlay/review-lanes.md`
 "Current Lanes" intentionally does not bind it yet. Treat it as guidance the
 Chief Architect may choose to commission, refined as it is used; promote it to a
-bound lane only after more uses and a separate Orca overlay binding decision.
+bound lane only after more uses and a separate Forseti overlay binding decision.
 
 **What it is — and what it is not.** This is a distinct commissioned,
 bounded-executor lane with an integrated hardening review — not one of the
@@ -130,7 +130,7 @@ limitation.
 
 This is a who-constraint recorded in the commission, not a model-quality
 recommendation and not runtime model routing. It does not belong in review
-prompts as model-selection advice, and it does not alter Orca review-lane
+prompts as model-selection advice, and it does not alter Forseti review-lane
 model-neutrality: `.agents/workflow-overlay/review-lanes.md` and
 `.agents/workflow-overlay/prompt-orchestration.md` still forbid review lanes,
 review prompts, wrappers, handoffs, and closeouts from recommending,
@@ -248,7 +248,7 @@ the patch (patch-time de-correlation is lost there, preserved here).
 ## Overlay Interface (fields a future skill implementation may read)
 
 This is the seam to handoff 2 (a skill implementation, authored separately - not in
-this overlay binding). The fields below defer to existing Orca overlay authority
+this overlay binding). The fields below defer to existing Forseti overlay authority
 and do not fork or restate it.
 
 ```yaml
@@ -292,14 +292,14 @@ delegated_review_patch_overlay_interface:
       The delegate may patch ONLY the CA-named target — the single authored file
       in the default mode, or the explicitly named multi-file set in
       delegated_code_review_and_patch (which cannot silently widen). Everything
-      else is read-only / flag-only: all other Orca sources; canonical, frozen,
+      else is read-only / flag-only: all other Forseti sources; canonical, frozen,
       or hash-pinned decisions, product contracts, manifests, and
       provenance/review-output ledgers; other `.agents/workflow-overlay/` files;
       `AGENTS.md` and `CLAUDE.md` when they are not the named target; and every
       path the safety rules forbid editing (`jb`, external workflow source,
       installed / user-level / plugin skills, and external reference folders).
   model_ladder:
-    ownership: operator_and_commission   # NOT Orca review-lane authority; review-lane model-neutrality preserved
+    ownership: operator_and_commission   # NOT Forseti review-lane authority; review-lane model-neutrality preserved
     rungs: author -> de_correlated_controller -> cheap_executor
     de_correlation_criterion: >
       family = vendor / model lineage (Claude vs GPT), NOT tier. Vendor = the
@@ -333,7 +333,7 @@ delegated_review_patch_overlay_interface:
       discovery pass and is required to claim the no-new-seam standard; review target shipped as a
       hash-confirmable verbatim attachment; assembler/CA runs the target-kind method's freshness gate pre-bundle and records the result. Default package shape: a self-contained bundle (verbatim target attachment(s) + a guardrail-complete README carrying the method/authority/contract) delivered with a thin-wrapper chat prompt pointing at the in-bundle README; the wrapper still carries the cross-vendor who-constraint; inline the method in chat when the reviewer cannot read in-bundle files.
   preflight_schema:
-    - orca_start_preflight (.agents/workflow-overlay/source-loading.md)
+    - forseti_start_preflight (.agents/workflow-overlay/source-loading.md)
     - Required Preflight Fields (.agents/workflow-overlay/prompt-orchestration.md)
   source_context_fields:
     - Source-Gated Method Contract REFERENCE-LOAD / SOURCE-LOAD / SOURCE_CONTEXT_READY (.agents/workflow-overlay/prompt-orchestration.md)
@@ -356,14 +356,14 @@ limited in-session evidence — roughly two uses during jb's 2026-06-05
 eval-contract hardening, where a de-correlated pass caught failure modes the
 author had reintroduced against its own guardrails. Those are first-hand process
 observations in jb; the limitation is their small number, not their validity,
-and they are jb-side evidence, not an Orca-measured result. The evidence
+and they are jb-side evidence, not a Forseti-measured result. The evidence
 corroborates the pattern; it does not validate it.
 
 **Non-claims.** This convention is provisional. It is not validation, not
 readiness, not formal review authority, not a mandatory or machine-routable
 review lane, not patch authorization beyond an explicit bounded CA commission,
 and not runtime model routing. It does not import jb project authority, paths, or
-lifecycle mechanics into Orca; jb is cited only as cross-project provenance.
+lifecycle mechanics into Forseti; jb is cited only as cross-project provenance.
 
 ## Direction Change Propagation
 

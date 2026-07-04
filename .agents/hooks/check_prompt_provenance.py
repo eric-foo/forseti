@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""PostToolUse hook — inject the Orca Prompt Preflight on docs/prompts/** writes (advisory).
+"""PostToolUse hook — inject the Forseti Prompt Preflight on docs/prompts/** writes (advisory).
 
 WHAT THIS DOES
-  After a Write/Edit lands a file under docs/prompts/**, injects the Orca Prompt
+  After a Write/Edit lands a file under docs/prompts/**, injects the Forseti Prompt
   Preflight core (output mode · template kind · edit-permission+targets+branch ·
   reviews findings-first + no runtime-model routing · doctrine-change ->
   propagation receipt · destinations) so a routine prompt applies the prompt
@@ -19,7 +19,7 @@ WHAT THIS DOES
 
 WHY (enforcement placement)
   The prompt contract is owned by .agents/workflow-overlay/prompt-orchestration.md
-  ("Orca Prompt Preflight" + "Author Through The Prompt Orchestrator"). Whether
+  ("Forseti Prompt Preflight" + "Author Through The Prompt Orchestrator"). Whether
   the contract was applied is not mechanically checkable from one tool call, so
   the checkable part -- a write into the canonical prompt surface -- gets a
   deterministic, always-fires injection of the checklist, per the Enforcement
@@ -51,7 +51,7 @@ import sys
 
 REMINDER = (
     "Prompt preflight (advisory, not blocking) -- this write landed under "
-    "docs/prompts/**. Apply the Orca Prompt Preflight before treating the prompt "
+    "docs/prompts/**. Apply the Forseti Prompt Preflight before treating the prompt "
     "as done; state, per prompt:\n"
     "  1. Output mode -- one of chat-only/file-write/review-report/"
     "paste-ready-chat/patch-queue, plus its write/report destination.\n"

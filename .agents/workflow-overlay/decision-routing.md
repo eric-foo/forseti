@@ -1,9 +1,9 @@
-# Cynefin Routing Layer
+﻿# Cynefin Routing Layer
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
-scope: Lightweight Cynefin-based pre-planning router for non-trivial Orca work.
+artifact_role: Forseti overlay authority
+scope: Lightweight Cynefin-based pre-planning router for non-trivial Forseti work.
 use_when:
   - Deciding whether to plan, delegate, review, patch, or implement.
   - Starting substantial, ambiguous, cross-thread, or doctrine-bearing work.
@@ -11,7 +11,7 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-This file owns Orca's lightweight Cynefin Routing Layer. It prevents agents
+This file owns Forseti's lightweight Cynefin Routing Layer. It prevents agents
 from planning or delegating before they have classified the uncertainty regime,
 named the current constraint, and chosen a safe next move.
 
@@ -34,7 +34,7 @@ Run the router when any of these are true:
 - the user asks to spawn agents, delegate work, execute a prompt, perform
   review, apply a patch, or commission another lane;
 - the task references another thread as evidence or continuity context;
-- the task touches `AGENTS.md`, the Orca overlay, prompt templates, review
+- the task touches `AGENTS.md`, the Forseti overlay, prompt templates, review
   lanes, validation gates, source hierarchy, or durable workflow doctrine;
 - the task would build infrastructure before a material assumption has been
   proven;

@@ -50,7 +50,7 @@ DETECTION CONTRACT (mirrors check_dcp_receipt.py / header_index.py --strict)
   root is a code-root change (FIND-01, EP-35 delegated review). Commit
   messages come from `git log base..HEAD`. NO HEAD~1 fallback. If the base
   cannot be resolved or git fails, fail OPEN (exit 0, loud warning) -- the
-  universal Orca infra-gap stance; in CI the base is always present
+  universal Forseti infra-gap stance; in CI the base is always present
   (fetch-depth: 0). Fail-open is for INFRASTRUCTURE GAPS ONLY: in --strict and
   --selftest an unexpected internal exception exits nonzero (the GATE FAIL
   bucket, validation-gates.md; FIND-02, EP-35 delegated review); advisory

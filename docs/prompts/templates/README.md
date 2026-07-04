@@ -1,6 +1,6 @@
-# Orca Prompt Templates
+# Forseti Prompt Templates
 
-This folder stores Orca-local prompt templates.
+This folder stores Forseti-local prompt templates.
 
 The authoritative registry is:
 
@@ -15,7 +15,7 @@ rank, or route runtime model choice.
 
 Structure:
 
-- `shared/`: reusable Orca behavior contracts and preflight defaults included by other templates.
+- `shared/`: reusable Forseti behavior contracts and preflight defaults included by other templates.
 - `research/`: evidence-only research and evidence-synthesis prompt templates.
 - `review/`: read-only artifact review templates.
 - `wrappers/`: thin-wrapper templates for launching existing prompt artifacts.
@@ -24,4 +24,4 @@ Structure:
 Note: model-target templates (`_generic/`) were retired 2026-06-13 (unused; owner decision).
 
 Do not add implementation, runtime, package, test, scraping, or automation
-templates while Orca remains docs-first.
+templates while Forseti remains docs-first.

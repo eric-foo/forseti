@@ -10,7 +10,7 @@
 
 ## Purpose
 
-This foundation defines how Orca manually turns raw public evidence into valid
+This foundation defines how Forseti manually turns raw public evidence into valid
 intermediate intelligence objects before any proof run.
 
 It is the product-method layer between Core Spine v0's contract and the proof
@@ -91,10 +91,10 @@ Each valid Evidence Unit must include:
 | Source locator or source family | URL, citation, archive reference, source title, or source-family label when exact locator is unavailable. |
 | Source actor or audience type | Who produced or carried the signal, when knowable. |
 | Event or publication timestamp | When the signal happened or was published, when available. |
-| Capture or access timestamp | When Orca observed or captured it. |
+| Capture or access timestamp | When Forseti observed or captured it. |
 | Pre-cutoff visibility | Required for backtests and cutoff-sensitive claims. |
 | Excerpt or observed pattern | Quoted excerpt, summarized pattern, or observable behavior with context. |
-| Raw claim | What the source says or shows, separated from Orca interpretation. |
+| Raw claim | What the source says or shows, separated from Forseti interpretation. |
 | Provenance | How the evidence was found or connected to the source. |
 | Transformation history | Any summarization, translation, normalization, or interpretation applied. |
 | Relevance to decision | Why this evidence can inform the decision frame. |
@@ -154,7 +154,7 @@ An Evidence Unit is invalid when any of these are true:
 - post-window evidence is mislabeled as pre-window;
 - demand is inferred without source support;
 - provenance is broken;
-- `jb` assumptions are imported as Orca evidence;
+- `jb` assumptions are imported as Forseti evidence;
 - the evidence cannot be tied to a decision frame.
 
 ### Blocked Evidence Unit
@@ -164,7 +164,7 @@ An Evidence Unit is blocked when:
 - source access is unavailable;
 - source visibility cannot be established;
 - the decision frame is missing;
-- the evidence may violate Orca's product boundary;
+- the evidence may violate Forseti's product boundary;
 - owner input is required to interpret domain-specific costly behavior or
   action threshold.
 
@@ -207,7 +207,7 @@ until that review is completed.
 Signal Integrity judges how much trust to place in an Evidence Unit or signal
 pattern.
 
-Judge only visible integrity signals. Do not pretend Orca has automated bot
+Judge only visible integrity signals. Do not pretend Forseti has automated bot
 detection, platform-private data, or hidden source access.
 
 ### Manual Integrity Labels
@@ -240,7 +240,7 @@ Strength change, or Action Ceiling cap caused by that integrity label.
 ### Integrity Ceiling Anchors
 
 Use these minimum anchors. Do not expand them into a full scoring matrix unless
-a later Orca decision authorizes one.
+a later Forseti decision authorizes one.
 
 - `Excluded` integrity cannot support a recommendation.
 - `Ambiguous` integrity defaults to visible discounting and cannot support an
@@ -324,7 +324,7 @@ Assess Decision Strength by weighing:
 - consequence of being wrong;
 - reversibility of the recommended action.
 
-Do not use numeric scores unless a later Orca decision accepts a scoring
+Do not use numeric scores unless a later Forseti decision accepts a scoring
 method. For v0, use written rationale and Action Ceiling.
 
 ## Action Ceiling Standard
@@ -417,10 +417,10 @@ A backtest record must capture:
 - source visibility before cutoff;
 - included pre-cutoff Evidence Units;
 - excluded post-window evidence;
-- recommendation Orca would have made at cutoff;
+- recommendation Forseti would have made at cutoff;
 - Action Ceiling at cutoff;
 - later outcome (Outcome);
-- whether Orca was early, late, wrong, overconfident, underconfident, useful,
+- whether Forseti was early, late, wrong, overconfident, underconfident, useful,
   or inconclusive;
 - evidence-standard lesson.
 
@@ -456,7 +456,7 @@ Examples:
 - post-window leakage;
 - unsupported demand inference;
 - private or deceptive evidence;
-- `jb` assumptions imported as Orca evidence;
+- `jb` assumptions imported as Forseti evidence;
 - integrity note that does not affect inference.
 
 ### Blocked

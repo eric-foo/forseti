@@ -1,16 +1,16 @@
-# Retrieval Metadata
+﻿# Retrieval Metadata
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
+artifact_role: Forseti overlay authority
 scope: Retrieval-header contract for durable human-authored workflow artifacts.
 use_when:
-  - Defining or reviewing retrieval metadata for Orca artifacts.
+  - Defining or reviewing retrieval metadata for Forseti artifacts.
   - Deciding whether a durable artifact needs a retrieval header.
 authority_boundary: retrieval_only
 ```
 
-This file defines Orca's lightweight retrieval-header contract for durable
+This file defines Forseti's lightweight retrieval-header contract for durable
 human-authored workflow artifacts. It exists to help future agents find and
 interpret the right artifact faster. It does not create authority.
 
@@ -27,7 +27,7 @@ workflow artifacts when the artifact is expected to survive the current turn
 and may affect future routing, planning, review, proof, validation, prompt, or
 overlay work.
 
-This includes durable artifacts in accepted Orca locations such as:
+This includes durable artifacts in accepted Forseti locations such as:
 
 - `.agents/workflow-overlay/` files that define project authority;
 - `docs/decisions/`;
@@ -50,15 +50,15 @@ Do not require retrieval headers for:
 - `docs/_inbox/` scratch unless promoted into an accepted folder;
 - temporary notes, parking files, or disposable drafts with no durable role;
 - simple folder README files that only describe a directory;
-- generated outputs, if future Orca work authorizes generated artifacts;
+- generated outputs, if future Forseti work authorizes generated artifacts;
 - implementation code, tests, packages, runtimes, or build artifacts, if later
   authorized;
 - installed global, user-level, plugin, or project-local skill copies;
-- external reference material outside Orca;
+- external reference material outside Forseti;
 - copied review-input material when the canonical artifact remains elsewhere;
 - raw evidence units embedded inside a larger artifact.
 
-If an excluded file is later promoted into a durable Orca artifact role, apply
+If an excluded file is later promoted into a durable Forseti artifact role, apply
 the retrieval-header contract at promotion time.
 
 ## Core Header
@@ -78,7 +78,7 @@ authority_boundary: retrieval_only
 Core field rules:
 
 - `retrieval_header_version`: always `1`.
-- `artifact_role`: the Orca artifact role or a concise repo-native role. If
+- `artifact_role`: the Forseti artifact role or a concise repo-native role. If
   the role is required for authority and is not bound, fail visibly instead of
   inventing authority.
 - `scope`: one concise statement of what the artifact covers.
@@ -91,7 +91,7 @@ Core field rules:
 `retrieval_only` means the header helps agents find and interpret the artifact.
 It does not create, upgrade, or imply:
 
-- Orca authority beyond the artifact's existing authority;
+- Forseti authority beyond the artifact's existing authority;
 - validation proof;
 - approval;
 - readiness;
@@ -103,7 +103,7 @@ It does not create, upgrade, or imply:
 - source-of-truth status.
 
 If the retrieval header conflicts with the artifact body, the overlay, an
-accepted Orca source, or the current user instruction, the header loses. Treat
+accepted Forseti source, or the current user instruction, the header loses. Treat
 the artifact as stale or conflicting and open the controlling source.
 
 ## Triggered Fields
@@ -155,7 +155,7 @@ Do not put these concepts in the retrieval header:
 - review verdict;
 - source-of-truth promotion.
 
-Artifact bodies may still contain Orca-approved status, verdict, validation,
+Artifact bodies may still contain Forseti-approved status, verdict, validation,
 or authorization language where the artifact role requires it. The retrieval
 header itself stays retrieval-only.
 

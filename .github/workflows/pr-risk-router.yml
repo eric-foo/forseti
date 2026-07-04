@@ -170,7 +170,7 @@ jobs:
           }
 
           body="$COMMENT_MARKER
-          ## Orca PR Risk Router
+          ## Forseti PR Risk Router
 
           **Decision:** \`$decision\`
 

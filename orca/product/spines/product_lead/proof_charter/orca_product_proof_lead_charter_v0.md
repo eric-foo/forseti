@@ -1,11 +1,11 @@
-# Orca Product Proof Lead Charter v0
+# Forseti Product Proof Lead Charter v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: Bounded charter for the Orca Product Proof Lead and first buyer-proof lane.
+scope: Bounded charter for the Forseti Product Proof Lead and first buyer-proof lane.
 use_when:
-  - Setting up Orca buyer-proof work before feature planning.
+  - Setting up Forseti buyer-proof work before feature planning.
   - Checking Product Proof Lead ownership, exclusions, and graduation rules.
 authority_boundary: retrieval_only
 open_next:
@@ -33,7 +33,7 @@ Product planning verdict: `NEEDS_CUSTOMER_DISCOVERY`.
 
 Readiness verdict: `ready for product-fit testing`; not buyer-validated, not feature-ready, not implementation-ready, and not commercially ready.
 
-This charter defines a bounded Orca Product Proof Lead. It is not a full Product Lead role. It does not own roadmap, feature planning, implementation, product readiness, commercial readiness, or validation claims.
+This charter defines a bounded Forseti Product Proof Lead. It is not a full Product Lead role. It does not own roadmap, feature planning, implementation, product readiness, commercial readiness, or validation claims.
 
 This artifact is docs-first only. It does not authorize software implementation, automation, packages, tests, dashboards, source maps, data-spine designs, commits, pushes, PRs, collection pipelines, or feature planning.
 
@@ -92,7 +92,7 @@ Those first families have the clearest timing, allocation stakes, and
 public-signal relevance before internal data is conclusive.
 
 Retailer/category teams are deferred because their proprietary sell-through,
-basket, loyalty, and vendor data often makes Orca's public-signal increment
+basket, loyalty, and vendor data often makes Forseti's public-signal increment
 harder to prove in the first 2-3 month window. This is a sequencing constraint,
 not a business-ending conclusion. If operator-first proof fails, the
 owner-decided fallback ladder remains consumer fund screen and then
@@ -101,7 +101,7 @@ decision owners, but they are not the first buyer-proof target.
 
 Customer-provided proprietary data is a later augmentation path, not a first
 proof dependency. The Product Proof Lead may later route a separate
-data-spine/proof question for reconciling Orca's public-signal judgment against
+data-spine/proof question for reconciling Forseti's public-signal judgment against
 internal sell-through, CRM, panel, retail, or cohort evidence. This charter's
 first proof loop remains public-first and must not require proprietary-data
 intake, data science, dashboards, integrations, or source-system buildout to
@@ -109,9 +109,9 @@ make the memo credible.
 
 ## Source Basis
 
-- Current owner instruction for Orca product-proof planning.
+- Current owner instruction for Forseti product-proof planning.
 - `AGENTS.md` and `.agents/workflow-overlay/` authority, especially product artifact write permission under `docs/product/`.
-- `docs/decisions/turn_08_product_thesis_v0.md`, which frames Orca as an outside-in strategic intelligence system for public market signals and allocation decisions.
+- `docs/decisions/turn_08_product_thesis_v0.md`, which frames Forseti as an outside-in strategic intelligence system for public market signals and allocation decisions.
 - `docs/decisions/orca_icp_wedge_pricing_first_v0.md` — wedge authority at authoring (owner-locked 2026-06-08; superseded 2026-06-12 by `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`); supersedes the v0 ICP wedge below.
 - `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md`, which selects the first proof lane and binds AI exposure as trigger/context ordering only. SUPERSEDED by `docs/decisions/orca_icp_wedge_pricing_first_v0.md`; reread-required.
 - `docs/review-outputs/adversarial-artifact-reviews/orca_ai_exposed_icp_refinement_adversarial_review_v0.md`, which rejects AI buyer-attribute filters and standalone AI/trust/competitive-positioning decision-family expansion.
@@ -122,12 +122,12 @@ No public web research was used. Archived contaminated replay outputs were not r
 
 ## Role Purpose
 
-The Orca Product Proof Lead owns the buyer-proof loop for one narrow question:
+The Forseti Product Proof Lead owns the buyer-proof loop for one narrow question:
 
 Can a real decision owner at an indie/DTC beauty / personal-care brand (Brand) facing
 a live consumer-demand allocation decision — where internal data is not
-conclusive — use an Orca decision artifact to reduce allocation risk before
-committing inventory, retail/channel, launch, or pricing budget, after Orca
+conclusive — use a Forseti decision artifact to reduce allocation risk before
+committing inventory, retail/channel, launch, or pricing budget, after Forseti
 captures, cleans, integrity-labels, classifies (costly behavior, never
 engagement/resonance volume alone), and constrains messy public demand signals, fused
 with org-level (Org) org-motion corroboration, into inspectable decision evidence
@@ -139,14 +139,14 @@ thesis and wedge (2026-06-12).
 
 The minimum viable artifact is a manual decision memo (Memo) plus evidence appendix. The premium buyer-facing artifact is an executive-grade decision deck derived from that memo and appendix. The first commercial next-step hypothesis is a fixed-scope paid decision sprint, not validated commercial readiness.
 
-The role exists to convert bounded method signal into buyer-proof learning without prematurely turning Orca into a product organization, software system, dashboard, deck shop, research factory, or implementation program.
+The role exists to convert bounded method signal into buyer-proof learning without prematurely turning Forseti into a product organization, software system, dashboard, deck shop, research factory, or implementation program.
 
 ## What The Product Proof Lead Owns
 
 1. Buyer-proof design for the first external proof loop.
 2. Selection of one target buyer segment (Buyer) and one live decision family for the proof.
 3. Qualification of live decision triggers before memo production.
-4. The manual Orca decision memo, evidence appendix, and optional executive deck shape used in the proof.
+4. The manual Forseti decision memo, evidence appendix, and optional executive deck shape used in the proof.
 5. The proof evaluation rubric, including pull, weak signal, kill, and graduation criteria.
 6. Source cleanliness, uncertainty framing, action-ceiling discipline, and explicit non-claims inside proof artifacts.
 7. Buyer readback questions that test decision use, risk reduction, trust, and commercial next step.
@@ -158,7 +158,7 @@ The role exists to convert bounded method signal into buyer-proof learning witho
 
 The Product Proof Lead does not own:
 
-- Orca roadmap.
+- Forseti roadmap.
 - Product readiness.
 - Feature planning or feature readiness.
 - Implementation planning or implementation readiness.
@@ -210,7 +210,7 @@ trend-darling visibility are neither qualifiers nor disqualifiers.
 
 Selected product promise:
 
-Orca reduces allocation risk before budget is committed by discriminating
+Forseti reduces allocation risk before budget is committed by discriminating
 durable from transient and manufactured demand on fused, integrity-labeled public evidence and
 naming the evidence-supported action ceiling — monitor, probe, commit, hold, scale, avoid, or
 reduce — plus what would change the answer.
@@ -314,11 +314,11 @@ A single strong candidate may justify a follow-up conversation, but not graduati
 Graduate to product-bet planning only if the proof produces all of the following:
 
 - Repeat means: At least two independent qualified decision owners in the same buyer segment and decision family produce Grade A or Grade B results, without reusing the same buyer or same internal decision.
-- At least two qualified decision owners use a manual Orca memo in a live allocation decision.
+- At least two qualified decision owners use a manual Forseti memo in a live allocation decision.
 - At least one buyer shows fixed-scope paid-decision-sprint-level pull or equivalent commercial commitment.
 - The memo plus evidence appendix format remains sufficient without software, dashboards, source systems, source maps, or automation.
 - Any executive deck layer is derived from the memo and appendix and does not become bespoke presentation consulting.
-- The buyer values Orca's decision judgment and action-ceiling discipline, not merely custom research labor.
+- The buyer values Forseti's decision judgment and action-ceiling discipline, not merely custom research labor.
 - The non-claims remain intact: no buyer validation, feature readiness, implementation readiness, or commercial readiness is asserted.
 
 Feature planning remains later than product-bet planning. It may be considered only after accepted product proof evidence, explicit owner authorization, and a bounded feature-planning turn. This charter does not route to feature planning.

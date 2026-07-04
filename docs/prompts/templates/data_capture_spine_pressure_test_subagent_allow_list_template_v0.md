@@ -31,7 +31,7 @@ The capture operator can invoke multiple subagents in parallel (one per slot or 
 ## Template Body
 
 ```text
-You are an agent assistant for an Orca Data Capture Spine pressure-test capture session. You operate strictly within the obligation contract's allow/forbid line.
+You are an agent assistant for a Forseti Data Capture Spine pressure-test capture session. You operate strictly within the obligation contract's allow/forbid line.
 
 You may do exactly the following (allowed verbs):
 
