@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 import re
 import sys
@@ -546,3 +547,95 @@ def test_auto_targets_creator_registry_preflight_docs_research_artifacts(tmp_pat
     targets = validator.auto_targets(tmp_path, ["docs/research/creator_scan.md", "docs/prompts/creator_scan.md"])
 
     assert targets == [good]
+
+
+def _creator_registry_scan_text() -> str:
+    return (FIXTURE_DIR / "valid_creator_registry_preflight_scan.md").read_text(encoding="utf-8")
+
+
+def _valid_creator_registry_receipt() -> dict:
+    return json.loads((FIXTURE_DIR / "valid_creator_registry_preflight_receipt.json").read_text(encoding="utf-8"))
+
+
+def _write_scan_with_receipt_path(tmp_path: Path, receipt_path_value: str) -> Path:
+    text = _creator_registry_scan_text().replace(
+        "receipt_path: orca-harness/tests/fixtures/csb_scanning_artifacts/valid_creator_registry_preflight_receipt.json",
+        f"receipt_path: {receipt_path_value}",
+    )
+    scan_path = tmp_path / "scan.md"
+    scan_path.write_text(text, encoding="utf-8")
+    return scan_path
+
+
+@pytest.mark.parametrize(
+    "receipt_path_value",
+    ["/etc/passwd", "C:/Windows/system32/drivers/etc/hosts", "../../../../etc/passwd"],
+)
+def test_creator_registry_receipt_path_rejects_absolute_and_traversal(tmp_path: Path, receipt_path_value: str) -> None:
+    scan_path = _write_scan_with_receipt_path(tmp_path, receipt_path_value)
+
+    codes = {finding.code for finding in validator.validate_artifact_path(tmp_path, scan_path)}
+
+    assert "invalid_creator_registry_receipt_path" in codes
+
+
+def test_creator_registry_receipt_missing_file_fails(tmp_path: Path) -> None:
+    scan_path = _write_scan_with_receipt_path(tmp_path, "receipts/does_not_exist.json")
+
+    codes = {finding.code for finding in validator.validate_artifact_path(tmp_path, scan_path)}
+
+    assert "missing_creator_registry_receipt_file" in codes
+
+
+def test_creator_registry_receipt_invalid_json_fails(tmp_path: Path) -> None:
+    scan_path = _write_scan_with_receipt_path(tmp_path, "receipt.json")
+    (tmp_path / "receipt.json").write_text("{ not valid json", encoding="utf-8")
+
+    codes = {finding.code for finding in validator.validate_artifact_path(tmp_path, scan_path)}
+
+    assert "invalid_creator_registry_receipt_json" in codes
+
+
+def test_creator_registry_receipt_invalid_schema_fails(tmp_path: Path) -> None:
+    receipt = _valid_creator_registry_receipt()
+    receipt["creator_registry_match_preflight_receipt"]["schema_version"] = "wrong_schema_v9"
+    scan_path = _write_scan_with_receipt_path(tmp_path, "receipt.json")
+    (tmp_path / "receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
+
+    codes = {finding.code for finding in validator.validate_artifact_path(tmp_path, scan_path)}
+
+    assert "invalid_creator_registry_receipt_schema" in codes
+
+
+def test_creator_registry_receipt_summary_mismatch_fails(tmp_path: Path) -> None:
+    receipt = _valid_creator_registry_receipt()
+    receipt["creator_registry_match_preflight_receipt"]["summary"]["total_candidates"] = 99
+    scan_path = _write_scan_with_receipt_path(tmp_path, "receipt.json")
+    (tmp_path / "receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
+
+    codes = {finding.code for finding in validator.validate_artifact_path(tmp_path, scan_path)}
+
+    assert "creator_registry_receipt_summary_mismatch" in codes
+
+
+def test_creator_registry_receipt_missing_result_row_fails(tmp_path: Path) -> None:
+    receipt = _valid_creator_registry_receipt()
+    receipt["creator_registry_match_preflight_receipt"]["results"][0]["candidate_id"] = "some_other_candidate"
+    scan_path = _write_scan_with_receipt_path(tmp_path, "receipt.json")
+    (tmp_path / "receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
+
+    codes = {finding.code for finding in validator.validate_artifact_path(tmp_path, scan_path)}
+
+    assert "missing_creator_registry_receipt_result" in codes
+
+
+def test_creator_registry_receipt_missing_root_key_fails(tmp_path: Path) -> None:
+    receipt = _valid_creator_registry_receipt()
+    del receipt["creator_registry_match_preflight_receipt"]
+    receipt["something_else"] = {}
+    scan_path = _write_scan_with_receipt_path(tmp_path, "receipt.json")
+    (tmp_path / "receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
+
+    codes = {finding.code for finding in validator.validate_artifact_path(tmp_path, scan_path)}
+
+    assert "invalid_creator_registry_receipt_root" in codes
