@@ -215,20 +215,37 @@ def test_pending_check_fails_loud_on_reconcile_failure(tmp_path: Path) -> None:
         catchup.pending_packets(data_root=root)
 
 
-def test_as_of_is_pinned_to_capture_date_and_recorded_in_evidence(tmp_path: Path) -> None:
+def test_as_of_is_pinned_to_capture_date_and_recorded_in_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     # The lane's determinism rule: as_of = the packet's own capture date,
     # resolved from the committed manifest and recorded in the ack evidence
     # (the coverage receipt does not carry it).
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     pid = _commit_packet(root)
-    manifest = json.loads(_manifest_path(root, pid).read_text(encoding="utf-8"))
+    manifest_path = _manifest_path(root, pid)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["source_slices"][0]["timing"]["capture_time"]["value"] = "2024-01-15T12:34:56Z"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     capture_value = manifest["source_slices"][0]["timing"]["capture_time"]["value"]
     expected_as_of = datetime.fromisoformat(capture_value.replace("Z", "+00:00")).date()
 
     assert capture_as_of_date(manifest) == expected_as_of
 
+    projected_as_of_dates = []
+    real_project = catchup.project_fragrance_review_into_lake
+
+    def recording_project(*, data_root, packet_id, as_of_date=None):
+        projected_as_of_dates.append(as_of_date)
+        return real_project(data_root=data_root, packet_id=packet_id, as_of_date=as_of_date)
+
+    monkeypatch.setattr(catchup, "project_fragrance_review_into_lake", recording_project)
+
     results = catchup.run_catchup(data_root=root)
     assert results[0]["as_of_date"] == expected_as_of.isoformat()
+    assert projected_as_of_dates == [expected_as_of]
 
     (ack,) = _acks(root, pid)
     evidence = {entry["kind"]: entry for entry in ack["evidence"]}
