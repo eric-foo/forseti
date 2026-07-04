@@ -1,6 +1,6 @@
 # Agent enforcement hooks — and how to wire them in any harness
 
-These scripts enforce a few Orca rules at the agent's **tool boundary**. They are
+These scripts enforce a few Forseti rules at the agent's **tool boundary**. They are
 **standalone** — plain Python that reads a tool event as JSON on stdin and signals
 via exit code — so they are **harness-portable**: the *logic* runs anywhere; only the
 *wiring* (how your agent harness invokes them) is harness-specific.
@@ -35,7 +35,7 @@ header and references that source instead of restating it.
 
 - **Input:** the harness passes the tool event as **JSON on stdin** — at minimum
   `tool_name` and `tool_input` (with `command` for shell tools, `file_path` for writes).
-- **Output / exit code:** for the raw Orca guard, **`2` = block** the tool call
+- **Output / exit code:** for the raw Forseti guard, **`2` = block** the tool call
   (stderr explains why); **`0` = allow**.
   On any internal error the guard **exits 0 (fails open)** so a hook bug never bricks the agent.
 - For the repo-map PostToolUse checker, **`2` = stop and commit the dirty repo
@@ -76,7 +76,7 @@ python .agents/hooks/check_search_surface_google_route.py --strict --base main
 ```
 
 ### Codex (tracked project hook)
-Codex does not read `.claude/settings.json`. Orca wires Codex through the
+Codex does not read `.claude/settings.json`. Forseti wires Codex through the
 tracked project-local `.codex/hooks.json`, which registers:
 
 - `PreToolUse` for `Bash|PowerShell|apply_patch|Edit|Write`;

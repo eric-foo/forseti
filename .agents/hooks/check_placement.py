@@ -2,7 +2,7 @@
 """Placement boundary check (EP-04) - advisory write-time WARN + strict tree check.
 
 WHAT THIS ENFORCES
-  The placement shape of the Orca tree: a new artifact lands in a declared home.
+  The placement shape of the Forseti tree: a new artifact lands in a declared home.
   The rule source is the machine structure map, read as this checker's ONLY spec:
 
       repo-structure.yaml                                  (the router)

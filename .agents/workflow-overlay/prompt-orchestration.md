@@ -1,26 +1,26 @@
-# Prompt Orchestration
+﻿# Prompt Orchestration
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
+artifact_role: Forseti overlay authority
 scope: Prompt artifact families, output modes, preflight fields, and prompt validation gates.
 use_when:
-  - Creating or reviewing Orca prompt artifacts.
+  - Creating or reviewing Forseti prompt artifacts.
   - Checking prompt output mode, preflight, or review-report rules.
 authority_boundary: retrieval_only
 ```
 
-This file defines Orca's lightweight prompt-orchestration layer: Orca-owned prompt mechanics, output modes, preflight, and validation gates, without importing `jb` project policy and preserving Orca's explicit-authorization boundary for implementation and runtime work.
+This file defines Forseti's lightweight prompt-orchestration layer: Forseti-owned prompt mechanics, output modes, preflight, and validation gates, without importing `jb` project policy and preserving Forseti's explicit-authorization boundary for implementation and runtime work.
 
 **Routine read shape** (owned by `.agents/workflow-overlay/source-loading.md`,
-Targeted Read Protocol): for routine prompt authoring, read the "Orca Prompt
+Targeted Read Protocol): for routine prompt authoring, read the "Forseti Prompt
 Preflight" section below plus the single section for your prompt family; a
 full-file read is for fused, delegated-review-patch, and novel or cross-lane
 prompt authoring.
 
-## Orca Prompt Preflight
+## Forseti Prompt Preflight
 
-Routine Orca prompts apply this core inline — no skill reload. It is the checkable
+Routine Forseti prompts apply this core inline — no skill reload. It is the checkable
 distillation of the most load-bearing per-prompt deltas plus the review and
 doctrine bindings below; it is **additive** and narrows nothing — the full
 Required Preflight Fields, Review Prompt Defaults, and Output Modes sections
@@ -44,7 +44,7 @@ fused, delegated-review-patch, or novel/cross-lane prompts, which author through
 
 ## Source Boundary
 
-Orca-specific facts, product constraints, artifact paths, review lanes, validation gates, and safety rules must come from `AGENTS.md`, this overlay, or accepted Orca docs named in `.agents/workflow-overlay/source-of-truth.md`. Prompt mechanics come from those same sources; see Required Preflight Fields below for the field-level authority list.
+Forseti-specific facts, product constraints, artifact paths, review lanes, validation gates, and safety rules must come from `AGENTS.md`, this overlay, or accepted Forseti docs named in `.agents/workflow-overlay/source-of-truth.md`. Prompt mechanics come from those same sources; see Required Preflight Fields below for the field-level authority list.
 
 Prompt-policy, handoff, wrapper, review, output-mode, or execution-contract
 changes that alter durable agent behavior are doctrine-changing when they touch
@@ -59,7 +59,7 @@ qualification, trust objections, disqualifiers, kill criteria, pull grading, or
 graduation rules. Do not redefine trust-objection semantics locally when the
 overlay applies.
 
-`prompt_orchestrator.yaml`, `product-ultraplan.yaml`, and `feature-ultraplan.yaml` are non-executable queue records unless later accepted source creates real workflow skills and Orca validates adoption. Do not create `SKILL.md`, install skills, or copy `jb` templates from Orca prompt-orchestration work.
+`prompt_orchestrator.yaml`, `product-ultraplan.yaml`, and `feature-ultraplan.yaml` are non-executable queue records unless later accepted source creates real workflow skills and Forseti validates adoption. Do not create `SKILL.md`, install skills, or copy `jb` templates from Forseti prompt-orchestration work.
 
 ## Prompt Orchestrator Binding
 
@@ -68,7 +68,7 @@ prompt_orchestrator:
   source_loading_policy: .agents/workflow-overlay/source-loading.md
 ```
 
-All Orca prompt-orchestrator work must use the source-loading policy above; do not substitute generic, `jb`, plugin, or installed-skill defaults.
+All Forseti prompt-orchestrator work must use the source-loading policy above; do not substitute generic, `jb`, plugin, or installed-skill defaults.
 
 ## Source-Gated Method Contract
 
@@ -181,12 +181,12 @@ thread_operating_target_continuity:
 
 ## Project Template Registry
 
-Orca-local prompt templates live under `docs/prompts/templates/`.
-The active Orca template registry is
+Forseti-local prompt templates live under `docs/prompts/templates/`.
+The active Forseti template registry is
 `.agents/workflow-overlay/template-registry.md`.
 
 The registry binds template kinds, template targets, output modes, and template
-paths for Orca. Template targets are prompt-shaping labels only; they are not
+paths for Forseti. Template targets are prompt-shaping labels only; they are not
 runtime model routing. Check the registry before using any generic
 prompt-orchestration template.
 
@@ -211,12 +211,12 @@ agent, thread, or worktree.
 
 ## Author Through The Prompt Orchestrator
 
-Every durable Orca prompt, handoff, wrapper, rerun, or patch prompt applies the
+Every durable Forseti prompt, handoff, wrapper, rerun, or patch prompt applies the
 prompt contract; authoring one that skips it is a prompt-quality defect even when
 the surface text looks complete — the defect is the skipped contract, not the
 surface. The contract is applied at two depths:
 
-- **Routine prompts** apply the **Orca Prompt Preflight** core (above) inline — no
+- **Routine prompts** apply the **Forseti Prompt Preflight** core (above) inline — no
   skill reload. The core is how a routine prompt *satisfies* the contract without
   reloading the skill — not a shorter field set: a repo-aware prompt still owes the
   full Required Preflight Fields (most carried by the core's deltas plus the
@@ -238,7 +238,7 @@ separate:
   family. This includes reusable templates, doctrine-bearing prompts,
   first-of-kind workflow prompts, standard handoffs/wrappers/reruns/review
   requests meant to be reused beyond the current lane, and any prompt promoted
-  as an Orca source artifact. For these prompts, `paste-ready-chat` carries a
+  as a Forseti source artifact. For these prompts, `paste-ready-chat` carries a
   copy of the filed body for pasting and is **not a substitute for filing**.
 - **Lane-scoped execution prompts** are not standalone prompt artifacts. A
   one-off review dispatch, adversarial prompt, rerun launcher, patch prompt,
@@ -266,10 +266,10 @@ does not claim the skill is an adopted or resolver-validated executable.
 
 ## Default Path Assignment
 
-The user is not responsible for naming routine Orca artifact paths.
+The user is not responsible for naming routine Forseti artifact paths.
 
 When a user asks for a canonical prompt artifact without naming a path, choose
-the narrowest accepted Orca folder from
+the narrowest accepted Forseti folder from
 `.agents/workflow-overlay/artifact-folders.md` and the Supported Prompt Families
 table above, and create a deterministic, descriptive versioned filename.
 Example: a reusable review prompt goes to
@@ -305,7 +305,7 @@ A full prompt is the durable artifact. It must include:
 - the retrieval header from `.agents/workflow-overlay/retrieval-metadata.md`
   when the prompt is new or materially touched;
 - objective and intended decision;
-- Orca source hierarchy and required reads;
+- Forseti source hierarchy and required reads;
 - source paths plus hashes or revisions when stability matters;
 - hard constraints and forbidden imports;
 - output mode and exact output contract;
@@ -367,7 +367,7 @@ no`, and not the alignment-axis-not-pass-bar guardrail.
 
 ## Review Prompt Defaults
 
-All Orca review prompts must include `workflow-deep-thinking` before the
+All Forseti review prompts must include `workflow-deep-thinking` before the
 relevant review skill, such as `workflow-adversarial-artifact-review` or
 `workflow-code-review`, under the Source-Gated Method Contract. The reviewer
 may `REFERENCE-LOAD` the methods before source loading, but must not `APPLY`
@@ -382,7 +382,7 @@ thinking improves the reviewer's risk framing; the final answer remains a
 review report with findings, non-findings, not-proven boundaries, and next
 authorized step.
 
-Every Orca review prompt and any review-return or courier prompt must also
+Every Forseti review prompt and any review-return or courier prompt must also
 instruct the *adjudicator* -- the reviewer in a self-review, the commissioning
 Chief Architect in a delegated pass, never the delegate mid-review -- to close
 adjudication in this order: first adjudicate the findings, diff, verdict, and
@@ -411,7 +411,7 @@ Review prompts, wrappers, handoffs, and closeouts must not recommend,
 prescribe, rank, or imply runtime model choice for review lanes. They may route
 by review lane, method/skill, target, authority, output mode, destination, and
 prompt-template target only. Template targets are prompt-shaping guidance;
-runtime model choice for review work is outside Orca review-lane authority.
+runtime model choice for review work is outside Forseti review-lane authority.
 
 Review prompts must require the durable review output to record two provenance
 fields -- `reviewed_by` (the model and version that performed the review) and
@@ -425,7 +425,7 @@ selection. Same-family-vs-cross-family is computed by relating the two and is
 measured only when both carry real values, so a present `unrecorded` value is a
 visible measurement gap, not success.
 
-Every Orca adversarial artifact review prompt must invoke
+Every Forseti adversarial artifact review prompt must invoke
 `workflow-adversarial-artifact-review` after `SOURCE_CONTEXT_READY`. If that
 skill is unavailable, unresolved, or not applied, the run may return only a
 blocked or advisory-only result and must not emit formal verdicts, severity
@@ -437,7 +437,7 @@ Review prompts are findings-first by default. Formal verdicts, blocked/ready
 status, validation pass/fail claims, approval, readiness, mandatory
 remediation, patch queues, and executor-ready handoffs must be explicitly bound
 by the prompt or `.agents/workflow-overlay/review-lanes.md`. If a prompt asks
-for severity labels, it must either use an Orca-bound severity set such as
+for severity labels, it must either use a Forseti-bound severity set such as
 `critical`, `major`, and `minor` for finding priority only, or define the
 prompt-specific severity contract.
 
@@ -473,7 +473,7 @@ CA-facing review prompts, handoffs, and closeouts must preserve the consumption
 order from `.agents/workflow-overlay/communication-style.md`: commission ->
 target -> authority -> decision criteria -> evidence -> reviewer verdict or
 recommendation. Do not introduce a synthesis lane for multi-review
-reconciliation unless Orca later binds one explicitly.
+reconciliation unless Forseti later binds one explicitly.
 
 Review prompts using `review-report` output mode must bind a durable report
 destination under `docs/review-outputs/` or a typed child folder unless the
@@ -510,8 +510,8 @@ or report destination is not bound before the review begins.
 
 ## Required Preflight Fields
 
-Every repo-aware Orca prompt must include or reference the
-`orca_start_preflight` receipt owned by
+Every repo-aware Forseti prompt must include or reference the
+`forseti_start_preflight` receipt owned by
 `.agents/workflow-overlay/source-loading.md`. Prompt authors may record the
 fields in that receipt or in adjacent preflight prose, but the prompt must make
 the start state checkable. Repo-constant fields (workspace path, required reads,
@@ -520,7 +520,7 @@ external source boundary, retrieval header defaults) may be referenced via
 restated; required per-prompt deltas listed in that artifact must still be
 stated explicitly in every prompt that references it.
 
-Every repo-aware Orca prompt must state:
+Every repo-aware Forseti prompt must state:
 
 - whether `AGENTS.md` and `.agents/workflow-overlay/README.md` were read or
   supplied in the current task context;
@@ -530,7 +530,7 @@ Every repo-aware Orca prompt must state:
 - workspace path or repository identifier;
 - expected branch, detached revision, or commit hash when source stability matters;
 - dirty-state allowance and whether untracked files are in scope;
-- controlling-source state when strict claims depend on Orca overlay,
+- controlling-source state when strict claims depend on Forseti overlay,
   source-loading, repo-map, prompt-policy, validation, or artifact-role files:
   clean, modified, untracked, stale, or not checked;
 - whether the work changes product doctrine, architecture doctrine, workflow
@@ -540,12 +540,12 @@ Every repo-aware Orca prompt must state:
 - target files or directories;
 - source hierarchy for the task;
 - edit permission: `read-only`, `patch-only`, `docs-write`, or
-  `implementation-authorized` (enum owned by `orca_start_preflight` in
+  `implementation-authorized` (enum owned by `forseti_start_preflight` in
   `.agents/workflow-overlay/source-loading.md`);
 - output mode: `chat-only`, `file-write`, `review-report`,
   `paste-ready-chat`, or `patch-queue`;
 - required validation gates and where evidence is recorded;
-- external source boundary, including the rule that external workflow source is read-only from Orca work and `jb` is not Orca authority.
+- external source boundary, including the rule that external workflow source is read-only from Forseti work and `jb` is not Forseti authority.
 
 Rerun and patch prompts must also name the prior artifact, prior hash or revision, frozen decisions, mutable fields, and unresolved finding being retried.
 
@@ -581,7 +581,7 @@ Highest-token actions to carve out: external web page opens, search result pages
 ## Output Modes
 
 - `chat-only`: return analysis, options, recommendations, and blocked assumptions without writing files.
-- `file-write`: write only authorized Orca documentation or overlay files;
+- `file-write`: write only authorized Forseti documentation or overlay files;
   report changed files and validation evidence. For substantial
   decision-bearing artifacts, chat closeout must include a concise headed human
   summary before the artifact receipt.
@@ -610,14 +610,14 @@ The general human-summary / agent-detail / optional courier-state chat shape is 
 
 Authoring-route precondition: the prompt, handoff, wrapper, rerun, or patch
 prompt must have applied the prompt contract at the correct depth (see "Author
-Through The Prompt Orchestrator") — the **Orca Prompt Preflight** core for a
+Through The Prompt Orchestrator") — the **Forseti Prompt Preflight** core for a
 routine prompt, or the full `workflow-prompt-orchestrator` skill for a fused,
 delegated-review-patch, or novel/cross-lane prompt. An artifact that skipped the
 contract — and therefore source-loading and this preflight/routing contract — is a
 prompt-quality defect; apply the preflight (routine) or reconstruct through the
 orchestrator (novel), and record that, before use.
 
-Before using a generated Orca prompt, apply these gates:
+Before using a generated Forseti prompt, apply these gates:
 
 1. Start preflight complete: `AGENTS.md` and
    `.agents/workflow-overlay/README.md` were read or supplied in the current
@@ -627,7 +627,7 @@ Before using a generated Orca prompt, apply these gates:
    acceptance, validation, proof, `PASS`, or `ADEQUATE_NOW` claims unless owner
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
-3. Source resolution clean: external workflow sources do not provide Orca authority; installed skills are deployment copies; `jb` project policy is not imported.
+3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
 4. Worktree preflight present: workspace, revision, dirty-state allowance, target scope, and edit permission are explicit when repository state matters.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
@@ -677,8 +677,8 @@ Before using a generated Orca prompt, apply these gates:
 ## Anti-Import Rules
 
 - Do not copy `jb` prompt templates, skill files, GAP/CV Engine policy, compiler paths, handoff rules, product-lead rules, or repo-local lifecycle mechanics.
-- Do not claim `workflow-product-ultraplan`, `workflow-feature-ultraplan`, or `workflow-prompt-orchestrator` are executable unless a real resolver-visible `SKILL.md` exists and Orca source-resolution/adoption checks pass.
-- Generic layout ideas may be reused only after binding to Orca paths, artifact roles, output modes, and validation gates.
+- Do not claim `workflow-product-ultraplan`, `workflow-feature-ultraplan`, or `workflow-prompt-orchestrator` are executable unless a real resolver-visible `SKILL.md` exists and Forseti source-resolution/adoption checks pass.
+- Generic layout ideas may be reused only after binding to Forseti paths, artifact roles, output modes, and validation gates.
 
 ## Direction Change Propagation
 

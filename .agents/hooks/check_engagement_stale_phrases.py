@@ -3,7 +3,7 @@
 
 WHAT THIS DOES
   Finds a small curated set of superseded engagement/resonance doctrine phrases
-  when they appear in live Orca doctrine surfaces.
+  when they appear in live Forseti doctrine surfaces.
 
 RULE AUTHORITY
   docs/hygiene/engagement_resonance_enforcement_goal_handoff_v0.md

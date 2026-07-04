@@ -1,9 +1,9 @@
-# Safety Rules
+﻿# Safety Rules
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
-scope: Project-specific safety rules, forbidden drift, authorization boundaries, and rollback limits for Orca work.
+artifact_role: Forseti overlay authority
+scope: Project-specific safety rules, forbidden drift, authorization boundaries, and rollback limits for Forseti work.
 use_when:
   - Checking whether an action is forbidden drift or needs explicit authorization (implementation, runtime, commit, push, external-folder, or skill edits).
   - Confirming fail-visible behavior, scope discipline, or rollback boundaries before acting.
@@ -12,13 +12,13 @@ authority_boundary: retrieval_only
 
 ## Project-Specific Safety
 
-- Fail visibly when required Orca authority is missing.
+- Fail visibly when required Forseti authority is missing.
 - Do not substitute `jb` paths, product facts, lifecycle rules, or validation gates.
-- Do not create software implementation, runtime systems, packages, tests, deployed automation, or source-system buildout unless the current turn or an accepted Orca decision explicitly authorizes a bounded implementation scope.
+- Do not create software implementation, runtime systems, packages, tests, deployed automation, or source-system buildout unless the current turn or an accepted Forseti decision explicitly authorizes a bounded implementation scope.
 - Bounded implementation authorization is not blanket runtime authority. Stay inside the named scope, preserve the bounded third-tranche scope for anti-detect/proxy/JS-challenge work, and preserve separate gates for commercial fetch services, storage, dashboards, deployment, ECR, Cleaning, Judgment, commits, pushes, and PRs.
 - Do not mutate external reference folders during import planning.
 - Do not edit installed global skills, user-level skills, plugin cache files, or external workflow source unless a later turn explicitly authorizes it.
-- Orca-local candidate skill drafting or iteration may proceed only through the
+- Forseti-local candidate skill drafting or iteration may proceed only through the
   controlled lane in `.agents/workflow-overlay/skill-adoption.md`. That lane
   does not authorize global, user-level, plugin, installed, or external workflow
   source mutation.
@@ -31,13 +31,13 @@ authority_boundary: retrieval_only
 complete X" phrasing (fix, patch, edit, rewrite, refactor, review, answer) -- is
 defined canonically in `AGENTS.md` § "Smallest Complete Intervention". That
 definition is repo-wide and all-agent; this overlay defers to it and does not
-restate it. The overlay's only role here is to apply that rule to Orca scope
+restate it. The overlay's only role here is to apply that rule to Forseti scope
 discipline: bounded intervention, justified adjacency, and no speculative
 extras.
 
 ## Rollback Boundary
 
-Rollback for this bootstrap is additive: remove the newly created Orca directory only with explicit user approval. No rollback step may edit `jb`, installed skills, user-level skills, plugin skills, or external reference folders.
+Rollback for this bootstrap is additive: remove the newly created Forseti directory only with explicit user approval. No rollback step may edit `jb`, installed skills, user-level skills, plugin skills, or external reference folders.
 
 ## Direction Change Propagation
 

@@ -1,4 +1,4 @@
-# Orca Mini God Tier Doctrine v0
+# Forseti Mini God Tier Doctrine v0
 
 ```yaml
 retrieval_header_version: 1

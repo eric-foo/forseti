@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Prompt template
-scope: Thin-wrapper template for launching an existing Orca prompt or source artifact.
+scope: Thin-wrapper template for launching an existing Forseti prompt or source artifact.
 use_when:
   - A launch prompt should reference an existing full prompt without restating policy.
 authority_boundary: retrieval_only
@@ -20,7 +20,7 @@ Use shared contract:
 `docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md`
 
 ```text
-You are launching an Orca prompt from a thin wrapper.
+You are launching a Forseti prompt from a thin wrapper.
 
 Workspace:
 `C:\Users\vmon7\Desktop\projects\orca`

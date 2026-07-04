@@ -2,7 +2,7 @@
 """Direction-change-propagation receipt hygiene checker.
 
 WHAT THIS DOES
-  Checks deterministic storage shape for Orca direction_change_propagation
+  Checks deterministic storage shape for Forseti direction_change_propagation
   receipts in changed durable docs:
 
     - at most two inline direction_change_propagation receipts;

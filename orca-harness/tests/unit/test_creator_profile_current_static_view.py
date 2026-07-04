@@ -8,6 +8,11 @@ import subprocess
 
 import pytest
 
+from capture_spine.creator_profile_current.ideal_audience_snapshot import (
+    build_creator_ideal_audience_profile_snapshot_from_evidence,
+    build_creator_ideal_audience_snapshot_document,
+    dump_creator_ideal_audience_snapshot_document,
+)
 from capture_spine.creator_profile_current.materialize import (
     build_creator_profile_current_view_from_files,
 )
@@ -17,6 +22,7 @@ from capture_spine.creator_profile_current.validation import (
     load_creator_profile_current_view,
     validate_creator_profile_current_view,
 )
+from schemas.audience_inference_models import EvidenceRecord, ModalityFamily, OutputField
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -145,6 +151,35 @@ def _assert_validation_code(document: dict, code: str) -> None:
     assert exc_info.value.code == code
 
 
+def _audience_snapshot(subject_id: str, platform: str) -> dict:
+    evidence = [
+        EvidenceRecord(
+            evidence_id=f"{subject_id}:audience:e1",
+            creator_id=subject_id,
+            platform=platform,
+            post_id="audience-post-1",
+            signal_id="tier1-test",
+            modality=ModalityFamily.TEXT,
+            target_field=OutputField.SEGMENT,
+            label="fragrance_discovery",
+            vote=1.0,
+            base_reliability=1.0,
+            extractor_confidence=1.0,
+            creator_authored=True,
+            source_pointer="for beginners",
+        )
+    ]
+    return build_creator_ideal_audience_profile_snapshot_from_evidence(
+        evidence,
+        profile_subject_kind="platform_account",
+        profile_subject_id=subject_id,
+        platform_scope=platform,
+        observation_window_start="2026-07-01T00:00:00Z",
+        observation_window_end="2026-07-04T00:00:00Z",
+        computed_at="2026-07-04T00:00:00Z",
+    )
+
+
 def _rollups_by_subject() -> dict[str, dict]:
     # Reconstruct from the view's ACTUAL rollup sources: both YT and IG from their
     # committed lake snapshots (§5/§8). Each snapshot is value-equal to its seed
@@ -265,6 +300,39 @@ def test_creator_profile_current_materializer_matches_checked_in_view() -> None:
     assert generated == _view_document()
 
 
+def test_creator_profile_current_materializer_optionally_joins_ideal_audience_snapshot(tmp_path: Path) -> None:
+    account = _account_ledger()["platform_accounts"][0]
+    snapshot = _audience_snapshot(account["platform_account_id"], account["platform"])
+    snapshot_document = build_creator_ideal_audience_snapshot_document(
+        [snapshot],
+        generated_at_utc=snapshot["computed_at"],
+    )
+    snapshot_path = tmp_path / "creator_ideal_audience_profile_snapshot_v0.json"
+    snapshot_path.write_text(
+        dump_creator_ideal_audience_snapshot_document(snapshot_document),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    generated = build_creator_profile_current_view_from_files(
+        account_ledger_path=ACCOUNT_LEDGER_PATH,
+        metric_seed_paths=METRIC_SEED_PATHS,
+        audience_profile_snapshot_paths=(snapshot_path,),
+        generated_at_utc=_view()["generated_at_utc"],
+    )
+    view = generated["creator_profile_current_view"]
+    joined = next(
+        profile
+        for profile in view["profiles"]
+        if profile["profile_subject_id"] == account["platform_account_id"]
+    )
+
+    assert view["counts"]["profiles_with_ideal_audience_profiles"] == 1
+    assert joined["ideal_audience_profile"] == snapshot
+    assert joined["freshness"]["audience_computed_at_or_none"] == snapshot["computed_at"]
+    assert any("actual_audience remains not_estimated" in item for item in joined["limitations"])
+
+
 def test_creator_profile_current_source_hashes_are_current() -> None:
     view = _view()
     inputs_by_pointer = {
@@ -378,12 +446,12 @@ def test_creator_profile_validator_rejects_metric_smuggling_into_identity_eviden
     _assert_validation_code(document, "unknown_field")
 
 
-def test_creator_profile_validator_rejects_unjoined_ideal_audience_profile() -> None:
+def test_creator_profile_validator_rejects_malformed_ideal_audience_profile() -> None:
     document = _bad_view_document()
     document["creator_profile_current_view"]["profiles"][0]["ideal_audience_profile"] = {"freeform": "young buyers"}
     document["creator_profile_current_view"]["counts"]["profiles_with_ideal_audience_profiles"] = 1
 
-    _assert_validation_code(document, "unsupported_ideal_audience_profile")
+    _assert_validation_code(document, "invalid_ideal_audience_profile")
 
 
 def test_creator_profile_validator_rejects_unjoined_wind_calling_summary() -> None:
