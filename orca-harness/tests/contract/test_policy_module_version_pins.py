@@ -122,7 +122,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/transcript/ig_reels_audio_packet.py": (
         ("transcriber_policy envelope (run_asr_transcript_catchup) + record shape (weak-envelope residual: no schema version token)",),
-        "12699b6ab91575a536d43221720c5357121f9bf6c0455212fcf828f4877f1a8e",
+        "1748bc4e62e33c4cf4f6332b679e19bc591e7a71f4238e757ecf5ad2a5ac699f",
     ),
 }
 
