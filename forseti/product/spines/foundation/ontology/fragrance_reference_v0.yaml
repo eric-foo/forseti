@@ -94,7 +94,39 @@ vocabulary:
     provenance: operator_asserted_pending_source   # standard perfumery taxonomy; bind to a real reference when one is authorized
   tiers:
     values: [designer, niche, luxury, creator-owned-dtc, clone-house, adjacent]
-    provenance: "usage grounded in docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md houses table (operator_assigned tier column); labels operator_asserted_pending_source"
+    provenance: "tier is an OPERATOR CLASSIFICATION under the rubric below, not an external fact; rubric adopted 2026-07-05 (proposed cross-vendor by OpenAI ChatGPT from this file, adversarially reviewed and adjudicated in-lane); original usage grounded in docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md houses table"
+    rubric:
+      designer: >
+        Fashion/designer or major beauty label selling named fragrances through
+        broad selective retail (department stores, beauty counters, duty-free)
+        at mainstream-premium pricing. A luxury-fashion house classifies as
+        designer when its fragrance business is broadly distributed as a
+        designer beauty line.
+      niche: >
+        Fragrance-first house whose public identity is perfumery rather than
+        fashion/beauty licensing; boutique/specialty distribution, premium
+        pricing. On price overlap with luxury, use niche unless the house's
+        main consumer identity is a non-fragrance luxury maison.
+      luxury: >
+        Luxury maison fragrance line with tightly controlled maison/boutique
+        distribution and luxury positioning — fragrance as an extension of
+        leather goods/fashion rather than a broad beauty-counter license. Use
+        over designer only when distribution is more exclusive than standard
+        designer fragrance.
+      creator-owned-dtc: >
+        Creator/founder persona is central to demand; sales primarily
+        direct-to-consumer/community commerce. Overrides niche/designer when
+        the creator channel is a primary public fact.
+      clone-house: >
+        Core public proposition is dupes/inspirations/lower-cost alternatives
+        to named fragrances. Overrides price, channel, and niche-like
+        presentation when imitation is explicit.
+      adjacent: >
+        Scent/wellness/home/mood products that are not primarily wearable fine
+        fragrance; applies when the format or brand promise sits outside
+        personal fragrance even if scent is central.
+      inheritance: products inherit the house tier unless the product itself is explicitly a dupe/clone or an adjacent non-wearable scent line.
+      tie_break_order: [clone-house, creator-owned-dtc, adjacent-format, luxury-exclusivity, niche-fragrance-first, designer]
   occasions:
     values: [daily, office, evening, formal, casual, night-out, summer, winter, spring, fall, versatile]
     provenance: operator_asserted_pending_source
@@ -132,6 +164,7 @@ vocabulary:
       leather: [leather]
       marine: [aquatic]
     unmapped_observed: [smoky, aldehydic, soapy, patchouli]   # accords-only pending a vocabulary decision
+    proposed_additions_pending_owner: [{term: chypre, vocabulary: note_families, basis: "cross-vendor proposal 2026-07-05 (Aventus-style fruity-chypre not representable); NOT adopted — owner vocabulary decision"}]
     provenance: "operator-defined mapping, 2026-07-04 (adjudicated with the Fragrantica sourcing run)"
 
 houses:
@@ -140,7 +173,7 @@ houses:
     tier: designer
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 12620"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:creed:
     name: Creed
     tier: niche
@@ -152,13 +185,13 @@ houses:
     tier: niche
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 21260 (ASR-garbled 'Parfumse de male'; resolution confidence medium)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:chanel:
     name: Chanel
     tier: designer
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 25220"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:fragrance-one:
     name: Fragrance One
     tier: creator-owned-dtc
@@ -170,25 +203,25 @@ houses:
     tier: luxury
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 38020"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:carolina-herrera:
     name: Carolina Herrera
     tier: designer
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 45000"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:lancome:
     name: "Lancôme"
     tier: designer
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 47980"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:jean-paul-gaultier:
     name: Jean Paul Gaultier
     tier: designer
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaLBRQiMJhQ @ 3000 (ASR-garbled 'Jean Procté'; 'ultra-male' in same cue anchors resolution)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:moodsprays:
     name: Moodsprays (Nike Schroeder)
     tier: adjacent
@@ -200,25 +233,25 @@ houses:
     tier: designer
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (YSL Y Eau de Parfum, 5 videos)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:coach:
     name: Coach
     tier: designer
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (Coach for Men, 3 videos)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:paco-rabanne:
     name: Paco Rabanne
     tier: designer
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (Invictus Parfum, 3 videos)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   brand:versace:
     name: Versace
     tier: designer
     provenance:
       existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (Versace Pour Homme, 3 videos)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
 
 products:
   product:dior.sauvage:
@@ -238,7 +271,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Dior/Sauvage-31861.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:creed.aventus:
     name: Aventus
@@ -276,7 +309,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Creed/Absolu-Aventus-106624.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Creed/Absolu-Aventus-106624.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Creed/Absolu-Aventus-106624.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   product:parfums-de-marly.sedley:
     name: Sedley
     house: brand:parfums-de-marly
@@ -294,7 +327,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Parfums-de-Marly/Sedley-56273.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Parfums-de-Marly/Sedley-56273.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Parfums-de-Marly/Sedley-56273.html — note pyramid verbatim (accessed 2026-07-04; 'Sandalowood' is the page's own spelling)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:chanel.allure-homme-sport:
     name: Allure Homme Sport
@@ -313,7 +346,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Chanel/Allure-Homme-Sport-607.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Chanel/Allure-Homme-Sport-607.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Chanel/Allure-Homme-Sport-607.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:chanel.bleu-de-chanel:
     name: Bleu de Chanel
@@ -332,7 +365,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Chanel/Bleu-de-Chanel-9099.html (accessed 2026-07-04); corroborated by https://en.wikipedia.org/wiki/Bleu_de_Chanel ('woody aromatic fragrance')"
       accords: "https://www.fragrantica.com/perfume/Chanel/Bleu-de-Chanel-9099.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Chanel/Bleu-de-Chanel-9099.html — note pyramid verbatim (accessed 2026-07-04); corroborated by https://en.wikipedia.org/wiki/Bleu_de_Chanel (grapefruit top; incense, cedar base)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:fragrance-one.office-for-men:
     name: Office (For Men)
@@ -354,16 +387,17 @@ products:
       tier: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — self-brand commerce receipts"
       occasions: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — product named 'the office fragrance' (DaKd8E9skt8 @ 18000)"
   product:fragrance-one.the-man:
-    name: The Man
+    name: The Man   # brand site sells it as "Man"; rehearsal surface form was "the man fragrance" — id kept forward-only
     house: brand:fragrance-one
     note_families: []
     accords: []
     tier: creator-owned-dtc
-    occasions: []
+    occasions: [versatile, office, evening, casual, formal]
     dupe_of: []
     provenance:
-      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 34020 (resolution confidence medium: could be generic phrase). 2026-07-04 sourcing run: NOT listed on Fragrantica's Fragrance One brand catalog (23 products enumerated) nor found via two bounded Parfumo fallback attempts — existence rests on the rehearsal receipt alone; resolution confidence stays medium-low"
-      tier: operator_asserted_pending_source
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 34020 (resolution confidence medium: could be generic phrase). 2026-07-04 sourcing run: NOT on Fragrantica's Fragrance One brand catalog (23 products) nor Parfumo. 2026-07-05: brand's own site lists the product as 'Man' — https://www.fragrance.one/products/man (accessed 2026-07-05); resolution confidence raised to medium-high (brand-site listing; name discrepancy noted)"
+      occasions: "https://www.fragrance.one/products/man (accessed 2026-07-05) — 'One Fragrance for All Occasions'; 'From business meetings to date nights, from casual days to formal evenings'"
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   product:louis-vuitton.imagination:
     name: Imagination
     house: brand:louis-vuitton
@@ -381,7 +415,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Louis-Vuitton/Imagination-67370.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Louis-Vuitton/Imagination-67370.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Louis-Vuitton/Imagination-67370.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
   product:carolina-herrera.good-girl:
     name: Good Girl
     house: brand:carolina-herrera
@@ -399,7 +433,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Carolina-Herrera/Good-Girl-39681.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Carolina-Herrera/Good-Girl-39681.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Carolina-Herrera/Good-Girl-39681.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:lancome.la-vie-est-belle:
     name: La Vie Est Belle
@@ -418,7 +452,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Lancome/La-Vie-Est-Belle-14982.html (accessed 2026-07-04); gourmand corroborated by https://en.wikipedia.org/wiki/Gourmand_(fragrance) (named as example)"
       accords: "https://www.fragrantica.com/perfume/Lancome/La-Vie-Est-Belle-14982.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Lancome/La-Vie-Est-Belle-14982.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:jean-paul-gaultier.ultra-male:
     name: Ultra Male
@@ -437,7 +471,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Jean-Paul-Gaultier/Ultra-Male-30947.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Jean-Paul-Gaultier/Ultra-Male-30947.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Jean-Paul-Gaultier/Ultra-Male-30947.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:ysl.y-eau-de-parfum:
     name: Y Eau de Parfum
@@ -456,7 +490,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Yves-Saint-Laurent/Y-Eau-de-Parfum-50757.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Yves-Saint-Laurent/Y-Eau-de-Parfum-50757.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Yves-Saint-Laurent/Y-Eau-de-Parfum-50757.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:coach.coach-for-men:
     name: Coach for Men
@@ -475,7 +509,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Coach/Coach-for-Men-45343.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Coach/Coach-for-Men-45343.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Coach/Coach-for-Men-45343.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:paco-rabanne.invictus-parfum:
     name: Invictus Parfum
@@ -494,7 +528,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Rabanne/Invictus-Parfum-90433.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Rabanne/Invictus-Parfum-90433.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Rabanne/Invictus-Parfum-90433.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
   product:versace.pour-homme:
     name: Versace Pour Homme
@@ -513,7 +547,7 @@ products:
       note_families: "derived from Fragrantica main accords via vocabulary.accord_to_family_mapping (operator-applied); https://www.fragrantica.com/perfume/Versace/Versace-Pour-Homme-2318.html (accessed 2026-07-04)"
       accords: "https://www.fragrantica.com/perfume/Versace/Versace-Pour-Homme-2318.html — main accords verbatim (accessed 2026-07-04)"
       notes: "https://www.fragrantica.com/perfume/Versace/Versace-Pour-Homme-2318.html — note pyramid verbatim (accessed 2026-07-04)"
-      tier: operator_asserted_pending_source
+      tier: "operator classification per vocabulary.tiers rubric (adopted 2026-07-05; products inherit house tier; cross-vendor proposal, in-lane adjudication)"
       occasions: operator_asserted_pending_source
 
 # Dupe / clone relationship graph. DIRECTIONAL: dupe -> original it imitates.
