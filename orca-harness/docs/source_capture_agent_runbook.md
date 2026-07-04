@@ -135,7 +135,7 @@ date.
 For social creator/account capture where the operator intends to start a new
 creator capture, run the Creator Registry match preflight before capture and
 carry its receipt in the agent report or handoff. Use
-`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`
+`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`
 for candidate JSON shape, receipt outcomes, and the runner command. Do not start
 `new_capture` unless the candidate batch was preflighted with
 `intended_action: new_capture` and the resulting receipt row shows `decision:
