@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import subprocess
+import time
 import sys
 from importlib import import_module
 from pathlib import Path
@@ -13,6 +14,9 @@ if __package__ in {None, ""}:
 
 from source_capture.browser_user_data import ensure_browser_user_data_directory
 from source_capture.proxy_profiles import ProxyProfile, load_proxy_profile_by_label
+
+
+MIN_DIRECT_WARMUP_RUNTIME_SECONDS = 3.0
 
 
 class CloakBrowserProfileWarmupEngine(Protocol):
@@ -91,13 +95,34 @@ class _DirectCloakBrowserProfileWarmupEngine:
             f"{proxy_note}",
             flush=True,
         )
-        input()
-        if process.poll() is None:
-            raise RuntimeError(
-                "direct CloakBrowser warmup browser is still running; close it before pressing Enter "
-                "so the dedicated profile can be reused by the harness"
-            )
+        _wait_for_direct_warmup_completion(process)
         return login_url
+
+
+def _wait_for_direct_warmup_completion(process: object) -> None:
+    try:
+        input()
+    except EOFError:
+        print(
+            "No interactive stdin detected; waiting for the direct CloakBrowser window to close.",
+            flush=True,
+        )
+        started_at = time.monotonic()
+        return_code = process.wait()  # type: ignore[attr-defined]
+        elapsed_seconds = time.monotonic() - started_at
+        if elapsed_seconds < MIN_DIRECT_WARMUP_RUNTIME_SECONDS:
+            raise RuntimeError(
+                "direct CloakBrowser warmup browser exited before the operator could inspect it; "
+                "close any existing browser using that user-data label and retry"
+            )
+        if return_code not in {0, None}:
+            raise RuntimeError("direct CloakBrowser warmup browser exited before profile warmup completed")
+        return
+    if process.poll() is None:  # type: ignore[attr-defined]
+        raise RuntimeError(
+            "direct CloakBrowser warmup browser is still running; close it before pressing Enter "
+            "so the dedicated profile can be reused by the harness"
+        )
 
 
 def _direct_chrome_args(cloakbrowser: object, *, proxy_profile: ProxyProfile | None) -> list[str]:

@@ -516,8 +516,11 @@ python runners/run_source_capture_cloakbrowser_profile_warmup.py `
 ```
 
 Complete the permitted login in that direct browser, close the browser, then
-press Enter in the warmup terminal. When a source-access diagnostic needs the
-operator-authorized proxy store, add only the label-indirected proxy flags:
+press Enter in the warmup terminal. In non-interactive runners where stdin is
+unavailable, the command waits for the direct browser process to exit instead.
+
+When a source-access diagnostic needs the operator-authorized proxy store, add
+only the label-indirected proxy flags:
 
 ```powershell
 python runners/run_source_capture_cloakbrowser_profile_warmup.py `

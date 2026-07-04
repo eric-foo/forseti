@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 import json
 import shutil
 import sys
@@ -255,6 +256,67 @@ def test_cloakbrowser_profile_warmup_uses_proxy_profile_label_without_secret_out
     assert "proxy.example" not in message
     assert str(profile_root) not in message
     assert not (scratch_dir / "_auth_state").exists()
+
+
+
+class _FakeDirectWarmupProcess:
+    def __init__(self, *, poll_result: int | None) -> None:
+        self.poll_result = poll_result
+        self.wait_called = False
+
+    def wait(self) -> int:
+        self.wait_called = True
+        self.poll_result = 0
+        return 0
+
+    def poll(self) -> int | None:
+        return self.poll_result
+
+
+def test_direct_warmup_waits_for_browser_exit_when_stdin_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    process = _FakeDirectWarmupProcess(poll_result=None)
+
+    def raise_eof() -> None:
+        raise EOFError
+
+    monkeypatch.setattr(builtins, "input", raise_eof)
+    ticks = iter([10.0, 14.0])
+    monkeypatch.setattr(warmup_runner.time, "monotonic", lambda: next(ticks))
+    warmup_runner._wait_for_direct_warmup_completion(process)
+
+    assert process.wait_called
+
+
+
+def test_direct_warmup_rejects_immediate_browser_exit_without_stdin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    process = _FakeDirectWarmupProcess(poll_result=None)
+
+    def raise_eof() -> None:
+        raise EOFError
+
+    monkeypatch.setattr(builtins, "input", raise_eof)
+    ticks = iter([10.0, 10.2])
+    monkeypatch.setattr(warmup_runner.time, "monotonic", lambda: next(ticks))
+
+    with pytest.raises(RuntimeError, match="exited before the operator could inspect"):
+        warmup_runner._wait_for_direct_warmup_completion(process)
+
+    assert process.wait_called
+
+def test_direct_warmup_rejects_enter_before_browser_close(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    process = _FakeDirectWarmupProcess(poll_result=None)
+    monkeypatch.setattr(builtins, "input", lambda: "")
+
+    with pytest.raises(RuntimeError, match="browser is still running"):
+        warmup_runner._wait_for_direct_warmup_completion(process)
+
+    assert not process.wait_called
 
 
 class _FakeExportEngine:
