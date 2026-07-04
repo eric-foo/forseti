@@ -23,7 +23,9 @@
 #   3. Use only vocabulary values listed under `vocabulary:`, or add the new
 #      value there WITH its own provenance line.
 #   4. Every fact gets a `provenance:` entry (source ref or the marker).
-#   5. Run the four ontology hooks (.agents/hooks/check_ontology_*.py --strict).
+#   5. Run the ontology gates exactly as supported:
+#      check_ontology_ssot.py --strict; check_ontology_expansion.py --health;
+#      check_ontology_tag_validity.py --strict; check_ontology_drift.py --strict.
 #
 # PROVENANCE RULE (co-#1, per the build handoff's frozen decisions): a fact with
 # neither a source ref nor the marker MUST NOT be added. `operator_asserted_
