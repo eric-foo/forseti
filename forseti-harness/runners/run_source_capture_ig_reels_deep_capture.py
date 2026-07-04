@@ -252,7 +252,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--data-root",
         default=None,
-        help="Orca data lake root (or ORCA_DATA_ROOT). When set, persists the silver "
+        help="Forseti data lake root (or FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT)). When set, persists the silver "
         "deep-capture record-set (comments + transcript); omit for stdout-only.",
     )
     args = parser.parse_args(argv)
@@ -276,7 +276,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     for note in result.notes:
         print(f"  note: {note}")
 
-    if args.data_root is not None or os.environ.get("ORCA_DATA_ROOT"):
+    if args.data_root is not None or (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")):
         print(f"  {_persist_deep_capture(result, data_root_arg=args.data_root)}")
     return 0
 

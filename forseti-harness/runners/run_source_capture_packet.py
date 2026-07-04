@@ -126,7 +126,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--data-root",
         default=None,
-        help="Commit into the Orca data lake at this root; explicit --data-root is mutually exclusive with --output. ORCA_DATA_ROOT is used only when --output is omitted.",
+        help="Commit into the Forseti data lake at this root; explicit --data-root is mutually exclusive with --output. FORSETI_DATA_ROOT is used only when --output is omitted; legacy ORCA_DATA_ROOT is also accepted.",
     )
     parser.add_argument(
         "--capture-context",
@@ -171,10 +171,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.output is not None and args.data_root is not None:
         parser.exit(
             status=2,
-            message="exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            message="exactly one of --output or --data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n",
         )
     data_root_requested = args.data_root is not None or (
-        args.output is None and os.environ.get("ORCA_DATA_ROOT")
+        args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
     )
     if data_root_requested:
         from data_lake.root import DataLakeRoot
@@ -183,7 +183,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if (args.output is None) == (data_root is None):
         parser.exit(
             status=2,
-            message="exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+            message="exactly one of --output or --data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n",
         )
     try:
         output_directory = run_source_capture_packet(

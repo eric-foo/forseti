@@ -1,1 +1,1 @@
-"""Deterministic scoring package for the Orca Step A harness."""
+"""Deterministic scoring package for the Forseti Step A harness."""

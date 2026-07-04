@@ -2,7 +2,7 @@
 
 Reads an existing rendered-widget companion receipt JSON (already captured; no
 network here), extracts its review-bearing widget responses, and preserves their
-EXACT raw bytes into the Data Lake (``--data-root`` / ``ORCA_DATA_ROOT``) or a
+EXACT raw bytes into the Data Lake (``--data-root`` / ``FORSETI_DATA_ROOT``; legacy ``ORCA_DATA_ROOT``) or a
 local output directory (``--output``). The two output modes are mutually
 exclusive, mirroring ``run_source_capture_http_packet.py`` so the lake seam is
 uniform across packet-producing runners.
@@ -81,8 +81,8 @@ def _build_parser() -> argparse.ArgumentParser:
         "--data-root",
         default=None,
         help=(
-            "Commit into the Orca data lake at this root; explicit --data-root is mutually "
-            "exclusive with --output. ORCA_DATA_ROOT is used only when --output is omitted."
+            "Commit into the Forseti data lake at this root; explicit --data-root is mutually "
+            "exclusive with --output. FORSETI_DATA_ROOT is used only when --output is omitted; legacy ORCA_DATA_ROOT is also accepted."
         ),
     )
     parser.add_argument("--session-id", default=None)
@@ -100,10 +100,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         if output_directory is not None and args.data_root is not None:
             parser.exit(
                 status=2,
-                message="exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+                message="exactly one of --output or --data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n",
             )
         data_root_requested = args.data_root is not None or (
-            output_directory is None and os.environ.get("ORCA_DATA_ROOT")
+            output_directory is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
         )
         if data_root_requested:
             from data_lake.root import DataLakeRoot
@@ -113,7 +113,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if (output_directory is None) == (data_root is None):
             parser.exit(
                 status=2,
-                message="exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+                message="exactly one of --output or --data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n",
             )
         exit_code, message = run_fragrance_review_lake_packet(
             companion_receipt_path=args.companion_receipt,

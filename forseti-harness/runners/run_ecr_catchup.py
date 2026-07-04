@@ -183,7 +183,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--data-root",
         default=None,
-        help="Orca data lake root. Defaults to ORCA_DATA_ROOT.",
+        help="Forseti data lake root. Defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT).",
     )
     return parser
 

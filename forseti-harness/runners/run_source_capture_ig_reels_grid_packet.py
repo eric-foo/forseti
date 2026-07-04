@@ -727,7 +727,7 @@ def _build_parser() -> argparse.ArgumentParser:
     target_group.add_argument(
         "--data-root",
         default=None,
-        help="Commit into the Orca data lake at this root; explicit --data-root is mutually exclusive with --output. ORCA_DATA_ROOT is used only when --output is omitted.",
+        help="Commit into the Forseti data lake at this root; explicit --data-root is mutually exclusive with --output. FORSETI_DATA_ROOT is used only when --output is omitted; legacy ORCA_DATA_ROOT is also accepted.",
     )
     parser.add_argument("--max-rows", type=int, default=DEFAULT_MAX_ROWS)
     parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_IG_REELS_TIMEOUT_SECONDS)
@@ -802,13 +802,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             profile_root=args.proxy_profile_root,
         )
         data_root = None
-        data_root_requested = args.data_root is not None or (args.output is None and os.environ.get("ORCA_DATA_ROOT"))
+        data_root_requested = args.data_root is not None or (args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")))
         if args.output is not None and args.data_root is not None:
             parser.exit(
                 status=2,
                 message=(
                     "source capture ig reels-grid failed: exactly one of --output or "
-                    "--data-root/ORCA_DATA_ROOT is required\n"
+                    "--data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n"
                 ),
             )
         if args.output is None and not data_root_requested:
@@ -816,7 +816,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 status=2,
                 message=(
                     "source capture ig reels-grid failed: exactly one of --output or "
-                    "--data-root/ORCA_DATA_ROOT is required\n"
+                    "--data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n"
                 ),
             )
         if data_root_requested:

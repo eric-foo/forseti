@@ -61,6 +61,8 @@ INVENTORY_PATH = HARNESS_ROOT / "data_lake" / "lake_touchpoint_inventory_v0.json
 DIRECT_PACKET_WRITER_TOKENS = {"write_local_source_capture_packet", "stage_and_write_packet"}
 PACKET_WRITER_NAME_RE = re.compile(r"write_.*_packet$")
 ENV_OUTPUT_OMITTED_TOKENS = (
+    'args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))',
+    'output_directory is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))',
     'args.output is None and os.environ.get("ORCA_DATA_ROOT")',
     'output_directory is None and os.environ.get("ORCA_DATA_ROOT")',
 )
@@ -442,7 +444,7 @@ class RunnerSeam:
         if not self.exposes_data_root_arg:
             missing.append("--data-root argument")
         if not self.exposes_env_fallback:
-            missing.append("ORCA_DATA_ROOT fallback")
+            missing.append("FORSETI_DATA_ROOT/ORCA_DATA_ROOT fallback")
         if not self.resolves_data_root:
             missing.append("DataLakeRoot.resolve")
         if not self.forwards_data_root:
@@ -456,7 +458,7 @@ class RunnerSeam:
         if not self.rejects_output_and_data_root:
             missing.append("explicit --output + --data-root rejection")
         if not self.env_fallback_uses_output_omitted:
-            missing.append("ORCA_DATA_ROOT gated on --output being omitted")
+            missing.append("FORSETI_DATA_ROOT/ORCA_DATA_ROOT gated on --output being omitted")
         return missing
 
 
@@ -628,7 +630,7 @@ def packet_producers() -> dict[str, RunnerSeam]:
             producers[path.name] = RunnerSeam(
                 exposes_output_arg="--output" in flags,
                 exposes_data_root_arg="--data-root" in flags,
-                exposes_env_fallback="ORCA_DATA_ROOT" in src,
+                exposes_env_fallback=("FORSETI_DATA_ROOT" in src or "ORCA_DATA_ROOT" in src),
                 resolves_data_root="DataLakeRoot.resolve" in src,
                 rejects_output_and_data_root=has_any_token(src, EXPLICIT_PAIR_REJECT_TOKENS),
                 env_fallback_uses_output_omitted=has_any_token(src, ENV_OUTPUT_OMITTED_TOKENS),

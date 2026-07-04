@@ -104,7 +104,7 @@ def _build_parser() -> argparse.ArgumentParser:
         help="RAW IG reels-grid projection JSON ({packet_id, rows}). Repeat per account.",
     )
     parser.add_argument("--account-ledger", type=Path, default=DEFAULT_ACCOUNT_LEDGER)
-    parser.add_argument("--data-root", default=None, help="Lake root; defaults to ORCA_DATA_ROOT.")
+    parser.add_argument("--data-root", default=None, help="Lake root; defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT).")
     parser.add_argument(
         "--generated-at-utc",
         help="Timestamp for the derived records. Defaults to now (UTC).",

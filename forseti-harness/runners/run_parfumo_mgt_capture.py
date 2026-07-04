@@ -553,7 +553,7 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Optional explicit Orca data lake root. When supplied, the packet is committed "
+            "Optional explicit Forseti data lake root. When supplied, the packet is committed "
             "to raw/<shard>/<packet_id>; the bundle summary remains under --output-root."
         ),
     )
@@ -580,7 +580,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError("choose exactly one capture route: --targeted-rendered or --direct-http")
 
         data_root = None
-        data_root_requested = args.data_root is not None or os.environ.get("ORCA_DATA_ROOT")
+        data_root_requested = args.data_root is not None or (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))
         if data_root_requested:
             from data_lake.root import DataLakeRoot
 

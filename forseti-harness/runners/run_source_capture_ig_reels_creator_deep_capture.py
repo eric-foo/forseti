@@ -369,7 +369,7 @@ def run_creator_deep_capture(
         capture_fetcher=capture_fetcher,
     )
     resolved_persist_fn = persist_fn
-    if resolved_persist_fn is None and (data_root is not None or os.environ.get("ORCA_DATA_ROOT")):
+    if resolved_persist_fn is None and (data_root is not None or (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))):
         resolved_persist_fn = lambda result, _ranked: _persist_deep_capture(result, data_root_arg=data_root)
 
     if capture_fn is not None:
@@ -402,7 +402,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--data-root",
         default=None,
-        help="Orca data lake root (or ORCA_DATA_ROOT). When set, persists each reel's "
+        help="Forseti data lake root (or FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT)). When set, persists each reel's "
         "silver deep-capture record-set (comments + transcript); omit for stdout-only.",
     )
     parser.add_argument("--max-rows", type=int, default=DEFAULT_GRID_MAX_ROWS, help="Max grid rows to scan.")
@@ -421,7 +421,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     persist_fn: PersistFn | None = None
-    if args.data_root is not None or os.environ.get("ORCA_DATA_ROOT"):
+    if args.data_root is not None or (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")):
         persist_fn = lambda result, _ranked: _persist_deep_capture(result, data_root_arg=args.data_root)
 
     with tempfile.TemporaryDirectory(prefix="orca_creator_deepcap_") as scratch:

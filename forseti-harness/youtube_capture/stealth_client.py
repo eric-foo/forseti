@@ -8,7 +8,7 @@ visitor_data) across requests; NO account login, NO po_token (no JS engine), NO 
 residential rotation is a SEPARATE higher rung (CloakBrowser), never part of this default transport.
 Falls back to plain urllib (more detectable) if curl_cffi is unavailable.
 
-Owner-authorized: public data only, SG-legal non-criminal use, Orca source-access posture
+Owner-authorized: public data only, SG-legal non-criminal use, Forseti source-access posture
 (anti-detect/fingerprint config accepted-risk). It accesses nothing gated; a costume, not a lockpick.
 Public read-only. Tracked at forseti-harness/youtube_capture/.
 

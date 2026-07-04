@@ -287,12 +287,12 @@ def inspect_data_lake(
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Inspect a v4.1 Orca data lake root and optionally rebuild its availability index."
+        description="Inspect a v4.1 Forseti data lake root and optionally rebuild its availability index."
     )
     parser.add_argument(
         "--data-root",
         default=None,
-        help="Orca data root to inspect. If omitted, ORCA_DATA_ROOT is used.",
+        help="Forseti data root to inspect. If omitted, FORSETI_DATA_ROOT is used; legacy ORCA_DATA_ROOT is also accepted.",
     )
     parser.add_argument(
         "--rebuild-availability",

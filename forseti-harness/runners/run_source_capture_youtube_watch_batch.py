@@ -476,7 +476,7 @@ def _build_parser() -> argparse.ArgumentParser:
         )
     )
     parser.add_argument("--creator-ledger", type=Path, default=DEFAULT_CREATOR_LEDGER)
-    parser.add_argument("--data-root", default=None, help="Lake root; defaults to ORCA_DATA_ROOT.")
+    parser.add_argument("--data-root", default=None, help="Lake root; defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT).")
     parser.add_argument("--decision-question", default=DEFAULT_DECISION_QUESTION)
     parser.add_argument("--comment-pages", type=int, default=2)
     parser.add_argument("--pace-seconds", type=float, default=DEFAULT_PACE_SECONDS)

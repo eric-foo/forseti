@@ -23,7 +23,7 @@ from runners._youtube_cli import normalize_video_id_argv
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Capture YouTube audio + write an ASR transcript derived record.")
     parser.add_argument("--video-id", required=True)
-    parser.add_argument("--data-root", default=None, help="Orca data lake root (or ORCA_DATA_ROOT). ASR is data-lake-mode.")
+    parser.add_argument("--data-root", default=None, help="Forseti data lake root (or FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT)). ASR is data-lake-mode.")
     parser.add_argument("--model", default="small")
     raw_argv = sys.argv[1:] if argv is None else argv
     args = parser.parse_args(

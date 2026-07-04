@@ -66,7 +66,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--data-root",
         type=Path,
-        help="Data lake root for --from-lake. Defaults to ORCA_DATA_ROOT/config resolution.",
+        help="Data lake root for --from-lake. Defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT)/config resolution.",
     )
     parser.add_argument(
         "--generated-at-utc",

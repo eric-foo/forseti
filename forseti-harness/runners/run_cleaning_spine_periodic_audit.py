@@ -2225,9 +2225,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         type=Path,
         default=None,
         help=(
-            "Optional Orca data-lake root for verifying lake-resident sources (youtube_asr "
+            "Optional Forseti data-lake root for verifying lake-resident sources (youtube_asr "
             "entries / derived_record anchors). Resolved via DataLakeRoot.resolve(); when unset "
-            "and ORCA_DATA_ROOT is unconfigured, lake-resident sources fail closed in the audit."
+            "and FORSETI_DATA_ROOT/ORCA_DATA_ROOT is unconfigured, lake-resident sources fail closed in the audit."
         ),
     )
     args = parser.parse_args(argv)

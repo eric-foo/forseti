@@ -192,7 +192,7 @@ def _build_parser() -> argparse.ArgumentParser:
             "mapping fails closed. This runner never writes the ledger."
         ),
     )
-    parser.add_argument("--data-root", default=None, help="Lake root; defaults to ORCA_DATA_ROOT.")
+    parser.add_argument("--data-root", default=None, help="Lake root; defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT).")
     parser.add_argument(
         "--generated-at-utc",
         default=None,

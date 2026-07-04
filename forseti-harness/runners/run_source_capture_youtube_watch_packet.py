@@ -66,7 +66,7 @@ def _build_parser() -> argparse.ArgumentParser:
     target.add_argument(
         "--data-root",
         default=None,
-        help="Commit into the Orca data lake at this root; ORCA_DATA_ROOT is used only when --output is omitted.",
+        help="Commit into the Forseti data lake at this root; FORSETI_DATA_ROOT is used only when --output is omitted; legacy ORCA_DATA_ROOT is also accepted.",
     )
     parser.add_argument(
         "--decision-question",
@@ -84,13 +84,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     try:
         data_root = None
-        data_root_requested = args.data_root is not None or (args.output is None and os.environ.get("ORCA_DATA_ROOT"))
+        data_root_requested = args.data_root is not None or (args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")))
         if args.output is not None and args.data_root is not None:
             parser.exit(status=2, message="source capture youtube watch failed: supply only one of --output or --data-root\n")
         if args.output is None and not data_root_requested:
             parser.exit(
                 status=2,
-                message="source capture youtube watch failed: exactly one of --output or --data-root/ORCA_DATA_ROOT is required\n",
+                message="source capture youtube watch failed: exactly one of --output or --data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required\n",
             )
         if data_root_requested:
             from data_lake.root import DataLakeRoot

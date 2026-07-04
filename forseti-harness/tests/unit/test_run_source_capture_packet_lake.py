@@ -4,16 +4,16 @@ from pathlib import Path
 
 import pytest
 
-from data_lake.root import DataLakeRoot, raw_shard
+from data_lake.root import DataLakeRoot, FORSETI_DATA_ROOT_ENV, raw_shard
 from runners.run_source_capture_packet import main, run_source_capture_packet
 from source_capture.models import CaptureModeCategory, known_fact
 
 
 @pytest.fixture(autouse=True)
 def _isolate_from_operator_lake(monkeypatch: pytest.MonkeyPatch) -> None:
-    # The CLI treats a shell-inherited ORCA_DATA_ROOT as an implicit --data-root when
-    # --output is omitted, so without this the fail-closed CLI tests commit real junk
-    # packets into the operator's live lake instead of raising SystemExit.
+    # The CLI treats shell-inherited data-root env vars as implicit --data-root
+    # when --output is omitted, so clear both the primary and legacy aliases.
+    monkeypatch.delenv(FORSETI_DATA_ROOT_ENV, raising=False)
     monkeypatch.delenv("ORCA_DATA_ROOT", raising=False)
 
 
@@ -57,6 +57,41 @@ def test_generic_runner_routes_to_lake(tmp_path: Path) -> None:
     assert root.find_packet(pid) is not None
     assert root.read_availability(pid) is not None
     assert root.load_raw_packet(pid).manifest["packet_id"] == pid
+
+
+def test_cli_uses_forseti_env_when_output_omitted(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    resolve_calls: list[object] = []
+
+    def resolve_stub(cls: type[DataLakeRoot], *, explicit: object = None, **_: object) -> DataLakeRoot:
+        resolve_calls.append(explicit)
+        return root
+
+    monkeypatch.setattr(DataLakeRoot, "resolve", classmethod(resolve_stub))
+    monkeypatch.setenv(FORSETI_DATA_ROOT_ENV, str(root.path))
+    src = tmp_path / "a.json"
+    src.write_text("{}", encoding="utf-8")
+
+    assert main(
+        [
+            "--source-family",
+            "reddit",
+            "--source-locator",
+            "https://www.reddit.com/r/test/comments/x/",
+            "--decision-question",
+            "q",
+            "--input-file",
+            str(src),
+        ]
+    ) == 0
+
+    out_path = Path(capsys.readouterr().out.strip())
+    pid = out_path.name
+    assert resolve_calls == [None]
+    assert out_path == root.path / "raw" / raw_shard(pid) / pid
+    assert root.find_packet(pid) is not None
 
 
 def test_cli_requires_exactly_one_target(tmp_path: Path) -> None:

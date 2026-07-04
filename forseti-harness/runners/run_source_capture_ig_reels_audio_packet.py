@@ -37,7 +37,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--shortcode", default=None, help="IG Reel shortcode (e.g. DZ69knlsDb1).")
     group.add_argument("--url", default=None, help="IG Reel URL (/reel/<shortcode>/ or /p/<shortcode>/).")
-    parser.add_argument("--data-root", default=None, help="Orca data lake root (or ORCA_DATA_ROOT). ASR is data-lake-mode.")
+    parser.add_argument("--data-root", default=None, help="Forseti data lake root (or FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT)). ASR is data-lake-mode.")
     parser.add_argument("--model", default="small")
     args = parser.parse_args(argv)
 

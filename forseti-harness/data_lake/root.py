@@ -4,7 +4,7 @@ skeleton, and the deterministic write-boundary guard.
 Implements the foundation slice of the adopted decision contracts:
 
 - physicality location: one operator-configured external data root
-  (``ORCA_DATA_ROOT``) that resolves OUTSIDE the repo working tree; fail-closed.
+  (``FORSETI_DATA_ROOT``; legacy ``ORCA_DATA_ROOT`` also accepted) that resolves OUTSIDE the repo working tree; fail-closed.
 - write-boundary enforcement: a single deterministic writer; write-once raw;
   append-only derived/ack; per-root UUID marker; atomic no-overwrite create.
 - raw admission + key grammar: ``packet_id`` is an opaque Crockford-26 handle;
@@ -41,10 +41,15 @@ from typing import Any
 
 from harness_utils import generate_ulid, hash_file, utc_now_z
 
-ROOT_MARKER_FILENAME = ".orca-data-root"
+FORSETI_DATA_ROOT_ENV = "FORSETI_DATA_ROOT"
+LEGACY_ORCA_DATA_ROOT_ENV = "ORCA_DATA_ROOT"
+ROOT_MARKER_FILENAME = ".forseti-data-root"
+LEGACY_ROOT_MARKER_FILENAME = ".orca-data-root"
 ROOT_MARKER_CONTRACT_VERSION = "v4.1"
-ROOT_MARKER_DEFAULT_LABEL = "orca-canonical-v4-1"
-EPOCH_MARKER_FILENAME = ".orca-lake-epoch.json"
+ROOT_MARKER_DEFAULT_LABEL = "forseti-canonical-v4-1"
+LEGACY_ROOT_MARKER_DEFAULT_LABEL = "orca-canonical-v4-1"
+EPOCH_MARKER_FILENAME = ".forseti-lake-epoch.json"
+LEGACY_EPOCH_MARKER_FILENAME = ".orca-lake-epoch.json"
 LAKE_EPOCH = "v4.1"
 LAKE_EPOCH_POLICY = "clean_forward_epoch"
 _STAGING_DIRNAME = ".staging"
@@ -116,9 +121,9 @@ def _detect_repo_root(start: Path) -> Path | None:
     return None
 
 
-# The Orca repo working tree, detected from this module's location. The data
+# The Forseti repo working tree, detected from this module's location. The data
 # root must resolve OUTSIDE it.
-_ORCA_REPO_ROOT = _detect_repo_root(Path(__file__))
+_FORSETI_REPO_ROOT = _detect_repo_root(Path(__file__))
 
 
 def _is_inside_repo(path: Path, repo_root: Path | None) -> bool:
@@ -129,6 +134,16 @@ def _is_inside_repo(path: Path, repo_root: Path | None) -> bool:
         return True
     except ValueError:
         return False
+
+
+def _existing_marker(root: Path, primary_name: str, legacy_name: str) -> Path | None:
+    primary = root / primary_name
+    if primary.is_file():
+        return primary
+    legacy = root / legacy_name
+    if legacy.is_file():
+        return legacy
+    return None
 
 
 def _validate_packet_id(packet_id: str) -> str:
@@ -146,10 +161,10 @@ def _validate_segment(name: str, *, role: str) -> str:
 
 
 def _read_marker(root: Path) -> dict:
-    marker = root / ROOT_MARKER_FILENAME
-    if not marker.is_file():
+    marker = _existing_marker(root, ROOT_MARKER_FILENAME, LEGACY_ROOT_MARKER_FILENAME)
+    if marker is None:
         raise DataLakeRootError(
-            f"missing root marker {ROOT_MARKER_FILENAME!r}; not an initialized Orca data root: {root}"
+            f"missing root marker {ROOT_MARKER_FILENAME!r} (legacy {LEGACY_ROOT_MARKER_FILENAME!r} also absent); not an initialized Forseti data root: {root}"
         )
     try:
         data = json.loads(marker.read_text(encoding="utf-8"))
@@ -159,7 +174,7 @@ def _read_marker(root: Path) -> dict:
         raise DataLakeRootError(f"malformed root marker at {marker}")
     if data["contract_version"] != ROOT_MARKER_CONTRACT_VERSION:
         raise DataLakeRootError(
-            "unsupported Orca data root contract_version "
+            "unsupported Forseti data root contract_version "
             f"{data['contract_version']!r} at {marker}; expected "
             f"{ROOT_MARKER_CONTRACT_VERSION!r}. Archive or abandon the legacy root "
             "and initialize a clean v4.1 root."
@@ -168,10 +183,10 @@ def _read_marker(root: Path) -> dict:
 
 
 def _read_epoch_marker(root: Path) -> dict:
-    marker = root / EPOCH_MARKER_FILENAME
-    if not marker.is_file():
+    marker = _existing_marker(root, EPOCH_MARKER_FILENAME, LEGACY_EPOCH_MARKER_FILENAME)
+    if marker is None:
         raise DataLakeRootError(
-            f"missing epoch marker {EPOCH_MARKER_FILENAME!r}; not a forward v4.1 Orca data root: {root}"
+            f"missing epoch marker {EPOCH_MARKER_FILENAME!r} (legacy {LEGACY_EPOCH_MARKER_FILENAME!r} also absent); not a forward v4.1 Forseti data root: {root}"
         )
     try:
         data = json.loads(marker.read_text(encoding="utf-8"))
@@ -224,6 +239,7 @@ def _write_epoch_marker(root: Path, *, legacy_roots: list[str] | None) -> None:
     (root / EPOCH_MARKER_FILENAME).write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+
 
 def _atomic_create(target: Path, data: bytes) -> None:
     """Create-only, no-overwrite, crash-tolerant publish of a single record.
@@ -302,11 +318,11 @@ def _availability_entry_from_raw(packet_id: str, container: Path) -> dict:
 def _production_candidate(
     *, explicit: str | os.PathLike[str] | None, env: dict[str, str], config_path: Path | None
 ) -> str | None:
-    """Production precedence only: explicit/per-run -> ORCA_DATA_ROOT env ->
-    optional config file. A test root is never part of this chain."""
+    """Production precedence only: explicit/per-run -> FORSETI_DATA_ROOT env ->
+    legacy ORCA_DATA_ROOT env -> optional config file. A test root is never part of this chain."""
     if explicit is not None:
         return str(explicit)
-    env_value = env.get("ORCA_DATA_ROOT")
+    env_value = env.get(FORSETI_DATA_ROOT_ENV) or env.get(LEGACY_ORCA_DATA_ROOT_ENV)
     if env_value:
         return env_value
     if config_path is not None and config_path.is_file():
@@ -355,7 +371,7 @@ class LoadedRawPacket:
 
 
 class DataLakeRoot:
-    """A resolved, verified Orca data-lake root. Construct via ``resolve``,
+    """A resolved, verified Forseti data-lake root. Construct via ``resolve``,
     ``initialize``, or ``for_test`` — never trust a bare path."""
 
     def __init__(self, path: Path, *, _verified: bool) -> None:
@@ -383,7 +399,7 @@ class DataLakeRoot:
         env: dict[str, str] | None = None,
         config_path: Path | None = None,
         expected_uuid: str | None = None,
-        repo_root: Path | None = _ORCA_REPO_ROOT,
+        repo_root: Path | None = _FORSETI_REPO_ROOT,
     ) -> "DataLakeRoot":
         """Resolve the production data root, fail-closed. A test root is NEVER
         part of this chain (use ``for_test``). Refuses to write when the root is
@@ -393,7 +409,7 @@ class DataLakeRoot:
         candidate = _production_candidate(explicit=explicit, env=env, config_path=config_path)
         if candidate is None:
             raise DataLakeRootError(
-                "ORCA_DATA_ROOT is unset/unresolvable (no explicit root, env var, or config); "
+                "FORSETI_DATA_ROOT/ORCA_DATA_ROOT is unset/unresolvable (no explicit root, env var, or config); "
                 "refusing to write (fail-closed)."
             )
         path = Path(candidate)
@@ -425,7 +441,7 @@ class DataLakeRoot:
         label: str | None = None,
         legacy_roots: list[str] | None = None,
         root_uuid: str | None = None,
-        repo_root: Path | None = _ORCA_REPO_ROOT,
+        repo_root: Path | None = _FORSETI_REPO_ROOT,
     ) -> "DataLakeRoot":
         """Create (or verify) the root: marker + directory skeleton. Idempotent
         when a well-formed marker already exists; refuses to claim a non-empty
@@ -457,11 +473,11 @@ class DataLakeRoot:
         legacy_roots: list[str] | None,
         root_uuid: str | None,
     ) -> "DataLakeRoot":
-        marker = path / ROOT_MARKER_FILENAME
+        marker = _existing_marker(path, ROOT_MARKER_FILENAME, LEGACY_ROOT_MARKER_FILENAME)
         if path.exists():
             if not path.is_dir():
                 raise DataLakeRootError(f"data root path is not a directory: {path}")
-            if marker.is_file():
+            if marker is not None:
                 _verify_root_markers(path)  # verify the existing markers are well-formed v4.1
             elif any(path.iterdir()):
                 raise DataLakeRootError(

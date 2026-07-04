@@ -24,11 +24,11 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--packet", type=Path, help="Packet directory or manifest.json path.")
-    source.add_argument("--packet-id", help="Committed raw packet id in the Orca data lake.")
+    source.add_argument("--packet-id", help="Committed raw packet id in the Forseti data lake.")
     parser.add_argument(
         "--data-root",
         default=None,
-        help="Orca data-lake root for --packet-id. ORCA_DATA_ROOT is used when omitted.",
+        help="Forseti data-lake root for --packet-id. FORSETI_DATA_ROOT is used when omitted; legacy ORCA_DATA_ROOT is also accepted.",
     )
     parser.add_argument("--output", type=Path, default=None, help="Optional output JSON path; stdout when omitted.")
     parser.add_argument("--overwrite", action="store_true", help="Allow replacing an existing --output path.")
@@ -44,8 +44,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 raise ValueError("--data-root is only valid with --packet-id")
             coverage = build_tiktok_batch_coverage_from_packet_directory(args.packet)
         else:
-            if args.data_root is None and not os.environ.get("ORCA_DATA_ROOT"):
-                raise ValueError("--data-root or ORCA_DATA_ROOT is required with --packet-id")
+            if args.data_root is None and not (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")):
+                raise ValueError("--data-root or FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT) is required with --packet-id")
             from data_lake.root import DataLakeRoot
 
             data_root = DataLakeRoot.resolve(explicit=args.data_root)

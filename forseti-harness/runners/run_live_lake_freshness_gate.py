@@ -1,6 +1,6 @@
 """Operator runner: the standalone live-lake freshness gate (AR-02).
 
-Resolves the real external lake (fail-closed when ``ORCA_DATA_ROOT`` is unset),
+Resolves the real external lake (fail-closed when ``FORSETI_DATA_ROOT``/``ORCA_DATA_ROOT`` is unset),
 loads the committed creator-metric rollup snapshot + selection manifest for one
 platform, and re-runs latest-per-account selection against the live lake to check
 the committed snapshot still matches it. Exit ``0`` == fresh; exit ``2`` == drift
