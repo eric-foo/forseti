@@ -122,13 +122,14 @@ REQUIRED_CREATOR_REGISTRY_PREFLIGHT_FIELDS = {
     "required_when",
     "receipt_path",
     "intended_action",
-    "row_decision",
+    "decision",
     "action_status",
     "can_start_new_capture",
 }
 VALID_CREATOR_REGISTRY_REQUIRED_WHEN = {"new_social_creator_account_capture", "not_applicable"}
+NOT_APPLICABLE_ALLOWED_PREFLIGHT_VOCAB = {"", "not_applicable"}
 VALID_CREATOR_REGISTRY_INTENDED_ACTIONS = {"new_capture", "classify", "update_existing", "not_applicable"}
-VALID_CREATOR_REGISTRY_ROW_DECISIONS = {"existing_match", "new_candidate", "ambiguous_match", "invalid_candidate", "not_applicable"}
+VALID_CREATOR_REGISTRY_DECISIONS = {"existing_match", "new_candidate", "ambiguous_match", "invalid_candidate", "not_applicable"}
 VALID_CREATOR_REGISTRY_ACTION_STATUSES = {"allowed", "blocked", "not_applicable"}
 PLACEHOLDER_PREFLIGHT_RECEIPT_VALUES = {
     "",
@@ -604,13 +605,25 @@ def _validate_creator_registry_match_preflight(request_id: Any, request: dict[st
         return findings
 
     if required_when == "not_applicable":
-        if _normalize_vocab(preflight.get("intended_action")) == "new_capture" or _as_bool(
-            preflight.get("can_start_new_capture")
-        ) is True:
+        disallowed = [
+            field
+            for field in ("intended_action", "decision", "action_status")
+            if _normalize_vocab(preflight.get(field)) not in NOT_APPLICABLE_ALLOWED_PREFLIGHT_VOCAB
+        ]
+        if "receipt_path" in preflight and _normalize_vocab(
+            preflight.get("receipt_path")
+        ) not in PLACEHOLDER_PREFLIGHT_RECEIPT_VALUES:
+            disallowed.append("receipt_path")
+        can_start = preflight.get("can_start_new_capture")
+        if _as_bool(can_start) is True or _normalize_vocab(can_start) not in (
+            NOT_APPLICABLE_ALLOWED_PREFLIGHT_VOCAB | {"false"}
+        ):
+            disallowed.append("can_start_new_capture")
+        if disallowed:
             findings.append(
                 Finding(
                     "contradictory_creator_registry_match_preflight_not_applicable",
-                    f"Capture request {request_id} creator_registry_match_preflight cannot be not_applicable while carrying new_capture clearance.",
+                    f"Capture request {request_id} creator_registry_match_preflight is not_applicable but also carries: {', '.join(disallowed)}.",
                 )
             )
         return findings
@@ -635,21 +648,21 @@ def _validate_creator_registry_match_preflight(request_id: Any, request: dict[st
         )
 
     intended_action = _normalize_vocab(preflight.get("intended_action"))
-    row_decision = _normalize_vocab(preflight.get("row_decision"))
+    decision = _normalize_vocab(preflight.get("decision"))
     action_status = _normalize_vocab(preflight.get("action_status"))
     can_start = _as_bool(preflight.get("can_start_new_capture"))
 
     if intended_action not in VALID_CREATOR_REGISTRY_INTENDED_ACTIONS:
         findings.append(Finding("invalid_creator_registry_preflight_intended_action", f"Capture request {request_id} has invalid intended_action."))
-    if row_decision not in VALID_CREATOR_REGISTRY_ROW_DECISIONS:
-        findings.append(Finding("invalid_creator_registry_preflight_row_decision", f"Capture request {request_id} has invalid row_decision."))
+    if decision not in VALID_CREATOR_REGISTRY_DECISIONS:
+        findings.append(Finding("invalid_creator_registry_preflight_decision", f"Capture request {request_id} has invalid decision."))
     if action_status not in VALID_CREATOR_REGISTRY_ACTION_STATUSES:
         findings.append(Finding("invalid_creator_registry_preflight_action_status", f"Capture request {request_id} has invalid action_status."))
-    if intended_action != "new_capture" or row_decision != "new_candidate" or action_status != "allowed" or can_start is not True:
+    if intended_action != "new_capture" or decision != "new_candidate" or action_status != "allowed" or can_start is not True:
         findings.append(
             Finding(
                 "creator_registry_preflight_does_not_clear_new_capture",
-                f"Capture request {request_id} new social creator/account capture requires intended_action=new_capture, row_decision=new_candidate, action_status=allowed, and can_start_new_capture=true.",
+                f"Capture request {request_id} new social creator/account capture requires intended_action=new_capture, decision=new_candidate, action_status=allowed, and can_start_new_capture=true.",
             )
         )
     return findings

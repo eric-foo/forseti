@@ -407,6 +407,41 @@ def test_not_applicable_creator_registry_preflight_rejects_new_capture_clearance
     assert "contradictory_creator_registry_match_preflight_not_applicable" in _codes(text)
 
 
+def test_not_applicable_creator_registry_preflight_rejects_can_start_alone() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: not_applicable\n"
+        "  intended_action: classify\n"
+        "  can_start_new_capture: true\n",
+    )
+
+    assert "contradictory_creator_registry_match_preflight_not_applicable" in _codes(text)
+
+
+def test_not_applicable_creator_registry_preflight_rejects_clearance_shaped_decision_fields() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: not_applicable\n"
+        "  decision: new_candidate\n"
+        "  action_status: allowed\n",
+    )
+
+    assert "contradictory_creator_registry_match_preflight_not_applicable" in _codes(text)
+
+
+def test_not_applicable_creator_registry_preflight_rejects_malformed_truthy_can_start() -> None:
+    text = _replace_creator_registry_preflight(
+        _valid_text(),
+        "creator_registry_match_preflight:\n"
+        "  required_when: not_applicable\n"
+        "  can_start_new_capture: 1\n",
+    )
+
+    assert "contradictory_creator_registry_match_preflight_not_applicable" in _codes(text)
+
+
 def test_new_social_creator_capture_preflight_can_clear_capture_request() -> None:
     text = _replace_creator_registry_preflight(
         _valid_text(),
@@ -414,7 +449,7 @@ def test_new_social_creator_capture_preflight_can_clear_capture_request() -> Non
         "  required_when: new_social_creator_account_capture\n"
         "  receipt_path: docs/research/receipts/creator_registry_match_preflight_receipt.json\n"
         "  intended_action: new_capture\n"
-        "  row_decision: new_candidate\n"
+        "  decision: new_candidate\n"
         "  action_status: allowed\n"
         "  can_start_new_capture: true\n",
     )
@@ -430,7 +465,7 @@ def test_new_social_creator_capture_preflight_requires_receipt_fields() -> None:
         "creator_registry_match_preflight:\n"
         "  required_when: new_social_creator_account_capture\n"
         "  intended_action: new_capture\n"
-        "  row_decision: new_candidate\n"
+        "  decision: new_candidate\n"
         "  action_status: allowed\n"
         "  can_start_new_capture: true\n",
     )
@@ -445,7 +480,7 @@ def test_new_social_creator_capture_preflight_must_authorize_new_capture() -> No
         "  required_when: new_social_creator_account_capture\n"
         "  receipt_path: docs/research/receipts/creator_registry_match_preflight_receipt.json\n"
         "  intended_action: classify\n"
-        "  row_decision: new_candidate\n"
+        "  decision: new_candidate\n"
         "  action_status: allowed\n"
         "  can_start_new_capture: false\n",
     )
