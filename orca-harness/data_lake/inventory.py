@@ -261,6 +261,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "creator without a served-content author check"
         ),
     },
+    "run_source_capture_tiktok_live_batch_probe.py": {
+        "status": "unbound",
+        "reason": (
+            "live probe validates requested creator/profile/video URL shape and can admit "
+            "only sanitized page-owned staging through the TikTok batch gate, but the "
+            "resulting packet is still attributed to the requested creator/video without "
+            "an end-to-end served author identity proof"
+        ),
+    },
     "run_source_capture_tiktok_video_packet.py": {
         "status": "unbound",
         "reason": (

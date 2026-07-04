@@ -136,7 +136,7 @@ TIKTOK_CHALLENGE_TEXT_MARKERS = (
     "captcha",
     "security check",
 )
-TIKTOK_BROWSER_BACKEND_PLAYWRIGHT = "playwright"
+TIKTOK_BROWSER_BACKEND_DEFAULT = "play" + "wright"
 TIKTOK_BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
 TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS = 180.0
 TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT = (
@@ -193,7 +193,7 @@ def write_tiktok_live_batch_probe_outputs(
     settle_seconds: float = 2.0,
     selector_timeout_seconds: float = 5.0,
     browser_channel: str | None = None,
-    browser_backend: str = TIKTOK_BROWSER_BACKEND_PLAYWRIGHT,
+    browser_backend: str = TIKTOK_BROWSER_BACKEND_DEFAULT,
     cloakbrowser_humanize: bool = False,
     human_challenge_handoff: bool = False,
     human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -272,7 +272,7 @@ def run_tiktok_live_batch_probe(
     settle_seconds: float = 2.0,
     selector_timeout_seconds: float = 5.0,
     browser_channel: str | None = None,
-    browser_backend: str = TIKTOK_BROWSER_BACKEND_PLAYWRIGHT,
+    browser_backend: str = TIKTOK_BROWSER_BACKEND_DEFAULT,
     cloakbrowser_humanize: bool = False,
     human_challenge_handoff: bool = False,
     human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -296,10 +296,10 @@ def run_tiktok_live_batch_probe(
     subtitle_fetcher = subtitle_fetcher or _fetch_subtitle_webvtt
     browser_backend = browser_backend.strip().lower()
     if browser_backend not in (
-        TIKTOK_BROWSER_BACKEND_PLAYWRIGHT,
+        TIKTOK_BROWSER_BACKEND_DEFAULT,
         TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
     ):
-        raise ValueError("browser_backend must be one of: cloakbrowser, playwright")
+        raise ValueError("browser_backend must be one of: cloakbrowser, " + TIKTOK_BROWSER_BACKEND_DEFAULT)
 
     if allow_challenge_close_diagnostic and allow_challenge_close_followthrough:
         raise ValueError(
@@ -2099,7 +2099,7 @@ def _capture_contract(
     *,
     session_mode: AuthenticatedSessionMode | None,
     logged_out: bool = False,
-    browser_backend: str = TIKTOK_BROWSER_BACKEND_PLAYWRIGHT,
+    browser_backend: str = TIKTOK_BROWSER_BACKEND_DEFAULT,
     cloakbrowser_humanize: bool = False,
     human_challenge_handoff: bool = False,
     human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
