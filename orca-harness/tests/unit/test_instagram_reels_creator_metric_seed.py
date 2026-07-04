@@ -295,6 +295,74 @@ def test_instagram_reels_creator_metric_seed_newest_capture_with_fewer_rows_wins
     }
 
 
+def test_instagram_reels_creator_metric_seed_orders_capture_times_by_parsed_instant(
+    tmp_path: Path,
+) -> None:
+    # Raw ISO strings can sort differently from their actual instants when offsets
+    # differ. The seed must feed the sibling selector a parsed instant, not the
+    # lexically largest row timestamp from a projection. The decisive fixture is
+    # MIXED offsets WITHIN one projection: the lexically greatest row string
+    # (decoy, 2026-07-02T...+03:00 = 2026-07-01T21:15Z) is an OLDER instant than
+    # the true newest row (2026-07-01T...-02:00 = 2026-07-02T01:30Z), so a
+    # string-max summary understates the projection's recency and loses to
+    # true_older; the parsed-instant summary wins.
+    account_ledger = {
+        "platform_accounts": [
+            {
+                "platform_account_id": "acct_ig_fixture_001",
+                "platform": "instagram",
+                "public_handle": "fixturecreator",
+                "public_profile_url": "https://www.instagram.com/fixturecreator/",
+                "handle_source_pointer": "fixture#/rows/0",
+                "handle_observed_at": "2026-07-02T00:00:00Z",
+            }
+        ]
+    }
+    true_newer = tmp_path / "true_newer_offset.json"
+    true_older = tmp_path / "true_older_utc.json"
+    true_newer_capture = "2026-07-01T23:30:00-02:00"  # 2026-07-02T01:30:00Z (true max instant)
+    decoy_lexical_capture = "2026-07-02T00:15:00+03:00"  # 2026-07-01T21:15:00Z (lexical max, older instant)
+    true_older_capture = "2026-07-02T00:30:00+00:00"
+    true_newer.write_text(
+        json.dumps(
+            _projection(
+                packet_id="packet_true_newer",
+                rows=[
+                    _profile_row("fixturecreator", 20, decoy_lexical_capture, packet_id="packet_true_newer"),
+                    _reel_row("fixturecreator", "ABC", "view_count", 100, true_newer_capture, packet_id="packet_true_newer"),
+                    _reel_row("fixturecreator", "ABC", "like_count", 10, true_newer_capture, packet_id="packet_true_newer"),
+                    _reel_row("fixturecreator", "ABC", "comment_count", 5, true_newer_capture, packet_id="packet_true_newer"),
+                ],
+            )
+        ),
+        encoding="utf-8",
+    )
+    true_older.write_text(
+        json.dumps(
+            _projection(
+                packet_id="packet_true_older",
+                rows=[
+                    _profile_row("fixturecreator", 10, true_older_capture, packet_id="packet_true_older"),
+                    _reel_row("fixturecreator", "ABC", "view_count", 90, true_older_capture, packet_id="packet_true_older"),
+                    _reel_row("fixturecreator", "ABC", "like_count", 9, true_older_capture, packet_id="packet_true_older"),
+                    _reel_row("fixturecreator", "ABC", "comment_count", 4, true_older_capture, packet_id="packet_true_older"),
+                ],
+            )
+        ),
+        encoding="utf-8",
+    )
+
+    document = build_instagram_reels_creator_metric_seed_from_files(
+        projection_paths=[true_newer, true_older],
+        account_ledger=account_ledger,
+        generated_at_utc="2026-07-02T02:00:00Z",
+    )
+    seed = document["instagram_reels_creator_metric_seed"]
+
+    assert seed["source_inputs"][0]["source_pointer"] == str(true_newer)
+    assert seed["metric_rollups"][0]["metric_rollups"]["average_views"]["value_or_none"] == 100
+
+
 def test_instagram_reels_metric_seed_discovers_lake_projections_and_dedupes_exact_duplicates(
     tmp_path: Path,
 ) -> None:

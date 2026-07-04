@@ -206,6 +206,11 @@ def _projection_summary(path: Path) -> dict[str, Any]:
     if not isinstance(packet_id, str) or not packet_id.strip():
         raise ValueError(f"IG projection has no packet_id: {path}")
     capture_times = [row.get("capture_time") for row in rows if isinstance(row, Mapping) and row.get("capture_time")]
+    capture_instants = [
+        instant
+        for instant in (parse_capture_instant(str(value)) for value in capture_times)
+        if instant is not None
+    ]
     observed_count = sum(1 for row in rows if isinstance(row, Mapping) and row.get("posture") == "observed")
     return {
         "path": path,
@@ -213,7 +218,7 @@ def _projection_summary(path: Path) -> dict[str, Any]:
         "rows": rows,
         "username": username.strip(),
         "packet_id": packet_id,
-        "capture_time": max(str(value) for value in capture_times) if capture_times else "",
+        "capture_time": max(capture_instants).isoformat() if capture_instants else "",
         "observed_count": observed_count,
         "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
     }
