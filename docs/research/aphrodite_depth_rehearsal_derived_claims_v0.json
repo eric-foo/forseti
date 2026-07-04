@@ -1,7 +1,7 @@
 {
   "artifact": "aphrodite_depth_rehearsal_derived_claims_v0",
   "artifact_role": "Research record (rehearsal derived-claim set; evidence lane, product_learning-capped; not validation, not readiness, not buyer proof)",
-  "binds_to": "orca/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md",
+  "binds_to": "forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md",
   "recipe": "docs/research/aphrodite_depth_rehearsal_extraction_recipe_v0.md",
   "corpus_doc": "docs/research/aphrodite_depth_rehearsal_corpus_v0.md",
   "extraction_pass": {

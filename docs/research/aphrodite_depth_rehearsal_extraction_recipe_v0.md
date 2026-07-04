@@ -15,7 +15,7 @@ use_when:
   - Scoping the real depth-layer extractor (this recipe is its hand-run precursor).
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
   - docs/research/aphrodite_depth_rehearsal_corpus_v0.md
 stale_if:
   - The derived-claim provenance contract is amended or superseded.

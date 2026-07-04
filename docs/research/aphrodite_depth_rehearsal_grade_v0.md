@@ -18,7 +18,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/aphrodite_depth_rehearsal_fit_panel_v0.md
   - docs/research/aphrodite_depth_rehearsal_ad_reception_panel_v0.md
-  - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
 stale_if:
   - A later rehearsal or the real depth-layer build supersedes this grading.
   - The charter's panel definitions (Section 4) are amended.

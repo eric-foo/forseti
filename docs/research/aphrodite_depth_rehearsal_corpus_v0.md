@@ -34,7 +34,7 @@ validation, not readiness, not capture authorization, `product_learning`-capped.
 ## Attribution chain (verified 2026-07-04)
 
 1. **Registry**: `jeremyfragrance` is one of 3 Instagram accounts in
-   `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json`.
+   `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json`.
 2. **Raw grid packets** (both manifests contain `instagram.com/jeremyfragrance`;
    verified by direct read):
    - `raw/67c/01KW9T5SGKBYD8HRVP3154F4Y8` — session `ig-live-20260629-jeremyfragrance`,

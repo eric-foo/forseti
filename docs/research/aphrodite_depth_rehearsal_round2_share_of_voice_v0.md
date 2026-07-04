@@ -18,7 +18,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/aphrodite_depth_rehearsal_round2_gentsscents_grade_v0.md
-  - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
 stale_if:
   - A real silver-lane product-mention extraction supersedes this rehearsal.
   - The captured GentsScents corpus is superseded.
