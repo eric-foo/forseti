@@ -37,6 +37,8 @@ CASES = [
      [["--strict"], ["--selftest"]], [["--hook"]]),
     ("check_ontology_ssot.py",
      [["--strict"], ["--selftest"]], [["--check"]]),
+    ("check_fragrance_reference.py",
+     [["--strict"], ["--selftest"]], [["--check"]]),
     ("check_deletion_evidence.py",
      [["--strict"], ["--selftest"]], [["--report"]]),
     ("check_dcp_receipt.py",
