@@ -2,10 +2,10 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
-scope: Orca review lanes, reviewer permissions, and executor boundaries.
+artifact_role: Forseti overlay authority
+scope: Forseti review lanes, reviewer permissions, and executor boundaries.
 use_when:
-  - Selecting or checking an Orca review lane.
+  - Selecting or checking a Forseti review lane.
   - Confirming whether a reviewer may write reports or apply patches.
   - Resolving review prompt template retrieval without turning templates into model routing.
 authority_boundary: retrieval_only
@@ -20,26 +20,26 @@ lane-authority conflict.
 
 ## Current Lanes
 
-- Artifact review: read-only review of docs, decisions, prompts, and migration artifacts. Reviewers may write reports only under `docs/review-outputs/` unless a prompt authorizes a different Orca-owned report path.
+- Artifact review: read-only review of docs, decisions, prompts, and migration artifacts. Reviewers may write reports only under `docs/review-outputs/` unless a prompt authorizes a different Forseti-owned report path.
 - Adversarial artifact review: read-only adversarial review of docs, decisions,
   prompts, product-proof artifacts, and migration artifacts. Reports should go
   under `docs/review-outputs/adversarial-artifact-reviews/` unless a prompt
-  names another Orca-owned report path. Formal adversarial artifact review must
+  names another Forseti-owned report path. Formal adversarial artifact review must
   invoke `workflow-adversarial-artifact-review` after source context is ready.
   If that skill is unavailable, unresolved, or not applied, the run may return
   only a blocked or advisory-only result and must not emit strict review
   claims.
-- Prompt review: read-only review of prompt artifacts, thin wrappers, source maps, output modes, and validation gates. Reports go under `docs/review-outputs/` unless the prompt names another Orca-owned report path.
+- Prompt review: read-only review of prompt artifacts, thin wrappers, source maps, output modes, and validation gates. Reports go under `docs/review-outputs/` unless the prompt names another Forseti-owned report path.
 - Patch-queue review: read-only review that produces ordered patch units. Applying those patches requires a separate patch or integration execution assignment.
-- Patch or integration execution: applies accepted documentation patches inside Orca and reports changed files plus validation.
+- Patch or integration execution: applies accepted documentation patches inside Forseti and reports changed files plus validation.
 - Skill adoption review: deferred until a later turn authorizes adoption or shadow validation.
 - Delegated review-and-patch (provisional, opt-in): a distinct Chief Architect-commissioned bounded-executor convention for hardening high-stakes authored artifacts — and, in its `delegated_code_review_and_patch` mode, bounded multi-file implementation/code diffs reviewed via the code review lane (`workflow-code-review`) — defined in `.agents/workflow-overlay/delegated-review-patch.md`. It is NOT one of the source-read-only review lanes and NOT machine-routable; in its default `repo` access mode the delegate patches the named target, while in its `no_repo` access mode the delegate is read-only/advisory (returns findings; the CA applies the patch, with a required de-correlated post-patch re-review) — the convention still owns it either way. The reviewer-read-only rule and the review-lane model-neutrality below are unchanged.
 
 ## Review Doctrine
 
-Orca review mechanics are Orca-owned here: findings-first review output,
+Forseti review mechanics are Forseti-owned here: findings-first review output,
 advisory critique from visible evidence, and strict authority boundaries for
-formal review claims. Orca-local overlay files own concrete lane names,
+formal review claims. Forseti-local overlay files own concrete lane names,
 destinations, result vocabulary, severity labels, validation gates, patch
 routing, and Chief Architect consumption rules.
 
@@ -76,8 +76,8 @@ routing, and Chief Architect consumption rules.
 - Review lanes emit findings by default. Formal verdicts, severity taxonomies,
   blocked/ready status, validation pass/fail claims, approval, readiness,
   mandatory remediation, and executor-ready patch queues are strict-shaped
-  outputs and require Orca overlay or prompt binding.
-- Orca adversarial artifact reviews may use `critical`, `major`, and `minor`
+  outputs and require Forseti overlay or prompt binding.
+- Forseti adversarial artifact reviews may use `critical`, `major`, and `minor`
   severity labels for finding priority when the prompt or template names those
   labels. Those labels do not by themselves create approval, rejection,
   readiness, validation, or mandatory remediation authority.
@@ -100,12 +100,12 @@ routing, and Chief Architect consumption rules.
   reviewer verdict or recommendation. Reviewer verdicts and recommendations
   are decision input, not the first anchor.
 - No synthesis lane is added by this doctrine. Multi-review reconciliation
-  remains Chief Architect adjudication unless a later Orca overlay decision
+  remains Chief Architect adjudication unless a later Forseti overlay decision
   explicitly binds another owner.
 - Review lane routing must never recommend, prescribe, rank, or imply runtime
   model choice. Review lanes may bind review type, method/skill, target,
   authority, output mode, destination, and prompt-template target. Runtime
-  model choice is outside Orca review-lane authority and remains an
+  model choice is outside Forseti review-lane authority and remains an
   operator/tooling decision.
 - Review outputs record two provenance fields, operator/tooling-supplied and
   set by the operator/CA on the durable review record (including when ingesting
@@ -145,7 +145,7 @@ routing, and Chief Architect consumption rules.
 
 ## Template Retrieval Binding
 
-Orca does not bind executor or reviewer lanes to runtime model identifiers.
+Forseti does not bind executor or reviewer lanes to runtime model identifiers.
 Prompt authors may retrieve templates by registry ID from
 `.agents/workflow-overlay/template-registry.md`, but a template target is prompt
 posture only. It does not select, rank, recommend, or require the runtime model.
@@ -204,7 +204,7 @@ handoffs remain prompt-orchestration work.
   and authority-hygiene issues; they do not create approval, validation proof,
   readiness, lifecycle completion, or edit permission.
 - Executor threads must not report success without file and validation evidence.
-- Installed global `review`, implementation/code review, and artifact review remain separate lanes until Orca accepts more specific routing.
+- Installed global `review`, implementation/code review, and artifact review remain separate lanes until Forseti accepts more specific routing.
 - Runtime model recommendations for review lanes: forbidden. Template target
   retrieval is allowed only as prompt-shaping guidance.
 - Prompt output contracts are bound in `.agents/workflow-overlay/prompt-orchestration.md`.

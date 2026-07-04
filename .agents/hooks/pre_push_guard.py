@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Orca local Git pre-push guard.
+"""Forseti local Git pre-push guard.
 
 Reads Git pre-push updates from stdin:
 
@@ -129,7 +129,7 @@ def doc_gate_reasons(root: Path, run=run_gate) -> list[str]:
 
 
 def block(reasons: list[str], authority: str | None = None) -> int:
-    print("BLOCKED by Orca local pre-push guard (.githooks/pre-push).", file=sys.stderr)
+    print("BLOCKED by Forseti local pre-push guard (.githooks/pre-push).", file=sys.stderr)
     for reason in reasons:
         print(f"Reason: {reason}", file=sys.stderr)
     if authority is None:

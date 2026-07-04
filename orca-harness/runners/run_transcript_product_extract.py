@@ -42,7 +42,13 @@ from cleaning.transcript_product_lake import (
     extract_products_into_lake,
     mentions_record_id,
 )
-from data_lake.consumption import PickupItem, append_ack, is_acknowledged, pickup
+from data_lake.consumption import (
+    PickupItem,
+    append_ack,
+    is_acknowledged,
+    pickup,
+    reconcile_availability_per_packet,
+)
 from data_lake.root import DataLakeRootError
 from data_lake.silver_lineage import SilverAnchor, SilverDerivedRef, SilverRawRef
 
@@ -149,16 +155,6 @@ def _asr_records(data_root, audio_packet_id: str) -> list[tuple[dict, str, str]]
             raise ValueError(f"transcript_asr record {record_file.name!r} is not a JSON object")
         records.append((data, record_file.name, record_sha))
     return records
-
-
-def _reconcile_availability(data_root) -> None:
-    """By-key reconcile backstop: rebuild the availability index from raw so pickup
-    does not depend on the index being pre-populated. Best-effort: a single corrupt
-    manifest must not abort the whole run (it just goes un-indexed/skipped)."""
-    try:
-        data_root.rebuild_availability()
-    except Exception:  # noqa: BLE001 - a corrupt manifest must not abort the run; index is best-effort
-        pass
 
 
 def _packet_obligation(data_root, packet_id: str, model: str) -> dict:
@@ -291,9 +287,10 @@ def run_extraction(
     """
     results: list[dict] = []
     # Visible reconcile opt-out per the seam contract: this runner reconciles
-    # ITSELF first (best-effort, so one corrupt manifest cannot abort the whole
-    # daemon batch) instead of using pickup's fail-loud default reconcile.
-    _reconcile_availability(data_root)
+    # ITSELF first, per packet, so one corrupt manifest becomes a visible
+    # availability_reconcile_failed status while healthy packets still index
+    # and process — instead of pickup's whole-batch fail-loud default reconcile.
+    results.extend(reconcile_availability_per_packet(data_root))
     for item in pickup(
         data_root,
         ack_namespace=_ACK_NAMESPACE,

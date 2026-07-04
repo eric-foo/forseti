@@ -1,10 +1,10 @@
-# Orca Product Thesis v1 — Evidence-Backed Consumer-Market Decision Intelligence
+# Forseti Product Thesis v1 — Evidence-Backed Consumer-Market Decision Intelligence
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Decision record (controlling product thesis — owner-ratified)
 scope: >
-  V1 product thesis re-centering Orca on evidence-backed strategic
+  V1 product thesis re-centering Forseti on evidence-backed strategic
   decisions for consumer-market leaders, with consumer-demand integrity and
   durability as the first reads, beauty/personal-care as the first vertical
   (Vertical), and the existing outside-in engine and frozen Core Spine
@@ -82,7 +82,7 @@ the operative product wording is this body, not a stack of override notes.
 
 ## Thesis (the bet)
 
-Orca helps consumer-market leaders make **evidence-backed strategic decisions**
+Forseti helps consumer-market leaders make **evidence-backed strategic decisions**
 before internal data is conclusive: whether to monitor, probe, commit, hold,
 scale, avoid, or reduce, and at what scale the evidence supports.
 
@@ -103,7 +103,7 @@ spine, and method are vertical-portable by design.
 ## Value Proposition
 
 For a decision owner (Buyer) facing a live consumer-demand allocation decision
-(DecisionEvent) before internal data is conclusive, Orca delivers the decided
+(DecisionEvent) before internal data is conclusive, Forseti delivers the decided
 answer — "this demand is real-and-durable / real-but-transient / manufactured;
 monitor, probe, commit, hold, scale, avoid, or reduce; here is what would change
 the answer and when" — as a **calibrated decision with an action ceiling, never
@@ -176,7 +176,7 @@ called at cutoff against what actually happened — misses included.
   calibrated **judgment + outcome memory**; don't sell the plumbing, sell the
   calibrated decision. (Positioning hypothesis, not a validated claim.)
 - Standard ownership is the commercial posture (claim-defense doctrine,
-  owner-signed 2026-06-11): Orca owns and publishes the judgment-evidence standard
+  owner-signed 2026-06-11): Forseti owns and publishes the judgment-evidence standard
   it grades itself against — "built to" ships now; "proven at" only with the
   receipted rung.
 
@@ -198,12 +198,12 @@ Carried from thesis v0 and sharpened for the demand substrate:
   the external/product boundary here is unchanged.)
 - **Recurring decisions, not a feed.** Where a read is monitored over time
   (transient → earn-durable), every output stays a calibrated decision with an
-  action ceiling — never a monitoring feed or stream. This keeps Orca off the
+  action ceiling — never a monitoring feed or stream. This keeps Forseti off the
   buyer-proof "monitoring-only pull" kill and out of the social-listening
   category (the never-a-feed invariant; owned in the buyer-proof packet).
 - No fake reviews, botting, astroturf, manipulation, or deceptive competitive
-  tactics — Orca detects and discounts these; it never produces them.
-- Capture risk posture (owner-amended at ratification, 2026-06-12): Orca
+  tactics — Forseti detects and discounts these; it never produces them.
+- Capture risk posture (owner-amended at ratification, 2026-06-12): Forseti
   accepts measured platform-terms (ToS) risk in capture; it rejects
   absurd-level risk approaches (the owner's example: Bright-Data-style
   industrial scraping). The thesis is NOT premised on avoiding every live
@@ -384,7 +384,7 @@ ratification event, one receipt, pointed to from the wedge record).
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    The controlling Orca product thesis moves to consumer-demand decision
+    The controlling Forseti product thesis moves to consumer-demand decision
     intelligence (beauty first vertical) with the owner's measured-ToS-risk
     capture posture amendment, and the first-proof wedge moves to the beauty
     operator door, superseding turn_08 and pricing-first; subordinate

@@ -51,7 +51,7 @@ DETECTION CONTRACT (mirrors check_review_routing.py / check_dcp_receipt.py)
   the added/modified/rename-or-copy-destination `.md` paths still present in
   the tree, excluding `_scratch`, `docs/_inbox/`, and `node_modules`. NO
   HEAD~1 fallback. If the base cannot be resolved or git fails, fail OPEN
-  (exit 0, loud warning) -- the universal Orca infra-gap stance; in CI the
+  (exit 0, loud warning) -- the universal Forseti infra-gap stance; in CI the
   base is always present (fetch-depth: 0). Fail-open is for INFRASTRUCTURE
   GAPS ONLY: in --strict and --selftest an unexpected internal exception exits
   1 (the GATE FAIL bucket, validation-gates.md); advisory modes fail open on

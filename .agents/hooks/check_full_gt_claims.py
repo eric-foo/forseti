@@ -20,7 +20,7 @@ CHANGED-FILE SCOPE
   Committed net change `base...HEAD` (GITHUB_BASE_REF -> origin/main, or
   --base), .md files, added lines only (forward-looking; no backfill of
   historical docs). NO HEAD~1 fallback. If the base cannot be resolved or git
-  fails, fail OPEN (exit 0, loud warning) -- the universal Orca infra-gap
+  fails, fail OPEN (exit 0, loud warning) -- the universal Forseti infra-gap
   stance; in CI the base is always present (fetch-depth: 0).
 
 HARD BOUNDARY

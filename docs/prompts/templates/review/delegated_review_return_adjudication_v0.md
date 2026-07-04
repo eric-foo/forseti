@@ -10,7 +10,7 @@ scope: >
   the adjudicated state.
 use_when:
   - Adjudicating a delegated review-and-patch return before deciding what to keep.
-  - Writing a review-return or courier closeout prompt that must preserve the Orca Review Adjudication Next Step rule.
+  - Writing a review-return or courier closeout prompt that must preserve the Forseti Review Adjudication Next Step rule.
 output_mode: chat-only or file-write
 model_neutrality: Template/posture only; it never recommends, ranks, or routes a runtime model.
 authority_boundary: retrieval_only
@@ -22,7 +22,7 @@ owning_sources:
 
 ## Template
 
-You are the commissioning Chief Architect adjudicating a delegated review-and-patch return. Do not accept the delegate's findings, diff, verdict, citations, or residual-risk note by inheritance. Treat each as a claim to check against the target, the commission, and the owning Orca sources.
+You are the commissioning Chief Architect adjudicating a delegated review-and-patch return. Do not accept the delegate's findings, diff, verdict, citations, or residual-risk note by inheritance. Treat each as a claim to check against the target, the commission, and the owning Forseti sources.
 
 Inputs to bind before adjudication:
 

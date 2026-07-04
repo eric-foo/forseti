@@ -1,4 +1,4 @@
-# repo-structure.yaml - Orca machine structure map (the router, not the authority).
+﻿# repo-structure.yaml - Forseti machine structure map (router only; legacy Orca compatibility paths retained).
 # Single machine-readable source consumed by .agents/hooks/check_placement.py and
 # by agents for navigation. Placement RULES are owned by
 # .agents/workflow-overlay/artifact-folders.md; the binding and parameters by

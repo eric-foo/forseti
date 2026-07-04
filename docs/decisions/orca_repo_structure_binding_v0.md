@@ -1,15 +1,15 @@
-# Orca Repo Structure Binding v0
+# Forseti Repo Structure Binding v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca decision record
+artifact_role: Forseti decision record
 scope: >
-  Orca-owned binding of the agent-first repo-structure invariant core
-  (restated, not referenced) plus the Orca parameter layer: per-subtree axes,
+  Forseti-owned binding of the agent-first repo-structure invariant core
+  (restated, not referenced) plus the Forseti parameter layer: per-subtree axes,
   role grammar, scratch rule, machine map, surface tiering, and the EP-04
   placement-enforcement substrate authorization.
 use_when:
-  - Deciding where a new Orca artifact or folder belongs, beyond the
+  - Deciding where a new Forseti artifact or folder belongs, beyond the
     folder-level bindings in .agents/workflow-overlay/artifact-folders.md.
   - Authoring or revising repo-structure.yaml or check_placement.py.
   - Planning or executing the Phase-2 docs/product consolidation.
@@ -21,7 +21,7 @@ open_next:
   - docs/migration/repo_structure_phase2_consolidation_v0/runbook.md
 stale_if:
   - repo-structure.yaml and this binding disagree on a home or parameter.
-  - A later accepted Orca decision supersedes a parameter bound here.
+  - A later accepted Forseti decision supersedes a parameter bound here.
   # (retired 2026-06-11: "The Phase-2 consolidation applies" fired - see the
   # dated note in Status)
 ```
@@ -30,10 +30,10 @@ stale_if:
 
 Owner-authorized adoption, v0. Authorized by explicit current-turn owner
 instruction ("do all phases", 2026-06-11) through the fused implementation
-pipeline. This binds the structure discipline below as Orca project doctrine
+pipeline. This binds the structure discipline below as Forseti project doctrine
 and authorizes the EP-04 placement substrate build recorded here. It is not
 validation, not readiness, not ratification of any external doctrine, and not
-acceptance of the jb draft doctrine as Orca authority.
+acceptance of the jb draft doctrine as Forseti authority.
 
 Dated note — Phase-2 applied (2026-06-11): the prepared consolidation ran
 (commit `1b0f3fc`, 99-file by-lane move); the harness pytest/uv scratch config
@@ -65,12 +65,12 @@ Wave E. No files were moved by Wave B.
 The invariant core below is restated from an assessment of a cross-repo draft
 structure doctrine (resident in the jb workspace, DRAFT/candidate status) plus
 this repo's own observed evidence. Per `AGENTS.md` and the overlay binding
-rule, jb-resident sources are not Orca authority: this binding restates the
-content as Orca-owned doctrine rather than referencing the jb path as a rule
-source. If the jb draft later changes, nothing in Orca changes unless a later
-accepted Orca decision adopts the change.
+rule, jb-resident sources are not Forseti authority: this binding restates the
+content as Forseti-owned doctrine rather than referencing the jb path as a rule
+source. If the jb draft later changes, nothing in Forseti changes unless a later
+accepted Forseti decision adopts the change.
 
-Orca-local evidence motivating adoption: subtrees with a bound grammar stayed
+Forseti-local evidence motivating adoption: subtrees with a bound grammar stayed
 clean (docs/ top level, docs/prompts/, docs/review-outputs/, docs/research/);
 subtrees without one sprawled (docs/product/ reached ~100 flat files with the
 axis carried by filename prefixes; docs/decisions/ ~50 flat); boundaries with
@@ -78,7 +78,7 @@ no write enforcement leaked (3 stray files at repo root, ~20 generated scratch
 dirs interleaved at orca-harness/ top level, months-old material in
 docs/_inbox/).
 
-## Invariant core (restated as Orca doctrine)
+## Invariant core (restated as Forseti doctrine)
 
 1. One legible primary axis per subtree; demote other axes to nested or
    tagged secondary structure and indexes.
@@ -100,7 +100,7 @@ docs/_inbox/).
    warning for salient placement plus a strict commit/CI-mode check as the
    backstop for incidental placement.
 
-## Orca parameter layer (bound)
+## Forseti parameter layer (bound)
 
 - Top-level axis (repo root): function class - governance (`.agents/`,
   `.claude/`, `AGENTS.md`, `CLAUDE.md`), artifacts (`docs/`), code
@@ -187,7 +187,7 @@ updated), per the Doctrine Change Propagation Contract in
 ## Non-claims
 
 - Not validation, readiness, approval, or proof of navigation improvement.
-- Not ratification or import of the jb draft doctrine as Orca authority.
+- Not ratification or import of the jb draft doctrine as Forseti authority.
 - Not a commit, push, or branch action; nothing is staged by this binding.
 - The checker's existence or a passing run is not validation, readiness, or
   authority; placement is not authority.

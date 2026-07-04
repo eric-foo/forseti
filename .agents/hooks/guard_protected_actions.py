@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Orca protected-action guard — PreToolUse hook (EP-01 + EP-03).
+"""Forseti protected-action guard — PreToolUse hook (EP-01 + EP-03).
 
 Hard-blocks the few irreversible actions an autonomous (auto/bypass-mode) agent
 must never take unattended:
@@ -80,7 +80,7 @@ def _norm(p):
 
 
 # --- EP-01: protected-path writes ------------------------------------------
-# Home-level caches/skills that are never an Orca write target. Exact-dir
+# Home-level caches/skills that are never a Forseti write target. Exact-dir
 # boundary so the in-repo project `.claude/skills/` (a different absolute path)
 # is NOT caught.
 _DOTFOLDER_PROTECTED = [
@@ -303,7 +303,7 @@ def decide(tool_name, tool_input, lookup=None):
 
 
 _BLOCK_MSG = (
-    "BLOCKED by Orca protected-action guard (.agents/hooks/guard_protected_actions.py).\n"
+    "BLOCKED by Forseti protected-action guard (.agents/hooks/guard_protected_actions.py).\n"
     "Reason: %s\n"
     "%s"
     "Authority: .agents/workflow-overlay/safety-rules.md + dev-workflow doctrine "

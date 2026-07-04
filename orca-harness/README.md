@@ -1,4 +1,8 @@
-# Orca Harness
+# Forseti Harness
+
+Compatibility note: the repository path, package metadata, and CI/check
+identifiers remain `orca-harness` compatibility identifiers until an explicit
+path/package migration retires or moves them.
 
 Step A rebuild of the v0.14 deterministic judgment harness.
 

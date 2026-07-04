@@ -8,7 +8,7 @@ WHAT THIS DOES
   artifact OUT of every governed root (it left its governed home); a rename that
   keeps it under a governed root is a move, not a deletion, and needs no record.
 
-  The frozen Orca rule: a governed-artifact deletion is central-adjudicated and
+  The frozen Forseti rule: a governed-artifact deletion is central-adjudicated and
   carries evidence -- reverse-reference check + successor + semantic delta +
   rollback. This gate makes the EVIDENCE mechanically mandatory on the pre-merge
   PR diff: a governed deletion with no complete record, or a successor that does
@@ -50,7 +50,7 @@ DETECTION CONTRACT (mirrors header_index.py --strict)
   origin/main. Diff is three-dot `base...HEAD` (merge-base diff = the PR's net
   change). Rename-aware via --find-renames. NO HEAD~1 fallback (which would see
   only the last commit of a multi-commit lane). If the base cannot be resolved
-  or git fails, fail OPEN (exit 0, loud warning) -- the universal Orca infra-gap
+  or git fails, fail OPEN (exit 0, loud warning) -- the universal Forseti infra-gap
   stance; in CI the base is always present (fetch-depth: 0).
 
 HARD BOUNDARY

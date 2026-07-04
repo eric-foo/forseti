@@ -298,7 +298,7 @@ def structural_trigger(relposix: str, map_text: str,
     harness_area = new_harness_area(relposix, map_text)
     if harness_area is not None:
         return ("new harness area `%s` is not in the repo map's "
-                "Orca Harness section (stale_if #2)" % harness_area)
+                "Forseti Harness section (stale_if #2)" % harness_area)
     return None
 
 

@@ -2,7 +2,7 @@
 """Retrieval-header boundary check (advisory, forward-only).
 
 WHAT THIS ENFORCES
-  ORCA's retrieval-header contract for durable human-authored workflow
+  Forseti's retrieval-header contract for durable human-authored workflow
   artifacts. The *rule* — which folders are in scope, the exclusions, the five
   core fields, and the controlled `authority_boundary: retrieval_only` value —
   is owned by:

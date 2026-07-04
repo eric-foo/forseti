@@ -112,7 +112,7 @@ free-floating evidence inventories outside a decision frame.
 
 Data Capture Spine owns evidence-grade acquisition and preservation requirements. It
 may say what kinds of source surfaces, capture fidelity, visibility, timing,
-archive posture, and preservation obligations Orca must support conceptually.
+archive posture, and preservation obligations Forseti must support conceptually.
 It must not become a runtime source-system plan, scraper plan, source inventory,
 source map, or generic listening platform.
 
@@ -271,7 +271,7 @@ Deferred:
 
 Data Capture Spine setup CA should answer:
 
-- what source surfaces and acquisition modes Orca must be able to reason about;
+- what source surfaces and acquisition modes Forseti must be able to reason about;
 - what capture fidelity and preservation obligations are core;
 - how cutoff, archive posture, source visibility, and capture context should be
   handled conceptually;

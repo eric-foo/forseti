@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Registry/list synchronization checker for narrow Orca vocabulary bindings.
+"""Registry/list synchronization checker for narrow Forseti vocabulary bindings.
 
 WHAT THIS DOES
   Checks one explicit vocabulary binding:
@@ -321,7 +321,7 @@ Every engagement signal should be classified by decision use:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="Check explicitly registered Orca vocabulary list-sync bindings."
+        description="Check explicitly registered Forseti vocabulary list-sync bindings."
     )
     parser.add_argument("paths", nargs="*", help="explicit file paths to check for binding relevance")
     parser.add_argument("--live", action="store_true", help="check all registered bindings")

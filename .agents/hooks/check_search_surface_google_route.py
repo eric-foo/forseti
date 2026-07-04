@@ -2,10 +2,10 @@
 """Google search-surface route guard.
 
 WHAT THIS DOES
-  Enforces the mechanically-checkable shell of Orca's current Google
+  Enforces the mechanically-checkable shell of Forseti's current Google
   search-surface route:
 
-  - Google Search URLs preserved in durable Orca docs must carry
+  - Google Search URLs preserved in durable Forseti docs must carry
     hl=en, gl=us, and pws=0 when they are used as capture URLs.
   - A durable artifact that uses a US-parameterized Google search route must
     carry the physical-locality non-claim.

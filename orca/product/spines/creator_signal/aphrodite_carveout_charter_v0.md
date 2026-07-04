@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Product charter (carveout identity stitch + strategy register — DRAFT pending delegated review and owner ratification)
+artifact_role: Product charter (carveout identity stitch + strategy register — owner-ratified direction)
 scope: >
   The carveout charter for Aphrodite, the productized Creator Signal spine:
   binds the brand-to-spine identity stitch, the phase strategy, the two-layer
@@ -24,21 +24,27 @@ open_next:
   - .agents/workflow-overlay/product-proof.md
   - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
 stale_if:
-  - The owner ratifies, amends, or rejects this charter (replace the DRAFT status).
+  - The owner amends or supersedes this charter (dated amendments only; no silent rewrites).
   - A controlling record this charter routes to is superseded.
   - The Aphrodite working name changes (D7 posture keeps a pre-launch rename cheap by design).
 ```
 
 ## Status
 
-`DRAFT — PENDING DELEGATED ADVERSARIAL REVIEW AND OWNER RATIFICATION.`
+`OWNER_RATIFIED_DIRECTION` — ratified by the owner in-thread on 2026-07-04
+(owner word: "ratified."), after the delegated cross-vendor adversarial
+review-and-patch return (`reviewed_by: gpt-5-codex`; report at
+`docs/review-outputs/adversarial-artifact-reviews/aphrodite_carveout_charter_v0_delegated_adversarial_artifact_review_v0.md`)
+was adjudicated by the commissioning CA with all four findings accepted and
+their patches kept (commit `3e56eb25`). This locks a direction, not a result:
+it asserts no validation, willingness-to-pay evidence, buyer proof, or
+readiness, and it authorizes no build, capture expansion, outreach, or
+publishing.
 
 The individual decisions recorded below as `DECIDE (ratified)` were
-owner-ratified in-thread on 2026-07-04 (owner words cited per item). This
+owner-ratified in-thread on 2026-07-04 (owner words cited per item); this
 charter is the durable record of those decisions and of the strategy synthesis
-around them; the charter *as an artifact* is not yet reviewed or ratified, and
-it asserts no validation, willingness-to-pay evidence, buyer proof, readiness,
-or build authorization.
+around them.
 
 Provenance of the synthesis: a cross-vendor (ChatGPT Pro) strategy commission
 over a 13-source pack, adjudicated by the home model under the Mini God Tier
@@ -59,9 +65,13 @@ names by design:
   home (`orca/product/spines/creator_signal/`, bound by
   `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md`).
 
-Naming boundary: the repo tree stays codename-internal (the same rule that
-keeps "Orca" over "Forseti", brand ADR D1). Aphrodite appears in filenames and
-buyer-facing content, never as repo structure — because D7 deliberately keeps a
+Naming boundary: Forseti is the canonical project name at the authority layer
+(rename policy, PR #646), while `orca/` roots and lowercase `orca_*`
+identifiers are preserved compatibility paths — path renames are high-lock-in
+migrations, never text cleanups
+(`docs/decisions/forseti_compatibility_migration_boundary_v0.md`). Aphrodite
+follows the same discipline with one extra reason: it appears in filenames and
+buyer-facing content, never as repo structure, because D7 deliberately keeps a
 pre-launch rename cheap, and structure named after a rename-cheap brand would
 invert that posture.
 
@@ -279,9 +289,9 @@ trigger. Without this table the MGT label would be hype.
   keeps its own authorization boundary.
 - Moves no Capture/Creator Signal ownership boundary and mints no
   evidence-ladder vocabulary.
-- The charter itself is DRAFT: not reviewed, not ratified; the in-thread
-  ratifications it records (register rows R-1…R-5) stand on the owner's words,
-  not on this artifact's status.
+- Ratification locks a direction only; the in-thread ratifications recorded in
+  register rows R-1…R-5 stand on the owner's words. Every gated lane keeps its
+  own authorization boundary.
 
 ## Direction Change Propagation
 

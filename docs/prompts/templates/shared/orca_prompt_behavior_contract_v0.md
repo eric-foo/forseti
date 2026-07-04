@@ -1,11 +1,11 @@
-# Orca Prompt Behavior Contract v0
+# Forseti Prompt Behavior Contract v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Prompt template
-scope: Shared Orca behavior contract for project-local prompt templates.
+scope: Shared Forseti behavior contract for project-local prompt templates.
 use_when:
-  - A prompt template needs common Orca source, boundary, and non-claim rules.
+  - A prompt template needs common Forseti source, boundary, and non-claim rules.
 authority_boundary: retrieval_only
 ```
 
@@ -14,16 +14,16 @@ Use this contract only when a prompt explicitly references it.
 ## Source Authority
 
 - Current user instruction for the turn wins.
-- Orca `AGENTS.md` and `.agents/workflow-overlay/` own Orca project facts.
-- Orca docs under `docs/` are subordinate to the overlay when conflicts appear.
+- Forseti `AGENTS.md` and `.agents/workflow-overlay/` own Forseti project facts.
+- Forseti docs under `docs/` are subordinate to the overlay when conflicts appear.
 - Explicitly invoked or resolver-loaded skills may provide task-local mechanics
-  only; external workflow source is not Orca authority.
+  only; external workflow source is not Forseti authority.
 - `jb` paths, product rules, lifecycle mechanics, templates, validation habits,
-  and handoffs are not Orca authority.
+  and handoffs are not Forseti authority.
 
 ## Source-Gated Method Use
 
-When a prompt references workflow methods or skills and also requires Orca
+When a prompt references workflow methods or skills and also requires Forseti
 source context, follow `.agents/workflow-overlay/prompt-orchestration.md`'s
 Source-Gated Method Contract.
 
@@ -66,7 +66,7 @@ Skip it under that file's bypass conditions.
   artifact" collapse into path/hash/status-only chat.
 - Keep missing source fields as `not_found`, `not_bound`, or `UNKNOWN - requires owner input`.
 - Do not turn evidence collection into synthesis unless the prompt is a synthesis template.
-- Do not claim validation, readiness, approval, deployment, install, resolver, buyer validation, willingness to pay, implementation readiness, feature readiness, or commercial readiness unless an accepted Orca source and current evidence explicitly bind that claim.
+- Do not claim validation, readiness, approval, deployment, install, resolver, buyer validation, willingness to pay, implementation readiness, feature readiness, or commercial readiness unless an accepted Forseti source and current evidence explicitly bind that claim.
 - For review prompts and reports, prefer a review-use boundary over a broad
   non-claims catalog: the review is decision input only and must not be treated
   as approval, validation, mandatory remediation, or executor-ready authority
@@ -74,7 +74,7 @@ Skip it under that file's bypass conditions.
   target or source authority makes those claims in scope.
 - Review prompts should be findings-first by default. Formal verdicts,
   blocked/ready status, validation pass/fail claims, approval, readiness,
-  mandatory remediation, patch queues, and executor-ready handoffs require Orca
+  mandatory remediation, patch queues, and executor-ready handoffs require Forseti
   overlay or prompt binding. Actionable findings should state
   `minimum_closure_condition` and `next_authorized_action`. Do not request or
   emit `patch_queue_entry` unless a patch-queue review or patch/integration
@@ -86,10 +86,10 @@ Skip it under that file's bypass conditions.
 - In adversarial artifact reviews, `minimum_closure_condition` states what must
   become true for a failure mode to be resolved, not how to implement the fix.
   Optional hardening may be named only when labeled optional and non-required.
-- CA-facing review prompts and handoffs should preserve Orca's review
+- CA-facing review prompts and handoffs should preserve Forseti's review
   consumption order: commission, target, authority, decision criteria,
   evidence, then reviewer verdict or recommendation. Do not create a synthesis
-  lane unless a later Orca overlay decision binds one.
+  lane unless a later Forseti overlay decision binds one.
 - When dispatching an orientation or research subagent whose output an agent
   will consume — act on, summarize, or route, even if later shown to a human —
   apply the subagent return contract in

@@ -17,7 +17,7 @@ CHECKS (selectable with --checks; default = all)
 
 SCOPE (narrowed after the GPT-5.5 cross-vendor review, findings F1-F4)
   This check covers the `python[3] <script>.py [args]` hook-command form -- which is
-  the only form ORCA uses. A hook command it cannot verify in that form (a non-python
+  the only form Forseti uses. A hook command it cannot verify in that form (a non-python
   interpreter, `python -c`/`-m`, or a first positional that is not a `.py` script) is
   reported as `unverifiable` and FAILS the check (never silently passed) -- extend the
   check or convert the hook. It does not (yet) verify `.sh`/`.js`/extensionless hook
@@ -47,7 +47,7 @@ EXIT CODES
 
 ENFORCEMENT REACH (honesty)
   A non-zero exit fails the PR's check run. Without server-side required-status-checks
-  (ORCA branch protection is 403-blocked on a private/free repo), that is a STRONG
+  (Forseti branch protection is 403-blocked on a private/free repo), that is a STRONG
   signal under merge-when-green / structure-B discipline, NOT a server-enforced merge
   gate. It does not, by itself, block a merge.
 
@@ -68,7 +68,7 @@ from pathlib import Path, PurePosixPath
 
 # Split a hook command into independently-run segments (compound shell commands).
 _SEGMENT_SEP = re.compile(r"&&|\|\||[;|]")
-# The hook interpreters this check verifies (ORCA hooks are python).
+# The hook interpreters this check verifies (Forseti hooks are python).
 _PY_INTERPRETERS = ("python", "python3")
 
 

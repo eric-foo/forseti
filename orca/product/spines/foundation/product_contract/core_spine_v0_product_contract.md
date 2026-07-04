@@ -2,13 +2,13 @@
 
 - Status: PROPOSED_FREEZE
 - Artifact type: Product artifact
-- Scope: Market-agnostic Core Spine contract for Orca v0
+- Scope: Market-agnostic Core Spine contract for Forseti v0
 - Source basis: current owner direction, `docs/decisions/turn_08_product_thesis_v0.md`, `docs/workflows/turn_08_workflow_bedrock_maximization.md`, `orca/product/shared/engagement_registry/engagement_logic_registry_v0.md`
 - Implementation authorized: no
 
 ## Product Bet
 
-Core Spine v0 is Orca's reusable decision-evidence spine. It turns public market
+Core Spine v0 is Forseti's reusable decision-evidence spine. It turns public market
 signals into clean, classified, source-backed, and constrained decision
 evidence without becoming a generic OSINT platform, deck shop, or `jb`-specific
 finance-career intelligence tool.
@@ -114,7 +114,7 @@ Do not promote these into core:
 - GAP/CV Engine policy or compiler assumptions;
 - a single-domain standard for success.
 
-`jb` may validate method usefulness. It does not define Orca product authority.
+`jb` may validate method usefulness. It does not define Forseti product authority.
 
 ## Product Proof Weights
 
@@ -134,7 +134,7 @@ from cherry-picked demos.
 
 Internal backtest question:
 
-> Given only public evidence available before date X, would Orca have produced
+> Given only public evidence available before date X, would Forseti have produced
 > a useful decision memo before the outcome was obvious?
 
 For backtests, the decision memo remains the correct artifact because it
@@ -147,10 +147,10 @@ Backtests must record:
 - cutoff date;
 - source visibility before cutoff;
 - excluded post-window evidence;
-- recommendation Orca would have made;
+- recommendation Forseti would have made;
 - confidence and action threshold;
 - later outcome;
-- whether Orca was early, late, wrong, overconfident, or useful;
+- whether Forseti was early, late, wrong, overconfident, or useful;
 - what the evidence standard should learn.
 
 Marketing demos may use selected wins. Internal product judgment should use
