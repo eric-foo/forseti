@@ -14,9 +14,9 @@ $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $HarnessPath = Join-Path $RepoRoot "forseti-harness"
 $PromptPath = Join-Path $RepoRoot "docs\prompts\handoffs\ig_reels_product_extract_codex_exec_prompt_v0.md"
 $PromptSha256 = "68243EF7DC57A8B3C08DF4D6A918453CAA5A98B61F2A3C1C5A0873E962B7A332"
-$LogDir = Join-Path ([System.IO.Path]::GetTempPath()) "orca_ig_reels_extract_routine"
+$LogDir = Join-Path ([System.IO.Path]::GetTempPath()) "forseti_ig_reels_extract_routine"
 
-function Get-OrcaDriveLetters {
+function Get-ForsetiDriveLetters {
     try {
         if (Get-Command Get-Volume -ErrorAction SilentlyContinue) {
             return @((Get-Volume -ErrorAction Stop | Where-Object DriveLetter | Sort-Object DriveLetter).DriveLetter)
@@ -29,19 +29,26 @@ function Get-OrcaDriveLetters {
 
 $script:RootUuidMismatches = @()
 
-function Resolve-OrcaLake {
-    foreach ($d in Get-OrcaDriveLetters) {
-        $marker = "${d}:\orca-data-lake\.orca-data-root"
-        if (Test-Path $marker) {
+function Resolve-ForsetiLake {
+    foreach ($d in Get-ForsetiDriveLetters) {
+        $candidates = @(
+            @{ Root = "${d}:\forseti-data-lake"; Marker = "${d}:\forseti-data-lake\.forseti-data-root" },
+            @{ Root = "${d}:\orca-data-lake"; Marker = "${d}:\orca-data-lake\.orca-data-root" }
+        )
+        foreach ($candidate in $candidates) {
+            $marker = $candidate.Marker
+            if (-not (Test-Path $marker)) {
+                continue
+            }
             try {
                 $u = (Get-Content $marker -Raw | ConvertFrom-Json).root_uuid
             } catch {
                 continue
             }
             if ($u -eq $TargetUuid) {
-                return "${d}:\orca-data-lake"
+                return $candidate.Root
             }
-            $script:RootUuidMismatches += ("{0}:\orca-data-lake root_uuid={1}" -f $d, $u)
+            $script:RootUuidMismatches += ("{0} root_uuid={1}" -f $candidate.Root, $u)
         }
     }
     return $null
@@ -83,7 +90,7 @@ function Invoke-PartialCheck {
     return Invoke-CheckCount -Mode "partials"
 }
 
-$root = Resolve-OrcaLake
+$root = Resolve-ForsetiLake
 if (-not $root) {
     if ($script:RootUuidMismatches.Count -gt 0) {
         Write-Output "lake=<root identity mismatch>"
@@ -101,7 +108,7 @@ if (-not $root) {
 
 Write-Output ("lake={0}" -f $root)
 
-$env:ORCA_DATA_ROOT = $root
+$env:FORSETI_DATA_ROOT = $root
 $env:PYTHONPATH = $HarnessPath
 
 Push-Location $RepoRoot
