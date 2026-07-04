@@ -73,6 +73,11 @@ forseti_start_preflight:
   `engagement_rate_observed_profiles: 31`, and
   `profiles_with_ideal_audience_profiles: 0`.
 
+Freshness note: this rehearsal's 33-profile count is historical run evidence.
+Later Creator Ledger MGT closure checkpoints use the refreshed 36-profile
+receipt/profile-view source; do not use this rehearsal as the current registry
+profile-count source.
+
 ## Rehearsal Setup
 
 The rehearsal used temporary local candidate JSON files under

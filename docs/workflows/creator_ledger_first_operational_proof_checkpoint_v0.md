@@ -86,8 +86,9 @@ profiles_with_ideal_audience_profiles: 0
 
 The refreshed scan receipt and current profile view now agree on the 36-profile
 registry source. Earlier 33-profile orientation in the static projection and
-preflight rehearsal remains historical context only, not the source for this
-checkpoint's current receipt facts.
+the cold-agent preflight rehearsal remains historical context only; those
+records are proof of their run-time checks, not the current profile-count source
+for this checkpoint.
 
 ## Proof Loop Checkpoint
 
@@ -125,8 +126,14 @@ This slice preserves migration stability because:
   replacements for ledger-local platform account ids;
 - missingness and limitations remain visible in the scan artifact; and
 - the refreshed receipt and current profile view agree on the same 36-profile
-  registry source; earlier 33-profile orientation remains historical context,
-  not a reason to remigrate the scan or registry.
+  registry source; earlier 33-profile orientation remains historical context
+  from older proof runs, not a reason to remigrate the scan or registry.
+
+Closure provenance for later review friction: PR #733 reconciles the registry
+count/orientation gap surfaced in the PR #725 scan review, and PR #737 names the
+prose-first enforcement residual surfaced in the PR #699 contract review. Their
+merged commit messages are historical; this checkpoint records the closure link
+in the live artifact instead of rewriting commit history.
 
 ### Efficacy Outcome
 
