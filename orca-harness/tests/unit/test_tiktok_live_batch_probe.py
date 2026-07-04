@@ -229,6 +229,13 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert pointer_actions[3].prefer_smallest_match is True
     assert pointer_actions[4].wait_after_ms == 3500
     assert pointer_actions[7].wait_after_ms == 3500
+    for action in pointer_actions:
+        if action.action_name in {
+            TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+            TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+        }:
+            assert action.stop_wait_on_observed_response is True
+            assert action.stop_sequence_on_observed_response is False
     assert engine.calls[0]["response_predicate_matches_comment_list"] is True
 
     code, message = write_tiktok_batch_packet(
@@ -251,6 +258,127 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert packet_payload["videos"][0]["subtitles"]["posture"] == "source_native_subtitle_not_captured"
     assert packet_payload["videos"][0]["subtitles"]["subtitle_infos"][0]["url_redacted"] is True
 
+
+def test_live_probe_captures_source_native_subtitle_transcript(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    video_id = "7390000000000000001"
+    subtitle_url = "https://v16-webapp.tiktokcdn-us.com/subtitle.webvtt"
+    subtitle_body = (
+        b"WEBVTT\n\n"
+        b"00:00:00.000 --> 00:00:01.000\n"
+        b"This fragrance is everywhere\n\n"
+        b"00:00:01.000 --> 00:00:02.000\n"
+        b"Bronze shimmer test\n"
+    )
+    fetched_urls: list[str] = []
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id=video_id,
+                response=_comment_response(video_id=video_id),
+                subtitle_url=subtitle_url,
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda url: fetched_urls.append(url) or subtitle_body,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    row = cadence["results"][0]
+    subtitle = row["subtitle"]
+    assert fetched_urls == [subtitle_url]
+    assert subtitle["attempted"] is True
+    assert subtitle["success"] is True
+    assert subtitle["subtitle_url_sha256"]
+    assert subtitle["subtitle_url_length"] == len(subtitle_url)
+    assert subtitle["parsed_webvtt"]["cue_count"] == 2
+    assert subtitle["parsed_webvtt"]["transcript_text"] == (
+        "This fragrance is everywhere\nBronze shimmer test"
+    )
+    assert cadence["capture_contract"]["raw_subtitle_urls_persisted"] is False
+    assert cadence["capture_contract"]["raw_subtitle_bodies_persisted"] is False
+    assert cadence["capture_contract"]["subtitle_tier"] == (
+        "source_native_webvtt_transcript_live_probe_v0"
+    )
+
+    code, message = write_tiktok_batch_packet(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        batch_label="fake-live-probe",
+        decision_question="offline fake-engine subtitle transcript compatibility",
+        grid_result_json=paths.grid_result_json_path.read_bytes(),
+        cadence_result_jsons=[paths.cadence_result_json_path.read_bytes()],
+        output_directory=tmp_path / "packet",
+        source_file_receipts=[],
+    )
+    assert code == 0
+    packet_payload = json.loads(
+        (Path(message) / "raw" / "01_tiktok_batch_capture.json").read_text(encoding="utf-8")
+    )
+    subtitles = packet_payload["videos"][0]["subtitles"]
+    assert subtitles["posture"] == "source_native_webvtt_captured"
+    assert subtitles["cue_count"] == 2
+    assert subtitles["transcript_text"] == "This fragrance is everywhere\nBronze shimmer test"
+    assert subtitle_url not in json.dumps(packet_payload)
+
+def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    video_id = "7390000000000000001"
+    subtitle_url = "https://v16.attacker.example/subtitle.webvtt"
+    fetched_urls: list[str] = []
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id=video_id,
+                response=_comment_response(video_id=video_id),
+                subtitle_url=subtitle_url,
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda url: fetched_urls.append(url) or b"WEBVTT\n",
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    subtitle = cadence["results"][0]["subtitle"]
+    assert fetched_urls == []
+    assert subtitle["attempted"] is False
+    assert subtitle["success"] is False
+    assert subtitle["reason"] == "unsupported_subtitle_url_host_live_probe_v0"
+    assert subtitle["subtitle_url_sha256"]
+    assert subtitle["subtitle_url_length"] == len(subtitle_url)
+    assert subtitle_url not in json.dumps(cadence)
 
 def test_live_probe_logged_out_mode_uses_no_storage_state_and_admits(
     tmp_path: Path,
@@ -537,8 +665,7 @@ def test_live_probe_challenge_close_diagnostic_flag_prepends_close_action(
         TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
         TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
         TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
-        *_comment_route_action_names(),
-        TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        *_comment_route_with_diagnostic_action_names(),
     ]
     close_action = pointer_actions[2]
     assert close_action.page_text_markers == (
@@ -657,9 +784,7 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
         TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
         TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
         TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
-        *_comment_route_action_names(),
-        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
-        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        *_comment_route_with_followthrough_action_names(),
     ]
     assert pointer_actions[2].page_text_markers == (
         "drag the slider",
@@ -1561,6 +1686,30 @@ def _comment_route_action_names() -> list[str]:
     ]
 
 
+def _comment_route_with_followthrough_action_names() -> list[str]:
+    names: list[str] = []
+    for action_name in _comment_route_action_names():
+        names.extend(
+            [
+                action_name,
+                TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+                TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+            ]
+        )
+    return names
+
+
+def _comment_route_with_diagnostic_action_names() -> list[str]:
+    names: list[str] = []
+    for action_name in _comment_route_action_names():
+        names.extend(
+            [
+                action_name,
+                TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+            ]
+        )
+    return names
+
 def _auth_state(tmp_path: Path) -> Path:
     auth_root = tmp_path / "auth"
     path = auth_state_path_for_label("test-session", auth_state_root=auth_root)
@@ -1622,9 +1771,12 @@ def _success_observation(
     pointer_sequence: list[dict[str, object]] | None = None,
     visible_text: str = "video loaded",
     dom_comment_candidates: list[dict[str, object]] | None = None,
+    subtitle_url: str = "https://subtitle.example.invalid/subtitle.webvtt",
 ) -> BrowserPageObservationSuccess:
     pointer_sequence = pointer_sequence or _live_pointer_action_sequence_receipt()
-    dom_observation: dict[str, object] = {"hydration_json_text": json.dumps(_hydration(video_id))}
+    dom_observation: dict[str, object] = {
+        "hydration_json_text": json.dumps(_hydration(video_id, subtitle_url=subtitle_url))
+    }
     if dom_comment_candidates is not None:
         dom_observation["visible_comment_candidates"] = dom_comment_candidates
     return BrowserPageObservationSuccess(
@@ -1707,7 +1859,11 @@ def _pointer_action_receipt(
     return {key: value for key, value in receipt.items() if value is not None}
 
 
-def _hydration(video_id: str) -> dict[str, object]:
+def _hydration(
+    video_id: str,
+    *,
+    subtitle_url: str = "https://subtitle.example.invalid/subtitle.webvtt",
+) -> dict[str, object]:
     return {
         "__DEFAULT_SCOPE__": {
             "webapp.video-detail": {
@@ -1734,7 +1890,7 @@ def _hydration(video_id: str) -> dict[str, object]:
                                     "Size": 123,
                                     "Source": "MT",
                                     "Version": "1",
-                                    "Url": "https://subtitle.example.invalid/subtitle.webvtt",
+                                    "Url": subtitle_url,
                                 }
                             ]
                         },

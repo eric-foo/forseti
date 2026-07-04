@@ -48,6 +48,9 @@ class BrowserPagePointerAction:
     post_click_absent_text_markers: tuple[str, ...] = ()
     post_click_visual_target_absence_check: bool = False
     stop_sequence_on_failed_post_click_verification: bool = False
+    stop_wait_on_observed_response: bool = False
+    stop_sequence_on_observed_response: bool = False
+    observed_response_wait_poll_ms: int = 100
     random_seed: int = 0
 
 
@@ -787,11 +790,20 @@ class _PlaywrightBrowserSnapshotEngine:
                     pointer_action_receipts: list[dict[str, object]] = []
                     if post_load_action_script is not None:
                         page.evaluate(post_load_action_script, post_load_action_arg)
+                    observed_response_count = lambda: len(selected_responses)
                     if post_load_pointer_action is not None:
-                        pointer_action_receipt = _run_pointer_action(page, post_load_pointer_action)
+                        pointer_action_receipt = _run_pointer_action(
+                            page,
+                            post_load_pointer_action,
+                            observed_response_count=observed_response_count,
+                        )
                         pointer_action_receipts.append(pointer_action_receipt)
                     for pointer_action in post_load_pointer_actions:
-                        pointer_action_receipt = _run_pointer_action(page, pointer_action)
+                        pointer_action_receipt = _run_pointer_action(
+                            page,
+                            pointer_action,
+                            observed_response_count=observed_response_count,
+                        )
                         pointer_action_receipts.append(pointer_action_receipt)
                         if _should_stop_pointer_action_sequence(pointer_action, pointer_action_receipt):
                             break
@@ -1292,6 +1304,11 @@ def _normalize_pointer_action(
         stop_sequence_on_failed_post_click_verification=bool(
             action.stop_sequence_on_failed_post_click_verification
         ),
+        stop_wait_on_observed_response=bool(action.stop_wait_on_observed_response),
+        stop_sequence_on_observed_response=bool(
+            action.stop_sequence_on_observed_response
+        ),
+        observed_response_wait_poll_ms=max(1, int(action.observed_response_wait_poll_ms)),
         random_seed=int(action.random_seed),
     )
 
@@ -1620,6 +1637,13 @@ def _should_stop_pointer_action_sequence(
     action: BrowserPagePointerAction,
     receipt: dict[str, object],
 ) -> bool:
+    if action.stop_sequence_on_observed_response:
+        response_count = max(
+            _safe_int(receipt.get("observed_response_count_before"), default=0),
+            _safe_int(receipt.get("observed_response_count_after"), default=0),
+        )
+        if response_count > 0:
+            return True
     if not action.stop_sequence_on_failed_post_click_verification:
         return False
     clicked = receipt.get("clicked") is True
@@ -1629,7 +1653,12 @@ def _should_stop_pointer_action_sequence(
         return True
     return not _post_click_verification_accepted(receipt)
 
-def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[str, object]:
+def _run_pointer_action(
+    page: object,
+    action: BrowserPagePointerAction,
+    *,
+    observed_response_count: Callable[[], int] | None = None,
+) -> dict[str, object]:
     receipt: dict[str, object] = {
         "action_name": action.action_name,
         "candidate_count": 0,
@@ -1644,6 +1673,18 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
     }
     if action.visual_top_right_x_fallback:
         receipt["visual_fallback_attempted"] = False
+
+    def current_observed_response_count() -> int | None:
+        if observed_response_count is None:
+            return None
+        try:
+            return max(0, int(observed_response_count()))
+        except (TypeError, ValueError):
+            return None
+
+    response_count_before = current_observed_response_count()
+    if response_count_before is not None:
+        receipt["observed_response_count_before"] = response_count_before
     try:
         target = page.evaluate(
             _POINTER_ACTION_TARGET_SCRIPT,
@@ -1730,14 +1771,42 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
     try:
         page.mouse.move(click_x, click_y, steps=move_steps)
         page.mouse.click(click_x, click_y)
+        wait_ms = 0
         if action.wait_after_ms > 0:
-            page.wait_for_timeout(action.wait_after_ms)
+            if action.stop_wait_on_observed_response and observed_response_count is not None:
+                poll_ms = max(
+                    1,
+                    min(action.observed_response_wait_poll_ms, action.wait_after_ms),
+                )
+                while wait_ms < action.wait_after_ms:
+                    current_count = current_observed_response_count()
+                    if (
+                        response_count_before is not None
+                        and current_count is not None
+                        and current_count > response_count_before
+                    ):
+                        break
+                    step_ms = min(poll_ms, action.wait_after_ms - wait_ms)
+                    page.wait_for_timeout(step_ms)
+                    wait_ms += step_ms
+            else:
+                page.wait_for_timeout(action.wait_after_ms)
+                wait_ms = action.wait_after_ms
     except Exception:
         receipt["failure"] = "pointer_action_click_failed"
         return receipt
     receipt["clicked"] = True
     receipt["move_steps"] = move_steps
-    receipt["wait_ms"] = action.wait_after_ms
+    receipt["wait_ms"] = wait_ms
+    response_count_after = current_observed_response_count()
+    if response_count_after is not None:
+        receipt["observed_response_count_after"] = response_count_after
+        if response_count_before is not None:
+            receipt["observed_response_delta"] = max(
+                0,
+                response_count_after - response_count_before,
+            )
+        receipt["observed_response_seen"] = response_count_after > 0
     receipt["target_box"] = {
         "x": round(x, 3),
         "y": round(y, 3),

@@ -112,9 +112,16 @@ class _FakeObservationRequest:
 
 
 class _FakeObservationResponse:
-    def __init__(self, event_log: list[str], *, method: str = "GET", resource_type: str = "fetch") -> None:
+    def __init__(
+        self,
+        event_log: list[str],
+        *,
+        url: str = "https://api.example.test/widget",
+        method: str = "GET",
+        resource_type: str = "fetch",
+    ) -> None:
         self.event_log = event_log
-        self.url = "https://api.example.test/widget"
+        self.url = url
         self.status = 200
         self.ok = True
         self.headers = {"content-type": "application/json"}
@@ -161,6 +168,9 @@ class _FakeObservationPage:
         screenshot_png: bytes = b"",
         screenshot_pngs: list[bytes] | None = None,
         post_click_absence_result: dict[str, object] | None = None,
+        response_url: str = "https://api.example.test/widget",
+        response_method: str = "GET",
+        response_resource_type: str = "fetch",
     ) -> None:
         self.event_log = event_log
         self.height = height
@@ -171,6 +181,9 @@ class _FakeObservationPage:
         self.pointer_targets = list(pointer_targets or [])
         self.screenshot_png = screenshot_png
         self.screenshot_pngs = list(screenshot_pngs or [])
+        self.response_url = response_url
+        self.response_method = response_method
+        self.response_resource_type = response_resource_type
         self.post_click_absence_result = post_click_absence_result or {
             "checked": True,
             "marker_count": 0,
@@ -203,7 +216,14 @@ class _FakeObservationPage:
 
     def emit_response_once(self) -> None:
         if self.response_callback is not None and not self.response_emitted:
-            self.response_callback(_FakeObservationResponse(self.event_log))  # type: ignore[operator]
+            self.response_callback(
+                _FakeObservationResponse(
+                    self.event_log,
+                    url=self.response_url,
+                    method=self.response_method,
+                    resource_type=self.response_resource_type,
+                )
+            )  # type: ignore[operator]
             self.response_emitted = True
 
     def locator(self, selector: str) -> _FakeObservationLocator:
@@ -1142,6 +1162,146 @@ def test_playwright_page_observation_runs_pointer_action_sequence_before_dom(
     assert event_log.index("wait:2000") < event_log.index("inner_text")
     assert event_log.index("dom_extract") < event_log.index("response_text")
 
+
+def test_playwright_page_observation_stops_pointer_sequence_on_observed_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_targets=[
+            {
+                "candidate_count": 1,
+                "matched_count": 1,
+                "target_found": True,
+                "target_kind": "button",
+                "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+            },
+            {
+                "candidate_count": 1,
+                "matched_count": 1,
+                "target_found": True,
+                "target_kind": "button",
+                "box": {"x": 30, "y": 40, "width": 120, "height": 60},
+            },
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="open_comments",
+                candidate_selector="button",
+                text_markers=("comments",),
+                wait_after_ms=2000,
+                move_steps_min=3,
+                move_steps_max=3,
+                stop_wait_on_observed_response=True,
+                stop_sequence_on_observed_response=True,
+                random_seed=11,
+            ),
+            BrowserPagePointerAction(
+                action_name="open_more_like_this",
+                candidate_selector="button",
+                text_markers=("more like this",),
+                wait_after_ms=2000,
+                move_steps_min=4,
+                move_steps_max=4,
+                random_seed=12,
+            ),
+        ),
+    )
+
+    receipts = result.metadata["post_load_pointer_actions"]
+    assert isinstance(receipts, list)
+    assert [receipt["action_name"] for receipt in receipts] == ["open_comments"]
+    assert receipts[0]["observed_response_count_before"] == 0
+    assert receipts[0]["observed_response_count_after"] == 1
+    assert receipts[0]["observed_response_delta"] == 1
+    assert receipts[0]["observed_response_seen"] is True
+    assert receipts[0]["wait_ms"] == 0
+    assert "wait:2000" not in event_log
+    assert event_log.count("pointer_target_lookup") == 1
+
+def test_playwright_page_observation_can_wait_early_without_stopping_sequence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_targets=[
+            {
+                "candidate_count": 1,
+                "matched_count": 1,
+                "target_found": True,
+                "target_kind": "button",
+                "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+            },
+            {
+                "candidate_count": 1,
+                "matched_count": 1,
+                "target_found": True,
+                "target_kind": "button",
+                "box": {"x": 30, "y": 40, "width": 120, "height": 60},
+            },
+        ],
+        response_url="https://www.tiktok.com/api/comment/list/?aweme_id=739&cursor=0",
+        response_method="OPTIONS",
+        response_resource_type="fetch",
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "/api/comment/list" in url,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="open_comments",
+                candidate_selector="button",
+                text_markers=("comments",),
+                wait_after_ms=2000,
+                move_steps_min=3,
+                move_steps_max=3,
+                stop_wait_on_observed_response=True,
+                random_seed=11,
+            ),
+            BrowserPagePointerAction(
+                action_name="open_more_like_this",
+                candidate_selector="button",
+                text_markers=("more like this",),
+                wait_after_ms=0,
+                move_steps_min=4,
+                move_steps_max=4,
+                random_seed=12,
+            ),
+        ),
+    )
+
+    receipts = result.metadata["post_load_pointer_actions"]
+    assert isinstance(receipts, list)
+    assert [receipt["action_name"] for receipt in receipts] == [
+        "open_comments",
+        "open_more_like_this",
+    ]
+    assert receipts[0]["observed_response_delta"] == 1
+    assert receipts[0]["wait_ms"] == 0
+    assert "wait:2000" not in event_log
+    assert event_log.count("pointer_target_lookup") == 2
 
 def test_playwright_page_observation_stops_pointer_sequence_on_failed_post_click_verification(
     monkeypatch: pytest.MonkeyPatch,
