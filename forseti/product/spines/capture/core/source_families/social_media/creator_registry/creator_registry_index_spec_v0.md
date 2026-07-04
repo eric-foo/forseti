@@ -86,6 +86,9 @@ the same logical shape rather than teach Discovery/Capture a different one.
 
 - `identity_observed_metric_seed_available`: identity exists and at least one
   source-backed metric seed/profile row currently points to this account.
+- `identity_observed_profile_packet_available`: identity exists from a
+  source-backed public profile packet, but no source-backed metric rollup is
+  currently joined for this account.
 - future `never_captured`, `capture_stale`, `capture_blocked`, or `capture_fresh`
   require a named Capture/Silver freshness producer.
 

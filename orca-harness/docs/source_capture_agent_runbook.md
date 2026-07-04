@@ -26,6 +26,9 @@ The agent may:
 - run Authenticated Browser Snapshot capture against one explicitly supplied URL
   using a previously bootstrapped storage-state label and an allowed session
   mode;
+- run the TikTok one-creator live probe against explicitly supplied public
+  creator/video URLs using the TikTok playbook posture, then optionally chain
+  its sanitized staging output through the existing TikTok batch admission gate;
 - run the Creator Registry match preflight runner against candidate social
   creator/account identities before starting new social creator/account
   capture;

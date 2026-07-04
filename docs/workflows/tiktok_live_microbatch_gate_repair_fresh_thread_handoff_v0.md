@@ -46,6 +46,45 @@ stale_if:
 - expected_dirty_state_before_handoff_file: only untracked `_scratch/`
 - load_rule: confirm-don't-trust; re-verify every load-bearing fact against its compare target before acting. This packet orients; it does not authorize live capture, merge, validation, or readiness by itself.
 
+## 2026-07-03 Owner Supersession
+
+The current owner has changed the TikTok challenge-close policy after this PR
+#608 packet was written. Treat the diagnostic-only instructions in this packet
+as historical guardrails for `--allow-challenge-close-diagnostic`, not as the
+current route-yield rule for X-able public challenge modals. Current doctrine:
+use `--allow-challenge-close-followthrough` only when owner-authorized; attempt
+X/Close through the named UI movement substrate; never drag or solve; continue
+only if action-level post-click receipt checks and final blocker triage prove
+the close was accepted (`challenge_close_accepted=true` from challenge-text
+absence, no centered post-click visual-X candidates, and no final challenge/security marker) and
+either a page-owned `/api/comment/list` response or bounded
+DOM-visible comment candidates are captured after the named comments -> `More
+like this` -> comments route; failed close verification stops before comment-route
+actions and must not be labeled `comment_action`; geometric visual-X coordinate
+guesses are not valid X-click proof; preserve the accepted close action as a
+source-access intervention; and never call the route unchallenged clean capture.
+DOM-visible comments are lower-tier `captured_visible_dom` evidence, not
+page-owned response evidence.
+
+
+## 2026-07-03 TikTok Challenge-Close Facts To Preserve
+
+Do not send a fresh thread back through the same diagnosis loop:
+
+- There are two different UI things: the TikTok teaching/scroll overlay and the
+  slider/captcha/security modal. Only the latter is the challenge-close lane.
+- Geometric visual-X fallback is invalid as X proof for TikTok. Receipts with
+  `visual_fallback_geometric_target=true` were historical coordinate guesses.
+- Current code disables geometric fallback for TikTok challenge-close actions.
+- The latest live receipt clicked a real DOM close target with
+  `target_kind=button`, `page_text_gate_matched=true`, and `clicked=true`; TikTok
+  still did not accept the close because post-click visual candidates remained.
+- Failed close means `challenge_close_accepted=false`, no
+  `challenge_close_followthrough=true`, no `comment_action` mislabel, and
+  `admitted_comment_response_count=0` even if a comment-list response was matched.
+- DOM-visible fallback admits only comment-body-like text. Count badges such as
+  `303` or `1.2K comments` do not count.
+
 ## Goal Handoff
 
 - long_term_goal: Make the TikTok source-capture lane produce sanitized, admissible, page-owned live staging data under real sessioned conditions without violating account-risk, no-CAPTCHA-solving, no-secret, and no-product-extraction boundaries.
@@ -65,9 +104,14 @@ stale_if:
 
 ## Drift Guard
 
-- invariant: challenge-close diagnosis is never capture success.
-  - why it matters: live probes can observe page-owned comment-list traffic after a diagnostic close click; that traffic must remain diagnostic only.
-  - violating it would break: batch admission safety and the no-CAPTCHA-solving boundary.
+- invariant: challenge-close diagnosis remains stop-only; owner-authorized
+  challenge-X follow-through is not unchallenged clean capture.
+  - why it matters: diagnostic close clicks can observe post-click traffic that
+    must remain diagnostic only, while current follow-through admission depends
+    on a separate post-close page-owned comment response or DOM-visible comment
+    fallback plus a preserved source-access intervention receipt.
+  - violating it would break: batch admission safety and the no-CAPTCHA-solving
+    boundary.
 - invariant: batch admission must admit only clean live cadence.
   - why it matters: a diagnostic or failed cadence file must not become a sanitized batch packet.
   - violating it would break: the staging/admission proof boundary.
@@ -137,7 +181,16 @@ Continue only the PR #608 TikTok live microbatch gate-repair lane. The fresh thr
     - Last checked: current thread context.
     - Reuse rule: reread if acting on prompt/review/landing claims.
 - User constraints:
-  - Do not solve CAPTCHA/slider challenges; do not click challenge-close controls to claim success; do not do product extraction; do not print/inspect/commit/persist auth contents; use UI movement substrate for blockers; cold agents must know the playbook exists.
+  - Do not solve CAPTCHA/slider challenges; do not treat challenge-close clicks
+    alone as success; do not do product extraction; do not print/inspect/commit/
+    persist auth contents; use UI movement substrate for blockers. Current owner
+    doctrine allows `--allow-challenge-close-followthrough` for X-able public
+    challenge modals only when post-click checks prove the close was accepted,
+    the post-close route yields a page-owned comment response or bounded
+    DOM-visible comment candidates, and the accepted close receipt is preserved
+    as a source-access intervention. DOM-visible comments are lower-tier
+    evidence, not page-owned response evidence. Cold agents must know the
+    playbook exists.
     - Load-bearing: yes.
     - Compare target: current conversation plus durable handoff/playbook references.
     - Reuse rule: preserve unless owner explicitly redirects.
@@ -272,9 +325,9 @@ Continue only the PR #608 TikTok live microbatch gate-repair lane. The fresh thr
 - Stale idea: continue directly to a 3-5 creator microbatch.
   - Why stale/dangerous: current repaired lane requires one-video route-yield gate first after challenge/diagnostic findings.
   - Current replacement: land/adjudicate PR #608, then owner-gated one-video route-yield gate if authorized.
-- Stale idea: closing a slider/challenge X means the blocker is solved.
-  - Why stale/dangerous: it is diagnostic only and can be followed by traffic that must not be admitted.
-  - Current replacement: clicked challenge-close diagnostic forces stop and blocks admission/expansion.
+- Stale idea: a slider/challenge X click means the blocker is solved.
+  - Why stale/dangerous: `clicked=true` is pointer delivery only; it can be followed by traffic that must not be admitted if close acceptance is unproven.
+  - Current replacement: diagnostic close clicks force stop; follow-through close clicks require `challenge_close_accepted=true`, including no post-click visual-X candidates and no final challenge/security triage marker, before any comment evidence can admit.
 - Stale source: raw scratch/live observations as durable authority.
   - Why stale/dangerous: scratch is untracked and not source-of-truth.
   - Current replacement: use committed code, tests, handoff, playbook, and review report.

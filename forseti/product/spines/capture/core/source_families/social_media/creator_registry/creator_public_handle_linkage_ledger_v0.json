@@ -11,7 +11,7 @@
       "forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md",
       "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json"
     ],
-    "source_policy_posture": "Populated pre-SQLite public_handle_ledger seed with real YouTube platform_account rows from the source-backed YouTube Shorts fragrance creator observation ledger and real Instagram platform_account rows from IG reels-grid projection artifacts. Public_handle values are source/capture labels, not guaranteed current platform handles and not public-handle stitching evidence. creator_records and account_link_evidence stay empty until source-backed cross-platform public-handle evidence exists; no non-public-handle joins; no contact, outreach, audience, follower graph, or person-identity surface.",
+    "source_policy_posture": "Populated pre-SQLite public_handle_ledger seed with real YouTube platform_account rows from the source-backed YouTube Shorts fragrance creator observation ledger, real Instagram platform_account rows from IG reels-grid projection artifacts, and identity-only TikTok platform_account rows from logged-out profile browser packets. Public_handle values are source/capture labels, not guaranteed current platform handles and not public-handle stitching evidence. creator_records and account_link_evidence stay empty until source-backed cross-platform public-handle evidence exists; no non-public-handle joins; no contact, outreach, audience, follower graph, or person-identity surface.",
     "platform_accounts": [
       {
         "platform_account_id": "acct_yt_fragrance_001",
@@ -408,6 +408,42 @@
         "public_display_name_or_none": null,
         "display_name_source_pointer_or_none": null,
         "display_name_source_field_or_none": null
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_001",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "funmimonet",
+        "public_profile_url": "https://www.tiktok.com/@funmimonet",
+        "handle_source_pointer": "F:\\orca-data-lake\\raw\\788\\01KWKJ88VDH3KGHXYNE12MXPPX\\raw\\02_browser_visible_text.txt#L2",
+        "handle_observed_at": "2026-07-03T08:41:47Z",
+        "public_display_name_or_none": "Funmi Monet",
+        "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\788\\01KWKJ88VDH3KGHXYNE12MXPPX\\raw\\02_browser_visible_text.txt#L1",
+        "display_name_source_field_or_none": "browser_visible_text.line_1"
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_002",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "redolessence",
+        "public_profile_url": "https://www.tiktok.com/@redolessence",
+        "handle_source_pointer": "F:\\orca-data-lake\\raw\\5e4\\01KWKJ8J9RJDV9MZ38QP3GC3PS\\raw\\02_browser_visible_text.txt#L2",
+        "handle_observed_at": "2026-07-03T08:41:57Z",
+        "public_display_name_or_none": "Redolessence",
+        "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\5e4\\01KWKJ8J9RJDV9MZ38QP3GC3PS\\raw\\02_browser_visible_text.txt#L1",
+        "display_name_source_field_or_none": "browser_visible_text.line_1"
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_003",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "perfumerism",
+        "public_profile_url": "https://www.tiktok.com/@perfumerism",
+        "handle_source_pointer": "F:\\orca-data-lake\\raw\\c30\\01KWKJ8VXNDNE28DK234QB462Y\\raw\\02_browser_visible_text.txt#L2",
+        "handle_observed_at": "2026-07-03T08:42:07Z",
+        "public_display_name_or_none": "IG: perfumerism",
+        "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\c30\\01KWKJ8VXNDNE28DK234QB462Y\\raw\\02_browser_visible_text.txt#L1",
+        "display_name_source_field_or_none": "browser_visible_text.line_1"
       }
     ],
     "account_link_evidence": [],
