@@ -658,6 +658,8 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
         TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
         TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
         *_comment_route_action_names(),
+        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
     ]
     assert pointer_actions[2].page_text_markers == (
         "drag the slider",
@@ -716,6 +718,83 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
     assert intervention["post_click_visual_target_absent"] is True
 
 
+def test_live_probe_prefers_late_accepted_close_over_earlier_failed_click(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    failed_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        wait_ms=2000,
+        selection_strategy="top_right",
+    )
+    failed_close_receipt.update(
+        {
+            "post_click_absence_checked": True,
+            "post_click_absence_marker_count": 4,
+            "post_click_absence_verified": False,
+            "post_click_visual_check_attempted": True,
+            "post_click_visual_target_found": True,
+            "post_click_visual_target_absent": False,
+            "post_click_visual_candidate_count": 2,
+        }
+    )
+    late_visual_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        wait_ms=2000,
+        selection_strategy="center_modal_visual_x",
+    )
+    late_visual_close_receipt.update(
+        {
+            "target_kind": "visual_x",
+            "post_click_absence_checked": True,
+            "post_click_absence_marker_count": 4,
+            "post_click_absence_verified": True,
+            "post_click_visual_check_attempted": True,
+            "post_click_visual_target_found": False,
+            "post_click_visual_target_absent": True,
+            "post_click_visual_candidate_count": 0,
+        }
+    )
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id="7390000000000000001",
+                response=_comment_response(video_id="7390000000000000001"),
+                pointer_sequence=[
+                    _benign_overlay_action_receipt(),
+                    failed_close_receipt,
+                    *_pointer_action_sequence_receipt(),
+                    late_visual_close_receipt,
+                ],
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        allow_challenge_close_followthrough=True,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    receipt = cadence["results"][0]["capture_receipt"]
+    assert receipt["challenge_close_accepted"] is True
+    assert receipt["challenge_close_action"]["action_name"] == (
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME
+    )
+    assert receipt["challenge_close_action"]["selection_strategy"] == "center_modal_visual_x"
+    assert receipt["admitted_comment_response_count"] == 1
+
 def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
     tmp_path: Path,
 ) -> None:
@@ -724,6 +803,8 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
         action_name=TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
         wait_ms=2000,
         selection_strategy="center_modal_visual_x",
+        page_text_gate_matched=True,
+        page_text_matched_marker="drag the slider",
     )
     followthrough_close_receipt.update(
         {
@@ -783,6 +864,8 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
     assert triage["challenge_close_action"]["post_click_visual_candidate_count"] == 4
     assert triage["challenge_close_action"]["post_click_visual_target_absent"] is False
     assert triage["challenge_close_accepted"] is False
+    assert triage["matched_marker"] == "drag the slider"
+    assert triage["challenge_kind"] == "slider"
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
@@ -1091,6 +1174,7 @@ def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
     triage = failure["blocker_triage"]
     assert triage["reason"] == "platform_challenge_observed"
     assert triage["matched_marker"] == "drag the slider"
+    assert triage["challenge_kind"] == "slider"
     assert triage["challenge_close_diagnostic"] == pointer_sequence[-1]
     assert triage["comment_action"]["action_count"] == len(_pointer_action_sequence_receipt())
     assert triage["matched_comment_response_count"] == 1
@@ -1332,6 +1416,7 @@ def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     assert cadence["failures"][0]["blocker_triage"]["action"] == TIKTOK_BLOCKER_ACTION_STOP
     assert cadence["failures"][0]["blocker_triage"]["action_taken"] is False
     assert cadence["failures"][0]["blocker_triage"]["matched_marker"] == "verify to continue"
+    assert cadence["failures"][0]["blocker_triage"]["challenge_kind"] == "slider"
     assert len(engine.calls) == 1
 
 
@@ -1604,6 +1689,7 @@ def _pointer_action_receipt(
     wait_ms: int = 2500,
     page_text_gate_matched: bool | None = None,
     selection_strategy: str | None = None,
+    page_text_matched_marker: str | None = None,
 ) -> dict[str, object]:
     receipt: dict[str, object | None] = {
         "action_name": action_name,
@@ -1615,6 +1701,7 @@ def _pointer_action_receipt(
         "wait_ms": wait_ms,
         "target_kind": "button",
         "page_text_gate_matched": page_text_gate_matched,
+        "page_text_matched_marker": page_text_matched_marker,
         "selection_strategy": selection_strategy,
     }
     return {key: value for key, value in receipt.items() if value is not None}

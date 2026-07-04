@@ -429,13 +429,9 @@ def run_tiktok_live_batch_probe(
                     ),
                     blocker_triage=_with_comment_route_observation(
                         _with_challenge_close_action(
-                            {
-                                "blocker_class": "challenge_close_not_accepted",
-                                "action": "stop",
-                                "reason": TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON,
-                                "action_mode": "source_access_intervention",
-                                "action_taken": True,
-                            },
+                            _challenge_close_not_accepted_blocker_receipt(
+                                challenge_close_action
+                            ),
                             challenge_close_action,
                             challenge_close_followthrough=False,
                             challenge_close_accepted=False,
@@ -701,6 +697,46 @@ def _with_challenge_close_action(
     return receipt
 
 
+def _challenge_close_not_accepted_blocker_receipt(
+    challenge_close_action: JsonObject,
+) -> JsonObject:
+    matched_marker = _first_str(challenge_close_action.get("page_text_matched_marker"))
+    return _drop_none(
+        {
+            "blocker_class": "challenge_close_not_accepted",
+            "action": "stop",
+            "reason": TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON,
+            "action_mode": "source_access_intervention",
+            "action_taken": True,
+            "marker_family": "challenge_or_security" if matched_marker else None,
+            "matched_marker": matched_marker,
+            "challenge_kind": _challenge_kind_from_close_action(challenge_close_action),
+        }
+    )
+
+
+def _challenge_kind_from_close_action(challenge_close_action: JsonObject) -> str | None:
+    matched_marker = _first_str(challenge_close_action.get("page_text_matched_marker"))
+    if matched_marker:
+        return _challenge_kind_from_marker(matched_marker)
+    if _first_bool(challenge_close_action.get("page_text_gate_matched")) is True:
+        return "closeable_challenge_modal"
+    if _first_bool(challenge_close_action.get("post_click_visual_target_absent")) is False:
+        return "visual_challenge_target_remaining"
+    return None
+
+
+def _challenge_kind_from_marker(marker: str) -> str:
+    if marker == "drag the slider":
+        return "slider"
+    if marker == "captcha":
+        return "captcha"
+    if marker == "security check":
+        return "security_check"
+    if marker == "verify to continue":
+        return "verification_gate"
+    return "unknown_platform_challenge"
+
 def _challenge_close_accepted(challenge_close_action: JsonObject) -> bool:
     if _first_bool(challenge_close_action.get("clicked")) is not True:
         return False
@@ -801,6 +837,14 @@ def _tiktok_live_pointer_actions(
                 random_seed=random_seed,
             ),
             *comment_actions,
+            _tiktok_challenge_close_followthrough_pointer_action(
+                video_id=video_id,
+                random_seed=random_seed,
+            ),
+            _tiktok_challenge_visual_close_followthrough_pointer_action(
+                video_id=video_id,
+                random_seed=random_seed,
+            ),
         )
     if not allow_challenge_close_diagnostic:
         return (retry_action, benign_overlay_action, *comment_actions)
@@ -1342,6 +1386,9 @@ def _challenge_close_action_summary(
         if summary.get("action_name") in diagnostic_names:
             diagnostic_summaries.append(summary)
     for summary in diagnostic_summaries:
+        if _challenge_close_accepted(summary):
+            return summary
+    for summary in diagnostic_summaries:
         if _first_bool(summary.get("clicked")) is True:
             return summary
     for summary in diagnostic_summaries:
@@ -1362,6 +1409,9 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             "wait_ms": _first_int(action.get("wait_ms")),
             "target_kind": _first_str(action.get("target_kind")),
             "page_text_gate_matched": _first_bool(action.get("page_text_gate_matched")),
+            "page_text_matched_marker": _first_str(
+                action.get("page_text_matched_marker")
+            ),
             "selection_strategy": _first_str(action.get("selection_strategy")),
             "failure": _first_str(action.get("failure")),
             "target_box": _as_dict(action.get("target_box")) or None,

@@ -882,6 +882,7 @@ def test_pointer_action_target_script_matches_data_attributes() -> None:
     assert "exact_text_markers" in script
     assert "prefer_top_right" in script
     assert "prefer_smallest_match" in script
+    assert "page_text_matched_marker" in script
     assert "node.getAttribute('class')" in script
     assert "document.body.textContent" not in script
 
@@ -1013,6 +1014,7 @@ def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_re
             "target_found": True,
             "target_kind": "button",
             "page_text_gate_matched": True,
+            "page_text_matched_marker": "drag the slider",
             "selection_strategy": "top_right",
             "box": {"x": 10, "y": 20, "width": 100, "height": 50},
         },
@@ -1053,6 +1055,7 @@ def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_re
     assert receipt["wait_ms"] == 2500
     assert receipt["target_kind"] == "button"
     assert receipt["page_text_gate_matched"] is True
+    assert receipt["page_text_matched_marker"] == "drag the slider"
     assert receipt["selection_strategy"] == "top_right"
     assert "x" not in receipt
     assert "y" not in receipt

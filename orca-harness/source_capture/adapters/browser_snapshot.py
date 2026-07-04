@@ -1097,6 +1097,7 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
     target_kind: null,
     box: null,
     page_text_gate_matched: pageTextMarkers.length === 0 ? null : false,
+    page_text_matched_marker: null,
     selection_strategy: preferTopRight ? 'top_right' : preferSmallestMatch ? 'smallest_match' : 'first_match',
   };
   if (pageTextMarkers.length > 0) {
@@ -1104,10 +1105,12 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
       document.title,
       document.body ? document.body.innerText : '',
     ].filter(Boolean).join(' ').toLowerCase();
-    if (!pageTextMarkers.some((marker) => pageText.includes(marker))) {
+    const pageTextMatchedMarker = pageTextMarkers.find((marker) => pageText.includes(marker)) || null;
+    if (pageTextMatchedMarker === null) {
       return result;
     }
     result.page_text_gate_matched = true;
+    result.page_text_matched_marker = pageTextMatchedMarker;
   }
   const candidates = Array.from(document.querySelectorAll(String(args.candidate_selector || '')));
   result.candidate_count = candidates.length;
@@ -1669,6 +1672,9 @@ def _run_pointer_action(page: object, action: BrowserPagePointerAction) -> dict[
     page_text_gate_matched = target.get("page_text_gate_matched")
     if isinstance(page_text_gate_matched, bool):
         receipt["page_text_gate_matched"] = page_text_gate_matched
+    page_text_matched_marker = target.get("page_text_matched_marker")
+    if isinstance(page_text_matched_marker, str) and page_text_matched_marker:
+        receipt["page_text_matched_marker"] = page_text_matched_marker
     selection_strategy = target.get("selection_strategy")
     if isinstance(selection_strategy, str) and selection_strategy:
         receipt["selection_strategy"] = selection_strategy
