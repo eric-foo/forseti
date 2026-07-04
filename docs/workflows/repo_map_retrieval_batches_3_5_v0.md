@@ -42,7 +42,7 @@ Patch accepted:
 Deferred by design:
 
 - Historical prompt and review-output backfill remains on-touch unless a separate proof slice authorizes a targeted retrieval sweep.
-- Generated migration inventories and moved-path indexes are not promoted by this batch. Under `.agents/workflow-overlay/retrieval-metadata.md`, generated outputs remain header-excluded unless later promoted into a durable Orca artifact role; mere authorization to exist as a generated output is not a header trigger.
+- Generated migration inventories and moved-path indexes are not promoted by this batch. Under `.agents/workflow-overlay/retrieval-metadata.md`, generated outputs remain header-excluded unless later promoted into a durable Forseti artifact role; mere authorization to exist as a generated output is not a header trigger.
 - Hygiene packets stay deferred unless they are still live routing queues. In particular, old single-consumption checkpoint or cross-repo handoff material should not be made more prominent without confirming it is still current.
 
 Accepted residual:
