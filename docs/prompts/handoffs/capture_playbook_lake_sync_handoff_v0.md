@@ -9,15 +9,15 @@ scope: >
   projections, cleaning adapters), so that any agent entering from the playbook
   reaches each source's full capture→lake→cleaning route without archaeology.
   Owner-directed 2026-07-05 after a measured discovery failure (fragrance-DB
-  family). Proposes a three-way authority model for owner ratification; grants
-  no capture-run, lake-write, or doctrine-edit authority by itself.
+  family). Records the owner-ratified three-way authority model; grants
+  no capture-run, lake-write, or runtime authority by itself.
 use_when:
   - A fresh lane is authorized to execute the capture-playbook/lake sync work unit.
-  - Checking the proposed access/routing/lake authority split before ratifying it.
+  - Checking the ratified access/routing/lake authority split before changing it.
 authority_boundary: retrieval_only
 stale_if:
   - The Source Capture Toolbox README, source_families/ tree, or Data Capture submap is restructured.
-  - The proposed authority model is ratified or amended by the owner (replace the Open Decision block).
+  - The ratified authority model is amended by the owner.
   - origin/main advances such that the pinned compare targets no longer resolve.
 ```
 
@@ -46,7 +46,7 @@ stale_if:
 - anchor_goal: >
     Home every per-source capture-to-lake lane in the capture spine's
     source_families/ tree as a lane index, wire the playbook/submap/repo-map
-    pointers to it, and get the proposed authority model ratified — so the
+    pointers to it, and record the ratified authority model — so the
     fragrance-DB discovery failure class cannot recur silently.
 - success_signal: >
     A cold agent given only "capture <source X> and land it in the lake"
@@ -55,38 +55,19 @@ stale_if:
     cleaning seam — within the source-loading cold-lane budget — for EVERY
     source family with landed capture-to-lake code, not only fragrance-DB.
 
-## Open Decision / Fork — the authority model (ratify BEFORE wiring pointers)
+## Ratified Decision - the authority model
 
-- decision: adopt the three-way authority split for capture knowledge.
-  - options:
-    1. **Proposed (owner-proposed, sender-refined):**
-       (a) the capture playbook / Source Capture Toolbox is the AUTHORITY FOR
-       ACCESS — rungs, anti-blocking ladder, ToS/access posture — and POINTS to
-       each source's lane index; (b) a per-source lane index in
-       `forseti/product/spines/capture/core/source_families/<family>/` is the
-       ROUTING HOME tying access route + harness runners + lake contracts +
-       cleaning seams together (the LinkedIn lane-index pattern); (c) the
-       data_lake spine authority docs REMAIN the authority for
-       admission/storage/bronze-silver contracts — the playbook never forks or
-       restates lake doctrine. Pointers run both ways (playbook ↔ lane index ↔
-       lake contracts).
-    2. Playbook as single authority for the whole capture→lake path (owner's
-       first phrasing, before the sender's pushback).
-    3. Status quo (lanes documented wherever they were built).
-  - already constrained / off the table: moving lake admission/storage
-    authority out of the data_lake spine; rewriting doctrine inside the
-    playbook; a new top-level folder scheme (source_families/ is the
-    established home).
-  - trade-offs: option 1 keeps each authority where its gates already live and
-    adds only routing; option 2 would duplicate lake doctrine into the playbook
-    (fork risk — the exact failure the overlay's single-owner rule exists to
-    prevent); option 3 is the measured failure state.
-  - owner of the call: Eric. (Owner asked "does it make sense? pushback if
-    not" — the sender's pushback IS the option-1 refinement; the refinement is
-    not yet owner-ratified.)
-  - recommendation and why: option 1 — it matches existing ownership
-    (toolbox=access weapons, data_lake spine=storage contracts) and fixes the
-    failure with pure routing, no doctrine movement.
+- decision: adopt option 1, the three-way authority split for capture knowledge.
+  - ratification: current owner instruction in this continuation lane: "proceed with your option 1 with SCI in mind."
+  - accepted model:
+    1. The capture playbook / Source Capture Toolbox is the authority for ACCESS: rungs, anti-blocking ladder, ToS/access posture, and shared capture-method discipline.
+    2. A per-source lane index in `forseti/product/spines/capture/core/source_families/<family>/` is the ROUTING HOME tying access route + harness runners + lake-contract pointers + projection/ECR/Cleaning seams together.
+    3. The data_lake spine authority docs remain the authority for admission, storage, bronze/silver, derived layout, and write-boundary contracts. The playbook and lane indexes point to lake authority; they do not restate or fork it.
+  - rejected alternatives:
+    - Playbook as single authority for the whole capture-to-lake path: rejected because it duplicates lake doctrine and creates fork risk.
+    - Status quo: rejected because it is the measured failure state.
+  - SCI implication: do the smallest complete routing fix, not a thin minimal patch. The completed state must route every landed source-family capture-to-lake lane from the playbook/toolbox through `source_families/`, while avoiding runtime edits and avoiding lake-doctrine movement.
+
 
 ## Drift Guard
 
@@ -121,11 +102,11 @@ stale_if:
 
 ## Active Objective
 
-Inventory every per-source capture-to-lake surface in the repo (harness capture modules, bronze/lake tee runners, projections, cleaning adapters, and their docs/workflows lane records); home each unhomed family as a `source_families/<family>/` lane index on the LinkedIn pattern; wire toolbox README, Data Capture submap, and repo-map Quick Index pointers both ways; get the three-way authority model ratified and recorded; evaluate (not necessarily build) an enforcement hook so future lanes cannot land capture-to-lake code without a lane-index row.
+Inventory every per-source capture-to-lake surface in the repo (harness capture modules, bronze/lake tee runners, projections, cleaning adapters, and their docs/workflows lane records); home each unhomed family as a `source_families/<family>/` lane index on the LinkedIn pattern; wire toolbox README, Data Capture submap, and repo-map Quick Index pointers both ways; record the ratified three-way authority model; evaluate (not necessarily build) an enforcement hook so future lanes cannot land capture-to-lake code without a lane-index row.
 
 ## Exact Next Authorized Action
 
-1. **Ratify the authority model with the owner (Open Decision above).** One question; do not wire pointers under an unratified split.
+1. **Already ratified in this continuation lane.** Do not re-ask unless the owner amends the model; wire pointers under the accepted option-1 authority split.
 2. Run the inventory: enumerate per-source surfaces from `git ls-files orca-harness/source_capture orca-harness/runners orca-harness/cleaning` + `rg -il "<source name>"` over `docs/workflows` and `forseti/product/spines/{capture,data_lake,scanning}` — produce a family → {access route, runners, lake seams, cleaning adapters, lane records, homed?} table. Confirmed-unhomed seed: fragrance-DB (Fragrantica/Parfumo/basenotes). Candidate to check: the fragrance purchase-review family (`fragrance_review_*.py` — may or may not shelter under retail_pdp), Reddit surfaces, historical/Wayback capture.
 3. For each unhomed family: author the lane index in `forseti/product/spines/capture/core/source_families/<family>/`, then wire the three pointer surfaces (toolbox README row, Data Capture submap row, repo-map Quick Index row). Repo-map edit commits immediately, explicit-path, per hook.
 4. Record the ratified authority model as a dated note where the owner directs (likely the toolbox README head or a docs/decisions record) with its `direction_change_propagation` receipt (workflow_authority trigger).
