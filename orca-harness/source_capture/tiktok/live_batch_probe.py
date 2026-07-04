@@ -795,6 +795,12 @@ def _with_comment_route_observation(
     receipt["dom_visible_comment_candidate_count"] = len(
         _dom_visible_comment_candidates(capture_result)
     )
+    pointer_chronology = _pointer_action_chronology(capture_result)
+    if pointer_chronology:
+        receipt["pointer_action_chronology"] = pointer_chronology
+    challenge_close_attempts = _challenge_close_attempts(capture_result)
+    if challenge_close_attempts:
+        receipt["challenge_close_attempts"] = challenge_close_attempts
     return receipt
 
 
@@ -1279,6 +1285,12 @@ def _cadence_row_from_capture(
         "warning_count": len(capture_result.warning_notes),
         "limitation_count": len(capture_result.limitation_notes),
     }
+    pointer_chronology = _pointer_action_chronology(capture_result)
+    if pointer_chronology:
+        capture_receipt["pointer_action_chronology"] = pointer_chronology
+    challenge_close_attempts = _challenge_close_attempts(capture_result)
+    if challenge_close_attempts:
+        capture_receipt["challenge_close_attempts"] = challenge_close_attempts
     if dom_visible_comments and not comment_list_responses:
         capture_receipt["comment_capture_fallback"] = "dom_visible_comment_candidates_v0"
     if challenge_close_action:
@@ -1415,6 +1427,37 @@ def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> Js
         }
     )
 
+
+def _pointer_action_chronology(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[JsonObject]:
+    metadata = _as_dict(capture_result.metadata)
+    actions: list[JsonObject] = []
+    for action in _as_list(metadata.get("post_load_pointer_actions")):
+        summary = _pointer_action_summary(_as_dict(action))
+        if summary:
+            actions.append(summary)
+    if actions:
+        return actions
+    action = _as_dict(metadata.get("post_load_pointer_action"))
+    summary = _pointer_action_summary(action) if action else {}
+    return [summary] if summary else []
+
+
+def _challenge_close_attempts(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[JsonObject]:
+    challenge_action_names = {
+        TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+    }
+    return [
+        action
+        for action in _pointer_action_chronology(capture_result)
+        if action.get("action_name") in challenge_action_names
+    ]
 
 def _benign_overlay_action_summary(
     capture_result: BrowserPageObservationSuccess,

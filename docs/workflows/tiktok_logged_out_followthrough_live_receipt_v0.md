@@ -202,3 +202,34 @@ This is the current authoritative live receipt shape for the observed failed-clo
 path: a real DOM close target can be clicked, but the close is not accepted while
 post-click visual candidates remain; response observations after the failed close
 stay diagnostic and are not admitted.
+## 2026-07-04 Hardened Full-Route Failed-Close Receipt
+
+After response-aware wait hardening and subtitle-fetch host hardening, a logged-out
+Funmi fixture probe was run with `--allow-challenge-close-followthrough`:
+
+- output_dir: `orca-harness\_scratch\tiktok_logged_out_x_close_hardened_20260704_02`
+- observed_utc: `2026-07-04T08:20:49Z`
+- outcome: `attempted_count=1`, `completed_count=0`, `challenge_count=1`, `results=[]`
+- stop_reason: `challenge_x_click_attempted_close_not_accepted`
+- `blocker_class=challenge_close_not_accepted`
+- `matched_marker=drag the slider`
+- `challenge_kind=slider`
+- `matched_comment_response_count=1`
+- `admitted_comment_response_count=0`
+- `dom_visible_comment_candidate_count=0`
+
+The hardened receipt proves the bounded comment route did run before the final
+failed-close classification: `comment_action.sequence_name=comment_surface_toggle_pointer_sequence_v0`,
+`comment_action.action_count=6`, and the sequence includes both passes through
+comments -> `You may like` / `More like this` -> comments. The first comments
+click observed one matched comment-list response, but response evidence remained
+diagnostic because the slider close was not accepted.
+
+The close action selected for the failure receipt was a DOM-exposed modal close:
+`action_name=tiktok_challenge_modal_close_followthrough_pointer_v0`,
+`target_kind=button`, `clicked=true`, `click_point={"x":803.058,"y":198.96}`,
+`post_click_visual_candidate_count=5`, and
+`post_click_visual_target_absent=false`. This is pointer delivery, not close
+acceptance. Future cold agents must inspect `pointer_action_chronology` and
+`challenge_close_attempts` when present because `comment_action` intentionally
+filters retry, benign-overlay, and challenge-close actions.

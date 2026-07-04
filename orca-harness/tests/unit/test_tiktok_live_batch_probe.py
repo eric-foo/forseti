@@ -816,6 +816,15 @@ def test_live_probe_challenge_close_followthrough_admits_post_close_comments(
     )
     assert receipt["challenge_close_action"]["target_box"]["x"] == 796.0
     assert receipt["challenge_close_action"]["click_point"] == {"x": 803.3, "y": 197.4}
+    assert [
+        action["action_name"] for action in receipt["pointer_action_chronology"]
+    ] == [action["action_name"] for action in pointer_sequence]
+    assert [
+        action["action_name"] for action in receipt["challenge_close_attempts"]
+    ] == [
+        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+    ]
     assert receipt["admitted_comment_response_count"] == 1
     assert len(row["comment_responses"]) == 1
 
@@ -994,6 +1003,12 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
+    assert [
+        action["action_name"] for action in triage["pointer_action_chronology"]
+    ] == [action["action_name"] for action in pointer_sequence]
+    assert [
+        action["action_name"] for action in triage["challenge_close_attempts"]
+    ] == [TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME]
 
 
 

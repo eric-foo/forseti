@@ -113,6 +113,33 @@ stale_if:
 
 Run one logged-out, owner-observable TikTok X/Close follow-through test against the known Funmi Monet video using the current runner. Classify the receipt without re-diagnosing the settled doctrine: X-able slider modals are attempted through the UI substrate, not treated as blockers before the attempt; failed close after the click is a real stop with zero admission.
 
+## 2026-07-04 Cold-Agent Enforcement Addendum
+
+Before any further probe or patch, load
+`docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md` and classify
+TikTok states with the blocker taxonomy there. Do not call a state terminal by a
+single top-level reason string. Inspect `blocker_triage.blocker_class`,
+`matched_marker`, `challenge_kind`, `comment_action`, `pointer_action_chronology`,
+and `challenge_close_attempts`.
+
+Current enforced behavior:
+
+- Teaching/scroll/onboarding prompts with no challenge/security marker are
+  benign overlays; press `OK` / `Got it` through the named pointer action.
+- Visible `Retry`, `Retry again`, `Try again`, or `Reload` controls are pressed
+  once through `tiktok_retry_visible_error_pointer_v0`.
+- `no_challenge_but_no_comments` / route zero-yield is not valid until the full
+  comments -> `You may like` / `More like this` -> comments route has run twice.
+- X-able slider/captcha/security modals are not blockers before an owner-authorized
+  X/Close attempt. Click only the modal X/Close through the UI substrate; never
+  drag or solve the puzzle.
+- If X/Close is clicked but `challenge_close_accepted=false`, classify as
+  `failed_close_zero_admission`. Matched comment responses after that are
+  diagnostic only.
+- The 2026-07-04 hardened Funmi receipt showed the full comment route ran,
+  observed one matched comment-list response, clicked the DOM close button, and
+  still stopped as `challenge_close_not_accepted` / `challenge_kind=slider` with
+  zero admission.
 ## Exact Next Authorized Action
 
 1. Re-verify this packet's branch/head/status and source hashes. If any load-bearing source drifted, reread it before acting.

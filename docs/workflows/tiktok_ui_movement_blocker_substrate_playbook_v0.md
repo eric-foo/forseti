@@ -163,6 +163,41 @@ follow-through is not authorized, if close acceptance is unproven, or if the
 challenge remains after the close click, stop and record the blocker state. Do
 not run a close diagnostic merely to re-prove X targetability.
 
+## Cold-Agent Blocker Taxonomy
+
+Use these classes before naming a TikTok state as a stop condition:
+
+- `benign_overlay`: teaching, scroll, app, cookie, `OK`, `Got it`, `Not now`, or
+  continue-in-browser prompts with no challenge/security marker. Use
+  `tiktok_dismiss_benign_overlay_pointer_v0`; this is setup, not admission.
+- `retry_visible_error`: visible `Retry`, `Retry again`, `Try again`, or `Reload`
+  controls. Use `tiktok_retry_visible_error_pointer_v0` once before treating the
+  page as failed; this is setup, not admission.
+- `comment_route_zero_yield`: no admitted page-owned comment response and no
+  DOM-visible comment-body candidate after the full bounded route. This is only
+  valid after the runner has attempted comments -> `You may like` / `More like
+  this` -> comments, repeated once. A first zero response is not terminal.
+- `challenge_or_security`: visible or final-triage challenge/security text such
+  as `drag the slider`, `verify to continue`, `captcha`, or `security check`.
+  If follow-through is owner-authorized, click only the X/Close control through
+  the named pointer-action substrate. Never drag or solve the puzzle.
+- `challenge_close_not_accepted`: an X/Close pointer click was delivered, but
+  post-click visual candidates remain, challenge/security text remains, or final
+  triage still sees the challenge. This is a real stop with zero admission even
+  when a `/api/comment/list` response was observed.
+- `login_or_auth_wall`: login redirect, credential prompt, account-risk wall, or
+  auth wall. Stop unless a separate owner-gated sessioned lane has been loaded;
+  never enter credentials in this lane.
+
+For classification, do not stop at the top-level reason string. Inspect
+`blocker_triage.blocker_class`, `matched_marker`, `challenge_kind`,
+`comment_action.sequence_name`, `comment_action.action_sequence[*].action_name`,
+`pointer_action_chronology[*].action_name`, and `challenge_close_attempts[*]`.
+`platform_challenge_observed` must break down into at least marker and kind;
+`drag the slider` maps to `challenge_kind=slider`. The filtered
+`comment_action` field intentionally omits retry, benign overlay, and
+challenge-close actions; use `pointer_action_chronology` for exact chronology.
+
 ## Cold-Agent Procedure
 
 1. Load the active handoff and this playbook. Re-read the current
@@ -179,8 +214,10 @@ not run a close diagnostic merely to re-prove X targetability.
    comments -> `You may like` / `More like this` -> comments twice before
    treating zero response plus zero DOM-visible candidates as zero evidence.
 4. If the current owner authorizes X-able challenge follow-through, run with
-   `--allow-challenge-close-followthrough`. The runner attempts the challenge
-   X/Close action first, then the comments route. Continue only if the first
+   `--allow-challenge-close-followthrough`. The runner uses only named pointer
+   actions: it attempts challenge X/Close controls and the bounded comments ->
+   `You may like` / `More like this` -> comments route, with close attempts
+   interleaved after route clicks when configured. Continue only if the first
    video has `completed_count=1`, `challenge_count=0`, no failures, and either
    `admitted_comment_response_count >= 1` or
    `dom_visible_comment_candidate_count >= 1`. Any close action must be
@@ -205,7 +242,7 @@ For benign overlay:
 
 For comment routing:
 
-- `capture_receipt.route_retry_action.action_name` when a visible retry control was clicked
+- `pointer_action_chronology[*].action_name=tiktok_retry_visible_error_pointer_v0` when a visible retry control was clicked
 - `capture_receipt.comment_action.sequence_name`
 - `action_count`
 - `action_sequence[*].action_name`
