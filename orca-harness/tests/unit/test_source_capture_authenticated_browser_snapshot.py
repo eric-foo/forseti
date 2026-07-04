@@ -389,6 +389,33 @@ def test_browser_user_data_export_rejects_missing_user_data_before_state_write(
     assert not (auth_root / "missing-session.meta.json").exists()
 
 
+def test_browser_user_data_export_discards_state_when_validation_fails(
+    scratch_dir: Path,
+) -> None:
+    auth_root = scratch_dir / "_auth_state"
+    user_data_root = scratch_dir / "_browser_user_data"
+    user_data_dir = user_data_root / "tiktok-alt"
+    user_data_dir.mkdir(parents=True)
+
+    class _BadShapeExportEngine:
+        def export_storage_state(self, *, user_data_dir: Path, state_path: Path) -> None:
+            state_path.write_text('{"cookies": {}}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="cookies/origins"):
+        run_browser_user_data_export(
+            user_data_label="tiktok-alt",
+            state_label="tiktok-alt-session",
+            session_mode=AuthenticatedSessionMode.CLIENT_PROVIDED,
+            auth_state_root=auth_root,
+            browser_user_data_root=user_data_root,
+            engine=_BadShapeExportEngine(),
+        )
+
+    state_path = auth_root / "tiktok-alt-session.json"
+    metadata_path = auth_root / "tiktok-alt-session.meta.json"
+    assert not state_path.exists()
+    assert not metadata_path.exists()
+
 
 def test_cloakbrowser_user_data_export_retries_visible_after_headless_failure(
     scratch_dir: Path,

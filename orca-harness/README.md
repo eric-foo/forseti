@@ -226,7 +226,11 @@ local Playwright storage-state JSON plus a session-mode metadata sidecar under
 `run_source_capture_browser_user_data_export.py` can export the dedicated
 ignored `_browser_user_data/` label to `_auth_state/` without re-running the
 login flow; it accepts only labels plus session mode and prints no browser URL,
-paths, cookies, or tokens. The packet runner loads that state into a browser context,
+paths, cookies, or tokens. If the warmup used a proxy, the exported state may
+later be tried in a non-proxy source-access run, but the egress switch can
+still produce an invalid session or challenge; do not call that a clean
+non-proxy capture proof until a non-proxy receipt validates under the normal
+gates. The packet runner loads that state into a browser context,
 refuses mismatched session-mode declarations, and preserves rendered DOM,
 visible text, a viewport screenshot, and metadata. It records session mode and
 state label, but never copies, hashes, prints, or preserves storage-state JSON,

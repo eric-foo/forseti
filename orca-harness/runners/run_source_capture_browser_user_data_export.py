@@ -66,15 +66,15 @@ def run_browser_user_data_export(
             user_data_dir=user_data_dir,
             state_path=state_path,
         )
+        validate_auth_state_file(state_label, auth_state_root=auth_state_directory)
+        write_auth_state_metadata(
+            state_label,
+            session_mode=session_mode,
+            auth_state_root=auth_state_directory,
+        )
     except Exception:
         _discard_unbound_state(state_path, metadata_path)
         raise
-    validate_auth_state_file(state_label, auth_state_root=auth_state_directory)
-    write_auth_state_metadata(
-        state_label,
-        session_mode=session_mode,
-        auth_state_root=auth_state_directory,
-    )
     return (
         0,
         (

@@ -320,7 +320,11 @@ python runners/run_source_capture_browser_user_data_export.py `
 The export runner writes the same local ignored storage-state JSON and sidecar
 shape under `_auth_state/`, writes no packet, prints no browser URL, and accepts
 only labels plus the declared session mode. It does not accept storage-state
-paths, user-data paths, usernames, passwords, tokens, or cookies.
+paths, user-data paths, usernames, passwords, tokens, or cookies. If the warmup
+used a proxy, the exported state may later be tried in a non-proxy
+source-access run, but the egress switch can still produce an invalid session
+or challenge; do not call that a clean non-proxy capture proof until a
+non-proxy receipt validates under the normal gates.
 
 Then write a packet:
 
