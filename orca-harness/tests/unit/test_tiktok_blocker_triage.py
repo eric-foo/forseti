@@ -70,6 +70,20 @@ def test_blocker_triage_benign_overlay_is_one_dismiss_candidate() -> None:
     assert "Not now" not in str(receipt)
 
 
+def test_blocker_triage_intro_ok_overlay_is_benign_dismiss_candidate() -> None:
+    triage = classify_tiktok_blocker(
+        final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+        title="TikTok",
+        visible_text="Scroll, use the buttons, then press OK to continue",
+        hydration_present=True,
+        item_struct_present=True,
+        dismiss_candidate_count=1,
+    )
+
+    assert triage.blocker_class == TIKTOK_BLOCKER_CLASS_BENIGN_DISMISSIBLE_OVERLAY
+    assert triage.action == TIKTOK_BLOCKER_ACTION_DISMISS_ONCE_CANDIDATE
+    assert triage.reason == "benign_overlay_marker_with_dismiss_control"
+
 def test_blocker_triage_missing_hydration_is_reload_candidate_not_dismiss() -> None:
     triage = classify_tiktok_blocker(
         final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",

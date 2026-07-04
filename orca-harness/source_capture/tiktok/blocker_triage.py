@@ -34,6 +34,11 @@ _BENIGN_OVERLAY_MARKERS = (
     "log in to like videos",
     "accept all",
     "got it",
+    "press ok",
+    "tap ok",
+    "click ok",
+    "scroll, use the",
+    "browse your feed",
 )
 _DISMISS_MARKERS = (
     "not now",
@@ -41,6 +46,9 @@ _DISMISS_MARKERS = (
     "continue in browser",
     "accept all",
     "got it",
+    "press ok",
+    "tap ok",
+    "click ok",
 )
 _RELOAD_MARKERS = (
     "reload",
