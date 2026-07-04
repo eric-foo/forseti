@@ -9,8 +9,9 @@ backbone `ontology.yaml`, never this reference-data file):
   - PROVENANCE (co-#1): every house/product/windcaller fact carries a
     non-empty `provenance` entry -- a source ref string, or the literal
     marker `operator_asserted_pending_source`. Never neither.
-  - VOCABULARY CONFORMANCE: every `note_families`/`tier`/`occasions` value
-    used by a product entry exists in the file's own `vocabulary` block.
+  - VOCABULARY CONFORMANCE: every house `tier`, plus every product
+    `note_families`/`tier`/`occasions` value, exists in the file's own
+    `vocabulary` block.
   - MAPPING-DERIVATION CONSISTENCY: a product's `note_families` must be a
     SUPERSET of the mechanical derivation of its `accords` through
     `vocabulary.accord_to_family_mapping.map` (unmapped accords contribute
@@ -33,12 +34,13 @@ Usage:
   check_fragrance_reference.py --check     human-readable report; always exit 0.
   check_fragrance_reference.py --selftest  pure-function self-check; exit 0/1.
 
-Fail-open: a missing file, unparseable YAML, or missing PyYAML exits 0
-(advisory; never ghost-fail CI on infrastructure).
+Fail-open: missing PyYAML exits 0 (advisory; never ghost-fail CI on
+infrastructure). A missing or unparseable target YAML is a real gate finding.
 """
 from __future__ import annotations
 
 import sys
+import tempfile
 from pathlib import Path
 
 ONT_DIR = "forseti/product/spines/foundation/ontology"
@@ -95,12 +97,19 @@ def check_bare_facts(doc: dict) -> list[str]:
 
 
 def check_vocabulary_conformance(doc: dict) -> list[str]:
-    """Every note_family/tier/occasion used by a product exists in `vocabulary`."""
+    """Every house tier and product note_family/tier/occasion exists in `vocabulary`."""
     findings: list[str] = []
     vocab = doc.get("vocabulary") or {}
     nf_values = set((vocab.get("note_families") or {}).get("values") or [])
     tier_values = set((vocab.get("tiers") or {}).get("values") or [])
     occ_values = set((vocab.get("occasions") or {}).get("values") or [])
+
+    for hid, h in (doc.get("houses") or {}).items():
+        if not isinstance(h, dict):
+            continue
+        tier = h.get("tier")
+        if tier is not None and tier not in tier_values:
+            findings.append(f"{hid}: tier `{tier}` not in vocabulary.tiers")
 
     for pid, p in (doc.get("products") or {}).items():
         if not isinstance(p, dict):
@@ -185,11 +194,11 @@ def check_fragrance_reference(root: Path) -> list[str]:
         return []  # fail-open: PyYAML unavailable -> advisory skip
     yp = root / YAML_REL
     if not yp.is_file():
-        return []
+        return [f"{YAML_REL}: missing target file"]
     try:
         doc = yaml.safe_load(yp.read_text(encoding="utf-8"))
-    except Exception:
-        return []
+    except Exception as exc:
+        return [f"{YAML_REL}: cannot parse YAML ({type(exc).__name__}: {exc})"]
     if not isinstance(doc, dict):
         return ["fragrance_reference_v0.yaml: malformed top-level document (expected mapping)"]
 
@@ -229,12 +238,18 @@ def selftest() -> int:
             "tiers": {"values": ["designer"]},
             "occasions": {"values": ["daily"]},
         },
+        "houses": {
+            "brand:x": {"tier": "bogus"},
+            "brand:y": {"tier": "designer"},
+        },
         "products": {
             "product:x.y": {"note_families": ["woody", "bogus"], "tier": "designer", "occasions": ["nightlife"]}
         },
     }
     vocab_findings = check_vocabulary_conformance(vocab_doc)
     cases += [
+        ("vocab: unknown house tier flagged", any("brand:x" in f and "`bogus`" in f for f in vocab_findings), True),
+        ("vocab: known house tier not flagged", any("brand:y" in f for f in vocab_findings), False),
         ("vocab: unknown note_family flagged", any("`bogus`" in f for f in vocab_findings), True),
         ("vocab: unknown occasion flagged", any("`nightlife`" in f for f in vocab_findings), True),
         ("vocab: known tier not flagged", any("`designer`" in f for f in vocab_findings), False),
@@ -267,6 +282,24 @@ def selftest() -> int:
         ("dupe edge: dangling endpoint flagged", any("product:ghost.two" in f for f in dupe_findings), True),
         ("dupe edge: both endpoints resolving is clean", not any("dupe_relationships[1]" in f for f in dupe_findings), True),
     ]
+
+    try:
+        import yaml as _yaml  # noqa: F401 -- loader-path probes need PyYAML present
+    except Exception:
+        print("INFO  loader-path probes skipped (PyYAML unavailable)")
+    else:
+        tmp_parent = Path("C:/tmp") if Path("C:/tmp").is_dir() else Path(tempfile.gettempdir())
+        with tempfile.TemporaryDirectory(prefix="fragrance_reference_selftest_", dir=tmp_parent) as td:
+            tmp_root = Path(td)
+            missing_findings = check_fragrance_reference(tmp_root)
+            yp = tmp_root / YAML_REL
+            yp.parent.mkdir(parents=True, exist_ok=True)
+            yp.write_text("[", encoding="utf-8")
+            parse_findings = check_fragrance_reference(tmp_root)
+        cases += [
+            ("loader: missing target file is a finding", any("missing target file" in f for f in missing_findings), True),
+            ("loader: unparseable target yaml is a finding", any("cannot parse YAML" in f for f in parse_findings), True),
+        ]
 
     for label, got, exp in cases:
         status = "PASS" if got == exp else "FAIL"
