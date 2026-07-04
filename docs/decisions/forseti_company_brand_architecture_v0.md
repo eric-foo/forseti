@@ -277,10 +277,12 @@ concrete web foundation; it changes no gate and launches nothing.
 
 Owner-ratified in-thread ("Add the two fields (Recommended)", 2026-07-04,
 Aphrodite carveout charter session). The waitlist capture element of the D8
-web foundation — on the forsetihq.com holding page (D8 item 3) and on the
-Aphrodite pre-launch holding surface (D8 item 1) — may collect two **optional**
-self-reported fields alongside email: **role** and **decision type**. Purpose:
-passive buyer-lane sequencing signal for the Aphrodite carveout
+web foundation may collect two **optional** self-reported fields alongside
+email on the forsetihq.com holding page (D8 item 3), and on a later Aphrodite
+pre-launch holding surface only if/when that surface is separately authorized
+under D8's Vetting-v0/public-launch sequencing (D8 items 1 and 6): **role**
+and **decision type**. Purpose: passive buyer-lane sequencing signal for the
+Aphrodite carveout
 (`orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md`,
 register row R-2).
 
@@ -438,8 +440,9 @@ direction_change_propagation:
 # D8 amendment 2026-07-04 (waitlist role fields; ratified in the Aphrodite carveout charter session).
 direction_change_propagation:
   doctrine_changed: >
-    D8 amended: the waitlist capture on both holding surfaces may collect two
-    optional self-reported fields (role, decision type) alongside email, as
+    D8 amended: waitlist capture may collect two optional self-reported fields
+    (role, decision type) alongside email on the Forseti holding page, and on
+    any later separately authorized Aphrodite pre-launch holding surface, as
     passive buyer-lane sequencing signal for the Aphrodite carveout. Optional
     only; same privacy-notice posture; no other D8 element, gate, or
     authorization changes.

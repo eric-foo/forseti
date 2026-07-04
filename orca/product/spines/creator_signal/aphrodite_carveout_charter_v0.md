@@ -74,16 +74,16 @@ not move.
 
 ## 2. Strategy
 
-**One sentence: quietly build an evidence asset nobody can copy, prove one
-buyer will pay for a decision made from it, productize only what repeats — and
-keep the whole customer line a trigger-gated option whose downside is capped
-because the data asset compounds regardless.**
+**One sentence: quietly build an evidence asset that becomes hard to copy on a
+useful timeline, prove one buyer will pay for a decision made from it,
+productize only what repeats — and keep the whole customer line a trigger-gated
+option whose downside is capped because the data asset compounds regardless.**
 
 | Phase | What happens | Gate to enter | Customer-facing? |
 | --- | --- | --- | --- |
 | **0 — Foundation (now)** | Feed the evidence asset (registry growth, depth capture, ontology); strategy on paper; stay dark | — (current state) | No. Only the ratified holding page + waitlist (with role/decision-type fields per the D8 amendment, 2026-07-04) |
 | **1 — Prove payment** | One paid design-partner **Vetting Sprint** per buyer; readback; WTP evidence is the primary output | Foundation exit gate (deferred decision — register row D-1) fires Vetting v0; buyer probes separately owner-gated | Gated, design-partner only |
-| **2 — Productize repeats** | Pricing/packaging/SaaS decisions; external claim schema lock | ≥2 independent qualified buyers at Grade A/B + ≥1 paid-sprint-level pull (house graduation grammar) | Gated |
+| **2 — Productize repeats** | Pricing/packaging/SaaS decisions; external claim schema lock | Full house graduation grammar adapted at sprint time; minimum repeat/pull anchor = ≥2 independent qualified buyers at Grade A/B + ≥1 paid-sprint-level pull | Gated |
 | **3 — Public launch** | Own domain, handles, formal trademark clearance, marketing posture | Owner decision; bundle per brand ADR D8 | Yes |
 
 Sequencing authority is unchanged: foundation-first per the product
@@ -184,11 +184,14 @@ Proof semantics are consumed, not redefined, from
 `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
 (adapted to this product at sprint time — the parent's demand-substrate gate
 does not transfer; the pull/praise, trust-objection/refusal, kill-discipline,
-and graduation grammar do): pull is paid-path behavior, never praise; graduate
-on ≥2 independent qualified decision owners at Grade A/B plus ≥1
-paid-sprint-level pull; park on majority forbidden-feature pull, repeated
-trust refusal, or a dry bounded batch. Every claim in this charter's scope is
-capped at `product_learning` tier until receipts exist.
+and graduation grammar do): pull is paid-path behavior, never praise. The
+≥2 independent qualified decision owners at Grade A/B plus ≥1
+paid-sprint-level pull threshold is the minimum repeat/pull anchor, not the
+full graduation gate; at sprint adaptation the packet's repeatability,
+no-dashboard/no-source-system, no-bespoke-value, and non-claim criteria still
+have to hold. Park on majority forbidden-feature pull, repeated trust refusal,
+or a dry bounded batch. Every claim in this charter's scope is capped at
+`product_learning` tier until receipts exist.
 
 ## 6. Capture policy (hypothesis-tier; numbers are capture-lane calibration, not commitments)
 
@@ -261,7 +264,7 @@ trigger. Without this table the MGT label would be hype.
 | --- | --- | --- | --- |
 | Single lead buyer lane (brands) instead of a parallel 3-lane probe | Cheapest discriminating path; probes are owner-gated anyway | Lead lane could be wrong | First bounded batch runs dry → open next lane (D-5) |
 | No numeric foundation gate pre-committed | Numbers would be unvalidated guesses; the practice-run rehearsal is the real test either way | Capture lane lacks a hard numeric finish line | First rehearsal failure mints evidence-based numbers (D-1) |
-| Stratified (not full) transcript corpus | ~90–95% of decision value at ~20–30% of capture cost; analytics are view-weighted | Organic mentions in unsampled median videos missed | Metadata scan on all videos mitigates; sprint-specific needs pulled on demand |
+| Stratified (not full) transcript corpus | Hypothesis-tier estimate: ~90–95% of decision value at ~20–30% of capture cost; analytics are view-weighted | Organic mentions in unsampled median videos missed | Metadata scan on all videos mitigates; sprint-specific needs pulled on demand |
 | Page-1 comments only | Engagement-ranked page carries the decision signal | Superfan skew; drift; moderation invisible | Named-limitation display; re-probe on trigger |
 | No pricing menu / tiers | One unit must sell before a ladder exists | Cannot quote beyond the sprint | First paid conversation → commercial-frame pass (D-2) |
 | No freshness SLA | Single-operator manual posture is the verified state | Staleness at readback | Refresh-before-readback rule now; SLA only when a customer requires one |
