@@ -35,6 +35,22 @@ SOURCE_CREATOR_LEDGER_PATH = (
     / "review-inputs"
     / "youtube_shorts_fragrance_creator_ledger_v0.json"
 )
+FORSETI_ARCHIVED_LAKE_TEST_ROOT_ENV = "FORSETI_ARCHIVED_LAKE_TEST_ROOT"
+LEGACY_ORCA_ARCHIVED_LAKE_TEST_ROOT_ENV = "ORCA_ARCHIVED_LAKE_TEST_ROOT"
+
+
+def _archived_lake_test_root() -> str | None:
+    return os.environ.get(FORSETI_ARCHIVED_LAKE_TEST_ROOT_ENV) or os.environ.get(
+        LEGACY_ORCA_ARCHIVED_LAKE_TEST_ROOT_ENV
+    )
+
+
+def test_archived_lake_test_root_env_prefers_forseti(monkeypatch) -> None:
+    monkeypatch.setenv(FORSETI_ARCHIVED_LAKE_TEST_ROOT_ENV, "forseti-archived-root")
+    monkeypatch.setenv(LEGACY_ORCA_ARCHIVED_LAKE_TEST_ROOT_ENV, "orca-archived-root")
+    assert _archived_lake_test_root() == "forseti-archived-root"
+    monkeypatch.delenv(FORSETI_ARCHIVED_LAKE_TEST_ROOT_ENV)
+    assert _archived_lake_test_root() == "orca-archived-root"
 
 
 def _ledger() -> dict:
@@ -114,16 +130,20 @@ def test_youtube_shorts_fragrance_creator_observation_ledger_rebuilds_from_sourc
 
 
 def test_youtube_shorts_fragrance_creator_observation_ledger_archived_lake_refs_when_available() -> None:
-    # Explicit operator opt-in only; ambient ORCA_DATA_ROOT must never pull a
-    # production lake into the suite (it is deleted per-test in conftest).
-    # This ledger is a static historical fixture bound to the RETIRED lake root
-    # (orca-canonical / v0), preserved as an archive outside the live lake, so it
-    # takes its own opt-in variable: pointing it at the live (v4.1+) lake fails
-    # closed at live_lake_root_uuid_mismatch by design. See
+    # Explicit operator opt-in only; ambient FORSETI_DATA_ROOT/ORCA_DATA_ROOT
+    # must never pull a production lake into the suite (deleted per-test in
+    # conftest). This ledger is a static historical fixture bound to the RETIRED
+    # lake root (orca-canonical / v0), preserved as an archive outside the live
+    # lake, so it takes its own opt-in variable: pointing it at the live (v4.1+)
+    # lake fails closed at live_lake_root_uuid_mismatch by design. See
     # docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md.
-    data_root = os.environ.get("ORCA_ARCHIVED_LAKE_TEST_ROOT")
+    data_root = _archived_lake_test_root()
     if not data_root:
-        pytest.skip("ORCA_ARCHIVED_LAKE_TEST_ROOT is not set; archived-evidence reconciliation is an explicit operator opt-in")
+        pytest.skip(
+            "FORSETI_ARCHIVED_LAKE_TEST_ROOT is not set; legacy "
+            "ORCA_ARCHIVED_LAKE_TEST_ROOT is also accepted for this explicit "
+            "operator opt-in"
+        )
 
     validate_youtube_creator_observation_ledger_against_live_lake(_ledger(), data_root)
 
