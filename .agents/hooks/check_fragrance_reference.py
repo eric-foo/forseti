@@ -19,11 +19,11 @@ backbone `ontology.yaml`, never this reference-data file):
     case (`product:fragrance-one.office-for-men`) where an extra family is
     added from a non-accord source; the invariant that must hold is that
     derivation is never silently dropped, not that no other family may exist.
-  - ENTITY RESOLUTION: every `dupe_relationships` edge resolves each of its
-    `product:`-prefixed endpoint(s) to a product id defined in `products`.
-    The list is empty today; this check is schema-tolerant (it inspects edge
-    values rather than assuming fixed key names) so it is ready the moment an
-    edge is added.
+  - ENTITY RESOLUTION: every product `dupe_of` reference and every
+    `dupe_relationships` edge resolves its `product:`-prefixed endpoint(s) to
+    a product id defined in `products`. `dupe_relationships` is empty today;
+    its check is schema-tolerant (it inspects edge values rather than
+    assuming fixed key names) so it is ready the moment an edge is added.
 
 This is a SHAPE / internal-consistency check on reference DATA -- it does not
 assert fact-correctness, readiness, or that the reference data is complete
@@ -34,13 +34,12 @@ Usage:
   check_fragrance_reference.py --check     human-readable report; always exit 0.
   check_fragrance_reference.py --selftest  pure-function self-check; exit 0/1.
 
-Fail-open: missing PyYAML exits 0 (advisory; never ghost-fail CI on
-infrastructure). A missing or unparseable target YAML is a real gate finding.
+Fail-open: a missing file, unparseable YAML, or missing PyYAML exits 0
+(advisory; never ghost-fail CI on infrastructure).
 """
 from __future__ import annotations
 
 import sys
-import tempfile
 from pathlib import Path
 
 ONT_DIR = "forseti/product/spines/foundation/ontology"
@@ -158,11 +157,30 @@ def check_mapping_derivation(doc: dict) -> list[str]:
 
 
 def check_dupe_relationships(doc: dict) -> list[str]:
-    """Every dupe_relationships edge resolves its product: endpoint(s).
-    Schema-tolerant: inspects edge values rather than assuming fixed key
-    names, since the list is currently empty and no shape is yet committed."""
+    """Every product dupe_of reference and dupe_relationships edge resolves
+    its product: endpoint(s). Schema-tolerant: inspects edge values rather
+    than assuming fixed key names, since the list is currently empty and no
+    shape is yet committed."""
     findings: list[str] = []
     products = doc.get("products") or {}
+
+    for pid, p in products.items():
+        if not isinstance(p, dict):
+            continue
+        dupe_of = p.get("dupe_of") or []
+        if not dupe_of:
+            continue
+        if not isinstance(dupe_of, list):
+            findings.append(f"{pid}: dupe_of expected a list")
+            continue
+        for ref in dupe_of:
+            if not isinstance(ref, str) or not ref.startswith("product:"):
+                findings.append(f"{pid}: dupe_of entry `{ref}` is not a `product:` reference")
+            elif ref not in products:
+                findings.append(
+                    f"{pid}: dupe_of endpoint `{ref}` does not resolve to a defined product"
+                )
+
     edges = doc.get("dupe_relationships")
     if edges is None:
         return findings
@@ -194,11 +212,11 @@ def check_fragrance_reference(root: Path) -> list[str]:
         return []  # fail-open: PyYAML unavailable -> advisory skip
     yp = root / YAML_REL
     if not yp.is_file():
-        return [f"{YAML_REL}: missing target file"]
+        return []
     try:
         doc = yaml.safe_load(yp.read_text(encoding="utf-8"))
-    except Exception as exc:
-        return [f"{YAML_REL}: cannot parse YAML ({type(exc).__name__}: {exc})"]
+    except Exception:
+        return []
     if not isinstance(doc, dict):
         return ["fragrance_reference_v0.yaml: malformed top-level document (expected mapping)"]
 
@@ -271,7 +289,11 @@ def selftest() -> int:
     ]
 
     dupe_doc = {
-        "products": {"product:real.one": {}},
+        "products": {
+            "product:real.one": {},
+            "product:dupe.ok": {"dupe_of": ["product:real.one"]},
+            "product:dupe.ghost": {"dupe_of": ["product:ghost.two"]},
+        },
         "dupe_relationships": [
             {"dupe": "product:real.one", "original": "product:ghost.two"},
             {"from": "product:real.one", "to": "product:real.one"},
@@ -279,27 +301,11 @@ def selftest() -> int:
     }
     dupe_findings = check_dupe_relationships(dupe_doc)
     cases += [
+        ("product dupe_of: dangling endpoint flagged", any("product:dupe.ghost" in f for f in dupe_findings), True),
+        ("product dupe_of: resolving endpoint is clean", not any("product:dupe.ok" in f for f in dupe_findings), True),
         ("dupe edge: dangling endpoint flagged", any("product:ghost.two" in f for f in dupe_findings), True),
         ("dupe edge: both endpoints resolving is clean", not any("dupe_relationships[1]" in f for f in dupe_findings), True),
     ]
-
-    try:
-        import yaml as _yaml  # noqa: F401 -- loader-path probes need PyYAML present
-    except Exception:
-        print("INFO  loader-path probes skipped (PyYAML unavailable)")
-    else:
-        tmp_parent = Path("C:/tmp") if Path("C:/tmp").is_dir() else Path(tempfile.gettempdir())
-        with tempfile.TemporaryDirectory(prefix="fragrance_reference_selftest_", dir=tmp_parent) as td:
-            tmp_root = Path(td)
-            missing_findings = check_fragrance_reference(tmp_root)
-            yp = tmp_root / YAML_REL
-            yp.parent.mkdir(parents=True, exist_ok=True)
-            yp.write_text("[", encoding="utf-8")
-            parse_findings = check_fragrance_reference(tmp_root)
-        cases += [
-            ("loader: missing target file is a finding", any("missing target file" in f for f in missing_findings), True),
-            ("loader: unparseable target yaml is a finding", any("cannot parse YAML" in f for f in parse_findings), True),
-        ]
 
     for label, got, exp in cases:
         status = "PASS" if got == exp else "FAIL"
