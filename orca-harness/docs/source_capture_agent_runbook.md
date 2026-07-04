@@ -504,6 +504,22 @@ login continuity, not direct import of an existing Chrome profile, cookies, or
 tokens. Do not print, stage, commit, copy, or packetize that directory or its
 contents.
 
+If a provider login flow, especially Google OAuth, blanks a popup or shows a
+`Debugger paused in another tab` banner inside the Playwright-controlled
+bootstrap, stop that attempt. Warm the same dedicated profile first through a
+direct CloakBrowser launch with no Playwright/CDP attachment:
+
+```powershell
+python runners/run_source_capture_cloakbrowser_profile_warmup.py `
+  --login-url "<ordinary login or target URL>" `
+  --user-data-label "<local user-data label>"
+```
+
+Complete the permitted login in that direct browser, close the browser, then
+press Enter in the warmup terminal. After that, rerun the session bootstrap with
+the same `--cloakbrowser-user-data-label` to save the harness storage-state
+label. The warmup runner writes no packet and saves no auth-state by itself.
+
 Then capture one explicit URL with that saved state:
 
 ```powershell

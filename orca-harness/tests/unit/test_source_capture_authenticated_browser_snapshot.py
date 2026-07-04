@@ -10,7 +10,9 @@ import pytest
 
 from runners import run_source_capture_authenticated_browser_packet as auth_runner
 from runners import run_source_capture_browser_session_bootstrap as bootstrap_runner
+from runners import run_source_capture_cloakbrowser_profile_warmup as warmup_runner
 from runners.run_source_capture_browser_session_bootstrap import run_browser_session_bootstrap
+from runners.run_source_capture_cloakbrowser_profile_warmup import run_cloakbrowser_profile_warmup
 from source_capture import AuthenticatedSessionMode, CaptureModeCategory
 from source_capture.adapters.browser_snapshot import BrowserSnapshotSuccess
 from source_capture.auth_state import auth_state_path_for_label, validate_auth_state_file, write_auth_state_metadata
@@ -65,6 +67,27 @@ def test_authenticated_browser_clis_expose_no_secret_or_password_flags() -> None
     assert "--browser-backend" in options
     assert "--cloakbrowser-humanize" in options
     assert "--cloakbrowser-user-data-label" in options
+
+
+def test_cloakbrowser_profile_warmup_cli_exposes_no_secret_or_path_flags() -> None:
+    forbidden_destinations = {"password", "username", "token", "cookie", "profile", "user_data_dir"}
+    forbidden_options = {
+        "--password",
+        "--username",
+        "--token",
+        "--cookie",
+        "--profile",
+        "--profile-path",
+        "--storage-state-path",
+        "--user-data-dir",
+    }
+    parser = warmup_runner._build_parser()
+    destinations = {action.dest for action in parser._actions}
+    options = {option for action in parser._actions for option in action.option_strings}
+
+    assert destinations.isdisjoint(forbidden_destinations)
+    assert options.isdisjoint(forbidden_options)
+    assert "--user-data-label" in options
 
 
 def test_auth_state_label_rejects_path_traversal(scratch_dir: Path) -> None:
@@ -122,6 +145,36 @@ def _write_auth_state_pair(
         auth_state_root=auth_root,
     )
     return state_path
+
+
+class _FakeWarmupEngine:
+    def __init__(self) -> None:
+        self.user_data_dirs: list[Path] = []
+
+    def warm_profile(self, *, login_url: str, user_data_dir: Path) -> str:
+        self.user_data_dirs.append(user_data_dir)
+        return login_url
+
+
+def test_cloakbrowser_profile_warmup_uses_label_indirected_user_data_without_auth_state(
+    scratch_dir: Path,
+) -> None:
+    user_data_root = scratch_dir / "_browser_user_data"
+    engine = _FakeWarmupEngine()
+
+    exit_code, message = run_cloakbrowser_profile_warmup(
+        login_url="https://example.com/login",
+        user_data_label="google-login",
+        user_data_root=user_data_root,
+        engine=engine,
+    )
+
+    assert exit_code == 0
+    assert engine.user_data_dirs == [user_data_root / "google-login"]
+    assert (user_data_root / "google-login").is_dir()
+    assert "google-login" in message
+    assert str(user_data_root) not in message
+    assert not (scratch_dir / "_auth_state").exists()
 
 
 def test_session_bootstrap_writes_auth_state_and_sidecar_without_packet(scratch_dir: Path) -> None:
