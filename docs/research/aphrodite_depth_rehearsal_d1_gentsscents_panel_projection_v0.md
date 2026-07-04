@@ -22,13 +22,15 @@ stale_if:
 
 ## Status
 
-`D1_PANEL_PROJECTION_V0` - product-learning evidence posture only. This artifact has no score and does not fire D-1.
+`D1_PANEL_PROJECTION_V0_POST_REVIEW_PATCH` - product-learning evidence posture only. This artifact has no score and does not fire D-1. It incorporates the home-lane response to review findings AR-01 through AR-06 from `docs/review-outputs/adversarial-artifact-reviews/aphrodite_depth_rehearsal_d1_gentsscents_adversarial_artifact_review_v0.md`.
 
 Reading order for the locked buyer profile: fit and dupe posture first, then brand adjacency, purchase intent, ad reception, and momentum.
 
 ## Buyer Frame
 
 The buyer is synthetic but skeptical: a dupe-first or clone-house operator who cares about whether GentsScents can reveal demand around Dior Sauvage, Creed Aventus, and adjacent clone/original shopping behavior. The buyer is not assumed to buy because direct originals appear; the projection must preserve what is missing.
+
+Candidate-set intake is now structured in the claim record: the buyer segment, house tier, target originals, note-family targets, occasion targets, and target tier position all carry `intake_source_state` or an explicit withheld state. This is still synthetic intake, not market proof.
 
 ## Panel 1 - Fit and Dupe Posture
 
@@ -37,16 +39,16 @@ The buyer is synthetic but skeptical: a dupe-first or clone-house operator who c
 | Corpus topicality | `show` | 15/15 selected videos are fragrance topical inside the bounded GentsScents window. |
 | Product segment presence | `downgrade` | Round-2 SoV shows 417 raw product mentions, 415 deduped mentions, 340 distinct products, and a 55-mention low-confidence tail. It is useful but still rehearsal-grade. |
 | Presence x attention x stance | `downgrade` | Direct-original attention exists for both buyer anchors: Creed Aventus (5 videos, 183,116 attention views, 1.2%) and Dior Sauvage (5 videos, 167,049 attention views, 1.1%). Stance remains operator-coded rehearsal evidence. |
-| Note-family overlap | `downgrade` | Sauvage and Aventus note families resolve against the ontology; observed top products overlap on citrus, woody, fresh, spicy, and aromatic coordinates. This is coordinate fit, not conversion proof. |
-| Tier alignment | `show` | Aventus resolves as niche and Sauvage as designer under the adopted tier rubric. GentsScents' top attention is mostly designer plus the niche Aventus anchor. |
-| Direct-original attention | `show` | The buyer's originals are genuinely present. |
+| Note-family overlap | `downgrade` | All 10 buyer target note families are rendered explicitly as chips in the claim record. None are silently dropped. Each is marked aggregate-receipt-only because the branch still lacks committed per-mention transcript receipts behind the SoV aggregates. |
+| Tier alignment | `downgrade` | The row is narrowed to a top-8 resolved-product tier view plus buyer-anchor tier comparison. Top-8 attention is 85.7% designer and 14.3% niche; this is not the ratified full 340-product six-tier distribution. |
+| Direct-original attention | `downgrade` | The buyer's originals are present in aggregate SoV rows, but per-mention transcript receipts are not committed in this branch. |
 | Clone-tail or dupe-space roll-up | `withhold` | Dupe-space roll-up withheld: the ontology contains no citable dupe relationships for this capture/version. Direct original mentions are shown where available. This is not evidence of zero clone demand. |
 | Comparable baseline | `downgrade` | Mainstream comparable products such as YSL Y EDP, Bleu de Chanel, Coach for Men, Invictus Parfum, and Versace Pour Homme appear, but only as same-window affiliate-heavy evidence. |
-| Attention concentration | `show` | The corpus is diffuse: 340 distinct products, 85% appearing in only one video, with the top single product at 1.3% attention share. |
+| Attention concentration | `downgrade` | The corpus appears diffuse from aggregate SoV rows: 340 distinct products, 85% appearing in only one video, with the top single product at 1.3% attention share. This remains aggregate-table supported. |
 | Niche trajectory | `withhold` | Single capture cycle. |
 | Unresolved product tail | `downgrade` | 55/417 low-confidence mentions, mostly clone/niche tail, are disclosed instead of silently disappearing. |
 
-Fit read for the skeptical buyer: GentsScents is credible enough to inspect for original-reference adjacency around Aventus/Sauvage. The current evidence does not yet prove clone-house demand capture because the dupe graph is empty and the unresolved tail sits exactly where the buyer cares most.
+Fit read for the skeptical buyer: GentsScents is credible enough to inspect for original-reference adjacency around Aventus/Sauvage, but the fit panel is not drill-back complete. The current evidence does not yet prove clone-house demand capture because the dupe graph is empty, the unresolved tail sits exactly where the buyer cares most, and the SoV-derived fit rows still terminate at aggregate tables rather than per-mention transcript receipts.
 
 ## Panel 2 - Brand Adjacency
 
@@ -97,7 +99,7 @@ Momentum read: nothing in this run should be read as trend. It only establishes 
 
 ## D-1 Projection
 
-This is a credible dress-rehearsal packet, not a pass. Criteria 1, 2, 3, 4, and 6 have artifacts for review. Criterion 5 is not satisfied until a cross-vendor adversarial review returns blocker/major-free and the home lane adjudicates it. Same-family review would be a fake pass.
+This is a credible dress-rehearsal packet, not a pass. The first cross-vendor review returned `NOT_BLOCKER_MAJOR_FREE` with four major findings. This patch responds by downgrading aggregate-only fit claims, rendering note-family chips explicitly, narrowing the tier row scope, and adding structured buyer intake. Criterion 5 remains unobserved until a cross-vendor recheck or explicit home-lane adjudication accepts the patch response as blocker/major-free. Same-family review would be a fake pass.
 
 ## Non-Claims
 

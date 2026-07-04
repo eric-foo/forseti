@@ -26,8 +26,9 @@ stale_if:
 
 ## Creator and Buyer Inputs
 
-- Creator: GentsScents (`UC9IImcLkUdmURWtQhxu8VwQ`), existing registry match `acct_yt_fragrance_010`, round-2 status `allowed`.
+- Creator: GentsScents (`UC9IImcLkUdmURWtQhxu8VwQ`), existing registry match `acct_yt_fragrance_010`, round-2 status `allowed`; creator choice owner-locked during fused preflight.
 - Buyer profile: synthetic skeptical dupe-first or clone-house buyer, focused on whether GentsScents can reveal demand around Dior Sauvage, Creed Aventus, and adjacent clone/original shopping behavior.
+- Structured intake state: `buyer_segment`, `buyer_house_tier`, `dupe_target_originals`, `note_family_targets`, `occasion_targets`, and `target_tier_position` are encoded in `docs/research/aphrodite_depth_rehearsal_d1_gentsscents_claims_v0.json`; each coordinate carries `intake_source_state` or an explicit withheld state.
 - Source branch: `claude/recipe-v1-second-opinion-adjudication`; rehearsal branch: `codex/aphrodite-d1-depth-rehearsal`.
 
 ## Corpus Hash and Read Summary

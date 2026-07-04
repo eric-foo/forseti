@@ -17,6 +17,34 @@
   "buyer_profile": {
     "profile_type": "synthetic_skeptical_dupe_first",
     "locked_by": "owner choice during fused run",
+    "structured_candidate_set_intake": {
+      "buyer_segment": "synthetic skeptical dupe-first or clone-house operator",
+      "buyer_house_tier": "clone-house",
+      "dupe_target_originals": [
+        {
+          "product_id": "product:dior.sauvage",
+          "target_role": "original_reference",
+          "intake_source_state": "owner_locked_synthetic_coordinate; resolved against fragrance_reference_v0.yaml"
+        },
+        {
+          "product_id": "product:creed.aventus",
+          "target_role": "original_reference",
+          "intake_source_state": "owner_locked_synthetic_coordinate; resolved against fragrance_reference_v0.yaml"
+        }
+      ],
+      "note_family_targets": {
+        "families": ["fresh", "spicy", "amber", "citrus", "aromatic", "musk", "woody", "fruity", "sweet", "leather"],
+        "intake_source_state": "derived from the two resolved target originals in fragrance_reference_v0.yaml"
+      },
+      "occasion_targets": {
+        "values": [],
+        "intake_source_state": "not specified in the owner-locked synthetic profile; withheld, not inferred"
+      },
+      "target_tier_position": {
+        "value": "clone-house buyer evaluating niche/designer original-reference demand",
+        "intake_source_state": "owner_locked_synthetic_coordinate; clone-house demand is not graph-derived in this rehearsal"
+      }
+    },
     "coordinates": [
       "clone-house or dupe-first operator",
       "cares about Dior Sauvage demand adjacency",
@@ -35,6 +63,11 @@
     "adjudication_prose_claim_count": 29,
     "appendix_claim_types_emitted": 30,
     "handling": "The discrepancy is preserved visibly; all appendix rows are emitted, including fit.unresolved_product_mentions."
+  },
+  "post_review_patch_response": {
+    "review_report": "docs/review-outputs/adversarial-artifact-reviews/aphrodite_depth_rehearsal_d1_gentsscents_adversarial_artifact_review_v0.md",
+    "review_verdict": "NOT_BLOCKER_MAJOR_FREE",
+    "patch_response_scope": "Accepted AR-01 through AR-06 for home-lane patching. Fit claims that rely on the round-2 SoV aggregate table remain rehearsal-grade and disclose aggregate-only drill-back until per-mention transcript receipts are recovered or re-derived. D-1 criterion 5 remains unobserved pending recheck or explicit home-lane adjudication."
   },
   "claims": [
     {
@@ -107,7 +140,7 @@
         "fragrance_reference_v0.yaml products.product:paco-rabanne.invictus-parfum",
         "fragrance_reference_v0.yaml products.product:versace.pour-homme"
       ],
-      "limitations": "Low-confidence clone/niche tail is disclosed and excluded from stronger product-coordinate rollups."
+      "limitations": "Low-confidence clone/niche tail is disclosed and excluded from stronger product-coordinate rollups. The round-2 SoV aggregate table is the deepest committed drill-back for these product counts; per-mention transcript receipts are not committed in this branch."
     },
     {
       "claim_id": "fit.presence_attention_stance.v0",
@@ -138,7 +171,7 @@
         "fragrance_reference_v0.yaml products.product:creed.aventus",
         "fragrance_reference_v0.yaml products.product:dior.sauvage"
       ],
-      "limitations": "Presence and attention are more reliable than stance; no score is emitted."
+      "limitations": "Presence and attention are more reliable than stance; no score is emitted. Product attention and stance drill back to the committed round-2 SoV aggregate table, not to committed per-mention transcript receipts."
     },
     {
       "claim_id": "fit.note_family_overlap.v0",
@@ -150,8 +183,20 @@
           "product:dior.sauvage": ["fresh", "spicy", "amber", "citrus", "aromatic", "musk", "woody"],
           "product:creed.aventus": ["fruity", "sweet", "woody", "leather", "citrus"]
         },
-        "observed_overlap": ["citrus", "woody", "fresh", "spicy", "aromatic"],
-        "interpretation": "The top creator-attended products overlap the buyer originals on several reference note families, but the claim is downgraded because the SoV extraction is rehearsal-grade."
+        "note_family_chips": [
+          {"family": "fresh", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:versace.pour-homme"]},
+          {"family": "spicy", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:versace.pour-homme", "product:jean-paul-gaultier.ultra-male"]},
+          {"family": "amber", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men"]},
+          {"family": "citrus", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:creed.aventus", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:versace.pour-homme"]},
+          {"family": "aromatic", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:paco-rabanne.invictus-parfum", "product:versace.pour-homme", "product:jean-paul-gaultier.ultra-male"]},
+          {"family": "musk", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:paco-rabanne.invictus-parfum"]},
+          {"family": "woody", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:creed.aventus", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:paco-rabanne.invictus-parfum"]},
+          {"family": "fruity", "state": "observed_with_aggregate_receipt_only", "basis": ["product:creed.aventus", "product:ysl.y-eau-de-parfum", "product:coach.coach-for-men", "product:jean-paul-gaultier.ultra-male"]},
+          {"family": "sweet", "state": "observed_with_aggregate_receipt_only", "basis": ["product:creed.aventus", "product:jean-paul-gaultier.ultra-male"]},
+          {"family": "leather", "state": "observed_with_aggregate_receipt_only", "basis": ["product:creed.aventus"]}
+        ],
+        "withheld_families": [],
+        "interpretation": "Each buyer target note family is rendered explicitly. None are silently dropped; all are downgraded because the product-attention substrate drills back only to the round-2 SoV aggregate table in this branch."
       },
       "source_refs": [
         "forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
@@ -178,18 +223,26 @@
         "fragrance_reference_v0.yaml products.product:versace.pour-homme.note_families",
         "fragrance_reference_v0.yaml products.product:jean-paul-gaultier.ultra-male.note_families"
       ],
-      "limitations": "This is coordinate overlap, not buyer conversion proof."
+      "limitations": "This is coordinate overlap, not buyer conversion proof. Review AR-02 is closed by explicit chips; AR-01 remains a named aggregate-only provenance limitation until per-mention transcript receipts are committed."
     },
     {
       "claim_id": "fit.tier_alignment.v0",
       "panel": "fit",
       "claim_type": "fit.tier_alignment",
-      "provenance_state": "show",
+      "provenance_state": "downgrade",
       "value": {
+        "scope": "top-8 resolved-product tier view and buyer-anchor tier comparison only; not the full attention-weighted/editorial six-tier distribution across all 340 distinct products",
         "buyer_profile_tier": "clone-house or dupe-first buyer profile; buyer original anchors are niche and designer",
         "direct_original_tiers": {"product:creed.aventus": "niche", "product:dior.sauvage": "designer"},
-        "creator_attention_tiers": "Top resolved products are mainly designer with a niche Aventus anchor.",
-        "interpretation": "The creator has direct attention to the buyer's niche/designer originals, but clone-house fit is not shown without a dupe graph."
+        "top8_attention_weighted_tier_view": {
+          "designer": {"attention_views": 1096507, "top8_attention_share": "85.7%", "products": 7},
+          "niche": {"attention_views": 183116, "top8_attention_share": "14.3%", "products": 1},
+          "luxury": {"attention_views": 0, "top8_attention_share": "0.0%", "products": 0},
+          "creator-owned-dtc": {"attention_views": 0, "top8_attention_share": "0.0%", "products": 0},
+          "clone-house": {"attention_views": 0, "top8_attention_share": "0.0%", "products": 0},
+          "adjacent": {"attention_views": 0, "top8_attention_share": "0.0%", "products": 0}
+        },
+        "interpretation": "The creator has aggregate-table attention to the buyer's niche/designer originals and top-8 attention is mostly designer. This is not the ratified full-vocabulary tier distribution."
       },
       "source_refs": [
         "forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
@@ -200,28 +253,35 @@
       "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
       "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
       "receipt": [
-        "M1 adjudication: tier facts under the adopted rubric render show, not downgrade.",
+        "M1 adjudication: tier facts under the adopted rubric may render show, but review AR-03 found this row narrower than the ratified full-vocabulary distribution.",
+        "Top-8 tier view from round-2 SoV aggregate rows: seven designer products sum to 1,096,507 attention views; Creed Aventus is one niche product with 183,116 attention views.",
         "Ontology tier rows: product:creed.aventus tier niche; product:dior.sauvage tier designer."
       ],
-      "confidence_or_abstention": "medium-high for tier facts under M1; clone-house inference withheld elsewhere",
+      "confidence_or_abstention": "medium for top-8 tier view; downgraded because it is not the full 340-product six-tier distribution and drills back to aggregate SoV rows",
       "reference_coords": [
         "fragrance_reference_v0.yaml vocabulary.tiers",
         "fragrance_reference_v0.yaml products.product:creed.aventus.tier",
-        "fragrance_reference_v0.yaml products.product:dior.sauvage.tier"
+        "fragrance_reference_v0.yaml products.product:dior.sauvage.tier",
+        "fragrance_reference_v0.yaml products.product:ysl.y-eau-de-parfum.tier",
+        "fragrance_reference_v0.yaml products.product:chanel.bleu-de-chanel.tier",
+        "fragrance_reference_v0.yaml products.product:coach.coach-for-men.tier",
+        "fragrance_reference_v0.yaml products.product:jean-paul-gaultier.ultra-male.tier",
+        "fragrance_reference_v0.yaml products.product:paco-rabanne.invictus-parfum.tier",
+        "fragrance_reference_v0.yaml products.product:versace.pour-homme.tier"
       ],
-      "limitations": "Tier alignment is not a dupe-tail or purchase-intent claim."
+      "limitations": "Tier alignment is not a dupe-tail or purchase-intent claim. This patch closes AR-03 by narrowing the scope and downgrading the row; it does not create the full ratified tier distribution."
     },
     {
       "claim_id": "fit.dupe_direct_original_attention.v0",
       "panel": "fit",
       "claim_type": "fit.dupe_direct_original_attention",
-      "provenance_state": "show",
+      "provenance_state": "downgrade",
       "value": {
         "direct_originals": [
           {"product_id": "product:creed.aventus", "videos": 5, "attention_views": 183116, "share": "1.2%"},
           {"product_id": "product:dior.sauvage", "videos": 5, "attention_views": 167049, "share": "1.1%"}
         ],
-        "interpretation": "The corpus supports direct-original attention to both buyer anchors."
+        "interpretation": "The corpus supports aggregate-table direct-original attention to both buyer anchors."
       },
       "source_refs": [
         "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md",
@@ -235,12 +295,12 @@
         "Official SoV aggregate: Creed Aventus 5 videos, 183,116 attention views, 1.2%.",
         "Official SoV aggregate: Dior Sauvage 5 videos, 167,049 attention views, 1.1%."
       ],
-      "confidence_or_abstention": "medium-high for direct originals",
+      "confidence_or_abstention": "medium; downgraded because committed drill-back stops at aggregate SoV rows rather than per-mention transcript receipts",
       "reference_coords": [
         "fragrance_reference_v0.yaml products.product:creed.aventus",
         "fragrance_reference_v0.yaml products.product:dior.sauvage"
       ],
-      "limitations": "Direct-original attention is not evidence of clone demand by itself."
+      "limitations": "Direct-original attention is not evidence of clone demand by itself. Per review AR-01, this row is aggregate-table supported until per-mention transcript receipts are recovered or re-derived."
     },
     {
       "claim_id": "fit.dupe_clone_tail_attention.v0",
@@ -301,13 +361,13 @@
         "fragrance_reference_v0.yaml products.product:paco-rabanne.invictus-parfum",
         "fragrance_reference_v0.yaml products.product:versace.pour-homme"
       ],
-      "limitations": "No cross-cycle creator baseline and no clean unpaid comparator."
+      "limitations": "No cross-cycle creator baseline and no clean unpaid comparator. Comparable-product rows drill back to the committed round-2 SoV aggregate table, not to committed per-mention transcript receipts."
     },
     {
       "claim_id": "fit.attention_concentration.v0",
       "panel": "fit",
       "claim_type": "fit.attention_concentration",
-      "provenance_state": "show",
+      "provenance_state": "downgrade",
       "value": {
         "distinct_products": 340,
         "long_tail_share": "85% of distinct products appear in only one video",
@@ -324,11 +384,11 @@
       "receipt": [
         "Round-2 SoV: 340 distinct products; 85% only one video; top product YSL Y EDP 1.3%."
       ],
-      "confidence_or_abstention": "medium; denominator disclosed",
+      "confidence_or_abstention": "medium-low; denominator disclosed but committed drill-back stops at aggregate SoV rows",
       "reference_coords": [
         "fragrance_reference_v0.yaml products.product:ysl.y-eau-de-parfum"
       ],
-      "limitations": "Concentration is within-window only."
+      "limitations": "Concentration is within-window only and aggregate-table supported. It should not be read as per-mention drill-back until SoV receipts are committed."
     },
     {
       "claim_id": "fit.niche_share_trajectory.v0",
@@ -373,7 +433,7 @@
       ],
       "confidence_or_abstention": "medium for count; product-coordinate claims based on this tail are downgraded or withheld",
       "reference_coords": [],
-      "limitations": "The unresolved tail is disclosed because it matters to a clone-house buyer."
+      "limitations": "The unresolved tail is disclosed because it matters to a clone-house buyer. The count drills back to the committed SoV aggregate record, not a committed per-mention appendix."
     },
     {
       "claim_id": "ad.video_disclosure_class.v0",
