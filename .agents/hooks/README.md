@@ -114,9 +114,9 @@ failure class, not universal shell-write detection; use `apply_patch` from the
 active worktree for source edits.
 
 The repo-map checker also parses Codex `apply_patch` headers in PostToolUse
-mode. If the edited target is `docs/workflows/orca_repo_map_v0.md` and Git still
+mode. If the edited target is `docs/workflows/forseti_repo_map_v0.md` and Git still
 shows that map dirty, it returns exit code 2 and tells the agent to commit that
-file immediately with `git commit --only -- docs/workflows/orca_repo_map_v0.md`.
+file immediately with `git commit --only -- docs/workflows/forseti_repo_map_v0.md`.
 
 Codex only loads project-local hooks after the project `.codex/` layer is
 trusted. In a Codex session, open `/hooks` if Codex reports new or changed hooks

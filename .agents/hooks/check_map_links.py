@@ -401,7 +401,7 @@ class Finding(NamedTuple):
 def collect_map_files(root: Path) -> list[Path]:
     """Return the repo map and any *submap*.md files under docs/workflows/."""
     candidates: list[Path] = []
-    map_path = root / "docs" / "workflows" / "orca_repo_map_v0.md"
+    map_path = root / "docs" / "workflows" / "forseti_repo_map_v0.md"
     if map_path.exists():
         candidates.append(map_path)
     workflows = root / "docs" / "workflows"
@@ -755,8 +755,8 @@ def selftest() -> int:
     epl_cases = [
         # (label, line, expected tokens)
         ("backtick path",
-         "see `docs/workflows/orca_repo_map_v0.md` for details",
-         ["docs/workflows/orca_repo_map_v0.md"]),
+         "see `docs/workflows/forseti_repo_map_v0.md` for details",
+         ["docs/workflows/forseti_repo_map_v0.md"]),
         ("bare path",
          "open docs/decisions/foo_v0.md before proceeding",
          ["docs/decisions/foo_v0.md"]),

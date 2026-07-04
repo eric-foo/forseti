@@ -1,4 +1,4 @@
-﻿# Forseti Rename Migration Policy v0
+# Forseti Rename Migration Policy v0
 
 ```yaml
 retrieval_header_version: 1
@@ -13,7 +13,7 @@ open_next:
   - .agents/workflow-overlay/project-authority.md
   - .agents/workflow-overlay/source-of-truth.md
   - .agents/workflow-overlay/source-loading.md
-  - docs/workflows/orca_repo_map_v0.md
+  - docs/workflows/forseti_repo_map_v0.md
 ```
 
 ## Decision
@@ -32,7 +32,7 @@ them.
 | Class | Examples | Rule |
 | --- | --- | --- |
 | Live authority/doctrine | `AGENTS.md`, `.agents/workflow-overlay/*.md`, current repo-map prose | Rename to Forseti now. Use "formerly Orca" only where transition clarity matters. |
-| Current route/index surfaces | `docs/workflows/orca_repo_map_v0.md`, active submaps, current source packs | Rename human-facing prose to Forseti while preserving legacy paths until compatibility migration. |
+| Current route/index surfaces | `docs/workflows/forseti_repo_map_v0.md`, active submaps, current source packs | Use Forseti naming for live navigation; keep legacy pointers only for compatibility and historical links. |
 | Current product/architecture sources | product thesis, active spine contracts, current proof/claim/read-pack docs | Rename in the next product-spine batch unless the file is historical-only. |
 | Compatibility names | `orca/product/`, `orca-harness/`, `orca-product-lead`, lowercase `orca_*` filenames, import/package names | Do not rename blindly. Migrate with moved-path indexes, validation, and rollback notes. |
 | Historical provenance | old prompts, review outputs, DCP receipts, dated migration notes, prior workstream records | Preserve by default. Add a supersession or alias note only when the artifact remains a live route. |
@@ -46,10 +46,10 @@ migration because existing prompts, hooks, and prior artifacts may still emit or
 expect it. New live authority should prefer `forseti_start_preflight` and may
 name the alias only where compatibility matters.
 
-The file path `docs/workflows/orca_repo_map_v0.md` remains the live repo map
-until a later compatibility batch creates and validates a renamed successor.
-References to that path are compatibility references, not proof that Orca is
-still the project name.
+The file path `docs/workflows/forseti_repo_map_v0.md` is the live repo map.
+The legacy path `docs/workflows/orca_repo_map_v0.md` is retained only as a
+compatibility pointer for older links and historical references; references to
+that legacy path are not proof that Orca is still the project name.
 
 ## Batch Plan
 

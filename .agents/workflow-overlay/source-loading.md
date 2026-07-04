@@ -1,4 +1,4 @@
-﻿# Source Loading
+# Source Loading
 
 ```yaml
 retrieval_header_version: 1
@@ -12,7 +12,7 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/source-of-truth.md
   - .agents/workflow-overlay/retrieval-metadata.md
-  - docs/workflows/orca_repo_map_v0.md
+  - docs/workflows/forseti_repo_map_v0.md
   - docs/workflows/artifact_retrievability_guide.md
 ```
 
@@ -127,7 +127,7 @@ Use this order unless the user gives a narrower source pack:
 3. `.agents/workflow-overlay/README.md`.
 4. `.agents/workflow-overlay/source-of-truth.md`.
 5. This file, when source budgeting or prompt setup matters.
-6. `docs/workflows/orca_repo_map_v0.md`, when choosing among many docs.
+6. `docs/workflows/forseti_repo_map_v0.md`, when choosing among many docs.
 7. The one to four target artifacts named by the request, repo map, retrieval
    headers, or nearest accepted product artifact.
 
@@ -144,7 +144,7 @@ Use source packs instead of whole-folder reads.
 | Tier | Use when | Default contents |
 | --- | --- | --- |
 | `S0 overlay` | Any Forseti project work. | Current instruction, `AGENTS.md`, overlay README, source-of-truth, and source-loading when relevant. |
-| `S1 map` | Choosing files or preventing context bloat. | `S0` plus `docs/workflows/orca_repo_map_v0.md`. |
+| `S1 map` | Choosing files or preventing context bloat. | `S0` plus `docs/workflows/forseti_repo_map_v0.md`. |
 | `S2 product anchor` | Product architecture, value proposition, offer, or CA setup. | `S1` plus product thesis, offer hypothesis, buyer proof packet, Core Spine product contract, and the nearest boundary note. |
 | `S3 target deepening` | A specific artifact family needs details. | `S2` plus only the named target artifact, its `open_next` files, and targeted sections from adjacent artifacts. |
 | `S4 historical/review` | Reviewing prior outcomes, adversarial reports, replays, or method-validation history. | Explicitly named review, replay, research, or historical files only. Never default. |

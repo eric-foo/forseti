@@ -1,4 +1,4 @@
-﻿# Source Of Truth
+# Source Of Truth
 
 ```yaml
 retrieval_header_version: 1
@@ -25,7 +25,7 @@ authority_boundary: retrieval_only
 - External workflow sources do not own Forseti project authority. Skills may provide task-local mechanics only when explicitly invoked or resolver-loaded.
 - Installed global/user/plugin skills are runtime copies or external tools, not Forseti project authority.
 - If a required source is missing, report a visible failure and name the missing file or decision.
-- Source hierarchy is not a read-all list. Use `.agents/workflow-overlay/source-loading.md` and `docs/workflows/orca_repo_map_v0.md` to choose bounded source packs.
+- Source hierarchy is not a read-all list. Use `.agents/workflow-overlay/source-loading.md` and `docs/workflows/forseti_repo_map_v0.md` to choose bounded source packs.
 
 ## Checkpoint Artifacts
 
@@ -92,7 +92,7 @@ route agents by stale doctrine. At minimum, consider:
 - the controlling overlay file under `.agents/workflow-overlay/`;
 - start-route and source-loading surfaces such as
   `.agents/workflow-overlay/source-loading.md` and
-  `docs/workflows/orca_repo_map_v0.md`;
+  `docs/workflows/forseti_repo_map_v0.md`;
 - executor, prompt, validation, review, and closeout surfaces when the doctrine
   affects them.
 
@@ -363,7 +363,7 @@ Older receipts (#1–#13) archived verbatim in `docs/decisions/dcp_receipts_arch
 - `.agents/workflow-overlay/delegated-review-patch.md`: provisional opt-in Delegated Review-and-Patch convention; not a bound review lane, no strict claims.
 - `docs/STRUCTURE.md`: docs-folder usage guide for future agents; subordinate to this overlay if conflicts appear.
 - `docs/workflows/orca_bootstrap_record.md`: Turn 6 bootstrap record.
-- `docs/workflows/orca_repo_map_v0.md`: compact repo map for source-pack selection and prompt setup.
+- `docs/workflows/forseti_repo_map_v0.md`: compact repo map for source-pack selection and prompt setup.
 - `docs/workflows/data_capture_spine_consolidation_map_v0.md`: retrieval-only entry map for Data Capture Spine and Source Capture Armory navigation; routes to owner sources, no source-access/validation/readiness/implementation authority.
 - `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`: retrieval-only entry map for Judgment Spine navigation; routes to owner sources, no validation/readiness/buyer-proof/scoring/model-execution/judgment-quality authority.
 - `docs/migration/import_queue.md`: read-only import queue state.

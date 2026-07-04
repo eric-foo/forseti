@@ -1,4 +1,4 @@
-﻿# Safety Rules
+# Safety Rules
 
 ```yaml
 retrieval_header_version: 1
@@ -23,7 +23,7 @@ authority_boundary: retrieval_only
   does not authorize global, user-level, plugin, installed, or external workflow
   source mutation.
 - Do not configure remotes or perform destructive cleanup unless explicitly authorized. Commit, push, and pull-request preparation follow the work-unit completion rule in `AGENTS.md`: at the verified completion of a repo-changing work unit on the lane's own branch or worktree they proceed without a typed instruction, owner-gated by the `settings.json` permission prompts; landing to `main` stays human-gated except a guard-verified self-merge of the agent's own PR (every other state fails closed). The guard (`.agents/hooks/guard_protected_actions.py`) is the enforcement; the conditions and policy live in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
-- **Online/external source-data capture routes through the Source Capture Armory Runner Ladder.** Any capture of online or external source data for evidence or learning goes through the armory runners + Mini God-Tier source-quality discipline (the "Runner Ladder"), not ad-hoc web fetches; captures emit inspectable Source Capture Packets that also serve as Capture-lane data. Route via the repo map (`docs/workflows/orca_repo_map_v0.md` -> Data Capture / Source Capture Armory submap) -> `orca-harness/docs/source_capture_agent_runbook.md` + `orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`. Uncaptured scouting/diagnostic web reads (not entered as evidence) are exempt.
+- **Online/external source-data capture routes through the Source Capture Armory Runner Ladder.** Any capture of online or external source data for evidence or learning goes through the armory runners + Mini God-Tier source-quality discipline (the "Runner Ladder"), not ad-hoc web fetches; captures emit inspectable Source Capture Packets that also serve as Capture-lane data. Route via the repo map (`docs/workflows/forseti_repo_map_v0.md` -> Data Capture / Source Capture Armory submap) -> `orca-harness/docs/source_capture_agent_runbook.md` + `orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`. Uncaptured scouting/diagnostic web reads (not entered as evidence) are exempt.
 
 ## Scope Discipline
 
