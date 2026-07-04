@@ -1,9 +1,9 @@
-# Orca Hygiene
+# Forseti Hygiene
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Hygiene queue
-scope: Local rule surface for Orca hygiene queues, cleanup notes, and temporary retained material.
+scope: Local rule surface for Forseti hygiene queues, cleanup notes, and temporary retained material.
 use_when:
   - Deciding whether temporary or parked material belongs in docs/hygiene/.
   - Checking required metadata before retaining, promoting, archiving, or deleting parked material.
@@ -20,7 +20,7 @@ The main queue is `queue.md`. Track temporary or parked material there when it n
 
 ## Boundary
 
-Material tracked here is non-canonical unless a higher Orca authority promotes
+Material tracked here is non-canonical unless a higher Forseti authority promotes
 the exact claim or artifact into an accepted docs folder or overlay file.
 
 Do not cite hygiene material for validation, approval, readiness, product proof,

@@ -1,9 +1,9 @@
-# Orca Hygiene Queue
+# Forseti Hygiene Queue
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Hygiene queue
-scope: Triage queue for parked or temporary Orca docs-first material.
+scope: Triage queue for parked or temporary Forseti docs-first material.
 use_when:
   - Deciding whether parked material should be promoted, moved, archived, or deleted.
   - Checking unresolved docs-first folder or artifact drift.
