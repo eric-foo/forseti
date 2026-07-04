@@ -29,14 +29,14 @@ known_top_level:
     - .githooks
     - docs
     - forseti            # product tree root (forseti/product/); successor to orca/product/ via docs/migration/forseti_product_root_migration_v0/moved_paths_index.md. Per-spine structure is owned by the spine-first binding, not this map.
-    - orca-harness
+    - forseti-harness
   files:
     - .gitattributes
     - .gitignore
     - AGENTS.md
     - CLAUDE.md
     - README.md
-    - renovate.json      # Renovate bot config; repo root is a Renovate-recognized location (same class as .gitignore). Scoped to curl_cffi fingerprint freshness — see renovate.json + orca-harness/youtube_capture/README.md. Declared 2026-06-22.
+    - renovate.json      # Renovate bot config; repo root is a Renovate-recognized location (same class as .gitignore). Scoped to curl_cffi fingerprint freshness — see renovate.json + forseti-harness/youtube_capture/README.md. Declared 2026-06-22.
     - repo-structure.yaml
 
 # docs/ role grammar (bound in artifact-folders.md; listed here for routing only).
@@ -69,12 +69,12 @@ scratch_rules:
     - "pytest_source_observability_runner_tmp"
     - node_modules
 
-# Known pre-move debt the checker tolerates (WARN-only, never strict-fail).
-# Each entry is removed by the change that retires the debt.
+# Internal harness layout the checker tolerates (WARN-only, never strict-fail).
+# The schema key is historical; the live runtime root is Forseti-named.
 legacy_tolerated:
                                       # (single '*' never crosses '/' - lanes
                                       # are evaluated normally)
-  - "orca-harness/**"                 # harness INTERNAL layout is not evaluated
+  - "forseti-harness/**"              # harness INTERNAL layout is not evaluated
                                       # in v0; top-level scratch noise retired by
                                       # the Phase-2 pytest/uv config consolidation
 

@@ -256,7 +256,7 @@ def selftest() -> int:
           classify_added_line("docs/decisions/some_new_note_v0.md",
                               plain + " full-gt-claim-ack: deliberate, reviewed."), None)
     check("non-md is out of scope",
-          classify_added_line("orca-harness/data_lake/catalog.py", plain), None)
+          classify_added_line("forseti-harness/data_lake/catalog.py", plain), None)
     check("case-insensitive FULL GT fires",
           classify_added_line("docs/decisions/x.md", "We are FULL GT everywhere.") is not None,
           True)

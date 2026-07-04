@@ -47,7 +47,7 @@ Validation reports must preserve failure visibility by bucket:
   authorize a broad template sweep, automation, new skill, registry, or
   standalone receipt file.
 - Review-routing disposition gate: a change that touches code roots
-  (`orca-harness/`, `.agents/hooks/`) must carry its review disposition in the
+  (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`
   or `docs/review-outputs/`, or a shape-valid `review_routing_status:` line in
   one of the change's commit messages:
@@ -397,7 +397,7 @@ green run never proves packet content, freshness, or pin truth.
 direction_change_propagation:
   doctrine_changed: >
     Orca validation doctrine adds a review-routing disposition gate: a change
-    touching code roots (orca-harness/, .agents/hooks/) must carry its review
+    touching code roots (forseti-harness/, .agents/hooks/) must carry its review
     disposition -- a review artifact added under docs/prompts/reviews/ or
     docs/review-outputs/ in the same change, or a shape-valid
     review_routing_status line (routed <existing path> | blocked -- <reason> |
@@ -483,7 +483,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/validation-gates.md
     - .agents/hooks/check_handoff_pointers.py
     - .github/workflows/ci.yml
-    - orca-harness/tests/unit/test_hook_internal_error_gating.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
     - docs/decisions/overlay_enforcement_placement_classification_v0.md
     - docs/workflows/orca_repo_map_v0.md
     - .agents/hooks/README.md
