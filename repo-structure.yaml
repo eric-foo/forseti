@@ -1,4 +1,4 @@
-﻿# repo-structure.yaml - Forseti machine structure map (router only; legacy Orca compatibility paths retained).
+# repo-structure.yaml - Forseti machine structure map (router only; legacy Orca compatibility paths retained).
 # Single machine-readable source consumed by .agents/hooks/check_placement.py and
 # by agents for navigation. Placement RULES are owned by
 # .agents/workflow-overlay/artifact-folders.md; the binding and parameters by
@@ -16,7 +16,7 @@ entry_points:
   start_here: AGENTS.md
   docs_readme: docs/README.md
   docs_guide: docs/STRUCTURE.md
-  route_card: docs/workflows/orca_repo_map_v0.md
+  route_card: docs/workflows/forseti_repo_map_v0.md
   product: orca/product/README.md
 
 # Exhaustive allowed top-level entries. Anything else at repo root is unplaced.
@@ -44,7 +44,7 @@ docs_roles:
   - { home: docs/research, entry: docs/research/README.md }
   - { home: docs/review-inputs, entry: docs/review-inputs }
   - { home: docs/review-outputs, entry: docs/review-outputs }
-  - { home: docs/workflows, entry: docs/workflows/orca_repo_map_v0.md }
+  - { home: docs/workflows, entry: docs/workflows/forseti_repo_map_v0.md }
   - { home: docs/migration, entry: docs/migration }
   - { home: docs/hygiene, entry: docs/hygiene/queue.md }
   - { home: docs/_inbox, entry: docs/_inbox/README.md }

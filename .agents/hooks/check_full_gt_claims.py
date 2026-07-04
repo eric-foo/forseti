@@ -67,6 +67,7 @@ ALLOWLIST_EXACT = {
     "orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md",
     "orca/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md",
     "orca/product/spines/data_lake/README.md",
+    "docs/workflows/forseti_repo_map_v0.md",
     "docs/workflows/orca_repo_map_v0.md",
     "docs/decisions/dcp_receipts_archive_v0.md",
 }

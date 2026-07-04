@@ -50,7 +50,7 @@ The right long-term state may still include deeper path/package migration, but i
 | --- | --- |
 | `orca/product/` | Preserve as the accepted product tree until a separately planned moved-path migration exists. |
 | `orca-harness/` | Preserve as the runtime/tooling root. A README label may say "Forseti harness" while noting the legacy path, but the directory remains. |
-| `docs/workflows/orca_repo_map_v0.md` | Preserve as the live repo-map path until a renamed successor is created and every inbound reference/checker expectation is repointed. |
+| `docs/workflows/orca_repo_map_v0.md` | No longer the live repo-map path after the successor migration; retain only as a compatibility pointer to `docs/workflows/forseti_repo_map_v0.md`. |
 | `orca-product-lead` | Preserve as the accepted/frozen compatibility skill command/path until a skill migration explicitly handles source copy, deployment copy, invocation, collision, and rollback. |
 | `orca_start_preflight` | Preserve as a legacy alias. New live prompts and reports prefer `forseti_start_preflight`. |
 | `orca-harness-tests` | Preserve unless branch protection, auto-merge, and CI dependency impacts are checked and accepted. |

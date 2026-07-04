@@ -373,7 +373,7 @@ def selftest() -> int:
               "- `docs/prompts/handoffs/consume_capture_corpus_v0.md`"),
           ["docs/prompts/handoffs/consume_capture_corpus_v0.md"])
     check("non-handoff workflows file not matched",
-          extract_handoff_pointers("see docs/workflows/orca_repo_map_v0.md"),
+          extract_handoff_pointers("see docs/workflows/forseti_repo_map_v0.md"),
           [])
     check("hygiene handoff out of scope",
           extract_handoff_pointers("docs/hygiene/foo_handoff_v0.md"),

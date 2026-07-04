@@ -1,4 +1,4 @@
-﻿# Forseti
+# Forseti
 
 Forseti is separate from `jb` and does not inherit `jb` project assumptions, lifecycle rules, validation rules, product policy, or artifact authority.
 
@@ -18,5 +18,5 @@ Explicitly invoked or resolver-loaded skills may provide task-local mechanics on
 
 - Product/domain purpose: outside-in strategic intelligence for public market signals and evidence-backed allocation decisions.
 - Legacy project name: Orca.
-- Compatibility paths such as `orca/product/`, `orca-harness/`, and `docs/workflows/orca_repo_map_v0.md` remain live until explicit compatibility migration.
+- Compatibility paths such as `orca/product/` and `orca-harness/` remain live until explicit compatibility migration; `docs/workflows/orca_repo_map_v0.md` is a legacy pointer to the live `docs/workflows/forseti_repo_map_v0.md` map.
 - Implementation remains bounded by current-turn or accepted-decision authorization.

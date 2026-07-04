@@ -50,7 +50,7 @@ import os
 CONFIG_SURFACE = ("CLAUDE.md", "AGENTS.md", ".claude", ".agents")
 
 ENTRY_POINTERS = (
-    "docs/workflows/orca_repo_map_v0.md",
+    "docs/workflows/forseti_repo_map_v0.md",
     ".agents/workflow-overlay/README.md",
 )
 
