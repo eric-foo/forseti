@@ -280,6 +280,25 @@ def test_known_other_lane_surface_is_acked_out_of_scope(tmp_path: Path) -> None:
     assert _run(root) == []
 
 
+def test_yt_probe_surfaces_are_acked_out_of_scope(tmp_path: Path) -> None:
+    # The 2026-07-04 live census found these two probe surfaces pending as
+    # unsupported_surface; their manifests declare "media bytes out of scope",
+    # so they are gated out like the other known non-audio YT surfaces.
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    pids = [
+        _commit_audio_packet(root, tmp_path, surface=surface)
+        for surface in ("yt_shorts_channel_grid_probe_v0", "yt_channel_rss_feed_probe_v0")
+    ]
+
+    results = _run(root)
+
+    assert [entry["status"] for entry in results] == ["acked_no_transcribable_audio"] * 2
+    for pid in pids:
+        (ack,) = _acks(root, pid)
+        assert ack["evidence"][0]["kind"] == "no_transcribable_audio_for_surface"
+    assert _run(root) == []
+
+
 def test_out_of_scope_policy_change_re_surfaces_previous_ack(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
