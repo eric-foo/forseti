@@ -194,9 +194,10 @@ _ATTACHMENT_RECORD_ENTRY_KEYS = [
 ]
 
 
-@pytest.fixture(scope="module")
-def fixture_packet(tmp_path_factory: pytest.TempPathFactory):
-    tmp = tmp_path_factory.mktemp("core-field-gate")
+@pytest.fixture
+def fixture_packet(tmp_path: Path):
+    tmp = tmp_path / "core-field-gate"
+    tmp.mkdir()
     src = tmp / "body.json"
     src.write_text(json.dumps({"b": 1}, sort_keys=True), encoding="utf-8")
     root = DataLakeRoot.for_test(tmp / "lake")
