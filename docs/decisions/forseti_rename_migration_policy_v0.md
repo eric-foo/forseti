@@ -124,7 +124,6 @@ direction_change_propagation:
     - CLAUDE.md
     - docs/workflows/orca_repo_map_v0.md
     - repo-structure.yaml
-    - repo-structure.yaml
   intentionally_not_updated:
     - path: historical DCP receipt bodies
       reason: >
