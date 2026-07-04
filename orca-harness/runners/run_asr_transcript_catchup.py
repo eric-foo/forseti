@@ -383,7 +383,10 @@ def run_catchup(
                         )
                     continue
                 derived = transcribe_committed(
-                    data_root, packet_id=packet_id, transcribe_fn=transcribe_fn
+                    data_root,
+                    packet_id=packet_id,
+                    transcribe_fn=transcribe_fn,
+                    expected_model=transcriber_policy.get("model"),
                 )
             except Exception as exc:  # noqa: BLE001 - per-packet failure isolation (daemon-ready)
                 results.append(
@@ -402,6 +405,18 @@ def run_catchup(
                         "packet_id": packet_id,
                         "status": "derive_failed",
                         "error": f"transcriber failed: {derived.get('failure')}",
+                    }
+                )
+                continue
+            if derived["record_id"] != record_id:
+                results.append(
+                    {
+                        "packet_id": packet_id,
+                        "status": "derive_failed",
+                        "error": (
+                            "transcriber model mismatch: "
+                            f"expected {record_id}, got {derived['record_id']}"
+                        )[:200],
                     }
                 )
                 continue

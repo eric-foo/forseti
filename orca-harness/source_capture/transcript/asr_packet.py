@@ -128,11 +128,26 @@ def _append_transcript_record(
     return record_id, rel
 
 
+def _policy_model_mismatch(expected_model: object | None, actual_model: object, audio_sha: str) -> str | None:
+    if expected_model is None:
+        return None
+    expected_record_id = asr_record_id(expected_model, audio_sha)
+    actual_record_id = asr_record_id(actual_model, audio_sha)
+    if actual_record_id == expected_record_id:
+        return None
+    return (
+        "transcriber model mismatch: "
+        f"policy model {expected_model!r} would write {expected_record_id}, "
+        f"but transcriber reported {actual_model!r} ({actual_record_id})"
+    )
+
+
 def transcribe_committed_audio_packet(
     data_root,
     *,
     packet_id: str,
     transcribe_fn: TranscribeFn,
+    expected_model: object | None = None,
     now_iso: str | None = None,
 ) -> dict:
     """Derive the transcript_asr record for an ALREADY COMMITTED YouTube audio packet
@@ -178,6 +193,9 @@ def transcribe_committed_audio_packet(
             "posture": "failed",
             "failure": str(model_info.get("failure_message") or "transcriber failed")[:200],
         }
+    mismatch = _policy_model_mismatch(expected_model, model_info.get("model", "asr"), audio_entry["sha256"])
+    if mismatch:
+        return {"posture": "failed", "failure": mismatch[:200]}
     record_id, rel = _append_transcript_record(
         data_root,
         audio_packet_id=packet_id,

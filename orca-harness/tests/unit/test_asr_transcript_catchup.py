@@ -47,6 +47,14 @@ def _fake_fail(_audio_path: str):
     return ("failed", [], {"tool": "faster-whisper", "model": "small", "failure_message": "model missing"})
 
 
+def _fake_mismatched_model(_audio_path: str):
+    return (
+        "transcribed",
+        [{"start_ms": 0, "end_ms": 900, "text": "synthetic cue"}],
+        {"tool": "faster-whisper", "model": "large", "compute_type": "int8"},
+    )
+
+
 def _commit_audio_packet(
     root: DataLakeRoot,
     tmp_path: Path,
@@ -163,6 +171,37 @@ def test_failed_transcription_writes_no_record_and_re_surfaces(tmp_path: Path) -
 
     recovered = _run(root, fn=_fake_ok)
     assert [entry["status"] for entry in recovered] == ["derived"]
+    assert len(_acks(root, pid)) == 1
+
+
+@pytest.mark.parametrize(
+    ("family", "surface", "ident_key", "ident"),
+    (
+        ("youtube", "youtube_audio", "platform_video_id", _YT_VIDEO_ID),
+        ("instagram_creator", "ig_reels_audio", "platform_shortcode", _IG_SHORTCODE),
+    ),
+)
+def test_transcriber_policy_model_mismatch_writes_no_record_and_re_surfaces(
+    tmp_path: Path, family: str, surface: str, ident_key: str, ident: str
+) -> None:
+    # The obligation is fingerprinted with the CLI policy model. If the injected
+    # transcriber reports a different model, the runner must not write a record
+    # or ack the packet under the wrong policy.
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    pid = _commit_audio_packet(
+        root, tmp_path, family=family, surface=surface, ident_key=ident_key, ident=ident
+    )
+
+    first = _run(root, fn=_fake_mismatched_model)
+
+    assert [entry["status"] for entry in first] == ["derive_failed"]
+    assert "transcriber model mismatch" in first[0]["error"]
+    assert not _transcript_dir(root, pid).is_dir()
+    assert _acks(root, pid) == []
+
+    recovered = _run(root, fn=_fake_ok)
+    assert [entry["status"] for entry in recovered] == ["derived"]
+    assert recovered[0]["record_id"].startswith("asr_small__")
     assert len(_acks(root, pid)) == 1
 
 
