@@ -7,7 +7,7 @@ required here and (in the extractor) verified as a real transcript substring (CE
 the LLM emits signed evidence + a creator-stated rating but NEVER its own verdict
 (CE4/CE10). A ProductMention carries no verdict field by construction.
 
-Spec: orca/product/spines/capture/core/source_families/social_media/youtube/
+Spec: forseti/product/spines/capture/core/source_families/social_media/youtube/
 youtube_transcript_product_extraction_spec_v0.md (CE1-CE10 / D1-D8).
 """
 
@@ -158,7 +158,7 @@ class ProductVerdict(ProductMentionModel):
     evidence-cited. Produced by ``scoring/product_fusion.py`` from the creator's
     ``ProductMention``s. Carries NO engagement/resonance signal: engagement interpretation
     is the Judgment-owned Engagement Logic Registry's domain
-    (``orca/product/shared/engagement_registry/engagement_logic_registry_v0.md``), never this
+    (``forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md``), never this
     fusion. The verdict answers only "what the creator said about this product."
     """
 

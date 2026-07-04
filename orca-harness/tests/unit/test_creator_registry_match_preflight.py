@@ -14,7 +14,7 @@ from runners.run_creator_registry_match_preflight import main as preflight_main
 ROOT = Path(__file__).resolve().parents[3]
 REGISTRY_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

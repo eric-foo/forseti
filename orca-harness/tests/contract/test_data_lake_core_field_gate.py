@@ -1,7 +1,7 @@
 """No-new-core-field enforcement gate (fail-capable).
 
 Enforces the No-New-Core-Field Enforcement section of
-`orca/product/spines/data_lake/authority/core_spine_v0_data_lake_write_boundary_enforcement_contract_v0.md`:
+`forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_write_boundary_enforcement_contract_v0.md`:
 a deterministic gate rejects new direct source-family payload fields on
 `SourceCapturePacket`, `SourceCaptureSlice`, or lake-core manifest/index
 structures unless a later owner decision cites a cross-family promotion rule.

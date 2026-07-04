@@ -39,7 +39,7 @@ from data_lake.root import DataLakeRoot, DataLakeRootError
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ACCOUNT_LEDGER = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

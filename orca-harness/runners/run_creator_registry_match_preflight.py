@@ -19,7 +19,7 @@ from capture_spine.creator_profile_current.registry_match_preflight import (
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_REGISTRY = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
