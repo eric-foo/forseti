@@ -146,6 +146,37 @@ Examples:
 - A dashboard should consume `creator_profile_current` and source drill-back; it
   should not mutate identity, metric, or linkage records.
 
+## Additive Upgrade Intake
+
+Before a future Creator Ledger capability change is treated as ready to build,
+route, or hand off, record a compact additive-upgrade intake in the changed
+artifact, checkpoint, PR body, or handoff. The intake is lightweight, but it must
+force the migration-stability question before data shape changes start.
+
+A sufficient intake answers:
+
+- efficacy target: which primary efficacy test the change improves;
+- owning layer: registry index, linkage ledger, metric observation/rollup,
+  current read model, or Creator Signal surface;
+- additive record path: the field, sibling record, resolver output, generated
+  view, or presentation rule to add;
+- stable-id posture: which existing ids remain untouched and which new ids, if
+  any, are introduced;
+- source and lineage posture: where source truth stays and how drill-back or
+  recipe/version fields remain visible;
+- missingness posture: which unavailable, gated, out-of-window, or not-attempted
+  values remain explicit;
+- proof checkpoint: the smallest later checkpoint that would show efficacy
+  without claiming validation or readiness; and
+- forbidden move check: whether the proposed route rewrites historical rows,
+  promotes `creator_profile_current` into source truth, or collapses sibling
+  records into a convenience blob.
+
+If the forbidden move check is not clean, do not proceed by normalizing the risk
+away. Either choose an additive sibling/resolver/view route, or write the
+exception explicitly with the old record that is wrong, forbidden, or unable to
+preserve source truth through a versioned adapter.
+
 ## Efficacy-First God Tier Lens
 
 For the Creator Ledger, "God Tier" should mean operational efficacy before audit
@@ -253,7 +284,8 @@ direction_change_propagation:
   doctrine_changed: >
     Creator Ledger evolution is now bound to a migration-stable additive model:
     preserve stable sibling records and generated views, add future capability
-    by fields/layers/resolvers instead of remigrating data, and judge God Tier
+    by fields/layers/resolvers instead of remigrating data, require a compact
+    additive-upgrade intake before future capability changes, and judge God Tier
     progress primarily by operational efficacy rather than audit completeness.
   trigger: architecture_doctrine
   related_triggers:
@@ -295,7 +327,7 @@ direction_change_propagation:
         residual is superseded by the current usage note and checker reviews,
         but changing the scan record is not required to bind ledger evolution.
   stale_language_search: >
-    rg -n "creator ledger|Creator Ledger|God Tier|Mini God Tier|mini god tier|remigration|remigrate|migration-stable|audit completeness|efficacy"
+    rg -n "creator ledger|Creator Ledger|God Tier|Mini God Tier|mini god tier|remigration|remigrate|migration-stable|additive-upgrade|upgrade intake|audit completeness|efficacy"
     AGENTS.md
     .agents/workflow-overlay
     docs/workflows/forseti_repo_map_v0.md
