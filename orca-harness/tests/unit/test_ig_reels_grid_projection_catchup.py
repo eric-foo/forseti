@@ -15,6 +15,10 @@ from pathlib import Path
 
 import pytest
 
+from capture_spine.creator_profile_current.instagram_metric_seed import (
+    build_instagram_reels_creator_metric_seed_from_files,
+    discover_instagram_reels_projection_paths_from_lake,
+)
 import runners.run_ig_reels_grid_projection_catchup as catchup
 from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot, raw_shard
@@ -41,6 +45,19 @@ CAPTURE_TIME = "2026-06-22T20:48:29Z"
 HANDLE = "syntheticcreator"
 FINAL_URL = f"https://www.instagram.com/{HANDLE}/reels/"
 SHORTCODE = "DZsynth0001"
+
+
+def _account_ledger() -> dict[str, object]:
+    return {
+        "platform_accounts": [
+            {
+                "platform_account_id": "acct_ig_synthetic_001",
+                "platform": "instagram",
+                "public_handle": HANDLE,
+                "public_profile_url": f"https://www.instagram.com/{HANDLE}/",
+            }
+        ]
+    }
 
 
 def _capture_payload() -> dict[str, object]:
@@ -210,6 +227,52 @@ def test_check_mode_counts_pending_without_writing(tmp_path: Path) -> None:
     assert catchup.pending_packets(data_root=root) == []
 
 
+def test_catchup_record_wins_consumer_tie_break_against_stale_catalog_sibling(
+    tmp_path: Path,
+) -> None:
+    # The real creator-metric seed tie-breaks equal row-count/capture-time
+    # projections by lexical path. A stale bronze_catalog sibling must not beat
+    # the catch-up record the seam just wrote.
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    pid = _commit_packet(root, tmp_path)
+    (result,) = catchup.run_catchup(data_root=root)
+    catchup_path = _derived_lane_dir(root, pid) / result["derived_record_id"]
+    assert catchup_path.name.startswith(catchup._CATCHUP_RECORD_ID_PREFIX)
+
+    stale_projection = json.loads(catchup_path.read_text(encoding="utf-8"))
+    for row in stale_projection["rows"]:
+        if row.get("content_shortcode") == SHORTCODE and row.get("metric") == "view_count":
+            row["value"] = 9999
+            break
+    else:  # pragma: no cover - fixture guard
+        raise AssertionError("fixture projection did not contain the reel view_count row")
+    stale_path = root.append_record(
+        subtree="derived",
+        raw_anchor=pid,
+        lane=PROJECTION_IG_REELS_GRID_LANE,
+        record_id="bronze_catalog_ig_reels_grid_v0_stale.json",
+        data=(json.dumps(stale_projection, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+    )
+
+    paths = discover_instagram_reels_projection_paths_from_lake(root)
+    assert catchup_path in paths
+    assert stale_path in paths
+    document = build_instagram_reels_creator_metric_seed_from_files(
+        projection_paths=paths,
+        account_ledger=_account_ledger(),
+        generated_at_utc="2026-06-22T21:00:00Z",
+    )
+    seed = document["instagram_reels_creator_metric_seed"]
+
+    assert seed["source_inputs"][0]["source_pointer"] == str(catchup_path)
+    view_rows = [
+        item
+        for item in seed["metric_observations"]
+        if item["content_id_or_none"] == SHORTCODE and item["metric_name"] == "view_count"
+    ]
+    assert [item["metric_value_or_none"] for item in view_rows] == [1200]
+
+
 def test_derive_failure_is_loud_isolated_and_never_acked(tmp_path: Path) -> None:
     # S4+S5: a packet whose preserved capture file no longer matches its manifest
     # hash fails its verified read; the failure is a visible status, the packet
@@ -260,6 +323,23 @@ def test_unsupported_surface_is_visible_and_never_acked(tmp_path: Path) -> None:
         assert [entry["status"] for entry in results] == ["unsupported_surface"]
         assert results[0]["source_surface"] == "mystery_future_surface"
     assert _acks(root, pid) == []
+
+
+def test_out_of_scope_surface_policy_change_re_surfaces_previous_ack(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    pid = _commit_packet(root, tmp_path, source_surface="ig_reels_audio")
+    assert [entry["status"] for entry in catchup.run_catchup(data_root=root)] == [
+        "acked_no_projectable_content"
+    ]
+
+    monkeypatch.setattr(catchup, "_KNOWN_OUT_OF_SCOPE_SURFACES", frozenset())
+    second = catchup.run_catchup(data_root=root)
+
+    assert [entry["status"] for entry in second] == ["unsupported_surface"]
+    assert second[0]["source_surface"] == "ig_reels_audio"
+    assert len(_acks(root, pid)) == 1
 
 
 def test_reconcile_failure_is_per_packet_and_healthy_packets_proceed(tmp_path: Path) -> None:

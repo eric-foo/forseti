@@ -61,6 +61,7 @@ from data_lake.consumption import (
     reconcile_availability_per_packet,
 )
 from data_lake.root import DataLakeRootError
+from harness_utils import generate_ulid
 from source_capture.ig_reels_grid_projection import (
     IG_REELS_PROJECTION_CERTIFICATION,
     IG_REELS_PROJECTION_METHOD,
@@ -81,6 +82,11 @@ _ACK_NAMESPACE = PROJECTION_IG_REELS_GRID_LANE
 _SEAM_CONSUMER = "ig_reels_grid_projection_catchup"
 _SOURCE_FAMILY = "instagram_creator"
 _IN_SCOPE_SURFACE = "ig_reels_grid_dom_passive_json"
+# The downstream creator-metric seed breaks equal row-count/capture-time ties by
+# lexical projection path. Keep catch-up records lexically after the catalog proof
+# path's ``bronze_catalog...`` stable ids so a policy-bump re-derivation is not
+# hidden behind an older sibling.
+_CATCHUP_RECORD_ID_PREFIX = "zz_ig_reels_grid_projection_catchup_v0"
 # Shared-family surfaces owned by OTHER lanes (transcript/ASR audio, deep-capture
 # audio, calls/momentum). Their packets carry no grid-projectable content; they are
 # acknowledged out-of-scope (module doc) and stay available to their own lanes.
@@ -103,6 +109,10 @@ def _packet_obligation() -> dict:
     return {
         "obligation_schema": 1,
         "consumer": _SEAM_CONSUMER,
+        "source_family": _SOURCE_FAMILY,
+        "in_scope_surface": _IN_SCOPE_SURFACE,
+        "known_out_of_scope_surfaces": sorted(_KNOWN_OUT_OF_SCOPE_SURFACES),
+        "catchup_record_id_prefix": _CATCHUP_RECORD_ID_PREFIX,
         "projection_method": IG_REELS_PROJECTION_METHOD,
         "projection_version": IG_REELS_PROJECTION_VERSION,
         "projection_certification": IG_REELS_PROJECTION_CERTIFICATION,
@@ -142,6 +152,10 @@ def _ack_packet(data_root, item: PickupItem, evidence: list[dict]) -> str:
             return "acked"
         return f"ack_failed: {type(exc).__name__}: {exc}"[:200]
     return "acked"
+
+
+def _catchup_record_id() -> str:
+    return f"{_CATCHUP_RECORD_ID_PREFIX}_{generate_ulid()}"
 
 
 def pending_packets(*, data_root) -> list[str]:
@@ -240,7 +254,7 @@ def run_catchup(*, data_root) -> list[dict]:
             continue
         try:
             projection, derived_path = project_ig_reels_grid_into_lake(
-                data_root=data_root, packet_id=packet_id
+                data_root=data_root, packet_id=packet_id, record_id=_catchup_record_id()
             )
         except Exception as exc:  # noqa: BLE001 - per-packet failure isolation (daemon-ready)
             results.append(
