@@ -391,7 +391,7 @@ creator_registry_match_preflight:
   required_when: new_social_creator_account_capture | not_applicable
   receipt_path: null_or_path
   intended_action: new_capture | classify | update_existing | not_applicable
-  row_decision: existing_match | new_candidate | ambiguous_match | invalid_candidate | not_applicable
+  decision: existing_match | new_candidate | ambiguous_match | invalid_candidate | not_applicable
   action_status: allowed | blocked | not_applicable
   can_start_new_capture: true | false | not_applicable
 screening_evidence_summary:

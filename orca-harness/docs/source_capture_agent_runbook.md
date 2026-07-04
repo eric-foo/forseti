@@ -683,12 +683,12 @@ source_capture_agent_report:
   authenticated_browser_caveat: <if authenticated browser packet, session mode/state label reported but no state contents or login-wall absence proof; otherwise none>
   visible_stop_if_any: <missing input, access failure, browser-needed, no packet, or none>
   creator_registry_match_preflight:
-    required_when: <new social creator/account capture; otherwise omit>
-    receipt_path: <path to preflight receipt JSON>
-    intended_action: <new_capture|classify|update_existing>
-    row_decision: <existing_match|new_candidate|ambiguous_match|invalid_candidate>
-    action_status: <allowed|blocked>
-    can_start_new_capture: <true|false; must be true before starting new_capture>
+    required_when: <new_social_creator_account_capture if this capture request is a new social creator/account capture, otherwise not_applicable; never omit this block>
+    receipt_path: <path to preflight receipt JSON, or not_applicable>
+    intended_action: <new_capture|classify|update_existing|not_applicable>
+    decision: <existing_match|new_candidate|ambiguous_match|invalid_candidate|not_applicable>
+    action_status: <allowed|blocked|not_applicable>
+    can_start_new_capture: <true|false|not_applicable; must be true before starting new_capture>
   non_claims:
     - <receipt non-claim or none>
   mini_god_tier_source_quality_report:
