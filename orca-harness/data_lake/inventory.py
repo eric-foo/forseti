@@ -353,6 +353,112 @@ PACKET_INDEX_CALLS = {
 
 A2_FORK_IMPACT_VALUES = ("manifest_shape", "packet_index", "none")
 
+# --- silver/derived reader selection postures (V3: consumer-enumerated) ---------
+# Every production file that walks derived lanes (detected via its `lane_dir`
+# touchpoint, or hand-declared below when its walk is indirect/path-based and
+# invisible to call detection) must declare HOW it selects among sibling records.
+# The reader gate (tests/contract/test_silver_reader_selection_gate.py) keeps this
+# registry exact, so a NEW reader cannot appear without declaring its posture.
+# Postures classify observed behavior; they are not correctness verdicts.
+
+SILVER_READER_POSTURES = (
+    "selection_rule",       # binds a defined, tested sibling-selection rule
+    "set_marker_pinned",    # reads exact record ids via completion markers
+    "all_siblings",         # consumes every committed record, with a stated reason
+    "fail_closed_singleton",  # requires exactly one record, raises otherwise
+    "infrastructure",       # seam/index machinery, not a data consumer
+)
+
+# detection: "lane_dir" entries are enforced against the mechanical touchpoint
+# census; "declared_free_walk" entries are hand-declared readers whose walks are
+# path-based or indirect (getattr) and thus invisible to call detection --
+# mechanical free-walk detection is a NAMED residual, not silently claimed.
+SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
+    "capture_spine/creator_profile_current/silver_metric_reader.py": {
+        "detection": "lane_dir",
+        "posture": "selection_rule",
+        "reason": "select_latest_rollup_per_account: run-order primary, fail-closed on computed_at regression and unorderable ties (AR-04)",
+    },
+    "data_lake/consumption.py": {
+        "detection": "lane_dir",
+        "posture": "infrastructure",
+        "reason": "ack-lane seam reader; reads every ack by contract, not a data consumer",
+    },
+    "data_lake/derived_retrieval_views.py": {
+        "detection": "lane_dir",
+        "posture": "all_siblings",
+        "reason": "rebuildable inspection views only, never pickup authority; residuals disclosed per record",
+    },
+    "data_lake/sov_readout.py": {
+        "detection": "lane_dir",
+        "posture": "all_siblings",
+        "reason": "counts every source-backed mentions record; policy re-derivation double-count is a flagged unit (c) design input, recorded not adjudicated",
+    },
+    "runners/run_capture_ecr_cleaning_smoke.py": {
+        "detection": "lane_dir",
+        "posture": "fail_closed_singleton",
+        "reason": "exactly one transcribed transcript_asr record per anchor or raise",
+    },
+    "runners/run_sov_extraction_quality_eval.py": {
+        "detection": "lane_dir",
+        "posture": "all_siblings",
+        "reason": "quality eval over the full committed record population by design",
+    },
+    "runners/run_transcript_product_extract.py": {
+        "detection": "lane_dir",
+        "posture": "all_siblings",
+        "reason": "consumes each transcript_asr record with exact record_id+sha256 receipts; obligation fingerprints re-trigger on record change",
+    },
+    "source_capture/ig_reels_behavioral_lake.py": {
+        "detection": "lane_dir",
+        "posture": "set_marker_pinned",
+        "reason": "deep-capture lanes read pinned record ids via set markers; ASR/mentions inputs accumulated all-siblings with explicit status labels",
+    },
+    "youtube_capture/behavioral_projection.py": {
+        "detection": "lane_dir",
+        "posture": "all_siblings",
+        "reason": "labels each transcript_asr record with set-completeness status; duplicate anchors flagged, not silently merged",
+    },
+    "capture_spine/creator_profile_current/instagram_metric_seed.py": {
+        "detection": "declared_free_walk",
+        "posture": "selection_rule",
+        "reason": "path-based derived-tree discovery (sha-deduped) feeding data_lake.sibling_selection fail-closed per-username selection",
+    },
+    "runners/run_ig_reels_product_extract.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "indirect lane_dir via getattr + path-based deep-capture walk; records consumed with set-completion checks",
+    },
+}
+
+
+def silver_reader_posture_problems(entry: object) -> list[str]:
+    """Shape problems for one reader-posture declaration (empty = shape-valid)."""
+    if not isinstance(entry, dict):
+        return ["reader posture must be an object with detection/posture/reason"]
+    problems: list[str] = []
+    if entry.get("detection") not in ("lane_dir", "declared_free_walk"):
+        problems.append(f"invalid detection {entry.get('detection')!r}")
+    if entry.get("posture") not in SILVER_READER_POSTURES:
+        problems.append(
+            f"invalid posture {entry.get('posture')!r} (expected one of {SILVER_READER_POSTURES})"
+        )
+    reason = entry.get("reason")
+    if not isinstance(reason, str) or not reason.strip():
+        problems.append("reader posture requires a non-empty reason")
+    return problems
+
+
+def lane_dir_reader_files() -> set[str]:
+    """Production files with a `lane_dir` touchpoint, from the same tracked-source
+    discovery that feeds the touchpoint counter gate."""
+    return {
+        file_path
+        for (file_path, call_name) in non_raw_lake_touchpoints()
+        if call_name == "lane_dir"
+    }
+
+
 STRUCTURAL_EXCLUSIONS: tuple[dict[str, str], ...] = (
     {
         "target": "orca-harness/tests/**",
