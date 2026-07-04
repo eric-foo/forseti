@@ -68,7 +68,7 @@ hierarchy.
 | ECR spine orientation | `docs/workflows/ecr_spine_submap_v0.md` | Delegated submap for the ECR spine. |
 | Data Capture spine orientation | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Delegated Data Capture submap. |
 | Source-capture access routes / anti-blocking playbook | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | Armory index over the tested per-source capture routes. |
-| Known source capture-to-lake route (TikTok, YouTube, Instagram, Reddit, fragrance-native database, Retail/PDP) | `forseti/product/spines/capture/core/source_families/README.md` | Source-family lane catalog routes from the generic playbook/Armory into the owning family index and onward to runners/projection/lake/cleaning seams without duplicating lake doctrine. |
+| Known source capture-to-lake route (TikTok, YouTube, Instagram, Reddit, fragrance-native database, Retail/PDP, vendor pricing page) | `forseti/product/spines/capture/core/source_families/README.md` | Source-family lane catalog routes from the generic playbook/Armory into the owning family index and onward to runners/projection/lake/cleaning seams without duplicating lake doctrine. |
 
 ## Active Hooks (IMPORTANT)
 

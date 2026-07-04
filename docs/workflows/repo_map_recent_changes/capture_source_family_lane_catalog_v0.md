@@ -27,8 +27,10 @@ The source-capture front door now has a two-step cold route:
    the family README, runner, projection, Data Lake, ECR, and Cleaning seams.
 
 The repo map and Data Capture submap point to the catalog for known-source
-capture-to-lake questions. Data Lake, ECR, and Cleaning contracts remain in
-their owning spines; the catalog is routing-only.
+capture-to-lake questions. The catalog now includes the `vendor_pricing_page`
+lane index and surfaces the Instagram/YouTube audience post-text Cleaning seam
+inside those owning source-family maps. Data Lake, ECR, and Cleaning contracts
+remain in their owning spines; the catalog is routing-only.
 
 Non-claims: not validation, readiness, source-access permission, lake authority,
 ECR/Cleaning authority, runtime authorization, Judgment, or buyer proof.

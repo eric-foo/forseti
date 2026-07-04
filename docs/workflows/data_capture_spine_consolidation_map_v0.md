@@ -44,6 +44,7 @@ stale_if:
 | Start known-source capture-to-lake lane routing | `forseti/product/spines/capture/core/source_families/README.md` |
 | Check fragrance-native database capture routes (Fragrantica/Parfumo/Basenotes) | `forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md` |
 | Check Retail/PDP source-family route map | `forseti/product/spines/capture/core/source_families/retail_pdp/README.md` |
+| Check vendor pricing-page source-family route map | `forseti/product/spines/capture/core/source_families/vendor_pricing_page/README.md` |
 | Check Instagram public creator/reels capture route map | `forseti/product/spines/capture/core/source_families/social_media/instagram/README.md` |
 | Check TikTok public/sessioned capture, admission, and projection route map | `forseti/product/spines/capture/core/source_families/social_media/tiktok/README.md` |
 | Check YouTube public watch/Shorts/transcript capture route map | `forseti/product/spines/capture/core/source_families/social_media/youtube/README.md` |
