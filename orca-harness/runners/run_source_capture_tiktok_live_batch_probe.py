@@ -2,9 +2,14 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import sys
 from pathlib import Path
 
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from source_capture.auth_state import AuthenticatedSessionMode
+from source_capture.source_access_provenance import HarnessProxyProfilePosture
 from source_capture.tiktok.admission import COMPLETE_LANE_NOTE
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
 from source_capture.tiktok.live_batch_probe import write_tiktok_live_batch_probe_outputs
@@ -78,6 +83,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Browser backend for rendered page observation; cloakbrowser owns its Chromium binary.",
     )
     parser.add_argument(
+        "--require-harness-proxy-posture",
+        choices=[
+            HarnessProxyProfilePosture.NO_PROXY_PROFILE_LOADED.value,
+            HarnessProxyProfilePosture.PROXY_PROFILE_LOADED.value,
+        ],
+        default=None,
+        help=(
+            "Require the auth-state provenance sidecar to attest the Source Capture "
+            "harness proxy-profile posture before opening TikTok. This is not a "
+            "full-network no-proxy egress proof."
+        ),
+    )
+    parser.add_argument(
         "--cloakbrowser-humanize",
         action="store_true",
         help="Enable CloakBrowser humanized pointer/keyboard timing when using the cloakbrowser backend.",
@@ -139,11 +157,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.logged_out:
         if args.state_label is not None or args.session_mode is not None:
             parser.error("--logged-out cannot be combined with --state-label or --session-mode")
+        if args.require_harness_proxy_posture is not None:
+            parser.error("--require-harness-proxy-posture requires sessioned mode with --state-label")
         session_mode = None
     else:
         if args.state_label is None or args.session_mode is None:
             parser.error("sessioned mode requires --state-label and --session-mode; use --logged-out for public logged-out capture")
         session_mode = AuthenticatedSessionMode(args.session_mode)
+    required_harness_proxy_profile_posture = (
+        HarnessProxyProfilePosture(args.require_harness_proxy_posture)
+        if args.require_harness_proxy_posture is not None
+        else None
+    )
     paths = write_tiktok_live_batch_probe_outputs(
         creator_handle=args.creator_handle,
         creator_profile_url=args.creator_profile_url,
@@ -161,6 +186,7 @@ def main(argv: list[str] | None = None) -> int:
         selector_timeout_seconds=args.selector_timeout_seconds,
         browser_channel=args.browser_channel,
         browser_backend=args.browser_backend,
+        required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
         cloakbrowser_humanize=cloakbrowser_humanize,
         human_challenge_handoff=args.human_challenge_handoff,
         human_challenge_handoff_timeout_seconds=args.human_challenge_handoff_timeout_seconds,

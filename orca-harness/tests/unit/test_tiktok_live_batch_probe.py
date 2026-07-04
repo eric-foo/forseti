@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -782,6 +783,15 @@ def test_live_probe_threads_cloakbrowser_and_human_handoff_options(
     assert contract["challenge_close_followthrough_allowed"] is True
 
 
+
+def test_live_probe_runner_required_proxy_posture_choices_exclude_unknown() -> None:
+    parser = runner.build_parser()
+    action = next(
+        item for item in parser._actions if item.dest == "require_harness_proxy_posture"
+    )
+    assert action.choices == ["no_proxy_profile_loaded", "proxy_profile_loaded"]
+
+
 def test_live_probe_runner_rejects_human_handoff_without_followthrough(tmp_path: Path) -> None:
     try:
         runner.main(
@@ -871,6 +881,105 @@ def test_live_probe_rejects_cloakbrowser_humanize_without_cloakbrowser_backend(
         assert "cloakbrowser_humanize requires browser_backend='cloakbrowser'" in str(exc)
     else:
         raise AssertionError("cloakbrowser humanize was accepted without cloakbrowser backend")
+
+
+
+def test_live_probe_required_harness_proxy_posture_rejects_legacy_auth_state_before_browser(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    engine = _FakeObservationEngine(outcomes=[])
+
+    try:
+        write_tiktok_live_batch_probe_outputs(
+            creator_handle="funmi",
+            creator_profile_url="https://www.tiktok.com/@funmi",
+            video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+            state_label="test-session",
+            session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+            auth_state_root=auth_root,
+            output_dir=tmp_path / "out",
+            required_harness_proxy_profile_posture="no_proxy_profile_loaded",
+            engine=engine,
+            sleep_fn=lambda _seconds: None,
+        )
+    except ValueError as exc:
+        assert "source-access provenance is missing or legacy-only" in str(exc)
+    else:
+        raise AssertionError("legacy auth-state satisfied required provenance")
+
+    assert engine.calls == []
+
+
+def test_live_probe_required_harness_proxy_posture_allows_matching_auth_state_provenance(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state_with_provenance(
+        tmp_path,
+        harness_proxy_profile_posture="no_proxy_profile_loaded",
+        proxy_category="none",
+    )
+    engine = _FakeObservationEngine(
+        outcomes=[
+            _success_observation(
+                video_id="7390000000000000001",
+                response=_comment_response(video_id="7390000000000000001"),
+                subtitle_url="https://v16.tiktokcdn.com/subtitle.webvtt",
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        required_harness_proxy_profile_posture="no_proxy_profile_loaded",
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda _url: b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n",
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert engine.calls[0]["storage_state_path"] == auth_root / "test-session.json"
+    assert (
+        cadence["capture_contract"]["required_harness_proxy_profile_posture"]
+        == "no_proxy_profile_loaded"
+    )
+
+
+def test_live_probe_required_harness_proxy_posture_rejects_mismatched_posture_before_browser(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state_with_provenance(
+        tmp_path,
+        harness_proxy_profile_posture="proxy_profile_loaded",
+        proxy_category="residential_rotating",
+    )
+    engine = _FakeObservationEngine(outcomes=[])
+
+    try:
+        write_tiktok_live_batch_probe_outputs(
+            creator_handle="funmi",
+            creator_profile_url="https://www.tiktok.com/@funmi",
+            video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+            state_label="test-session",
+            session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+            auth_state_root=auth_root,
+            output_dir=tmp_path / "out",
+            required_harness_proxy_profile_posture="no_proxy_profile_loaded",
+            engine=engine,
+            sleep_fn=lambda _seconds: None,
+        )
+    except ValueError as exc:
+        assert "harness proxy-profile posture mismatch" in str(exc)
+    else:
+        raise AssertionError("mismatched proxy posture satisfied required provenance")
+
+    assert engine.calls == []
 
 
 def test_live_probe_filters_non_get_comment_list_responses_when_method_available(
@@ -2278,6 +2387,34 @@ def _auth_state(tmp_path: Path) -> Path:
         "test-session",
         session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
         auth_state_root=auth_root,
+    )
+    return auth_root
+
+
+
+def _auth_state_with_provenance(
+    tmp_path: Path,
+    *,
+    harness_proxy_profile_posture: str,
+    proxy_category: str,
+) -> Path:
+    auth_root = tmp_path / "auth"
+    path = auth_state_path_for_label("test-session", auth_state_root=auth_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"cookies": [], "origins": []}), encoding="utf-8")
+    write_auth_state_metadata(
+        "test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        source_access_provenance={
+            "source_access_posture": "free_account_created_session",
+            "browser_backend": "cloakbrowser",
+            "harness_proxy_profile_posture": harness_proxy_profile_posture,
+            "proxy_category": proxy_category,
+            "warmup_user_data_label_sha256": "a" * 64,
+            "state_content_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "no_secret_scan": "passed",
+        },
     )
     return auth_root
 

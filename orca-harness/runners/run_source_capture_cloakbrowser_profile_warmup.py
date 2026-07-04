@@ -12,8 +12,13 @@ from urllib.parse import urlparse
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from source_capture.browser_user_data import ensure_browser_user_data_directory
+from source_capture.browser_user_data import (
+    assert_browser_user_data_provenance_compatible,
+    ensure_browser_user_data_directory,
+    write_browser_user_data_provenance,
+)
 from source_capture.proxy_profiles import ProxyProfile, load_proxy_profile_by_label
+from source_capture.source_access_provenance import build_browser_user_data_source_access_provenance
 
 
 MIN_DIRECT_WARMUP_RUNTIME_SECONDS = 3.0
@@ -40,17 +45,32 @@ def run_cloakbrowser_profile_warmup(
     engine: CloakBrowserProfileWarmupEngine | None = None,
 ) -> tuple[int, str]:
     normalized_url = _validate_http_url(login_url)
-    user_data_dir = ensure_browser_user_data_directory(user_data_label, user_data_root=user_data_root)
     proxy_profile = (
         load_proxy_profile_by_label(label=proxy_profile_label, profile_root=proxy_profile_root)
         if proxy_profile_label
         else None
     )
+    provenance = build_browser_user_data_source_access_provenance(
+        user_data_label=user_data_label,
+        browser_backend="cloakbrowser",
+        proxy_category=proxy_profile.proxy_category.value if proxy_profile is not None else None,
+    )
+    assert_browser_user_data_provenance_compatible(
+        user_data_label,
+        payload=provenance,
+        user_data_root=user_data_root,
+    )
+    user_data_dir = ensure_browser_user_data_directory(user_data_label, user_data_root=user_data_root)
     warmup_engine = engine or _DirectCloakBrowserProfileWarmupEngine()
     final_url = warmup_engine.warm_profile(
         login_url=normalized_url,
         user_data_dir=user_data_dir,
         proxy_profile=proxy_profile,
+    )
+    write_browser_user_data_provenance(
+        user_data_label,
+        payload=provenance,
+        user_data_root=user_data_root,
     )
     proxy_clause = (
         f" with proxy profile label {proxy_profile_label} ({proxy_profile.proxy_category.value})"

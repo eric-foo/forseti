@@ -82,6 +82,82 @@ direction_change_propagation:
     - not cross-creator, scale, account-safety, or promotion proof
 ```
 
+## Direction Change Propagation - 2026-07-04 Auth-State Provenance Enforcement
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    TikTok sessioned live capture can now require a typed local auth-state
+    provenance sidecar before browser launch. Warmup emits category-only
+    browser user-data provenance, export merges it into auth-state metadata,
+    and the live runner may require harness_proxy_profile_posture such as
+    no_proxy_profile_loaded; this remains harness proxy-profile posture only,
+    not full-network no-proxy egress proof or a forgery-proof producer-identity ledger against deliberate local sidecar edits.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+    - output_authority
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+    - orca-harness/source_capture/source_access_provenance.py
+    - orca-harness/source_capture/auth_state.py
+    - orca-harness/source_capture/browser_user_data.py
+    - orca-harness/runners/run_source_capture_cloakbrowser_profile_warmup.py
+    - orca-harness/runners/run_source_capture_browser_user_data_export.py
+    - orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py
+    - orca-harness/source_capture/tiktok/live_batch_probe.py
+    - orca-harness/docs/source_capture_agent_runbook.md
+    - orca-harness/tests/unit/test_source_capture_authenticated_browser_snapshot.py
+    - orca-harness/tests/unit/test_tiktok_live_batch_probe.py
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/safety-rules.md
+    - orca-harness/docs/source_capture_packet.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        The non-self-certification gate already owns the general provenance rule;
+        this patch implements it for TikTok auth-state sidecars without changing
+        the overlay rule.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Source-access safety boundaries and CAPTCHA/proxy restrictions did not
+        change; the patch only adds fail-closed provenance checks inside the
+        existing authorized runner path.
+    - path: orca-harness/docs/source_capture_packet.md
+      reason: >
+        The new sidecar witnesses are local ignored auth-state metadata and are
+        intentionally not copied into SourceCapturePacket payloads or bronze
+        records, so the packet contract does not change.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        No new durable human-authored artifact or top-level source area was
+        added; the architecture ADR is already map-reachable from PR #685.
+  stale_language_search: >
+    rg -n "no_proxy|no-proxy|no proxy|harness_proxy_profile_posture|require-harness-proxy-posture|source_access_provenance"
+    orca-harness/source_capture orca-harness/runners orca-harness/docs/source_capture_agent_runbook.md
+    forseti/product/spines/capture/core/source_families/social_media/tiktok
+    docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-04 after edits. Expected hits are the ADR, this spec, the
+    runbook, the new source_access_provenance/auth-state/browser-user-data code,
+    the TikTok live runner, and focused tests. Unrelated no-proxy hits remain in
+    non-TikTok adapters or historical logged-out probe docs. No checked live
+    TikTok surface claims that an auth-state label or no_proxy_profile_loaded is
+    full-network no-proxy egress proof.
+  non_claims:
+    - not validation
+    - not readiness
+    - not live capture success
+    - not full-network no-proxy egress proof
+    - not forgery-proof local sidecar producer-identity proof
+    - not CAPTCHA or slider-solving authorization
+    - not account-safety or scale proof
+```
+
 ## Direction Change Propagation - 2026-07-03 Challenge-X Follow-Through
 
 ```yaml
@@ -158,6 +234,7 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 - **Human-performed login** via a headed session bootstrap; the agent **never enters credentials** (harness: `run_source_capture_browser_session_bootstrap.py` → `run_source_capture_authenticated_browser_packet.py`).
 - **No credentials, cookies, storage-state, or tokens in any packet** (C7 / G-2) — even more load-bearing now that secrets exist.
 - **Provenance labeled `entitled_session`**, not `public_logged_out`. The comment data is still real public comments; only the access path is authenticated.
+- **Harness proxy-profile posture, not egress proof.** Warmed CloakBrowser user-data exports may carry a local ignored auth-state sidecar attesting `harness_proxy_profile_posture` such as `no_proxy_profile_loaded`; the live runner may require it with `--require-harness-proxy-posture no_proxy_profile_loaded`. This attests only the Source Capture harness did not load a proxy profile for that warmed profile, not that the whole machine/network had no proxy/VPN/upstream egress layer, and not that a deliberate local actor could not forge or edit the ignored sidecar.
 - **Public content only** — no private/DM/access-controlled surfaces; authentication buys trust/stability, not access to non-public data.
 - **Account-level stop-on-unresolved-challenge** (per C6): on ban, auth-wall, challenge text that remains after an authorized X/Close follow-through, or any non-closeable captcha/challenge signal, stop that account, cool down, rotate; never drag or solve a challenge.
 
@@ -172,7 +249,7 @@ Capture runs under an **authenticated session** whose cookies authenticate it. R
 **Source text / transcript boundary:** TikTok description (`desc`), hashtags/mentions (`textExtra`), music metadata, and captured public comments are source text. A later Funmi/session N=30 cadence receipt measured source-native subtitle metadata plus WebVTT body admission when `video.subtitleInfos` exists (`26/30` metadata present; `26/26` WebVTT parse success when present). Treat this as `source_native_subtitle_webvtt` evidence for that creator/session, labeled with TikTok's source field such as `ASR` when present. It is not owner-generated ASR, not durable audio/video preservation, not cross-creator subtitle coverage, and not a platform-wide transcript guarantee.
 
 
-**Implementation note (2026-07-01; amended 2026-07-04):** Network-free parsed-batch admission now exists for the Funmi N30 staging shape via `orca-harness/source_capture/tiktok/batch_packet.py` and `orca-harness/runners/run_source_capture_tiktok_batch_packet.py`, with focused tests in `orca-harness/tests/unit/test_tiktok_batch_admission.py`. The verified data-lake packet is `F:\orca-data-lake\raw\97c\01KWCYZ9P72W4SJD7NDPRQT0DB` (`tiktok_creator_batch_comment_subtitle_admission`): 30 videos, 596 parsed comments, 26 transcript-bearing source-native WebVTT captures, 1044 cues, and deterministic typed extraction seeds. The one-creator live producer exists via `orca-harness/source_capture/tiktok/live_batch_probe.py` and `orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py`, with fake-engine tests in `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`; it runs one creator per invocation, uses headed/sessioned or logged-out page-owned comment-list observation, and writes sanitized grid/cadence staging JSON by default. When the owner asks for packet/bronze output, the same runner can now chain the existing batch admission gate with `--admit-output` or an explicit `--data-root`; it intentionally does not read ambient `ORCA_DATA_ROOT`, and admission fails closed on challenge/failure/diagnostic contract markers before any packet or lake write. The existing batch runner already writes to the data lake through `--data-root`; the live runner now uses that same admission function rather than duplicating lake logic. Follow-through clicks are preserved as source-access interventions and can admit only post-close page-owned comment responses; diagnostic close mode remains stop-only. The code is not itself a successful live run, profile-grid automation proof, cross-creator ceiling proof, non-proxy provenance proof, durable media/video preservation, final product extraction, Cleaning, ECR, or Judgment.
+**Implementation note (2026-07-01; amended 2026-07-04):** Network-free parsed-batch admission now exists for the Funmi N30 staging shape via `orca-harness/source_capture/tiktok/batch_packet.py` and `orca-harness/runners/run_source_capture_tiktok_batch_packet.py`, with focused tests in `orca-harness/tests/unit/test_tiktok_batch_admission.py`. The verified data-lake packet is `F:\orca-data-lake\raw\97c\01KWCYZ9P72W4SJD7NDPRQT0DB` (`tiktok_creator_batch_comment_subtitle_admission`): 30 videos, 596 parsed comments, 26 transcript-bearing source-native WebVTT captures, 1044 cues, and deterministic typed extraction seeds. The one-creator live producer exists via `orca-harness/source_capture/tiktok/live_batch_probe.py` and `orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py`, with fake-engine tests in `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`; it runs one creator per invocation, uses headed/sessioned or logged-out page-owned comment-list observation, and writes sanitized grid/cadence staging JSON by default. When the owner asks for packet/bronze output, the same runner can now chain the existing batch admission gate with `--admit-output` or an explicit `--data-root`; it intentionally does not read ambient `ORCA_DATA_ROOT`, and admission fails closed on challenge/failure/diagnostic contract markers before any packet or lake write. The existing batch runner already writes to the data lake through `--data-root`; the live runner now uses that same admission function rather than duplicating lake logic. Follow-through clicks are preserved as source-access interventions and can admit only post-close page-owned comment responses; diagnostic close mode remains stop-only. The code is not itself a successful live run, profile-grid automation proof, cross-creator ceiling proof, non-proxy provenance proof, durable media/video preservation, final product extraction, Cleaning, ECR, or Judgment. The same live runner can now fail closed before browser launch when `--require-harness-proxy-posture` is set and the auth-state metadata is legacy-only, missing, mismatched, or contaminated; the requirement records category-only posture in staging receipts and still does not prove blanket no-proxy egress.
 
 ## Explicitly out of scope
 

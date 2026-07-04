@@ -17,7 +17,12 @@ from source_capture.auth_state import (
     validate_auth_state_file,
     write_auth_state_metadata,
 )
-from source_capture.browser_user_data import browser_user_data_path_for_label
+from source_capture.browser_user_data import (
+    browser_user_data_path_for_label,
+    browser_user_data_provenance_path_for_label,
+    read_browser_user_data_provenance,
+)
+from source_capture.source_access_provenance import build_auth_state_source_access_provenance
 
 _EXPORT_OPEN_FAILURE_MESSAGE = (
     "CloakBrowser user-data export could not open the dedicated profile. "
@@ -59,6 +64,10 @@ def run_browser_user_data_export(
     )
     if not user_data_dir.is_dir():
         raise ValueError(f"browser user-data directory does not exist for label: {user_data_label}")
+    user_data_provenance_path = browser_user_data_provenance_path_for_label(
+        user_data_label,
+        user_data_root=browser_user_data_root,
+    )
 
     export_engine = engine or _CloakBrowserUserDataExportEngine()
     try:
@@ -67,10 +76,22 @@ def run_browser_user_data_export(
             state_path=state_path,
         )
         validate_auth_state_file(state_label, auth_state_root=auth_state_directory)
+        source_access_provenance = None
+        if user_data_provenance_path.exists():
+            source_access_provenance = build_auth_state_source_access_provenance(
+                user_data_label=user_data_label,
+                session_mode_value=session_mode.value,
+                state_path=state_path,
+                browser_user_data_provenance=read_browser_user_data_provenance(
+                    user_data_label,
+                    user_data_root=browser_user_data_root,
+                ),
+            )
         write_auth_state_metadata(
             state_label,
             session_mode=session_mode,
             auth_state_root=auth_state_directory,
+            source_access_provenance=source_access_provenance,
         )
     except Exception:
         _discard_unbound_state(state_path, metadata_path)
