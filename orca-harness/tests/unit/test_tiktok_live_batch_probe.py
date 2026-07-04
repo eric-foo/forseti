@@ -593,6 +593,50 @@ def test_live_probe_runner_rejects_cloakbrowser_with_browser_channel(tmp_path: P
         raise AssertionError("cloakbrowser backend accepted browser-channel")
 
 
+def test_live_probe_runner_rejects_cloakbrowser_humanize_without_cloakbrowser(
+    tmp_path: Path,
+) -> None:
+    try:
+        runner.main(
+            [
+                "--creator-handle",
+                "funmi",
+                "--creator-profile-url",
+                "https://www.tiktok.com/@funmi",
+                "--video-url",
+                "https://www.tiktok.com/@funmi/video/7390000000000000001",
+                "--logged-out",
+                "--cloakbrowser-humanize",
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:
+        raise AssertionError("cloakbrowser humanize was accepted without cloakbrowser")
+
+
+def test_live_probe_rejects_cloakbrowser_humanize_without_cloakbrowser_backend(
+    tmp_path: Path,
+) -> None:
+    try:
+        write_tiktok_live_batch_probe_outputs(
+            creator_handle="funmi",
+            creator_profile_url="https://www.tiktok.com/@funmi",
+            video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+            logged_out=True,
+            output_dir=tmp_path / "out",
+            browser_backend="playwright",
+            cloakbrowser_humanize=True,
+            sleep_fn=lambda _seconds: None,
+        )
+    except ValueError as exc:
+        assert "cloakbrowser_humanize requires browser_backend='cloakbrowser'" in str(exc)
+    else:
+        raise AssertionError("cloakbrowser humanize was accepted without cloakbrowser backend")
+
+
 def test_live_probe_filters_non_get_comment_list_responses_when_method_available(
     tmp_path: Path,
 ) -> None:

@@ -294,6 +294,12 @@ def run_tiktok_live_batch_probe(
     if not normalized_video_urls:
         raise ValueError("at least one TikTok video URL is required")
     subtitle_fetcher = subtitle_fetcher or _fetch_subtitle_webvtt
+    browser_backend = browser_backend.strip().lower()
+    if browser_backend not in (
+        TIKTOK_BROWSER_BACKEND_PLAYWRIGHT,
+        TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+    ):
+        raise ValueError("browser_backend must be one of: cloakbrowser, playwright")
 
     if allow_challenge_close_diagnostic and allow_challenge_close_followthrough:
         raise ValueError(
@@ -301,6 +307,11 @@ def run_tiktok_live_batch_probe(
         )
     if human_challenge_handoff and not allow_challenge_close_followthrough:
         raise ValueError("human_challenge_handoff requires challenge-close followthrough mode")
+    if (
+        browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
+        and cloakbrowser_humanize
+    ):
+        raise ValueError("cloakbrowser_humanize requires browser_backend='cloakbrowser'")
 
     if logged_out:
         if state_label is not None or session_mode is not None:

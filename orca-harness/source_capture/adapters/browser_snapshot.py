@@ -1186,8 +1186,8 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
         except Exception as exc:
             if _looks_like_missing_browser_binary(exc):
                 raise _BrowserSnapshotDependencyUnavailable(
-                    "Playwright Chromium browser binary is not installed. "
-                    "Run `python -m playwright install chromium` before running browser page observations."
+                    "CloakBrowser could not launch its browser binary. "
+                    "Reinstall or repair the CloakBrowser browser runtime before running CloakBrowser page observations."
                 ) from exc
             raise
         try:

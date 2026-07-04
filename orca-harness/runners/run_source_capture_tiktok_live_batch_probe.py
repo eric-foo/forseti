@@ -102,6 +102,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     if args.browser_backend == "cloakbrowser" and args.browser_channel is not None:
         parser.error("--browser-channel cannot be combined with --browser-backend cloakbrowser")
+    if args.cloakbrowser_humanize and args.browser_backend != "cloakbrowser":
+        parser.error("--cloakbrowser-humanize requires --browser-backend cloakbrowser")
     if args.human_challenge_handoff and not args.allow_challenge_close_followthrough:
         parser.error("--human-challenge-handoff requires --allow-challenge-close-followthrough")
     cloakbrowser_humanize = args.cloakbrowser_humanize or args.browser_backend == "cloakbrowser"
