@@ -21,10 +21,10 @@ use_when:
   - Checking whether a derived label may be displayed, downgraded, or must be withheld.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
-  - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+  - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
   - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
-  - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
+  - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
 stale_if:
   - The charter's pre-build gate 1 (Section 7) is amended or superseded.
   - The product architecture's Signal claim layer contract changes.
@@ -141,15 +141,15 @@ direction_change_propagation:
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:
-    - orca/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
-    - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # Section 7 gate-status note
-    - orca/product/spines/creator_signal/README.md                          # index row
+    - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
+    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # Section 7 gate-status note
+    - forseti/product/spines/creator_signal/README.md                          # index row
   downstream_surfaces_checked:
-    - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # Signal claim layer is the parent concept this extends; consistent, not amended
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # Signal claim layer is the parent concept this extends; consistent, not amended
     - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md              # claim-language ownership is Creator Signal's; this stays inside owns/does_not_own
-    - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md # surface contract's claim-display rules are consistent; derived claims join the same discipline
+    - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md # surface contract's claim-display rules are consistent; derived claims join the same discipline
   intentionally_not_updated:
-    - path: orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+    - path: forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
       reason: >
         Its Signal claim layer spec is the parent; this contract extends it to
         derived claims without changing the observed-metric rules. Routes to it.
@@ -158,7 +158,7 @@ direction_change_propagation:
         Per spine-binding precedent, per-spine artifacts route via the spine
         front door (README), updated in this lane; no repo-map row added.
   stale_language_search: >
-    rg -in "derived claim|extraction provenance|derivation provenance|unstamped" orca/product/spines/creator_signal
+    rg -in "derived claim|extraction provenance|derivation provenance|unstamped" forseti/product/spines/creator_signal
   stale_language_search_result: >
     Executed 2026-07-04 in the lane worktree. Hits are this contract, the
     charter's pre-build gate 1 and moat-protector language it discharges, and

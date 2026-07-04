@@ -17,10 +17,10 @@ use_when:
   - Distinguishing the foundation-stage capture question from the Phase-1 commercial-use question.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
+  - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
   - docs/decisions/wind_caller_calibration_carveout_v0.md
-  - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
 stale_if:
   - The source-access boundary decision or measured-risk posture is amended.
   - The carve-out's bounded-session / account-cap posture changes.
