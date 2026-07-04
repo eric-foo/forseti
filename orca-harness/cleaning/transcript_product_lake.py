@@ -42,6 +42,12 @@ PRODUCT_MENTIONS_SET_LANE = "silver__cleaning__product_mentions__set"
 # record (the producer is this Pass-1 extractor; its schema version is the rubric).
 PRODUCT_MENTIONS_PRODUCER_ID = "cleaning.transcript_product_extractor"
 
+# Record-SHAPE schema token (V4: vault-versioned; closes the weak-envelope residual
+# where this shape rode only the sibling EXTRACTOR_RUBRIC_VERSION policy token).
+# Added additively: earlier committed records lack the field and read as pre-token
+# vintage; no derivation-policy token was bumped, so nothing re-surfaces on cadence.
+PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v0"
+
 
 def build_transcript_source_lineage(
     *,
@@ -141,6 +147,7 @@ def _product_mentions_payload(
     extraction_provenance: dict | None = None,
 ) -> dict:
     payload = {
+        "record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
         "video_id": transcript.video_id,
         "transcript_anchor": transcript.transcript_anchor,
         "transcript_source_key": transcript.transcript_source_key,

@@ -49,6 +49,11 @@ from source_capture import (
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 
+# Constant-only import: the IG and YT writers share the transcript_asr lane and
+# record family, so they share ONE record-shape schema token (no YT behavior is
+# imported; the lane decoupling in this module's doc holds).
+from source_capture.transcript.asr_packet import TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION
+
 # IG shortcodes are base64url handles (the probe targets were 11 chars: DZ69knlsDb1, DaALKgOsWn0).
 # Bounded + URL/path-safe; NOT the YouTube 11-char-exact regex.
 _IG_SHORTCODE = re.compile(r"[A-Za-z0-9_-]{5,32}")
@@ -174,6 +179,7 @@ def _append_ig_transcript_record(
     """Append the IG transcript_asr derived record on the audio anchor and return
     (record_id, record relpath)."""
     record = {
+        "record_schema_version": TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION,
         "video_id": shortcode,            # IG shortcode carried in video_id (reused field; the
         "shortcode": shortcode,           # extractor/runner key on video_id, the schema is agnostic)
         "platform": "instagram",
