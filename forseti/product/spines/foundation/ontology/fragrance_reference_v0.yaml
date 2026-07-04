@@ -1,0 +1,405 @@
+# Aphrodite Fragrance Sub-Ontology — reference data v0
+#
+# Schema-light reference DATA on the adopted Orca/Forseti ontology backbone
+# (orca_ontology_backbone_architecture_v0.md, ADOPTED 2026-06-15; windcaller_kind
+# amendment 2026-07-04). Houses are `brand:` entries, fragrances are `product:`
+# entries, creators are `windcaller:creator.*` entries — all per the §2.1 dotted-ID
+# grammar. This file is DATA, not schema: the backbone freezes no property lists,
+# and nothing here mints a type, link, or gate.
+#
+# FIELD VOCABULARY (the stable surface a downstream deriver may bind to — see the
+# build's spec contract; everything else is free-form):
+#   note_families, accords, tier, occasions, dupe_of, windcaller_kind,
+#   provenance (per-fact: a source ref OR the literal marker
+#   `operator_asserted_pending_source` — never neither).
+# `dupe_of` is directional: the dupe points at the original it imitates.
+# Vocabulary values (note-family / accord / tier / occasion term lists) are data
+# entries below, provenance-marked like any fact.
+#
+# EXTENSION PATTERN (cold-agent usable, no schema edit needed):
+#   1. Add a `brand:<slug>` entry under `houses:` (name, tier, provenance).
+#   2. Add a `product:<house>.<slug>` entry under `products:` (name, house,
+#      note_families, accords, tier, occasions, dupe_of, provenance per fact).
+#   3. Use only vocabulary values listed under `vocabulary:`, or add the new
+#      value there WITH its own provenance line.
+#   4. Every fact gets a `provenance:` entry (source ref or the marker).
+#   5. Run the four ontology hooks (.agents/hooks/check_ontology_*.py --strict).
+#
+# PROVENANCE RULE (co-#1, per the build handoff's frozen decisions): a fact with
+# neither a source ref nor the marker MUST NOT be added. `operator_asserted_
+# pending_source` facts are operator market knowledge awaiting a real fragrance
+# reference; they may inform derivation but must not be displayed as sourced
+# evidence (see aphrodite_derived_claim_provenance_contract_v0.md for the
+# display-side discipline).
+#
+# EXCLUDED PENDING SOURCE: the round-2 SoV extraction's clone/niche tail (~13%
+# low-confidence, mostly Arabic/clone-house ASR garbles — Lattafa, Afnan, Ahmed
+# Al Maghribi lines) is deliberately NOT in this graph; it enters only after
+# re-verification against a real fragrance reference. The rehearsal slice's four
+# unresolved candidates ("Mekonos … Milk Trox", "Emerald by Game of Spades",
+# "Roasted Sugar", "Unikomotiv") stay abstained per that slice's build rule.
+#
+# NON-CLAIMS: reference data, dated and fail-soft — not a registry, not
+# validation, not readiness, not fact-correctness; product_learning-capped.
+# A green hook run is conformance shape, not fact truth.
+
+fragrance_reference_version: 0
+status: DATED_DATA_2026-07-04
+vertical: vertical:beauty.fragrance
+naming_authority: forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
+ssot: forseti/product/spines/foundation/ontology/ontology.yaml
+seed_sources:
+  - docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md       # 10 houses / 10 products, receipt-backed
+  - docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md # designer-head top products, view-weighted
+spot_check:
+  date: 2026-07-04
+  method: >
+    Targeted verification reads against Wikipedia (stable citable reference;
+    Fragrantica returned HTTP 403 to automated fetch — no capture run attempted).
+    Facts checked: note families, accords, tier, flanker existence.
+  results: >
+    7 of 7 checkable facts CONFIRMED (100%): Creed tier=niche; Aventus note
+    families + accords; Bleu de Chanel note families + accords; Ultra Male
+    existence as 2015 Le Male flanker; La Vie Est Belle gourmand family.
+    Confirmed facts carry their URL below; everything else remains
+    operator_asserted_pending_source until a fragrance reference is bound.
+
+vocabulary:
+  note_families:
+    values: [citrus, floral, woody, amber, fresh, aquatic, aromatic, fougere, gourmand, musk, spicy, green, fruity, leather, powdery, sweet]
+    provenance: operator_asserted_pending_source   # standard perfumery taxonomy; bind to a real reference when one is authorized
+  tiers:
+    values: [designer, niche, luxury, creator-owned-dtc, clone-house, adjacent]
+    provenance: "usage grounded in docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md houses table (operator_assigned tier column); labels operator_asserted_pending_source"
+  occasions:
+    values: [daily, office, evening, formal, casual, night-out, summer, winter, spring, fall, versatile]
+    provenance: operator_asserted_pending_source
+  accords_note: >
+    Accords are free-vocabulary strings (schema-light); each product's accord
+    list carries its own provenance line.
+
+houses:
+  brand:dior:
+    name: Dior
+    tier: designer
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 12620"
+      tier: operator_asserted_pending_source
+  brand:creed:
+    name: Creed
+    tier: niche
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 17060"
+      tier: "https://en.wikipedia.org/wiki/Aventus ('the French niche house, Creed'; accessed 2026-07-04)"
+  brand:parfums-de-marly:
+    name: Parfums de Marly
+    tier: niche
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 21260 (ASR-garbled 'Parfumse de male'; resolution confidence medium)"
+      tier: operator_asserted_pending_source
+  brand:chanel:
+    name: Chanel
+    tier: designer
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 25220"
+      tier: operator_asserted_pending_source
+  brand:fragrance-one:
+    name: Fragrance One
+    tier: creator-owned-dtc
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipts DaH3L1Isdrc @ 30020; DaKeXcVM0sx caption 'www.FRAGRANCE.one'"
+      tier: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — self-brand commerce receipts (discount code 'final70')"
+  brand:louis-vuitton:
+    name: Louis Vuitton
+    tier: luxury
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 38020"
+      tier: operator_asserted_pending_source
+  brand:carolina-herrera:
+    name: Carolina Herrera
+    tier: designer
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 45000"
+      tier: operator_asserted_pending_source
+  brand:lancome:
+    name: "Lancôme"
+    tier: designer
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 47980"
+      tier: operator_asserted_pending_source
+  brand:jean-paul-gaultier:
+    name: Jean Paul Gaultier
+    tier: designer
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaLBRQiMJhQ @ 3000 (ASR-garbled 'Jean Procté'; 'ultra-male' in same cue anchors resolution)"
+      tier: operator_asserted_pending_source
+  brand:moodsprays:
+    name: Moodsprays (Nike Schroeder)
+    tier: adjacent
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipts DaGUhsKsYL9 @ 47130; DaK3uKxBlKy caption; comment 18114708548490508 (resolution confidence medium)"
+      tier: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — 'adjacent scent brand (mood sprays)'"
+  brand:ysl:
+    name: Yves Saint Laurent
+    tier: designer
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (YSL Y Eau de Parfum, 5 videos)"
+      tier: operator_asserted_pending_source
+  brand:coach:
+    name: Coach
+    tier: designer
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (Coach for Men, 3 videos)"
+      tier: operator_asserted_pending_source
+  brand:paco-rabanne:
+    name: Paco Rabanne
+    tier: designer
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (Invictus Parfum, 3 videos)"
+      tier: operator_asserted_pending_source
+  brand:versace:
+    name: Versace
+    tier: designer
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (Versace Pour Homme, 3 videos)"
+      tier: operator_asserted_pending_source
+
+products:
+  product:dior.sauvage:
+    name: Sauvage
+    house: brand:dior
+    note_families: [aromatic, fresh, amber, spicy]
+    accords: [bergamot, pepper, ambroxan, lavender]
+    tier: designer
+    occasions: [versatile, daily]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 14940 ('Dior Savage'); docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md top-products table (5 videos)"
+      note_families: operator_asserted_pending_source
+      accords: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:creed.aventus:
+    name: Aventus
+    house: brand:creed
+    note_families: [fruity, woody, fresh]
+    accords: [pineapple, birch, blackcurrant, musk]
+    tier: niche
+    occasions: [versatile]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (Creed Aventus, 5 videos)"
+      note_families: "https://en.wikipedia.org/wiki/Aventus (fruity-chypre; apple/blackcurrant/pineapple top, birch/patchouli heart, musk/oakmoss base; accessed 2026-07-04)"
+      accords: "https://en.wikipedia.org/wiki/Aventus (pineapple, birch, blackcurrant, musk all listed; accessed 2026-07-04)"
+      tier: "https://en.wikipedia.org/wiki/Aventus ('the French niche house, Creed'; accessed 2026-07-04)"
+      occasions: operator_asserted_pending_source
+  product:creed.aventus-absolu:
+    name: Aventus Absolu
+    house: brand:creed
+    note_families: [fruity, woody, fresh]
+    accords: []
+    tier: niche
+    occasions: []
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 18900 ('Aventus Absolute'; resolution confidence medium-high)"
+      note_families: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+  product:parfums-de-marly.sedley:
+    name: Sedley
+    house: brand:parfums-de-marly
+    note_families: [fresh, aromatic, fruity]
+    accords: []
+    tier: niche
+    occasions: [summer]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 21260 (resolution confidence medium)"
+      note_families: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:chanel.allure-homme-sport:
+    name: Allure Homme Sport
+    house: brand:chanel
+    note_families: [citrus, fresh, woody]
+    accords: []
+    tier: designer
+    occasions: [daily, casual]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 25220 ('Allure-Om-Sport')"
+      note_families: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:chanel.bleu-de-chanel:
+    name: Bleu de Chanel
+    house: brand:chanel
+    note_families: [woody, aromatic, citrus]
+    accords: [grapefruit, incense, cedar]
+    tier: designer
+    occasions: [versatile, office]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (5 videos)"
+      note_families: "https://en.wikipedia.org/wiki/Bleu_de_Chanel ('woody aromatic fragrance', citrus top notes; accessed 2026-07-04)"
+      accords: "https://en.wikipedia.org/wiki/Bleu_de_Chanel (grapefruit top; incense, cedar base; accessed 2026-07-04)"
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:fragrance-one.office-for-men:
+    name: Office (For Men)
+    house: brand:fragrance-one
+    note_families: [fresh]
+    accords: []
+    tier: creator-owned-dtc
+    occasions: [office, daily]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipts DaKd8E9skt8 @ 18000; captions of reels 1,4,5,6,9,10,12"
+      note_families: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — note/accord table ('fresh, long lasting', DaKd8E9skt8 @ 19000)"
+      tier: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — self-brand commerce receipts"
+      occasions: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — product named 'the office fragrance' (DaKd8E9skt8 @ 18000)"
+  product:fragrance-one.the-man:
+    name: The Man
+    house: brand:fragrance-one
+    note_families: []
+    accords: []
+    tier: creator-owned-dtc
+    occasions: []
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 34020 (resolution confidence medium: could be generic phrase)"
+      tier: operator_asserted_pending_source
+  product:louis-vuitton.imagination:
+    name: Imagination
+    house: brand:louis-vuitton
+    note_families: [citrus, fresh]
+    accords: []
+    tier: luxury
+    occasions: []
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 41100 (resolution confidence medium-high)"
+      note_families: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+  product:carolina-herrera.good-girl:
+    name: Good Girl
+    house: brand:carolina-herrera
+    note_families: [floral, sweet, amber]
+    accords: [tuberose, jasmine, cocoa, tonka]
+    tier: designer
+    occasions: [evening]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 46520"
+      note_families: operator_asserted_pending_source
+      accords: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:lancome.la-vie-est-belle:
+    name: La Vie Est Belle
+    house: brand:lancome
+    note_families: [floral, gourmand, sweet]
+    accords: [iris, praline, vanilla]
+    tier: designer
+    occasions: [evening, winter]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaH3L1Isdrc @ 47980 ('la vie et belle')"
+      note_families: "gourmand: https://en.wikipedia.org/wiki/Gourmand_(fragrance) (named as example; accessed 2026-07-04); floral/sweet: operator_asserted_pending_source"
+      accords: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:jean-paul-gaultier.ultra-male:
+    name: Ultra Male
+    house: brand:jean-paul-gaultier
+    note_families: [sweet, aromatic, fougere]
+    accords: [pear, mint, vanilla, lavender]
+    tier: designer
+    occasions: [night-out, winter]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — receipt DaLBRQiMJhQ @ 3000; docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md top-products table (4 videos); https://en.wikipedia.org/wiki/Le_Male (Ultra Male = 2015 Le Male flanker; accessed 2026-07-04)"
+      note_families: operator_asserted_pending_source
+      accords: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:ysl.y-eau-de-parfum:
+    name: Y Eau de Parfum
+    house: brand:ysl
+    note_families: [aromatic, fresh, woody]
+    accords: [apple, ginger, sage, cedar]
+    tier: designer
+    occasions: [versatile, office]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (5 videos, highest attention-weighted SoV)"
+      note_families: operator_asserted_pending_source
+      accords: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:coach.coach-for-men:
+    name: Coach for Men
+    house: brand:coach
+    note_families: [aromatic, fruity, woody]
+    accords: []
+    tier: designer
+    occasions: [daily]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (3 videos)"
+      note_families: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:paco-rabanne.invictus-parfum:
+    name: Invictus Parfum
+    house: brand:paco-rabanne
+    note_families: [aromatic, amber, woody]
+    accords: []
+    tier: designer
+    occasions: [night-out]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (3 videos)"
+      note_families: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+  product:versace.pour-homme:
+    name: Versace Pour Homme
+    house: brand:versace
+    note_families: [aromatic, citrus, fougere]
+    accords: []
+    tier: designer
+    occasions: [summer, daily]
+    dupe_of: []
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — top-products table (3 videos)"
+      note_families: operator_asserted_pending_source
+      tier: operator_asserted_pending_source
+      occasions: operator_asserted_pending_source
+
+# Dupe / clone relationship graph. DIRECTIONAL: dupe -> original it imitates.
+# The rehearsal corpora contain NO dupe/clone discourse (explicit absence recorded
+# in the ontology slice — "no dupe/clone/alternative discourse in any transcript,
+# caption, or page-1 comment"). Per the build's micro-decision lock, a dupe edge
+# enters ONLY with a citable source; none is asserted from memory. The clone-house
+# tail (Lattafa, Afnan, Armaf lines) is the natural first dupe-edge source once a
+# fragrance reference is bound.
+dupe_relationships: []
+
+# Creators as WindCallers (windcaller_kind amendment 2026-07-04): kind is the
+# first dotted slug segment; "pull" maps to the existing calibration_state.
+windcallers:
+  windcaller:creator.youtube.gentsscents:
+    windcaller_kind: creator
+    platform: youtube
+    covers: vertical:beauty.fragrance
+    calibration_state: uncalibrated   # no graded Call/Outcome pair yet
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md — 15 captured transcripts, 417 extracted product mentions"
+  windcaller:creator.instagram.jeremyfragrance:
+    windcaller_kind: creator
+    platform: instagram
+    covers: vertical:beauty.fragrance
+    calibration_state: uncalibrated
+    provenance:
+      existence: "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md — rehearsal corpus creator (frozen corpus docs/research/aphrodite_depth_rehearsal_corpus_v0.md)"

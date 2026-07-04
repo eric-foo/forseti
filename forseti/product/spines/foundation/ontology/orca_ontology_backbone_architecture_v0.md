@@ -269,6 +269,11 @@ Folded onto existing types under the cap, per the commission:
   a read type.*
 - `claim_tier ∈ {product_learning, buyer_proof, judgment_quality}` — on Reading, Memo,
   Case, Outcome (the evidence ladder, MAPPED, §5).
+- `windcaller_kind ∈ {creator, editorial, brand, community, detector}` — on
+  `WindCaller` *(dated amendment 2026-07-04, owner-directed; see §6.1)*: kinds of
+  WindCaller are a dimension plus a dotted-ID convention
+  (`windcaller:<kind>.<platform>.<slug>`, e.g. `windcaller:creator.youtube.gentsscents`),
+  NOT sub-types — the ontology has no inheritance and the cap is preserved.
 
 ### 2.5 Action / gate map (governed transitions — the ONLY sanctioned state changes)
 
@@ -480,6 +485,24 @@ Stolen from the venue card set, the proven antidote to ontology rot:
   id forms always resolve (nothing deleted), so an old reference never dangles. This **supersedes**
   the "harness `*_v0` IDs migrate / conform by physical rename" wording in the earlier order-0 and
   migration amendments and in §9 item 0; §2.1 now states the forward-only rule.
+- **2026-07-04 (owner-directed): `windcaller_kind` dimension + dotted-ID convention; `Product` and
+  `WindCaller` cards graduate.** (1) **Creators ARE WindCallers** (owner framing: "creators are wind
+  callers, just at a different scale — a channel of emotion toward a particular thing"). Kinds of
+  WindCaller — creators today; editorial/press, brands-as-callers, communities, detectors later — are
+  expressed per the §2.4 *dimensions-not-types* rule as a `windcaller_kind` dimension
+  (`creator | editorial | brand | community | detector`) **plus** a dotted-ID convention: the kind is
+  the first dotted slug segment (`windcaller:creator.youtube.gentsscents`,
+  `windcaller:editorial.basenotes`). No new capped type, no inheritance machinery; the §2.2 roster and
+  cap are unchanged. A creator's "pull" maps to the existing `calibration_state`; coverage maps to
+  `WindCaller —covers→ Vertical` and the creator's mention footprint over `product:`/`brand:` objects.
+  (2) **`Product` backing landed** — the Aphrodite fragrance sub-ontology reference data
+  (`fragrance_reference_v0.yaml`, schema-light DATA per §6: houses as `brand:` entries, fragrances as
+  `product:` entries with note-family/accord/tier/occasion vocabulary and provenance-marked facts) is
+  the first `Product` backing; `Product` leaves the deferred card backlog with
+  `product_dior_sauvage_v0.md` as exemplar card. (3) **`WindCaller` card-set backing landed** — the
+  creator entries in the same reference data; `WindCaller` leaves the deferred backlog with
+  `windcaller_creator_youtube_gentsscents_v0.md` as exemplar card. Property lists stay unfrozen;
+  fragrance specifics are data, never schema (charter high-lock-in decision #4).
 
 ---
 
