@@ -21,6 +21,10 @@ from source_capture.auth_state import (
 from source_capture.adapters.browser_snapshot import DEFAULT_TIMEOUT_SECONDS
 
 
+BROWSER_BACKEND_PLAYWRIGHT = "playwright"
+BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
+
+
 class BrowserSessionBootstrapEngine(Protocol):
     def save_storage_state(
         self,
@@ -39,11 +43,16 @@ def run_browser_session_bootstrap(
     session_mode: AuthenticatedSessionMode,
     timeout_seconds: float,
     auth_state_root: Path | None = None,
+    browser_backend: str = BROWSER_BACKEND_PLAYWRIGHT,
+    cloakbrowser_humanize: bool = False,
     engine: BrowserSessionBootstrapEngine | None = None,
 ) -> tuple[int, str]:
     normalized_url = _validate_http_url(login_url)
+    normalized_browser_backend = _normalize_browser_backend(browser_backend)
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be greater than zero")
+    if cloakbrowser_humanize and normalized_browser_backend != BROWSER_BACKEND_CLOAKBROWSER:
+        raise ValueError("cloakbrowser_humanize requires browser_backend='cloakbrowser'")
 
     auth_state_directory = ensure_auth_state_directory(auth_state_root=auth_state_root)
     state_path = auth_state_path_for_label(state_label, auth_state_root=auth_state_directory)
@@ -53,7 +62,10 @@ def run_browser_session_bootstrap(
     if metadata_path.exists():
         raise ValueError(f"auth-state metadata already exists for label: {state_label}")
 
-    bootstrap_engine = engine or _PlaywrightSessionBootstrapEngine()
+    bootstrap_engine = engine or _bootstrap_engine_for_backend(
+        normalized_browser_backend,
+        cloakbrowser_humanize=cloakbrowser_humanize,
+    )
     final_url = bootstrap_engine.save_storage_state(
         login_url=normalized_url,
         timeout_seconds=timeout_seconds,
@@ -72,6 +84,16 @@ def run_browser_session_bootstrap(
             f"after manual browser session ending at {final_url}"
         ),
     )
+
+
+def _bootstrap_engine_for_backend(
+    browser_backend: str, *, cloakbrowser_humanize: bool
+) -> BrowserSessionBootstrapEngine:
+    if browser_backend == BROWSER_BACKEND_PLAYWRIGHT:
+        return _PlaywrightSessionBootstrapEngine()
+    if browser_backend == BROWSER_BACKEND_CLOAKBROWSER:
+        return _CloakBrowserSessionBootstrapEngine(cloakbrowser_humanize=cloakbrowser_humanize)
+    raise ValueError("browser_backend must be one of: cloakbrowser, playwright")
 
 
 class _PlaywrightSessionBootstrapEngine:
@@ -120,10 +142,62 @@ class _PlaywrightSessionBootstrapEngine:
                 browser.close()
 
 
+class _CloakBrowserSessionBootstrapEngine:
+    def __init__(self, *, cloakbrowser_humanize: bool) -> None:
+        self.cloakbrowser_humanize = bool(cloakbrowser_humanize)
+
+    def save_storage_state(
+        self,
+        *,
+        login_url: str,
+        timeout_seconds: float,
+        state_path: Path,
+    ) -> str:
+        try:
+            cloakbrowser = import_module("cloakbrowser")
+        except ModuleNotFoundError as exc:
+            raise RuntimeError(
+                "CloakBrowser is not installed. Install cloakbrowser before bootstrapping sessions."
+            ) from exc
+
+        timeout_ms = timeout_seconds * 1000
+        try:
+            browser = cloakbrowser.launch(
+                headless=False,
+                stealth_args=True,
+                humanize=self.cloakbrowser_humanize,
+            )
+        except Exception as exc:
+            if _looks_like_missing_browser_binary(exc):
+                raise RuntimeError(
+                    "CloakBrowser could not launch its browser binary. "
+                    "Reinstall or repair the CloakBrowser browser runtime before bootstrapping sessions."
+                ) from exc
+            raise
+        try:
+            context = browser.new_context()
+            try:
+                page = context.new_page()
+                page.goto(login_url, wait_until="load", timeout=timeout_ms)
+                print(
+                    "Manual login bootstrap opened a CloakBrowser window. "
+                    "Complete the permitted login there, then press Enter here to save storage state.",
+                    flush=True,
+                )
+                input()
+                final_url = page.url
+                context.storage_state(path=str(state_path))
+                return final_url
+            finally:
+                context.close()
+        finally:
+            browser.close()
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Open a headed Playwright browser for manual login and save local ignored storage-state JSON. "
+            "Open a headed browser for manual login and save local ignored storage-state JSON. "
             "This writes no Source Capture Packet."
         )
     )
@@ -135,18 +209,34 @@ def _build_parser() -> argparse.ArgumentParser:
         required=True,
     )
     parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS)
+    parser.add_argument(
+        "--browser-backend",
+        choices=(BROWSER_BACKEND_PLAYWRIGHT, BROWSER_BACKEND_CLOAKBROWSER),
+        default=BROWSER_BACKEND_PLAYWRIGHT,
+        help="Browser backend for visible manual login bootstrap.",
+    )
+    parser.add_argument(
+        "--cloakbrowser-humanize",
+        action="store_true",
+        help="Enable CloakBrowser humanized pointer/keyboard timing when using the cloakbrowser backend.",
+    )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+    if args.cloakbrowser_humanize and args.browser_backend != BROWSER_BACKEND_CLOAKBROWSER:
+        parser.error("--cloakbrowser-humanize requires --browser-backend cloakbrowser")
+    cloakbrowser_humanize = args.cloakbrowser_humanize or args.browser_backend == BROWSER_BACKEND_CLOAKBROWSER
     try:
         exit_code, message = run_browser_session_bootstrap(
             login_url=args.login_url,
             state_label=args.state_label,
             session_mode=AuthenticatedSessionMode(args.session_mode),
             timeout_seconds=args.timeout_seconds,
+            browser_backend=args.browser_backend,
+            cloakbrowser_humanize=cloakbrowser_humanize,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"source capture browser session bootstrap failed: {exc}\n")
@@ -159,6 +249,13 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     parser.exit(status=exit_code, message=f"source capture browser session bootstrap failed: {message}\n")
     return exit_code
+
+
+def _normalize_browser_backend(browser_backend: str) -> str:
+    normalized = browser_backend.strip().lower()
+    if normalized not in {BROWSER_BACKEND_PLAYWRIGHT, BROWSER_BACKEND_CLOAKBROWSER}:
+        raise ValueError("browser_backend must be one of: cloakbrowser, playwright")
+    return normalized
 
 
 def _validate_http_url(url: str) -> str:

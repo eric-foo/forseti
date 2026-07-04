@@ -60,6 +60,8 @@ def test_authenticated_browser_clis_expose_no_secret_or_password_flags() -> None
         }
         assert destinations.isdisjoint(forbidden_destinations)
         assert options.isdisjoint(forbidden_options)
+    assert "--browser-backend" in options
+    assert "--cloakbrowser-humanize" in options
 
 
 def test_auth_state_label_rejects_path_traversal(scratch_dir: Path) -> None:
@@ -137,6 +139,35 @@ def test_session_bootstrap_writes_auth_state_and_sidecar_without_packet(scratch_
     }
     assert not (scratch_dir / "manifest.json").exists()
     assert not (scratch_dir / "receipt.md").exists()
+
+
+def test_session_bootstrap_rejects_invalid_browser_backend(scratch_dir: Path) -> None:
+    with pytest.raises(ValueError, match="browser_backend must be one of"):
+        run_browser_session_bootstrap(
+            login_url="https://example.com/login",
+            state_label="free-example",
+            session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+            timeout_seconds=5,
+            auth_state_root=scratch_dir / "_auth_state",
+            browser_backend="unknown",
+            engine=_FakeBootstrapEngine(),
+        )
+
+
+def test_session_bootstrap_rejects_cloakbrowser_humanize_without_cloakbrowser(
+    scratch_dir: Path,
+) -> None:
+    with pytest.raises(ValueError, match="cloakbrowser_humanize requires"):
+        run_browser_session_bootstrap(
+            login_url="https://example.com/login",
+            state_label="free-example",
+            session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+            timeout_seconds=5,
+            auth_state_root=scratch_dir / "_auth_state",
+            browser_backend="playwright",
+            cloakbrowser_humanize=True,
+            engine=_FakeBootstrapEngine(),
+        )
 
 
 def test_authenticated_browser_runner_writes_packet_without_state_leakage(
