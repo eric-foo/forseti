@@ -3,10 +3,27 @@
 The IG analogue of `run_transcript_product_extract` (YouTube). Decoupled / choreography (not a
 call-chain): independently scans the lake for committed IG-Reel audio packets and deep-capture
 transcript records, then extracts any transcript lacking a completed mentions record-set.
-Daemon-ready by the same contract — idempotent (skip-if-done via the completion marker),
-stateless/resumable, and per-item failure isolated after candidate enumeration at BOTH grains
-(a corrupt packet -> `discovery_failed`; a transcript whose extraction raises -> `failed`).
-Enumeration-time filesystem failures still surface instead of being laundered into fake success.
+Daemon-ready by the same contract — idempotent (skip-if-done), stateless/resumable, and per-item
+failure isolated after candidate enumeration at BOTH grains (a corrupt packet ->
+`discovery_failed`; a transcript whose extraction raises -> `failed`). Enumeration-time
+filesystem failures still surface instead of being laundered into fake success.
+
+Pickup for the PACKET-BACKED route is the consumption seam (``data_lake.consumption``): a
+committed ``instagram_creator`` packet whose completed run was acknowledged is skipped WITHOUT
+loading or re-hashing its raw bodies — the obligation fingerprint (the packet's
+``transcript_asr`` records + model + rubric version) is compared instead, so a late-arriving
+ASR record or extraction-policy change re-surfaces the packet automatically.
+Acked-and-unchanged packets emit NO per-run status entries; the durable ack records under
+``acknowledgements/`` are the completion facts.
+Contract: ``core_spine_v0_data_lake_consumption_seam_contract_v0.md``.
+
+The DEEP-CAPTURE route is structurally OUTSIDE the seam and stays on completion-marker
+discovery: ``write_reel_deep_capture_into_lake`` anchors its record sets on the reel SHORTCODE
+with no committed bronze packet behind it, and seam pickup is defined by-key over committed
+availability only. Its outputs are therefore invisible to every availability-walking consumer
+(the SoV readout included) — a named limitation, not a fixture; the anchoring disposition is an
+open owner decision (``docs/workflows/ig_reels_deep_capture_anchoring_decision_input_v0.md``).
+No ack is ever written under a non-committed shortcode anchor.
 
 IG is its OWN runner (not an edit to the YouTube runner, which hardcodes
 `list_available(source_family="youtube")`): packet discovery keys on source_family=instagram_creator
@@ -19,7 +36,7 @@ No-LLM zone (`runners/`): imports the cleaning driver but no LLM SDK
 (`tests/contract/test_no_llm_imports.py`). The Transport is INJECTED, so the live caller
 (subscription- or API-routed) is wired separately and this stays offline-testable.
 
-Spec: orca/product/spines/capture/core/source_families/social_media/instagram/
+Spec: forseti/product/spines/capture/core/source_families/social_media/instagram/
 ig_reels_transcript_product_extraction_spec_v0.md (IG delta; daemon-readiness inherited).
 """
 
@@ -35,7 +52,7 @@ from typing import Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from cleaning.transcript_product_extractor import TranscriptInput
+from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION, TranscriptInput
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
     PRODUCT_MENTIONS_SET_LANE,
@@ -44,6 +61,14 @@ from cleaning.transcript_product_lake import (
     extract_products_into_lake,
     mentions_record_id,
 )
+from data_lake.consumption import (
+    PickupItem,
+    append_ack,
+    is_acknowledged,
+    pickup,
+    reconcile_availability_per_packet,
+)
+from data_lake.root import DataLakeRootError
 from data_lake.silver_lineage import SilverDerivedRef
 from source_capture.ig_reels_deep_capture_lake import (
     DEEP_CAPTURE_SET_LANE,
@@ -53,6 +78,12 @@ from source_capture.ig_reels_deep_capture_lake import (
 _ASR_LANE = "transcript_asr"
 _IG_SOURCE_FAMILY = "instagram_creator"
 _IG_AUDIO_SURFACE = "ig_reels_audio"
+# Seam ack namespace = this consumer's primary registered output lane (contract rule:
+# an ack namespace must be a lane declared in lane_registry.LANE_ROLES).
+_ACK_NAMESPACE = PRODUCT_MENTIONS_LANE
+# Distinct consumer identity in the obligation envelope: IG and YouTube share the ack
+# namespace but must never cross-satisfy each other's fingerprints.
+_SEAM_CONSUMER = "ig_reels_product_extract"
 DEFAULT_EXTRACTION_MODEL = "codex-extraction-v0"
 _DEEP_CAPTURE_ROUTE = "deep_capture_render_audio"
 _DEEP_CAPTURE_SURFACE = "ig_reels_deep_capture_render_audio"
@@ -101,11 +132,31 @@ def _record_path(data_root, *, raw_anchor: str, lane: str, record_id: str):
         )
     return data_root.path / "derived" / raw_anchor / lane / record_id
 
+
+def _asr_record_obligation_entries(data_root, audio_packet_id: str) -> list[list[str]]:
+    """Cheap input snapshot entries for every present transcript_asr record file."""
+    lane_dir = _lane_dir(data_root, raw_anchor=audio_packet_id, lane=_ASR_LANE)
+    if not lane_dir.is_dir():
+        return []
+    entries: list[list[str]] = []
+    for record_file in sorted(lane_dir.iterdir()):
+        if not record_file.is_file():
+            continue
+        try:
+            body = record_file.read_bytes()
+            record_sha = hashlib.sha256(body).hexdigest()
+        except OSError as exc:
+            record_sha = f"unreadable:{type(exc).__name__}"
+        entries.append([record_file.name, record_sha])
+    return entries
+
+
 def _asr_records(data_root, audio_packet_id: str) -> list[tuple[dict, str, str]]:
     """Read transcript_asr derived records by path, returning (record, record_id, sha256).
 
     The record_id and sha256 let product-mention Silver lineage reference the exact
-    transcript record consumed, rather than only the packet/shortcode anchor.
+    transcript record consumed, rather than only the packet/shortcode anchor. A damaged
+    record is a packet discovery failure, not a missing transcript.
     """
     lane_dir = _lane_dir(data_root, raw_anchor=audio_packet_id, lane=_ASR_LANE)
     if not lane_dir.is_dir():
@@ -116,11 +167,16 @@ def _asr_records(data_root, audio_packet_id: str) -> list[tuple[dict, str, str]]
             continue
         try:
             body = record_file.read_bytes()
+        except OSError as exc:
+            raise ValueError(f"transcript_asr record {record_file.name!r} unreadable") from exc
+        record_sha = hashlib.sha256(body).hexdigest()
+        try:
             data = json.loads(body.decode("utf-8"))
-        except (OSError, ValueError):
-            continue
-        if isinstance(data, dict):
-            records.append((data, record_file.name, hashlib.sha256(body).hexdigest()))
+        except ValueError as exc:
+            raise ValueError(f"transcript_asr record {record_file.name!r} invalid JSON") from exc
+        if not isinstance(data, dict):
+            raise ValueError(f"transcript_asr record {record_file.name!r} is not a JSON object")
+        records.append((data, record_file.name, record_sha))
     return records
 
 
@@ -158,15 +214,52 @@ def _transcript_source_key(*, transcript_anchor: str, source_kind: str, asr_reco
     return f"{transcript_anchor}:{source_kind}"
 
 
-def _candidate_packet_ids(data_root) -> list[str]:
-    """Committed instagram_creator packet ids. Rebuilds availability from raw first so discovery
-    does not depend on a pre-populated index. Best-effort: a single corrupt manifest must not
-    abort the run (it just goes un-indexed/skipped)."""
+def _candidate_packet_ids(data_root) -> tuple[list[str], list[dict]]:
+    """Committed instagram_creator packet ids over a freshly reconciled availability
+    surface, plus per-packet reconcile failures. The rebuild deletes index entries
+    first, so a swallowed reconcile failure would silently hide healthy packets —
+    failures must reach the caller's visibility channel (F-ECR-001 adjudicated
+    shape, shared helper in data_lake.consumption)."""
+    failures = reconcile_availability_per_packet(data_root)
+    return list(data_root.list_available(source_family=_IG_SOURCE_FAMILY)), failures
+
+
+def _packet_obligation(data_root, packet_id: str, model: str) -> dict:
+    """The cheap obligation snapshot for one committed packet: raw is immutable
+    (write-once), so the only growable inputs are the packet's ``transcript_asr``
+    derived records; the extraction model and rubric version are policy inputs too.
+    No raw bodies are loaded or re-hashed here."""
+    return {
+        "obligation_schema": 1,
+        "consumer": _SEAM_CONSUMER,
+        "model": model,
+        "rubric_version": EXTRACTOR_RUBRIC_VERSION,
+        "asr_records": sorted(_asr_record_obligation_entries(data_root, packet_id)),
+    }
+
+
+def _ack_packet(data_root, item: PickupItem, evidence: list[dict]) -> str:
+    """Record the lane-owned completion fact. A create collision (another completer
+    won the race) is fine when the obligation is now acknowledged; anything else is
+    a real ack failure surfaced as a status."""
     try:
-        data_root.rebuild_availability()
-    except Exception:  # noqa: BLE001 - a corrupt manifest must not abort the run; index is best-effort
-        pass
-    return list(data_root.list_available(source_family=_IG_SOURCE_FAMILY))
+        append_ack(
+            data_root,
+            raw_anchor=item.raw_anchor,
+            ack_namespace=_ACK_NAMESPACE,
+            obligation=item.obligation,
+            evidence=evidence,
+        )
+    except DataLakeRootError as exc:
+        if is_acknowledged(
+            data_root,
+            raw_anchor=item.raw_anchor,
+            ack_namespace=_ACK_NAMESPACE,
+            obligation=item.obligation,
+        ):
+            return "acked"
+        return f"ack_failed: {type(exc).__name__}: {exc}"[:200]
+    return "acked"
 
 
 def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
@@ -363,7 +456,9 @@ def discover_transcript_candidates(data_root) -> list[tuple[TranscriptInput | No
     source is ``(None, failure_dict)`` so callers can surface the failure without aborting.
     """
     candidates: list[tuple[TranscriptInput | None, dict | None]] = []
-    for packet_id in _candidate_packet_ids(data_root):
+    packet_ids, reconcile_failures = _candidate_packet_ids(data_root)
+    candidates.extend((None, failure) for failure in reconcile_failures)
+    for packet_id in packet_ids:
         try:
             transcripts = _transcripts_for_packet(data_root, packet_id)
         except Exception as exc:  # noqa: BLE001 - corrupt packet discovery must not abort the poll
@@ -415,12 +510,21 @@ def _mentions_set_state(data_root, transcript: TranscriptInput, model: str) -> s
 def pending_extraction_counts(*, data_root, model: str = DEFAULT_EXTRACTION_MODEL) -> dict[str, int]:
     """Count extractable and crash-partial IG Reel transcript mention sets.
 
-    Scheduler gate helper: no LLM and no network. Discovery may best-effort
-    rebuild the disposable availability index, matching ``run_extraction``.
-    Corrupt packets are isolated the same way discovery is isolated there.
+    Scheduler gate helper: no LLM and no network. A no-work count is a valid
+    claim only over a fully reconciled availability surface (seam contract), so
+    a per-packet reconcile failure raises loud here instead of silently
+    under-counting. Corrupt packets past reconcile are isolated the same way
+    discovery isolates them in ``run_extraction``.
     """
     counts = {"extractable": 0, "partial_needs_cleanup": 0}
-    for packet_id in _candidate_packet_ids(data_root):
+    packet_ids, reconcile_failures = _candidate_packet_ids(data_root)
+    if reconcile_failures:
+        first = reconcile_failures[0]
+        raise DataLakeRootError(
+            "availability reconcile failed before pending count: "
+            f"{first['packet_id']}: {first['error']}"
+        )
+    for packet_id in packet_ids:
         try:
             transcripts = _transcripts_for_packet(data_root, packet_id)
         except Exception:  # noqa: BLE001 - corrupt packet discovery must not abort the poll
@@ -462,10 +566,71 @@ def run_extraction(
     Failure-isolated at both grains (corrupt packet -> `discovery_failed`; per-transcript raise ->
     `failed`; the batch always continues). Idempotent (skip-if-done). A record-set half-written
     before its completion marker (process crash) yields `partial_needs_cleanup`. Returns one status
-    dict per packet/transcript.
+    dict per processed packet/transcript.
+
+    Packet-backed route: seam pickup — an acked-and-unchanged packet is skipped without loading
+    raw bodies and emits NO status entry (the durable ack record is the completion fact); a packet
+    whose transcripts all complete is acknowledged with completion evidence, and an ack write
+    failure surfaces as an `ack_failed` status. A packet with any failed or partial transcript is
+    never acknowledged and re-surfaces every run. Deep-capture route: out of the seam (no
+    committed anchor; module doc) — marker-based skip-if-done, re-walked every run, never acked.
     """
     results: list[dict] = []
-    for transcript, failure in discover_transcript_candidates(data_root):
+    # Visible reconcile opt-out per the seam contract: this runner reconciles
+    # ITSELF first, per packet, so one corrupt manifest becomes a visible
+    # availability_reconcile_failed status while healthy packets still index
+    # and process — instead of pickup's whole-batch fail-loud default reconcile.
+    results.extend(reconcile_availability_per_packet(data_root))
+    for item in pickup(
+        data_root,
+        ack_namespace=_ACK_NAMESPACE,
+        obligation_fn=lambda packet_id: _packet_obligation(data_root, packet_id, model),
+        source_family=_IG_SOURCE_FAMILY,
+        reconcile=False,
+    ):
+        packet_id = item.raw_anchor
+        try:
+            transcripts = _transcripts_for_packet(data_root, packet_id)
+        except Exception as exc:  # noqa: BLE001 - a corrupt packet -> discovery_failed, batch continues
+            results.append(
+                {
+                    "packet_id": packet_id,
+                    "status": "discovery_failed",
+                    "error": f"{type(exc).__name__}: {exc}"[:200],
+                }
+            )
+            continue
+        packet_complete = True
+        evidence: list[dict] = []
+        for transcript in transcripts:
+            entry = _extract_one_transcript(
+                data_root=data_root,
+                transcript=transcript,
+                transport=transport,
+                provider=provider,
+                model=model,
+                api_key=api_key,
+                max_tokens=max_tokens,
+                results=results,
+            )
+            if entry is None:
+                packet_complete = False
+            else:
+                evidence.append(entry)
+        if packet_complete:
+            if not evidence:
+                # No extractable transcript in this packet under the current inputs
+                # (e.g. a grid-metadata surface, or only non-transcribed ASR records);
+                # the discovery outcome IS the completion evidence. A later ASR record
+                # changes the obligation fingerprint and re-surfaces the packet.
+                evidence = [{"kind": "no_extractable_transcripts", "raw_anchor": packet_id}]
+            outcome = _ack_packet(data_root, item, evidence)
+            if outcome != "acked":
+                results.append({"packet_id": packet_id, "status": "ack_failed", "error": outcome})
+    # Deep-capture route: OUT of the seam (shortcode anchors are not committed
+    # availability; see module doc) — marker-based skip-if-done, re-walked every
+    # run, and never acknowledged.
+    for transcript, failure in _deep_capture_transcript_candidates(data_root):
         if failure is not None:
             results.append(failure)
             continue
@@ -508,10 +673,23 @@ def _extract_one_transcript(
     api_key: str,
     max_tokens: int,
     results: list[dict],
-) -> None:
+) -> dict | None:
+    """Process one transcript, appending its status entry to ``results``.
+
+    Returns the completion-evidence entry (for the packet route's ack) when the
+    transcript's mentions record-set is complete after this call — done before or
+    extracted now — and ``None`` on failure or partial (the packet must then stay
+    unacknowledged and re-surface). The deep-capture route ignores the return.
+    """
     anchor = transcript.transcript_anchor
     try:
         rid = mentions_record_id(transcript, model)
+        completion_evidence = {
+            "kind": "record_set_complete",
+            "raw_anchor": anchor,
+            "completion_lane": PRODUCT_MENTIONS_SET_LANE,
+            "record_id": rid,
+        }
         if data_root.is_record_set_complete(
             subtree="derived",
             raw_anchor=anchor,
@@ -519,13 +697,13 @@ def _extract_one_transcript(
             completion_lane=PRODUCT_MENTIONS_SET_LANE,
         ):
             results.append({**_result_identity(transcript), "status": "skipped_done"})
-            return
+            return completion_evidence
         member_path = _record_path(
             data_root, raw_anchor=anchor, lane=PRODUCT_MENTIONS_LANE, record_id=rid
         )
         if member_path.exists():
             results.append({**_result_identity(transcript), "status": "partial_needs_cleanup"})
-            return
+            return None
         paths = extract_products_into_lake(
             data_root=data_root,
             transcript=transcript,
@@ -544,6 +722,7 @@ def _extract_one_transcript(
                 "path": str(written) if written is not None else None,
             }
         )
+        return completion_evidence
     except Exception as exc:  # noqa: BLE001 - per-item failure isolation (daemon-ready)
         results.append(
             {
@@ -552,6 +731,7 @@ def _extract_one_transcript(
                 "error": f"{type(exc).__name__}: {exc}"[:200],
             }
         )
+        return None
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(

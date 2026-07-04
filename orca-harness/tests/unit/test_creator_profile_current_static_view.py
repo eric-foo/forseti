@@ -8,6 +8,11 @@ import subprocess
 
 import pytest
 
+from capture_spine.creator_profile_current.ideal_audience_snapshot import (
+    build_creator_ideal_audience_profile_snapshot_from_evidence,
+    build_creator_ideal_audience_snapshot_document,
+    dump_creator_ideal_audience_snapshot_document,
+)
 from capture_spine.creator_profile_current.materialize import (
     build_creator_profile_current_view_from_files,
 )
@@ -17,12 +22,13 @@ from capture_spine.creator_profile_current.validation import (
     load_creator_profile_current_view,
     validate_creator_profile_current_view,
 )
+from schemas.audience_inference_models import EvidenceRecord, ModalityFamily, OutputField
 
 
 ROOT = Path(__file__).resolve().parents[3]
 VIEW_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -34,7 +40,7 @@ VIEW_PATH = (
 )
 ACCOUNT_LEDGER_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -46,7 +52,7 @@ ACCOUNT_LEDGER_PATH = (
 )
 YOUTUBE_METRIC_SEED_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -58,7 +64,7 @@ YOUTUBE_METRIC_SEED_PATH = (
 )
 YOUTUBE_SNAPSHOT_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -70,7 +76,7 @@ YOUTUBE_SNAPSHOT_PATH = (
 )
 INSTAGRAM_METRIC_SEED_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -84,7 +90,7 @@ INSTAGRAM_METRIC_SEED_PATH = (
 # snapshots; each seed stays the no-drift value oracle (see _metric_seeds below).
 INSTAGRAM_SNAPSHOT_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -145,6 +151,35 @@ def _assert_validation_code(document: dict, code: str) -> None:
     assert exc_info.value.code == code
 
 
+def _audience_snapshot(subject_id: str, platform: str) -> dict:
+    evidence = [
+        EvidenceRecord(
+            evidence_id=f"{subject_id}:audience:e1",
+            creator_id=subject_id,
+            platform=platform,
+            post_id="audience-post-1",
+            signal_id="tier1-test",
+            modality=ModalityFamily.TEXT,
+            target_field=OutputField.SEGMENT,
+            label="fragrance_discovery",
+            vote=1.0,
+            base_reliability=1.0,
+            extractor_confidence=1.0,
+            creator_authored=True,
+            source_pointer="for beginners",
+        )
+    ]
+    return build_creator_ideal_audience_profile_snapshot_from_evidence(
+        evidence,
+        profile_subject_kind="platform_account",
+        profile_subject_id=subject_id,
+        platform_scope=platform,
+        observation_window_start="2026-07-01T00:00:00Z",
+        observation_window_end="2026-07-04T00:00:00Z",
+        computed_at="2026-07-04T00:00:00Z",
+    )
+
+
 def _rollups_by_subject() -> dict[str, dict]:
     # Reconstruct from the view's ACTUAL rollup sources: both YT and IG from their
     # committed lake snapshots (§5/§8). Each snapshot is value-equal to its seed
@@ -178,7 +213,7 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         "creator_record_profiles": 0,
         "profiles_with_metric_rollups": 33,
         "profiles_with_ideal_audience_profiles": 0,
-        "engagement_rate_observed_profiles": 3,
+        "engagement_rate_observed_profiles": 31,
         "cross_platform_rollup_profiles": 0,
     }
     assert {profile["platform_accounts"][0]["platform"] for profile in view["profiles"]} == {"youtube", "instagram", "tiktok"}
@@ -210,12 +245,21 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         assert rollup["metric_rollups"]["median_views"]["posture"] == "observed"
         assert rollup["sample_support"]["representativeness_posture"] == "admitted_pool_only_not_representative_creator_average"
         assert any("not a representative creator average" in item for item in rollup["limitations"])
+        # Engagement rate is posture/value coupled on every platform: observed
+        # carries a numeric value, anything else carries null plus a reason.
+        # (YT flipped to observed at cycle 2 via the watch-packet badge route;
+        # platform-frozen pins here broke on every honest data refresh.)
+        engagement_rate = rollup["metric_rollups"]["engagement_rate"]
+        assert engagement_rate["posture"] in {"observed", "unavailable_with_reason"}
+        if engagement_rate["posture"] == "observed":
+            assert isinstance(engagement_rate["value_or_none"], (int, float))
+        else:
+            assert engagement_rate["value_or_none"] is None
+            assert engagement_rate["posture_reason_or_none"]
         if platform == "instagram":
-            assert rollup["metric_rollups"]["engagement_rate"]["posture"] == "observed"
+            assert engagement_rate["posture"] == "observed"
             assert rollup["metric_rollups"]["average_like_count"]["posture"] == "observed"
             assert rollup["metric_rollups"]["average_comment_count"]["posture"] == "observed"
-        else:
-            assert rollup["metric_rollups"]["engagement_rate"]["posture"] == "unavailable_with_reason"
 
 
 def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> None:
@@ -276,6 +320,39 @@ def test_creator_profile_current_materializer_matches_checked_in_view() -> None:
     assert generated == _view_document()
 
 
+def test_creator_profile_current_materializer_optionally_joins_ideal_audience_snapshot(tmp_path: Path) -> None:
+    account = _account_ledger()["platform_accounts"][0]
+    snapshot = _audience_snapshot(account["platform_account_id"], account["platform"])
+    snapshot_document = build_creator_ideal_audience_snapshot_document(
+        [snapshot],
+        generated_at_utc=snapshot["computed_at"],
+    )
+    snapshot_path = tmp_path / "creator_ideal_audience_profile_snapshot_v0.json"
+    snapshot_path.write_text(
+        dump_creator_ideal_audience_snapshot_document(snapshot_document),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    generated = build_creator_profile_current_view_from_files(
+        account_ledger_path=ACCOUNT_LEDGER_PATH,
+        metric_seed_paths=METRIC_SEED_PATHS,
+        audience_profile_snapshot_paths=(snapshot_path,),
+        generated_at_utc=_view()["generated_at_utc"],
+    )
+    view = generated["creator_profile_current_view"]
+    joined = next(
+        profile
+        for profile in view["profiles"]
+        if profile["profile_subject_id"] == account["platform_account_id"]
+    )
+
+    assert view["counts"]["profiles_with_ideal_audience_profiles"] == 1
+    assert joined["ideal_audience_profile"] == snapshot
+    assert joined["freshness"]["audience_computed_at_or_none"] == snapshot["computed_at"]
+    assert any("actual_audience remains not_estimated" in item for item in joined["limitations"])
+
+
 def test_creator_profile_current_source_hashes_are_current() -> None:
     view = _view()
     inputs_by_pointer = {
@@ -284,9 +361,9 @@ def test_creator_profile_current_source_hashes_are_current() -> None:
     }
 
     expected_paths = {
-        "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json": ACCOUNT_LEDGER_PATH,
-        "orca/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": YOUTUBE_SNAPSHOT_PATH,
-        "orca/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json": INSTAGRAM_SNAPSHOT_PATH,
+        "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json": ACCOUNT_LEDGER_PATH,
+        "forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": YOUTUBE_SNAPSHOT_PATH,
+        "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json": INSTAGRAM_SNAPSHOT_PATH,
     }
 
     assert set(inputs_by_pointer) == set(expected_paths)
@@ -299,7 +376,7 @@ def test_creator_profile_source_input_files_are_lf_repo_text() -> None:
     for seed in _metric_seeds():
         for source in seed["source_inputs"]:
             source_pointer = source["source_pointer"]
-            if source_pointer.startswith(("docs/", "orca/")):
+            if source_pointer.startswith(("docs/", "forseti/")):
                 source_pointers.add(source_pointer)
 
     for source_pointer in sorted(source_pointers):
@@ -364,7 +441,11 @@ def test_creator_profile_identity_only_rejects_metric_pointer_without_rollup() -
 def test_creator_profile_validator_rejects_non_observed_metric_zero_fill() -> None:
     document = _bad_view_document()
     rollup = document["creator_profile_current_view"]["profiles"][0]["current_metric_rollups"][0]
-    rollup["metric_rollups"]["engagement_rate"]["value_or_none"] = 0
+    # posting_cadence is not_attempted by recipe construction on every rollup,
+    # so this stays a non-observed target across honest data refreshes
+    # (engagement_rate stopped being one when YT turned observed at cycle 2).
+    assert rollup["metric_rollups"]["posting_cadence"]["posture"] != "observed"
+    rollup["metric_rollups"]["posting_cadence"]["value_or_none"] = 0
 
     _assert_validation_code(document, "metric_value_for_non_observed_posture")
 
@@ -401,12 +482,12 @@ def test_creator_profile_validator_rejects_metric_smuggling_into_identity_eviden
     _assert_validation_code(document, "unknown_field")
 
 
-def test_creator_profile_validator_rejects_unjoined_ideal_audience_profile() -> None:
+def test_creator_profile_validator_rejects_malformed_ideal_audience_profile() -> None:
     document = _bad_view_document()
     document["creator_profile_current_view"]["profiles"][0]["ideal_audience_profile"] = {"freeform": "young buyers"}
     document["creator_profile_current_view"]["counts"]["profiles_with_ideal_audience_profiles"] = 1
 
-    _assert_validation_code(document, "unsupported_ideal_audience_profile")
+    _assert_validation_code(document, "invalid_ideal_audience_profile")
 
 
 def test_creator_profile_validator_rejects_unjoined_wind_calling_summary() -> None:

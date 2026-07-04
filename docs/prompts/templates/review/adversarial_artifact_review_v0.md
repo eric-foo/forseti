@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Prompt template
-scope: Read-only adversarial review template for non-code Orca artifacts.
+scope: Read-only adversarial review template for non-code Forseti artifacts.
 use_when:
   - Reviewing prompts, research artifacts, product docs, decisions, or workflow artifacts.
 authority_boundary: retrieval_only
@@ -20,7 +20,7 @@ Use shared contract:
 `docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md`
 
 ```text
-You are performing a read-only adversarial artifact review for Orca.
+You are performing a read-only adversarial artifact review for Forseti.
 
 Review target:
 [FILL_ARTIFACT_PATH_OR_TEXT]
@@ -86,15 +86,20 @@ authorize patching.
 Review authority:
 Use findings-first review output by default. Formal verdicts, blocked/ready
 status, validation pass/fail claims, approval, readiness, mandatory
-remediation, patch queues, and executor-ready handoffs require explicit Orca
+remediation, patch queues, and executor-ready handoffs require explicit Forseti
 overlay or prompt binding. In this template, `critical`, `major`, and `minor`
 severity labels are finding-priority labels only; they are not approval,
 rejection, readiness, validation, or mandatory-remediation authority.
 
 Review target and review purpose are commission-bound. Within that
-commission-bound target and purpose, be maximally adversarial about material
-decision-relevant failure modes. Do not retarget or widen the review, but do
-not soften a material failure mode because remediation would be difficult.
+commission-bound target and purpose, be maximally adversarial and
+coverage-first: report every issue you find, including uncertain and
+low-severity ones. Do not filter for importance or confidence at this stage --
+a downstream adjudication pass ranks and filters findings. Materiality,
+severity, and confidence are labels you attach, never thresholds for
+reporting. Do not retarget or widen the review, and do not soften or drop a
+failure mode because remediation would be difficult, confidence is low, or the
+finding seems minor.
 
 Output mode and report contract:
 Use exactly one output mode for the run.
@@ -148,6 +153,7 @@ List findings first, ordered by severity:
 
 For each finding include:
 - severity;
+- confidence (high / medium / low: your certainty the finding is real);
 - location;
 - issue;
 - evidence;
@@ -165,6 +171,17 @@ binds patch-queue review or patch/integration execution authority. A
 `patch_queue_entry` is executor-ready how-to, not ordinary read-only review
 advice.
 
+Low-confidence or minor findings may use a compact one-line form:
+`severity | confidence | location | issue | advisory direction`. Compactness
+lowers reporting cost only; it does not lower the finding's standing as
+decision input.
+
+After the findings, add a `considered_and_defended` section: one line per
+candidate finding you defeated with a steelman defense (candidate plus the
+defense that held). These are not findings and carry no severity, closure, or
+action fields; they make the discard pile visible to the adjudicator. If none,
+write `considered_and_defended: none`.
+
 If no issues are found, say so and list residual risks or test gaps.
 
 Read-budget audit (one line):
@@ -177,6 +194,6 @@ Review-use boundary:
 This is a read-only review. Treat findings and non-findings as decision input
 only, not as approval, validation, product proof, mandatory remediation, or
 executor-ready instructions. Do not anchor downstream work to this review as
-binding authority unless a separate authorized Orca decision, patch,
+binding authority unless a separate authorized Forseti decision, patch,
 validation, or implementation lane accepts it.
 ```

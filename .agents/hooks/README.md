@@ -1,6 +1,6 @@
 # Agent enforcement hooks — and how to wire them in any harness
 
-These scripts enforce a few Orca rules at the agent's **tool boundary**. They are
+These scripts enforce a few Forseti rules at the agent's **tool boundary**. They are
 **standalone** — plain Python that reads a tool event as JSON on stdin and signals
 via exit code — so they are **harness-portable**: the *logic* runs anywhere; only the
 *wiring* (how your agent harness invokes them) is harness-specific.
@@ -16,12 +16,13 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) irreversible / main-affecting actions: an agent's `gh pr merge` → main, push-to-main, force-push, `reset --hard`, `git clean`, and writes into protected external roots. **Allows** a benign lane-branch push. Fires in **all** permission modes. **Fails OPEN** on internal error. |
 | `.codex/hooks/orca_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, and blocks raw shell durable-write primitives for repo source/docs files. |
-| `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`. Bypassable with `--no-verify`; misses GitHub API merges. |
+| `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it then mirrors the strict CI doc gates (`check_map_links.py --strict`, `header_index.py --strict`, `check_review_routing.py --strict`; diff-scoped base `origin/main`, same as CI) so a durable-doc gate miss — e.g. a headerless `docs/review-outputs/` report (PR #613) — fails before push instead of in CI. Bypassable with `--no-verify`; misses GitHub API merges; CI stays the authoritative gate. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
 | `check_dcp_receipt_hygiene.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on deterministic DCP receipt storage defects in changed durable docs: more than two inline receipts, missing archive pointer, or unauthorized standalone DCP receipt files. Shape only; never receipt truth, validation, readiness, or acceptance. |
 | `check_registry_list_sync.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on explicitly registered vocabulary-list drift. Current binding: Foundation Allowed Signal Uses must be contained by the engagement registry Signal Use Classification list. Shape only; never category correctness or auto-promotion. |
 | `check_engagement_stale_phrases.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on curated stale engagement/resonance doctrine phrases in live doctrine paths. Leakage detection only; default excludes historical prompts/reviews and DCP self-reference noise. |
-| `check_review_output_provenance.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on changed review outputs missing retrieval-header shape, `reviewed_by`, `authored_by`, or review-use boundary/non-approval wording. Shape only; never reviewer identity verification, de-correlation truth, approval, validation, or review quality. |
+| `check_review_output_provenance.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on changed review outputs missing retrieval-header shape, `reviewed_by`, `authored_by`, review-use boundary/non-approval wording, balanced/valid fences, proper `diff` fencing, non-collapsed diffs, observed-check wording, or whitespace hygiene. Shape/integrity only; never reviewer identity verification, de-correlation truth, approval, validation, or review quality. |
+| `check_csb_scanning_artifact.py` | manual + **CI** (`--diff origin/main --strict`) | Diff-scoped, forward-only for CSB-first scan artifacts under `docs/research/`: validates minimum receipt shape including capture-request accounting and the Creator Registry preflight block (`not_applicable` for non-social requests; receipt-backed `can_start_new_capture` for new social creator/account capture). Shape only; never scan quality, buyer proof, registry truth, or Capture route authorization. |
 | `check_review_routing.py` | **commit-msg** (advisory) + **CI** (`--strict`) | Diff-scoped, forward-only: a change touching code roots (`orca-harness/`, `.agents/hooks/`) must add a review artifact under `docs/prompts/reviews/`/`docs/review-outputs/` or carry a shape-valid `review_routing_status:` commit-message line (`routed <existing path>` / `blocked -- reason` / `not_needed -- reason`). Disposition presence/shape only; never review quality, reason truth, or whether review should have been recommended. |
 | `check_handoff_pointers.py` | **CI** (`--strict`) | Diff-scoped, forward-only: handoff-packet paths (`docs/workflows/*handoff*.md`, `docs/prompts/handoffs/*.md`) referenced in changed durable `.md` files must resolve in the same tree, or the pointer line must carry an explicit pin (`branch` / `PR #N` / `origin/<ref>`) or exemption marker. Pointer shape only; never packet content freshness, pin truth, or source-choice correctness. Backlog via `--audit` (never gated). |
 | `check_repo_map_freshness.py` | **post-tool** (after a write) | Reports structural drift vs the repo map as advisory output; exits 2 when the repo map itself is dirty after edit so the next action is an explicit-path commit; has a `--strict` gate for commit/CI use. |
@@ -35,7 +36,7 @@ header and references that source instead of restating it.
 
 - **Input:** the harness passes the tool event as **JSON on stdin** — at minimum
   `tool_name` and `tool_input` (with `command` for shell tools, `file_path` for writes).
-- **Output / exit code:** for the raw Orca guard, **`2` = block** the tool call
+- **Output / exit code:** for the raw Forseti guard, **`2` = block** the tool call
   (stderr explains why); **`0` = allow**.
   On any internal error the guard **exits 0 (fails open)** so a hook bug never bricks the agent.
 - For the repo-map PostToolUse checker, **`2` = stop and commit the dirty repo
@@ -67,6 +68,7 @@ python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
 python .agents/hooks/check_registry_list_sync.py --selftest
 python .agents/hooks/check_engagement_stale_phrases.py --selftest
 python .agents/hooks/check_review_output_provenance.py --selftest
+python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
 python .agents/hooks/check_review_routing.py --selftest
 python .agents/hooks/check_handoff_pointers.py --selftest
 python .agents/hooks/check_repo_map_freshness.py --selftest
@@ -75,7 +77,7 @@ python .agents/hooks/check_search_surface_google_route.py --strict --base main
 ```
 
 ### Codex (tracked project hook)
-Codex does not read `.claude/settings.json`. Orca wires Codex through the
+Codex does not read `.claude/settings.json`. Forseti wires Codex through the
 tracked project-local `.codex/hooks.json`, which registers:
 
 - `PreToolUse` for `Bash|PowerShell|apply_patch|Edit|Write`;
@@ -113,9 +115,9 @@ failure class, not universal shell-write detection; use `apply_patch` from the
 active worktree for source edits.
 
 The repo-map checker also parses Codex `apply_patch` headers in PostToolUse
-mode. If the edited target is `docs/workflows/orca_repo_map_v0.md` and Git still
+mode. If the edited target is `docs/workflows/forseti_repo_map_v0.md` and Git still
 shows that map dirty, it returns exit code 2 and tells the agent to commit that
-file immediately with `git commit --only -- docs/workflows/orca_repo_map_v0.md`.
+file immediately with `git commit --only -- docs/workflows/forseti_repo_map_v0.md`.
 
 Codex only loads project-local hooks after the project `.codex/` layer is
 trusted. In a Codex session, open `/hooks` if Codex reports new or changed hooks
@@ -128,6 +130,7 @@ python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
 python .agents/hooks/check_registry_list_sync.py --selftest
 python .agents/hooks/check_engagement_stale_phrases.py --selftest
 python .agents/hooks/check_review_output_provenance.py --selftest
+python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
 python .agents/hooks/check_review_routing.py --selftest
 python .agents/hooks/check_handoff_pointers.py --selftest
 python .agents/hooks/check_repo_map_freshness.py --selftest
@@ -153,7 +156,9 @@ python .codex/hooks/orca_guard_codex_adapter.py --selftest
    ```
    This sets `core.hooksPath` to `.githooks`, enabling:
    - `.githooks/pre-push` — blocks pushes targeting `main`, branch deletes, and
-     non-fast-forward updates at Git's pre-push boundary.
+     non-fast-forward updates at Git's pre-push boundary, then mirrors the
+     strict CI doc gates over the outgoing change (see the `pre_push_guard.py`
+     row above).
    - `.githooks/commit-msg` — runs `check_repo_map_freshness.py --commit-msg`.
 3. Confirm with:
    ```powershell

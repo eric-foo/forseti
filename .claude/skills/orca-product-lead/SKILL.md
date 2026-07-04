@@ -1,18 +1,18 @@
 ---
 name: orca-product-lead
-description: "Orca product-lead reasoning for any Orca product decision - value prop, offer, ICP/wedge, buyer-proof, positioning, packaging, pull/kill/graduation. Prepares the decision for owner sign-off."
+description: "Forseti product-lead reasoning for any Forseti product decision - value prop, offer, ICP/wedge, buyer-proof, positioning, packaging, pull/kill/graduation. Prepares the decision for owner sign-off."
 ---
 
-# orca-product-lead (Orca-local, accepted)
+# orca-product-lead (Forseti-local, accepted)
 
-A distilled, all-encompassing product-lead method for Orca. It is a thin
-**router into Orca's own product authority**, not a new authority. When a
+A distilled, all-encompassing product-lead method for Forseti. It is a thin
+**router into Forseti's own product authority**, not a new authority. When a
 section says "see X," open X — do not rely on this file's paraphrase for a
 frozen decision.
 
 ## Status and boundary
 
-- Status: **Orca-local, ACCEPTED (frozen) + DEPLOYED/ACTIVATED 2026-06-08;
+- Status: **Forseti-local, ACCEPTED (frozen) + DEPLOYED/ACTIVATED 2026-06-08;
   refreshed + re-frozen 2026-06-12; refreshed + re-pinned 2026-06-20**
   (authorized skill-edits: thesis/wedge citations re-routed after the
   consumer-demand ratification; runtime copy re-synced after the spine-first
@@ -22,20 +22,20 @@ frozen decision.
   user-global/personal, NOT a plugin, NOT external). This `.agents/skills/` file
   remains the canonical, cross-runtime source-of-record; the `.claude/skills/`
   copy is the runtime deployment copy and must be kept identical (the source
-  sha256 pinned in skill-adoption.md governs). It carries no Orca authority and
+  sha256 pinned in skill-adoption.md governs). It carries no Forseti authority and
   decides nothing on its own.
-- It defers all Orca facts, folders, validation gates, artifact roles, output
+- It defers all Forseti facts, folders, validation gates, artifact roles, output
   contracts, and non-claims to `AGENTS.md` and `.agents/workflow-overlay/`. If
   required authority is missing or stale, **fail visibly** — do not invent it.
 - It does not replace, and must not import, the jb-scoped `product-lead` skill
-  or any jb authority (`AGENTS.md` forbids jb-as-Orca-authority; the
+  or any jb authority (`AGENTS.md` forbids jb-as-Forseti-authority; the
   validation-gates leakage rule forbids copying jb product-lead rules).
 - Rollback: delete `.agents/skills/orca-product-lead/` (purely additive). Never
   edit plugin, user-level, installed, or external skill source from this lane.
 
 ## Use when / do not use
 
-Use when the turn is an Orca product decision or review such as: confirming or
+Use when the turn is a Forseti product decision or review such as: confirming or
 revising the value proposition or offer; selecting or adjusting an ICP / first-
 proof wedge; designing or reviewing a buyer-proof loop; framing positioning,
 packaging, or deliverable shape; or judging buyer pull, kill, or graduation.
@@ -117,7 +117,7 @@ needs its own explicit owner authorization.
 ## Guardrails — what must not become skill behavior
 
 - Do not auto-lock the current first-proof wedge (whichever the repo map
-  routes to) as Orca's permanent ICP; a wedge is a revisable first-proof
+  routes to) as Forseti's permanent ICP; a wedge is a revisable first-proof
   selection whose pivot and kill conditions live in its own record.
 - Do not treat candidate-context scans as qualified buyers.
 - Do not turn deck-first framing into deck production.
@@ -147,7 +147,7 @@ courier state only when useful.
 
 - Candidate name: `orca-product-lead` (shadow name; distinct from the resolver-
   visible jb-scoped `product-lead`).
-- Source path: `.agents/skills/orca-product-lead/SKILL.md` (Orca-local).
+- Source path: `.agents/skills/orca-product-lead/SKILL.md` (Forseti-local).
 - Authorization: owner instruction in the Product Lead CA lane to create a
   reusable product-lead skill; the candidate was pre-named in
   `orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md` ("Product Lead
@@ -158,11 +158,11 @@ courier state only when useful.
   `orca-product-lead` exists except the naming note in the ICP wedge decision.
   (Checked via repo grep + globs and the resolver-visible skill list, not a
   fresh plugin-manifest read.)
-- Trigger examples: "make an Orca product decision", "review this ICP / wedge",
-  "design the buyer-proof loop", "is this buyer pull or praise?", "frame Orca's
+- Trigger examples: "make a Forseti product decision", "review this ICP / wedge",
+  "design the buyer-proof loop", "is this buyer pull or praise?", "frame Forseti's
   packaging / deliverable", "what should the next product move be (decision
   framing)?"
-- Source boundary: not Orca authority; defers all Orca facts to `AGENTS.md` and
+- Source boundary: not Forseti authority; defers all Forseti facts to `AGENTS.md` and
   `.agents/workflow-overlay/`; fails visibly when that authority is missing.
 - Overlay loaded when authored: README, decision-routing, skill-adoption,
   source-of-truth, project-authority, safety-rules, product-proof,
@@ -171,7 +171,7 @@ courier state only when useful.
 - Rollback path: delete `.agents/skills/orca-product-lead/`; no edits to
   plugin / user-level / installed / external skill source.
 - Validation notes: ACCEPTED (frozen) 2026-06-08, registered in
-  `.agents/workflow-overlay/skill-adoption.md` (Accepted Orca-Local Candidate
+  `.agents/workflow-overlay/skill-adoption.md` (Accepted Forseti-Local Candidate
   Skills), with `.agents/skills/` in `artifact-folders.md` and the source sha256
   pinned in skill-adoption. DEPLOYED/ACTIVATED 2026-06-08 for the Claude Code
   runtime as a project-level copy at `.claude/skills/orca-product-lead/SKILL.md`
@@ -193,3 +193,9 @@ courier state only when useful.
   runtime copy re-synced to this source; and the source sha256 re-pinned in
   skill-adoption.md. This refresh changes skill routing/pins only; the skill
   remains non-authority and the repo map plus controlling records govern.
+- Refresh record: 2026-07-03, owner-authorized Forseti rename lane — visible
+  skill prose rebranded to Forseti per
+  `docs/decisions/forseti_rename_migration_policy_v0.md`; the
+  `orca-product-lead` directory / command name remains a legacy compatibility
+  alias until a separate resolver-safe skill migration. Both copies updated
+  identically; new source sha256 re-pinned in skill-adoption.md.

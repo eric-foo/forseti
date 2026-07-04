@@ -1,6 +1,6 @@
 """Consumption seam v0: shared derived-lane pickup/acknowledgement helper.
 
-Contract: ``orca/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md``.
+Contract: ``forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md``.
 Every derived lane discovers committed Bronze work and acknowledges completion
 the same tested way:
 
@@ -26,7 +26,10 @@ the same tested way:
   and can be truthfully re-acknowledged (``ack_<fp>_<k>``).
 - **An empty pickup is a no-work claim only over a reconciled availability
   surface**: ``pickup`` reconciles by default (``rebuild_availability``,
-  fail-loud); opting out is an explicit, visible parameter.
+  fail-loud); opting out is an explicit, visible parameter. Daemon-shaped
+  consumers that opt out reconcile themselves through the shared
+  ``reconcile_availability_per_packet`` (per-packet failure visibility,
+  F-ECR-001) instead of carrying local copies.
 - **Fail toward re-verification, never fake-done**: an unreadable ack is
   treated as absent (the anchor re-surfaces); an ack is only written by the
   consumer with completion evidence in hand, meeting the contract's minimum
@@ -48,6 +51,7 @@ from typing import Any, Callable, Iterator
 
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.lane_registry import LANE_ROLES
+from data_lake.root import raw_shard
 
 ACK_SCHEMA_VERSION = 1
 _ACK_SUBTREE = "acknowledgements"
@@ -362,6 +366,55 @@ def pickup(
         )
 
 
+def reconcile_availability_per_packet(root) -> list[dict]:
+    """By-key availability reconcile with per-packet failure visibility — the
+    seam's shared reconcile for daemon-shaped consumers.
+
+    ``DataLakeRoot.rebuild_availability`` is intentionally fail-loud as a whole
+    batch, but a catch-up daemon must keep healthy packets moving when one raw
+    manifest is corrupt. This rebuilds the index one committed packet at a time
+    (delete + regenerate, same non-authoritative-index premise as the root's
+    rebuild) so a bad packet becomes a visible
+    ``availability_reconcile_failed`` status entry instead of a silent omission
+    from a partial index. F-ECR-001 adjudicated shape, single-sourced here —
+    runners must consume this helper rather than carry local copies (the
+    consumer seam-coverage contract test enforces that).
+
+    Callers on a status-reporting path extend their per-run results with the
+    returned entries; callers making a no-work claim (a ``pending``-style
+    check) must fail loud when any entry is returned — an empty pickup is a
+    valid no-work claim only over a fully reconciled surface (seam contract).
+    """
+    failures: list[dict] = []
+    avail = root.path / "indexes" / "availability"
+    if avail.is_dir():
+        for entry_file in avail.glob("*.json"):
+            entry_file.unlink()
+    avail.mkdir(parents=True, exist_ok=True)
+
+    raw_dir = root.path / "raw"
+    if not raw_dir.is_dir():
+        return failures
+    for shard_dir in sorted(p for p in raw_dir.iterdir() if p.is_dir()):
+        for container in sorted(p for p in shard_dir.iterdir() if p.is_dir()):
+            packet_id = container.name
+            if not (container / "manifest.json").is_file():
+                continue
+            if shard_dir.name != raw_shard(packet_id):
+                continue
+            try:
+                root.record_availability(packet_id)
+            except Exception as exc:  # noqa: BLE001 - surface corrupt packet, continue batch
+                failures.append(
+                    {
+                        "packet_id": packet_id,
+                        "status": "availability_reconcile_failed",
+                        "error": f"{type(exc).__name__}: {exc}"[:200],
+                    }
+                )
+    return failures
+
+
 def iter_all_acks(root) -> Iterator[tuple[str, str, dict]]:
     """Walk the whole acknowledgements tree, yielding ``(raw_anchor, namespace,
     ack)`` for every well-formed ack record.
@@ -396,6 +449,7 @@ __all__ = [
     "iter_all_acks",
     "obligation_fingerprint",
     "pickup",
+    "reconcile_availability_per_packet",
     "retract_ack",
     "retraction_record_id",
     "validate_ack_namespace",

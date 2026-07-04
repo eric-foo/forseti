@@ -49,7 +49,7 @@ or the affected artifact route as stale.
 | Accepted folders, `_inbox`, hygiene routing, no-implementation folders | `.agents/workflow-overlay/artifact-folders.md` |
 | Artifact role bindings, permissions, freshness markers | `.agents/workflow-overlay/artifact-roles.md` |
 | Completion and prompt validation gates | `.agents/workflow-overlay/validation-gates.md` |
-| Repo navigation and recurring read packs | `docs/workflows/orca_repo_map_v0.md` |
+| Repo navigation and recurring read packs | `docs/workflows/forseti_repo_map_v0.md` |
 | Temporary retained material and cleanup triage | `docs/hygiene/README.md` and `docs/hygiene/queue.md` |
 
 This guide owns examples, decision tests, body-opening shape, fresh-agent
@@ -193,7 +193,7 @@ Prefer:
 stale_if:
   - .agents/workflow-overlay/retrieval-metadata.md changes header field rules.
   - reviewed target file is re-patched after input_hashes were recorded.
-  - docs/workflows/orca_repo_map_v0.md is superseded by a later repo map.
+  - docs/workflows/forseti_repo_map_v0.md is superseded by a later repo map.
 ```
 
 Avoid:

@@ -29,6 +29,9 @@ The agent may:
 - run the TikTok one-creator live probe against explicitly supplied public
   creator/video URLs using the TikTok playbook posture, then optionally chain
   its sanitized staging output through the existing TikTok batch admission gate;
+- run the Creator Registry match preflight runner against candidate social
+  creator/account identities before starting new social creator/account
+  capture;
 - inspect `manifest.json`, `receipt.md`, and `raw/`;
 - report packet path, exit code, preserved files, warnings, and limitations.
 
@@ -132,6 +135,22 @@ conflicting, too-short, too-long, or malformed timestamp, stop and ask for a
 corrected value. Do not silently repair the timestamp by guessing the intended
 date.
 
+For social creator/account capture where the operator intends to start a new
+creator capture, run the Creator Registry match preflight before capture and
+carry its receipt in the agent report or handoff. Use
+`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`
+for candidate JSON shape, receipt outcomes, and the runner command. Do not start
+`new_capture` unless the candidate batch was preflighted with
+`intended_action: new_capture` and the resulting receipt row shows `decision:
+new_candidate` and `can_start_new_capture: true` (`action_status: allowed`). A
+row that only shows `decision: new_candidate` and `action_status: allowed` from
+a `classify` or `update_existing` query does not clear `new_capture`; check
+`can_start_new_capture` directly rather than reconstructing the condition.
+`existing_match` routes to updating or working against the matched
+registry identity; `ambiguous_match` and `invalid_candidate` stop the capture
+until resolved. A manual visual scan of the registry or projection is useful
+orientation, but it is not a substitute for the preflight receipt.
+
 For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 
 - `free_account_created_session`
@@ -158,7 +177,6 @@ Use the narrowest runner that matches the supplied input.
 | Original URL plus archive need | `run_source_capture_archive_packet.py` | The operator needs Archive.org availability and maybe snapshot body. |
 | Browser-rendered or screenshot-needed page | `run_source_capture_browser_packet.py` | One supplied URL needs anonymous browser rendering or screenshot preservation. |
 | Login-visible or entitled browser session content | `run_source_capture_browser_session_bootstrap.py`, then `run_source_capture_authenticated_browser_packet.py` | The operator authorizes an allowed manual-login storage-state session. |
-| TikTok public creator/video lane | `run_source_capture_tiktok_live_batch_probe.py` | Use only with the TikTok playbook posture: explicitly supplied public creator/video URLs, headed/sessioned or owner-authorized logged-out run, dedicated non-personal warmed account for sessioned runs, CloakBrowser backend when pinned, and optional admission through `--admit-output` or explicit `--data-root`. |
 | Anti-blocking browser-rendered page | `run_source_capture_cloakbrowser_packet.py` | One supplied URL needs anonymous CloakBrowser rendering because ordinary Browser Snapshot controls (`--headed`, `--browser-channel`, `--settle-seconds`) are expected to fail or have failed. |
 | Retail/PDP anti-blocking capture plus local projection | `run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` | One supplied retailer PDP URL needs a Source Capture Packet and a separate no-network Retail/PDP projection JSON. For the current Amazon/Sephora/Ulta smoke commands, use `docs/product/source_capture_toolbox/retail_pdp_sidecar_operator_playbook_v0.md`. |
 | Reddit pre-commercial anti-blocking capture | `run_source_capture_cloakbrowser_packet.py` for one supplied old Reddit/thread URL only | The runner can preserve one supplied browser-visible URL through CloakBrowser; it does not discover Reddit targets, monitor threads, parse/consolidate comments, use credentials, or authorize broad crawling. |
@@ -208,40 +226,6 @@ offsets, and actual per-slot timestamps in `batch_summary.json`. Keep
 and stop on visible blocks instead of adding retries or proxy/browser fallback
 inside the same runner. Use `--delay-seconds` only when a fixed mechanical
 cadence is intentionally desired.
-
-### TikTok Live Probe To Packet / Bronze Lake
-
-When the owner asks an agent to run TikTok into the bronze/data lake, do not
-hand-copy staging JSON or inspect auth-state files. Run the live probe and let it
-chain the existing network-free TikTok batch admission gate:
-
-```powershell
-python runners/run_source_capture_tiktok_live_batch_probe.py `
-  --creator-handle "<handle>" `
-  --creator-profile-url "https://www.tiktok.com/@<handle>" `
-  --video-url "https://www.tiktok.com/@<handle>/video/<video_id>" `
-  --state-label "<dedicated-tiktok-auth-state-label>" `
-  --session-mode client_provided_session `
-  --output-dir "<scratch-output-dir>" `
-  --browser-backend cloakbrowser `
-  --data-root "F:\orca-data-lake"
-```
-
-Default live-run behavior is staging-only. `--admit-output <packet-dir>` writes
-a local SourceCapturePacket directory after staging; `--data-root <absolute lake
-root>` writes through the production data-lake resolver. This live runner
-intentionally does not read ambient `ORCA_DATA_ROOT`; lake writes require the
-explicit flag. Admission fails closed on nonzero challenge count, failures,
-first-failure reason, or diagnostic/challenge-close contract markers, and it
-preserves only sanitized page-owned comment/subtitle/source-text fields.
-
-Use only dedicated non-personal TikTok accounts for sessioned runs. Do not
-enter credentials, print proxy endpoints, inspect cookies/tokens/storage-state
-JSON, import a raw browser profile, drag/solve CAPTCHA, or claim non-proxy
-provenance from a label string. If the owner is present and authorizes slider
-handoff, add `--allow-challenge-close-followthrough --human-challenge-handoff`;
-the scripted UI substrate still attempts X/Close first, and any manual solve
-remains a receipt-visible source-access intervention, not clean capture.
 
 When a downstream agent needs to read Reddit outputs, generate two local view
 states from the existing JSON artifact instead of feeding the durable artifact
@@ -524,72 +508,6 @@ label already exists, choose a new label or ask the operator before deleting
 anything. Choose a non-sensitive state label; the label is later recorded in
 packet metadata.
 
-For sources that need a warm browser posture before manual login, the bootstrap
-runner may use CloakBrowser with a dedicated local user-data label:
-
-```powershell
-python runners/run_source_capture_browser_session_bootstrap.py `
-  --login-url "<ordinary login or target URL>" `
-  --state-label "<local state label>" `
-  --session-mode "<allowed session mode>" `
-  --browser-backend cloakbrowser `
-  --cloakbrowser-user-data-label "<local user-data label>"
-```
-
-This creates or reuses an ignored local CloakBrowser user-data directory under
-`orca-harness/_browser_user_data/`. It is a dedicated browser profile for manual
-login continuity, not direct import of an existing Chrome profile, cookies, or
-tokens. Do not print, stage, commit, copy, or packetize that directory or its
-contents.
-
-If a provider login flow, especially Google OAuth, blanks a popup or shows a
-`Debugger paused in another tab` banner inside the Playwright-controlled
-bootstrap, stop that attempt. Warm the same dedicated profile first through a
-direct CloakBrowser launch with no Playwright/CDP attachment:
-
-```powershell
-python runners/run_source_capture_cloakbrowser_profile_warmup.py `
-  --login-url "<ordinary login or target URL>" `
-  --user-data-label "<local user-data label>"
-```
-
-Complete the permitted login in that direct browser, close the browser, then
-press Enter in the warmup terminal. In non-interactive runners where stdin is
-unavailable, the command waits for the direct browser process to exit instead.
-
-When a source-access diagnostic needs the operator-authorized proxy store, add
-only the label-indirected proxy flags:
-
-```powershell
-python runners/run_source_capture_cloakbrowser_profile_warmup.py `
-  --login-url "<ordinary login or target URL>" `
-  --user-data-label "<local user-data label>" `
-  --proxy-profile-label "<local proxy profile label>" `
-  --proxy-profile-root "<optional local proxy-profile store root>"
-```
-
-The proxy endpoint and credentials are loaded from the ignored store only for
-the browser launch. Do not print, stage, commit, copy, or packetize the proxy
-profile file or endpoint. After warmup, export the dedicated user-data profile
-to a harness storage-state label without navigating the login flow again:
-
-```powershell
-python runners/run_source_capture_browser_user_data_export.py `
-  --user-data-label "<local user-data label>" `
-  --state-label "<local state label>" `
-  --session-mode "<allowed session mode>"
-```
-
-The export runner opens the local CloakBrowser user-data directory by label,
-writes ignored storage-state JSON plus the session-mode sidecar under
-`orca-harness/_auth_state/`, writes no packet, and prints only labels and the
-session mode. It does not accept profile paths, storage-state paths, usernames,
-passwords, cookies, or tokens. If the warmup used a proxy, that state may be
-tried in a later non-proxy source-access run, but the egress switch can still
-produce an invalid session or challenge. Do not call it clean non-proxy capture
-proof until a non-proxy receipt validates under the normal gates. The warmup
-runner writes no packet and saves no auth-state by itself.
-
 Then capture one explicit URL with that saved state:
 
 ```powershell
@@ -633,6 +551,8 @@ The agent report must include:
   `manifest.json` when present, even when `limitations` is empty;
 - warnings and limitations from `manifest.json`;
 - any visible access, archive, media, or cutoff limitations;
+- for new social creator/account capture, the Creator Registry match preflight
+  receipt path and row decision/action status;
 - receipt non-claims from `receipt.md` or manifest receipt metadata when
   present.
 
@@ -765,6 +685,13 @@ source_capture_agent_report:
   browser_snapshot_caveat: <if browser packet, viewport screenshot and no content-sufficiency proof; otherwise none>
   authenticated_browser_caveat: <if authenticated browser packet, session mode/state label reported but no state contents or login-wall absence proof; otherwise none>
   visible_stop_if_any: <missing input, access failure, browser-needed, no packet, or none>
+  creator_registry_match_preflight:
+    required_when: <new_social_creator_account_capture if this capture request is a new social creator/account capture, otherwise not_applicable; never omit this block>
+    receipt_path: <path to preflight receipt JSON, or not_applicable>
+    intended_action: <new_capture|classify|update_existing|not_applicable>
+    decision: <existing_match|new_candidate|ambiguous_match|invalid_candidate|not_applicable>
+    action_status: <allowed|blocked|not_applicable>
+    can_start_new_capture: <true|false|not_applicable; must be true before starting new_capture>
   non_claims:
     - <receipt non-claim or none>
   mini_god_tier_source_quality_report:
@@ -1127,4 +1054,54 @@ direction_change_propagation:
     - "not source acquisition"
     - "not source-quality scoring"
     - "not ECR, Cleaning, or Judgment authority"
+```
+
+## Direction Change Propagation - Creator Registry Match Preflight
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "The Source Capture Agent Runbook now requires Creator Registry match preflight receipts before starting new social creator/account capture; visual registry/projection scans are orientation only and do not replace the receipt."
+  trigger: lifecycle_boundary
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - "orca-harness/docs/source_capture_agent_runbook.md"
+    - "orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/README.md"
+    - ".agents/workflow-overlay/source-of-truth.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - "orca-harness/README.md"
+    - "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+    - "orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md"
+    - "docs/workflows/orca_repo_map_v0.md"
+  intentionally_not_updated:
+    - path: "AGENTS.md"
+      reason: "Root instructions do not enumerate source-family preflight details."
+    - path: ".agents/workflow-overlay/source-loading.md"
+      reason: "Source-loading routes did not change; the existing runbook remains the cold-agent entrypoint."
+    - path: "orca-harness/README.md"
+      reason: "It already points agents to this runbook for source-capture runner use."
+    - path: "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+      reason: "Armory component status and capture-tool boundaries did not change."
+    - path: "orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md"
+      reason: "Registry architecture and source split did not change; usage-note/runbook binding owns operator sequencing."
+  stale_language_search: "rg -n \"Creator Registry match preflight|creator_registry_match_preflight|run_creator_registry_match_preflight|visual registry|projection scan|new social creator\" orca-harness/docs/source_capture_agent_runbook.md orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md orca/product/spines/capture/core/source_families/social_media/creator_registry/README.md orca-harness/README.md orca/product/spines/capture/core/source_capture_toolbox/README.md docs/workflows/orca_repo_map_v0.md"
+  stale_language_search_result: >
+    Executed 2026-07-04 after edits. Hits are only the new runbook/usage-note/
+    repo-map text itself (Required Inputs, Agent Boundary, agent-report
+    template, and the runners-index entry) plus this receipt's own quoted
+    search string. orca-harness/README.md, the source_capture_toolbox README,
+    and the creator_registry README carry no hits, consistent with the
+    intentionally_not_updated reasons above.
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not fuzzy duplicate detection"
+    - "not cross-platform identity proof"
+    - "not silver metric refresh"
+    - "not registry mutation"
+    - "not live social search"
 ```

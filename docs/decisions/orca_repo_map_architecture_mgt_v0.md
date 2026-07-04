@@ -1,10 +1,10 @@
-# Orca Repo-Map Architecture (Mini God Tier) v0
+# Forseti Repo-Map Architecture (Mini God Tier) v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca decision record (owner-invoked mini-god-tier architecture)
+artifact_role: Forseti decision record (owner-invoked mini-god-tier architecture)
 scope: >
-  The locked Orca repo-map retrieval architecture: curated map, dense-area
+  The locked Forseti repo-map retrieval architecture: curated map, dense-area
   submaps, retrieval headers, generated on-demand inventory/health, session
   health capsule, recent-change satellite, promotion-on-touch, and the
   reachability-coverage invariant. Binds what the central map owns vs what
@@ -51,7 +51,7 @@ MGT: decentralized (high-level map + submaps + headers), with the full per-doc
 list regenerated on demand by `header_index --index`. The *guarantee* is
 god-tier-rigorous: the completeness invariant is **gated** (every durable doc
 headered + every folder reachable + zero orphan). A persisted, always-in-sync
-complete central index (the god-tier *artifact*) is rejected — in Orca's
+complete central index (the god-tier *artifact*) is rejected — in Forseti's
 multi-lane, about-to-bloat-cut repo it is a merge-conflict magnet and duplicates
 the headers, adding nothing over (headers + `--index` + the git PR diff). Rigor
 lives in the gate, not the file.

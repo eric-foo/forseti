@@ -9,7 +9,7 @@ The Tier-2-A demographic slice (gender_skew / age_band) is gated (owner council 
 ledger-schema home) and is deliberately NOT representable here in v0; extend
 ``OutputField`` when that slice is activated.
 
-Spec: orca/product/spines/capture/core/source_families/social_media/instagram/
+Spec: forseti/product/spines/capture/core/source_families/social_media/instagram/
 ig_creator_ideal_audience_inference_spec_v0.md (CE1-CE12 / D1-D7).
 """
 

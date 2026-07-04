@@ -8,7 +8,7 @@ WHAT THIS DOES
   artifact OUT of every governed root (it left its governed home); a rename that
   keeps it under a governed root is a move, not a deletion, and needs no record.
 
-  The frozen Orca rule: a governed-artifact deletion is central-adjudicated and
+  The frozen Forseti rule: a governed-artifact deletion is central-adjudicated and
   carries evidence -- reverse-reference check + successor + semantic delta +
   rollback. This gate makes the EVIDENCE mechanically mandatory on the pre-merge
   PR diff: a governed deletion with no complete record, or a successor that does
@@ -50,7 +50,7 @@ DETECTION CONTRACT (mirrors header_index.py --strict)
   origin/main. Diff is three-dot `base...HEAD` (merge-base diff = the PR's net
   change). Rename-aware via --find-renames. NO HEAD~1 fallback (which would see
   only the last commit of a multi-commit lane). If the base cannot be resolved
-  or git fails, fail OPEN (exit 0, loud warning) -- the universal Orca infra-gap
+  or git fails, fail OPEN (exit 0, loud warning) -- the universal Forseti infra-gap
   stance; in CI the base is always present (fetch-depth: 0).
 
 HARD BOUNDARY
@@ -79,7 +79,7 @@ from pathlib import Path, PurePosixPath
 
 # Governed scope -- code-owned SSOT (see "WHY THE GOVERNED SCOPE IS CODE-OWNED").
 # A trailing slash means "this directory and everything under it".
-GOVERNED_ROOTS = ("orca/product/",)
+GOVERNED_ROOTS = ("orca/product/", "forseti/product/")
 
 REGISTER_REL = "docs/decisions/deletion_evidence_register_v0.yaml"
 EVIDENCE_FIELDS = ("reverse_ref_check", "successor", "semantic_delta", "rollback")
@@ -368,7 +368,7 @@ def selftest() -> int:
 
     # --- record_is_complete (minimal schema: targets + 4 evidence) ---
     complete = {
-        "targets": ["orca/product/x_v0.md"],
+        "targets": ["forseti/product/x_v0.md"],
         "evidence": {f: "a non-empty narrative" for f in EVIDENCE_FIELDS},
     }
     check("complete record", record_is_complete(complete), True)
@@ -383,33 +383,34 @@ def selftest() -> int:
     check("provenance not required",
           record_is_complete({**complete, "proposed_by": "lane"}), True)
 
-    reg = {"deletions": [complete, {"targets": ["orca/product/y.md"]}]}  # 2nd is incomplete
-    check("covered_targets (complete only)", covered_targets(reg), {"orca/product/x_v0.md"})
+    reg = {"deletions": [complete, {"targets": ["forseti/product/y.md"]}]}  # 2nd is incomplete
+    check("covered_targets (complete only)", covered_targets(reg), {"forseti/product/x_v0.md"})
 
     # --- is_governed ---
-    check("governed inside root", is_governed("orca/product/a/b.md"), True)
+    check("governed inside root", is_governed("forseti/product/a/b.md"), True)
     check("governed root exact", is_governed("orca/product"), True)
     check("not governed", is_governed("docs/decisions/z.md"), False)
 
     # --- parse_governed_deletions (-z NUL stream; rename + typechange aware) ---
-    roots = ("orca/product/",)
+    roots = ("orca/product/", "forseti/product/")
     z = "\0".join([
-        "D", "orca/product/deleted.md",                              # governed delete
+        "D", "forseti/product/deleted.md",                              # governed delete
         "D", "docs/decisions/ungoverned.md",                         # not governed -> ignored
-        "T", "orca/product/typechanged.md",                          # governed file->symlink/gitlink -> deletion
+        "T", "forseti/product/typechanged.md",                          # governed file->symlink/gitlink -> deletion
         "T", "docs/decisions/ungoverned_typechange.md",              # not governed -> ignored
-        "R100", "orca/product/old.md", "orca/product/sub/new.md",    # governed->governed move -> exempt
-        "R090", "orca/product/leaving.md", "docs/archive/leaving.md",# governed->outside -> deletion
-        "R095", "docs/x.md", "orca/product/incoming.md",             # outside->governed -> not a deletion
-        "C100", "orca/product/src.md", "orca/product/copy.md",       # copy -> original stays -> not a deletion
+        "R100", "forseti/product/old.md", "forseti/product/sub/new.md",    # governed->governed move -> exempt
+        "R100", "orca/product/old_root.md", "forseti/product/old_root.md", # old-root->new-root migration -> exempt
+        "R090", "forseti/product/leaving.md", "docs/archive/leaving.md",# governed->outside -> deletion
+        "R095", "docs/x.md", "forseti/product/incoming.md",             # outside->governed -> not a deletion
+        "C100", "forseti/product/src.md", "forseti/product/copy.md",       # copy -> original stays -> not a deletion
     ]) + "\0"
     check("rename/type-aware governed deletions",
           parse_governed_deletions(z, roots),
-          ["orca/product/deleted.md", "orca/product/typechanged.md", "orca/product/leaving.md"])
+          ["forseti/product/deleted.md", "forseti/product/typechanged.md", "forseti/product/leaving.md"])
     check("empty diff -> no deletions", parse_governed_deletions("", roots), [])
 
     # --- _is_safe_relpath (absolute / traversal rejection) ---
-    check("safe relpath ok", _is_safe_relpath("orca/product/x_v0.md"), True)
+    check("safe relpath ok", _is_safe_relpath("forseti/product/x_v0.md"), True)
     check("absolute path rejected", _is_safe_relpath("/etc/passwd"), False)
     check("parent traversal rejected", _is_safe_relpath("../outside.md"), False)
     check("drive/colon rejected", _is_safe_relpath("C:/x.md"), False)
@@ -421,7 +422,7 @@ def selftest() -> int:
     check("successor committed file resolves",
           successor_resolves({"evidence": {"successor": "AGENTS.md"}}, root), True)
     check("successor bogus path fails",
-          successor_resolves({"evidence": {"successor": "orca/product/does_not_exist_zzz.md"}}, root), False)
+          successor_resolves({"evidence": {"successor": "forseti/product/does_not_exist_zzz.md"}}, root), False)
     check("successor absolute path fails",
           successor_resolves({"evidence": {"successor": "/etc/passwd"}}, root), False)
 

@@ -20,7 +20,7 @@ Use shared contract:
 `docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md`
 
 ```text
-You are synthesizing prior evidence-only research lane outputs for Orca.
+You are synthesizing prior evidence-only research lane outputs for Forseti.
 
 Objective:
 [FILL_SYNTHESIS_OBJECTIVE]

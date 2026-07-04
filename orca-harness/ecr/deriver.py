@@ -25,6 +25,12 @@ from ecr.models import (
 )
 from source_capture.models import SourceCapturePacket, VisibleFactStatus
 
+# Processing-policy token for the consumption seam's obligation envelope: bump on
+# any behavior change to the four derivers below so already-acknowledged packets
+# re-surface and re-derive under the new policy (the packet manifest is immutable,
+# so this token is ECR's only re-trigger input).
+ECR_DERIVER_VERSION = "1"
+
 
 def derive_timing_postures(packet: SourceCapturePacket) -> list[EcrTimingPosture]:
     """Derive the SP-3 timing posture for each source slice, in slice order.

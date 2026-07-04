@@ -1,8 +1,8 @@
-﻿# Prompts
+# Prompts
 
-Store Orca prompt artifacts here. Prompts should name their source files, expected output mode, and any hash or preflight gates they rely on.
+Store Forseti prompt artifacts here. Prompts should name their source files, expected output mode, and any hash or preflight gates they rely on.
 
-`templates/` stores Orca-local prompt templates. The authoritative template
+`templates/` stores Forseti-local prompt templates. The authoritative template
 registry is `.agents/workflow-overlay/template-registry.md`; template files are
 subordinate to that registry and must not import `jb` project policy.
 

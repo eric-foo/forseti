@@ -42,6 +42,179 @@ AUDIO_NON_CLAIMS = [
 TranscribeFn = Callable[[str], "tuple[str, list[dict], dict]"]
 
 
+def asr_record_id(model: object, audio_sha256: str) -> str:
+    """Deterministic transcript record id for one audio packet + ASR model policy.
+    The model token embeds the policy in the id, so a policy change never collides
+    with an existing record (append-only refusal fires only for the SAME packet
+    re-derived under the SAME model)."""
+    model_token = re.sub(r"[^A-Za-z0-9_-]", "-", str(model or "asr"))
+    return f"asr_{model_token}__{audio_sha256[:16]}"
+
+
+def _run_transcriber(
+    audio_bytes: bytes, audio_ext: str, transcribe_fn: TranscribeFn
+) -> tuple[str, list[dict], dict]:
+    """Run the injected transcriber on a temp file (Windows-safe: write, close,
+    transcribe, unlink) and normalize the posture/cue coupling (never-fabricate:
+    only `transcribed` carries cues; unknown postures collapse to `failed`)."""
+    fd, tmp_audio = tempfile.mkstemp(suffix=f".{audio_ext}", prefix="orca_asr_")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(audio_bytes)
+        try:
+            posture, cues, model_info = transcribe_fn(tmp_audio)
+        except Exception as exc:  # noqa: BLE001 - an injected transcriber raise still records a `failed` posture
+            posture, cues, model_info = "failed", [], {
+                "tool": "faster-whisper",
+                "model_digest": None,
+                "model_digest_basis": "transcriber raised before producing provenance",
+                "failure_type": type(exc).__name__,
+                "failure_message": str(exc)[:200],
+            }
+    finally:
+        try:
+            os.unlink(tmp_audio)
+        except OSError:
+            pass
+
+    if posture not in {"transcribed", "no_speech", "failed"}:
+        posture = "failed"
+    if posture == "transcribed" and not cues:
+        posture = "no_speech"
+    if posture != "transcribed":
+        cues = []
+    return posture, cues, model_info
+
+
+def _append_transcript_record(
+    data_root,
+    *,
+    audio_packet_id: str,
+    video_id: str,
+    audio_file_id: str,
+    audio_sha: str,
+    posture: str,
+    cues: list[dict],
+    model_info: dict,
+    ts: str,
+) -> tuple[str, str]:
+    """Append the transcript_asr derived record SET on the audio anchor and return
+    (record_id, record relpath). The completion marker in ``transcript_asr__set``
+    commits the derivation-time content sha256."""
+    record = {
+        "video_id": video_id,
+        "platform": "youtube",
+        "posture": posture,                      # transcribed | no_speech | failed
+        "cue_count": len(cues),
+        "cues": cues,                            # each: {start_ms, end_ms, text}; empty unless transcribed
+        "provenance": {
+            "source_packet_id": audio_packet_id,
+            "source_file_id": audio_file_id,
+            "source_sha256": audio_sha,
+            **model_info,                        # tool/version, model/digest, compute_type, decode_params, speech_gate
+        },
+        "retrieval_time_utc": ts,
+    }
+    record_id = asr_record_id(model_info.get("model", "asr"), audio_sha)
+    record_bytes = (json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+    written = data_root.append_record_set(
+        subtree="derived",
+        raw_anchor=audio_packet_id,
+        record_id=record_id,
+        members={"transcript_asr": record_bytes},
+        completion_lane="transcript_asr__set",
+    )
+    rel = written["transcript_asr"].relative_to(data_root.path.resolve()).as_posix()
+    return record_id, rel
+
+
+def _policy_model_mismatch(expected_model: object | None, actual_model: object, audio_sha: str) -> str | None:
+    if expected_model is None:
+        return None
+    expected_record_id = asr_record_id(expected_model, audio_sha)
+    actual_record_id = asr_record_id(actual_model, audio_sha)
+    if actual_record_id == expected_record_id:
+        return None
+    return (
+        "transcriber model mismatch: "
+        f"policy model {expected_model!r} would write {expected_record_id}, "
+        f"but transcriber reported {actual_model!r} ({actual_record_id})"
+    )
+
+
+def transcribe_committed_audio_packet(
+    data_root,
+    *,
+    packet_id: str,
+    transcribe_fn: TranscribeFn,
+    expected_model: object | None = None,
+    now_iso: str | None = None,
+) -> dict:
+    """Derive the transcript_asr record for an ALREADY COMMITTED YouTube audio packet
+    (the catch-up half: no capture, no network — verified by-key read of the audio
+    bytes, injected transcriber, derived record on the EXISTING anchor).
+
+    Block-don't-burn (deliberate divergence from the capture fusion, which records
+    ``failed`` postures safely because every capture run mints a fresh packet): a
+    failed transcription here writes NO record — the deterministic model+audio
+    record id is append-only, and committing an environment failure would
+    permanently block retry under the same policy. The caller surfaces the failure
+    and the packet re-surfaces. Raises on a packet that is not a YouTube audio
+    packet shape (missing audio / capture_metadata / video id).
+    """
+    loaded = data_root.load_raw_packet(packet_id)
+    preserved = loaded.manifest.get("preserved_files") or []
+    audio_entry = next(
+        (pf for pf in preserved if ".audio." in str(pf.get("relative_packet_path", ""))), None
+    )
+    meta_entry = next(
+        (
+            pf
+            for pf in preserved
+            if str(pf.get("relative_packet_path", "")).endswith("capture_metadata.json")
+        ),
+        None,
+    )
+    if audio_entry is None or meta_entry is None:
+        raise ValueError(
+            f"committed packet {packet_id} is not an audio+metadata capture; refusing to transcribe"
+        )
+    identity = json.loads(loaded.bodies[meta_entry["file_id"]].decode("utf-8"))
+    video_id = identity.get("platform_video_id")
+    if not isinstance(video_id, str) or not _VIDEO_ID.fullmatch(video_id):
+        raise ValueError(f"committed packet {packet_id} carries no valid platform_video_id")
+    audio_bytes = loaded.bodies[audio_entry["file_id"]]
+    audio_ext = str(audio_entry["relative_packet_path"]).rsplit(".", 1)[-1] or "bin"
+    ts = now_iso or (datetime.datetime.utcnow().isoformat() + "Z")
+
+    posture, cues, model_info = _run_transcriber(audio_bytes, audio_ext, transcribe_fn)
+    if posture == "failed":
+        return {
+            "posture": "failed",
+            "failure": str(model_info.get("failure_message") or "transcriber failed")[:200],
+        }
+    mismatch = _policy_model_mismatch(expected_model, model_info.get("model", "asr"), audio_entry["sha256"])
+    if mismatch:
+        return {"posture": "failed", "failure": mismatch[:200]}
+    record_id, rel = _append_transcript_record(
+        data_root,
+        audio_packet_id=packet_id,
+        video_id=video_id,
+        audio_file_id=audio_entry["file_id"],
+        audio_sha=audio_entry["sha256"],
+        posture=posture,
+        cues=cues,
+        model_info=model_info,
+        ts=ts,
+    )
+    return {
+        "posture": posture,
+        "record_id": record_id,
+        "record_relpath": rel,
+        "cue_count": len(cues),
+    }
+
+
 def write_asr_transcript(
     *,
     video_id: str,
@@ -129,65 +302,20 @@ def write_asr_transcript(
     )
     audio_packet_id = result.packet.packet_id
 
-    # Run the injected transcriber on a temp file (Windows-safe: write, close, transcribe, unlink).
-    fd, tmp_audio = tempfile.mkstemp(suffix=f".{audio_ext}", prefix="orca_asr_")
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(audio_bytes)
-        try:
-            posture, cues, model_info = transcribe_fn(tmp_audio)
-        except Exception as exc:  # noqa: BLE001 - an injected transcriber raise still records a `failed` posture
-            posture, cues, model_info = "failed", [], {
-                "tool": "faster-whisper",
-                "model_digest": None,
-                "model_digest_basis": "transcriber raised before producing provenance",
-                "failure_type": type(exc).__name__,
-                "failure_message": str(exc)[:200],
-            }
-    finally:
-        try:
-            os.unlink(tmp_audio)
-        except OSError:
-            pass
-
-    # Posture/cue consistency + never-fabricate: only `transcribed` carries cues; unknown -> failed.
-    if posture not in {"transcribed", "no_speech", "failed"}:
-        posture = "failed"
-    if posture == "transcribed" and not cues:
-        posture = "no_speech"
-    if posture != "transcribed":
-        cues = []
-
-    record = {
-        "video_id": video_id,
-        "platform": "youtube",
-        "posture": posture,                      # transcribed | no_speech | failed
-        "cue_count": len(cues),
-        "cues": cues,                            # each: {start_ms, end_ms, text}; empty unless transcribed
-        "provenance": {
-            "source_packet_id": audio_packet_id,
-            "source_file_id": file_ids[audio_name],
-            "source_sha256": audio_sha,
-            **model_info,                        # tool/version, model/digest, compute_type, decode_params, speech_gate
-        },
-        "retrieval_time_utc": ts,
-    }
-    # record_id is deterministic PER audio packet (model + audio sha). NOTE: each run mints a NEW
-    # audio packet (fresh packet_id), so a normal rerun is a new observation, not an append-only
-    # refusal; the refusal only fires when the SAME audio packet is re-derived with the same model.
-    model_token = re.sub(r"[^A-Za-z0-9_-]", "-", str(model_info.get("model", "asr")))
-    record_id = f"asr_{model_token}__{audio_sha[:16]}"
-    record_bytes = (json.dumps(record, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
-    # Write the transcript as a record SET so its derivation-time content sha256 is committed in the
-    # completion marker (a sibling in ``transcript_asr__set``); the member record's path + record_id
-    # are unchanged (still ``derived/<anchor>/transcript_asr/<record_id>``). append_record_set
-    # returns ``{lane: Path}``, so take the transcript member's path for the rel-path.
-    written = data_root.append_record_set(
-        subtree="derived",
-        raw_anchor=audio_packet_id,
-        record_id=record_id,
-        members={"transcript_asr": record_bytes},
-        completion_lane="transcript_asr__set",
+    # Capture fusion keeps recording `failed` postures: each run mints a NEW audio
+    # packet, so a failed record never blocks a retry (unlike the committed-packet
+    # catch-up path, which must not burn the deterministic record id — see
+    # ``transcribe_committed_audio_packet``).
+    posture, cues, model_info = _run_transcriber(audio_bytes, audio_ext, transcribe_fn)
+    _record_id, rel = _append_transcript_record(
+        data_root,
+        audio_packet_id=audio_packet_id,
+        video_id=video_id,
+        audio_file_id=file_ids[audio_name],
+        audio_sha=audio_sha,
+        posture=posture,
+        cues=cues,
+        model_info=model_info,
+        ts=ts,
     )
-    rel = written["transcript_asr"].relative_to(data_root.path.resolve()).as_posix()
     return 0, f"{rel} [{posture}, {len(cues)} cues]"

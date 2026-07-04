@@ -2,17 +2,17 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
-scope: Source-loading budgets, read packs, and context-bloat controls for Orca prompts and workflow artifacts.
+artifact_role: Forseti overlay authority
+scope: Source-loading budgets, read packs, and context-bloat controls for Forseti prompts and workflow artifacts.
 use_when:
-  - Preparing Chief Architect prompts, review prompts, product prompts, or handoffs that cite Orca source.
-  - Deciding which files to read before producing an Orca artifact.
+  - Preparing Chief Architect prompts, review prompts, product prompts, or handoffs that cite Forseti source.
+  - Deciding which files to read before producing a Forseti artifact.
   - Preventing context blow-up before a first artifact or first CA output.
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/source-of-truth.md
   - .agents/workflow-overlay/retrieval-metadata.md
-  - docs/workflows/orca_repo_map_v0.md
+  - docs/workflows/forseti_repo_map_v0.md
   - docs/workflows/artifact_retrievability_guide.md
 ```
 
@@ -24,12 +24,12 @@ Do not convert the source hierarchy into a read-all list. Load the smallest
 source pack that can answer the current question, then expand only when a
 missing source could materially change the output.
 
-Use Orca-owned source-loading mechanics: claim-level source loading, narrow
+Use Forseti-owned source-loading mechanics: claim-level source loading, narrow
 reads, source-read ledgers, evidence labels, strict/not-proven boundaries,
-targeted excerpts, and context-budget discipline. Orca overlay and repo map
-choose Orca source files and source precedence.
+targeted excerpts, and context-budget discipline. Forseti overlay and repo map
+choose Forseti source files and source precedence.
 
-This file is the canonical Orca owner for source-loading budgets, source-pack
+This file is the canonical Forseti owner for source-loading budgets, source-pack
 tiers, source-capsule rules, and Data Capture Spine CA read-pack limits. Repo maps,
 prompt artifacts, wrappers, and review requests may point here or summarize the
 current rule for convenience, but they must not fork the rule. If another
@@ -39,7 +39,7 @@ claiming readiness.
 
 ## Current Operating Boundary
 
-Orca is no longer globally docs-first by default. Documentation remains the
+Forseti is no longer globally docs-first by default. Documentation remains the
 authority layer for project facts, decisions, prompts, reviews, migration notes,
 and overlay maintenance, but implementation is permitted when a current turn or
 accepted handoff explicitly authorizes a bounded implementation scope.
@@ -51,9 +51,9 @@ They must not authorize building, deploying, testing, or operating those
 systems unless the current turn or accepted handoff explicitly grants bounded
 implementation authority.
 
-## Orca Start Preflight
+## Forseti Start Preflight
 
-Before repo-aware Orca prompt authoring, review setup, handoff creation,
+Before repo-aware Forseti prompt authoring, review setup, handoff creation,
 docs-write or overlay maintenance, source-changing work, or completion claims,
 record a compact start-preflight receipt. The receipt proves only that the
 entrypoint and source-loading route were declared; it does not prove cognition,
@@ -74,7 +74,7 @@ propagation surfaces, but it is not a substitute for the required
 Minimum receipt fields:
 
 ```text
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes/no
   overlay_read: yes/no
   source_pack: S0/S1/S2/S3/S4/custom
@@ -84,11 +84,13 @@ orca_start_preflight:
   blocked_if_missing:
 ```
 
+`orca_start_preflight` is accepted as a legacy alias during the Forseti rename compatibility migration; new live prompts and reports should prefer `forseti_start_preflight`.
+
 Use the smallest source pack that can support the task. `agents_read: yes`
 means `AGENTS.md` was read or supplied in the current task context.
 `overlay_read: yes` means `.agents/workflow-overlay/README.md` was read or
 supplied in the current task context. If either field is `no` for a task that
-requires Orca project authority, stop and load the missing source before
+requires Forseti project authority, stop and load the missing source before
 continuing.
 
 Do not require the receipt for tiny chat-only answers that do not create or
@@ -98,7 +100,7 @@ turns into one of those tasks, record the receipt before continuing.
 
 ### Ordinary-Start Quick Path
 
-For tiny, non-doctrine Orca work, use the direct path:
+For tiny, non-doctrine Forseti work, use the direct path:
 
 1. Read the current user instruction.
 2. Use `AGENTS.md` and `.agents/workflow-overlay/README.md` only when project
@@ -125,7 +127,7 @@ Use this order unless the user gives a narrower source pack:
 3. `.agents/workflow-overlay/README.md`.
 4. `.agents/workflow-overlay/source-of-truth.md`.
 5. This file, when source budgeting or prompt setup matters.
-6. `docs/workflows/orca_repo_map_v0.md`, when choosing among many docs.
+6. `docs/workflows/forseti_repo_map_v0.md`, when choosing among many docs.
 7. The one to four target artifacts named by the request, repo map, retrieval
    headers, or nearest accepted product artifact.
 
@@ -141,8 +143,8 @@ Use source packs instead of whole-folder reads.
 
 | Tier | Use when | Default contents |
 | --- | --- | --- |
-| `S0 overlay` | Any Orca project work. | Current instruction, `AGENTS.md`, overlay README, source-of-truth, and source-loading when relevant. |
-| `S1 map` | Choosing files or preventing context bloat. | `S0` plus `docs/workflows/orca_repo_map_v0.md`. |
+| `S0 overlay` | Any Forseti project work. | Current instruction, `AGENTS.md`, overlay README, source-of-truth, and source-loading when relevant. |
+| `S1 map` | Choosing files or preventing context bloat. | `S0` plus `docs/workflows/forseti_repo_map_v0.md`. |
 | `S2 product anchor` | Product architecture, value proposition, offer, or CA setup. | `S1` plus product thesis, offer hypothesis, buyer proof packet, Core Spine product contract, and the nearest boundary note. |
 | `S3 target deepening` | A specific artifact family needs details. | `S2` plus only the named target artifact, its `open_next` files, and targeted sections from adjacent artifacts. |
 | `S4 historical/review` | Reviewing prior outcomes, adversarial reports, replays, or method-validation history. | Explicitly named review, replay, research, or historical files only. Never default. |
@@ -165,7 +167,7 @@ materially change the current claim, route, blocker, or edit boundary.
 
 - `.agents/workflow-overlay/prompt-orchestration.md` — routine prompt
   authoring (per the `AGENTS.md` routine-vs-full authoring split) reads
-  "Orca Prompt Preflight" plus the single section for the prompt family at
+  "Forseti Prompt Preflight" plus the single section for the prompt family at
   hand. Full read: fused, delegated-review-patch, and novel or cross-lane
   authoring.
 - `.agents/workflow-overlay/delegated-review-patch.md` — commissioning reads
@@ -184,7 +186,7 @@ materially change the current claim, route, blocker, or edit boundary.
   product-proof work reads "Product Proof Gates"; enforcement-placement
   decisions read "Enforcement Placement". Full read: editing validation
   doctrine.
-- This file — routine Orca work reads "Rule", "Orca Start Preflight", and
+- This file — routine Forseti work reads "Rule", "Forseti Start Preflight", and
   the one pack or protocol section the task names; prompt or capsule
   authoring adds "Prompt Source Capsules". Full read: editing source-loading
   doctrine.
@@ -262,7 +264,7 @@ claims into a new CA prompt.
 
 ## Prompt Source Capsules
 
-Chief Architect and model-lane prompts should not paste full Orca history.
+Chief Architect and model-lane prompts should not paste full Forseti history.
 
 Prefer a source capsule with:
 
@@ -358,15 +360,15 @@ Then open only the targeted sections needed for the CA prompt:
 
 - `docs/decisions/orca_product_thesis_consumer_demand_v0.md`: thesis (the
   bet), value proposition, strategic center, and central-read sections.
-- `orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`: core offer
+- `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`: core offer
   hypothesis, mechanism, fit diagnostic, and non-claims sections.
-- `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`: proof standard,
+- `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`: proof standard,
   target buyer, signal surface, disqualifiers, and not-build boundaries.
-- `orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`:
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`:
   purpose, decision, layer rules, and future ECR/Evidence Unit boundaries.
-- `orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`: product bet,
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`: product bet,
   core rule, frozen primitives, and explicit non-goals only.
-- `orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md`:
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md`:
   Evidence Unit standard and boundary rules only.
 
 Do not read these files in full by default. Use the targeted sections above,
@@ -376,7 +378,7 @@ research corpus files by default.
 
 ### Data Capture Spine CA Capsule Limit
 
-A Data Capture Spine CA prompt should include only: one paragraph on Orca's
+A Data Capture Spine CA prompt should include only: one paragraph on Forseti's
 value proposition; one paragraph on the current Data Capture / ECR / Cleaning /
 Judgment boundary; one paragraph on the bounded-implementation authorization
 boundary; the targeted source pack above; the exact files and sections to read;
@@ -401,13 +403,13 @@ Start with:
 
 Then open the intake surface consolidation as the pressure-test anchor:
 
-- `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_intake_surface_consolidation_v0.md`
+- `forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_intake_surface_consolidation_v0.md`
 
 Then open only the controlling source for the current claim. Key owners:
 
 - **Pressure-test closeout state and authorization-chain walk** (slot status,
   RQ status, CloakBrowser selection, Reddit ordering, tranche build authority):
-  `orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md`
+  `forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md`
   — the "Intake Surface / MSP Pressure-Test State" section carries the verbatim
   authorization-chain narrative relocated from this pack on 2026-06-13.
 - **Source-observability scoping / RQ boundary**: open the requirements-boundary
@@ -416,12 +418,12 @@ Then open only the controlling source for the current claim. Key owners:
   open the post-batch patch plan, patch proposal, owner decision, and review
   output named by the consolidation map.
 - **Slot 3 WSO continuation or cross-venue synthesis**: open
-  `orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`
+  `forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`
   before treating Reddit capture as complete venue coverage.
 - **Source Capture Packet lifecycle / fixture admission**:
   `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md`
 - **Source Quality State Assembler boundary**:
-  `orca/product/spines/capture/core/source_capture_toolbox/source_quality_state_assembler_v0.md`
+  `forseti/product/spines/capture/core/source_capture_toolbox/source_quality_state_assembler_v0.md`
 
 Capsule note: embedded state narrative (slot-by-slot history, authorization
 boundaries, CloakBrowser selection, Reddit ordering) now lives in the closeout
@@ -433,17 +435,17 @@ or Judgment behavior.
 Any capture-spine activity — onboarding a source, running or commissioning a capture probe,
 choosing or judging a capture route, or checking a "blocked" / NO-GO call — starts with the
 **canonical capture-method playbook**
-`orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` and its `open_next`
-`orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md`. It is the canonical method (the
+`forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` and its `open_next`
+`forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md`. It is the canonical method (the
 retired `capture_investigation_playbook_v0.md` is its pre-rename name); load it before picking a
 route, and do not re-derive the access-control gate (Step 0) or the route catalog from scratch.
 
 Scanning / screening activity reads the screening-side distillation of this method — the **Walker
-Equipment Kit** in `orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md` (public pages,
+Equipment Kit** in `forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md` (public pages,
 no logins, URLs + short quotes) — and escalates to the full playbook only for packet-grade capture.
 
 For raw-to-Judgment projection views, also open
-`orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md`; it constrains projection
+`forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md`; it constrains projection
 as a view over raw, not Cleaning, Judgment, or a new spine layer.
 
 ## ECR Source-Side Spine Read Pack
@@ -488,16 +490,16 @@ Start with:
 Then open only the controlling source for the claim being considered:
 
 - **Claim-tier classification or overclaim check**: evidence ladder at
-  `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`.
+  `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`.
 - **Gate ownership (source identity, packet freeze, no-tools, scoring, reveal,
   closeout, or promotion blockers)**: gate ownership map at
-  `orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md`.
+  `forseti/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md`.
 - **JSG-08 reveal/calibration receipt**: owner contract at
-  `orca/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md`.
+  `forseti/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md`.
 - **Running or planning a case through JSG-01→JSG-10**: conductor at
-  `orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md`.
+  `forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md`.
 - **Buyer-proof claims**: `.agents/workflow-overlay/product-proof.md` and
-  `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`.
+  `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`.
 - **Judgment-quality, blind-use, fixture-admission, scoring, or calibration
   claims**: `docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md`
   and the specific case/run artifact.

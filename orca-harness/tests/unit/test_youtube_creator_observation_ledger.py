@@ -19,7 +19,7 @@ from capture_spine.youtube_creator_observation import (
 
 LEDGER_PATH = (
     Path(__file__).resolve().parents[3]
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

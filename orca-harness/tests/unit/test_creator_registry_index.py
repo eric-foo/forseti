@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 REGISTRY_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -20,7 +20,7 @@ REGISTRY_PATH = (
 )
 ACCOUNT_LEDGER_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -136,7 +136,7 @@ def test_creator_registry_index_source_hash_matches_public_handle_ledger() -> No
     source = registry["source_inputs"][0]
 
     assert source["source_pointer"] == (
-        "orca/product/spines/capture/core/source_families/social_media/creator_registry/"
+        "forseti/product/spines/capture/core/source_families/social_media/creator_registry/"
         "creator_public_handle_linkage_ledger_v0.json"
     )
     assert source["sha256"] == _sha256(ACCOUNT_LEDGER_PATH)

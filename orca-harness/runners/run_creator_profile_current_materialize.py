@@ -19,7 +19,7 @@ from capture_spine.creator_profile_current.materialize import (
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -31,7 +31,7 @@ DEFAULT_OUTPUT = (
 )
 DEFAULT_ACCOUNT_LEDGER = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -45,7 +45,7 @@ DEFAULT_ACCOUNT_LEDGER = (
 # committed lake snapshots (each seed stays the no-drift value oracle).
 DEFAULT_YOUTUBE_SNAPSHOT = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -57,7 +57,7 @@ DEFAULT_YOUTUBE_SNAPSHOT = (
 )
 DEFAULT_INSTAGRAM_SNAPSHOT = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -90,6 +90,13 @@ def _build_parser() -> argparse.ArgumentParser:
         "--generated-at-utc",
         help="Timestamp for profile_view_computed_at. Defaults to the existing output timestamp when present.",
     )
+    parser.add_argument(
+        "--audience-profile-snapshot",
+        type=Path,
+        action="append",
+        dest="audience_profile_snapshots",
+        help="Optional creator_ideal_audience_profile_snapshot JSON document. Repeat to join multiple documents.",
+    )
     parser.add_argument("--check", action="store_true", help="Fail if the output is stale.")
     parser.add_argument("--write", action="store_true", help="Write the materialized output JSON.")
     return parser
@@ -107,6 +114,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         document = build_creator_profile_current_view_from_files(
             account_ledger_path=args.account_ledger,
             metric_seed_paths=metric_seeds,
+            audience_profile_snapshot_paths=tuple(args.audience_profile_snapshots or ()),
             generated_at_utc=generated_at,
         )
         rendered = dump_creator_profile_current_view(document)

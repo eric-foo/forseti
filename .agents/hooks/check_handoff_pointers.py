@@ -51,7 +51,7 @@ DETECTION CONTRACT (mirrors check_review_routing.py / check_dcp_receipt.py)
   the added/modified/rename-or-copy-destination `.md` paths still present in
   the tree, excluding `_scratch`, `docs/_inbox/`, and `node_modules`. NO
   HEAD~1 fallback. If the base cannot be resolved or git fails, fail OPEN
-  (exit 0, loud warning) -- the universal Orca infra-gap stance; in CI the
+  (exit 0, loud warning) -- the universal Forseti infra-gap stance; in CI the
   base is always present (fetch-depth: 0). Fail-open is for INFRASTRUCTURE
   GAPS ONLY: in --strict and --selftest an unexpected internal exception exits
   1 (the GATE FAIL bucket, validation-gates.md); advisory modes fail open on
@@ -373,7 +373,7 @@ def selftest() -> int:
               "- `docs/prompts/handoffs/consume_capture_corpus_v0.md`"),
           ["docs/prompts/handoffs/consume_capture_corpus_v0.md"])
     check("non-handoff workflows file not matched",
-          extract_handoff_pointers("see docs/workflows/orca_repo_map_v0.md"),
+          extract_handoff_pointers("see docs/workflows/forseti_repo_map_v0.md"),
           [])
     check("hygiene handoff out of scope",
           extract_handoff_pointers("docs/hygiene/foo_handoff_v0.md"),
@@ -442,7 +442,7 @@ def selftest() -> int:
     print()
     print("--- is_scanned_file ---")
     check("durable doc md", is_scanned_file("docs/prompts/reviews/p_v0.md"), True)
-    check("product corpus md", is_scanned_file("orca/product/spines/x/y_v0.md"), True)
+    check("product corpus md", is_scanned_file("forseti/product/spines/x/y_v0.md"), True)
     check("root AGENTS.md", is_scanned_file("AGENTS.md"), True)
     check("python file", is_scanned_file(".agents/hooks/check_handoff_pointers.py"), False)
     check("inbox scratch excluded", is_scanned_file("docs/_inbox/tmp_v0.md"), False)

@@ -1,11 +1,11 @@
-# Delegated Review-and-Patch For High-Stakes Authored Artifacts (Provisional)
+﻿# Delegated Review-and-Patch For High-Stakes Authored Artifacts (Provisional)
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
+artifact_role: Forseti overlay authority
 scope: >
   Provisional delegated review-and-patch convention for high-stakes authored
-  Orca artifacts, plus the overlay-interface fields a future skill implementation may read.
+  Forseti artifacts, plus the overlay-interface fields a future skill implementation may read.
 use_when:
   - A Chief Architect is deciding whether to commission a delegated
     review-and-patch hardening pass on a high-stakes authored artifact.
@@ -24,14 +24,14 @@ code-diff commissioning also reads "Code-diff target kind — the
 resolving a novel dispute about it.
 
 **Status — provisional convention.** This is an experimental operating
-convention replicated into Orca from jb's provisional convention (jb branch
+convention replicated into Forseti from jb's provisional convention (jb branch
 `lane/delegated-review-patch-convention`, commit `345397b`), adopted on limited
-cross-project evidence (see *Evidence* below). It is not bound Orca review
+cross-project evidence (see *Evidence* below). It is not bound Forseti review
 doctrine and not a machine-routable review lane: it carries no strict, formal,
 or operational lane authority, and `.agents/workflow-overlay/review-lanes.md`
 "Current Lanes" intentionally does not bind it yet. Treat it as guidance the
 Chief Architect may choose to commission, refined as it is used; promote it to a
-bound lane only after more uses and a separate Orca overlay binding decision.
+bound lane only after more uses and a separate Forseti overlay binding decision.
 
 **What it is — and what it is not.** This is a distinct commissioned,
 bounded-executor lane with an integrated hardening review — not one of the
@@ -89,6 +89,17 @@ verdict without them is incomplete. This is a prompt-return obligation for the
 adjudicator, not permission for the delegate to decide what is kept or to widen
 review scope.
 
+**Delegated review-output finalization gate.** Any delegated review output
+written under `docs/review-outputs/` blocks final chat closeout until, after the
+final report write, `python .agents/hooks/check_review_output_provenance.py --strict <report-path>`
+exits 0. If the report is changed after that command, rerun it and report only
+the final observed result. Embedded live diffs must be inside a proper
+standalone `diff` fence and must be generated/read back as real multiline text,
+not hand-collapsed into prose. Future-tense placeholders such as "must be
+checked after this report is written" are not allowed in the durable report.
+This gate is mechanical shape/integrity only: it is not approval, validation,
+readiness, review quality, or acceptance of the delegated findings.
+
 **Access selection rule.** `repo` is the default access mode. Use `no_repo` only when the commission explicitly records `access: no_repo` and records why repository access is unavailable or intentionally excluded. Cross-vendor, external, couriered, paste-ready-chat, or portable-method dispatch does **not** imply `no_repo`; a de-correlated controller with repo/worktree access still runs repo mode. If access is missing from an otherwise inferable commission, the route-out prompt marks `access: operator_to_fill` but names `repo` as the default, not `no_repo`.
 
 **Access modes — `repo` (default) and `no_repo`.** The commission records `access: repo | no_repo` — an operator/commission access constraint, not a model choice. In **`repo`** mode the loop above runs as written: the de-correlated delegate patches the named target and returns a diff. In **`no_repo`** mode the delegate has no repo access and **does not patch**; it runs advisory-only and returns findings (not a diff), and the **CA applies** accepted changes within the bounded scope. `no_repo` preserves de-correlated *review* but **not** de-correlated *patch authorship*, so it is **strictly weaker than `repo` mode** and **requires a bounded post-patch re-review** before keep — closure-of-findings plus any new blocker/major in the touched delta. The no-repo review method is target-kind specific: `authored_artifact` uses the portable review method (registry id `portable-adversarial-artifact-review-method`), while `delegated_code_review_and_patch` uses a repo-blind code-review package/prompt that preserves `workflow-code-review` method requirements as far as no-repo access permits. Because the post-patch recheck is a narrow, near-mechanical verification against the findings' explicit closure conditions rather than open seam-discovery, it runs as a **same-family, different (lower / mechanical-tier) model** (a who-constraint, not a runtime-model recommendation), **not** a cross-family pass. **Cross-family de-correlation is reserved for discovery** (the original full adversarial review) and is **required to claim** the *survives-an-adversarial-review-with-no-new-seam* standard; a bounded same-family recheck does not by itself support that claim. The recheck is CA-adjudicated before anything is kept. The no_repo package ships the review target as a **verbatim file attachment** with an independently confirmable file hash (embedded-in-markdown copies are not byte-confirmable); and the package assembler/CA runs the target-kind method's **freshness gate** before bundling, recording the result in the commission. The standard no_repo package shape is a **self-contained bundle**: the verbatim target attachment(s) plus a guardrail-complete `README` that carries the method, the authority excerpts, and the target's contract, delivered with a **thin-wrapper** chat prompt that points the reviewer at the in-bundle `README` — the wrapper still carries the cross-vendor who-constraint, which must not migrate silently into the bundle. When the reviewer cannot read in-bundle files, fall back to **inlining** the method block in the chat prompt; never ship a wrapper that points at a `README` a repo-blind reviewer cannot open. The de-correlation who-constraint, CA adjudication, `NEEDS_ARCHITECTURE_PASS`, and the strict-claim boundary are otherwise unchanged.
@@ -119,7 +130,7 @@ limitation.
 
 This is a who-constraint recorded in the commission, not a model-quality
 recommendation and not runtime model routing. It does not belong in review
-prompts as model-selection advice, and it does not alter Orca review-lane
+prompts as model-selection advice, and it does not alter Forseti review-lane
 model-neutrality: `.agents/workflow-overlay/review-lanes.md` and
 `.agents/workflow-overlay/prompt-orchestration.md` still forbid review lanes,
 review prompts, wrappers, handoffs, and closeouts from recommending,
@@ -237,7 +248,7 @@ the patch (patch-time de-correlation is lost there, preserved here).
 ## Overlay Interface (fields a future skill implementation may read)
 
 This is the seam to handoff 2 (a skill implementation, authored separately - not in
-this overlay binding). The fields below defer to existing Orca overlay authority
+this overlay binding). The fields below defer to existing Forseti overlay authority
 and do not fork or restate it.
 
 ```yaml
@@ -281,14 +292,14 @@ delegated_review_patch_overlay_interface:
       The delegate may patch ONLY the CA-named target — the single authored file
       in the default mode, or the explicitly named multi-file set in
       delegated_code_review_and_patch (which cannot silently widen). Everything
-      else is read-only / flag-only: all other Orca sources; canonical, frozen,
+      else is read-only / flag-only: all other Forseti sources; canonical, frozen,
       or hash-pinned decisions, product contracts, manifests, and
       provenance/review-output ledgers; other `.agents/workflow-overlay/` files;
       `AGENTS.md` and `CLAUDE.md` when they are not the named target; and every
       path the safety rules forbid editing (`jb`, external workflow source,
       installed / user-level / plugin skills, and external reference folders).
   model_ladder:
-    ownership: operator_and_commission   # NOT Orca review-lane authority; review-lane model-neutrality preserved
+    ownership: operator_and_commission   # NOT Forseti review-lane authority; review-lane model-neutrality preserved
     rungs: author -> de_correlated_controller -> cheap_executor
     de_correlation_criterion: >
       family = vendor / model lineage (Claude vs GPT), NOT tier. Vendor = the
@@ -322,7 +333,7 @@ delegated_review_patch_overlay_interface:
       discovery pass and is required to claim the no-new-seam standard; review target shipped as a
       hash-confirmable verbatim attachment; assembler/CA runs the target-kind method's freshness gate pre-bundle and records the result. Default package shape: a self-contained bundle (verbatim target attachment(s) + a guardrail-complete README carrying the method/authority/contract) delivered with a thin-wrapper chat prompt pointing at the in-bundle README; the wrapper still carries the cross-vendor who-constraint; inline the method in chat when the reviewer cannot read in-bundle files.
   preflight_schema:
-    - orca_start_preflight (.agents/workflow-overlay/source-loading.md)
+    - forseti_start_preflight (.agents/workflow-overlay/source-loading.md)
     - Required Preflight Fields (.agents/workflow-overlay/prompt-orchestration.md)
   source_context_fields:
     - Source-Gated Method Contract REFERENCE-LOAD / SOURCE-LOAD / SOURCE_CONTEXT_READY (.agents/workflow-overlay/prompt-orchestration.md)
@@ -345,14 +356,14 @@ limited in-session evidence — roughly two uses during jb's 2026-06-05
 eval-contract hardening, where a de-correlated pass caught failure modes the
 author had reintroduced against its own guardrails. Those are first-hand process
 observations in jb; the limitation is their small number, not their validity,
-and they are jb-side evidence, not an Orca-measured result. The evidence
+and they are jb-side evidence, not a Forseti-measured result. The evidence
 corroborates the pattern; it does not validate it.
 
 **Non-claims.** This convention is provisional. It is not validation, not
 readiness, not formal review authority, not a mandatory or machine-routable
 review lane, not patch authorization beyond an explicit bounded CA commission,
 and not runtime model routing. It does not import jb project authority, paths, or
-lifecycle mechanics into Orca; jb is cited only as cross-project provenance.
+lifecycle mechanics into Forseti; jb is cited only as cross-project provenance.
 
 ## Direction Change Propagation
 

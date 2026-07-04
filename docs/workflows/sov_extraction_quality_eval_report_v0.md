@@ -27,6 +27,11 @@ run_provenance: >
   2026-07-03, read-only over F:\orca-data-lake (524 committed packets), runner
   landed in the same change set as this report; rerun with
   `python orca-harness/runners/run_sov_extraction_quality_eval.py --root <ORCA_DATA_ROOT>`.
+  ADJUDICATED RERUN (same day, eval_schema_version 2 after the delegated code
+  review): under exact-ref discipline (file_id + path + sha256 must match; no
+  fallback scanning), all 23 resolved records resolved identically and every
+  headline number below is CONFIRMED unchanged; 0 ref mismatches on this
+  substrate; 8 records newly disclosed as not_attempted_no_named_mentions.
 ```
 
 ## The numbers (2026-07-03 run)
@@ -37,7 +42,7 @@ run_provenance: >
 | Mention records visible by-key (committed anchors) | 31 — all `source_backed_complete` |
 | Mention records on disk but OUTSIDE committed availability | 15 (see F3) |
 | Mentions in scope (named-brand / unknown-or-blank) | 102 / 20 (unknown rate 16.4%) |
-| Records with resolvable caption transcript | 23/23 attempted (`resolved_caption_json3`); 0 unscannable named mentions |
+| Records with resolvable caption transcript | 23/23 attempted (`resolved_caption_json3`, exact file_id+path+sha256 match); 0 ref mismatches; 0 unscannable named mentions; 8 records `not_attempted_no_named_mentions` |
 | Named mentions scanned for brand-in-transcript | 102 |
 | Brand present in transcript | 93 |
 | **Brand absent from transcript ("leaked")** | **9 → leak rate 8.8% (upper bound)** |

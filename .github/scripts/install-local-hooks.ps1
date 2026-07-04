@@ -1,11 +1,11 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Install Orca's tracked local Git hooks for this Git clone.
+    Install Forseti's tracked local Git hooks for this Git clone.
 
 .DESCRIPTION
     Sets local git config core.hooksPath to .githooks so Git uses the tracked
-    Orca hook adapters. In linked worktree setups this local config is shared by
+    Forseti hook adapters. In linked worktree setups this local config is shared by
     the clone; each checkout where hooks should fire must contain the tracked
     .githooks files. This is local Git-client enforcement: it is useful for
     Codex, Claude Code, and humans, but remains bypassable with --no-verify and
@@ -74,7 +74,7 @@ if (-not $VerifyOnly -and $configured -ne $hookPath) {
     Stop-WithError "core.hooksPath readback is '$configured', expected '$hookPath'."
 }
 
-Write-Host "Orca local hooks path: $configured"
+Write-Host "Forseti local hooks path: $configured"
 Write-Host "Tracked hooks present: $($requiredHooks -join ', ')"
 Write-Host "Boundary: local Git hooks are bypassable with --no-verify; server-side branch protection remains the unbypassable target."
 Write-Host "Linked-worktree note: core.hooksPath is clone-local unless worktreeConfig is enabled; check out .githooks in each active worktree that should enforce it."

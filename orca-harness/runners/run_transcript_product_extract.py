@@ -12,8 +12,9 @@ on a timer (zero rework).
 
 Pickup is the consumption seam (``data_lake.consumption``): a packet whose completed run was
 acknowledged is skipped WITHOUT loading or re-hashing its raw bodies — the obligation
-fingerprint (the packet's ``transcript_asr`` record set + model) is compared instead, so a
-late-arriving ASR record re-surfaces the packet automatically. A packet with any failed or
+fingerprint (the packet's ``transcript_asr`` record set + model + rubric version) is compared
+instead, so a late-arriving ASR record or extraction-policy change re-surfaces the packet
+automatically. A packet with any failed or
 partial transcript is never acknowledged and re-surfaces every run. Acked-and-unchanged
 packets emit NO per-run status entries; the durable ack records under ``acknowledgements/``
 are the completion facts. Contract:
@@ -31,7 +32,7 @@ from __future__ import annotations
 import hashlib
 import json
 
-from cleaning.transcript_product_extractor import TranscriptInput
+from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION, TranscriptInput
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
     PRODUCT_MENTIONS_SET_LANE,
@@ -41,7 +42,13 @@ from cleaning.transcript_product_lake import (
     extract_products_into_lake,
     mentions_record_id,
 )
-from data_lake.consumption import PickupItem, append_ack, is_acknowledged, pickup
+from data_lake.consumption import (
+    PickupItem,
+    append_ack,
+    is_acknowledged,
+    pickup,
+    reconcile_availability_per_packet,
+)
 from data_lake.root import DataLakeRootError
 from data_lake.silver_lineage import SilverAnchor, SilverDerivedRef, SilverRawRef
 
@@ -94,6 +101,30 @@ def _capture_metadata(loaded, files: dict[str, str]) -> dict:
         return {}
 
 
+def _asr_record_obligation_entries(data_root, audio_packet_id: str) -> list[list[str]]:
+    """Cheap input snapshot entries for every present transcript_asr record file.
+
+    NON-RAISING by contract: this feeds ``pickup``'s ``obligation_fn``, and an
+    exception there would abort the entire pickup loop. An unreadable record
+    becomes an ``unreadable:<type>`` marker entry, so the damage still changes
+    the fingerprint and a repair re-surfaces the packet.
+    """
+    lane_dir = data_root.lane_dir(subtree="derived", raw_anchor=audio_packet_id, lane=_ASR_LANE)
+    if not lane_dir.is_dir():
+        return []
+    entries: list[list[str]] = []
+    for record_file in sorted(lane_dir.iterdir()):
+        if not record_file.is_file():
+            continue
+        try:
+            body = record_file.read_bytes()
+            record_sha = hashlib.sha256(body).hexdigest()
+        except OSError as exc:
+            record_sha = f"unreadable:{type(exc).__name__}"
+        entries.append([record_file.name, record_sha])
+    return entries
+
+
 def _asr_records(data_root, audio_packet_id: str) -> list[tuple[dict, str, str]]:
     """Read transcript_asr derived records by path, returning ``(record, record_id, sha256)``.
 
@@ -101,6 +132,7 @@ def _asr_records(data_root, audio_packet_id: str) -> list[tuple[dict, str, str]]
     consumed transcript record (closing same-shortcode ambiguity). Derived records carry
     no by-key hash, so sha256 is computed from the record file bytes -- equal to the
     derivation-time member_sha256 the lake committed in the transcript_asr set marker.
+    A damaged record is a packet discovery failure, not a missing transcript.
     """
     lane_dir = data_root.lane_dir(subtree="derived", raw_anchor=audio_packet_id, lane=_ASR_LANE)
     if not lane_dir.is_dir():
@@ -112,37 +144,30 @@ def _asr_records(data_root, audio_packet_id: str) -> list[tuple[dict, str, str]]
             continue
         try:
             body = record_file.read_bytes()
+        except OSError as exc:
+            raise ValueError(f"transcript_asr record {record_file.name!r} unreadable") from exc
+        record_sha = hashlib.sha256(body).hexdigest()
+        try:
             data = json.loads(body.decode("utf-8"))
-        except (OSError, ValueError):
-            continue
-        if isinstance(data, dict):
-            records.append((data, record_file.name, hashlib.sha256(body).hexdigest()))
+        except ValueError as exc:
+            raise ValueError(f"transcript_asr record {record_file.name!r} invalid JSON") from exc
+        if not isinstance(data, dict):
+            raise ValueError(f"transcript_asr record {record_file.name!r} is not a JSON object")
+        records.append((data, record_file.name, record_sha))
     return records
-
-
-def _reconcile_availability(data_root) -> None:
-    """By-key reconcile backstop: rebuild the availability index from raw so pickup
-    does not depend on the index being pre-populated. Best-effort: a single corrupt
-    manifest must not abort the whole run (it just goes un-indexed/skipped)."""
-    try:
-        data_root.rebuild_availability()
-    except Exception:  # noqa: BLE001 - a corrupt manifest must not abort the run; index is best-effort
-        pass
 
 
 def _packet_obligation(data_root, packet_id: str, model: str) -> dict:
     """The cheap obligation snapshot for one packet: raw is immutable (write-once),
     so the only growable inputs are the packet's ``transcript_asr`` derived records;
-    the model token changes the deterministic record ids, so it is an input too.
-    No raw bodies are loaded or re-hashed here."""
+    the extraction model and rubric version are policy inputs too (their change must
+    re-trigger a re-check). No raw bodies are loaded or re-hashed here."""
     return {
         "obligation_schema": 1,
         "consumer": "transcript_product_extract",
         "model": model,
-        "asr_records": sorted(
-            [record_id, record_sha]
-            for _record, record_id, record_sha in _asr_records(data_root, packet_id)
-        ),
+        "rubric_version": EXTRACTOR_RUBRIC_VERSION,
+        "asr_records": sorted(_asr_record_obligation_entries(data_root, packet_id)),
     }
 
 
@@ -262,9 +287,10 @@ def run_extraction(
     """
     results: list[dict] = []
     # Visible reconcile opt-out per the seam contract: this runner reconciles
-    # ITSELF first (best-effort, so one corrupt manifest cannot abort the whole
-    # daemon batch) instead of using pickup's fail-loud default reconcile.
-    _reconcile_availability(data_root)
+    # ITSELF first, per packet, so one corrupt manifest becomes a visible
+    # availability_reconcile_failed status while healthy packets still index
+    # and process — instead of pickup's whole-batch fail-loud default reconcile.
+    results.extend(reconcile_availability_per_packet(data_root))
     for item in pickup(
         data_root,
         ack_namespace=_ACK_NAMESPACE,

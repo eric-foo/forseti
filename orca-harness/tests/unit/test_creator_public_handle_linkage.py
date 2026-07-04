@@ -23,7 +23,7 @@ PRODUCT_LEDGER_PATH = (
     # Product-artifact contract check: this intentionally reaches from the
     # harness test tree to the repo-root product ledger scaffold.
     Path(__file__).resolve().parents[3]
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

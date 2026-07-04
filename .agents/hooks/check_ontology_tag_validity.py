@@ -18,7 +18,7 @@ from typing import Iterable
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-ONTOLOGY_PATH = REPO_ROOT / "orca/product/spines/foundation/ontology/ontology.yaml"
+ONTOLOGY_PATH = REPO_ROOT / "forseti/product/spines/foundation/ontology/ontology.yaml"
 
 PAREN_RE = re.compile(r"\(([^()\n]{1,80})\)")
 TYPE_TOKEN_RE = re.compile(r"^[A-Z][A-Za-z0-9]*$")
@@ -73,7 +73,7 @@ COMMON_PROPER_PARENS = {
 # ontology tag annotations. Keep this list narrow so new invalid tags still fail.
 ALLOWLISTED_NON_TAG_PARENS = {
     (
-        "orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md",
+        "forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md",
         "SourceCapturePacket",
         "provenance (SourceCapturePacket) and integrity",
     ),

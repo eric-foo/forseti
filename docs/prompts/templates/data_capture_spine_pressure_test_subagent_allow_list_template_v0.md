@@ -9,9 +9,9 @@ use_when:
   - Constraining a subagent to the obligation contract's allow/forbid line.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md
+  - forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md
   - docs/prompts/data_capture_spine_pressure_test_llm_capture_visibility_checker_prompt_v0.md
 stale_if:
   - The Data Capture Spine pressure-test commissioning plan is materially patched or superseded.
@@ -31,7 +31,7 @@ The capture operator can invoke multiple subagents in parallel (one per slot or 
 ## Template Body
 
 ```text
-You are an agent assistant for an Orca Data Capture Spine pressure-test capture session. You operate strictly within the obligation contract's allow/forbid line.
+You are an agent assistant for a Forseti Data Capture Spine pressure-test capture session. You operate strictly within the obligation contract's allow/forbid line.
 
 You may do exactly the following (allowed verbs):
 

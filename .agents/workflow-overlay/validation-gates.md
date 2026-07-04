@@ -2,10 +2,10 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
-scope: Validation gates required before Orca completion claims.
+artifact_role: Forseti overlay authority
+scope: Validation gates required before Forseti completion claims.
 use_when:
-  - Checking whether an Orca completion, prompt, or artifact claim has required evidence.
+  - Checking whether a Forseti completion, prompt, or artifact claim has required evidence.
   - Defining validation expectations for docs/decision work, explicitly authorized implementation work, prompts, and artifacts.
 authority_boundary: retrieval_only
 ```
@@ -29,12 +29,12 @@ Validation reports must preserve failure visibility by bucket:
 
 ## Current Gates
 
-- Required Orca files exist before claiming bootstrap completion.
+- Required Forseti files exist before claiming bootstrap completion.
 - No software implementation directories are present unless explicitly authorized.
-- `AGENTS.md` and overlay files do not encode `jb` project-specific authority as Orca rules.
+- `AGENTS.md` and overlay files do not encode `jb` project-specific authority as Forseti rules.
 - Repo-aware prompt use, review setup, handoff creation, docs-write or overlay
   maintenance, source-changing work, and completion claims include or report
-  the `orca_start_preflight` receipt from
+  the `forseti_start_preflight` receipt from
   `.agents/workflow-overlay/source-loading.md`. Missing preflight evidence is a
   blocker for the claim or handoff, not proof that the artifact body is false
   and not authority for broad cleanup.
@@ -96,7 +96,7 @@ Validation reports must preserve failure visibility by bucket:
   (c) single-source any value otherwise enumerated in multiple places (enumerate
   once; reference it). This gate is a check, not validation or readiness
   evidence; its presence does not prove any artifact passes it. Lifecycle:
-  Orca-local adoption of general authoring/review discipline, not Orca-owned
+  Forseti-local adoption of general authoring/review discipline, not Forseti-owned
   doctrine; it is a candidate for future skill-source adoption and becomes
   stale here if an equivalent accepted skill-source rule is adopted.
 - New or materially touched durable human-authored workflow artifacts follow
@@ -118,11 +118,11 @@ Validation reports must preserve failure visibility by bucket:
   must be read before prompt-orchestration work, and repo-aware prompts must
   carry the start-preflight fields owned by
   `.agents/workflow-overlay/source-loading.md`.
-- Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Orca overlay file.
-- Source-resolution gate: external workflow sources do not provide Orca authority; installed skills are deployment copies; `jb` project policy must not be imported.
+- Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Forseti overlay file.
+- Source-resolution gate: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy must not be imported.
 - Worktree preflight gate: repository-aware prompts must state workspace, revision or hash when needed, dirty-state allowance, target scope, and edit permission.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
-  patches, workflow patches, and CA handoffs must classify controlling Orca
+  patches, workflow patches, and CA handoffs must classify controlling Forseti
   sources as clean, modified, untracked, stale, or not checked when those
   sources affect strict claims. Modified or untracked controlling sources may
   support advisory work, but strict `PASS`, `ADEQUATE_NOW`, readiness,
@@ -217,7 +217,7 @@ Validation reports must preserve failure visibility by bucket:
   buyer-proof, advisory, backtest, fixture, model-run, scoring, memo, deck,
   calibration, architecture, spec, prompt, wrapper, and runbook artifacts must
   classify the claim tier and closeout state using
-  `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` before
+  `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` before
   making proof, readiness, validation, fixture-admission, scoring,
   blind-use-readiness, or judgment-quality claims. Product-Learning evidence
   cannot be reused as Buyer-Proof or Judgment-Quality evidence without the
@@ -348,6 +348,23 @@ have been recommended (resident judgment; cf. the receipt-field provenance
 gate). Registered in `.github/workflows/ci.yml` and `.githooks/commit-msg`;
 `--selftest` present.
 
+**Local pre-push doc-gate mirror** (`.agents/hooks/pre_push_guard.py`, the
+policy behind the `.githooks/pre-push` adapter). For a push whose update lines
+pass the guard's safety checks, the guard also runs the strict doc gates CI
+runs — `check_map_links.py --strict`, `header_index.py --strict`,
+`check_review_routing.py --strict` (diff-scoped checkers default to base
+`origin/main`, the same base CI resolves for a PR) — so a forward-only gate
+miss, e.g. a reviewer-authored `docs/review-outputs/**` report missing its
+retrieval header (the PR #613 red round), fails at the push boundary instead
+of costing a CI round. Same checkers, same rule owners; the mirror adds no
+rule. A nonzero or unlaunchable gate blocks the push (the GATE FAIL bucket
+above); the checkers' own infra-gap fail-opens are unchanged. Write-time note:
+the EP-06 retrieval-header advisory already covers `docs/review-outputs/**`
+writes at the Claude Code write boundary; this mirror is the harness-agnostic
+catch for writes that advisory cannot see or that ignored it. Local Git hook
+only: bypassable with `--no-verify`; CI remains the authoritative boundary; a
+green pre-push is not validation, readiness, or approval.
+
 **Handoff-pointer resolution gate** (`.agents/hooks/check_handoff_pointers.py`,
 EP-36). Diff-scoped, forward-only CI gate for the Current Gates bullet above:
 handoff-packet paths referenced in changed durable docs must resolve in the
@@ -370,7 +387,7 @@ green run never proves packet content, freshness, or pin truth.
 
 ## Future Gates
 
-- Orca independence dry run: UNKNOWN - requires owner input.
+- Forseti independence dry run: UNKNOWN - requires owner input.
 - Product/domain validation: UNKNOWN - requires owner input.
 - Runtime or integration validation: UNKNOWN - requires owner input.
 

@@ -10,7 +10,7 @@ WHAT THIS DOES
   repo-map commit interrupt in check_repo_map_freshness.py.
 
   The three shared files:
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
     - .claude/settings.json
     - .agents/workflow-overlay/source-of-truth.md
 
@@ -47,7 +47,7 @@ from pathlib import Path
 
 # The three commit-once-whole shared files (repo-relative POSIX).
 SHARED = (
-    "docs/workflows/orca_repo_map_v0.md",
+    "docs/workflows/forseti_repo_map_v0.md",
     ".claude/settings.json",
     ".agents/workflow-overlay/source-of-truth.md",
 )
@@ -123,7 +123,7 @@ def run_check(root: Path) -> int:
 
 
 def selftest() -> int:
-    rm = "docs/workflows/orca_repo_map_v0.md"
+    rm = "docs/workflows/forseti_repo_map_v0.md"
     st = ".agents/workflow-overlay/source-of-truth.md"
     sj = ".claude/settings.json"
     cases = [

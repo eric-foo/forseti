@@ -6,7 +6,7 @@ WHAT THIS ENFORCES
   conditions that are mechanically detectable at a tool boundary. The rule (what
   makes the map stale, and what the map covers) is owned by:
 
-      docs/workflows/orca_repo_map_v0.md   (its ``stale_if:`` header + tables)
+      docs/workflows/forseti_repo_map_v0.md   (its ``stale_if:`` header + tables)
 
   This script does NOT restate that rule. It reads the map AS ITS OWN SPEC: the
   set of paths the map already names is "what is covered," and a touched path
@@ -84,7 +84,7 @@ import sys
 from pathlib import Path
 
 # Authority this checker references (it does not restate the rule).
-MAP = "docs/workflows/orca_repo_map_v0.md"
+MAP = "docs/workflows/forseti_repo_map_v0.md"
 PRINCIPLE = ".agents/workflow-overlay/validation-gates.md (Enforcement Placement)"
 DCP = ".agents/workflow-overlay/source-of-truth.md (Doctrine Change Propagation)"
 
@@ -298,7 +298,7 @@ def structural_trigger(relposix: str, map_text: str,
     harness_area = new_harness_area(relposix, map_text)
     if harness_area is not None:
         return ("new harness area `%s` is not in the repo map's "
-                "Orca Harness section (stale_if #2)" % harness_area)
+                "Forseti Harness section (stale_if #2)" % harness_area)
     return None
 
 
@@ -618,7 +618,7 @@ def selftest() -> int:
         ("orca-harness/_test_runs/out.json", False),   # default scratch exclude
         ("orca-harness/cases/tr/v0/scores/s.json", False),  # map-listed scratch
         ("README.md", False),                          # bare root file, not a folder
-        ("docs/workflows/orca_repo_map_v0.md", False), # editing the map itself
+        ("docs/workflows/forseti_repo_map_v0.md", False), # editing the map itself
     ]
     ok = True
     for i, (path, expect) in enumerate(cases, 1):
@@ -642,7 +642,7 @@ def selftest() -> int:
         event_candidate_paths({"tool_input": {"file_path": MAP}}) == [MAP]
         and event_candidate_paths({"tool_input": {"command": (
             "*** Begin Patch\n"
-            "*** Update File: docs/workflows/orca_repo_map_v0.md\n"
+            "*** Update File: docs/workflows/forseti_repo_map_v0.md\n"
             "@@\n"
             "-old\n"
             "+new\n"

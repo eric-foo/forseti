@@ -2,7 +2,7 @@
 """Placement boundary check (EP-04) - advisory write-time WARN + strict tree check.
 
 WHAT THIS ENFORCES
-  The placement shape of the Orca tree: a new artifact lands in a declared home.
+  The placement shape of the Forseti tree: a new artifact lands in a declared home.
   The rule source is the machine structure map, read as this checker's ONLY spec:
 
       repo-structure.yaml                                  (the router)
@@ -359,7 +359,7 @@ def selftest() -> int:
         "known_top_level": {"dirs": [".agents", "docs", "orca-harness"],
                             "files": ["AGENTS.md", "repo-structure.yaml"]},
         "docs_roles": [{"home": "docs/decisions", "entry": "docs/decisions/README.md"},
-                       {"home": "docs/product", "entry": "orca/product/README.md"},
+                       {"home": "docs/product", "entry": "forseti/product/README.md"},
                        {"home": "docs/_inbox", "entry": "docs/_inbox/README.md"}],
         "product_lanes": [{"name": "core_spine", "status": "planned"}],
         "scratch_rules": {"underscore_prefix_dirs": True,

@@ -1,24 +1,24 @@
-# Product Proof
+﻿# Product Proof
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
+artifact_role: Forseti overlay authority
 scope: Buyer-proof semantics, trust-objection handling, pull signals, zero-spoiler backtest behavior, and product-proof non-claims.
 use_when:
-  - Creating or reviewing Orca product-proof artifacts.
-  - Creating or reviewing Orca case-study, backtest, preflight, or calibration artifacts.
+  - Creating or reviewing Forseti product-proof artifacts.
+  - Creating or reviewing Forseti case-study, backtest, preflight, or calibration artifacts.
   - Defining customer discovery, buyer qualification, memo/deck readback, kill, continue, or graduation rules.
   - Checking whether historical case or consulting-case material leaks recommendations, actions, outcomes, or result quality before a blind judgment.
   - Checking whether proof artifacts confuse objections with disqualifiers.
 authority_boundary: retrieval_only
 ```
 
-This file owns reusable Orca product-proof semantics. Prompt mechanics still
+This file owns reusable Forseti product-proof semantics. Prompt mechanics still
 belong in `prompt-orchestration.md`; review lane behavior still belongs in
 `review-lanes.md`; validation checks still belong in `validation-gates.md`.
 
 For Judgment Spine work, claim-tier and closeout-state architecture is controlled by
-`orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`. Product-proof
+`forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`. Product-proof
 artifacts may use Product-Learning evidence as design input, but they must not
 reuse Product-Learning evidence as Buyer-Proof evidence unless the buyer-proof
 promotion gate in that artifact is satisfied. Buyer-proof artifacts that make
@@ -125,7 +125,7 @@ buyer-proof-ready.
 
 ## Zero-Spoiler Backtest Behavior
 
-All Orca case-study and historical backtest work must preserve blind judgment
+All Forseti case-study and historical backtest work must preserve blind judgment
 until the owner or participant has made the judgment call.
 
 Participant-facing case packets, preflights, source lists, prompts, summaries,
@@ -160,7 +160,7 @@ ground truth. Separate:
 - independent pre-decision evidence;
 - actual public decision record;
 - independent post-outcome evidence;
-- Orca/user blind judgment.
+- Forseti/user blind judgment.
 
 Preflight may check whether post-outcome evidence appears available, but any
 participant-visible preflight result must express that only as a non-spoiling
@@ -176,7 +176,7 @@ out of the participant path.
 ## Product-Proof Non-Claims
 
 Product-proof artifacts must preserve these non-claims unless a later accepted
-Orca source explicitly changes them:
+Forseti source explicitly changes them:
 
 - no buyer validation;
 - no buyer-proof evidence unless the buyer-proof receipt is complete and the
@@ -206,7 +206,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - .agents/workflow-overlay/product-proof.md
     - .agents/workflow-overlay/validation-gates.md
-    - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+    - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -214,7 +214,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-loading.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
-    - path: orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
+    - path: forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
       reason: >
         Deferred by owner decision; this patch aligns existing proof and gate
         surfaces without creating the later thin operating-model spine.
@@ -226,7 +226,7 @@ direction_change_propagation:
     rg -n "closeout_state|no_durable_evidence|weakest-cleared-gate|buyer-proof"
     .agents/workflow-overlay/product-proof.md
     .agents/workflow-overlay/validation-gates.md
-    orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+    forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
     .agents/workflow-overlay/source-loading.md
     docs/workflows/orca_repo_map_v0.md
   non_claims:

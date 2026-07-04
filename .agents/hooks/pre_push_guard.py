@@ -1,23 +1,52 @@
 #!/usr/bin/env python3
-"""Orca local Git pre-push guard.
+"""Forseti local Git pre-push guard.
 
 Reads Git pre-push updates from stdin:
 
     <local-ref> <local-sha> <remote-ref> <remote-sha>
 
 Blocks pushes targeting main, branch deletions, non-fast-forward updates, and
-updates whose fast-forward safety cannot be verified. This is a Git-bound local
-adapter, not a Claude/Codex tool hook. It is bypassable with --no-verify and
-does not see GitHub API actions such as `gh pr merge`.
+updates whose fast-forward safety cannot be verified. For allowed lane pushes
+it then mirrors the strict doc gates CI runs (DOC_GATES below) so a
+forward-only gate miss -- e.g. a reviewer-authored docs/review-outputs report
+missing its retrieval header (PR #613) -- fails at the push boundary instead
+of costing a red CI round. Same checkers, same rule owners; the mirror adds no
+rule. This is a Git-bound local adapter, not a Claude/Codex tool hook. It is
+bypassable with --no-verify, does not see GitHub API actions such as
+`gh pr merge`, and CI remains the authoritative gate.
 """
 
 from __future__ import annotations
 
 import subprocess
 import sys
+from pathlib import Path
 
 ZERO = "0" * 40
 MAIN_REFS = {"main", "refs/heads/main"}
+
+# Strict doc gates mirrored from .github/workflows/ci.yml. The diff-scoped
+# checkers default their base to origin/main -- the same base CI resolves for
+# a PR -- so a local result predicts the CI result for these gates. Rule
+# authority: .agents/workflow-overlay/validation-gates.md ("Enforcement
+# Placement"); each checker references its own rule owner.
+DOC_GATES = (
+    ("retrieval link check", (".agents/hooks/check_map_links.py", "--strict")),
+    ("retrieval header index", (".agents/hooks/header_index.py", "--strict")),
+    ("review-routing disposition", (".agents/hooks/check_review_routing.py", "--strict")),
+)
+
+GATE_TIMEOUT_SECONDS = 120  # generous; the gates run in ~5s combined
+
+DOC_GATE_AUTHORITY = (
+    ".agents/workflow-overlay/validation-gates.md (Enforcement Placement); "
+    "these mirror the CI gates in .github/workflows/ci.yml."
+)
+
+
+def repo_root() -> Path:
+    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
+    return Path(__file__).resolve().parents[2]
 
 
 def _is_ancestor(remote_sha: str, local_sha: str) -> int:
@@ -66,11 +95,46 @@ def check_stdin(stdin_text: str) -> list[str]:
     return reasons
 
 
-def block(reasons: list[str]) -> int:
-    print("BLOCKED by Orca local pre-push guard (.githooks/pre-push).", file=sys.stderr)
+def run_gate(root: Path, script: str, gate_args: tuple[str, ...]) -> tuple[int, str]:
+    """Run one checker; return (returncode, combined output). Never raises.
+
+    A launch failure or timeout returns (-1, why): an unknown failure in a
+    gating layer must not read as a pass (GATE FAIL bucket, validation-gates).
+    The checkers themselves stay fail-open on their own infra gaps (e.g. an
+    unresolvable origin/main), so those still exit 0 here.
+    """
+    try:
+        res = subprocess.run(
+            [sys.executable, str(root / script), *gate_args],
+            capture_output=True,
+            text=True,
+            timeout=GATE_TIMEOUT_SECONDS,
+            cwd=str(root),
+        )
+        return res.returncode, (res.stdout or "") + (res.stderr or "")
+    except (FileNotFoundError, OSError, subprocess.TimeoutExpired) as exc:
+        return -1, f"could not run gate: {exc}"
+
+
+def doc_gate_reasons(root: Path, run=run_gate) -> list[str]:
+    """Block reasons from the mirrored strict doc gates (empty == all pass)."""
+    reasons: list[str] = []
+    for name, (script, *gate_args) in DOC_GATES:
+        rc, output = run(root, script, tuple(gate_args))
+        if rc != 0:
+            reasons.append(
+                f"doc gate '{name}' failed (exit {rc}):\n{output.strip()}"
+            )
+    return reasons
+
+
+def block(reasons: list[str], authority: str | None = None) -> int:
+    print("BLOCKED by Forseti local pre-push guard (.githooks/pre-push).", file=sys.stderr)
     for reason in reasons:
         print(f"Reason: {reason}", file=sys.stderr)
-    print("Authority: .agents/workflow-overlay/safety-rules.md + dev-workflow doctrine.", file=sys.stderr)
+    if authority is None:
+        authority = ".agents/workflow-overlay/safety-rules.md + dev-workflow doctrine."
+    print(f"Authority: {authority}", file=sys.stderr)
     print("Boundary: local Git hook only; --no-verify can bypass it.", file=sys.stderr)
     return 1
 
@@ -91,6 +155,33 @@ def selftest() -> int:
         if got_block != expect_block:
             ok = False
         print(f"{status} {name} expect_block={expect_block} got_block={got_block}")
+
+    # Doc-gate decision cases with injected runners (no subprocess).
+    root = repo_root()
+
+    def all_pass(_root, _script, _args):
+        return 0, "OK"
+
+    def header_fails(_root, script, _args):
+        if "header_index" in script:
+            return 1, "MISSING-HEADER: docs/review-outputs/x_v0.md"
+        return 0, "OK"
+
+    def launch_failure(_root, _script, _args):
+        return -1, "could not run gate: [Errno 2] No such file"
+
+    gate_cases = [
+        ("doc gates all pass", all_pass, 0),
+        ("one doc gate fails", header_fails, 1),
+        ("gate launch failure blocks all", launch_failure, len(DOC_GATES)),
+    ]
+    for name, runner, expect_count in gate_cases:
+        got = doc_gate_reasons(root, run=runner)
+        status = "PASS" if len(got) == expect_count else "FAIL"
+        if len(got) != expect_count:
+            ok = False
+        print(f"{status} {name} expect_reasons={expect_count} got_reasons={len(got)}")
+
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 
@@ -98,9 +189,16 @@ def selftest() -> int:
 def main(argv: list[str]) -> int:
     if "--selftest" in argv:
         return selftest()
-    reasons = check_stdin(sys.stdin.read())
+    stdin_text = sys.stdin.read()
+    reasons = check_stdin(stdin_text)
     if reasons:
         return block(reasons)
+    updates = [u for u, err in iter_updates(stdin_text) if u]
+    if updates:
+        gate_reasons = doc_gate_reasons(repo_root())
+        if gate_reasons:
+            return block(gate_reasons, authority=DOC_GATE_AUTHORITY)
+        print(f"pre-push doc gates: OK ({len(DOC_GATES)} gate(s))", file=sys.stderr)
     return 0
 
 

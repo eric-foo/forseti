@@ -1,10 +1,10 @@
-# Orca Doctrine Index v0 (router, not authority)
+# Forseti Doctrine Index v0 (router, not authority)
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Doctrine index (router only — on conflict, each doctrine's own record wins and this index is the stale party)
 scope: >
-  One place to find every binding Orca doctrine: cross-cutting rules, lenses,
+  One place to find every binding Forseti doctrine: cross-cutting rules, lenses,
   and contracts agents and the owner must follow, scattered across the kernel,
   the overlay, decision records, and product lanes. Derived from a repo-wide
   sweep 2026-06-11. Lists and points; binds nothing itself.

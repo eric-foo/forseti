@@ -57,9 +57,10 @@ Accepted residuals (named for review, not hidden):
   ``youtube_metric_seed.py`` builder (handoff Option 1) and have this producer
   reuse it.
 - The Silver-envelope helpers (content hash, canonical JSON, posture coupling,
-  fail-closed native-id) are duplicated from the IG producer to keep the merged
-  IG module untouched. Upgrade trigger: a clean shared silver-envelope core is
-  extracted and both producers import it.
+  fail-closed native-id) were previously duplicated from the IG producer; that
+  named upgrade trigger has fired and both producers now import the shared
+  ``silver_envelope_core`` (an extraction, not a redesign -- record bytes are
+  unchanged).
 - These records share the platform-agnostic ``creator_metric_silver`` /
   ``creator_metric_rollup_silver`` lanes with the IG producer (records stay
   distinguishable by ``source_family``/``source_surface``/subject namespace).
@@ -68,12 +69,27 @@ Accepted residuals (named for review, not hidden):
 """
 from __future__ import annotations
 
-import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping
 
+from capture_spine.creator_profile_current.silver_envelope_core import (
+    BASE_NON_CLAIMS as _BASE_NON_CLAIMS,
+    CONTENT_HASH_BASIS as _CONTENT_HASH_BASIS,
+    METRIC_OBSERVATION_LANE,
+    METRIC_OBSERVATION_PAYLOAD_KIND,
+    METRIC_ROLLUP_LANE,
+    METRIC_ROLLUP_PAYLOAD_KIND,
+    SILVER_VAULT_RECORD_SCHEMA_VERSION,
+    SOURCE_FAMILY as _SOURCE_FAMILY,
+    assert_posture_value_coupling as _assert_posture_value_coupling,
+    content_hash as _content_hash,
+    metric_posture as _metric_posture,
+    require_source_packet_id as _require_source_packet_id,
+    required_subject_native_id as _required_subject_native_id,
+    rollup_metric as _rollup_metric,
+)
 from harness_utils import generate_ulid
 from data_lake.catalog import source_surface_catalog_rows
 from data_lake.silver_record import append_silver_record
@@ -82,7 +98,6 @@ if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
 
 
-SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
 YOUTUBE_SEED_WRAPPER_KEY = "youtube_shorts_fragrance_creator_metric_seed"
 
 # Default committed-seed location (repo-relative), so callers can wrap the real
@@ -90,7 +105,7 @@ YOUTUBE_SEED_WRAPPER_KEY = "youtube_shorts_fragrance_creator_metric_seed"
 # orca-harness/capture_spine/creator_profile_current/ -> repo root is parents[3].
 DEFAULT_YOUTUBE_SEED_PATH = (
     Path(__file__).resolve().parents[3]
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -101,19 +116,9 @@ DEFAULT_YOUTUBE_SEED_PATH = (
     / "youtube_shorts_fragrance_creator_metric_seed_v0.json"
 )
 
-# Platform-agnostic creator-metric Silver lanes, shared with the IG producer: the
-# lane names carry no platform token (records are distinguished by
-# source_family/source_surface/producer_id/subject namespace), keeping creator
-# metrics in one unified Silver lane across platforms. Re-declared here (not
-# imported) so the merged IG producer stays untouched.
-METRIC_OBSERVATION_LANE = "creator_metric_silver"
-METRIC_ROLLUP_LANE = "creator_metric_rollup_silver"
-METRIC_OBSERVATION_PAYLOAD_KIND = "MetricObservation"
-METRIC_ROLLUP_PAYLOAD_KIND = "MetricRollupObservation"
 METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricobservation_v0"
 METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricrollupobservation_v0"
 
-_CONTENT_HASH_BASIS = "canonical_json_excluding_content_hash"
 _OBS_PRODUCER_ID = (
     "orca-harness.capture_spine.creator_profile_current.youtube_silver_metric_producer"
     ".derive_youtube_creator_metric_silver_records_from_seed#metric_observation"
@@ -123,7 +128,6 @@ _ROLLUP_PRODUCER_ID = (
     ".derive_youtube_creator_metric_silver_records_from_seed#metric_rollup"
 )
 _PLATFORM_NAMESPACE = "youtube"
-_SOURCE_FAMILY = "social_media"
 _SOURCE_SURFACE = "youtube_shorts"
 _YOUTUBE_BRONZE_SOURCE_FAMILY = "youtube"
 _YOUTUBE_BRONZE_SOURCE_SURFACE = "youtube_watch_metadata_comments"
@@ -133,18 +137,11 @@ _RAW_PACKET_FALLBACK_AMBIGUOUS_AR_REF_KIND = "raw_packet_fallback_ambiguous_atta
 _MISSING_AR_LIMITATION = "typed_attachment_record_missing_for_raw_ref"
 _AMBIGUOUS_AR_LIMITATION = "typed_attachment_record_ambiguous_for_raw_ref"
 
-# Non-claims attached to every emitted record. The engagement/like/comment
-# non-claim is CONDITIONAL: it is load-bearing for view-count-only records (the
+# The engagement/like/comment non-claim added on top of the shared base
+# non-claims is CONDITIONAL: it is load-bearing for view-count-only records (the
 # committed genesis seed), but must not attach to a record that actually carries
 # an observed engagement-family metric (live watch-packet documents expose
 # like/comment inputs) -- a false non-claim is an honesty bug, not caution.
-_BASE_NON_CLAIMS = (
-    "not a representative creator average",
-    "not channel-wide creator influence",
-    "not cross-platform identity linkage",
-    "not a follower graph or audience estimate",
-    "not buyer proof",
-)
 _ENGAGEMENT_NON_CLAIM = "not an engagement-rate, like, or comment metric"
 _ENGAGEMENT_OBSERVATION_METRIC_NAMES = frozenset({"like_count", "total_comment_count", "comment_count"})
 _ENGAGEMENT_ROLLUP_METRIC_NAMES = frozenset(
@@ -491,28 +488,6 @@ def _rollup_subject(seed_rollup: Mapping[str, Any]) -> dict[str, Any]:
     return {"ref_type": "entity_key", "ref": ref}
 
 
-def _required_subject_native_id(value: Any, *, what: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{what} requires a non-empty entity_key native_id")
-    return value
-
-
-def _metric_posture(kind: str, reason: str | None) -> dict[str, Any]:
-    return {"kind": kind, "reason_code": None, "reason_detail": reason}
-
-
-def _rollup_metric(metric: Mapping[str, Any], *, what: str) -> dict[str, Any]:
-    posture = metric["posture"]
-    value = metric.get("value_or_none")
-    reason = metric.get("posture_reason_or_none")
-    _assert_posture_value_coupling(posture=posture, value=value, reason=reason, what=what)
-    return {
-        "metric_value": value,
-        "metric_posture": _metric_posture(posture, reason),
-        "unit": metric["metric_unit"],
-    }
-
-
 def _raw_ref(
     seed_observation: Mapping[str, Any],
     *,
@@ -648,32 +623,6 @@ def _raw_ref_lineage_limitations(raw_ref: Mapping[str, Any]) -> list[dict[str, s
     return [{"reason": "other", "detail": detail}]
 
 
-def _assert_posture_value_coupling(*, posture: str, value: Any, reason: Any, what: str) -> None:
-    """Enforce the Silver posture/value coupling: observed <=> numeric value and
-    no reason; non-observed <=> null value and a reason. Booleans are not numbers.
-    Fails loud rather than emitting a fake-shaped record."""
-    if posture == "observed":
-        if value is None or isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ValueError(f"{what}: observed posture requires a numeric metric value, got {value!r}")
-        if reason:
-            raise ValueError(f"{what}: observed posture must not carry a posture reason")
-    else:
-        if value is not None:
-            raise ValueError(f"{what}: non-observed posture must carry a null value, got {value!r}")
-        if not reason:
-            raise ValueError(f"{what}: non-observed posture requires a posture reason")
-
-
-def _require_source_packet_id(seed_observation: Mapping[str, Any]) -> str:
-    packet_id = seed_observation.get("source_packet_id_or_none")
-    if not packet_id:
-        raise ValueError(
-            f"metric observation {seed_observation.get('metric_observation_id')!r} lacks a "
-            "source packet id; cannot anchor a source-backed Silver record."
-        )
-    return packet_id
-
-
 def _required_source_hash(seed_observation: Mapping[str, Any], field: str, *, what: str) -> str:
     value = seed_observation.get(field)
     if not isinstance(value, str) or not value.strip():
@@ -705,22 +654,6 @@ def _rollup_raw_anchor(seed_rollup: Mapping[str, Any]) -> str:
             f"{account_id!r} does not match profile_subject_id {profile_subject_id!r}"
         )
     return account_id
-
-
-def _content_hash(record: dict[str, Any]) -> str:
-    canonical = dict(record)
-    canonical.pop("content_hash", None)
-    return hashlib.sha256(_canonical_json_bytes(canonical)).hexdigest()
-
-
-def _canonical_json_bytes(value: Any) -> bytes:
-    return json.dumps(
-        value,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-        allow_nan=False,
-    ).encode("utf-8")
 
 
 __all__ = [

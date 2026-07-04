@@ -20,7 +20,7 @@ import runners.run_instagram_reels_creator_metric_seed_materialize as metric_see
 ROOT = Path(__file__).resolve().parents[3]
 SEED_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"
@@ -32,7 +32,7 @@ SEED_PATH = (
 )
 ACCOUNT_LEDGER_PATH = (
     ROOT
-    / "orca"
+    / "forseti"
     / "product"
     / "spines"
     / "capture"

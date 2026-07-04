@@ -19,8 +19,8 @@ use_when:
   - Deciding whether a proposed brand/website/entity move fits the ratified company design.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md
-  - orca/product/spines/creator_signal/creator_signal_market_sizing_v0.md
+  - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+  - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md
   - docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md
 stale_if:
   - The owner amends any decision below (dated amendments only; no silent rewrites).
@@ -42,7 +42,7 @@ the product records; it does not amend the product thesis
 (`docs/decisions/orca_product_thesis_consumer_demand_v0.md`), the wedge record
 (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`), or the Creator
 Signal carve-out architecture
-(`orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md`,
+(`forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md`,
 ratified as working goal via PR #550 with Direction Update v0.1
 foundation-first sequencing — which continues to govern build sequencing).
 Per its own `stale_if`, the brand-asset acquisition handoff packet
@@ -79,7 +79,9 @@ endorsed sub-brand on its own website** ("<sub-brand> by Forseti").
 - The sub-brand site is the scene-native front for an authenticity-driven
   niche community, endorsed visibly "by Forseti" so trust flows upward.
 - Each brand's assets (domain, handles) stay separately owned and cleanly
-  separable.
+  separable. [Refined by D8, 2026-07-02: pre-launch, the sub-brand site is a
+  separable site project at aphrodite.forsetihq.com; its own apex domain and
+  handles bundle at the public-launch gate.]
 - Ratification receipt: recommended 2026-07-02 with this rationale; owner
   accepted the design in the same exchange ("it makes sense") and directed
   the action translation plus the acquisition lane spin-off consistent with
@@ -152,7 +154,7 @@ Owner words (2026-07-02): "we probably dont need fully public yet so
 probably 1" (option 1 = holding + waitlist). No public product site, no
 marketing claims. Any copy on any surface obeys the claim-defense doctrine's
 wording discipline
-(`orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md`
+(`forseti/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md`
 — read fresh before authoring any outward-facing text). Build triggers for
 the sub-brand site: it becomes a build task at Vetting v0 (gated
 design-partner demo), itself gated behind foundation-first; a public
@@ -219,6 +221,77 @@ aphrodite then."
   domain, email, eventual contracts, and every endorsement line, so its
   rigor is not relaxed.
 
+## D8 — Web-presence foundation (2026-07-02)
+
+Owner-ratified in-thread same day (proposal accepted: "looks like no issue
+then. let's handoff for the company design"). Refines D2 and D6 into a
+concrete web foundation; it changes no gate and launches nothing.
+
+1. **One apex domain.** forsetihq.com is the only domain bought pre-launch.
+   The Aphrodite surface lives at **aphrodite.forsetihq.com** until the
+   public-launch gate; the own-domain question, handle registration, and
+   D7's deferred formal trademark clearance all bundle at that gate as one
+   owner decision. Rationale: every available "Aphrodite" apex domain is a
+   compromised string (the clean ones are unobtainable for a famous
+   mythological name), a gated Vetting v0 demo needs no scene-native domain,
+   and a pre-launch subdomain-to-domain move is DNS plus a redirect because
+   no equity has accrued. This refines D2: "own scene-native website" means
+   an own, separable site project — not an own apex domain pre-launch.
+   Consequence: the acquisition lane's second tranche is emptied (no
+   Aphrodite domain or handles are bought now; the Forseti tranche is
+   untouched).
+2. **Separability rule.** Aphrodite pages are built as a separable site
+   project deployed to the subdomain, never entangled with the forsetihq
+   site code, so D2's clean-separability survives and a future move or
+   spin-out is DNS work, not a rebuild.
+3. **forsetihq.com holding page** (the only near-term surface): positioning
+   line; one "what we're building" paragraph in claim-defense-compliant
+   "built to" wording; waitlist email capture; a minimal privacy notice
+   (waitlist emails are personal data — required from day one); contact.
+   Reserved future slots so the page grows instead of being rebuilt: the
+   standard/receipts page (only when a publishing motion is separately
+   authorized) and about. No feed/dashboard vocabulary anywhere on this
+   property.
+4. **Identity, deliberately minimal per brand.** Text wordmark, one-to-two
+   colors, one-to-two typefaces; Forseti in a calibrated/judicial register;
+   Aphrodite in a scene-native beauty register later; the "by Forseti"
+   endorsement line is the only shared element. No logo project, no brand
+   book pre-launch — brand-design spend beyond the minimal kit is sunk cost
+   while the moat is the data engine.
+5. **Tech posture.** Static sites; no CMS, backend, or auth; a simple,
+   swappable waitlist form provider; static hosting (e.g. Vercel, Netlify,
+   or Pages); analytics minimal or none at holding stage. **Website code
+   lives outside this repository** in its own repo; this repository stays
+   doctrine-only per its folder rules.
+6. **Design order: forsetihq first.** It carries the only near-term job
+   (holding + waitlist on a domain being bought now), and its identity is
+   the input to the endorsement line Aphrodite later carries. Aphrodite
+   design fires at the Vetting v0 trigger, not before — its demo UI should
+   be shaped by the actual claim-object product design, which does not exist
+   yet.
+7. **Build boundary.** The holding page may be designed, built, and deployed
+   dark (preview URL only). Pointing DNS or otherwise making anything
+   public, and every account creation or purchase, are owner-executed.
+
+## D8 Amendment (2026-07-04) — waitlist role fields
+
+Owner-ratified in-thread ("Add the two fields (Recommended)", 2026-07-04,
+Aphrodite carveout charter session). The waitlist capture element of the D8
+web foundation may collect two **optional** self-reported fields alongside
+email on the forsetihq.com holding page (D8 item 3), and on a later Aphrodite
+pre-launch holding surface only if/when that surface is separately authorized
+under D8's Vetting-v0/public-launch sequencing (D8 items 1 and 6): **role**
+and **decision type**. Purpose: passive buyer-lane sequencing signal for the
+Aphrodite carveout
+(`orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md`,
+register row R-2).
+
+- Optional fields only; email-only signup remains valid.
+- Same minimal-privacy-notice posture: the fields are personal data and live
+  under the existing D8 privacy notice; no new tracking, no analytics change.
+- Nothing else in D8 changes: no marketing claims, no gate moves, no build or
+  publish authorization.
+
 ## Open items (not decided here)
 
 - Formal trademark clearance for Aphrodite at first public commercial use
@@ -259,8 +332,8 @@ direction_change_propagation:
     - docs/decisions/forseti_company_brand_architecture_v0.md
   downstream_surfaces_checked:
     - docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md   # its stale_if names this record; supersession fires by design, no edit
-    - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # build sequencing + product architecture unchanged; brand layer sits above
-    - orca/product/spines/creator_signal/creator_signal_market_sizing_v0.md          # sizing/wedge-destination reasoning unchanged, consumed as-is
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # build sequencing + product architecture unchanged; brand layer sits above
+    - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md          # sizing/wedge-destination reasoning unchanged, consumed as-is
     - docs/decisions/orca_product_thesis_consumer_demand_v0.md            # thesis center untouched; anti-positioning boundary is applied, not amended
     - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md           # wedge record untouched
     - AGENTS.md                                                           # no naming/brand content; routes to overlay — unchanged
@@ -327,4 +400,75 @@ direction_change_propagation:
     - not validation
     - not readiness
     - not trademark clearance (the light check and deferred formal clearance remain to be executed)
+# D8 web-presence foundation 2026-07-02 (same session; ratified with the design-lane handoff request).
+direction_change_propagation:
+  doctrine_changed: >
+    D8 adds the web-presence foundation: one apex domain (forsetihq.com) with
+    Aphrodite on aphrodite.forsetihq.com until the public-launch gate (where
+    own-domain, handles, and D7 formal clearance bundle); separable-site rule
+    for Aphrodite pages; holding-page content contract incl. privacy notice;
+    minimal per-brand identity; static/no-backend tech posture with site code
+    outside this repo; forsetihq-first design order; deploy-dark build
+    boundary with owner-executed DNS/purchases. Refines D2/D6; empties the
+    acquisition lane's Aphrodite tranche.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/decisions/forseti_company_brand_architecture_v0.md
+  downstream_surfaces_checked:
+    - docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md   # committed packet; its second-tranche trigger wording is further superseded by D8 via the packet's existing stale_if routing; no retro-edit, owner-courier kickoff carries the delta
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # Vetting v0 stack note (static/Astro/Vite, shared access gate) is consistent with D8's tech posture; unchanged
+  intentionally_not_updated:
+    - path: docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md
+      reason: >
+        Same rule as the D7 amendment: committed lane packets are
+        point-in-time artifacts whose stale_if routes receivers to this
+        record; the decision layer is not forked into retro-edits.
+  stale_language_search: >
+    rg -in "aphroditehq|aphrodite domain|second tranche|own domain|scene-native website"
+    docs/decisions/forseti_company_brand_architecture_v0.md docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-02 after the D8 edits. In this record, pre-D8 second-
+    tranche and own-domain language survives only in the D7 body bullet
+    already marked SUPERSEDED, the D7 amendment text D8 further narrows, and
+    these receipts. The acquisition packet retains its point-in-time
+    second-tranche wording, resolved via its stale_if pointer to this record.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a website build authorization by itself (the design-lane handoff carries the bounded authorization)
+# D8 amendment 2026-07-04 (waitlist role fields; ratified in the Aphrodite carveout charter session).
+direction_change_propagation:
+  doctrine_changed: >
+    D8 amended: waitlist capture may collect two optional self-reported fields
+    (role, decision type) alongside email on the Forseti holding page, and on
+    any later separately authorized Aphrodite pre-launch holding surface, as
+    passive buyer-lane sequencing signal for the Aphrodite carveout. Optional
+    only; same privacy-notice posture; no other D8 element, gate, or
+    authorization changes.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/decisions/forseti_company_brand_architecture_v0.md
+    - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # register row R-2 records the ratification
+  downstream_surfaces_checked:
+    - docs/workflows/forseti_web_foundation_design_lane_handoff_v0.md   # committed lane packet; its stale_if routes the receiver to this record for superseding decisions; no retro-edit (same rule as the D7/D8 receipts above)
+  intentionally_not_updated:
+    - path: docs/workflows/forseti_web_foundation_design_lane_handoff_v0.md
+      reason: >
+        Committed lane packets are point-in-time artifacts; the packet already
+        instructs the receiver to check docs/decisions/ for superseding
+        Forseti records at lane start, which resolves this amendment.
+  stale_language_search: >
+    rg -in "waitlist" docs/decisions/forseti_company_brand_architecture_v0.md docs/workflows/forseti_web_foundation_design_lane_handoff_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-04 with the amendment edits staged in the lane worktree.
+    Hits are D6/D8 posture language in this record (consistent — the amendment
+    adds fields to the same capture element), this amendment and receipt, and
+    the design-lane packet's point-in-time waitlist wording resolved via its
+    stale_if pointer as recorded above.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a build or publish authorization
 ```

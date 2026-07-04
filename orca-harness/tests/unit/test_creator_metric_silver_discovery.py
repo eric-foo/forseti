@@ -272,5 +272,5 @@ def test_rejects_unsupported_platform(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     with pytest.raises(ValueError, match="unsupported"):
         discover_creator_metric_rollup_records(
-            data_root, account_ledger=_ledger(("acct_tt_001", "tiktok"))
+            data_root, account_ledger=_ledger(("acct_th_001", "threads"))
         )
