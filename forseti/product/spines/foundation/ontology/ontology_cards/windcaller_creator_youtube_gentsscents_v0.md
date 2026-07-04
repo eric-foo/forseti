@@ -38,5 +38,4 @@ naming_authority: forseti/product/spines/foundation/ontology/orca_ontology_backb
 ## Non-Claims
 
 Dated hint only. Not a vetted-creator claim, not calibration, not roster membership,
-not validation or readiness; `product_learning`-capped. FLAG 1 (commercial-use /
-data-rights) untouched.
+not validation or readiness; `product_learning`-capped. Commercial-use/data-rights boundaries remain outside this ontology card.
