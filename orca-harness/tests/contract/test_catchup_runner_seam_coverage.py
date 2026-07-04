@@ -1,0 +1,144 @@
+"""Coverage gate: seam-consumer runners must consume the consumption seam correctly.
+
+The consumer-side sibling of ``test_capture_runner_lake_seam_coverage.py``
+(which gates Bronze producers). Everything here was previously doctrine a cold
+agent had to learn from adjudication records; this test makes it mechanical:
+
+- every runner that imports ``data_lake.consumption`` is a declared seam
+  consumer (explicit audit answer, both directions);
+- consumers use by-key ``pickup`` + ``append_ack`` (no bespoke discovery or
+  hand-rolled completion facts);
+- availability reconcile is the SHARED per-packet fail-visible helper
+  (``reconcile_availability_per_packet``, F-ECR-001 adjudicated shape) — no
+  local copies, no whole-batch ``rebuild_availability``, no direct
+  ``record_availability`` (a swallowed or partial reconcile hides healthy
+  packets because the rebuild deletes index entries first);
+- the reconcile choice on ``pickup`` is explicit (``reconcile=`` keyword
+  visible at the call site, per the seam contract's visible-opt-out rule);
+- consumers never touch the ``derived_retrieval`` views (view-independence:
+  pickup is by-key over committed availability only).
+"""
+from __future__ import annotations
+
+import ast
+
+from data_lake.inventory import RUNNERS_DIR as _RUNNERS_DIR
+
+# The declared seam-consumer surface. This is the explicit audit answer for
+# "which runners consume committed Bronze work through the seam?" A new
+# consumer runner must be added here AND satisfy the structural checks below.
+EXPECTED_SEAM_CONSUMER_RUNNERS = frozenset(
+    {
+        "run_basenotes_cleaning_catchup.py",
+        "run_ecr_catchup.py",
+        "run_fragrance_review_projection_catchup.py",
+        "run_fragrantica_cleaning_catchup.py",
+        "run_ig_reels_product_extract.py",
+        "run_parfumo_cleaning_catchup.py",
+        "run_transcript_product_extract.py",
+    }
+)
+
+_REQUIRED_CONSUMPTION_IMPORTS = {"pickup", "append_ack", "reconcile_availability_per_packet"}
+_FORBIDDEN_CONSUMER_CALLS = {"rebuild_availability", "record_availability"}
+
+
+def _runner_trees() -> dict[str, ast.AST]:
+    trees: dict[str, ast.AST] = {}
+    for path in sorted(_RUNNERS_DIR.glob("*.py")):
+        trees[path.name] = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    return trees
+
+
+def _consumption_imports(tree: ast.AST) -> set[str]:
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module == "data_lake.consumption":
+            names.update(alias.name for alias in node.names)
+    return names
+
+
+def _call_names(tree: ast.AST) -> list[ast.Call]:
+    return [node for node in ast.walk(tree) if isinstance(node, ast.Call)]
+
+
+def _called_name(node: ast.Call) -> str:
+    func = node.func
+    if isinstance(func, ast.Attribute):
+        return func.attr
+    if isinstance(func, ast.Name):
+        return func.id
+    return ""
+
+
+def test_seam_consumer_runner_surface_is_explicit() -> None:
+    discovered = {
+        name for name, tree in _runner_trees().items() if _consumption_imports(tree)
+    }
+
+    new_consumers = discovered - EXPECTED_SEAM_CONSUMER_RUNNERS
+    assert not new_consumers, (
+        "Runner(s) import data_lake.consumption but are not declared seam consumers.\n"
+        "Add them to EXPECTED_SEAM_CONSUMER_RUNNERS and make them satisfy this gate:\n"
+        f"  {sorted(new_consumers)}"
+    )
+
+    stale = EXPECTED_SEAM_CONSUMER_RUNNERS - discovered
+    assert not stale, (
+        "EXPECTED_SEAM_CONSUMER_RUNNERS lists runner(s) that no longer consume the seam.\n"
+        f"Remove the stale declarations: {sorted(stale)}"
+    )
+
+
+def test_seam_consumers_use_pickup_ack_and_the_shared_reconcile() -> None:
+    trees = _runner_trees()
+    problems: dict[str, list[str]] = {}
+    for name in sorted(EXPECTED_SEAM_CONSUMER_RUNNERS):
+        tree = trees[name]
+        issues: list[str] = []
+        imported = _consumption_imports(tree)
+        missing = _REQUIRED_CONSUMPTION_IMPORTS - imported
+        if missing:
+            issues.append(f"missing consumption imports: {sorted(missing)}")
+        local_defs = {
+            node.name
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        }
+        if "_reconcile_availability" in local_defs:
+            issues.append(
+                "carries a local _reconcile_availability copy; use "
+                "data_lake.consumption.reconcile_availability_per_packet"
+            )
+        for call in _call_names(tree):
+            called = _called_name(call)
+            if called in _FORBIDDEN_CONSUMER_CALLS:
+                issues.append(
+                    f"calls {called} directly at line {call.lineno}; availability "
+                    "reconcile must go through reconcile_availability_per_packet"
+                )
+            if called == "pickup" and not any(kw.arg == "reconcile" for kw in call.keywords):
+                issues.append(
+                    f"pickup at line {call.lineno} does not make its reconcile choice "
+                    "explicit (pass reconcile=... per the seam contract's visible-opt-out rule)"
+                )
+        if issues:
+            problems[name] = issues
+
+    assert not problems, (
+        "Seam-consumer runner(s) violate the consumer seam shape "
+        "(F-ECR-001 shared reconcile + by-key pickup/ack):\n"
+        + "\n".join(f"  {name}: {issues}" for name, issues in sorted(problems.items()))
+    )
+
+
+def test_seam_consumers_never_touch_derived_retrieval_views() -> None:
+    offenders = {}
+    for name in sorted(EXPECTED_SEAM_CONSUMER_RUNNERS):
+        source = (_RUNNERS_DIR / name).read_text(encoding="utf-8")
+        if "derived_retrieval" in source:
+            offenders[name] = "references derived_retrieval"
+    assert not offenders, (
+        "Seam consumers must stay view-independent (pickup is by-key over committed "
+        f"availability; views are rebuildable caches): {offenders}"
+    )

@@ -59,8 +59,14 @@ from typing import Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from data_lake.consumption import PickupItem, append_ack, is_acknowledged, pickup
-from data_lake.root import DataLakeRootError, raw_shard
+from data_lake.consumption import (
+    PickupItem,
+    append_ack,
+    is_acknowledged,
+    pickup,
+    reconcile_availability_per_packet,
+)
+from data_lake.root import DataLakeRootError
 from source_capture.fragrance_review_coverage import (
     FRAGRANCE_REVIEW_COVERAGE_CERTIFICATION,
     FRAGRANCE_REVIEW_COVERAGE_METHOD,
@@ -114,45 +120,6 @@ def _packet_obligation() -> dict:
     }
 
 
-def _reconcile_availability(data_root) -> list[dict]:
-    """By-key reconcile backstop with per-packet failure visibility.
-
-    ``DataLakeRoot.rebuild_availability`` is intentionally fail-loud, but this
-    daemon must keep healthy packets moving when one raw manifest is corrupt.
-    Rebuild the index one committed packet at a time so bad packets are status
-    entries, not silent omissions from a partial availability index.
-    (F-ECR-001 adjudicated shape, mirrored from run_ecr_catchup.)
-    """
-    failures: list[dict] = []
-    avail = data_root.path / "indexes" / "availability"
-    if avail.is_dir():
-        for entry_file in avail.glob("*.json"):
-            entry_file.unlink()
-    avail.mkdir(parents=True, exist_ok=True)
-
-    raw_dir = data_root.path / "raw"
-    if not raw_dir.is_dir():
-        return failures
-    for shard_dir in sorted(p for p in raw_dir.iterdir() if p.is_dir()):
-        for container in sorted(p for p in shard_dir.iterdir() if p.is_dir()):
-            packet_id = container.name
-            if not (container / "manifest.json").is_file():
-                continue
-            if shard_dir.name != raw_shard(packet_id):
-                continue
-            try:
-                data_root.record_availability(packet_id)
-            except Exception as exc:  # noqa: BLE001 - surface corrupt packet, continue batch
-                failures.append(
-                    {
-                        "packet_id": packet_id,
-                        "status": "availability_reconcile_failed",
-                        "error": f"{type(exc).__name__}: {exc}"[:200],
-                    }
-                )
-    return failures
-
-
 def _verified_manifest(data_root, entry: dict) -> dict:
     """Read the committed manifest named by the availability entry, verified against
     the entry's recorded sha256 — the cheap read half for as-of resolution (the heavy
@@ -203,7 +170,7 @@ def pending_packets(*, data_root) -> list[str]:
     """Committed family packet ids whose current projection obligation is not
     acknowledged. Scheduler gate helper: no derivation and no writes beyond the
     availability reconcile."""
-    failures = _reconcile_availability(data_root)
+    failures = reconcile_availability_per_packet(data_root)
     if failures:
         first = failures[0]
         raise DataLakeRootError(
@@ -238,7 +205,7 @@ def run_catchup(*, data_root) -> list[dict]:
     # ITSELF first, per packet, so one corrupt manifest becomes a visible
     # availability_reconcile_failed status while healthy packets still index
     # and process — instead of pickup's whole-batch fail-loud default reconcile.
-    results.extend(_reconcile_availability(data_root))
+    results.extend(reconcile_availability_per_packet(data_root))
     for item in pickup(
         data_root,
         ack_namespace=_ACK_NAMESPACE,

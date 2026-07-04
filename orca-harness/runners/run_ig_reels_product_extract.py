@@ -61,7 +61,13 @@ from cleaning.transcript_product_lake import (
     extract_products_into_lake,
     mentions_record_id,
 )
-from data_lake.consumption import PickupItem, append_ack, is_acknowledged, pickup
+from data_lake.consumption import (
+    PickupItem,
+    append_ack,
+    is_acknowledged,
+    pickup,
+    reconcile_availability_per_packet,
+)
 from data_lake.root import DataLakeRootError
 from data_lake.silver_lineage import SilverDerivedRef
 from source_capture.ig_reels_deep_capture_lake import (
@@ -208,20 +214,14 @@ def _transcript_source_key(*, transcript_anchor: str, source_kind: str, asr_reco
     return f"{transcript_anchor}:{source_kind}"
 
 
-def _reconcile_availability(data_root) -> None:
-    """By-key reconcile backstop: rebuild the availability index from raw so discovery
-    does not depend on a pre-populated index. Best-effort: a single corrupt manifest must
-    not abort the run (it just goes un-indexed/skipped)."""
-    try:
-        data_root.rebuild_availability()
-    except Exception:  # noqa: BLE001 - a corrupt manifest must not abort the run; index is best-effort
-        pass
-
-
-def _candidate_packet_ids(data_root) -> list[str]:
-    """Committed instagram_creator packet ids over a freshly reconciled availability surface."""
-    _reconcile_availability(data_root)
-    return list(data_root.list_available(source_family=_IG_SOURCE_FAMILY))
+def _candidate_packet_ids(data_root) -> tuple[list[str], list[dict]]:
+    """Committed instagram_creator packet ids over a freshly reconciled availability
+    surface, plus per-packet reconcile failures. The rebuild deletes index entries
+    first, so a swallowed reconcile failure would silently hide healthy packets —
+    failures must reach the caller's visibility channel (F-ECR-001 adjudicated
+    shape, shared helper in data_lake.consumption)."""
+    failures = reconcile_availability_per_packet(data_root)
+    return list(data_root.list_available(source_family=_IG_SOURCE_FAMILY)), failures
 
 
 def _packet_obligation(data_root, packet_id: str, model: str) -> dict:
@@ -456,7 +456,9 @@ def discover_transcript_candidates(data_root) -> list[tuple[TranscriptInput | No
     source is ``(None, failure_dict)`` so callers can surface the failure without aborting.
     """
     candidates: list[tuple[TranscriptInput | None, dict | None]] = []
-    for packet_id in _candidate_packet_ids(data_root):
+    packet_ids, reconcile_failures = _candidate_packet_ids(data_root)
+    candidates.extend((None, failure) for failure in reconcile_failures)
+    for packet_id in packet_ids:
         try:
             transcripts = _transcripts_for_packet(data_root, packet_id)
         except Exception as exc:  # noqa: BLE001 - corrupt packet discovery must not abort the poll
@@ -508,12 +510,21 @@ def _mentions_set_state(data_root, transcript: TranscriptInput, model: str) -> s
 def pending_extraction_counts(*, data_root, model: str = DEFAULT_EXTRACTION_MODEL) -> dict[str, int]:
     """Count extractable and crash-partial IG Reel transcript mention sets.
 
-    Scheduler gate helper: no LLM and no network. Discovery may best-effort
-    rebuild the disposable availability index, matching ``run_extraction``.
-    Corrupt packets are isolated the same way discovery is isolated there.
+    Scheduler gate helper: no LLM and no network. A no-work count is a valid
+    claim only over a fully reconciled availability surface (seam contract), so
+    a per-packet reconcile failure raises loud here instead of silently
+    under-counting. Corrupt packets past reconcile are isolated the same way
+    discovery isolates them in ``run_extraction``.
     """
     counts = {"extractable": 0, "partial_needs_cleanup": 0}
-    for packet_id in _candidate_packet_ids(data_root):
+    packet_ids, reconcile_failures = _candidate_packet_ids(data_root)
+    if reconcile_failures:
+        first = reconcile_failures[0]
+        raise DataLakeRootError(
+            "availability reconcile failed before pending count: "
+            f"{first['packet_id']}: {first['error']}"
+        )
+    for packet_id in packet_ids:
         try:
             transcripts = _transcripts_for_packet(data_root, packet_id)
         except Exception:  # noqa: BLE001 - corrupt packet discovery must not abort the poll
@@ -566,9 +577,10 @@ def run_extraction(
     """
     results: list[dict] = []
     # Visible reconcile opt-out per the seam contract: this runner reconciles
-    # ITSELF first (best-effort, so one corrupt manifest cannot abort the whole
-    # daemon batch) instead of using pickup's fail-loud default reconcile.
-    _reconcile_availability(data_root)
+    # ITSELF first, per packet, so one corrupt manifest becomes a visible
+    # availability_reconcile_failed status while healthy packets still index
+    # and process — instead of pickup's whole-batch fail-loud default reconcile.
+    results.extend(reconcile_availability_per_packet(data_root))
     for item in pickup(
         data_root,
         ack_namespace=_ACK_NAMESPACE,
