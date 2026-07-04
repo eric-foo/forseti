@@ -246,6 +246,14 @@ or a dry bounded batch. Every claim in this charter's scope is capped at
 3. **Foundation exit gate** — deferred decision (register row D-1); it gates
    the Vetting v0 build, not foundation work itself.
 
+**Gate status (2026-07-04):** gate 1 is discharged (existence) by
+`aphrodite_derived_claim_provenance_contract_v0.md`; gate 2 is discharged by
+`aphrodite_depth_capture_tos_risk_sanity_check_v0.md` (PASS for
+foundation-stage capture, with the commercial-use/data-rights flag carried to
+Phase 1). Gate 3 remains deferred (D-1). The depth-layer build itself is
+packaged in `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v0.md`
+and stays gated on explicit owner build-authorization.
+
 ## 8. Decision register
 
 | # | Item | Tag | Basis / trigger |
