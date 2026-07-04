@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Research artifact
-scope: Parent contract for Orca's case-based judgment-learning spine.
+scope: Parent contract for Forseti's case-based judgment-learning spine.
 use_when:
   - Choosing whether a public case is suitable for consultant-grade judgment learning.
   - Adding, indexing, or reviewing Judgment Spine cases.
@@ -16,7 +16,7 @@ open_next:
 ## Preflight
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: S1 plus target Judgment Spine artifacts
@@ -28,7 +28,7 @@ orca_start_preflight:
 
 ## Purpose
 
-The Judgment Spine is Orca's case-law layer for sharpening consultant-grade decision judgment.
+The Judgment Spine is Forseti's case-law layer for sharpening consultant-grade decision judgment.
 
 It captures how a decision was framed, what a blind judgment recommended before reveal, what the owner saw differently, what the revealed action or outcome clarified, and which lessons deserve reuse.
 
@@ -95,7 +95,7 @@ A consulting-firm case page is not Tier 0 by default. It becomes Tier 0 only if 
 
 ## Promotion Rules
 
-A lesson may be promoted toward Orca's reusable consulting playbook only when it satisfies at least one strong condition and does not overfit the source case:
+A lesson may be promoted toward Forseti's reusable consulting playbook only when it satisfies at least one strong condition and does not overfit the source case:
 
 - appears across multiple cases
 - strongly explains one major revealed outcome
