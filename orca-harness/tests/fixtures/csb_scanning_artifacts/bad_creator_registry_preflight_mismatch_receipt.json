@@ -1,0 +1,24 @@
+{
+  "creator_registry_match_preflight_receipt": {
+    "schema_version": "creator_registry_match_preflight_receipt_v0",
+    "summary": {
+      "total_candidates": 1,
+      "new_candidates": 0,
+      "existing_matches": 1,
+      "ambiguous_matches": 0,
+      "invalid_candidates": 0,
+      "blocked_actions": 1,
+      "safe_to_capture_new": 0
+    },
+    "results": [
+      {
+        "candidate_id": "fixture_creator_mismatch",
+        "intended_action": "new_capture",
+        "decision": "existing_match",
+        "action_status": "blocked",
+        "can_start_new_capture": false,
+        "matched_registry_profiles": ["fixture_existing_profile"]
+      }
+    ]
+  }
+}

@@ -52,7 +52,7 @@ types:
   Brand:         { namespace: brand,       status: adopted,  states: [] }
   Product:       { namespace: product,     status: adopted,  states: [target_type] }        # backing gap (§3)
   Venue:         { namespace: venue,       status: adopted,  states: [access_shape, review_by] }
-  WindCaller:    { namespace: windcaller,  status: adopted,  states: [calibration_state, carve_out] }
+  WindCaller:    { namespace: windcaller,  status: adopted,  states: [calibration_state, carve_out, windcaller_kind] }
   Call:          { namespace: call,        status: adopted,  states: [] }
   Observation:   { namespace: observation, status: adopted,  states: [integrity_flags] }
   TrendVector:   { namespace: trend,       status: adopted,  states: [persistence_state, integrity_state] }
@@ -121,6 +121,10 @@ dimensions:
   action_ceiling:    { ladder: [Excluded, Watch, Probe, Test, Hold, Move, Commit], on: [Reading], capped_by: signal_integrity }
   read_type:         { values: [durable-demand, transient-spike, manufactured-demand, brand-decision-event, wind-caller-calibration], on: [Reading] }
   claim_tier:        { values: [product_learning, buyer_proof, judgment_quality], on: [Reading, Memo, Case, Outcome], receipt_gated: true }
+  # 2026-07-04 owner-signed amendment (backbone §6.1): kinds of WindCaller are a
+  # dimension + dotted-ID convention (windcaller:<kind>.<platform>.<slug>), NOT
+  # sub-types — the ontology has no inheritance and the cap is preserved.
+  windcaller_kind:   { values: [creator, editorial, brand, community, detector], on: [WindCaller] }
 
 # §9 + backlog: deferred adoption, no auto-nudge (#262). MUST equal the backlog JSON's
 # deferred_no_auto_trigger (checked).
@@ -128,8 +132,6 @@ deferred_no_auto_trigger:
   - Org
   - Buyer
   - Memo
-  - Product
-  - WindCaller
   - CapturePacket
   - EvidenceUnit
   - Observation

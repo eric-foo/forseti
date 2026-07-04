@@ -283,7 +283,7 @@ pre-launch holding surface only if/when that surface is separately authorized
 under D8's Vetting-v0/public-launch sequencing (D8 items 1 and 6): **role**
 and **decision type**. Purpose: passive buyer-lane sequencing signal for the
 Aphrodite carveout
-(`orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md`,
+(`forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md`,
 register row R-2).
 
 - Optional fields only; email-only signup remains valid.
@@ -450,7 +450,7 @@ direction_change_propagation:
   related_triggers: []
   controlling_sources_updated:
     - docs/decisions/forseti_company_brand_architecture_v0.md
-    - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # register row R-2 records the ratification
+    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # register row R-2 records the ratification
   downstream_surfaces_checked:
     - docs/workflows/forseti_web_foundation_design_lane_handoff_v0.md   # committed lane packet; its stale_if routes the receiver to this record for superseding decisions; no retro-edit (same rule as the D7/D8 receipts above)
   intentionally_not_updated:
