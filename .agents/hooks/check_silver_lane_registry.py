@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Enforce the Data Lake silver-lane write contract (the no-blur binding).
 
-Reads the lane registry (``orca-harness/data_lake/lane_registry.py``) and scans
+Reads the lane registry (``forseti-harness/data_lake/lane_registry.py``) and scans
 producer source for raw lake writes (``append_record`` / ``append_record_set``):
 
 - **G1 (declared).** A ``silver``-named lane written by a producer must be
@@ -69,7 +69,7 @@ def repo_root() -> Path:
 
 
 def _load_registry(root: Path):
-    path = root / "orca-harness" / "data_lake" / "lane_registry.py"
+    path = root / "forseti-harness" / "data_lake" / "lane_registry.py"
     spec = importlib.util.spec_from_file_location("orca_lane_registry", path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load lane registry from {path}")
@@ -260,7 +260,7 @@ def _scan_tree(
                     Finding(
                         "undeclared_silver_lane",
                         f"{relposix}:{lineno} writes silver lane {lane!r}, which is not declared "
-                        "in orca-harness/data_lake/lane_registry.py. Add it with a role.",
+                        "in forseti-harness/data_lake/lane_registry.py. Add it with a role.",
                     )
                 )
                 continue
@@ -272,7 +272,7 @@ def _scan_tree(
                         "envelope_lane_bypass",
                         f"{relposix}:{lineno} writes silver_envelope lane {lane!r} through a raw "
                         f"lake writer. Route it through {registry.SILVER_ENVELOPE_FRONT_DOOR_FUNC}() "
-                        "(orca-harness/data_lake/silver_record.py). If migration is genuinely "
+                        "(forseti-harness/data_lake/silver_record.py). If migration is genuinely "
                         "pending, add the lane to FRONT_DOOR_PENDING with a reason.",
                     )
                 )
@@ -282,7 +282,7 @@ def _scan_tree(
 # --- file discovery + drivers ---------------------------------------------
 
 def _producer_files(root: Path) -> list[Path]:
-    harness = root / "orca-harness"
+    harness = root / "forseti-harness"
     out: list[Path] = []
     for path in sorted(harness.rglob("*.py")):
         parts = set(path.parts)
@@ -343,7 +343,7 @@ def selftest(root: Path | None = None) -> int:
         for finding in registry_findings:
             print(f"FAIL {finding.code}: {finding.message}")
         return 1
-    fixture_dir = root / "orca-harness" / "tests" / "fixtures" / "silver_lane_guard"
+    fixture_dir = root / "forseti-harness" / "tests" / "fixtures" / "silver_lane_guard"
     fixtures = sorted(fixture_dir.glob("*.py"))
     if not fixtures:
         print(f"SELFTEST FAILED: no fixtures at {fixture_dir}")

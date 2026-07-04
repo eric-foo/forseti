@@ -84,7 +84,7 @@ def repo_root() -> Path:
 # Token pattern: starts with one of the known prefixes, contains no spaces,
 # optionally backtick-quoted or bare.  We also strip trailing punctuation.
 _PATH_PREFIXES = (
-    "docs/", ".agents/", ".github/", "orca-harness/",
+    "docs/", ".agents/", ".github/", "forseti-harness/", "orca-harness/",
     "forseti/", "forseti/product/",
     "AGENTS.md", "CLAUDE.md",
 )
@@ -299,7 +299,7 @@ def parse_open_next(header_text: str) -> tuple[list[str], int]:
 _COVERAGE_ROOT_PREFIXES = frozenset({
     "forseti", "forseti/product", "forseti/product/spines",
     "forseti/product/satellites", "forseti/product/case_families", "forseti/product/shared",
-    "docs", ".agents", "orca-harness",
+    "docs", ".agents", "forseti-harness", "orca-harness",
 })
 # NOTE: .agents/workflow-overlay is a *declared area* that holds docs directly
 # (map row exists), so it confers coverage and is NOT a structural root.
@@ -846,8 +846,11 @@ def selftest() -> int:
         ("CLAUDE.md bare",
          "see CLAUDE.md for shim notes",
          ["CLAUDE.md"]),
-        ("orca-harness path",
-         "`orca-harness/ecr/__init__.py` is the entry",
+        ("forseti-harness path",
+         "`forseti-harness/ecr/__init__.py` is the entry",
+         ["forseti-harness/ecr/__init__.py"]),
+        ("legacy orca-harness path",
+         "`orca-harness/ecr/__init__.py` resolves through moved-path indexes",
          ["orca-harness/ecr/__init__.py"]),
         (".agents path",
          "open `.agents/workflow-overlay/source-of-truth.md`",
@@ -865,7 +868,7 @@ def selftest() -> int:
          "see `docs/decisions/*` for all decisions",
          []),
         ("glob pattern bare skipped",
-         "orca-harness/tests/unit/test_ecr_*",
+         "forseti-harness/tests/unit/test_ecr_*",
          []),
         ("anchor stripped to base file",
          ".agents/workflow-overlay/source-loading.md#data-capture-spine-ca-read-pack",
@@ -1128,7 +1131,7 @@ def selftest() -> int:
 
 def main(argv: list[str]) -> int:
     # Forced-exception probe: proves the __main__ gating handler
-    # (orca-harness/tests/unit/test_hook_internal_error_gating.py).
+    # (forseti-harness/tests/unit/test_hook_internal_error_gating.py).
     if "--force-internal-error" in argv:
         raise RuntimeError("forced internal error (probe)")
     if "--selftest" in argv:

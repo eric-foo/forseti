@@ -30,7 +30,7 @@ Usage:
   check_ontology_drift.py --selftest  self-check (live bindings clean); exit 0/1.
 
 Fail-open ONLY for infrastructure gaps (no PyYAML/Pydantic, missing
-ontology.yaml, no orca-harness/ tree). A present-but-changed runtime class is
+ontology.yaml, no forseti-harness/ tree). A present-but-changed runtime class is
 real drift, never fail-open.
 """
 from __future__ import annotations
@@ -42,7 +42,7 @@ import typing
 from pathlib import Path
 
 YAML_REL = "forseti/product/spines/foundation/ontology/ontology.yaml"
-HARNESS_REL = "orca-harness"
+HARNESS_REL = "forseti-harness"
 EXPECTED_BINDINGS = ("CapturePacket", "EvidenceUnit", "Case")
 EXPECTED_REQUIRED_FIELDS = {
     "CapturePacket": ("manifest_version",),
@@ -53,7 +53,7 @@ EXPECTED_FORBIDS_FIELDS = {
     "EvidenceUnit": ("claim_tier",),
 }
 EXPECTED_COMPOSED_WITH = {
-    "Case": ("orca-harness/schemas/scoring_models.py:CaseReport",),
+    "Case": ("forseti-harness/schemas/scoring_models.py:CaseReport",),
 }
 
 
@@ -63,7 +63,7 @@ def repo_root() -> Path:
 
 
 def _normalize_module(spec_module: str) -> str:
-    """'orca-harness/source_capture/models.py' -> 'source_capture.models'."""
+    """'forseti-harness/source_capture/models.py' -> 'source_capture.models'."""
     mod = spec_module.strip()
     if mod.startswith(HARNESS_REL + "/"):
         mod = mod[len(HARNESS_REL) + 1:]
@@ -319,7 +319,7 @@ def check_drift(root: Path) -> list[str]:
 def selftest() -> int:
     ok = True
     cases = [
-        ("normalize repo-path module", _normalize_module("orca-harness/source_capture/models.py"), "source_capture.models"),
+        ("normalize repo-path module", _normalize_module("forseti-harness/source_capture/models.py"), "source_capture.models"),
         ("normalize dotted module", _normalize_module("schemas.case_models"), "schemas.case_models"),
     ]
     for label, got, exp in cases:

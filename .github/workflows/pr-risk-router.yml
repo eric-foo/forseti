@@ -90,7 +90,7 @@ jobs:
               startswith("docs/workflows/") or
               startswith("docs/product/") or
               startswith("docs/research/judgment-spine/") or
-              startswith("orca-harness/")
+              startswith("forseti-harness/")
             )' <<<"$files_json")
           outside_low_risk=$(jq -r '
             .[].filename |

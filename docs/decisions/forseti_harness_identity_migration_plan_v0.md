@@ -3,11 +3,11 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Forseti decision record
-scope: Phased plan for migrating the retained orca-harness compatibility runtime, package distribution label, and CI check identity to Forseti naming.
+scope: Plan and execution record for migrating the retained orca-harness compatibility runtime, package distribution label, and CI check identity to Forseti naming.
 use_when:
-  - Preparing the runtime/tooling lane that renames orca-harness/ or orca-harness-tests.
-  - Deciding whether a remaining orca-harness hit is a current compatibility dependency or a missed live surface.
-  - Scoping validation for a later harness root/package/CI migration PR.
+  - Auditing the runtime/tooling lane that renames orca-harness/ and orca-harness-tests.
+  - Deciding whether a remaining orca-harness hit is historical provenance, compatibility resolution, or a missed live surface.
+  - Scoping validation for the harness root/package/CI migration PR.
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_external_identity_path_migration_decision_v0.md
@@ -36,6 +36,14 @@ output_mode: file-write
 Migrate `orca-harness/` to Forseti naming as a runtime/tooling lane, but do not
 execute it as a broad text replacement or a cosmetic docs pass.
 
+Implementation status: the stacked runtime lane
+`codex/forseti-harness-runtime-rename` executes this plan by moving the tracked
+root to `forseti-harness/`, renaming the package distribution label and CI check,
+updating deterministic path consumers, and adding
+`docs/migration/forseti_harness_runtime_migration_v0/moved_paths_index.md` for
+historical path resolution. The external GitHub repository slug and local parent
+folder remain outside this implementation lane.
+
 The target runtime identity is:
 
 | Surface | Current | Target | Migration rule |
@@ -50,7 +58,7 @@ The target runtime identity is:
 ```yaml
 assumption_gate:
   status: READY_WITH_VERIFIED_LEDGER
-  applies_to: "later runtime PR that renames orca-harness/ to forseti-harness/ and orca-harness-tests to forseti-harness-tests"
+  applies_to: "runtime PR codex/forseti-harness-runtime-rename: orca-harness/ -> forseti-harness/ and orca-harness-tests -> forseti-harness-tests"
   load_bearing_assumptions:
     - assumption: "The harness root is a path/package/CI/checker dependency, not merely a display string."
       why_load_bearing: "If false, a docs-only or word-match rename would be safe; if true, the lane must update CI, hooks, package metadata, and path scanners together."
@@ -82,7 +90,7 @@ assumption_gate:
 
 ## Live Surfaces To Change
 
-The later implementation PR must update these live surfaces as one coherent
+The implementation PR updates these live surfaces as one coherent
 runtime/tooling migration:
 
 | Surface | Required change |
@@ -101,9 +109,8 @@ runtime/tooling migration:
 
 ## Phased Implementation
 
-1. Start from fresh `main` after active migration PRs are either merged, closed,
-   or deliberately accepted as conflicts to rebase. Do not stack on the external
-   identity blocker or product-lead skill-map PR.
+1. Start from the accepted harness-migration-plan branch as a stacked runtime lane;
+   do not stack on the external identity blocker or product-lead skill-map PR.
 2. Run `git mv orca-harness forseti-harness`.
 3. Update package metadata and lockfile for the distribution-label rename only.
    Do not rename import modules to `forseti_harness`.
@@ -176,6 +183,7 @@ direction_change_propagation:
     - architecture_doctrine
   controlling_sources_updated:
     - docs/decisions/forseti_harness_identity_migration_plan_v0.md
+    - docs/migration/forseti_harness_runtime_migration_v0/moved_paths_index.md
   downstream_surfaces_checked:
     - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
@@ -187,28 +195,19 @@ direction_change_propagation:
     - .github/scripts/merge-when-green.ps1
     - .github/workflows/pr-risk-router.yml
     - repo-structure.yaml
-    - orca-harness/pyproject.toml
+    - forseti-harness/pyproject.toml
   intentionally_not_updated:
-    - path: orca-harness/
+    - path: external GitHub repository slug and local parent checkout folder
       reason: >
-        This decision binds the later runtime lane; moving the code root is a
-        separate implementation PR that must update CI, package metadata,
-        hooks, review-routing, and validation together.
-    - path: .github/workflows/ci.yml
-      reason: >
-        Renaming the check before the harness implementation lane would desync
-        current open PR checks and the human merge helper.
-    - path: .github/scripts/merge-when-green.ps1
-      reason: >
-        The default check and repo slug stay reality-matched until the runtime
-        check-name lane and external repo rename actually land.
+        Repo slug/remotes and the parent folder name are owner/external-state
+        gated separately from the internal runtime root.
   stale_language_search: >
     rg -n "orca-harness|orca_harness|orca-harness-tests|forseti-harness|forseti_harness|forseti-harness-tests"
-    .github .agents repo-structure.yaml README.md docs/workflows docs/decisions orca-harness
+    .github .agents repo-structure.yaml README.md docs/workflows docs/decisions forseti-harness
   stale_language_search_result: >
-    Executed 2026-07-04 during planning. Hits are expected because the runtime
-    root and CI check are still live compatibility identifiers on current main;
-    this plan classifies the implementation surfaces instead of editing them.
+    Re-run by the implementation lane. Remaining old harness hits are expected
+    only where they are historical/provenance records, moved-path source terms,
+    or residual-audit text; live runtime/tooling surfaces use Forseti naming.
   non_claims:
     - not validation
     - not readiness

@@ -18,5 +18,5 @@ Explicitly invoked or resolver-loaded skills may provide task-local mechanics on
 
 - Product/domain purpose: outside-in strategic intelligence for public market signals and evidence-backed allocation decisions.
 - Legacy project name: Orca.
-- Live product authority is under `forseti/product/`; historical `orca/product/` references resolve through `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md`. `orca-harness/` remains a compatibility runtime/tooling root, and `docs/workflows/orca_repo_map_v0.md` remains a legacy pointer to the live `docs/workflows/forseti_repo_map_v0.md` map.
+- Live product authority is under `forseti/product/`; historical `orca/product/` references resolve through `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md`. Live runtime/tooling is under `forseti-harness/`; historical `orca-harness/` references resolve through `docs/migration/forseti_harness_runtime_migration_v0/moved_paths_index.md`. `docs/workflows/orca_repo_map_v0.md` remains a legacy pointer to the live `docs/workflows/forseti_repo_map_v0.md` map.
 - Implementation remains bounded by current-turn or accepted-decision authorization.

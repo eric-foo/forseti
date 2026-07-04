@@ -404,7 +404,7 @@ def _fixture_metadata(text: str) -> tuple[str, set[str] | None]:
 
 def selftest() -> int:
     root = repo_root()
-    fixture_dir = root / "orca-harness" / "tests" / "fixtures" / "review_outputs"
+    fixture_dir = root / "forseti-harness" / "tests" / "fixtures" / "review_outputs"
     fixture_paths = sorted(fixture_dir.glob("*.md"))
     if not fixture_paths:
         print(f"SELFTEST FAILED: no fixtures found at {fixture_dir}")

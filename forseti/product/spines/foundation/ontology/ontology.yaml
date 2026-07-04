@@ -154,19 +154,19 @@ runtime_bindings:
   #   not_payload_identifier: the runtime class name must NOT be a serialized type
   #     discriminator (leak guard -- the condition that makes alias-only safe).
   CapturePacket:
-    runtime: "orca-harness/source_capture/models.py:SourceCapturePacket"
+    runtime: "forseti-harness/source_capture/models.py:SourceCapturePacket"
     name_alias: SourceCapturePacket
     requires_fields: [manifest_version]
     forbids_fields: []
     not_payload_identifier: true
   EvidenceUnit:
-    runtime: "orca-harness/schemas/case_models.py:EvidenceUnit"
+    runtime: "forseti-harness/schemas/case_models.py:EvidenceUnit"
     requires_fields: [evidence_id, pre_decision_status]   # pre_decision_status = the claim_tier divergence mechanism
     forbids_fields: [claim_tier]                          # AR-01: claim_tier is a receipt OUTCOME, never a standing runtime field
     not_payload_identifier: true
   Case:
-    runtime: "orca-harness/schemas/case_models.py:FacilitatorLedger"
-    composed_with: ["orca-harness/schemas/scoring_models.py:CaseReport"]
+    runtime: "forseti-harness/schemas/case_models.py:FacilitatorLedger"
+    composed_with: ["forseti-harness/schemas/scoring_models.py:CaseReport"]
     requires_fields: [case_id]
     forbids_fields: []
     not_payload_identifier: true

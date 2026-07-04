@@ -102,7 +102,7 @@ MAP_SURFACES = (MAP,) + SUBMAPS
 SOURCE_OF_TRUTH = ".agents/workflow-overlay/source-of-truth.md"
 
 # The map owns area-level harness navigation. Already mapped directories such as
-# `orca-harness/runners/` are discoverable by directory and do not require every
+# `forseti-harness/runners/` are discoverable by directory and do not require every
 # new file basename to be listed in the shared map.
 
 # Always-excluded noise (scratch, skill copies, project config, VCS). The map's
@@ -112,8 +112,8 @@ DEFAULT_EXCLUDES = (
     ".claude/",
     ".agents/skills/",
     "docs/_inbox/",
-    "orca-harness/_test_runs/",
-    "orca-harness/_auth_state/",
+    "forseti-harness/_test_runs/",
+    "forseti-harness/_auth_state/",
     "memory/logs/",
 )
 # Substrings that mark a path as generated/scratch regardless of where they sit.
@@ -264,14 +264,14 @@ def new_top_level_area(relposix: str, map_text: str) -> str | None:
 
 
 def new_harness_area(relposix: str, map_text: str) -> str | None:
-    """Return a direct orca-harness area absent from the map, or None.
+    """Return a direct forseti-harness area absent from the map, or None.
 
     The map owns area-level navigation, not a complete list of every runner or
     adapter file. This keeps mapped harness folders discoverable by directory
     while avoiding repeated edits to the same high-contention map rows.
     """
     parts = relposix.split("/")
-    if not parts or parts[0] != "orca-harness":
+    if not parts or parts[0] != "forseti-harness":
         return None
     if len(parts) == 1:
         return None
@@ -280,7 +280,7 @@ def new_harness_area(relposix: str, map_text: str) -> str | None:
         if name == "__init__.py" or name.startswith("."):
             return None
         return None if name.lower() in map_text.lower() else relposix
-    area = "orca-harness/" + parts[1]
+    area = "forseti-harness/" + parts[1]
     return None if area.lower() in map_text.lower() else area + "/"
 
 
@@ -595,28 +595,28 @@ def main(argv: list[str]) -> int:
 def selftest() -> int:
     """Pure-decision cases against a tiny synthetic map text."""
     map_text = (
-        "| `orca-harness/runners/` | CLI entrypoints; enumerate with git ls-files. |\n"
-        "| `orca-harness/source_capture/` | Source capture package. |\n"
+        "| `forseti-harness/runners/` | CLI entrypoints; enumerate with git ls-files. |\n"
+        "| `forseti-harness/source_capture/` | Source capture package. |\n"
         "| `.agents/workflow-overlay/` | overlay |\n"
         "| `docs/decisions/` | Decision records. |\n"
         "Active Hooks ... `.agents/hooks/check_retrieval_header.py` ...\n"
         "Generated/gitignored scratch - do not enumerate or treat as authoritative:\n"
-        "`orca-harness/_test_runs/`, `cases/*/*/scores/`, and `memory/logs/`.\n\n"
+        "`forseti-harness/_test_runs/`, `cases/*/*/scores/`, and `memory/logs/`.\n\n"
     )
     extra = map_excludes(map_text)
     cases = [
         # (path, expect_structural_trigger?)
         ("docs/playbooks/x.md", True),                 # new top-level area
         ("tooling/x.py", True),                        # new repo-root area
-        ("orca-harness/runners/run_new_thing.py", False),  # mapped runner area
-        ("orca-harness/source_capture/new_module.py", False),  # mapped harness area
-        ("orca-harness/new_area/tool.py", True),       # new direct harness area
-        ("orca-harness/new_root_file.py", True),       # new direct harness file
+        ("forseti-harness/runners/run_new_thing.py", False),  # mapped runner area
+        ("forseti-harness/source_capture/new_module.py", False),  # mapped harness area
+        ("forseti-harness/new_area/tool.py", True),       # new direct harness area
+        ("forseti-harness/new_root_file.py", True),       # new direct harness file
         ("docs/decisions/new_decision_v0.md", False),  # mapped folder convention
         (".agents/hooks/sibling.py", False),           # area already in map text
-        ("orca-harness/runners/__init__.py", False),   # package init, ignored
-        ("orca-harness/_test_runs/out.json", False),   # default scratch exclude
-        ("orca-harness/cases/tr/v0/scores/s.json", False),  # map-listed scratch
+        ("forseti-harness/runners/__init__.py", False),   # package init, ignored
+        ("forseti-harness/_test_runs/out.json", False),   # default scratch exclude
+        ("forseti-harness/cases/tr/v0/scores/s.json", False),  # map-listed scratch
         ("README.md", False),                          # bare root file, not a folder
         ("docs/workflows/forseti_repo_map_v0.md", False), # editing the map itself
     ]
@@ -654,19 +654,19 @@ def selftest() -> int:
     print(("PASS" if paths_ok else "FAIL") + " hook-paths")
     ok = ok and paths_ok
     # description-drift advisory: new file under a map-described dir, map untouched
-    drift_map = ("| `orca-harness/schemas/` | models |\n"
-                 "| `orca-harness/cleaning/` | cleaning |\n")
+    drift_map = ("| `forseti-harness/schemas/` | models |\n"
+                 "| `forseti-harness/cleaning/` | cleaning |\n")
     d_extra = map_excludes(drift_map)
     drift_ok = (
-        len(description_drift(["orca-harness/schemas/new_model.py"],
+        len(description_drift(["forseti-harness/schemas/new_model.py"],
                               drift_map, d_extra, False)) == 1
-        and description_drift(["orca-harness/schemas/new_model.py"],
+        and description_drift(["forseti-harness/schemas/new_model.py"],
                               drift_map, d_extra, True) == []           # map touched
-        and description_drift(["orca-harness/schemas/__init__.py"],
+        and description_drift(["forseti-harness/schemas/__init__.py"],
                               drift_map, d_extra, False) == []          # package init
         and description_drift(["tooling/x.py"], drift_map, d_extra, False) == []  # unmapped
-        and mapped_dirs(drift_map) == ("orca-harness/cleaning/",
-                                       "orca-harness/schemas/")
+        and mapped_dirs(drift_map) == ("forseti-harness/cleaning/",
+                                       "forseti-harness/schemas/")
     )
     print(("PASS" if drift_ok else "FAIL") + " description-drift")
     ok = ok and drift_ok

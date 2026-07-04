@@ -31,7 +31,7 @@ SCOPE (in: durable artifacts; out: code/scratch/config)
   In  : docs/{decisions,product,prompts,workflows,migration,hygiene,review-inputs,
         review-outputs}/, .agents/workflow-overlay/, forseti/product/
   Out : anything containing _scratch; docs/_inbox/; .agents/skills/; .claude/;
-        orca-harness/ (and any path not under an in-scope prefix, e.g. .agents/hooks/).
+        forseti-harness/ (and any path not under an in-scope prefix, e.g. .agents/hooks/).
   Pending changes are read from `git status --porcelain` (staged, unstaged, or
   untracked), so the nudge fires whether files were staged in a separate step or in
   the same `git add -A && git commit` one-liner.
@@ -68,7 +68,7 @@ EXCLUDED_PREFIXES = (
     "docs/_inbox/",
     ".agents/skills/",
     ".claude/",
-    "orca-harness/",
+    "forseti-harness/",
 )
 
 # VERBATIM mirror of the "Smallest Complete Intervention" section of AGENTS.md,
@@ -229,7 +229,7 @@ def selftest() -> int:
         ("product artifact in scope", "forseti/product/spines/x/y_v0.md", True),
         ("overlay in scope", ".agents/workflow-overlay/x.md", True),
         ("migration doc in scope", "docs/migration/plan_v0.md", True),
-        ("harness code out of scope", "orca-harness/schemas/case_models.py", False),
+        ("harness code out of scope", "forseti-harness/schemas/case_models.py", False),
         ("hook code out of scope", ".agents/hooks/remind_sci.py", False),
         ("scratch excluded", "docs/decisions/_scratch/tmp.md", False),
         ("inbox excluded", "docs/_inbox/note.md", False),

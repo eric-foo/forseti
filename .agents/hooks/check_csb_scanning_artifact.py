@@ -982,7 +982,7 @@ def _expected_from_fixture(path: Path) -> str:
 
 def selftest() -> int:
     root = Path(__file__).resolve().parents[2]
-    fixture_dir = root / "orca-harness" / "tests" / "fixtures" / "csb_scanning_artifacts"
+    fixture_dir = root / "forseti-harness" / "tests" / "fixtures" / "csb_scanning_artifacts"
     fixture_paths = sorted(fixture_dir.glob("*.md"))
     if not fixture_paths:
         print(f"SELFTEST FAILED: no fixtures found at {fixture_dir}")

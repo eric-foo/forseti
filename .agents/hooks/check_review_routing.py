@@ -76,10 +76,10 @@ from pathlib import Path
 RULE_AUTHORITY = ".agents/workflow-overlay/validation-gates.md (Review-routing disposition gate)"
 PRINCIPLE = ".agents/workflow-overlay/validation-gates.md (Enforcement Placement)"
 
-# Code roots whose changes owe a review disposition. orca-harness/ is the
+# Code roots whose changes owe a review disposition. forseti-harness/ is the
 # implementation tree; .agents/hooks/ is governance code (the 2026-06-13
 # header_index lane was exactly a hook lane that filed no disposition).
-CODE_ROOTS = ("orca-harness/", ".agents/hooks/")
+CODE_ROOTS = ("forseti-harness/", ".agents/hooks/")
 
 # Review roots: an artifact added here in the same change IS the disposition.
 REVIEW_ROOTS = ("docs/prompts/reviews/", "docs/review-outputs/")
@@ -339,69 +339,69 @@ def selftest() -> int:
     check("docs-only change out of scope",
           evaluate(["docs/decisions/x.md"], [], "", exists_none), [])
     check("harness touch is in scope",
-          touches_code_root(["orca-harness/src/foo.py"]), True)
+          touches_code_root(["forseti-harness/src/foo.py"]), True)
     check("hook touch is in scope",
           touches_code_root([".agents/hooks/new_hook.py"]), True)
 
     # --- satisfied by filed review artifact ---
     check("added review prompt satisfies",
-          evaluate(["orca-harness/a.py", "docs/prompts/reviews/a_prompt_v0.md"],
+          evaluate(["forseti-harness/a.py", "docs/prompts/reviews/a_prompt_v0.md"],
                    ["docs/prompts/reviews/a_prompt_v0.md"], "", exists_none), [])
     check("added review report satisfies",
-          evaluate(["orca-harness/a.py"], ["docs/review-outputs/a_review_v0.md"],
+          evaluate(["forseti-harness/a.py"], ["docs/review-outputs/a_review_v0.md"],
                    "", exists_none), [])
     check("MODIFIED (not added) review file does not satisfy alone",
-          evaluate(["orca-harness/a.py", "docs/prompts/reviews/old.md"], [], "",
+          evaluate(["forseti-harness/a.py", "docs/prompts/reviews/old.md"], [], "",
                    exists_none) != [], True)
 
     # --- token grammar ---
     check("no token -> finding (the #577 shape)",
-          evaluate(["orca-harness/a.py"], [], "feat: impl only\n", exists_none) != [], True)
+          evaluate(["forseti-harness/a.py"], [], "feat: impl only\n", exists_none) != [], True)
     check("not_needed with reason passes",
-          evaluate(["orca-harness/a.py"], [],
+          evaluate(["forseti-harness/a.py"], [],
                    "review_routing_status: not_needed -- mechanical rename, no advisory carried\n",
                    exists_none), [])
     check("not_needed bare fails",
-          evaluate(["orca-harness/a.py"], [], "review_routing_status: not_needed\n",
+          evaluate(["forseti-harness/a.py"], [], "review_routing_status: not_needed\n",
                    exists_none) != [], True)
     check("blocked with reason passes",
           evaluate([".agents/hooks/h.py"], [],
                    "review_routing_status: blocked -- orchestrator unavailable\n",
                    exists_none), [])
     check("routed with existing path passes",
-          evaluate(["orca-harness/a.py"], [],
+          evaluate(["forseti-harness/a.py"], [],
                    "review_routing_status: routed docs/prompts/reviews/a_prompt_v0.md\n",
                    exists_all), [])
     check("routed with dangling path fails",
-          evaluate(["orca-harness/a.py"], [],
+          evaluate(["forseti-harness/a.py"], [],
                    "review_routing_status: routed docs/prompts/reviews/ghost.md\n",
                    exists_none) != [], True)
     check("routed with no path fails",
-          evaluate(["orca-harness/a.py"], [], "review_routing_status: routed\n",
+          evaluate(["forseti-harness/a.py"], [], "review_routing_status: routed\n",
                    exists_none) != [], True)
     check("one valid among invalid tokens satisfies",
-          evaluate(["orca-harness/a.py"], [],
+          evaluate(["forseti-harness/a.py"], [],
                    "review_routing_status: routed\nreview_routing_status: not_needed -- covered by X\n",
                    exists_none), [])
     check("token in body prose position still matches (indented)",
-          evaluate(["orca-harness/a.py"], [],
+          evaluate(["forseti-harness/a.py"], [],
                    "  review_routing_status: not_needed -- lane adjudicated in-chat\n",
                    exists_none), [])
     check("mention WITHOUT key:value shape does not satisfy",
-          evaluate(["orca-harness/a.py"], [],
+          evaluate(["forseti-harness/a.py"], [],
                    "we should add review_routing_status later\n", exists_none) != [], True)
 
     # --- parse_name_status (FIND-01: rename out of a code root stays in scope) ---
-    t, a = parse_name_status(["R100\torca-harness/a.py\tdocs/moved/a.py"])
+    t, a = parse_name_status(["R100\tforseti-harness/a.py\tdocs/moved/a.py"])
     check("rename OUT of code root keeps old path touched",
-          "orca-harness/a.py" in t, True)
+          "forseti-harness/a.py" in t, True)
     check("rename destination is the added path", a, ["docs/moved/a.py"])
     check("rename-out triggers scope (missing disposition found)",
           evaluate(t, a, "", exists_none) != [], True)
     t2, a2 = parse_name_status(
-        ["M\torca-harness/b.py", "A\tdocs/review-outputs/r.md", "short-noise-line"])
+        ["M\tforseti-harness/b.py", "A\tdocs/review-outputs/r.md", "short-noise-line"])
     check("plain rows parse; noise skipped", (t2, a2),
-          (["orca-harness/b.py", "docs/review-outputs/r.md"],
+          (["forseti-harness/b.py", "docs/review-outputs/r.md"],
            ["docs/review-outputs/r.md"]))
 
     # --- reason stripping ---
