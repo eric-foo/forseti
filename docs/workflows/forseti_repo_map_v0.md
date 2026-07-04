@@ -47,6 +47,28 @@ downstream surfaces. That contract owns primary `trigger` plus
 to identify likely downstream surfaces; do not treat the map itself as
 propagation evidence.
 
+Cold fact lookup: check the Decisive-File Quick Index below FIRST; if a row
+matches your question, open that file directly instead of walking the doctrine
+chain.
+
+## Decisive-File Quick Index (Cold Retrieval)
+
+Fact-lookup shortcuts only (added 2026-07-04 after a measured cold-retrieval
+run exceeded the source-loading read budget by verifying through the doctrine
+chain). Each row names the single decisive file for a common question — open it
+directly. Authority, precedence, and doctrine questions still route via
+`.agents/workflow-overlay/source-of-truth.md`; these rows do not change source
+hierarchy.
+
+| Question | Open this file directly | Why it is decisive |
+| --- | --- | --- |
+| Fragrance facts: resolve a fragrance/house to canonical ids, note families, tier, dupes, per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` | Self-describing DATA SSOT: facts, per-fact provenance, and the extension pattern live in-file; the backbone doc and object cards are authority/rationale surfaces, not the fact source. |
+| Ontology type roster, namespaces, typed links, dimensions, deferred set | `forseti/product/spines/foundation/ontology/ontology.yaml` | Machine-readable SSOT of the adopted backbone; open the backbone doc only for rationale or conflict adjudication. |
+| Any LinkedIn task | `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` | The lane's canonical cold-start index (its own row says "open first"). |
+| ECR spine orientation | `docs/workflows/ecr_spine_submap_v0.md` | Delegated submap for the ECR spine. |
+| Data Capture spine orientation | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Delegated Data Capture submap. |
+| Source-capture access routes / anti-blocking playbook | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | Armory index over the tested per-source capture routes. |
+
 ## Active Hooks (IMPORTANT)
 
 Forseti enforces load-bearing, mechanically-checkable rules at **tool
@@ -554,7 +576,7 @@ nickname: "crawling graph." The runner is
 | `forseti/product/spines/data_lake/authority/` | Data Lake contracts/invariants: core, storage and engine-selection boundary, Attachment-Record implementation, Bronze MGT baseline declaration, medallion/gold-readiness, and capture-propagation classification contracts. |
 | `forseti/product/spines/data_lake/workflows/` | Data Lake operational/read-flow docs: the canonical mechanics map (supersedes the retired `shared/data_lake_mechanics/`) plus Bronze full-GT upgrade scoping and physicalization decision records. |
 | `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md` | Signal-first Bronze MGT to full-GT upgrade scoping record for batches A-D: discovery/Manifest fork, AR physicalization fork, retention/lawful-erasure/backend lock-in posture, and lake-doctor/CI plus representative proof threshold. Non-runtime; does not declare full GT. |
-| `forseti/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + SSOT + cards + fragrance reference data `fragrance_reference_v0.yaml`), demand-read taxonomy, vertical-exploration. |
+| `forseti/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + SSOT + cards + fragrance reference data), demand-read taxonomy, vertical-exploration. For fragrance FACT lookup go straight to `ontology/fragrance_reference_v0.yaml` (self-describing: facts + per-fact provenance + extension pattern in-file; see the Decisive-File Quick Index). |
 | `forseti/product/spines/scanning/` | Scanning (discovery-side) spine: open `forseti/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, default CSB broad-scout phase, recency/current-state frontier priority, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. |
 | `forseti/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families (`retail_pdp`, `social_media/{instagram,tiktok,youtube}`, plus the social-media-level creator public-handle linkage spec/current profile view spec/record contract and the YouTube creator-observation ledger spec/static seed). Dense - open the Data Capture submap. |
 | `forseti/product/spines/creator_signal/` | Creator Signal product/signal spine (promotion-bound 2026-06-28). Owns product-facing creator intelligence surfaces: profile IA, aggregate influence display, ideal/content-fit audience display, freshness, limitations, and source drill-back over Capture-owned creator records. Binding: `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md`. |
@@ -1093,6 +1115,7 @@ status field. Open the owning doc for authority; this table is navigation only.
 | Search lane | `docs/decisions/orca_search_product_lane_binding_v0.md` | owner-authorized v0; demand-signal intelligence (search-led): search/answer-engine surfaces + demand-scan/read/gate method |
 | Spine-first target structure | `docs/decisions/orca_spine_first_target_structure_binding_v0.md` | executed by spine-first migration; current product tree routes through `forseti/product/` |
 | Spine-first blocker authorization | `docs/decisions/orca_spine_first_blocker_authorization_v0.md` | B1-B7 execution settlement consumed by the spine-first migration |
+| Aphrodite fragrance sub-ontology | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` | `DATED_DATA_2026-07-04` |
 
 ## Not-Proven Boundaries
 
