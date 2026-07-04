@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Product architecture contract
 scope: >
-  Medallion-semantics and gold-readiness contract for Orca's Data Lake:
+  Medallion-semantics and gold-readiness contract for Forseti's Data Lake:
   bronze/silver/pre-gold/gold layer meanings, Spike Alert vocabulary,
   source-object movement as the first precomputed candidate class, and
   on-demand non-dossier actor timing retrieval for decision integrity.

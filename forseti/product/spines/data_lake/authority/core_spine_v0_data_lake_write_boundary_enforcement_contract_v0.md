@@ -6,7 +6,7 @@ artifact_role: Product architecture decision contract
 scope: >
   Resolves the schema-agnostic Data Lake enforcement blockers: a single
   deterministic lake-writer boundary that enforces write-once raw and append-only
-  derived/ack; fail-closed ORCA_DATA_ROOT resolution with a per-root identity
+  derived/ack; fail-closed FORSETI_DATA_ROOT resolution with legacy ORCA_DATA_ROOT fallback and a per-root identity
   marker; by-key discovery preserved as authority before any queue; SCR
   FamilyDetailBase kept off the raw-payload path; and no-new-core-field pressure.
 use_when:
@@ -69,8 +69,8 @@ Reviewer convention is a backstop, never the enforcement mechanism.
 
 ## Fail-Closed Contract
 
-**Production resolution precedence:** explicit/per-run root -> `ORCA_DATA_ROOT` ->
-optional config-file fallback. A test root is injected **only in test mode** as an
+**Production resolution precedence:** explicit/per-run root -> `FORSETI_DATA_ROOT` ->
+legacy `ORCA_DATA_ROOT` -> optional config-file fallback. A test root is injected **only in test mode** as an
 explicit test input; it is never a production precedence tier or runtime fallback. (A
 test override placed after config would be a silent-write hazard.)
 
@@ -148,7 +148,7 @@ direction_change_propagation:
     enforcement blockers: one deterministic lake-writer boundary enforces write-once
     raw and append-only derived/ack; root resolution is fail-closed with a per-root
     identity marker and atomic create-only writes; production precedence is explicit >
-    ORCA_DATA_ROOT > config with a test root injected only in test mode (never a
+    FORSETI_DATA_ROOT > legacy ORCA_DATA_ROOT > config with a test root injected only in test mode (never a
     runtime fallback); by-key discovery stays authority; SCR FamilyDetailBase is kept
     off the raw-payload path; and no-new-core-field pressure is gated.
   trigger: architecture_doctrine
