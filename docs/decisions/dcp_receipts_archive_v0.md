@@ -3430,3 +3430,73 @@ direction_change_propagation:
     - not implementation, capture, outreach, or publishing authorization
     - charter is DRAFT pending delegated review and owner ratification
 ```
+
+## From docs/decisions/forseti_external_identity_path_migration_decision_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    After the Forseti rename audit, the next migration architecture splits
+    external identity from internal compatibility paths: repo slug/local checkout
+    identity may be migrated first under owner gate, while forseti/product/,
+    orca-harness/, repo-map path, skill IDs, start-preflight alias, and CI check
+    names remain deferred migration units until moved-path indexes, validation,
+    rollback, and dependency impacts are bound.
+  trigger: lifecycle_boundary
+  related_triggers:
+    - workflow_authority
+    - architecture_doctrine
+    - validation_philosophy
+  controlling_sources_updated:
+    - docs/decisions/forseti_external_identity_path_migration_decision_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/artifact-folders.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/decisions/forseti_rename_migration_policy_v0.md
+    - docs/decisions/forseti_compatibility_migration_boundary_v0.md
+    - docs/workflows/forseti_rename_stale_reference_audit_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - repo-structure.yaml
+    - .github/workflows/ci.yml
+    - .github/workflows/auto-merge.yml
+    - .github/scripts/merge-when-green.ps1
+    - .agents/hooks/guard_protected_actions.py
+    - orca-harness/pyproject.toml
+  intentionally_not_updated:
+    - path: docs/decisions/forseti_compatibility_migration_boundary_v0.md
+      reason: >
+        It remains accurate for the already-completed Step 4/5 fused lane and
+        explicitly says deeper migration requires a separate accepted plan; this
+        new decision is that next-phase planning record, not a replacement edit.
+    - path: repo-structure.yaml
+      reason: >
+        Internal roots remain compatibility paths in this branch; changing the
+        machine structure map belongs to a future moved-path migration.
+    - path: .github/workflows/ci.yml
+      reason: >
+        CI check name and working directory remain compatibility identifiers
+        until the harness root/package migration is accepted.
+    - path: .agents/hooks/guard_protected_actions.py
+      reason: >
+        The GitHub repo slug has not been externally renamed yet; changing the
+        protected-action repo slug before the external cutover would make the
+        guard disagree with the current repository.
+  stale_language_search: >
+    git grep -l -F -- orca-harness; git grep -l -F -- orca/product; git grep -l
+    -F -- docs/workflows/orca_repo_map_v0.md; git grep -l -F -- eric-foo/orca
+  stale_language_search_result: >
+    Executed 2026-07-04 in codex/forseti-path-migration-plan. Counts: 971
+    tracked files mention orca-harness, 1239 mention orca/product, 474 mention
+    docs/workflows/orca_repo_map_v0.md, and 84 mention eric-foo/orca. These are
+    migration blast-radius evidence, not defects by themselves.
+  non_claims:
+    - not validation
+    - not readiness
+    - not path/package migration
+    - not GitHub repo rename execution
+```
