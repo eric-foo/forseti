@@ -15,9 +15,9 @@ open_next:
   - forseti/product/spines/capture/core/operating_model/core_spine_v0_data_capture_context_preservation_note_v0.md
   - .agents/workflow-overlay/source-loading.md
 stale_if:
-  - Orca renames Data Capture Spine, Evidence Candidate Record, Cleaning Spine, or Judgment Spine.
+  - Forseti renames Data Capture Spine, Evidence Candidate Record, Cleaning Spine, or Judgment Spine.
   - A later accepted Data Capture Spine obligation contract supersedes this blueprint.
-  - Orca authorizes standing/opportunistic capture as part of Data Capture Spine rather than a separate intake lane.
+  - Forseti authorizes standing/opportunistic capture as part of Data Capture Spine rather than a separate intake lane.
 ```
 
 - Status: CANONICAL_BLUEPRINT_V0
@@ -66,7 +66,7 @@ exists. In this mode, heavy evidence-grade obligations make sense because the
 decision question, consequence, cutoff, and downstream use are real inputs.
 
 Standing or opportunistic capture is not part of Data Capture Spine v0. If
-Orca later wants to collect public signals before a decision frame exists, that
+Forseti later wants to collect public signals before a decision frame exists, that
 should become a separate Candidate Signal Intake or Corpus Intake contract.
 Those items are not ECR-ready evidence. They must be rebound or recaptured under
 a Decision Frame before entering Data Capture Spine.
@@ -98,14 +98,14 @@ Classification, Decision Strength, or Action Ceiling.
 Core owns invariant obligations that must hold across commissioned captures:
 
 - decision-frame gating;
-- current Orca source-access boundary compliance;
+- current Forseti source-access boundary compliance;
 - capture-event provenance: who captured, with what tool or mode, in what
   session, and under which obligation version;
 - capture-mode disclosure: human-led, agent-assisted, structured access,
   archive/history, automated extraction, multimodal, or mixed;
 - mode-change disclosure when the capture mode changes within a session;
 - raw observable fidelity;
-- source claim separated from Orca interpretation;
+- source claim separated from Forseti interpretation;
 - source identity and source-actor preservation where knowable;
 - decomposed timing where visible: source publication, source last edit,
   capture timestamp, and re-capture timestamp;
@@ -179,7 +179,7 @@ Runtime tooling is deferred. The product-method obligation is not deferred.
 Human-assisted capture is v0 bootstrap, training, governance, quality control,
 and escalation for ambiguous, volatile, multimodal, or high-stakes signals.
 
-It should not become Orca's permanent core philosophy. Source families should
+It should not become Forseti's permanent core philosophy. Source families should
 graduate toward agent-allowed or automated capture only when repeated captures
 show the engine can discharge capture obligations without human correction of
 capture sufficiency.
@@ -287,7 +287,7 @@ Preserve domain-native language exactly when it carries signal.
 
 Do not sanitize expert terminology into generic paraphrase. Add a short
 interpretation note only when needed for traceability, and never replace the
-source's language with Orca's gloss.
+source's language with Forseti's gloss.
 
 ## Handoff To Evidence Candidate Record
 
@@ -296,7 +296,7 @@ categorically:
 
 - make the captured signal inspectable downstream;
 - preserve raw observable and related context;
-- keep source claim separate from Orca interpretation;
+- keep source claim separate from Forseti interpretation;
 - preserve source identity, actor category, visibility, timing, modality, and
   cutoff/archive posture where knowable;
 - expose capture limits and blockers;
@@ -337,7 +337,7 @@ signals.
 
 ### Human-Assisted Capture As Permanent Philosophy
 
-Reject because it turns Orca into bespoke research labor. Human assistance is
+Reject because it turns Forseti into bespoke research labor. Human assistance is
 v0 bootstrap, training, governance, and escalation, not the permanent core.
 
 ### Generic Hybrid Mode Mixing
@@ -354,7 +354,7 @@ not the core architecture.
 
 ### Source Volume As Evidence Validity
 
-Reject because more sources can still produce weaker evidence. Orca needs
+Reject because more sources can still produce weaker evidence. Forseti needs
 inspectable, constrained decision evidence, not source-count theater.
 
 ### Runtime Design As This Layer
@@ -382,7 +382,7 @@ of real captures, treating failures as contract evidence.
 
 ### Capture As Adversarial Defense
 
-Reject because it optimizes for defending Orca from challenge instead of
+Reject because it optimizes for defending Forseti from challenge instead of
 enabling downstream judgment. Auditability matters, but capture exists to
 preserve usable evidence, not to maximize legalistic armor.
 

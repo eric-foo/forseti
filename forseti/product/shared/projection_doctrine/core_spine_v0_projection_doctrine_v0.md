@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Product architecture draft (view contract over the Data-Capture-owned Mechanical Source Projection helper)
 scope: >
-  Raw-to-Judgment view contract for Orca: how source lanes project a raw capture
+  Raw-to-Judgment view contract for Forseti: how source lanes project a raw capture
   into a compact, Judgment-readable view (the Projected Unit) without replacing raw
   evidence, erasing semantic source structure, or letting projection or Cleaning
   perform Judgment. A view contract over the existing Data Capture Projection
@@ -52,7 +52,7 @@ provenance:
 
 ## 1. Purpose and Non-Claims
 
-**Purpose.** Give Orca's source lanes one contract for turning a raw capture into a
+**Purpose.** Give Forseti's source lanes one contract for turning a raw capture into a
 compact, Judgment-readable view — the *Projected Unit* — without (a) replacing raw
 evidence, (b) erasing semantic source structure, or (c) letting projection or
 Cleaning perform Judgment.

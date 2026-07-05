@@ -1,1 +1,1 @@
-"""Schema package for the Forseti harness."""
+"""Schema package for the Forseti Step A harness."""

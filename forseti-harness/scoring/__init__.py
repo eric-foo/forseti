@@ -1,1 +1,1 @@
-"""Deterministic scoring package for the Forseti harness."""
+"""Deterministic scoring package for the Forseti Step A harness."""

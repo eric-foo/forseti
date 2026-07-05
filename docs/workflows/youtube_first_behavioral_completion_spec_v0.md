@@ -50,7 +50,7 @@ Those later steps depend on the YouTube behavioral lane existing first.
 
 ## Required Behavior
 
-The YouTube lane must become behaviorally complete enough that a downstream Orca
+The YouTube lane must become behaviorally complete enough that a downstream Forseti
 consumer can understand one item from discovery through extraction without
 knowing which internal route acquired each piece.
 

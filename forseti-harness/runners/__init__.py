@@ -1,1 +1,1 @@
-"""Runner package for the Forseti harness."""
+"""Runner package for the Forseti Step A harness."""

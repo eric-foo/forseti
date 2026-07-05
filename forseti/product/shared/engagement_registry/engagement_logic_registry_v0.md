@@ -27,7 +27,7 @@ stale_if:
 
 ## Purpose
 
-This registry defines how Orca interprets public engagement signals without
+This registry defines how Forseti interprets public engagement signals without
 collapsing them into a single demand score.
 
 Core rule:
@@ -56,7 +56,7 @@ helpful votes, likes, views, shares, comment counts, reply counts, source-native
 scores, pinned/hearted/official-response markers, visible sort order, and
 source-exposed ranking or recency posture.
 
-Orca must preserve those facts when they are visible and relevant to a public
+Forseti must preserve those facts when they are visible and relevant to a public
 reaction source. They can change what a later operator should inspect: a
 23-upvote detailed objection is not the same signal surface as a 0-upvote
 drive-by objection. That difference should be interpreted as resonance context:
@@ -182,7 +182,7 @@ The same signal may support several uses with different confidence levels.
 
 ## Required Splits
 
-Orca must keep these distinctions visible:
+Forseti must keep these distinctions visible:
 
 - attention versus demand;
 - repeated language versus independent demand;

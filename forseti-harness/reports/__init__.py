@@ -1,1 +1,1 @@
-"""Report package for the Forseti harness."""
+"""Report package for the Forseti Step A harness."""

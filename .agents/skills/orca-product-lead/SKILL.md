@@ -53,7 +53,7 @@ needs its own explicit owner authorization.
    `.agents/workflow-overlay/source-loading.md` (thesis, offer hypothesis, buyer
    proof packet, Core Spine product contract, nearest boundary note), then only
    the nearest controlling product doc(s) for the specific decision. Use
-   `docs/workflows/orca_repo_map_v0.md` to choose among many docs.
+   `docs/workflows/forseti_repo_map_v0.md` to choose among many docs.
 3. Controlling product sources, opened as the decision needs them:
    - Current product thesis and first-proof wedge: resolve BOTH through the
      repo map's "Product Anchor Files" table (route, don't restate — wedge
@@ -199,3 +199,6 @@ courier state only when useful.
   `orca-product-lead` directory / command name remains a legacy compatibility
   alias until a separate resolver-safe skill migration. Both copies updated
   identically; new source sha256 re-pinned in skill-adoption.md.
+- Refresh record: 2026-07-04, owner-authorized Forseti migration continuation —
+  live repo-map load step repointed to `docs/workflows/forseti_repo_map_v0.md`; `.claude` deployment copy re-synced to source; and the source sha256 re-pinned in skill-adoption.md.
+  This refresh changes skill routing/pins only; the `orca-product-lead` command/path remains a legacy compatibility surface pending a separate compatibility-retirement lane.

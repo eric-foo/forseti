@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Research artifact (Judgment Spine consolidation map / orientation submap)
-scope: Single always-findable entry point that orients a reader across the whole Judgment Spine corpus — which spans docs/research/judgment-spine/ and docs/product/judgment_spine_* — and routes one hop into the owner sources. Map only; not source-of-truth.
+scope: Single always-findable entry point that orients a reader across the whole Judgment Spine corpus — which spans docs/research/judgment-spine/, forseti/product/spines/judgment/, and forseti/product/satellites/fragrance/judgment_level1/ — and routes one hop into the owner sources. Map only; not source-of-truth.
 use_when:
   - Orienting to the Judgment Spine before ECR, Cleaning, harness, or case work.
   - Finding which owner doc owns a given spine area (thesis, cases, conductor, gates, ladder, reveal, harness).
@@ -36,19 +36,19 @@ stale_if:
 | --- | --- | --- |
 | Know the north-star / what "good judgment" means here | `judgment_spine_thesis_v0.md` | research |
 | Find the case inventory + per-case artifact status | `manifest_v0.md` | research |
-| Run or plan a case through gates JSG-01→JSG-10 | `docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md` (conductor) | product |
-| Know who owns a gate + its required receipts | `docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md` | product |
-| Know what a run/artifact can **claim** (tiers, closeout states, caps) | `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md` | product |
-| Apply the JSG-08 reveal/calibration receipt | `docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md` | product |
+| Run or plan a case through gates JSG-01→JSG-10 | `forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md` (conductor) | product |
+| Know who owns a gate + its required receipts | `forseti/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md` | product |
+| Know what a run/artifact can **claim** (tiers, closeout states, caps) | `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` | product |
+| Apply the JSG-08 reveal/calibration receipt | `forseti/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md` | product |
 | Work from the harness spec (schemas, scorer, runner, probe) | `harness/v0_14/index.md` | research |
 | Understand no-tools isolation for JSG-04/05/06 | `harness/v0_14/contestant_no_tools_execution_contract_v0.md` | research |
 | Know what machinery is built vs a named gap (build-state) | `judgment_spine_machinery_build_state_gap_map_v0.md` | research |
 | Read the SP-5 finalization-receipt contract | `sp5_finalization_receipt_spec_v0.md` | research |
-| Orient after fragrance reconciliation and split current Judgment into core/satellite portions | `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md` | product |
-| Plan a Level 1 backtest case through commission gate, evidence plan, forecast, utility/action, decision log, reveal, and evaluation without claiming run authority | `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md` | product |
-| Fill the first fragrance Level 1 product-learning satellite slots without claiming proof or run authority | `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md` | product |
-| Fill or check the first fragrance Level 1 casebook slots without admitting named cases prematurely | `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md` | product |
-| Choose which named fragrance Level 1 case to try admitting first | `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md` | product |
+| Orient after fragrance reconciliation and split current Judgment into core/satellite portions | `forseti/product/spines/judgment/judgment_current_state_and_decomposition_v0.md` | product |
+| Plan a Level 1 backtest case through commission gate, evidence plan, forecast, utility/action, decision log, reveal, and evaluation without claiming run authority | `forseti/product/spines/judgment/judgment_current_state_and_decomposition_v0.md` | product |
+| Fill the first fragrance Level 1 product-learning satellite slots without claiming proof or run authority | `forseti/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md` | product |
+| Fill or check the first fragrance Level 1 casebook slots without admitting named cases prematurely | `forseti/product/satellites/fragrance/judgment_level1/casebook_admission/fragrance_level1_casebook_admission_frame_v0.md` | product |
+| Choose which named fragrance Level 1 case to try admitting first | `forseti/product/satellites/fragrance/judgment_level1/named_case_screens/fragrance_level1_named_case_candidate_screen_v0.md` | product |
 
 ## Current Reality Snapshot (as of v0, refreshed 2026-06-09; JSG-01 and decomposition pointer refreshed 2026-06-17 — verify each against its owner)
 
@@ -79,22 +79,22 @@ stale_if:
 ### Conductor — how a case walks the gates
 - summary: Sequences JSG-01→JSG-10, checks each gate's receipt, routes between them. Holds routing/lifecycle only.
 - status: working operating model; the **path toward** judgment-quality evidence, not proof of it.
-- pointer: `docs/product/judgment_spine/judgment_quality_promotion_operating_model_v0.md` (product).
+- pointer: `forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md` (product).
 
 ### Gate ownership
 - summary: Who owns each gate, its required receipts, and gate dependencies.
 - status: controlling doctrine.
-- pointer: `docs/product/judgment_spine/judgment_spine_gate_ownership_map_v0.md` (product).
+- pointer: `forseti/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md` (product).
 
 ### Evidence ladder — what a run can claim
 - summary: Claim tiers (product_learning / buyer_proof / judgment_quality), closeout states, weakest-cleared-gate + sub-floor caps.
 - status: controlling doctrine.
-- pointer: `docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md` (product).
+- pointer: `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` (product).
 
 ### JSG-08 reveal / calibration owner contract
 - summary: The reveal/calibration receipt shape and its satisfaction states the conductor reads at JSG-08.
 - status: controlling doctrine.
-- pointer: `docs/product/judgment_spine/judgment_spine_reveal_calibration_owner_contract_v0.md` (product).
+- pointer: `forseti/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md` (product).
 
 ### Harness v0.14 spec (+ no-tools isolation)
 - summary: Phase-1 code-readiness spec — schemas, action bands, scorer, runner contracts, probe; the no-tools contract owns JSG-04/05/06 isolation.
@@ -104,22 +104,22 @@ stale_if:
 ### Current-state and decomposition frame
 - summary: Product-learning bridge from the 2026-06-17 fragrance reconciliation into a core/satellite split for future Judgment work portions.
 - status: docs-only product-learning context; not source-of-truth, validation, readiness, or proof.
-- pointer: `docs/product/judgment_spine/judgment_current_state_and_decomposition_v0.md` (product).
+- pointer: `forseti/product/spines/judgment/judgment_current_state_and_decomposition_v0.md` (product).
 
 ### Fragrance Level 1 satellite skeleton
 - summary: Repo-local product-learning skeleton for fragrance-specific casebook, source, evidence, weighting, forecast, decision, reveal, lesson, and receipt slots.
 - status: docs-only product-learning context; not casebook admission, source-capture authority, run authorization, scoring, validation, readiness, buyer proof, or judgment-quality evidence.
-- pointer: `docs/product/judgment_spine/fragrance_level1_product_learning_satellite_skeleton_v0.md` (product).
+- pointer: `forseti/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md` (product).
 
 ### Fragrance Level 1 casebook admission frame
 - summary: Repo-local product-learning frame for the first 25 fragrance case slots, bucket allocation, named-case admission gate, and outcome-label families.
 - status: admits the casebook slot shape only; no named cases admitted, source-capture authority, run authorization, scoring, validation, readiness, buyer proof, or judgment-quality evidence.
-- pointer: `docs/product/judgment_spine/fragrance_level1_casebook_admission_frame_v0.md` (product).
+- pointer: `forseti/product/satellites/fragrance/judgment_level1/casebook_admission/fragrance_level1_casebook_admission_frame_v0.md` (product).
 
 ### Fragrance Level 1 named-case candidate screen
 - summary: Repo-local product-learning screen that reconciles fanout search results against the case-selection doctrine and recommends the first admission attempt without admitting any named case.
 - status: docs-only candidate screen; all named products remain `candidate_pending_selection`, `held`, or rejected for first admission; no source-capture authority, run authorization, scoring, validation, readiness, buyer proof, or judgment-quality evidence.
-- pointer: `docs/product/judgment_spine/fragrance_level1_named_case_candidate_screen_v0.md` (product).
+- pointer: `forseti/product/satellites/fragrance/judgment_level1/named_case_screens/fragrance_level1_named_case_candidate_screen_v0.md` (product).
 
 ## Status Vocabularies (owner-defined — this map points, never redefines)
 

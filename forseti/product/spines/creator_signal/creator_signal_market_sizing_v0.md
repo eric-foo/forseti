@@ -17,10 +17,25 @@ open_next:
 stale_if:
   - Cited market figures (2024-25) age past ~2 years.
   - A demand/WTP probe returns real evidence (replace estimates with observations).
+  - The lead-lane cohort sharpening below is re-sized (replace the routing note with real segment estimates).
 authority_boundary: retrieval_only
 ```
 
 ## Status & honesty boundary
+
+**Routing note (2026-07-05):** the charter's buyer-lane section
+(`aphrodite_carveout_charter_v0.md` §5) sharpened the lead lane to explicitly
+include the dupe-first/clone-house, creator-owned-DTC, and pre-designer
+specialty/indie cohort (the Lattafa/Armaf/Dossier graduation arc). This sizing
+pass predates that sharpening: the buyer counts and SAM/SOM math below
+(~1.2k fragrance brands, ~250 agencies, bottom-up ~$100M SAM) were not built
+to isolate that cohort as its own segment, and this note does not attempt to
+re-derive them. Whether the cohort is a meaningful share of the existing
+counts or should be sized separately is an open resizing question, deferred as
+its own later unit (per the charter's `intentionally_not_updated` note on this
+file) — not answered here. Treat the estimates below as covering the
+indie/DTC universe generally, not as evidence for or against the sharpened
+cohort's share of it.
 
 Internal research pass, 2026-07-01. Numbers are **order-of-magnitude estimates
 triangulated from published market reports + competitor pricing**, with explicit

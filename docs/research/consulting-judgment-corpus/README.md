@@ -2,7 +2,7 @@
 
 This folder holds the public consulting-firm judgment-corpus research lane.
 
-Purpose: identify public consulting case material that exposes enough real decision situation, diagnostic framing, recommendation or strategic choice, implementation/action, and outcome evidence to support later Orca executive-judgment training and possible backtests.
+Purpose: identify public consulting case material that exposes enough real decision situation, diagnostic framing, recommendation or strategic choice, implementation/action, and outcome evidence to support later Forseti executive-judgment training and possible backtests.
 
 Date boundary: prioritize AI-era cases where the decision/action/outcome window is on or after `2022-11-30`. If only publication date is known, record it separately and mark decision-window evidence as weak or `not_found`.
 

@@ -168,9 +168,29 @@ This runner is the lean code-enforced slice only: it admits sanitized
 single-video comment/subtitle/profile-list fields, keeps raw signed URLs,
 cookies, tokens, storage-state, and raw response bodies out of the packet, and
 prints the complete-lane note on successful runs and in `--help`.
-The complete TikTok lane still requires live browser/profile-grid capture,
-creator batch cadence, projection bridging, and recon/playbook updates.
 
+Use the TikTok one-creator live runner when the page-owned artifacts still need
+to be produced by the browser route. It writes sanitized staging JSON by default;
+add `--admit-output` for a local SourceCapturePacket or explicit `--data-root`
+for the bronze/data lake. The live runner chains the existing TikTok batch
+admission gate rather than duplicating lake logic, and it does not read ambient
+`ORCA_DATA_ROOT`.
+
+```powershell
+python runners/run_source_capture_tiktok_live_batch_probe.py `
+  --creator-handle "funmimonet" `
+  --creator-profile-url "https://www.tiktok.com/@funmimonet" `
+  --video-url "https://www.tiktok.com/@funmimonet/video/7629774409762442526" `
+  --state-label "<dedicated-tiktok-auth-state-label>" `
+  --session-mode client_provided_session `
+  --output-dir ".\_test_runs\tiktok_live_funmi" `
+  --browser-backend cloakbrowser `
+  --data-root "F:\orca-data-lake"
+```
+
+The complete TikTok lane still requires owner-authorized account posture,
+creator batch cadence, projection bridging, and recon/playbook updates before
+scale or promotion claims.
 
 Use the Browser Snapshot runner when one supplied URL needs anonymous browser
 rendering or screenshot preservation:
@@ -229,7 +249,15 @@ python runners/run_source_capture_authenticated_browser_packet.py --url "https:/
 
 The bootstrap command opens a headed browser for manual login and writes ignored
 local Playwright storage-state JSON plus a session-mode metadata sidecar under
-`_auth_state/`. The packet runner loads that state into a browser context,
+`_auth_state/`. After a permitted direct CloakBrowser profile warmup,
+`run_source_capture_browser_user_data_export.py` can export the dedicated
+ignored `_browser_user_data/` label to `_auth_state/` without re-running the
+login flow; it accepts only labels plus session mode and prints no browser URL,
+paths, cookies, or tokens. If the warmup used a proxy, the exported state may
+later be tried in a non-proxy source-access run, but the egress switch can
+still produce an invalid session or challenge; do not call that a clean
+non-proxy capture proof until a non-proxy receipt validates under the normal
+gates. The packet runner loads that state into a browser context,
 refuses mismatched session-mode declarations, and preserves rendered DOM,
 visible text, a viewport screenshot, and metadata. It records session mode and
 state label, but never copies, hashes, prints, or preserves storage-state JSON,

@@ -22,6 +22,11 @@ FRAGRANCE_REVIEW_COVERAGE_VERSION = "v0"
 FRAGRANCE_REVIEW_COVERAGE_CERTIFICATION = (
     "source_visible_focused_coverage; not_cleaned; not_judgment_ready"
 )
+# Record-SHAPE schema token (V4: vault-versioned; closes the weak-envelope residual
+# where this receipt rode only the sibling coverage_version policy token). Added
+# additively with a model default: earlier committed records lack the field and read
+# as pre-token vintage; no derivation-policy token was bumped.
+FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION = "fragrance_review_coverage_record_v0"
 
 # Output-shaping selection policy, named so consumers can enumerate it into a
 # consumption-seam obligation envelope (a change here must re-surface committed
@@ -174,6 +179,9 @@ class FragranceReviewCoverageSummary(StrictModel):
 
 
 class FragranceReviewCoverageReceipt(StrictModel):
+    record_schema_version: Literal["fragrance_review_coverage_record_v0"] = (
+        FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION
+    )
     coverage_method: Literal["fragrance_review_focused_coverage"] = FRAGRANCE_REVIEW_COVERAGE_METHOD
     coverage_version: Literal["v0"] = FRAGRANCE_REVIEW_COVERAGE_VERSION
     certification: Literal["source_visible_focused_coverage; not_cleaned; not_judgment_ready"] = (
