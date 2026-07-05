@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow record
-scope: Current post-PR-675 Forseti rename migration status and residual queue.
+scope: Current Forseti rename migration status and residual queue.
 use_when:
   - Checking what changed after the product-root, repo-map, and harness-root migrations landed.
   - Deciding whether a remaining Orca/orca reference is a live defect, historical record, explicit legacy alias, or deferred compatibility surface.
@@ -16,9 +16,9 @@ open_next:
   - docs/workflows/forseti_repo_map_v0.md
 ```
 
-## Current State
+## Baseline Census
 
-Observed from `origin/main` after PR #675 merged as `c10f1d7f` on 2026-07-05:
+Baseline census observed from `origin/main` after PR #675 merged as `c10f1d7f` on 2026-07-05. Later rows below record subsequent executed migration lanes where explicitly cited:
 
 | Check | Observed result |
 | --- | --- |
@@ -41,7 +41,7 @@ Observed from `origin/main` after PR #675 merged as `c10f1d7f` on 2026-07-05:
 | CI check identity | Executed by PR #675: required check is `forseti-harness-tests`. | Do not revive `orca-harness-tests` in live automation. |
 | GitHub repository slug | Executed on 2026-07-05: live repo is `eric-foo/forseti`; the former web repo moved from `eric-foo/Forseti` to `eric-foo/ForsetiWeb`. | Local `origin` was updated to `https://github.com/eric-foo/forseti.git`; keep historical repo links as provenance. |
 | Local parent checkout folder | Not migrated: active workspace path remains under `projects/orca`. | Use a fresh clone or controlled shutdown/move; do not rename the active workspace in-place. |
-| Skill command/path | Deferred: `orca-product-lead` remains the accepted compatibility skill command/path. | Requires source/deployment copy, invocation alias, resolver, hash-pin, rollback, and collision handling before migration. |
+| Skill command/path | Executed by the skill identity lane: `forseti-product-lead` is the primary accepted/deployed product-lead skill ID; `/orca-product-lead` remains a thin compatibility wrapper. | Resolver activation in an already-running thread is not claimed; keep wrapper for one transition window. |
 | Start-preflight alias | Deferred: `orca_start_preflight` remains a legacy alias. | New live prompts and reports prefer `forseti_start_preflight`; alias retirement is last-mile compatibility work. |
 | Lowercase `orca_*` filenames | Deferred by default. | Migrate only by family with moved-path/index coverage; do not word-match historical prompts, reviews, receipts, or snapshots. |
 
@@ -54,21 +54,25 @@ The pre-harness records `docs/decisions/forseti_compatibility_migration_boundary
 their original evidence, but their statements that `orca-harness/`,
 `orca-harness`, or `orca-harness-tests` are preserved/deferred are superseded
 by PR #675 and `docs/decisions/forseti_harness_identity_migration_plan_v0.md`.
+Statements that the external repo slug or product-lead skill identity are still
+deferred are superseded by `docs/decisions/forseti_external_identity_path_migration_decision_v0.md`
+and `docs/decisions/forseti_skill_preflight_identity_migration_plan_v0.md`.
 
 ## Next Material Lane
 
-The next high-leverage migration is not another word-match cleanup. It is one
-of:
+The next high-leverage migration is not another word-match cleanup. After the
+external repo identity and product-lead skill identity cutovers, the remaining
+material lanes are:
 
-1. Owner-gated external identity cutover after the target GitHub slug is freed
-   or replaced.
-2. Skill migration from `orca-product-lead` to `forseti-product-lead` with a
-   compatibility alias and deployment-copy plan.
-3. Family-by-family live filename migration for current product sources whose
+1. Rename or replace the local parent checkout folder only after active
+   worktrees/sessions close; prefer a fresh clone at `projects/forseti`.
+2. Family-by-family live filename migration for current product sources whose
    `orca_*` filenames are still operator-facing, each with moved-path coverage.
+3. Retire `orca_start_preflight` only after durable prompt/history consumers are
+   classified; keep `forseti_start_preflight` primary now.
 
 ## Non-Claims
 
-- This status record is not validation, readiness, product proof, package publication, GitHub repo rename execution, local checkout rename execution, or skill migration.
+- This status record is not validation, readiness, product proof, package publication, GitHub repo rename execution, local checkout rename execution, or resolver activation proof.
 - This status record does not classify every residual content line.
 - This status record does not make historical prompts, review outputs, DCP receipts, or snapshots stale merely because they contain Orca.

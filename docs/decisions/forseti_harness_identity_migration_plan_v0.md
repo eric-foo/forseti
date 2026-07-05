@@ -106,7 +106,7 @@ runtime/tooling migration:
 | `orca-harness/uv.lock` | Update the locked package name after the distribution label changes. |
 | `.github/workflows/ci.yml` | Rename job id/name to `forseti-harness-tests`, set `working-directory: forseti-harness`, and update install-step label. |
 | `.github/workflows/auto-merge.yml` | Update `CI_CHECK` to `forseti-harness-tests`. |
-| `.github/scripts/merge-when-green.ps1` | Update the default required check name and default repo slug to `eric-foo/forseti` after the owner-gated external repo rename succeeds. |
+| `.github/scripts/merge-when-green.ps1` | Use the default required check name `forseti-harness-tests` and default repo slug `eric-foo/forseti`; the external repo rename is executed. |
 | `.github/workflows/pr-risk-router.yml` | Update path classification from `orca-harness/` to `forseti-harness/`. |
 | `repo-structure.yaml` | Replace the known top-level runtime root and legacy tolerance with `forseti-harness/`; preserve separate compatibility notes for historical references. |
 | `.agents/hooks/*.py` | Update deterministic path constants, fixture roots, map-link roots, repo-map freshness rules, placement fixtures, ontology drift harness root, review-routing code roots, silver-lane registry root, and selftest fixtures that point at `orca-harness/`. |

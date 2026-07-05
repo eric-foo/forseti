@@ -1,4 +1,4 @@
-﻿# Artifact Folders
+# Artifact Folders
 
 ```yaml
 retrieval_header_version: 1
@@ -34,7 +34,7 @@ authority_boundary: retrieval_only
 - `docs/research/judgment-spine/harness/v0_14/smoke_tests/`: Judgment Harness v0.14 no-case smoke-test receipts and operator provenance records. Artifacts in this folder are plumbing evidence only and do not become real-case probe, validation, fixture-admission, product-proof, or judgment-quality evidence by location.
 - `docs/hygiene/`: triage queues and cleanup notes for Forseti artifacts.
 - `docs/_inbox/`: non-authoritative temporary holding area for scratch prompts, notes, imports, and untriaged material.
-- `.agents/skills/`: Forseti-local accepted/candidate workflow skill source (for example, `orca-product-lead`), governed by `.agents/workflow-overlay/skill-adoption.md`. Forseti-local only; this is NOT plugin, user-level, installed, or external skill source, and living here does not deploy, activate, or make a skill resolver-visible.
+- `.agents/skills/`: Forseti-local accepted/candidate workflow skill source (for example, `forseti-product-lead`; legacy wrappers such as `orca-product-lead` only when bound by skill-adoption.md), governed by `.agents/workflow-overlay/skill-adoption.md`. Forseti-local only; this is NOT plugin, user-level, installed, or external skill source, and living here does not deploy, activate, or make a skill resolver-visible.
 
 ## Rules
 

@@ -414,6 +414,7 @@ def _selftest():
         ("Bash", {"command": "git commit -m 'x'"}, False),
         ("Bash", {"command": "git log --grep=push"}, False),
         ("Write", {"file_path": j("Desktop", "projects", "orca", "docs", "x.md")}, False),
+        ("Edit", {"file_path": j("Desktop", "projects", "orca", ".claude", "skills", "forseti-product-lead", "SKILL.md")}, False),
         ("Edit", {"file_path": j("Desktop", "projects", "orca", ".claude", "skills", "orca-product-lead", "SKILL.md")}, False),
         ("Read", {"file_path": j("Desktop", "projects", "jb", "x.md")}, False),
     ]

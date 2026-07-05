@@ -7,7 +7,7 @@ scope: >
   Commissions a bounded lane to execute ADR D8's near-term surface: the
   Forseti minimal identity kit and the forsetihq.com holding page (positioning
   line, "built to" paragraph, waitlist capture, privacy notice, contact),
-  built as a static site in an external repository and deployed dark. No
+  built as a static site in the external ForsetiWeb repository and deployed dark. No
   launch, no DNS pointing, no Aphrodite design. Owner executes all account
   creations, purchases, and DNS.
 use_when:
@@ -28,7 +28,7 @@ stale_if:
 - mode: max
 - created_at: 2026-07-02
 - created_by_lane: Forseti company-design chat lane on worktree branch `claude/confident-mendeleev-a74e65` (provenance only; not an authority claim)
-- workspace: the Orca repository (reads + one outcomes note only; the website build happens in an external repository, see Drift Guard)
+- workspace: the Forseti repository (reads + one outcomes note only; the website build happens in `eric-foo/ForsetiWeb`, see Drift Guard)
 - handoff_path: `docs/workflows/forseti_web_foundation_design_lane_handoff_v0.md`
 - expected_branch: receiver normally reads this packet from `main` after its lane PR merges
 - expected_head: verify the packet file and ADR D8 both exist at your HEAD rather than pinning a SHA (authoring branch head at packet write: `fd590e0a` + this packet's commit)
@@ -41,7 +41,7 @@ Derived from owner words in the sending thread (2026-07-02); no `workflow-goal-f
 
 - long_term_goal: Establish Forseti as the company brand carrying Orca's evidence-backed consumer-market decision-intelligence thesis, with the Creator Signal fragrance carve-out as a thin endorsed sub-brand (ADR D1–D8).
 - anchor_goal: Stand up the Forseti web foundation per ADR D8 — the minimal identity kit and the forsetihq.com holding page, built and deployed dark — launching nothing and claiming nothing beyond claim-defense-compliant wording.
-- success_signal: Identity mini-kit delivered (text wordmark, 1–2 colors, 1–2 typefaces, calibrated/judicial register); holding page built as a static site in an external repo with positioning line, one "built to" paragraph, waitlist capture, minimal privacy notice, and contact; dark preview URL shared with the owner; all copy passes a fresh claim-defense wording check; outcomes note written in the Orca repo; DNS untouched.
+- success_signal: Identity mini-kit delivered (text wordmark, 1–2 colors, 1–2 typefaces, calibrated/judicial register); holding page built as a static site in `eric-foo/ForsetiWeb` with positioning line, one "built to" paragraph, waitlist capture, minimal privacy notice, and contact; dark preview URL shared with the owner; all copy passes a fresh claim-defense wording check; outcomes note written in the Forseti repo; DNS untouched.
 
 ## Open Decision / Fork
 
@@ -85,7 +85,7 @@ Derived from owner words in the sending thread (2026-07-02); no `workflow-goal-f
 
 ## Active Objective
 
-Design the Forseti minimal identity kit and build the forsetihq.com holding page per ADR D8, in an external repo, deployed dark, with owner-picked copy — then record outcomes in the Orca repo.
+Design the Forseti minimal identity kit and build the forsetihq.com holding page per ADR D8, in `eric-foo/ForsetiWeb`, deployed dark, with owner-picked copy -- then record outcomes in the Forseti repo.
 
 ## Exact Next Authorized Action
 
@@ -120,7 +120,7 @@ Design the Forseti minimal identity kit and build the forsetihq.com holding page
     - Compare target: reread-required (content at receiver HEAD governs)
     - Last checked: 2026-07-02
     - Reuse rule: draw wording from the live file, not this packet
-- Source gaps: no design assets exist anywhere yet (greenfield); no external repo exists yet.
+- Source gaps: no design assets exist anywhere yet (greenfield); external repo identity is resolved as `eric-foo/ForsetiWeb`.
 - Strict-only blockers: none for drafting; every account/DNS/publish step is owner-gated by design.
 - Not-proven boundaries: nothing here is validation, willingness-to-pay evidence, buyer proof, or readiness; a deployed dark page proves plumbing only.
 
@@ -136,7 +136,7 @@ Design the Forseti minimal identity kit and build the forsetihq.com holding page
 - Head: verify packet + ADR-with-D8 at your HEAD (see Load Contract)
 - Dirty or untracked state before handoff: clean apart from this file
 - Dirty or untracked state after writing the handoff file: this file untracked until the lane commit
-- Target files or artifacts: external site repo (to be created); `docs/workflows/forseti_web_foundation_outcomes_v0.md`
+- Target files or artifacts: `eric-foo/ForsetiWeb`; `docs/workflows/forseti_web_foundation_outcomes_v0.md`
 - Related worktrees or branches: none required
 
 ## Changed / Inspected / Tested Files
@@ -164,9 +164,6 @@ Design the Forseti minimal identity kit and build the forsetihq.com holding page
 - Question: host + form provider selection
   - Why still mutable: owner creates the accounts
   - What would resolve it: owner approval of the lane's recommendation
-- Question: exact external repo name/visibility
-  - Why still mutable: owner-owned outward-facing asset
-  - What would resolve it: owner creating it in step 3
 
 ## Superseded / Dangerous-To-Reuse Context
 
