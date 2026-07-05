@@ -13,7 +13,7 @@ from harness_utils import utc_now_z
 
 DEFAULT_TIMEOUT_SECONDS = 20.0
 DEFAULT_MAX_BYTES = 5_000_000
-DEFAULT_USER_AGENT = "OrcaSourceCaptureDirectHTTP/0.1 (stdlib honest fetch; no browser/api/archive)"
+DEFAULT_USER_AGENT = "ForsetiSourceCaptureDirectHTTP/0.1 (stdlib honest fetch; no browser/api/archive)"
 _NO_PROXY_OPENER = build_opener(ProxyHandler({}))
 
 

@@ -25,7 +25,7 @@ def _build_ssl_context() -> ssl.SSLContext:
 
 
 _SSL_CONTEXT = _build_ssl_context()
-_USER_AGENT = "Mozilla/5.0 (compatible; OrcaSourceCapture/0.1)"
+_USER_AGENT = "Mozilla/5.0 (compatible; ForsetiSourceCapture/0.1)"
 
 
 @dataclass
