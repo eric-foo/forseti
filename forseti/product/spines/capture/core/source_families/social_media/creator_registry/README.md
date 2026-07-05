@@ -16,6 +16,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_gt_roadmap_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
@@ -53,6 +54,9 @@ different speeds and carry different authority:
   capability should add fields, sibling records, resolvers, or views without
   rewriting existing source truth, and God Tier progress is judged by operational
   efficacy before audit completeness.
+- `creator_registry_gt_roadmap_v0.md` records what to optimize for after the
+  Mini God Tier slice, including bounded scanning, account/evidence graphing,
+  public-link exploration, and the road toward fuller God Tier efficacy.
 - Metric observations, rollups, capture receipts, and future audience snapshots
   remain in their owning Capture/Silver producer records. They are not copied
   into the registry index as raw truth.
