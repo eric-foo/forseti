@@ -82,7 +82,7 @@ trigger fires.
 
 | Rung | What it is | Build-trigger (when to add) | Rough cost | Status |
 | --- | --- | --- | --- | --- |
-| **R0** | Defect fixes: align `action_ceiling` SSOT, reconcile cap 15/18, add `review_by` to cards, fix tier `tie_break_order` vocab | **NOW** — self-contradictions in the SSOT; cheap | hours | not started |
+| **R0** | Defect fixes: align `action_ceiling` SSOT, reconcile cap 15/18, add `review_by` to cards, fix tier `tie_break_order` vocab | **NOW** — self-contradictions in the SSOT; cheap | hours | **done 2026-07-05** — `action_ceiling` aligned, tier vocab canonicalized, `review_by` added to all cards; cap 15/18 = verified non-issue (historical changelog, not live drift) |
 | **R1** | Minimal identity mapping: assisted, human-checked same-actor mapping for the current ~200 creators (NOT the ML pipeline) | **NOW** — the 192-creator ingestion will double-count multi-platform creators | low (spreadsheet-scale) | not started |
 | **R2** | Canonical dupe edge table: one authoritative dupe→original store; product-level `dupe_of` becomes a derived view | when the first citable dupe edges land (clone-house additions adopted + sourced) | low–med | not triggered (dupe graph empty) |
 | **R3** | ID registry / resolver: canonical ID lookup + aliases / deprecations / redirects | when hand-lookup / alias collisions actually hurt (renamed channels; alias clashes ingestion can't resolve by eye; >~few-hundred entities) | med | not triggered |

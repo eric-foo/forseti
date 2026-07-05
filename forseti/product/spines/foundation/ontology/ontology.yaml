@@ -118,7 +118,8 @@ guards:
 dimensions:
   persistence_state: { values: [durable, transient],    on: [TrendVector, Outcome] }
   integrity_state:   { values: [real, manufactured],    on: [TrendVector, Outcome] }
-  action_ceiling:    { ladder: [Excluded, Watch, Probe, Test, Hold, Move, Commit], on: [Reading], capped_by: signal_integrity }
+  # 2026-07-05 SSOT alignment (R0, per docs/decisions/orca_ontology_gt_foundation_ladder_v0.md): action_ceiling value set aligned to backbone §256 / demand-read C3 2026-06-20 amendment (flat verb set); prior stale ladder [Excluded, Watch, Probe, Test, Hold, Move, Commit] removed.
+  action_ceiling:    { values: [monitor, probe, commit, hold, scale, avoid, reduce], on: [Reading], capped_by: signal_integrity }
   read_type:         { values: [durable-demand, transient-spike, manufactured-demand, brand-decision-event, wind-caller-calibration], on: [Reading] }
   claim_tier:        { values: [product_learning, buyer_proof, judgment_quality], on: [Reading, Memo, Case, Outcome], receipt_gated: true }
   # 2026-07-04 owner-signed amendment (backbone §6.1): kinds of WindCaller are a

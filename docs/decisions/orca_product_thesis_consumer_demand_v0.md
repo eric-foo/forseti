@@ -196,6 +196,16 @@ Carried from thesis v0 and sharpened for the demand substrate:
   monitoring = human-initiated, time-bounded, self-terminating runs (carve-out
   2026-06-15 amendment);
   the external/product boundary here is unchanged.)
+  [Amended 2026-07-05 (owner-approved in-thread): a second bounded exception —
+  the **Aphrodite** productized Creator Signal surface may sell
+  creator/channel-level reads within its own forbidden set (no
+  contact/outreach/lead-lists/person-identity-proof; aggregate-only audience
+  signals), per
+  `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md`. It
+  is a *sold* creator-level surface, so it is a deliberate, bounded carve to
+  "org-level signals only," scoped to the Aphrodite creator-intelligence
+  product; the org-level-only default still governs every other sold or
+  published surface.]
 - **Recurring decisions, not a feed.** Where a read is monitored over time
   (transient → earn-durable), every output stays a calibrated decision with an
   action ceiling — never a monitoring feed or stream. This keeps Forseti off the
@@ -509,4 +519,30 @@ direction_change_propagation:
     The external/product boundary clause is unchanged and preserved verbatim.
   authority: docs/decisions/wind_caller_calibration_carveout_v0.md (2026-06-15 amendment)
   date: 2026-06-15
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Product Boundary amended (2026-07-05, owner-approved in-thread): the
+    "no person-level dossiers in any sold/published surface; org-level signals
+    only" boundary gains a second bounded exception (alongside internal
+    wind-caller calibration) — the Aphrodite productized Creator Signal surface
+    may sell creator/channel-level reads within its own forbidden set (no
+    contact / outreach / lead-lists / person-identity-proof; aggregate-only
+    audience signals). A scoped carve for the Aphrodite creator-intelligence
+    product; the org-level-only default still governs all other sold/published
+    surfaces.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md   # Product Boundary bullet
+  downstream_surfaces_checked:
+    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # carve is bounded by the charter's own forbidden set; consistent, no charter edit needed for A1
+    - forseti/product/spines/creator_signal/README.md                          # spine Dashboard Boundary already scopes creator-level display; consistent
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - not outreach or publishing authorization — creator-level selling is permitted in scope; phase/outreach gates unchanged
 ```
