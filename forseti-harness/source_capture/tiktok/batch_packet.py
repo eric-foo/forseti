@@ -288,14 +288,31 @@ def _normalize_access_intervention(receipt: JsonObject) -> JsonObject:
         receipt.get("challenge_close_diagnostic")
     )
     followthrough = _as_bool(receipt.get("challenge_close_followthrough")) is True
-    if not action and not followthrough:
+    handoff_attempts = [
+        _as_dict(attempt)
+        for attempt in _as_list(receipt.get("human_challenge_handoff_attempts"))
+        if _as_dict(attempt)
+    ]
+    human_handoff = _as_bool(receipt.get("human_challenge_handoff")) is True or bool(
+        handoff_attempts
+    )
+    if not action and not followthrough and not human_handoff:
         return {}
-    result: JsonObject = {
-        "posture": (
+
+    if human_handoff:
+        posture = (
+            "owner_manual_challenge_handoff_after_challenge_close_followthrough"
+            if followthrough
+            else "owner_manual_challenge_handoff"
+        )
+    else:
+        posture = (
             "owner_authorized_challenge_x_close_followthrough"
             if followthrough
             else "challenge_close_action_observed"
-        ),
+        )
+    result: JsonObject = {
+        "posture": posture,
         "followthrough": followthrough,
         "accepted": _as_bool(receipt.get("challenge_close_accepted")),
         "action_name": _first_str(action.get("action_name")),
@@ -327,6 +344,38 @@ def _normalize_access_intervention(receipt: JsonObject) -> JsonObject:
             action.get("post_click_visual_screenshot_sha256")
         ),
     }
+    if human_handoff:
+        result.update(
+            {
+                "human_challenge_handoff": True,
+                "human_challenge_handoff_attempt_count": len(handoff_attempts),
+                "human_challenge_handoff_cleared": any(
+                    _as_bool(attempt.get("cleared")) is True
+                    for attempt in handoff_attempts
+                )
+                if handoff_attempts
+                else None,
+                "human_challenge_handoff_after_action_names": _dedupe_preserve_order(
+                    _first_str(attempt.get("after_action_name")) or ""
+                    for attempt in handoff_attempts
+                ),
+                "human_challenge_handoff_prompt_surfaces": _dedupe_preserve_order(
+                    _first_str(attempt.get("prompt_surface")) or ""
+                    for attempt in handoff_attempts
+                ),
+                "human_challenge_handoff_matched_markers": _dedupe_preserve_order(
+                    marker
+                    for attempt in handoff_attempts
+                    for marker in (
+                        _first_str(attempt.get("matched_marker")),
+                        _first_str(attempt.get("final_matched_marker")),
+                    )
+                    if marker
+                ),
+                "agent_may_solve_challenge": False,
+                "counts_as_clean_capture": False,
+            }
+        )
     clean = {key: value for key, value in result.items() if value is not None}
     assert_no_sensitive_tiktok_material(clean)
     return clean
@@ -474,6 +523,8 @@ def _normalize_subtitles(row: JsonObject) -> JsonObject:
         "body_sha256": None,
         "body_size_bytes": 0,
         "subtitle_url_sha256": _first_str(subtitle.get("subtitle_url_sha256")),
+        "subtitle_url_length": _first_int(subtitle.get("subtitle_url_length")),
+        "non_capture_reason": _first_str(subtitle.get("reason")),
         "cue_count": 0,
         "transcript_char_count": 0,
         "transcript_text_sha256": None,
@@ -571,6 +622,7 @@ def _validate_staging_contracts(grid_payload: JsonObject, cadence_payloads: Sequ
         "captcha_solving",
         "challenge_close_counts_as_success",
         "challenge_close_diagnostic_allowed",
+        "human_challenge_handoff_counts_as_clean_capture",
         "direct_forged_api_calls",
         "cookies_or_tokens_persisted",
         "raw_endpoint_urls_persisted",
@@ -610,6 +662,34 @@ def _validate_staging_contracts(grid_payload: JsonObject, cadence_payloads: Sequ
                 f"cadence_result_json[{index}] has first_failure_reason={first_failure_reason}; "
                 "failed cadence cannot be admitted"
             )
+        for row_index, row in enumerate(_as_list(payload.get("results"))):
+            receipt = _as_dict(_as_dict(row).get("capture_receipt"))
+            if not receipt:
+                continue
+            if _as_bool(receipt.get("agent_may_solve_challenge")) is True:
+                raise ValueError(
+                    f"cadence_result_json[{index}].results[{row_index}] permits agent challenge solving"
+                )
+            if _as_bool(receipt.get("owner_attention_counts_as_clean_capture")) is True:
+                raise ValueError(
+                    f"cadence_result_json[{index}].results[{row_index}] counts owner attention as clean capture"
+                )
+            if (
+                _as_bool(receipt.get("manual_challenge_attention_required")) is True
+                or _as_bool(receipt.get("owner_attention_required")) is True
+            ):
+                raise ValueError(
+                    f"cadence_result_json[{index}].results[{row_index}] has unresolved owner attention"
+                )
+            for attempt_index, attempt in enumerate(
+                _as_list(receipt.get("human_challenge_handoff_attempts"))
+            ):
+                attempt_receipt = _as_dict(attempt)
+                if _as_bool(attempt_receipt.get("captcha_solving_by_agent")) is True:
+                    raise ValueError(
+                        f"cadence_result_json[{index}].results[{row_index}]"
+                        f".human_challenge_handoff_attempts[{attempt_index}] permits agent challenge solving"
+                    )
 
 def _summarize_contracts(grid_payload: JsonObject, cadence_payloads: Sequence[JsonObject]) -> JsonObject:
     contracts = [_as_dict(grid_payload.get("capture_contract")), *[_as_dict(payload.get("capture_contract")) for payload in cadence_payloads]]

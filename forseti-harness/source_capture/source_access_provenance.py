@@ -93,6 +93,7 @@ def build_browser_user_data_source_access_provenance(
         "proxy_category": normalized_proxy_category,
         "no_secret_scan": NO_SECRET_SCAN_PASSED,
     }
+    _validate_proxy_category_matches_posture(payload)
     assert_no_forbidden_source_access_material(payload)
     return payload
 

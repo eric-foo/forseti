@@ -197,6 +197,15 @@ class _FakeWarmupEngine:
         return login_url
 
 
+class _FailingWarmupEngine(_FakeWarmupEngine):
+    def warm_profile(
+        self, *, login_url: str, user_data_dir: Path, proxy_profile: ProxyProfile | None
+    ) -> str:
+        self.user_data_dirs.append(user_data_dir)
+        self.proxy_profiles.append(proxy_profile)
+        raise RuntimeError("synthetic interrupted warmup")
+
+
 def test_cloakbrowser_profile_warmup_uses_label_indirected_user_data_without_auth_state(
     scratch_dir: Path,
 ) -> None:
@@ -336,6 +345,59 @@ def test_cloakbrowser_profile_warmup_writes_proxy_profile_provenance_without_sec
     assert str(profile_root) not in serialized
 
 
+def test_cloakbrowser_profile_warmup_binds_provenance_before_external_browser_action(
+    scratch_dir: Path,
+) -> None:
+    user_data_root = scratch_dir / "_browser_user_data"
+    profile_root = scratch_dir / "_proxy_profiles"
+    profile_root.mkdir(parents=True)
+    (profile_root / "reddit-res.json").write_text(
+        json.dumps({"server": "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"}),
+        encoding="utf-8",
+    )
+    (profile_root / "reddit-res.meta.json").write_text(
+        json.dumps(
+            {
+                "profile_file": "reddit-res.json",
+                "proxy_category": "residential_rotating",
+                "geoip_enabled": False,
+            }
+        ),
+        encoding="utf-8",
+    )
+    failing_engine = _FailingWarmupEngine()
+    blocked_engine = _FakeWarmupEngine()
+
+    with pytest.raises(RuntimeError, match="synthetic interrupted warmup"):
+        run_cloakbrowser_profile_warmup(
+            login_url="https://example.com/login",
+            user_data_label="google-login",
+            user_data_root=user_data_root,
+            engine=failing_engine,
+        )
+
+    provenance_path = browser_user_data_provenance_path_for_label(
+        "google-login",
+        user_data_root=user_data_root,
+    )
+    provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+    assert provenance["harness_proxy_profile_posture"] == "no_proxy_profile_loaded"
+    assert provenance["proxy_category"] == "none"
+
+    with pytest.raises(ValueError, match="choose a new user-data label or keep the same proxy posture"):
+        run_cloakbrowser_profile_warmup(
+            login_url="https://example.com/login",
+            user_data_label="google-login",
+            user_data_root=user_data_root,
+            proxy_profile_label="reddit-res",
+            proxy_profile_root=profile_root,
+            engine=blocked_engine,
+        )
+
+    assert failing_engine.user_data_dirs == [user_data_root / "google-login"]
+    assert blocked_engine.user_data_dirs == []
+
+
 def test_cloakbrowser_profile_warmup_rejects_conflicting_existing_provenance_before_rewarm(
     scratch_dir: Path,
 ) -> None:
@@ -424,6 +486,15 @@ def test_browser_user_data_provenance_rejects_unknown_proxy_category() -> None:
             user_data_label="google-login",
             browser_backend="cloakbrowser",
             proxy_category="resdiential_rotating",
+        )
+
+
+def test_browser_user_data_provenance_rejects_none_category_as_loaded_proxy() -> None:
+    with pytest.raises(ValueError, match="proxy_category must name the proxy category"):
+        build_browser_user_data_source_access_provenance(
+            user_data_label="google-login",
+            browser_backend="cloakbrowser",
+            proxy_category="none",
         )
 
 

@@ -41,6 +41,7 @@ from source_capture.tiktok.live_batch_probe import (
     TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
     TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
     TIKTOK_LOGGED_OUT_SESSION_MODE,
+    TIKTOK_MANUAL_CHALLENGE_ATTENTION_REQUIRED_REASON,
     TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
     TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
     TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
@@ -99,6 +100,31 @@ class _FakeObservationEngine:
             }
         )
         return self.outcomes.pop(0)
+
+
+def _summary_payloads(output: str) -> list[dict[str, object]]:
+    return [
+        json.loads(line.split("=", 1)[1])
+        for line in output.splitlines()
+        if line.startswith(runner.SUMMARY_LINE_PREFIX)
+    ]
+
+
+def test_live_probe_runner_help_surfaces_sessioned_cold_agent_command(capsys) -> None:
+    try:
+        runner.main(["--help"])
+    except SystemExit as exc:
+        assert exc.code == 0
+    else:
+        raise AssertionError("help did not exit through argparse")
+
+    captured = capsys.readouterr()
+    assert "Recommended sessioned cold-agent command" in captured.out
+    assert "--require-harness-proxy-posture no_proxy_profile_loaded" in captured.out
+    assert "--allow-challenge-close-followthrough" in captured.out
+    assert "--human-challenge-handoff" in captured.out
+    assert "--admit-output" in captured.out
+
 
 
 def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
@@ -542,6 +568,14 @@ def test_live_probe_runner_can_chain_batch_admission_to_data_root(
 
     captured = capsys.readouterr()
     assert code == 0
+    summaries = _summary_payloads(captured.out)
+    assert [summary["stage"] for summary in summaries] == ["staging", "admission"]
+    assert summaries[0]["admission_target"] == "bronze_data_root"
+    assert summaries[0]["outcome"] == "staging_complete"
+    assert summaries[0]["admitted_comment_response_count"] == 1
+    assert summaries[1]["admission_target"] == "bronze_data_root"
+    assert summaries[1]["outcome"] == "bronze_packet_admitted"
+    assert summaries[1]["packet_path_printed"] is True
     assert COMPLETE_LANE_NOTE in captured.out
     packet_line = next(
         line for line in captured.out.splitlines() if line.startswith("admitted_packet=")
@@ -620,6 +654,14 @@ def test_live_probe_runner_can_chain_batch_admission_to_admit_output(
 
     captured = capsys.readouterr()
     assert code == 0
+    summaries = _summary_payloads(captured.out)
+    assert [summary["stage"] for summary in summaries] == ["staging", "admission"]
+    assert summaries[0]["admission_target"] == "local_admit_output"
+    assert summaries[0]["outcome"] == "staging_complete"
+    assert summaries[0]["browser_backend"] == "cloakbrowser"
+    assert summaries[1]["admission_target"] == "local_admit_output"
+    assert summaries[1]["outcome"] == "local_packet_admitted"
+    assert summaries[1]["packet_path_printed"] is True
     assert COMPLETE_LANE_NOTE in captured.out
     packet_line = next(
         line for line in captured.out.splitlines() if line.startswith("admitted_packet=")
@@ -642,6 +684,7 @@ def test_live_probe_runner_can_chain_batch_admission_to_admit_output(
 def test_live_probe_runner_chain_rejects_failed_cadence_before_packet(
     tmp_path: Path,
     monkeypatch,
+    capsys,
 ) -> None:
     video_id = "7390000000000000001"
     pre_paths = write_tiktok_live_batch_probe_outputs(
@@ -701,6 +744,14 @@ def test_live_probe_runner_chain_rejects_failed_cadence_before_packet(
     else:
         raise AssertionError("failed cadence was admitted by the live runner chain")
     assert not admit_output.exists()
+    captured = capsys.readouterr()
+    summaries = _summary_payloads(captured.out)
+    assert [summary["stage"] for summary in summaries] == ["staging", "admission"]
+    assert summaries[0]["outcome"] == "fail_closed_staging_has_failures"
+    assert summaries[0]["challenge_count"] == 1
+    assert summaries[1]["outcome"] == "fail_closed_admission_rejected"
+    assert summaries[1]["fail_closed"] is True
+
 
 def test_live_probe_runner_rejects_diagnostic_and_followthrough_together(tmp_path: Path) -> None:
     try:
@@ -792,6 +843,143 @@ def test_live_probe_runner_required_proxy_posture_choices_exclude_unknown() -> N
     assert action.choices == ["no_proxy_profile_loaded", "proxy_profile_loaded"]
 
 
+def test_live_probe_runner_defaults_to_cloakbrowser_packet_grade(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    pre_paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        logged_out=True,
+        output_dir=tmp_path / "pre",
+        engine=_FakeObservationEngine(
+            outcomes=[
+                _success_observation(
+                    video_id="7390000000000000001",
+                    response=_comment_response(video_id="7390000000000000001"),
+                    subtitle_url="https://v16.tiktokcdn.com/subtitle.webvtt",
+                )
+            ]
+        ),
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda _url: b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n",
+    )
+    captured_kwargs: dict[str, object] = {}
+
+    def fake_write_tiktok_live_batch_probe_outputs(**kwargs: object):
+        captured_kwargs.update(kwargs)
+        return pre_paths
+
+    monkeypatch.setattr(
+        runner,
+        "write_tiktok_live_batch_probe_outputs",
+        fake_write_tiktok_live_batch_probe_outputs,
+    )
+
+    code = runner.main(
+        [
+            "--creator-handle",
+            "funmi",
+            "--creator-profile-url",
+            "https://www.tiktok.com/@funmi",
+            "--video-url",
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "--logged-out",
+            "--output-dir",
+            str(tmp_path / "out"),
+        ]
+    )
+
+    assert code == 0
+    assert captured_kwargs["browser_backend"] == "cloakbrowser"
+    assert captured_kwargs["cloakbrowser_humanize"] is True
+
+
+def test_live_probe_runner_rejects_playwright_without_diagnostic_opt_in(
+    tmp_path: Path,
+) -> None:
+    try:
+        runner.main(
+            [
+                "--creator-handle",
+                "funmi",
+                "--creator-profile-url",
+                "https://www.tiktok.com/@funmi",
+                "--video-url",
+                "https://www.tiktok.com/@funmi/video/7390000000000000001",
+                "--logged-out",
+                "--browser-backend",
+                "playwright",
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:
+        raise AssertionError("playwright backend was accepted without diagnostic opt-in")
+
+
+def test_live_probe_runner_allows_playwright_with_diagnostic_opt_in(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    pre_paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        logged_out=True,
+        output_dir=tmp_path / "pre",
+        engine=_FakeObservationEngine(
+            outcomes=[
+                _success_observation(
+                    video_id="7390000000000000001",
+                    response=_comment_response(video_id="7390000000000000001"),
+                    subtitle_url="https://v16.tiktokcdn.com/subtitle.webvtt",
+                )
+            ]
+        ),
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda _url: b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n",
+    )
+    captured_kwargs: dict[str, object] = {}
+
+    def fake_write_tiktok_live_batch_probe_outputs(**kwargs: object):
+        captured_kwargs.update(kwargs)
+        return pre_paths
+
+    monkeypatch.setattr(
+        runner,
+        "write_tiktok_live_batch_probe_outputs",
+        fake_write_tiktok_live_batch_probe_outputs,
+    )
+
+    code = runner.main(
+        [
+            "--creator-handle",
+            "funmi",
+            "--creator-profile-url",
+            "https://www.tiktok.com/@funmi",
+            "--video-url",
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "--logged-out",
+            "--browser-backend",
+            "playwright",
+            "--allow-diagnostic-browser-backend",
+            "--browser-channel",
+            "chrome",
+            "--output-dir",
+            str(tmp_path / "out"),
+        ]
+    )
+
+    assert code == 0
+    assert captured_kwargs["browser_backend"] == "playwright"
+    assert captured_kwargs["browser_channel"] == "chrome"
+    assert captured_kwargs["cloakbrowser_humanize"] is False
+
+
 def test_live_probe_runner_rejects_human_handoff_without_followthrough(tmp_path: Path) -> None:
     try:
         runner.main(
@@ -839,7 +1027,7 @@ def test_live_probe_runner_rejects_cloakbrowser_with_browser_channel(tmp_path: P
         raise AssertionError("cloakbrowser backend accepted browser-channel")
 
 
-def test_live_probe_runner_rejects_cloakbrowser_humanize_without_cloakbrowser(
+def test_live_probe_runner_rejects_cloakbrowser_humanize_with_playwright_backend(
     tmp_path: Path,
 ) -> None:
     try:
@@ -852,6 +1040,9 @@ def test_live_probe_runner_rejects_cloakbrowser_humanize_without_cloakbrowser(
                 "--video-url",
                 "https://www.tiktok.com/@funmi/video/7390000000000000001",
                 "--logged-out",
+                "--browser-backend",
+                "playwright",
+                "--allow-diagnostic-browser-backend",
                 "--cloakbrowser-humanize",
                 "--output-dir",
                 str(tmp_path / "out"),
@@ -860,7 +1051,7 @@ def test_live_probe_runner_rejects_cloakbrowser_humanize_without_cloakbrowser(
     except SystemExit as exc:
         assert exc.code == 2
     else:
-        raise AssertionError("cloakbrowser humanize was accepted without cloakbrowser")
+        raise AssertionError("cloakbrowser humanize was accepted with playwright backend")
 
 
 def test_live_probe_rejects_cloakbrowser_humanize_without_cloakbrowser_backend(
@@ -1581,6 +1772,15 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
     assert triage["challenge_close_accepted"] is False
     assert triage["matched_marker"] == "drag the slider"
     assert triage["challenge_kind"] == "slider"
+    assert triage["owner_attention_required"] is True
+    assert triage["manual_challenge_attention_required"] is True
+    assert (
+        triage["owner_attention_reason"]
+        == TIKTOK_MANUAL_CHALLENGE_ATTENTION_REQUIRED_REASON
+    )
+    assert triage["owner_attention_route"] == "fail_closed_no_handoff_prompt"
+    assert triage["agent_may_solve_challenge"] is False
+    assert triage["owner_attention_counts_as_clean_capture"] is False
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 0
     assert triage["dom_visible_comment_candidate_count"] == 0
@@ -1590,6 +1790,104 @@ def test_live_probe_challenge_close_followthrough_stops_if_close_not_accepted(
     assert [
         action["action_name"] for action in triage["challenge_close_attempts"]
     ] == [TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME]
+
+
+def test_live_probe_close_not_accepted_reports_handoff_prompt_route_when_enabled(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    followthrough_close_receipt = _pointer_action_receipt(
+        action_name=TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        wait_ms=2000,
+        selection_strategy="center_modal_visual_x",
+        page_text_gate_matched=True,
+        page_text_matched_marker="drag the slider",
+    )
+    followthrough_close_receipt.update(
+        {
+            "target_kind": "visual_x",
+            "post_click_absence_checked": True,
+            "post_click_absence_marker_count": 4,
+            "post_click_absence_verified": True,
+            "post_click_visual_check_attempted": True,
+            "post_click_visual_target_found": False,
+            "post_click_visual_target_absent": False,
+            "post_click_visual_candidate_count": 4,
+        }
+    )
+    pointer_sequence = [
+        _benign_overlay_action_receipt(),
+        followthrough_close_receipt,
+        *_pointer_action_sequence_receipt(),
+    ]
+    handoff_attempt = {
+        "action_name": "human_challenge_handoff_v0",
+        "action_mode": "source_access_intervention",
+        "action_taken": True,
+        "captcha_solving_by_agent": False,
+        "prompted": True,
+        "prompt_surface": "test_prompt",
+        "matched_marker": "drag the slider",
+        "cleared": False,
+    }
+    engine = _FakeObservationEngine(
+        outcomes=[
+            BrowserPageObservationSuccess(
+                requested_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                title="TikTok",
+                visible_text="video loaded",
+                dom_observation={
+                    "hydration_json_text": json.dumps(_hydration("7390000000000000001"))
+                },
+                responses=[_comment_response(video_id="7390000000000000001")],
+                metadata={
+                    "post_load_pointer_action": pointer_sequence[-1],
+                    "post_load_pointer_actions": pointer_sequence,
+                    "human_challenge_handoff_attempts": [handoff_attempt],
+                },
+                warning_notes=[],
+                limitation_notes=[],
+            )
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=["https://www.tiktok.com/@funmi/video/7390000000000000001"],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        allow_challenge_close_followthrough=True,
+        human_challenge_handoff=True,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["completed_count"] == 0
+    failure = cadence["failures"][0]
+    assert failure["reason"] == TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON
+    triage = failure["blocker_triage"]
+    assert triage["challenge_close_accepted"] is False
+    assert triage["owner_attention_required"] is True
+    assert triage["manual_challenge_attention_required"] is True
+    assert (
+        triage["owner_attention_reason"]
+        == TIKTOK_MANUAL_CHALLENGE_ATTENTION_REQUIRED_REASON
+    )
+    # Handoff enabled and attempted must route to the prompt path, not the
+    # fail-closed-no-handoff path, while still refusing to count as clean capture.
+    assert triage["owner_attention_route"] == "harness_human_challenge_handoff_prompt"
+    assert triage["human_challenge_handoff_enabled"] is True
+    assert triage["human_challenge_handoff_attempted"] is True
+    assert triage["agent_may_solve_challenge"] is False
+    assert triage["owner_attention_counts_as_clean_capture"] is False
 
 
 def test_live_probe_failed_close_receipt_surfaces_center_modal_zone_candidate_count(
@@ -1721,6 +2019,9 @@ def test_live_probe_failed_close_without_comment_actions_has_no_comment_action_l
     triage = failure["blocker_triage"]
     assert triage["challenge_close_action"]["clicked"] is True
     assert triage["challenge_close_accepted"] is False
+    assert triage["owner_attention_required"] is True
+    assert triage["manual_challenge_attention_required"] is True
+    assert triage["owner_attention_route"] == "fail_closed_no_handoff_prompt"
     assert "challenge_close_followthrough" not in triage
     assert "comment_action" not in triage
     assert triage["matched_comment_response_count"] == 0
@@ -1792,6 +2093,9 @@ def test_live_probe_challenge_close_followthrough_stops_if_challenge_remains(
     )
     assert "challenge_close_followthrough" not in triage
     assert triage["challenge_close_accepted"] is False
+    assert triage["owner_attention_required"] is True
+    assert triage["manual_challenge_attention_required"] is True
+    assert triage["owner_attention_route"] == "fail_closed_no_handoff_prompt"
     assert triage["comment_action"]["action_count"] == len(_pointer_action_sequence_receipt())
     assert triage["matched_comment_response_count"] == 1
     assert triage["admitted_comment_response_count"] == 0
