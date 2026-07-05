@@ -44,6 +44,8 @@ _DISMISS_MARKERS = (
 )
 _RELOAD_MARKERS = (
     "reload",
+    "retry",
+    "retry again",
     "try again",
     "something went wrong",
     "couldn't load",
@@ -64,6 +66,7 @@ class TikTokBlockerTriage:
     reload_candidate_count: int = 0
     marker_family: str | None = None
     matched_marker: str | None = None
+    challenge_kind: str | None = None
 
     def to_receipt(self) -> dict[str, object]:
         receipt: dict[str, object] = {
@@ -82,6 +85,8 @@ class TikTokBlockerTriage:
             receipt["marker_family"] = self.marker_family
         if self.matched_marker is not None:
             receipt["matched_marker"] = self.matched_marker
+        if self.challenge_kind is not None:
+            receipt["challenge_kind"] = self.challenge_kind
         return receipt
 
 
@@ -131,6 +136,7 @@ def classify_tiktok_blocker(
             reload_candidate_count=reload_count,
             marker_family="login_or_auth_wall",
             matched_marker="/login",
+            challenge_kind="login_or_auth_wall",
         )
     challenge_marker = _first_contained_marker(haystack, _CHALLENGE_MARKERS)
     if challenge_marker is not None:
@@ -145,6 +151,7 @@ def classify_tiktok_blocker(
             reload_candidate_count=reload_count,
             marker_family="challenge_or_security",
             matched_marker=challenge_marker,
+            challenge_kind=_challenge_kind_from_text(haystack),
         )
 
     reload_marker_seen = _contains_any(haystack, _RELOAD_MARKERS) or reload_count > 0
@@ -220,6 +227,22 @@ def classify_tiktok_blocker(
 def _contains_any(text: str, markers: tuple[str, ...]) -> bool:
     return _first_contained_marker(text, markers) is not None
 
+
+def _challenge_kind_from_text(haystack: str) -> str:
+    if "drag the slider" in haystack:
+        return "slider"
+    if "captcha" in haystack:
+        return "captcha"
+    if "security check" in haystack:
+        return "security_check"
+    if any(
+        marker in haystack
+        for marker in ("too many attempts", "maximum number of attempts", "unusual traffic")
+    ):
+        return "rate_limit_or_traffic"
+    if "verify to continue" in haystack:
+        return "verification_gate"
+    return "unknown_platform_challenge"
 
 def _first_contained_marker(text: str, markers: tuple[str, ...]) -> str | None:
     for marker in markers:

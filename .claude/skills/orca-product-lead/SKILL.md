@@ -53,7 +53,7 @@ needs its own explicit owner authorization.
    `.agents/workflow-overlay/source-loading.md` (thesis, offer hypothesis, buyer
    proof packet, Core Spine product contract, nearest boundary note), then only
    the nearest controlling product doc(s) for the specific decision. Use
-   `docs/workflows/orca_repo_map_v0.md` to choose among many docs.
+   `docs/workflows/forseti_repo_map_v0.md` to choose among many docs.
 3. Controlling product sources, opened as the decision needs them:
    - Current product thesis and first-proof wedge: resolve BOTH through the
      repo map's "Product Anchor Files" table (route, don't restate — wedge
@@ -66,11 +66,11 @@ needs its own explicit owner authorization.
      `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (beauty
      operator first door; OWNER_LOCKED_DIRECTION) — but the repo-map row and
      the records' own supersession banners govern, not this line.
-   - `orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md` — offer
+   - `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md` — offer
      hypothesis (broad offer + first-proof offer layer).
-   - `orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md` —
+   - `forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md` —
      proof-lead ownership and exclusions.
-   - `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` — proof
+   - `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` — proof
      standard, demand-substrate hard gate, qualification, rubric,
      kill / graduation.
    - `.agents/workflow-overlay/product-proof.md` — trust, pull-vs-praise, claim
@@ -102,7 +102,7 @@ needs its own explicit owner authorization.
    language); and the kill / graduation gates verbatim from the buyer-proof
    packet. Classify the Judgment-Spine claim tier and `closeout_state`
    (`.agents/workflow-overlay/product-proof.md` +
-   `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`) before any
+   `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`) before any
    proof, readiness, or judgment-quality claim; missing evidence is not a pass.
 4. **Keep deck-first without weakening the substrate.** Lead buyer-facing framing
    with the executive deck, but the internal memo + evidence appendix remain the
@@ -150,7 +150,7 @@ courier state only when useful.
 - Source path: `.agents/skills/orca-product-lead/SKILL.md` (Forseti-local).
 - Authorization: owner instruction in the Product Lead CA lane to create a
   reusable product-lead skill; the candidate was pre-named in
-  `orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md` ("Product Lead
+  `forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md` ("Product Lead
   Candidate Skill Notes"), which lists this skill as a downstream consumer.
 - Collision status (checked 2026-06-07): resolver-visible `product-lead` exists
   and is jb-scoped → shadow name avoids the collision; no repo-local skill
@@ -189,7 +189,7 @@ courier state only when useful.
   ORCA-HYGIENE-019).
 - Refresh record: 2026-06-20, owner-authorized in-thread — active thesis summary
   repointed to the integrated evidence-backed, decision-led thesis body; product
-  source paths confirmed at the spine-first `orca/product/...` homes; `.claude`
+  source paths confirmed at the spine-first `forseti/product/...` homes; `.claude`
   runtime copy re-synced to this source; and the source sha256 re-pinned in
   skill-adoption.md. This refresh changes skill routing/pins only; the skill
   remains non-authority and the repo map plus controlling records govern.
@@ -199,3 +199,6 @@ courier state only when useful.
   `orca-product-lead` directory / command name remains a legacy compatibility
   alias until a separate resolver-safe skill migration. Both copies updated
   identically; new source sha256 re-pinned in skill-adoption.md.
+- Refresh record: 2026-07-04, owner-authorized Forseti migration continuation —
+  live repo-map load step repointed to `docs/workflows/forseti_repo_map_v0.md`; `.claude` deployment copy re-synced to source; and the source sha256 re-pinned in skill-adoption.md.
+  This refresh changes skill routing/pins only; the `orca-product-lead` command/path remains a legacy compatibility surface pending a separate compatibility-retirement lane.

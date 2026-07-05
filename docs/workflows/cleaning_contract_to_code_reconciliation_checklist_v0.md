@@ -50,10 +50,10 @@ Before acting from this checklist:
 2. Confirm this file is still branch-current, or refresh it after code or contract changes.
 3. Re-run the focused Cleaning tests before claiming the code still matches the checklist.
 
-## Orca Start Preflight
+## Forseti Start Preflight
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom_cleaning_contract_to_code

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate minimum receipt shape for CSB-first scanning artifacts.
+"""Validate scan-artifact receipt shape and Creator Registry preflight receipts.
 
 This is a local/manual checker with a forward-only changed-file mode for CI.
 It does not run retrieval, grade signal quality, validate candidates, bind
@@ -8,13 +8,16 @@ artifact preserves the mechanical receipt shape needed for review: source
 context, caps, broad-scout accounting, CSB-row accountability, exact-query
 accounting, venue/hidden-venue accounting, observations, negatives/access notes,
 capture-request accounting, bounded candidate closeout, and mechanical
-engagement/resonance overclaim language.
+engagement/resonance overclaim language. For scan artifacts that cite Creator
+Registry match preflight receipts, it also checks the cited receipt file exists
+and that capture-request preflight fields match receipt result rows.
 """
 from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
 from datetime import date
+import json
 import os
 from pathlib import Path
 import re
@@ -84,6 +87,10 @@ AUTO_SCAN_ROUTE_MARKERS = (
     "csb_rows_consumed",
     "rows consumed as route map",
 )
+CREATOR_REGISTRY_PREFLIGHT_MARKERS = (
+    "creator_registry_match_preflight:",
+    "receipt_path:",
+)
 REQUIRED_OBSERVATION_FIELDS = {
     "observation_id",
     "source_move_id",
@@ -131,6 +138,8 @@ NOT_APPLICABLE_ALLOWED_PREFLIGHT_VOCAB = {"", "not_applicable"}
 VALID_CREATOR_REGISTRY_INTENDED_ACTIONS = {"new_capture", "classify", "update_existing", "not_applicable"}
 VALID_CREATOR_REGISTRY_DECISIONS = {"existing_match", "new_candidate", "ambiguous_match", "invalid_candidate", "not_applicable"}
 VALID_CREATOR_REGISTRY_ACTION_STATUSES = {"allowed", "blocked", "not_applicable"}
+CREATOR_REGISTRY_RECEIPT_ROOT = "creator_registry_match_preflight_receipt"
+CREATOR_REGISTRY_RECEIPT_SCHEMA = "creator_registry_match_preflight_receipt_v0"
 PLACEHOLDER_PREFLIGHT_RECEIPT_VALUES = {
     "",
     "none",
@@ -668,6 +677,193 @@ def _validate_creator_registry_match_preflight(request_id: Any, request: dict[st
     return findings
 
 
+
+def looks_like_creator_registry_preflight_artifact(relposix: str, text: str) -> bool:
+    if not relposix.endswith(".md"):
+        return False
+    lower = text.lower()
+    return all(marker in lower for marker in CREATOR_REGISTRY_PREFLIGHT_MARKERS)
+
+
+def _safe_repo_relative_path(root: Path, raw_path: Any) -> tuple[Path | None, str | None]:
+    if not isinstance(raw_path, str) or not raw_path.strip():
+        return None, "receipt_path must be a non-empty repo-relative path."
+    cleaned = raw_path.strip().replace("\\", "/")
+    if re.match(r"^[A-Za-z]:", cleaned) or cleaned.startswith("/"):
+        return None, "receipt_path must be repo-relative, not absolute."
+    candidate = Path(cleaned)
+    if any(part == ".." for part in candidate.parts):
+        return None, "receipt_path must not traverse outside the repo."
+    root_resolved = root.resolve()
+    resolved = (root_resolved / candidate).resolve()
+    try:
+        resolved.relative_to(root_resolved)
+    except ValueError:
+        return None, "receipt_path must resolve inside the repo."
+    return resolved, None
+
+
+def _load_creator_registry_receipt(root: Path, raw_path: Any) -> tuple[dict[str, Any] | None, list[Finding]]:
+    receipt_path, path_error = _safe_repo_relative_path(root, raw_path)
+    if path_error:
+        return None, [Finding("invalid_creator_registry_receipt_path", path_error)]
+    assert receipt_path is not None
+    if not receipt_path.is_file():
+        return None, [Finding("missing_creator_registry_receipt_file", f"Creator Registry preflight receipt not found: {raw_path}.")]
+    try:
+        data = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return None, [Finding("invalid_creator_registry_receipt_json", f"Creator Registry preflight receipt {raw_path} is invalid JSON: {exc}.")]
+    except OSError as exc:
+        return None, [Finding("unreadable_creator_registry_receipt", f"Creator Registry preflight receipt {raw_path} could not be read: {exc}.")]
+
+    receipt = data.get(CREATOR_REGISTRY_RECEIPT_ROOT) if isinstance(data, dict) else None
+    if not isinstance(receipt, dict):
+        return None, [Finding("invalid_creator_registry_receipt_root", f"Creator Registry preflight receipt {raw_path} must contain {CREATOR_REGISTRY_RECEIPT_ROOT}.")]
+    findings: list[Finding] = []
+    if receipt.get("schema_version") != CREATOR_REGISTRY_RECEIPT_SCHEMA:
+        findings.append(
+            Finding(
+                "invalid_creator_registry_receipt_schema",
+                f"Creator Registry preflight receipt {raw_path} must use schema_version={CREATOR_REGISTRY_RECEIPT_SCHEMA}.",
+            )
+        )
+    results = receipt.get("results")
+    if not isinstance(results, list):
+        findings.append(Finding("invalid_creator_registry_receipt_results", f"Creator Registry preflight receipt {raw_path} results must be a list."))
+    else:
+        findings.extend(_validate_creator_registry_receipt_summary(raw_path, receipt, results))
+    return receipt, findings
+
+
+def _validate_creator_registry_receipt_summary(raw_path: Any, receipt: dict[str, Any], results: list[Any]) -> list[Finding]:
+    summary = receipt.get("summary")
+    if not isinstance(summary, dict):
+        return [Finding("missing_creator_registry_receipt_summary", f"Creator Registry preflight receipt {raw_path} must contain a summary mapping.")]
+
+    result_dicts = [result for result in results if isinstance(result, dict)]
+    expected = {
+        "total_candidates": len(result_dicts),
+        "new_candidates": sum(1 for result in result_dicts if _normalize_vocab(result.get("decision")) == "new_candidate"),
+        "existing_matches": sum(1 for result in result_dicts if _normalize_vocab(result.get("decision")) == "existing_match"),
+        "ambiguous_matches": sum(1 for result in result_dicts if _normalize_vocab(result.get("decision")) == "ambiguous_match"),
+        "invalid_candidates": sum(1 for result in result_dicts if _normalize_vocab(result.get("decision")) == "invalid_candidate"),
+        "blocked_actions": sum(1 for result in result_dicts if _normalize_vocab(result.get("action_status")) == "blocked"),
+        "safe_to_capture_new": sum(1 for result in result_dicts if _as_bool(result.get("can_start_new_capture")) is True),
+    }
+    findings: list[Finding] = []
+    for field, expected_value in expected.items():
+        actual = _as_int(summary.get(field))
+        if actual != expected_value:
+            findings.append(
+                Finding(
+                    "creator_registry_receipt_summary_mismatch",
+                    f"Creator Registry preflight receipt {raw_path} summary.{field}={summary.get(field)!r} does not match results-derived {expected_value}.",
+                )
+            )
+    return findings
+
+
+
+def _validate_creator_registry_preflight_shapes(blocks: list[Any]) -> list[Finding]:
+    findings: list[Finding] = []
+    for request in _records(blocks, "capture_request_id"):
+        if "creator_registry_match_preflight" in request:
+            findings.extend(_validate_creator_registry_match_preflight(request.get("capture_request_id", "<unknown>"), request))
+    return findings
+
+
+def _validate_creator_registry_receipt_rows(root: Path, blocks: list[Any]) -> list[Finding]:
+    findings: list[Finding] = []
+    requests_by_receipt: dict[str, list[dict[str, Any]]] = {}
+    for request in _records(blocks, "capture_request_id"):
+        preflight = request.get("creator_registry_match_preflight")
+        if not isinstance(preflight, dict):
+            continue
+        if _normalize_vocab(preflight.get("required_when")) != "new_social_creator_account_capture":
+            continue
+        raw_path = preflight.get("receipt_path")
+        if not isinstance(raw_path, str) or _normalize_vocab(raw_path) in PLACEHOLDER_PREFLIGHT_RECEIPT_VALUES:
+            continue
+        requests_by_receipt.setdefault(raw_path, []).append(request)
+
+    for raw_path, requests in requests_by_receipt.items():
+        receipt, receipt_findings = _load_creator_registry_receipt(root, raw_path)
+        findings.extend(receipt_findings)
+        if receipt is None or not isinstance(receipt.get("results"), list):
+            continue
+        results_by_candidate: dict[str, dict[str, Any]] = {}
+        for result in receipt["results"]:
+            if not isinstance(result, dict):
+                findings.append(Finding("invalid_creator_registry_receipt_result", f"Creator Registry preflight receipt {raw_path} contains a non-mapping result row."))
+                continue
+            candidate_id = result.get("candidate_id")
+            if not isinstance(candidate_id, str) or not candidate_id.strip():
+                findings.append(Finding("invalid_creator_registry_receipt_result", f"Creator Registry preflight receipt {raw_path} contains a result without candidate_id."))
+                continue
+            results_by_candidate[candidate_id] = result
+
+        for request in requests:
+            request_id = request.get("capture_request_id", "<unknown>")
+            preflight = request.get("creator_registry_match_preflight", {})
+            candidate_ids = request.get("candidate_or_observation_ids")
+            if not isinstance(candidate_ids, list) or not candidate_ids:
+                findings.append(Finding("invalid_capture_request_candidate_ids", f"Capture request {request_id} candidate_or_observation_ids must be a non-empty list."))
+                continue
+            for candidate_id in candidate_ids:
+                if not isinstance(candidate_id, str):
+                    findings.append(Finding("invalid_capture_request_candidate_ids", f"Capture request {request_id} candidate_or_observation_ids must contain strings."))
+                    continue
+                result = results_by_candidate.get(candidate_id)
+                if result is None:
+                    findings.append(
+                        Finding(
+                            "missing_creator_registry_receipt_result",
+                            f"Capture request {request_id} cites candidate {candidate_id}, but receipt {raw_path} has no matching result row.",
+                        )
+                    )
+                    continue
+                findings.extend(_compare_creator_registry_receipt_result(raw_path, request_id, candidate_id, preflight, result))
+    return findings
+
+
+def _compare_creator_registry_receipt_result(
+    raw_path: Any,
+    request_id: Any,
+    candidate_id: str,
+    preflight: dict[str, Any],
+    result: dict[str, Any],
+) -> list[Finding]:
+    findings: list[Finding] = []
+    for field in ("intended_action", "decision", "action_status"):
+        declared = _normalize_vocab(preflight.get(field))
+        observed = _normalize_vocab(result.get(field))
+        if declared != observed:
+            findings.append(
+                Finding(
+                    "creator_registry_receipt_field_mismatch",
+                    f"Capture request {request_id} candidate {candidate_id} declares {field}={preflight.get(field)!r}, but receipt {raw_path} has {result.get(field)!r}.",
+                )
+            )
+    declared_can_start = _as_bool(preflight.get("can_start_new_capture"))
+    observed_can_start = _as_bool(result.get("can_start_new_capture"))
+    if declared_can_start != observed_can_start:
+        findings.append(
+            Finding(
+                "creator_registry_receipt_field_mismatch",
+                f"Capture request {request_id} candidate {candidate_id} declares can_start_new_capture={preflight.get('can_start_new_capture')!r}, but receipt {raw_path} has {result.get('can_start_new_capture')!r}.",
+            )
+        )
+    if _normalize_vocab(result.get("decision")) == "new_candidate" and result.get("matched_registry_profiles") not in ([], None):
+        findings.append(
+            Finding(
+                "creator_registry_receipt_new_candidate_has_matches",
+                f"Receipt {raw_path} candidate {candidate_id} is new_candidate but has matched_registry_profiles.",
+            )
+        )
+    return findings
+
+
 def _validate_capture_requests(blocks: list[Any]) -> list[Finding]:
     findings: list[Finding] = []
     for request in _records(blocks, "capture_request_id"):
@@ -941,6 +1137,13 @@ def looks_like_csb_first_scan_artifact(relposix: str, text: str) -> bool:
     )
 
 
+def _relposix(root: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return str(path).replace("\\", "/")
+
+
 def auto_targets(root: Path, relpaths: Iterable[str]) -> list[Path]:
     targets: list[Path] = []
     for rel in _dedupe(relpaths):
@@ -953,15 +1156,37 @@ def auto_targets(root: Path, relpaths: Iterable[str]) -> list[Path]:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        if looks_like_csb_first_scan_artifact(rel, text):
+        relposix = rel.replace("\\", "/")
+        if looks_like_csb_first_scan_artifact(relposix, text) or (
+            any(relposix.startswith(prefix) for prefix in AUTO_SCAN_PREFIXES)
+            and looks_like_creator_registry_preflight_artifact(relposix, text)
+        ):
             targets.append(path)
     return targets
 
 
+def validate_artifact_path(root: Path, path: Path) -> list[Finding]:
+    text = path.read_text(encoding="utf-8")
+    relposix = _relposix(root, path)
+    findings: list[Finding] = []
+    if looks_like_csb_first_scan_artifact(relposix, text):
+        findings.extend(validate_text(text))
+    elif not looks_like_creator_registry_preflight_artifact(relposix, text):
+        findings.extend(validate_text(text))
+
+    if looks_like_creator_registry_preflight_artifact(relposix, text):
+        blocks, yaml_findings = _yaml_blocks(text)
+        findings.extend(yaml_findings)
+        findings.extend(_validate_creator_registry_preflight_shapes(blocks))
+        findings.extend(_validate_creator_registry_receipt_rows(root, blocks))
+    return findings
+
+
 def validate_paths(paths: Iterable[Path]) -> int:
+    root = repo_root()
     exit_code = 0
     for path in paths:
-        findings = validate_text(path.read_text(encoding="utf-8"))
+        findings = validate_artifact_path(root, path)
         if findings:
             exit_code = 1
             print(f"FAIL {path}")
@@ -991,7 +1216,7 @@ def selftest() -> int:
     ok = True
     for path in fixture_paths:
         expected = _expected_from_fixture(path)
-        findings = validate_text(path.read_text(encoding="utf-8"))
+        findings = validate_artifact_path(root, path)
         passed = not findings
         if expected == "pass" and passed:
             print(f"PASS {path.name}")
@@ -1006,11 +1231,11 @@ def selftest() -> int:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        description="Validate CSB-first scanning artifact receipt shape."
+        description="Validate CSB-first scan receipt shape and Creator Registry preflight receipt content."
     )
     parser.add_argument("paths", nargs="*", help="explicit scan artifact paths")
-    parser.add_argument("--changed", action="store_true", help="auto-check changed CSB-first docs/research scan artifacts")
-    parser.add_argument("--diff", metavar="BASE", help="auto-check CSB-first docs/research scan artifacts changed in BASE...HEAD")
+    parser.add_argument("--changed", action="store_true", help="auto-check changed docs/research scan artifacts with CSB-first or Creator Registry preflight markers")
+    parser.add_argument("--diff", metavar="BASE", help="auto-check docs/research scan artifacts with CSB-first or Creator Registry preflight markers changed in BASE...HEAD")
     parser.add_argument("--strict", action="store_true", help="accepted for CI readability; findings already exit 1")
     parser.add_argument("--selftest", action="store_true", help="run fixture selftest")
     args = parser.parse_args(argv)
@@ -1040,7 +1265,7 @@ def main(argv: list[str]) -> int:
 
     if not paths:
         if args.changed or args.diff:
-            print("check_csb_scanning_artifact: no changed CSB-first scan artifacts detected")
+            print("check_csb_scanning_artifact: no changed CSB-first or Creator Registry preflight scan artifacts detected")
             return 0
         print(
             "usage: check_csb_scanning_artifact.py [--selftest] [--changed] [--diff BASE] <scan-artifact> [...]",

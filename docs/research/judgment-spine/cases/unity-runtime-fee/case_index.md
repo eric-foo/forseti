@@ -12,15 +12,15 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/cases/unity-runtime-fee/reveal_readout_v0.md
   - docs/research/judgment-spine/manifest_v0.md
-  - orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md
-  - orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md
-  - orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md
+  - forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md
+  - forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md
+  - forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md
 ```
 
 ## Preflight
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: S1 plus target Judgment Spine and Unity specimen artifacts
@@ -44,10 +44,10 @@ orca_start_preflight:
 | Artifact | Path | Use |
 | --- | --- | --- |
 | Reveal readout | `docs/research/judgment-spine/cases/unity-runtime-fee/reveal_readout_v0.md` | Post-reveal learning capsule and reusable lesson surface |
-| Pre-cutoff source packet | `docs/product/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md` | Phase 0 case frame and Phase 1 pre-cutoff public source packet |
-| Sealed at-cutoff memo | `docs/product/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md` | Internal sealed decision memo written before outcome calibration |
-| Outcome calibration | `docs/product/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md` | Post-seal comparison against revealed outcome and owner blind-read judgment |
-| Adjacent MV-04 method replay | `docs/product/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md` | Secondary method-validation evidence; do not treat as the canonical specimen source |
+| Pre-cutoff source packet | `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md` | Phase 0 case frame and Phase 1 pre-cutoff public source packet |
+| Sealed at-cutoff memo | `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md` | Internal sealed decision memo written before outcome calibration |
+| Outcome calibration | `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md` | Post-seal comparison against revealed outcome and owner blind-read judgment |
+| Adjacent MV-04 method replay | `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md` | Secondary method-validation evidence; do not treat as the canonical specimen source |
 
 ## Missing Residue
 
@@ -58,7 +58,7 @@ These files are not present in the case folder and should not be implied:
 - `docs/research/judgment-spine/cases/unity-runtime-fee/blind_judgments_v0.md`
 
 The owner blind-read judgment exists inside
-`docs/product/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`,
+`forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`,
 not as a separate consolidated blind-judgments file.
 
 Do not reconstruct missing residue from memory. If later authorized, create a
@@ -85,7 +85,7 @@ mechanism psychology, implementation cost, grandfathering, segment exemptions,
 and action-ceiling discipline.
 
 Do not use this case as proof that runtime fees are always wrong, that public
-developer backlash was fully predictable at cutoff, that Orca has a validated
+developer backlash was fully predictable at cutoff, that Forseti has a validated
 product, or that a source system, miner, fine-tuning dataset, or implementation
 program should be built.
 
