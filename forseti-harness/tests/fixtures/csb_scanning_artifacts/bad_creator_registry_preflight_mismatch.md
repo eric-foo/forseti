@@ -4,7 +4,7 @@
 ```yaml
 capture_requests:
   - capture_request_id: capreq_fixture_creator_registry_mismatch
-    source_scan: orca-harness/tests/fixtures/csb_scanning_artifacts/bad_creator_registry_preflight_mismatch.md
+    source_scan: forseti-harness/tests/fixtures/csb_scanning_artifacts/bad_creator_registry_preflight_mismatch.md
     candidate_or_observation_ids: [fixture_creator_mismatch]
     urls:
       - url: https://www.youtube.com/@FixtureCreatorMismatch
@@ -16,7 +16,7 @@ capture_requests:
     route_binding_state: unknown
     creator_registry_match_preflight:
       required_when: new_social_creator_account_capture
-      receipt_path: orca-harness/tests/fixtures/csb_scanning_artifacts/bad_creator_registry_preflight_mismatch_receipt.json
+      receipt_path: forseti-harness/tests/fixtures/csb_scanning_artifacts/bad_creator_registry_preflight_mismatch_receipt.json
       intended_action: new_capture
       decision: new_candidate
       action_status: allowed

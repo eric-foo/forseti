@@ -559,7 +559,7 @@ def _valid_creator_registry_receipt() -> dict:
 
 def _write_scan_with_receipt_path(tmp_path: Path, receipt_path_value: str) -> Path:
     text = _creator_registry_scan_text().replace(
-        "receipt_path: orca-harness/tests/fixtures/csb_scanning_artifacts/valid_creator_registry_preflight_receipt.json",
+        "receipt_path: forseti-harness/tests/fixtures/csb_scanning_artifacts/valid_creator_registry_preflight_receipt.json",
         f"receipt_path: {receipt_path_value}",
     )
     scan_path = tmp_path / "scan.md"
