@@ -13,12 +13,14 @@ authority_boundary: retrieval_only
 
 ## Current Status
 
-- Forseti has no local reusable workflow skill source.
-- Forseti has one accepted Forseti-local candidate skill: `orca-product-lead`
-  (accepted/frozen 2026-06-08; DEPLOYED/ACTIVATED 2026-06-08 for the Claude Code
-  runtime, project-scoped — not user-global). See `## Accepted Forseti-Local
-  Candidate Skills` below. Forseti accepts only specific, narrowly scoped local
-  candidates like this one.
+- Forseti has one accepted Forseti-local primary workflow skill source:
+  `forseti-product-lead` (accepted/frozen as the primary product-lead skill ID
+  on 2026-07-05; DEPLOYED/ACTIVATED for the Claude Code runtime,
+  project-scoped — not user-global). See `## Accepted Forseti-Local Candidate
+  Skills` below.
+- Forseti retains `orca-product-lead` as a legacy compatibility wrapper for one
+  transition window. It is an alias into `forseti-product-lead`, not the primary
+  skill identity.
 - Forseti has no accepted global skill shadow candidates.
 - Forseti has no same-name global skill promotions.
 - Forseti may use resolver-visible workflow skills when explicitly invoked or
@@ -120,7 +122,7 @@ behavior was not proven in-thread.
 - Candidate skills must record trigger examples, source boundary, collision
   status, rollback path, and validation notes before acceptance.
 - Accept a Forseti-local candidate as frozen only when it is specific and narrowly
-  scoped to a real Forseti lane (like `orca-product-lead`), defers all Forseti facts to
+  scoped to a real Forseti lane (like `forseti-product-lead`), defers all Forseti facts to
   `AGENTS.md` and `.agents/workflow-overlay/`, carries the adoption metadata
   above, and has a re-confirmed collision check plus a pinned source hash. Do not
   accept broad, generic, or authority-claiming local skills. Acceptance is a
@@ -142,60 +144,58 @@ authority-claiming local skills. Acceptance is a LOCAL FREEZE only: it does not
 deploy, activate, or make the skill resolver-visible; that remains a separate
 skill-governance action under the Protected Skill Boundary.
 
-- `orca-product-lead` — accepted/frozen 2026-06-08; refreshed + re-frozen
-  2026-06-12; refreshed + re-pinned 2026-06-20; rebranded + re-pinned
-  2026-07-03; refreshed + re-pinned 2026-07-04 (owner-authorized
-  skill-edits: active thesis summary folded to the decision-led,
-  evidence-backed thesis body; product source pins confirmed at spine-first
-  `forseti/product/...` homes; visible skill prose rebranded to Forseti while
-  retaining the `orca-product-lead` compatibility command/path; live repo-map
-  load step repointed to `docs/workflows/forseti_repo_map_v0.md`; both
-  copies verified identical).
-  - Source path: `.agents/skills/orca-product-lead/SKILL.md` (Forseti-local).
-  - Source sha256: `4F3C23E3977D386A884D4EFAB9E7CED620185FB440EE488DB5A17297A9F8193A`
-    (re-pinned 2026-07-05 after the post-harness migration status pass confirmed
-    the source and deployment copies remain byte-identical; prior frozen
-    post-repo-map working-tree sha
-    `B8A14075136E171E3847AD7318699DB6CBC4D2D72599F7CC5D2BF0E525D38B12`; prior frozen
-    working-tree sha
-    `24E848BCCD063E70120BCCA51B723D9FE9EAF0DF44904A96FB6B915FF00B0E40`;
-    reread-required if the file changes).
-    (eol note: checkout filters may materialize CRLF or LF working-tree bytes,
-    so the stable same-checkout identity used here is observed with
-    Get-FileHash. In this worktree, on-disk Get-FileHash reads
-    `4F3C23E3977D386A884D4EFAB9E7CED620185FB440EE488DB5A17297A9F8193A`; git
-    content blob is `cf1ffe474ae80704f5f26025dbb945d393bed7be` on both copies,
-    identical after the post-harness migration status pass.)
-  - Scope: prepares — does not freeze, run outreach, produce, or build — any Forseti
-    product decision (value proposition, offer, ICP / first-proof wedge,
+- `forseti-product-lead` — accepted/frozen as the primary Forseti-local
+  product-lead skill identity on 2026-07-05 after the Forseti repo/project
+  identity cutover. Migrated from the legacy `orca-product-lead` command/path;
+  the old command/path remains as a thin compatibility wrapper for one
+  transition window.
+  - Source path: `.agents/skills/forseti-product-lead/SKILL.md` (Forseti-local).
+  - Source sha256: `367867FBA97232B12E33F68C443430869BB9C0793D6494B67C8FA08232671B39`
+    (observed with Get-FileHash on 2026-07-05; `.agents` source and `.claude`
+    deployment copy are byte-identical; git content blob
+    `b3a1077f58c1b018d75564405cde4ccccdcbb2c8` on both copies).
+    Reread-required if the file changes.
+  - Compatibility wrapper path: `.agents/skills/orca-product-lead/SKILL.md` with
+    deployment copy at `.claude/skills/orca-product-lead/SKILL.md`.
+  - Compatibility wrapper sha256: `3A7C819477F475761831B05E0A607CC3A8E1A0E97DCD6875438A79BB2706C3E0`
+    (observed with Get-FileHash on 2026-07-05; source and deployment wrapper
+    copies are byte-identical; git content blob
+    `6411b8a9b8abd73386eb64109a85534f40ddf931` on both wrapper copies).
+    The wrapper loads the sibling `forseti-product-lead` skill and carries no
+    product method of its own.
+  - Scope: prepares — does not freeze, run outreach, produce, or build — any
+    Forseti product decision (value proposition, offer, ICP / first-proof wedge,
     buyer-proof design, positioning / packaging, deliverable shape, pull / kill /
-    graduation). A thin router into Forseti product authority; defers every fact to
-    `AGENTS.md`, the overlay, and the decision records; fails visibly when
+    graduation). A thin router into Forseti product authority; defers every fact
+    to `AGENTS.md`, the overlay, and the decision records; fails visibly when
     authority is missing.
   - Shadow name: distinct from the resolver-visible jb-scoped `product-lead`.
-  - Collision (re-confirmed 2026-06-08): `.agents/skills/` contains only this
-    skill (repo-local glob); the shadow name avoids the jb `product-lead`
-    collision; resolver-visible activation is NOT proven in-thread (see the
-    Activation Caveat above).
-  - Overlay loaded at acceptance: README, decision-routing, skill-adoption,
-    source-of-truth, project-authority, safety-rules, product-proof,
-    artifact-folders, communication-style, validation-gates, source-loading,
-    retrieval-metadata.
-  - Deployment (2026-06-08): DEPLOYED/ACTIVATED for the Claude Code runtime as a
-    project-level copy at `.claude/skills/orca-product-lead/SKILL.md`
-    (byte-identical to source; same sha256). Project scope only — not user-global
-    (`~/.claude/skills/`), not plugin, not external. Sync rule: the
-    `.agents/skills/` file is source-of-record; on any source change, regenerate
-    the `.claude/skills/` copy and re-pin the sha256 here. Activation needs one
-    Claude Code restart to begin watching the newly-created `.claude/skills/`
-    directory. Invocation: `/orca-product-lead` (command name from the
-    directory), description auto-trigger, or the Skill tool. Codex /
-    other-runtime activation is a separate target, not done here.
-  - Rollback: delete `.claude/skills/orca-product-lead/` (deployment copy) and/or
-    `.agents/skills/orca-product-lead/` (source); revert this record, the
-    acceptance policy bullet above, and the `.agents/skills/` entry in
-    `artifact-folders.md`; no plugin / user-level / installed / external skill
-    source is touched.
+  - Collision (checked 2026-07-05): no repo-local, project-level Claude,
+    user-level Codex, user-level Agents, or user-level Claude skill folder named
+    `forseti-product-lead`; active in-thread resolver did not expose a
+    `forseti-product-lead` skill before this source change. Existing
+    `orca-product-lead` remains only as the repo/project compatibility wrapper;
+    existing `product-lead` remains jb-scoped and is not imported.
+  - Overlay loaded for migration: README, decision-routing, source-of-truth,
+    skill-adoption, artifact-folders, validation-gates, source-loading, and the
+    skill/preflight identity migration plan.
+  - Deployment (2026-07-05): DEPLOYED/ACTIVATED for the Claude Code runtime as a
+    project-level copy at `.claude/skills/forseti-product-lead/SKILL.md`
+    (byte-identical to source; same sha256). Project scope only — not
+    user-global (`~/.claude/skills/`), not plugin, not external. Sync rule: the
+    `.agents/skills/forseti-product-lead/` file is source-of-record; on any
+    source change, regenerate the `.claude/skills/forseti-product-lead/` copy and
+    re-pin the sha256 here. Invocation: `/forseti-product-lead` (command name
+    from the directory), description auto-trigger, or the Skill tool. Legacy
+    invocation `/orca-product-lead` remains as a wrapper for one transition
+    window. Codex / other-runtime activation is a separate target, not claimed by
+    this record.
+  - Rollback: delete `.agents/skills/forseti-product-lead/` and
+    `.claude/skills/forseti-product-lead/`; restore the full-method
+    `orca-product-lead` copies from the previous commit; revert this record, the
+    `.agents/skills/` entry in `artifact-folders.md`, and the status/repo-map
+    rows updated by the migration. Do not edit plugin / user-level / installed /
+    external skill source.
   - Boundary: not Forseti authority; Forseti-local only; project-scoped (not
     user-global, not plugin, not external).
 
@@ -222,3 +222,71 @@ cache files, global/user skill roots, or external workflow source.
   `docs/workflows/orca_bootstrap_record.md`.
 - The 2026-06-05 collision table above is the current recognition check for
   Agent Workflow plugin cache `0.1.52`.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Product-lead skill identity migrated from compatibility `orca-product-lead`
+    to primary `forseti-product-lead`; `/orca-product-lead` remains as a thin
+    project-local compatibility wrapper for one transition window, while source,
+    deployment copy, hash pins, collision evidence, rollback, and live route docs
+    now bind the Forseti-primary skill ID.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/skill-adoption.md
+    - .agents/workflow-overlay/artifact-folders.md
+    - .agents/skills/forseti-product-lead/SKILL.md
+    - .agents/skills/orca-product-lead/SKILL.md
+    - .claude/skills/forseti-product-lead/SKILL.md
+    - .claude/skills/orca-product-lead/SKILL.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/guard_protected_actions.py
+    - docs/decisions/forseti_skill_preflight_identity_migration_plan_v0.md
+    - docs/decisions/forseti_compatibility_migration_boundary_v0.md
+    - docs/decisions/forseti_external_identity_path_migration_decision_v0.md
+    - docs/workflows/forseti_post_harness_migration_status_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: docs/prompts/** and docs/review-outputs/** historical artifacts
+      reason: >
+        Historical prompts/reviews preserve provenance; legacy
+        `orca-product-lead` mentions there are not live skill identity defaults.
+    - path: orca_start_preflight references
+      reason: >
+        Start-preflight alias retirement remains explicitly deferred; this lane
+        only migrates the product-lead skill command/path.
+  stale_language_search: >
+    rg -n "orca-product-lead|forseti-product-lead|orca_start_preflight|forseti_start_preflight"
+    AGENTS.md CLAUDE.md README.md .agents .claude docs/decisions docs/workflows docs/prompts
+  stale_language_search_result: >
+    Executed 2026-07-05 in codex/forseti-product-lead-skill-identity. Counts in
+    the checked source set: 13 files mention `forseti-product-lead`, 25 files
+    mention `orca-product-lead`, and 180 files mention `orca_start_preflight`.
+    Live primary skill identity hits are the new `.agents`/`.claude`
+    `forseti-product-lead` copies plus skill-adoption, skill/preflight plan,
+    repo-map, post-harness status, external-identity, compatibility-boundary,
+    and hook-fixture surfaces. Remaining `orca-product-lead` hits are the thin
+    compatibility wrappers, live docs explaining that wrapper, and historical
+    prompt/review/workflow/decision provenance. Remaining `orca_start_preflight`
+    hits are the explicitly deferred alias and historical prompt/review
+    consumers; no start-preflight retirement is claimed. A stale-phrase scan for
+    old "frozen compatibility" wording returned only two hits in the older
+    stale-reference audit record, treated as superseded provenance.
+  non_claims:
+    - not validation
+    - not readiness
+    - not resolver activation proof
+    - not start-preflight alias retirement
+```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

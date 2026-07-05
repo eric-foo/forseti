@@ -42,11 +42,11 @@ output_mode: file-write
 
 This lane does not migrate `forseti/product/`, `orca-harness/`, package names, CI check names, skill IDs, or the start-preflight alias.
 
-## External Identity Gate
+## External Identity Status
 
-Before this lane, the external identity cutover was checked first as planned. Current GitHub evidence showed `eric-foo/orca` still exists and `eric-foo/Forseti` already exists as a separate repository with a different GitHub repository id. Therefore the repo slug cutover cannot safely proceed by patching live defaults to `eric-foo/forseti` or by renaming `eric-foo/orca` into an occupied slug.
+Before this lane, the external identity cutover was checked first as planned. At that time, GitHub evidence showed `eric-foo/orca` still existed and `eric-foo/Forseti` already existed as a separate repository with a different GitHub repository id, so this repo-map lane correctly did not patch live repo-slug defaults.
 
-The external repo identity lane remains owner-gated until the owner chooses what to do with the existing `eric-foo/Forseti` repository.
+Superseding status as of 2026-07-05: the separate web repository is `eric-foo/ForsetiWeb`, and this repository is `eric-foo/forseti`; the execution record is `docs/decisions/forseti_external_identity_path_migration_decision_v0.md`.
 
 ## What Changed
 
@@ -73,7 +73,7 @@ Remaining `docs/workflows/orca_repo_map_v0.md` references are valid only when th
 
 - This decision is not validation, readiness, source-of-truth promotion, implementation authorization, or proof that the repo map is complete.
 - This decision does not migrate product roots, harness roots, package/import names, CI check names, skill IDs, or historical prompt/review artifacts.
-- This decision does not perform the GitHub repo rename, local checkout rename, or remote URL change.
+- This decision did not itself perform the GitHub repo rename, local checkout rename, or remote URL change.
 
 ## Direction Change Propagation
 
@@ -121,8 +121,10 @@ direction_change_propagation:
         Product and harness root migration remain separate high-lock-in lanes.
     - path: eric-foo/orca hard-coded repo slug surfaces
       reason: >
-        The target Forseti slug is occupied by a separate repository, so the
-        external identity cutover remains owner-gated.
+        At this receipt's original point in time, the target Forseti slug was
+        occupied by a separate repository. Superseding status on 2026-07-05:
+        the web repository is `eric-foo/ForsetiWeb`, and this repository is
+        `eric-foo/forseti`.
   stale_language_search: >
     rg -n -F "docs/workflows/orca_repo_map_v0.md" AGENTS.md README.md
     repo-structure.yaml .agents/hooks .agents/workflow-overlay docs/workflows/forseti_repo_map_v0.md

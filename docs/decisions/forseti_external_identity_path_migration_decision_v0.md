@@ -53,23 +53,23 @@ The local parent workspace path remains
 `C:\Users\vmon7\Desktop\projects\orca` until active worktrees and running
 sessions can be closed or replaced by a fresh clone. Its internal
 migration-unit table is superseded in part. Since this record landed, the
-product root, repo-map path, harness root, harness distribution label, and
-harness CI check have all migrated to Forseti naming. Use
-`docs/workflows/forseti_post_harness_migration_status_v0.md` for the current
-post-PR-675 ledger.
+product root, repo-map path, harness root, harness distribution label, harness
+CI check, and product-lead skill identity have all migrated to Forseti naming.
+Use `docs/workflows/forseti_post_harness_migration_status_v0.md` for the
+current migration status ledger.
 
 ## Decision
 
 Proceed with a migration lane, but split it by lock-in.
 
-The next executable migration should be **external identity first**: GitHub repo slug, local checkout naming, and any hard-coded repo slug defaults. Internal root/package/CI/skill migrations remain deferred until a moved-path index and validation plan exist.
+The external GitHub identity, hard-coded repo slug defaults, product root, repo-map path, harness root, harness distribution label, CI check identity, and product-lead skill identity have now moved to Forseti naming. Remaining high-lock-in or compatibility surfaces should continue by separate bounded lanes, not word-match replacement.
 
 This means:
 
 - `eric-foo/orca` became `eric-foo/forseti` on 2026-07-05 after the occupied target was freed by moving the separate web repo from `eric-foo/Forseti` to `eric-foo/ForsetiWeb`; the old Orca slug is retained only as redirect/provenance.
 - The local checkout folder can become `forseti`, but not by renaming the currently active workspace in-place while worktrees and running sessions depend on it. Prefer a fresh clone or a controlled move after active worktrees are closed.
-- `forseti/product/`, `orca-harness/`, `orca-product-lead`, `orca_start_preflight`, and `orca-harness-tests` remain compatibility identifiers until their own migration units are planned and validated. The repo-map path has since moved to `docs/workflows/forseti_repo_map_v0.md`, with `docs/workflows/orca_repo_map_v0.md` retained as a compatibility pointer.
-- Live human-facing metadata that says Orca is current should be fixed when found. This decision includes one such bounded repair: `orca-harness/pyproject.toml` description now says Forseti while retaining package name `orca-harness`.
+- `forseti/product/`, `docs/workflows/forseti_repo_map_v0.md`, `forseti-harness/`, `forseti-harness`, `forseti-harness-tests`, and `forseti-product-lead` are current live identities. Legacy `docs/workflows/orca_repo_map_v0.md` and `/orca-product-lead` remain compatibility pointers/wrappers; `orca_start_preflight` remains a deferred legacy alias.
+- Live human-facing metadata that says Orca is current should be fixed when found, but only inside a classified migration unit with validation evidence.
 
 ## Why
 
@@ -151,7 +151,7 @@ Grounding case: the repo already has a compatibility policy and audit. The corre
 | Harness root | `forseti-harness/` | Deferred. | Package/import install plan, CI working-directory update, check-name migration, review-routing code-root update, full test run. |
 | Package name | `forseti-harness` | Deferred with harness root. | Packaging compatibility plan and downstream install/import check. |
 | CI check name | `forseti-harness-tests` | Deferred with harness root or explicit CI lane. | Auto-merge, branch-protection, PR risk router, and docs update. |
-| Skill command/path | `forseti-product-lead` | Deferred. | Source and deployment-copy migration, invocation alias/rollback, resolver collision check. |
+| Skill command/path | `forseti-product-lead` | Executed by the skill identity lane: primary skill source/deployment copies moved to `forseti-product-lead`; `/orca-product-lead` remains a compatibility wrapper. | Keep wrapper for one transition window; resolver activation in already-running sessions is not claimed. |
 | Repo map path | `docs/workflows/forseti_repo_map_v0.md` | Executed by `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md`; legacy Orca path retained as a compatibility pointer. | Header index, map freshness checker, source-loading pointers, and live entry references repointed. |
 | Start-preflight alias | retire `orca_start_preflight` | Deferred last. | Historical prompt tolerance and hook compatibility decision. |
 
@@ -197,7 +197,7 @@ GitHub usually provides repository redirects after a rename, but this decision d
 5. After external identity is stable, decide whether internal compatibility paths still cause enough confusion to justify migration.
 6. If yes, migrate `forseti/product/` before `orca-harness/`; the repo-map path successor is handled by `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md`, while the product tree remains the next authority/navigation root.
 7. Migrate `orca-harness/`, package name, and CI check name as one runtime lane only after package/install/test and auto-merge impacts are bound.
-8. Migrate `orca-product-lead` and retire `orca_start_preflight` only after the roots and repo-map path settle.
+8. Product-lead skill ID migrated to `forseti-product-lead`; retire `orca_start_preflight` only after prompt/history consumers are classified.
 
 ## Rejected Paths
 

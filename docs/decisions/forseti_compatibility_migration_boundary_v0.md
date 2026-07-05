@@ -66,7 +66,8 @@ The right long-term state may still include deeper path/package migration, but i
 | `forseti/product/` | Live product tree root after the product-root successor migration; historical `orca/product/` paths resolve through `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md`. |
 | `orca-harness/` | Preserve as the runtime/tooling root. A README label may say "Forseti harness" while noting the legacy path, but the directory remains. |
 | `docs/workflows/orca_repo_map_v0.md` | No longer the live repo-map path after the successor migration; retain only as a compatibility pointer to `docs/workflows/forseti_repo_map_v0.md`. |
-| `orca-product-lead` | Preserve as the accepted/frozen compatibility skill command/path until a skill migration explicitly handles source copy, deployment copy, invocation, collision, and rollback. |
+| `forseti-product-lead` | Primary accepted/deployed Forseti-local product-lead skill command/path after the governed skill identity migration. |
+| `orca-product-lead` | Preserve as a thin compatibility wrapper for one transition window; it loads sibling `forseti-product-lead` and carries no product method of its own. |
 | `orca_start_preflight` | Preserve as a legacy alias. New live prompts and reports prefer `forseti_start_preflight`. |
 | `orca-harness-tests` | Preserve unless branch protection, auto-merge, and CI dependency impacts are checked and accepted. |
 | `docs/_inbox/**` | Leave by default. Triage only when promoted or used as source. |
@@ -146,7 +147,7 @@ direction_change_propagation:
         It already names forseti_start_preflight as preferred and orca_start_preflight as a legacy alias; no alias change now.
     - path: .agents/workflow-overlay/skill-adoption.md
       reason: >
-        It already records orca-product-lead as the retained compatibility command/path; no skill migration now.
+        It now records `forseti-product-lead` as the primary product-lead skill ID and `orca-product-lead` as the retained compatibility wrapper; start-preflight alias retirement remains separate.
     - path: .github/workflows/ci.yml
       reason: >
         CI check IDs and working-directory paths stay compatibility identifiers until a separate check-name and branch-protection migration is accepted.
