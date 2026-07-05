@@ -11,9 +11,24 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_rename_migration_policy_v0.md
+  - docs/workflows/forseti_post_harness_migration_status_v0.md
   - docs/workflows/forseti_rename_residual_inventory_v0.md
   - docs/prompts/handoffs/forseti_compatibility_batches_fused_handoff_v0.md
 ```
+
+## Current Status Note
+
+This record governed the pre-harness fused boundary. It is superseded in part by
+`docs/decisions/forseti_harness_identity_migration_plan_v0.md` and
+`docs/workflows/forseti_post_harness_migration_status_v0.md`: the live harness
+root, distribution label, and CI check are now `forseti-harness/`,
+`forseti-harness`, and `forseti-harness-tests`.
+
+Do not use the preserved-identifier list below to revive `orca-harness/`,
+`orca-harness`, or `orca-harness-tests` as live runtime/tooling identifiers. The
+remaining rule still applies to historical provenance, explicit legacy aliases,
+`orca-product-lead`, `orca_start_preflight`, lowercase `orca_*` filenames, the
+legacy repo-map pointer, and the ban on broad word-match migration.
 
 ## Decision
 

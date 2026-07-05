@@ -11,6 +11,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_external_identity_path_migration_decision_v0.md
+  - docs/workflows/forseti_post_harness_migration_status_v0.md
   - docs/workflows/forseti_rename_residual_inventory_v0.md
   - docs/workflows/forseti_repo_map_v0.md
 ```
@@ -43,6 +44,11 @@ updating deterministic path consumers, and adding
 `docs/migration/forseti_harness_runtime_migration_v0/moved_paths_index.md` for
 historical path resolution. The external GitHub repository slug and local parent
 folder remain outside this implementation lane.
+
+Post-merge closeout: PR #675 merged to `main` as `c10f1d7f` on 2026-07-05.
+The current tree has no tracked `orca/` or `orca-harness/` roots; it has 312
+tracked files under `forseti/` and 1214 under `forseti-harness/`. The live CI
+check name is `forseti-harness-tests`.
 
 The target runtime identity is:
 

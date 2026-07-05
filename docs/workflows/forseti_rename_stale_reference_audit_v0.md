@@ -12,8 +12,18 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_rename_migration_policy_v0.md
   - docs/decisions/forseti_compatibility_migration_boundary_v0.md
+  - docs/workflows/forseti_post_harness_migration_status_v0.md
   - docs/workflows/forseti_rename_residual_inventory_v0.md
 ```
+
+## Post-Merge Supersession
+
+This audit is a pre-harness-root-migration record. Its counts, Step 4 result,
+and deferred queue remain historical evidence for that lane, but its statements
+that `orca-harness/`, `orca-harness`, or `orca-harness-tests` are preserved or
+deferred are superseded by PR #675. Use
+`docs/workflows/forseti_post_harness_migration_status_v0.md` for the current
+post-merge residual queue.
 
 ## Start Preflight
 
