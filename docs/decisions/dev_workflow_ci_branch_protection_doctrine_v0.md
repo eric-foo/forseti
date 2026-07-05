@@ -121,14 +121,14 @@ This record does not assert that any server-side gate is active. It is not.
    or failing checks, an empty check set, a missing/ambiguous PR number, the no-arg form, the
    lower-level `gh api .../merge` form, a foreign `--repo`, or any lookup error/timeout — **fails
    closed**: the guard blocks (exit 2) and prints the repo-scoped manual command
-   (`gh pr merge <N> --squash --delete-branch --repo eric-foo/orca`) for a human to run from anywhere.
+   (`gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`) for a human to run from anywhere.
    Push to `main`, force-push, and destructive `reset --hard` / `clean` stay hard-blocked; a benign
    lane-branch push stays allowed. **Why CLEAN + green + label, not bare CLEAN:** on this repo branch
    protection is 403-blocked, so no check is *required* and an empty/early check set can read `CLEAN`
    before CI even starts — requiring the rollup present-and-green (plus an explicit opt-in label)
    closes that false-green race and makes self-merge a deliberate, auditable act. The **opt-in label
    is the agent's deliberate marker**; one-time setup `gh label create agent-automerge --repo
-   eric-foo/orca` makes it applyable, and absent the label nothing auto-merges. **Liveness (durable on
+   eric-foo/forseti` makes it applyable, and absent the label nothing auto-merges. **Liveness (durable on
    `main`):** the guard and its `.claude/settings.json` PreToolUse registration are **durable on
    `main`** — they landed via PR #15 (then in block-all-merges form) and are verified tracked +
    registered on `origin/main`; this amendment relaxes the guard to the CLEAN-gated form, and **a human

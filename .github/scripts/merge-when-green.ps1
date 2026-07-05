@@ -25,7 +25,7 @@
     Pull request number.
 
 .PARAMETER Repo
-    owner/repo. Defaults to FORSETI_GITHUB_REPOSITORY, then GITHUB_REPOSITORY, then eric-foo/orca.
+    owner/repo. Defaults to FORSETI_GITHUB_REPOSITORY, then GITHUB_REPOSITORY, then eric-foo/forseti.
 
 .PARAMETER Check
     Name of the required check that must be green (default: forseti-harness-tests).
@@ -64,7 +64,7 @@ function Resolve-RepoSlug {
     } elseif ($env:GITHUB_REPOSITORY) {
         $env:GITHUB_REPOSITORY
     } else {
-        'eric-foo/orca'
+        'eric-foo/forseti'
     }
     if ($candidate -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$') {
         Stop-WithRefusal "invalid repo slug '$candidate'."

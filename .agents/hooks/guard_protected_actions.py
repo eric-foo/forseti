@@ -55,7 +55,7 @@ import subprocess
 import sys
 
 HOME = os.path.expanduser("~")
-DEFAULT_REPO_SLUG = "eric-foo/orca"
+DEFAULT_REPO_SLUG = "eric-foo/forseti"
 _REPO_SLUG_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
 

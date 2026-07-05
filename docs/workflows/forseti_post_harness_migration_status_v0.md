@@ -39,7 +39,7 @@ Observed from `origin/main` after PR #675 merged as `c10f1d7f` on 2026-07-05:
 | Harness root | Executed by PR #675: live runtime root is `forseti-harness/`. | Remaining `orca-harness/` hits must be historical, residual-audit text, or moved-path source terms unless a fresh scan proves a live missed surface. |
 | Harness distribution label | Executed by PR #675: package distribution label is `forseti-harness`. | Python import namespaces remain unchanged. |
 | CI check identity | Executed by PR #675: required check is `forseti-harness-tests`. | Do not revive `orca-harness-tests` in live automation. |
-| GitHub repository slug | Still blocked: live repo remains `eric-foo/orca`. | Do not cut over remotes or protected-action defaults until the owner frees `eric-foo/Forseti` or chooses another slug and the slug probe is re-run. |
+| GitHub repository slug | Executed on 2026-07-05: live repo is `eric-foo/forseti`; the former web repo moved from `eric-foo/Forseti` to `eric-foo/ForsetiWeb`. | Local `origin` was updated to `https://github.com/eric-foo/forseti.git`; keep historical repo links as provenance. |
 | Local parent checkout folder | Not migrated: active workspace path remains under `projects/orca`. | Use a fresh clone or controlled shutdown/move; do not rename the active workspace in-place. |
 | Skill command/path | Deferred: `orca-product-lead` remains the accepted compatibility skill command/path. | Requires source/deployment copy, invocation alias, resolver, hash-pin, rollback, and collision handling before migration. |
 | Start-preflight alias | Deferred: `orca_start_preflight` remains a legacy alias. | New live prompts and reports prefer `forseti_start_preflight`; alias retirement is last-mile compatibility work. |

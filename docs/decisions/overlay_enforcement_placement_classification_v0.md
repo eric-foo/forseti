@@ -483,7 +483,7 @@ block."* The owner intends it, with conditions:
   paths (a guard bug must not brick all of the agent's tools); only the merge
   path fails closed.
 - The block message **always prints the repo-scoped manual command**
-  (`gh pr merge <N> --squash --delete-branch --repo eric-foo/orca`) so a human
+  (`gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`) so a human
   can land from any directory.
 - **Classification: PARTIAL → still substrate-appropriate.** `mergeStateStatus`,
   check conclusions, and label presence are deterministic API shape the guard can
