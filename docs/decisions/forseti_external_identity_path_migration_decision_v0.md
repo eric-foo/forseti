@@ -47,11 +47,15 @@ Observed current state after the owner-authorized rename:
 - live repo: `eric-foo/forseti` (`R_kgDOScCLJQ`)
 - web repo: `eric-foo/ForsetiWeb` (`R_kgDOTMfy1w`)
 - local `origin`: `https://github.com/eric-foo/forseti.git`
+- fresh local main-repo clone: `C:\Users\vmon7\Desktop\projects\forseti`
+  on `main`, tracking `https://github.com/eric-foo/forseti.git`
+- local web-repo checkout: `C:\Users\vmon7\Desktop\projects\ForsetiWeb`,
+  tracking `https://github.com/eric-foo/ForsetiWeb.git`
 - old GitHub slugs may redirect, but they are no longer canonical.
 
-The local parent workspace path remains
+The legacy active workspace path remains
 `C:\Users\vmon7\Desktop\projects\orca` until active worktrees and running
-sessions can be closed or replaced by a fresh clone. Its internal
+sessions can be closed or deliberately migrated. Its internal
 migration-unit table is superseded in part. Since this record landed, the
 product root, repo-map path, harness root, harness distribution label, harness
 CI check, and product-lead skill identity have all migrated to Forseti naming.
@@ -143,7 +147,7 @@ Grounding case: the repo already has a compatibility policy and audit. The corre
 | Unit | Target name | Status | Gate before execution |
 | --- | --- | --- | --- |
 | GitHub repository slug | `eric-foo/forseti` | Executed 2026-07-05: repo ID `R_kgDOScCLJQ` now resolves as `eric-foo/forseti`; the separate web repo ID `R_kgDOTMfy1w` now resolves as `eric-foo/ForsetiWeb`. | Use `eric-foo/forseti` in live defaults; keep old slug references only as historical/provenance or redirect-tolerant compatibility. |
-| Local checkout folder | `C:\Users\vmon7\Desktop\projects\forseti` | Still recommended, but only as a controlled fresh clone or shutdown/move after active worktrees close; this active workspace remains under `C:\Users\vmon7\Desktop\projects\orca`. | Active worktrees/sessions closed or a fresh clone path chosen. |
+| Local checkout folder | `C:\Users\vmon7\Desktop\projects\forseti` | Executed as a controlled fresh clone on 2026-07-05; the legacy active workspace remains under `C:\Users\vmon7\Desktop\projects\orca` while its active worktrees/sessions remain open. | Use the fresh clone for new main-repo sessions; later close or deliberately migrate the legacy workspace. |
 | Remote URL defaults | `https://github.com/eric-foo/forseti.git` | Executed for this checkout: `origin` points to `https://github.com/eric-foo/forseti.git`. | Other clones should run `git remote set-url origin https://github.com/eric-foo/forseti.git` and verify `git remote -v`. |
 | Protected-action repo slug | `eric-foo/forseti` | Executed in the external-identity source patch: guard default is now `eric-foo/forseti`; `FORSETI_GITHUB_REPOSITORY` remains an override. | Run selftest and review-routing gate. |
 | Merge script default repo | `eric-foo/forseti` | Executed in the external-identity source patch: merge helper fallback is now `eric-foo/forseti`; `FORSETI_GITHUB_REPOSITORY` remains an override. | Verify PR command behavior and branch-protection assumptions during normal landing checks. |
@@ -193,7 +197,7 @@ GitHub usually provides repository redirects after a rename, but this decision d
 1. Landed the initial decision, metadata-label repair, and target-slug blocker update.
 2. Executed the owner-gated external GitHub identity cutover on 2026-07-05: web repo to `eric-foo/ForsetiWeb`, this repo to `eric-foo/forseti`.
 3. Land this source cutover patch for hard-coded slug defaults and live docs.
-4. Rename or replace the local parent checkout folder only after active worktrees/sessions close; prefer a fresh clone at `C:\Users\vmon7\Desktop\projects\forseti`.
+4. Fresh local main-repo clone created at `C:\Users\vmon7\Desktop\projects\forseti`; later close or deliberately migrate the legacy active `C:\Users\vmon7\Desktop\projects\orca` workspace when its worktrees/sessions are no longer needed.
 5. After external identity is stable, decide whether internal compatibility paths still cause enough confusion to justify migration.
 6. If yes, migrate `forseti/product/` before `orca-harness/`; the repo-map path successor is handled by `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md`, while the product tree remains the next authority/navigation root.
 7. Migrate `orca-harness/`, package name, and CI check name as one runtime lane only after package/install/test and auto-merge impacts are bound.
