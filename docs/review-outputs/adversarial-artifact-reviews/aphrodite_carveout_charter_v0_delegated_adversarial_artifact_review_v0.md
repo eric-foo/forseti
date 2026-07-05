@@ -23,7 +23,7 @@ branch: claude/sleepy-bassi-2dec16
 head: 17778ec1e95d41392cf80e5dbfa758791cf9707e
 source_context: SOURCE_CONTEXT_READY
 stale_if:
-  - orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md changes.
+  - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md changes.
   - docs/decisions/forseti_company_brand_architecture_v0.md changes in the D8 amendment scope.
   - Any controlling record named in the commission supersedes the reviewed text.
 ```
@@ -34,11 +34,11 @@ Review frame: the boundary problem was whether a DRAFT strategy register and a n
 
 ### AR-01 - major - [charter]
 
-Location: `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` strategy one-sentence and moat boundary.
+Location: `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` strategy one-sentence and moat boundary.
 
 Issue: The original one-sentence strategy said the asset was one "nobody can copy," while the same charter's honest boundary says a funded competitor could replicate the corpus in months and the product architecture frames the defensible moat as capture history and time-series advantage, not impossibility.
 
-Evidence: `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:120` states a funded competitor could replicate the corpus in months; `orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md:54` to `:59` frames the moat as a longitudinal vertical evidence graph and capture-history advantage; patched charter language at `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:77` to `:80` now says hard to copy on a useful timeline.
+Evidence: `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:120` states a funded competitor could replicate the corpus in months; `forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md:54` to `:59` frames the moat as a longitudinal vertical evidence graph and capture-history advantage; patched charter language at `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:77` to `:80` now says hard to copy on a useful timeline.
 
 Impact: A cold reader could treat the charter as claiming a validated or absolute competitive barrier, contradicting the artifact's own honest boundary.
 
@@ -48,11 +48,11 @@ next_authorized_action: CA adjudicates the patched wording as decision input and
 
 ### AR-02 - major - [charter]
 
-Location: `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` phase table and buyer-proof grammar paragraph.
+Location: `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` phase table and buyer-proof grammar paragraph.
 
 Issue: The original charter compressed the house graduation grammar into the repeat/pull thresholds alone. The buyer-proof packet requires all graduation criteria to be met and accepted, including repeatability without software, non-bespoke deck behavior, strongest-value discipline, no dashboard/source-system dependency, and intact non-claims.
 
-Evidence: `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md:561` to `:570` lists the full graduation criteria; `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md:499` to `:501` says a fixed-scope paid sprint is only a hypothesis, not WTP proof; `.agents/workflow-overlay/product-proof.md:84` to `:90` says pull requires observable budget-adjacent behavior, not approval language. Patched charter lines `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:86` and `:182` to `:194` now distinguish the minimum repeat/pull anchor from the full graduation gate.
+Evidence: `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md:561` to `:570` lists the full graduation criteria; `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md:499` to `:501` says a fixed-scope paid sprint is only a hypothesis, not WTP proof; `.agents/workflow-overlay/product-proof.md:84` to `:90` says pull requires observable budget-adjacent behavior, not approval language. Patched charter lines `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:86` and `:182` to `:194` now distinguish the minimum repeat/pull anchor from the full graduation gate.
 
 Impact: The old text could let a later lane graduate the carveout on two thresholds while silently dropping controlling proof criteria.
 
@@ -62,11 +62,11 @@ next_authorized_action: CA adjudicates the patched gate wording as decision inpu
 
 ### AR-03 - minor - [charter]
 
-Location: `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` accepted residuals table.
+Location: `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md` accepted residuals table.
 
 Issue: The residual table repeated `~90-95%` / `~20-30%` capture values without carrying the local hypothesis-tier label in the row itself. The section title and register already mark every capture number as hypothesis-tier, but the table row is the scannable surface most likely to be quoted alone.
 
-Evidence: `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:196` to `:199` says capture numbers are hypothesis-tier; `docs/decisions/orca_mini_god_tier_doctrine_v0.md:98` to `:103` says percent language is target calibration only and not a numeric achievement claim without independent evidence; patched row `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:267` now labels the estimate as hypothesis-tier.
+Evidence: `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:196` to `:199` says capture numbers are hypothesis-tier; `docs/decisions/orca_mini_god_tier_doctrine_v0.md:98` to `:103` says percent language is target calibration only and not a numeric achievement claim without independent evidence; patched row `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:267` now labels the estimate as hypothesis-tier.
 
 Impact: Low but real claim-tier leakage risk when the residual table is consumed out of context.
 
@@ -110,7 +110,7 @@ index 2d218857..eb5a39d8 100644
 +under D8's Vetting-v0/public-launch sequencing (D8 items 1 and 6): **role**
 +and **decision type**. Purpose: passive buyer-lane sequencing signal for the
 +Aphrodite carveout
- (`orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md`,
+ (`forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md`,
  register row R-2).
 
 # [adr-d8]
@@ -126,10 +126,10 @@ index 2d218857..eb5a39d8 100644
      passive buyer-lane sequencing signal for the Aphrodite carveout. Optional
      only; same privacy-notice posture; no other D8 element, gate, or
      authorization changes.
-diff --git a/orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md b/orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+diff --git a/forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md b/forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
 index 33bf2238..43a46ebe 100644
---- a/orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
-+++ b/orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+--- a/forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
++++ b/forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
 # [charter]
 @@ -74,16 +74,16 @@ not move.
 
@@ -155,7 +155,7 @@ index 33bf2238..43a46ebe 100644
  Sequencing authority is unchanged: foundation-first per the product
 # [charter]
 @@ -184,11 +184,14 @@ Proof semantics are consumed, not redefined, from
- `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
+ `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
  (adapted to this product at sprint time — the parent's demand-substrate gate
  does not transfer; the pull/praise, trust-objection/refusal, kill-discipline,
 -and graduation grammar do): pull is paid-path behavior, never praise; graduate
@@ -188,14 +188,14 @@ index 33bf2238..43a46ebe 100644
 
 ## Per-Change Citations
 
-- C-01 [charter]: The patched strategy line at `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:77` to `:80` aligns with the honest-boundary language at `:120` to `:123` and the product architecture's capture-history moat at `orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md:54` to `:59`.
-- C-02 [charter]: The patched phase/gate text at `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:86` and `:182` to `:194` aligns with buyer-proof graduation criteria at `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md:561` to `:570` and pull semantics at `.agents/workflow-overlay/product-proof.md:84` to `:90`.
-- C-03 [charter]: The patched residual row at `orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:267` keeps local consistency with `:196` to `:199` and the Mini God Tier percent-language guard at `docs/decisions/orca_mini_god_tier_doctrine_v0.md:98` to `:103`.
+- C-01 [charter]: The patched strategy line at `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:77` to `:80` aligns with the honest-boundary language at `:120` to `:123` and the product architecture's capture-history moat at `forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md:54` to `:59`.
+- C-02 [charter]: The patched phase/gate text at `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:86` and `:182` to `:194` aligns with buyer-proof graduation criteria at `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md:561` to `:570` and pull semantics at `.agents/workflow-overlay/product-proof.md:84` to `:90`.
+- C-03 [charter]: The patched residual row at `forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md:267` keeps local consistency with `:196` to `:199` and the Mini God Tier percent-language guard at `docs/decisions/orca_mini_god_tier_doctrine_v0.md:98` to `:103`.
 - C-04 [adr-d8]: The patched amendment at `docs/decisions/forseti_company_brand_architecture_v0.md:278` to `:292` and receipt at `:443` to `:448` align with D8's near-term surface and design-order boundaries at `:247` to `:250` and `:266` to `:274`.
 
 ## Receipt Checks
 
-- `rg -in "aphrodite" --glob "!docs/_inbox/**" --glob "!orca/product/spines/creator_signal/aphrodite_carveout_charter_v0.md" .` returned hits in the expected live file families: the brand ADR, the Creator Signal README, the Forseti web-foundation handoff, and the captured evidence datapoint.
+- `rg -in "aphrodite" --glob "!docs/_inbox/**" --glob "!forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md" .` returned hits in the expected live file families: the brand ADR, the Creator Signal README, the Forseti web-foundation handoff, and the captured evidence datapoint.
 - `rg -in "waitlist" docs/decisions/forseti_company_brand_architecture_v0.md docs/workflows/forseti_web_foundation_design_lane_handoff_v0.md` returned the expected ADR D6/D8/amendment/receipt hits plus the point-in-time web-foundation handoff hits.
 
 ## Verdict

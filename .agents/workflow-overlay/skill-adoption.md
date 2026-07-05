@@ -144,23 +144,25 @@ skill-governance action under the Protected Skill Boundary.
 
 - `orca-product-lead` — accepted/frozen 2026-06-08; refreshed + re-frozen
   2026-06-12; refreshed + re-pinned 2026-06-20; rebranded + re-pinned
-  2026-07-03 (owner-authorized skill-edits: active thesis summary folded to the
-  decision-led, evidence-backed thesis body; product source pins confirmed at
-  spine-first `forseti/product/...` homes; visible skill prose rebranded to Forseti
-  while retaining the `orca-product-lead` compatibility command/path; both
+  2026-07-03; refreshed + re-pinned 2026-07-04 (owner-authorized
+  skill-edits: active thesis summary folded to the decision-led,
+  evidence-backed thesis body; product source pins confirmed at spine-first
+  `forseti/product/...` homes; visible skill prose rebranded to Forseti while
+  retaining the `orca-product-lead` compatibility command/path; live repo-map
+  load step repointed to `docs/workflows/forseti_repo_map_v0.md`; both
   copies verified identical).
   - Source path: `.agents/skills/orca-product-lead/SKILL.md` (Forseti-local).
-  - Source sha256: `24E848BCCD063E70120BCCA51B723D9FE9EAF0DF44904A96FB6B915FF00B0E40`
-    (re-pinned 2026-07-03 after the Forseti rename migration; prior frozen
+  - Source sha256: `B8A14075136E171E3847AD7318699DB6CBC4D2D72599F7CC5D2BF0E525D38B12`
+    (re-pinned 2026-07-04 after the Forseti live repo-map pointer refresh; prior frozen
     working-tree sha
-    `4E573BB652319AD9178ACA8F8F66FD71AE6A7B2E660BB642A1D633B5961A6F0A`;
+    `24E848BCCD063E70120BCCA51B723D9FE9EAF0DF44904A96FB6B915FF00B0E40`;
     reread-required if the file changes).
     (eol note: checkout filters may materialize CRLF or LF working-tree bytes,
     so the stable same-checkout identity used here is observed with
     Get-FileHash. In this worktree, on-disk Get-FileHash reads
-    `24E848BCCD063E70120BCCA51B723D9FE9EAF0DF44904A96FB6B915FF00B0E40`; git
-    content blob is `deffee82ed3a3056bc888cf2a9adf4c6df3fbfa0` on both copies,
-    identical after the Forseti rename refresh.)
+    `B8A14075136E171E3847AD7318699DB6CBC4D2D72599F7CC5D2BF0E525D38B12`; git
+    content blob is `cf1ffe474ae80704f5f26025dbb945d393bed7be` on both copies,
+    identical after the Forseti live repo-map pointer refresh.)
   - Scope: prepares — does not freeze, run outreach, produce, or build — any Forseti
     product decision (value proposition, offer, ICP / first-proof wedge,
     buyer-proof design, positioning / packaging, deliverable shape, pull / kill /

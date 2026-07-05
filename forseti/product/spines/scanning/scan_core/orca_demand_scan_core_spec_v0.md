@@ -554,7 +554,7 @@ Boundaries, all hard:
 - For `creator_social` capture requests that ask Capture to start a new social
   creator/account capture, the handoff carries the Creator Registry match
   preflight receipt fields from
-  `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`.
+  `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`.
   New capture is not cleared unless the receipt row has
   `intended_action: new_capture` and `can_start_new_capture: true`; a manual
   registry/projection scan is orientation only and does not replace the runner

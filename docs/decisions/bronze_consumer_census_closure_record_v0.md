@@ -148,6 +148,35 @@ The bronze completion signal (exit 0) is therefore NOT yet claimable: it
 requires the parfumo packet's lane-owned fix or disposition plus an
 ASR-inclusive (or ASR-drained) run with a zero final pending sweep.
 
+## Closure observed — 2026-07-04 (supersedes the blocker list above)
+
+**`run_seam_cadence.py --run` (unskipped) exited 0 with ZERO status output**
+— two full cycles over all seven entrypoints performed no work and emitted
+nothing, and the final compute-free pending sweep found zero backlog on
+every lane. Run on `origin/main` @ `045db196` against the live lake, after:
+
+- the parfumo blocked-capture packet resolved by the parfumo lane
+  (PR #676: honest zero-handle ack for source-blocked captures, reviewed);
+- the two YT probe surfaces classified out of the ASR lane (PR #673);
+- the ASR family drained entirely compute-free: 472 + 519 (post-#673
+  re-fingerprint) `acked_no_transcribable_audio` — the "ASR backlog" held
+  ZERO transcribable-audio packets; no faster-whisper compute was run.
+
+Bronze consumption is CLOSED as of that run: every derived-record writer is
+on the seam or classified out, and the executable signal proved a fully
+consumed lake. The claim is as-of the run — the lake keeps growing, and the
+signal is re-runnable at any time; a later nonzero exit means new work or a
+new defect, not a broken closure record.
+
+Operational residual observed (added to the ledger): a cadence run
+CONCURRENT with live capture can race the availability reconcile's
+delete+rebuild (`indexes/availability/*.json`, transient WinError 2/5),
+surfacing as loud `entrypoint_failed`/`post_cycle_pending_check_failed`
+noise. Self-heals on retry in a quiet window (the closing run was clean
+with the capture fleet live). A concurrency-safe reconcile is lake
+write-boundary work, owed only if cadence and capture must overlap
+reliably.
+
 ## Residual ledger (accumulated, carried)
 
 - Comment-bound version-bump discipline is mechanized by the pin gate

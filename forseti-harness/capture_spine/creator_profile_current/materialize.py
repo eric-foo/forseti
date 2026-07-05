@@ -182,29 +182,40 @@ def build_creator_profile_current_view_document(
             }
         )
         raise ValueError(f"creator profile materialization received duplicate metric rollups: {duplicate_subjects!r}")
-    if set(accounts_by_id) != set(rollups_by_subject):
-        missing_rollups = sorted(set(accounts_by_id) - set(rollups_by_subject))
-        missing_accounts = sorted(set(rollups_by_subject) - set(accounts_by_id))
+    missing_accounts = sorted(set(rollups_by_subject) - set(accounts_by_id))
+    if missing_accounts:
         raise ValueError(
-            "creator profile materialization requires one metric rollup per platform account; "
-            f"missing_rollups={missing_rollups!r}; missing_accounts={missing_accounts!r}"
+            "creator profile materialization received metric rollups for unknown platform accounts; "
+            f"missing_accounts={missing_accounts!r}"
         )
 
     account_index = {account["platform_account_id"]: index for index, account in enumerate(accounts)}
     rollup_index = {record["rollup"]["profile_subject_id"]: record["rollup_index"] for record in rollup_records}
-    profiles = [
-        _build_platform_account_profile(
-            account=account,
-            account_index=account_index[account["platform_account_id"]],
-            rollup=rollups_by_subject[account["platform_account_id"]]["rollup"],
-            rollup_index=rollup_index[account["platform_account_id"]],
-            metric_source_pointer=rollups_by_subject[account["platform_account_id"]]["pointer"],
-            metric_source_wrapper=rollups_by_subject[account["platform_account_id"]]["wrapper"],
-            audience_profile_snapshot=audience_by_subject.get(account["platform_account_id"]),
-            generated_at_utc=generated_at_utc,
+    profiles = []
+    for account in accounts:
+        account_id = account["platform_account_id"]
+        rollup_record = rollups_by_subject.get(account_id)
+        if rollup_record is None:
+            profiles.append(
+                _build_identity_only_platform_account_profile(
+                    account=account,
+                    account_index=account_index[account_id],
+                    generated_at_utc=generated_at_utc,
+                )
+            )
+            continue
+        profiles.append(
+            _build_platform_account_profile(
+                account=account,
+                account_index=account_index[account_id],
+                rollup=rollup_record["rollup"],
+                rollup_index=rollup_index[account_id],
+                metric_source_pointer=rollup_record["pointer"],
+                metric_source_wrapper=rollup_record["wrapper"],
+                audience_profile_snapshot=audience_by_subject.get(account_id),
+                generated_at_utc=generated_at_utc,
+            )
         )
-        for account in accounts
-    ]
 
     wrapper = {
         "schema_version": CREATOR_PROFILE_CURRENT_VIEW_SCHEMA_VERSION,
@@ -356,6 +367,69 @@ def _build_platform_account_profile(
         ],
     }
 
+def _build_identity_only_platform_account_profile(
+    *,
+    account: dict[str, Any],
+    account_index: int,
+    generated_at_utc: str,
+) -> dict[str, Any]:
+    account_id = account["platform_account_id"]
+    platform = account["platform"]
+    source_pointers = [account["handle_source_pointer"]]
+    display_pointer = account.get("display_name_source_pointer_or_none")
+    if display_pointer:
+        source_pointers.append(display_pointer)
+
+    return {
+        "profile_subject_kind": "platform_account",
+        "profile_subject_id": account_id,
+        "platform_account_id_or_none": account_id,
+        "creator_record_id_or_none": None,
+        "identity_state": "single_platform_observed",
+        "link_state_or_none": None,
+        "review_state_or_none": None,
+        "platform_accounts": [deepcopy(account)],
+        "identity_evidence_summary": {
+            "summary": (
+                f"Single-platform {platform} public account observed from source-backed "
+                "creator registry identity evidence; no metric rollup exists yet."
+            ),
+            "account_pointer": (
+                f"{ACCOUNT_LEDGER_POINTER}#/creator_public_handle_linkage_ledger/"
+                f"platform_accounts/{account_index}"
+            ),
+            "source_pointers": source_pointers,
+        },
+        "current_metric_rollups": [],
+        "ideal_audience_profile": None,
+        "wind_calling_summary": None,
+        "freshness": {
+            "identity_updated_at": account["handle_observed_at"],
+            "metrics_computed_at_or_none": None,
+            "audience_computed_at_or_none": None,
+            "profile_view_computed_at": generated_at_utc,
+        },
+        "source_drill_back": {
+            "identity_ledger_pointer": (
+                f"{ACCOUNT_LEDGER_POINTER}#/creator_public_handle_linkage_ledger/"
+                f"platform_accounts/{account_index}"
+            ),
+            "metric_rollup_pointer": None,
+            "metric_snapshot_pointer": None,
+            "source_metric_observation_ids": [],
+        },
+        "limitations": _identity_only_profile_limitations(platform=platform),
+        "non_claims": [
+            "not channel-wide creator influence",
+            "not platform-wide engagement rate",
+            "not buyer proof",
+            "not public person-level identity",
+            "not contact or outreach authorization",
+            "not cross-platform rollup",
+            "not dashboard readiness",
+            "not SQLite or data-lake physicalization",
+        ],
+    }
 
 def _profile_limitations(*, platform: str, rollup: dict[str, Any], audience_profile_joined: bool) -> list[str]:
     engagement = rollup["metric_rollups"]["engagement_rate"]
@@ -384,6 +458,15 @@ def _profile_limitations(*, platform: str, rollup: dict[str, Any], audience_prof
         "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output.",
     ]
 
+def _identity_only_profile_limitations(*, platform: str) -> list[str]:
+    return [
+        f"Profile is account-scoped to one {platform} platform account; it is not a linked creator_record.",
+        "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+        "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+        "Ideal/content-fit audience profile is not joined in this static view.",
+        "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+        "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation.",
+    ]
 
 def _profile_rollup(rollup: dict[str, Any], metric_rollup_pointer: str) -> dict[str, Any]:
     profile_rollup = {"metric_rollup_id": rollup["metric_rollup_id"], "metric_rollup_pointer": metric_rollup_pointer}

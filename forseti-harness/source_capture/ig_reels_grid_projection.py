@@ -74,6 +74,25 @@ IG_REELS_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not
 PROJECTION_IG_REELS_GRID_LANE = "projection_ig_reels_grid"
 BRONZE_CATALOG_IG_REELS_GRID_RECORD_ID_PREFIX = "bronze_catalog_ig_reels_grid_v0"
 
+# Catch-up re-derivations of this lane mint their record ids under this prefix. The
+# VALUE is frozen: the catch-up runner fingerprints it into its obligation envelopes
+# and committed records carry it, so changing it would orphan acks. Declared here
+# (the lane that owns record-id policy); minted by
+# runners/run_ig_reels_grid_projection_catchup.py, which imports this constant.
+CATCHUP_IG_REELS_GRID_RECORD_ID_PREFIX = "zz_ig_reels_grid_projection_catchup_v0"
+
+
+def projection_record_id_derivation_rank(record_id: str) -> int:
+    """This lane's declared within-anchor supersession rank for a projection record id.
+
+    A catch-up record RE-DERIVES its packet, so it supersedes any earlier sibling of
+    the same anchor. This supersession used to ride on the ``zz_`` prefix's lexical
+    position in a consumer tie-break (F-IGRC-001); it is now declared here and
+    consumed by the creator-metric seed's fail-closed sibling selection. Direct
+    ULID ids and bronze-catalog proof ids share the baseline rank.
+    """
+    return 1 if record_id.startswith(CATCHUP_IG_REELS_GRID_RECORD_ID_PREFIX) else 0
+
 _IG_SOURCE_FAMILY = "instagram_creator"
 _IG_REELS_GRID_SOURCE_SURFACE = "ig_reels_grid_dom_passive_json"
 _CAPTURE_FILE_BASENAME = "ig_reels_grid_capture.json"

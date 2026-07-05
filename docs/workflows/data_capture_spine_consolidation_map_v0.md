@@ -11,11 +11,13 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_capture_toolbox/README.md
+  - forseti/product/spines/capture/core/source_families/README.md
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
   - forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
 stale_if:
   - The source-access tooling authorization changes build tranches, selected backend, or Reddit ordering.
   - The Source Capture Armory README changes component status, runner set, or gap list.
+  - The Capture source-family lane catalog changes known-family route homes, source-family indexes, or family route posture.
   - The Data Capture obligation contract changes capture obligations or forbidden outputs.
   - The Candidate URL Intake parent contract changes candidate locator rows, run envelopes, promotion gates, caps, or traversal stops.
   - The Reddit Candidate URL Intake default-policy decision changes caps, candidate-surface defaults, outbound policy, monitoring posture, promotion ownership, or implementation-scoping gates.
@@ -39,6 +41,14 @@ stale_if:
 | I need to... | Open |
 | --- | --- |
 | Understand current Source Capture Armory components and gaps | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` |
+| Start known-source capture-to-lake lane routing | `forseti/product/spines/capture/core/source_families/README.md` |
+| Check fragrance-native database capture routes (Fragrantica/Parfumo/Basenotes) | `forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md` |
+| Check Retail/PDP source-family route map | `forseti/product/spines/capture/core/source_families/retail_pdp/README.md` |
+| Check vendor pricing-page source-family route map | `forseti/product/spines/capture/core/source_families/vendor_pricing_page/README.md` |
+| Check Instagram public creator/reels capture route map | `forseti/product/spines/capture/core/source_families/social_media/instagram/README.md` |
+| Check TikTok public/sessioned capture, admission, and projection route map | `forseti/product/spines/capture/core/source_families/social_media/tiktok/README.md` |
+| Check YouTube public watch/Shorts/transcript capture route map | `forseti/product/spines/capture/core/source_families/social_media/youtube/README.md` |
+| Check bounded Reddit candidate/capture/consolidation route map | `forseti/product/spines/capture/core/source_families/social_media/reddit/README.md` |
 | Check whether a source-access build or backend is authorized | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` |
 | Check source-access boundary / hard stops | `forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md` |
 | Compare source-access methods and Reddit ordering | `forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md` |

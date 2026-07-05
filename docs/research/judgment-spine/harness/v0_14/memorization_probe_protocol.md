@@ -1,13 +1,13 @@
-# Orca Memorization Probe Protocol v0.14
+# Forseti Memorization Probe Protocol v0.14
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Imported Judgment Harness v0.14 spec with Orca local execution-isolation addendum
+artifact_role: Imported Judgment Harness v0.14 spec with Forseti-local execution-isolation addendum
 scope: Memorization probe protocol and local no-tools execution gate before admitting real-world cases to v0.14.
 use_when:
   - Working from the v0.14 Judgment Harness spec.
   - Checking this file's specific v0.14 harness contract.
-  - Interpreting Orca contestant probe results with no-tools execution evidence.
+  - Interpreting Forseti contestant probe results with no-tools execution evidence.
 authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md
@@ -53,9 +53,9 @@ probe_input:
 
 The probe must run before contestants see the participant packet.
 
-## Orca Local Execution Isolation Addendum
+## Forseti Local Execution Isolation Addendum
 
-For Orca v0.14 contestant use, this protocol is paired with
+For Forseti v0.14 contestant use, this protocol is paired with
 `contestant_no_tools_execution_contract_v0.md`.
 
 The probe prompt is not enough to prove no-tools execution. A probe result may
@@ -140,7 +140,7 @@ gate_interpretation:
 
 ## Case Handling
 
-For Orca v0.14 contestant use, case handling combines the raw `probe_result`
+For Forseti v0.14 contestant use, case handling combines the raw `probe_result`
 with the execution-isolation result. Raw `probe_result: pass` is not sufficient
 to make the contestant-case pair usable.
 

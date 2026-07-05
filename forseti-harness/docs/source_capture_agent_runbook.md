@@ -26,6 +26,9 @@ The agent may:
 - run Authenticated Browser Snapshot capture against one explicitly supplied URL
   using a previously bootstrapped storage-state label and an allowed session
   mode;
+- run the TikTok one-creator live probe against explicitly supplied public
+  creator/video URLs using the TikTok playbook posture, then optionally chain
+  its sanitized staging output through the existing TikTok batch admission gate;
 - run the Creator Registry match preflight runner against candidate social
   creator/account identities before starting new social creator/account
   capture;
@@ -135,7 +138,7 @@ date.
 For social creator/account capture where the operator intends to start a new
 creator capture, run the Creator Registry match preflight before capture and
 carry its receipt in the agent report or handoff. Use
-`orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`
+`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`
 for candidate JSON shape, receipt outcomes, and the runner command. Do not start
 `new_capture` unless the candidate batch was preflighted with
 `intended_action: new_capture` and the resulting receipt row shows `decision:
@@ -158,6 +161,15 @@ For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 The storage-state label resolves only under `forseti-harness/_auth_state/`. Do not
 paste, print, stage, commit, or copy storage-state JSON, cookies, credentials, or
 session values into a packet or report.
+
+For TikTok sessioned live probes that need a source-access provenance check,
+use the CloakBrowser user-data warmup/export path so the local ignored
+auth-state sidecar can carry category-only provenance. The live runner flag
+`--require-harness-proxy-posture no_proxy_profile_loaded` attests only that
+the Source Capture harness did not load a proxy profile for that warmed user-data
+label; it is not full-network no-proxy egress proof, is not a forgery-proof producer-identity ledger against deliberate local sidecar edits, and does not authorize
+printing, copying, or reporting cookies, storage-state JSON, proxy endpoints,
+exit IPs, profile paths, or device identifiers.
 
 If any required input is missing, do not invent it. Stop and report the smallest
 missing input.

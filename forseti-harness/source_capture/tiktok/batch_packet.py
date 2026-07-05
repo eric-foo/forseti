@@ -37,12 +37,14 @@ TIKTOK_BATCH_NON_CLAIMS = (
     "not_raw_signed_endpoint_url_capture",
     "not_raw_cookie_token_or_storage_capture",
     "not_raw_comment_response_body_capture",
+    "not_page_owned_comment_list_response_when_dom_visible_fallback_used",
     "not_raw_subtitle_url_capture",
     "not_raw_subtitle_body_capture",
     "not_raw_media_video_or_audio_capture",
     "not_full_comment_census",
     "not_reply_thread_expansion",
     "not_cross_creator_detection_ceiling",
+    "not_unchallenged_route_when_challenge_close_followthrough_used",
     "not_final_product_or_judgment_extraction",
 )
 
@@ -156,6 +158,7 @@ def write_tiktok_batch_packet(
         receipt_summary=(
             f"TikTok batch admission for @{handle}: videos={summary['video_count']}, "
             f"comment_responses={summary['comment_response_success_count']}, "
+            f"dom_visible_comment_videos={summary['dom_visible_comment_video_count']}, "
             f"captured_comments={summary['captured_comment_count']}, "
             f"subtitle_success={summary['subtitle_success_count']}."
         ),
@@ -243,6 +246,7 @@ def _normalize_video_row(
     comments = _normalize_comments(row)
     subtitles = _normalize_subtitles(row)
     extraction_seed = _build_extraction_seed(desc or "", hashtags, _extract_mentions(desc or ""), comments, subtitles)
+    access_intervention = _normalize_access_intervention(_as_dict(row.get("capture_receipt")))
 
     video: JsonObject = {
         "source_index": source_index,
@@ -269,6 +273,8 @@ def _normalize_video_row(
         "typed_extraction_seed": extraction_seed,
         "limitations": list(TIKTOK_BATCH_NON_CLAIMS),
     }
+    if access_intervention:
+        video["source_access_intervention"] = access_intervention
     if source_item:
         receipt = _profile_item_receipt(source_item)
         if receipt:
@@ -277,9 +283,76 @@ def _normalize_video_row(
     return video
 
 
+def _normalize_access_intervention(receipt: JsonObject) -> JsonObject:
+    action = _as_dict(receipt.get("challenge_close_action")) or _as_dict(
+        receipt.get("challenge_close_diagnostic")
+    )
+    followthrough = _as_bool(receipt.get("challenge_close_followthrough")) is True
+    if not action and not followthrough:
+        return {}
+    result: JsonObject = {
+        "posture": (
+            "owner_authorized_challenge_x_close_followthrough"
+            if followthrough
+            else "challenge_close_action_observed"
+        ),
+        "followthrough": followthrough,
+        "accepted": _as_bool(receipt.get("challenge_close_accepted")),
+        "action_name": _first_str(action.get("action_name")),
+        "clicked": _as_bool(action.get("clicked")),
+        "target_kind": _first_str(action.get("target_kind")),
+        "selection_strategy": _first_str(action.get("selection_strategy")),
+        "visual_fallback_attempted": _as_bool(action.get("visual_fallback_attempted")),
+        "visual_fallback_target_found": _as_bool(action.get("visual_fallback_target_found")),
+        "visual_fallback_candidate_count": _first_int(
+            action.get("visual_fallback_candidate_count")
+        ),
+        "visual_fallback_confidence": _json_safe_scalar(
+            action.get("visual_fallback_confidence")
+        ),
+        "visual_fallback_screenshot_sha256": _first_str(
+            action.get("visual_fallback_screenshot_sha256")
+        ),
+        "visual_fallback_crop_box": _as_dict(action.get("visual_fallback_crop_box")) or None,
+        "post_click_absence_verified": _as_bool(
+            action.get("post_click_absence_verified")
+        ),
+        "post_click_absence_matched_marker": _first_str(
+            action.get("post_click_absence_matched_marker")
+        ),
+        "post_click_visual_target_absent": _as_bool(
+            action.get("post_click_visual_target_absent")
+        ),
+        "post_click_visual_screenshot_sha256": _first_str(
+            action.get("post_click_visual_screenshot_sha256")
+        ),
+    }
+    clean = {key: value for key, value in result.items() if value is not None}
+    assert_no_sensitive_tiktok_material(clean)
+    return clean
+
+
 def _normalize_comments(row: JsonObject) -> JsonObject:
     best = _best_comment_response(row)
     if best is None:
+        dom_comments = _normalize_dom_visible_comment_candidates(row)
+        if dom_comments:
+            result: JsonObject = {
+                "posture": "captured_visible_dom",
+                "response_status": None,
+                "body_sha256": None,
+                "body_size_bytes": 0,
+                "captured_comment_count": len(dom_comments),
+                "envelope": {},
+                "field_coverage": {"text": True},
+                "comments": dom_comments,
+                "limitations": [
+                    "dom_visible_comment_candidates_no_api_envelope",
+                    "dom_visible_comment_candidates_no_reply_expansion",
+                ],
+            }
+            assert_no_sensitive_tiktok_material(result)
+            return result
         return {
             "posture": "not_observed",
             "response_status": None,
@@ -338,6 +411,31 @@ def _normalize_comment(comment: Any, source_order: int) -> JsonObject | None:
     }
     assert_no_sensitive_tiktok_material(result)
     return result
+
+
+def _normalize_dom_visible_comment_candidates(row: JsonObject) -> list[JsonObject]:
+    comments: list[JsonObject] = []
+    for raw in _as_list(row.get("dom_visible_comment_candidates")):
+        item = _as_dict(raw)
+        text = _first_str(item.get("text"), "")
+        if not text:
+            continue
+        result: JsonObject = {
+            "source_order": len(comments),
+            "cid": None,
+            "text": text,
+            "create_time": None,
+            "create_time_utc": None,
+            "digg_count": None,
+            "reply_comment_total": None,
+            "user": {},
+            "source_posture": _first_str(item.get("capture_posture"), "visible_dom_after_comment_route"),
+            "text_sha256": _first_str(item.get("text_sha256"), _sha256_text(text)),
+            "text_char_count": _first_int(item.get("text_char_count"), len(text)),
+        }
+        assert_no_sensitive_tiktok_material(result)
+        comments.append(result)
+    return comments
 
 
 def _normalize_subtitles(row: JsonObject) -> JsonObject:
@@ -431,6 +529,7 @@ def _summarize_batch(videos: Sequence[JsonObject], cadence_payloads: Sequence[Js
         for key in ("playCount", "diggCount", "commentCount", "shareCount", "collectCount")
     }
     comment_success_count = sum(1 for video in videos if _as_dict(video.get("comments")).get("posture") == "captured_page_owned_response")
+    dom_visible_comment_count = sum(1 for video in videos if _as_dict(video.get("comments")).get("posture") == "captured_visible_dom")
     captured_comment_count = sum(_first_int(_as_dict(video.get("comments")).get("captured_comment_count"), 0) or 0 for video in videos)
     envelope_total = sum(_first_int(_as_dict(_as_dict(video.get("comments")).get("envelope")).get("total"), 0) or 0 for video in videos)
     subtitle_success_count = sum(1 for video in videos if _as_dict(video.get("subtitles")).get("posture") == "source_native_webvtt_captured")
@@ -438,13 +537,21 @@ def _summarize_batch(videos: Sequence[JsonObject], cadence_payloads: Sequence[Js
     transcript_count = sum(1 for video in videos if _as_dict(video.get("typed_extraction_seed")).get("has_transcript_text") is True)
     cue_count = sum(_first_int(_as_dict(video.get("subtitles")).get("cue_count"), 0) or 0 for video in videos)
     disclosure_count = sum(1 for video in videos if _as_dict(video.get("typed_extraction_seed")).get("has_disclosure_signal") is True)
+    challenge_close_followthrough_count = sum(
+        1
+        for video in videos
+        if _as_dict(video.get("source_access_intervention")).get("posture")
+        == "owner_authorized_challenge_x_close_followthrough"
+    )
 
     return {
         "video_count": len(videos),
         "attempted_count": attempted_count,
         "completed_count": completed_count,
         "challenge_count": challenge_count,
+        "challenge_close_followthrough_video_count": challenge_close_followthrough_count,
         "comment_response_success_count": comment_success_count,
+        "dom_visible_comment_video_count": dom_visible_comment_count,
         "captured_comment_count": captured_comment_count,
         "comment_envelope_total_sum": envelope_total,
         "subtitle_info_video_count": subtitle_info_count,
@@ -508,8 +615,12 @@ def _summarize_contracts(grid_payload: JsonObject, cadence_payloads: Sequence[Js
     contracts = [_as_dict(grid_payload.get("capture_contract")), *[_as_dict(payload.get("capture_contract")) for payload in cadence_payloads]]
     keys = (
         "captcha_solving",
+        "challenge_close_diagnostic_allowed",
+        "challenge_close_followthrough_allowed",
+        "challenge_close_counts_as_success",
         "cookies_or_tokens_persisted",
         "direct_forged_api_calls",
+        "dom_visible_comment_fallback",
         "page_owned_comment_list_response",
         "page_owned_video_navigation",
         "raw_comment_response_bodies_persisted",

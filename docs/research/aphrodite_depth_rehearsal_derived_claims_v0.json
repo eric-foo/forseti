@@ -1,0 +1,414 @@
+{
+  "artifact": "aphrodite_depth_rehearsal_derived_claims_v0",
+  "artifact_role": "Research record (rehearsal derived-claim set; evidence lane, product_learning-capped; not validation, not readiness, not buyer proof)",
+  "binds_to": "forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md",
+  "recipe": "docs/research/aphrodite_depth_rehearsal_extraction_recipe_v0.md",
+  "corpus_doc": "docs/research/aphrodite_depth_rehearsal_corpus_v0.md",
+  "extraction_pass": {
+    "extraction_model": "claude-fable-5",
+    "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+    "extraction_timestamp": "2026-07-04T10:32:39Z",
+    "note": "Single hand-run pass by the authoring model in-session; per-claim timestamps are the pass timestamp."
+  },
+  "corpus": {
+    "creator": "jeremyfragrance (Instagram)",
+    "corpus_input_hash_rule": "sha256 over UTF-8 join('\\n') of ordered 'shortcode:transcript_sha256:comments_sha256' rows below",
+    "corpus_input_hash": "b645f152cad620776409fee580a02db60e8f5b94272ce01c08d90336b74aae72",
+    "grid_metadata_source": {
+      "packet_id": "01KWA193403TYNTBJVWAP5W5NE",
+      "manifest_sha256": "c637be6f89c03c383529ebf8f37bbe5cf76c1746dae98db98a56577cbee632cb",
+      "file": "raw/01_ig_reels_grid_capture.json"
+    },
+    "rows": [
+      "DaGUhsKsYL9:0587b8501ececc93df246f8c5147db060c2e866ace5b50484c36479026473991:5bb08c99fe277c68c94c79cd351879caad99bc7655ec54fa32074a5abfffea84",
+      "DaH3L1Isdrc:d1c27d982c27ed9287f0c73eebfc53a8538c12a52a2f07f583552e1d3d27e0f2:8a8d3114c440d81a2c602103261791efab62e5bad8432b6df5ca1720cf95b531",
+      "DaINMZCCb6N:a47ca757f30e8290f49bd4821ddbbadd8bef39751dee9402fe13d97c2a3e9012:52744de8458962d37aefbb3d4c202bfa507dc90696ebab8fc999c58707d7f41e",
+      "DaIr5aRsp8p:ac97d402ab8b8115afb1c2c5073d3109cf910bed93f74abf454bd554fe2758f3:e92bef8bbeca457b1448d50d16d1fc8b421121e6648385ae552532df1186f6ef",
+      "DaK3uKxBlKy:159c6df43844053a776795c52c643401ff7ab1771e9baf24e53f2c7ce9e632d8:c3e976da5bf899d9ba4f780b0b99df0538bf264a2ed761db578c98fdcc4e4c55",
+      "DaKd8E9skt8:869e05b001222525c83c93835a3b1e68409da53eb18cf684ac3f1942beba4a21:2592e45bff47f7972e3d0d320b776474e0d4ec7cb219c05cefd88660ec76804d",
+      "DaKeXcVM0sx:699866669f1deb06f9270a494406525354cd477313207e74396782fabd1aed61:3a24f1b872115d64d3af42cd764d31eeff93e35e650171803529256d60924df0",
+      "DaKkwCiB_2B:7b34b622714313d10c500b8325987e8c1d048c6bd1ec98dcf012678c4d7229e4:9ff3b572e454811801c4f26fb15ce081c8cf0c04d595e8376f72095b8b05bd36",
+      "DaKkXGQBE9i:4639998864c9628f1c2f31c91a0af40578a319206aa6fcd60c4213c2a2e6e5fc:21bee77e94cc2e7bf42cd39bfb3ebd1b27b2d5fd3df1f54b44ae94ffe9e81331",
+      "DaLBhRbskFa:4784cd58454b827ca58adb67c081009ed88c1df34c63b4bb45a4f8fc45663dbb:67a484ea45644afd42eb536283c77398ae02021a9f6840f3d21d2faa24e62b25",
+      "DaLBRQiMJhQ:942040a0b964524fd3ba7e9337e4e235a5210a38cc1ccc79f70812b01408bda9:5354b179e9db427195647b896662c963ab7224c78c629120f089208c4842481f",
+      "DaLK8b9s9z9:2cb7f3e0ebe9a437b97acad319b999c4f8c1b7ff4ea377632557b14d964826ba:bafa32c5f58c0b94b1c5a0c4f9c881e8e21164a67fe4769071dcd6847b43d583"
+    ]
+  },
+  "claims": [
+    {
+      "claim_id": "fit.segment_share.v0",
+      "claim_type": "fit.segment_share",
+      "value": "12/12 corpus reels are fragrance-framed (caption and/or speech); at least 5/12 are persona/dance-led with fragrance as the frame rather than review content",
+      "provenance_state": "show",
+      "confidence_or_abstention": "medium-high",
+      "source_refs": {
+        "records": "all 12 corpus rows (transcripts + comments)",
+        "grid_metadata": "packet 01KWA193403TYNTBJVWAP5W5NE captions",
+        "input_content_hash": "b645f152cad620776409fee580a02db60e8f5b94272ce01c08d90336b74aae72"
+      },
+      "receipt": [
+        "every corpus caption contains 'Fragrance' or '#fragrance' (grid captions, 12/12)",
+        "DaH3L1Isdrc @ 8140: 'I'll show you ten fragrance brands and their ten best fragrances'",
+        "DaKd8E9skt8 @ 16000: 'And this is my fragrance of the day.'",
+        "persona-led examples: DaIr5aRsp8p (1 spoken cue, 'Oh, it's good.', 156K plays dance reel); DaK3uKxBlKy, DaKeXcVM0sx, DaKkwCiB_2B (no_speech)"
+      ],
+      "limitations": "single week, recent-window stratum only; caption hashtags alone would over-count — speech/content check is what caps the review-content share",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "fit.product_tier_distribution.v0",
+      "claim_type": "fit.product_tier_distribution",
+      "value": "Self-brand (Fragrance One) dominates the recent window: 9/12 reel captions carry self-brand commerce (7 'OFFICE Fragrance' + 2 'final70' discount-code captions) and the only multi-product content (DaH3L1Isdrc top-10) includes the self-brand slot. Distinct third-party products resolved: 8 (6 designer tier: Dior Sauvage, Chanel Allure Homme Sport, Carolina Herrera Good Girl, Lancome La Vie Est Belle, JPG Ultra Male, LV Imagination; 2 niche/luxury tier: Creed Aventus Absolu, Parfums de Marly Sedley); 2 further niche candidates unresolved (abstained). Note-family distribution: withheld (see limitations).",
+      "provenance_state": "show",
+      "confidence_or_abstention": "medium-high",
+      "source_refs": {
+        "records": "all 12 corpus rows",
+        "ontology": "docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md",
+        "input_content_hash": "b645f152cad620776409fee580a02db60e8f5b94272ce01c08d90336b74aae72"
+      },
+      "receipt": [
+        "captions reels 1,4,5,6,9,10,12: 'OFFICE Fragrance' variants; reels 7,8: 'final70 70% FRAGRANCE Discount At www.FRAGRANCE.one'",
+        "DaH3L1Isdrc @ 30020: 'My fragrance brand fragrance one'",
+        "DaH3L1Isdrc @ 14940-52800: third-party product run (Dior Savage ... Lancome la vie et belle)",
+        "DaLBRQiMJhQ @ 3000: 'Jean Procté, ultra-male.'"
+      ],
+      "limitations": "price tiers are operator_assigned market knowledge (see ontology slice); note-family distribution is unpopulatable from this corpus (2 note terms total) and is withheld, not zero; product mentions concentrate in 2 of 12 reels",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "fit.audience_taste_texture.v0",
+      "claim_type": "fit.audience_taste_texture",
+      "value": "Page-1 comment texture is persona-driven, bilingual (DE/EN), and majority-critical: of 64 non-empty page-1 comments, ~34 (53%) are critical/mocking of the creator's current persona, ~17 (27%) supportive/fan, ~13 (20%) neutral/ambiguous. Collector discourse, dupe-seeking language, and purchase-intent language are ABSENT (0 instances). One brand-voiced comment (Moodsprays) thanks the creator.",
+      "provenance_state": "show",
+      "confidence_or_abstention": "medium (n=64 non-empty of 85 captured; single coding pass by the extraction model; aggregate only)",
+      "source_refs": {
+        "records": "all 12 comments records",
+        "input_content_hash": "b645f152cad620776409fee580a02db60e8f5b94272ce01c08d90336b74aae72"
+      },
+      "receipt": [
+        "supportive: comment 18179239690407249 'Prime Jeremy 👏👏👏'; 17853935082695188 'Nice. A regular video! 👏🏽'; 17920021233391073 '...the #1 fragrance Influencer in the world 🌹💐'",
+        "critical/mocking: 18052470497785580 'Scruffy narcissist trying to sell his cheap €5 fragrances'; 18089104538292731 'You became the most pathetic person in online'; 18110658445941753 'Echt schade zu sehen, wie die Qualität nachlässt...'; 18115268735498182 'This was a difficult watch...'",
+        "brand-voiced: 18114708548490508 'vielen Dank❤️❤️❤️wir freuen uns so, dass Dir unsere Moodsprays gefallen 🙌❤️'",
+        "purchase-intent probes ('bought it because of you', 'where do I get', dupe requests): zero matches across all 85 captured comments"
+      ],
+      "limitations": "page-1 skew is severe (DaIr5aRsp8p: 15 of 215 comments visible); 21/85 captured comments have empty text (unrendered stickers/emoji); sentiment coding is model judgment, not a validated classifier; per-commenter claims deliberately not made",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "fit.proven_adjacency.v0",
+      "claim_type": "fit.proven_adjacency",
+      "value": null,
+      "provenance_state": "withhold",
+      "confidence_or_abstention": "insufficient_evidence",
+      "source_refs": {
+        "records": "all 12 corpus rows",
+        "input_content_hash": "b645f152cad620776409fee580a02db60e8f5b94272ce01c08d90336b74aae72"
+      },
+      "receipt": [
+        "third-party brand content exists in only 2/12 reels (DaH3L1Isdrc, DaLBRQiMJhQ); no comparable-brand content series exists in the corpus to compare against the creator's own baseline"
+      ],
+      "limitations": "requires a longer window and per-video performance history (charter Section 4 panel 1: 'how the creator's videos on comparable brands performed against their own baseline')",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "fit.niche_share_trajectory.v0",
+      "claim_type": "fit.niche_share_trajectory",
+      "value": null,
+      "provenance_state": "withhold",
+      "confidence_or_abstention": "insufficient_evidence",
+      "source_refs": {
+        "records": "all 12 corpus rows",
+        "input_content_hash": "b645f152cad620776409fee580a02db60e8f5b94272ce01c08d90336b74aae72"
+      },
+      "receipt": [
+        "corpus spans one capture cycle (2026-06-29); a trajectory needs at least two"
+      ],
+      "limitations": "blocked on the time axis, not on extraction",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaGUhsKsYL9.v0",
+      "claim_type": "ad.detection",
+      "value": "gifted_invite_candidate + self_brand_commerce",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.7 (gifted-candidate), 0.9 (self-brand)",
+      "source_refs": {
+        "records": "DaGUhsKsYL9 pair",
+        "input_content_hash": "0587b8501ececc93df246f8c5147db060c2e866ace5b50484c36479026473991"
+      },
+      "receipt": [
+        "caption: 'OFFICE Fragrance At Forte Village Sardinia With Nike Schroeder'",
+        "@ 34130: 'Ein Luxuereisort in Sardinia.' (ASR: Luxusresort)",
+        "@ 47130: 'Unikomotiv bei Nikos Schroeder.'",
+        "grid: is_paid_partnership=false, sponsor_users=[], ad_term_candidates=[]"
+      ],
+      "limitations": "hosted-trip gifting is inferred from caption/speech, not platform-labeled; 'invite' wording appears on sibling reels",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaH3L1Isdrc.v0",
+      "claim_type": "ad.detection",
+      "value": "self_brand_commerce (within otherwise organic top-10 content)",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.85",
+      "source_refs": {
+        "records": "DaH3L1Isdrc pair",
+        "input_content_hash": "d1c27d982c27ed9287f0c73eebfc53a8538c12a52a2f07f583552e1d3d27e0f2"
+      },
+      "receipt": [
+        "@ 30020: 'My fragrance brand fragrance one'",
+        "grid: is_paid_partnership=false"
+      ],
+      "limitations": "self-brand slot inside editorial content; no third-party sponsorship marker",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaINMZCCb6N.v0",
+      "claim_type": "ad.detection",
+      "value": "gifted_invite_candidate (product testing with brand-voiced acknowledgement)",
+      "provenance_state": "downgrade",
+      "confidence_or_abstention": "0.5",
+      "source_refs": {
+        "records": "DaINMZCCb6N pair",
+        "input_content_hash": "a47ca757f30e8290f49bd4821ddbbadd8bef39751dee9402fe13d97c2a3e9012"
+      },
+      "receipt": [
+        "caption: 'Testing FRAGRANCES:'",
+        "comment 18114708548490508 (brand-voiced): 'vielen Dank❤️❤️❤️wir freuen uns so, dass Dir unsere Moodsprays gefallen 🙌❤️'",
+        "grid: is_paid_partnership=false"
+      ],
+      "limitations": "transcript is largely unusable ASR noise; classification leans on caption + one brand comment; downgraded accordingly",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaIr5aRsp8p.v0",
+      "claim_type": "ad.detection",
+      "value": "self_brand_commerce",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.9",
+      "source_refs": {
+        "records": "DaIr5aRsp8p pair",
+        "input_content_hash": "ac97d402ab8b8115afb1c2c5073d3109cf910bed93f74abf454bd554fe2758f3"
+      },
+      "receipt": [
+        "caption: 'Topseller Fragrance OFFICE For Men:'",
+        "grid: is_paid_partnership=false"
+      ],
+      "limitations": "content itself is a persona/dance reel; commerce lives in the caption",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaK3uKxBlKy.v0",
+      "claim_type": "ad.detection",
+      "value": "gifted_invite_candidate + self_brand_commerce",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.75 (gifted-candidate), 0.9 (self-brand)",
+      "source_refs": {
+        "records": "DaK3uKxBlKy pair",
+        "input_content_hash": "159c6df43844053a776795c52c643401ff7ab1771e9baf24e53f2c7ce9e632d8"
+      },
+      "receipt": [
+        "caption: 'OFFICE Fragrance Thanks To Nike Schroeder Sardinia Invite FORTE VILLAGE'",
+        "grid: is_paid_partnership=null"
+      ],
+      "limitations": "no speech; platform flag null (not false) in grid metadata",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaKd8E9skt8.v0",
+      "claim_type": "ad.detection",
+      "value": "gifted_invite_candidate + self_brand_commerce",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.75 (gifted-candidate), 0.9 (self-brand)",
+      "source_refs": {
+        "records": "DaKd8E9skt8 pair",
+        "input_content_hash": "869e05b001222525c83c93835a3b1e68409da53eb18cf684ac3f1942beba4a21"
+      },
+      "receipt": [
+        "caption: 'OFFICE Fragrance Thanks To Nike Schroeder Sardinia Invite FORTE VILLAGE'",
+        "@ 18000: 'This is the office fragrance.'"
+      ],
+      "limitations": "platform flag null",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaKeXcVM0sx.v0",
+      "claim_type": "ad.detection",
+      "value": "self_brand_commerce (discount code)",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.95",
+      "source_refs": {
+        "records": "DaKeXcVM0sx pair",
+        "input_content_hash": "699866669f1deb06f9270a494406525354cd477313207e74396782fabd1aed61"
+      },
+      "receipt": [
+        "caption: 'final70 70% FRAGRANCE Discount At www.FRAGRANCE.one (at 700USD/EUR)'"
+      ],
+      "limitations": "no speech; caption-only classification",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaKkwCiB_2B.v0",
+      "claim_type": "ad.detection",
+      "value": "self_brand_commerce (discount code)",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.95",
+      "source_refs": {
+        "records": "DaKkwCiB_2B pair",
+        "input_content_hash": "7b34b622714313d10c500b8325987e8c1d048c6bd1ec98dcf012678c4d7229e4"
+      },
+      "receipt": [
+        "caption: 'final70 70% FRAGRANCE Discount At www.FRAGRANCE.one (at 700USD/EUR)'"
+      ],
+      "limitations": "no speech; caption-only classification",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaKkXGQBE9i.v0",
+      "claim_type": "ad.detection",
+      "value": "gifted_invite_candidate + self_brand_commerce, with an ambiguous third-party-promotion dialog",
+      "provenance_state": "downgrade",
+      "confidence_or_abstention": "0.6",
+      "source_refs": {
+        "records": "DaKkXGQBE9i pair",
+        "input_content_hash": "4639998864c9628f1c2f31c91a0af40578a319206aa6fcd60c4213c2a2e6e5fc"
+      },
+      "receipt": [
+        "caption: 'OFFICE Fragrance Thanks To Nike Schroeder Sardinia Invite FORTE VILLAGE'",
+        "@ 0-5000: 'Is this your brand?' / 'No.' / 'I wanted to promote it.'"
+      ],
+      "limitations": "the promote-it dialog suggests unpaid third-party promotion of an unidentified brand; ASR too garbled to resolve; downgraded",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaLBhRbskFa.v0",
+      "claim_type": "ad.detection",
+      "value": "self_brand_commerce",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.9",
+      "source_refs": {
+        "records": "DaLBhRbskFa pair",
+        "input_content_hash": "4784cd58454b827ca58adb67c081009ed88c1df34c63b4bb45a4f8fc45663dbb"
+      },
+      "receipt": [
+        "caption: 'OFFICE Fragrance:'",
+        "@ 3370: 'my fragrance of day is my office fragrance'"
+      ],
+      "limitations": "",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaLBRQiMJhQ.v0",
+      "claim_type": "ad.detection",
+      "value": "organic",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.8",
+      "source_refs": {
+        "records": "DaLBRQiMJhQ pair",
+        "input_content_hash": "942040a0b964524fd3ba7e9337e4e235a5210a38cc1ccc79f70812b01408bda9"
+      },
+      "receipt": [
+        "caption: 'SUPERMARKET Fragrance Talk: #jeremyfragrance' (no commerce marker)",
+        "@ 3000: 'Jean Procté, ultra-male.' (street conversation about a third-party product)"
+      ],
+      "limitations": "the only corpus reel with no commercial marker of any kind",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.detection.DaLK8b9s9z9.v0",
+      "claim_type": "ad.detection",
+      "value": "gifted_invite_candidate + self_brand_commerce + cross-promotion (host's book)",
+      "provenance_state": "show",
+      "confidence_or_abstention": "0.75",
+      "source_refs": {
+        "records": "DaLK8b9s9z9 pair",
+        "input_content_hash": "2cb7f3e0ebe9a437b97acad319b999c4f8c1b7ff4ea377632557b14d964826ba"
+      },
+      "receipt": [
+        "caption: 'OFFICE Fragrance Thanks To Nike Schroeder Sardinia Invite FORTE VILLAGE'",
+        "@ 0: '...she's wearing my fragrance and this is Mika Shruga with a book for her attention.'",
+        "@ 33000-37000: 'so she's wearing my fragrance. And why fragrance of the day is the office.'"
+      ],
+      "limitations": "host-relationship cross-promotion is not a monetary sponsorship claim",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.load.v0",
+      "claim_type": "ad.load",
+      "value": "Commercial density is very high but self-directed: 11/12 reels carry a commercial marker (9 self-brand captions incl. 2 discount codes; 5-reel hosted-trip gifted-invite candidate cluster; overlap 4), 1/12 organic, 0/12 platform-labeled paid partnership. Sponsor concentration: a single candidate gifting relationship (Nike Schroeder / Forte Village Sardinia). Disclosure hygiene: the hosted-trip cluster carries no #ad/#sponsored/platform label; disclosure is informal ('Thanks To ... Invite' in captions).",
+      "provenance_state": "show",
+      "confidence_or_abstention": "medium-high",
+      "source_refs": {
+        "records": "all 12 corpus rows + grid metadata packet 01KWA193403TYNTBJVWAP5W5NE",
+        "input_content_hash": "b645f152cad620776409fee580a02db60e8f5b94272ce01c08d90336b74aae72"
+      },
+      "receipt": [
+        "per-reel classifications: the 12 ad.detection claims above",
+        "grid: is_paid_partnership false/null on all 12; sponsor_users=[] and ad_term_candidates=[] on all 12"
+      ],
+      "limitations": "one week of reels; gifted-candidate labels are inferred, not platform-verified; 'load' here cannot be compared to the creator's norm without history",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    },
+    {
+      "claim_id": "ad.reception.v0",
+      "claim_type": "ad.reception",
+      "value": "Directional only: the 5 hosted-trip (gifted-candidate) reels underperform the other 7 on median plays (3,153 vs 4,981) and median likes (110 vs 141). The non-cluster median is pulled by persona/dance content (max 156,255 plays); the comparison is confounded and NOT decision-grade.",
+      "provenance_state": "downgrade",
+      "confidence_or_abstention": "low (n=5 vs 7, same-week posting, persona-content confound, plays observed at one snapshot)",
+      "source_refs": {
+        "records": "grid metadata packet 01KWA193403TYNTBJVWAP5W5NE for all 12 shortcodes",
+        "input_content_hash": "b645f152cad620776409fee580a02db60e8f5b94272ce01c08d90336b74aae72"
+      },
+      "receipt": [
+        "cluster plays: DaGUhsKsYL9 53,399; DaK3uKxBlKy 2,878; DaKd8E9skt8 3,153; DaKkXGQBE9i 8,533; DaLK8b9s9z9 1,584",
+        "non-cluster plays: DaH3L1Isdrc 32,553; DaINMZCCb6N 31,822; DaIr5aRsp8p 156,255; DaKeXcVM0sx 4,981; DaKkwCiB_2B 2,813; DaLBhRbskFa 1,873; DaLBRQiMJhQ 4,643"
+      ],
+      "limitations": "charter panel 2 wants sponsored-vs-organic on views/likes/comment texture with matched pairs; zero third-party sponsored items exist in this corpus, so this is a proxy comparison at best. The real comparison is blocked on capture stratum (d): sponsored videos + matched organic pairs.",
+      "extraction_model": "claude-fable-5",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v0",
+      "extraction_timestamp": "2026-07-04T10:32:39Z"
+    }
+  ],
+  "non_claims": [
+    "not validation, not readiness, not buyer proof, not willingness-to-pay evidence",
+    "product_learning-capped; not evidence-grade for any sold report (materiality reacquisition + FLAG 1 remain open)",
+    "no person-level or demographic inference; audience texture is aggregate only",
+    "observed grid metrics quoted in receipts are observed values, not derived claims"
+  ]
+}

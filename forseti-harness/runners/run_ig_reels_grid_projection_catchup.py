@@ -63,6 +63,7 @@ from data_lake.consumption import (
 from data_lake.root import DataLakeRootError
 from harness_utils import generate_ulid
 from source_capture.ig_reels_grid_projection import (
+    CATCHUP_IG_REELS_GRID_RECORD_ID_PREFIX,
     IG_REELS_PROJECTION_CERTIFICATION,
     IG_REELS_PROJECTION_METHOD,
     IG_REELS_PROJECTION_VERSION,
@@ -82,11 +83,12 @@ _ACK_NAMESPACE = PROJECTION_IG_REELS_GRID_LANE
 _SEAM_CONSUMER = "ig_reels_grid_projection_catchup"
 _SOURCE_FAMILY = "instagram_creator"
 _IN_SCOPE_SURFACE = "ig_reels_grid_dom_passive_json"
-# The downstream creator-metric seed breaks equal row-count/capture-time ties by
-# lexical projection path. Keep catch-up records lexically after the catalog proof
-# path's ``bronze_catalog...`` stable ids so a policy-bump re-derivation is not
-# hidden behind an older sibling.
-_CATCHUP_RECORD_ID_PREFIX = "zz_ig_reels_grid_projection_catchup_v0"
+# Catch-up records supersede earlier siblings of the same anchor via the projection
+# lane's DECLARED derivation rank (projection_record_id_derivation_rank), consumed by
+# the creator-metric seed's fail-closed sibling selection -- no longer via this
+# prefix's lexical position (F-IGRC-001). The prefix value is single-sourced from the
+# lane module and stays frozen: it is fingerprinted into obligation envelopes below.
+_CATCHUP_RECORD_ID_PREFIX = CATCHUP_IG_REELS_GRID_RECORD_ID_PREFIX
 # Shared-family surfaces owned by OTHER lanes (transcript/ASR audio, deep-capture
 # audio, calls/momentum). Their packets carry no grid-projectable content; they are
 # acknowledged out-of-scope (module doc) and stay available to their own lanes.

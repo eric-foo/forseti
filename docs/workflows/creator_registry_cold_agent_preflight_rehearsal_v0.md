@@ -12,7 +12,7 @@ use_when:
   - A cold agent needs to understand the row-level `can_start_new_capture` field before starting social creator capture.
   - Checking the operational boundary between Creator Registry lookup and actual capture or metric refresh.
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
   - orca-harness/runners/run_creator_registry_match_preflight.py
   - orca-harness/capture_spine/creator_profile_current/registry_match_preflight.py
 authority_boundary: retrieval_only
@@ -44,8 +44,8 @@ forseti_start_preflight:
     - .agents/workflow-overlay/source-loading.md
     - .agents/workflow-overlay/retrieval-metadata.md
     - .agents/workflow-overlay/validation-gates.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
     - orca-harness/runners/run_creator_registry_match_preflight.py
     - orca-harness/capture_spine/creator_profile_current/registry_match_preflight.py
 ```
@@ -55,7 +55,7 @@ forseti_start_preflight:
 - `docs/workflows/creator_registry_record_contract_handoff_v0.md`: confirmed
   the original record-contract lane drift guard still matters here: no capture,
   no lake writes, and no identity-ledger writes.
-- `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`:
+- `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md`:
   confirmed a social creator/account capture must carry the receipt row's
   `intended_action`, `decision`, `action_status`, and
   `can_start_new_capture`; only `can_start_new_capture: true` on
@@ -66,7 +66,7 @@ forseti_start_preflight:
 - `orca-harness/capture_spine/creator_profile_current/registry_match_preflight.py`:
   confirmed the receipt wrapper, candidate schema, summary fields, row-level
   decision fields, and the `has_blocking_preflight_results` exit predicate.
-- `orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json`:
+- `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json`:
   confirmed the committed registry currently carries `profiles_total: 33`,
   `platform_account_profiles: 33`, `creator_record_profiles: 0`,
   `cross_platform_rollup_profiles: 0`, `profiles_with_metric_rollups: 33`,

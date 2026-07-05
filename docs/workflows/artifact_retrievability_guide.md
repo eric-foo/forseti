@@ -1,11 +1,11 @@
-# Orca Artifact Retrievability Guide
+# Forseti Artifact Retrievability Guide
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow record
-scope: Operational guide for making Orca artifacts findable, classifiable, stale-checkable, and source-loadable without making retrieval metadata authoritative.
+scope: Operational guide for making Forseti artifacts findable, classifiable, stale-checkable, and source-loadable without making retrieval metadata authoritative.
 use_when:
-  - Creating or materially touching a durable human-authored Orca workflow artifact.
+  - Creating or materially touching a durable human-authored Forseti workflow artifact.
   - Deciding whether temporary material should remain transient, enter hygiene triage, or be promoted.
   - Reviewing artifact retrievability, stale-source handling, or body-opening shape.
 open_next:
@@ -22,7 +22,7 @@ downstream_consumers:
   - hygiene maintainers
   - repo-map maintainers
 stale_if:
-  - .agents/workflow-overlay/source-of-truth.md changes Orca source hierarchy or conflict rules.
+  - .agents/workflow-overlay/source-of-truth.md changes Forseti source hierarchy or conflict rules.
   - .agents/workflow-overlay/source-loading.md changes retrieval-header expansion, source-pack, or body-shape guidance.
   - .agents/workflow-overlay/retrieval-metadata.md changes header applicability, fields, exclusions, or authority boundary.
   - .agents/workflow-overlay/artifact-folders.md changes accepted artifact folders, _inbox, or hygiene routing.
@@ -30,12 +30,12 @@ stale_if:
 authority_boundary: retrieval_only
 ```
 
-This guide is an operational playbook. It helps future agents apply Orca's
+This guide is an operational playbook. It helps future agents apply Forseti's
 overlay rules consistently, but it does not replace the overlay and does not
 create authority, validation proof, approval, readiness, lifecycle completion,
 deployment/install/resolver status, source-of-truth status, or edit permission.
 
-If this guide conflicts with `AGENTS.md`, the overlay, an accepted Orca source,
+If this guide conflicts with `AGENTS.md`, the overlay, an accepted Forseti source,
 or a current user instruction, use the controlling source and treat this guide
 or the affected artifact route as stale.
 
@@ -108,7 +108,7 @@ report-checkable guidance, not a source-of-truth replacement.
 | Research artifact | Required when it supports future product/proof work | Research question, evidence boundary, query/source list when material, synthesis/non-claims | Recheck source date boundary, query scope, and superseding synthesis | Product authority by default |
 | Migration/import note | Required when durable | Source path, import boundary, current disposition, promotion or rejection rule | Recheck source file identity and accepted destination | Canonical promotion unless separately accepted |
 | Hygiene queue or cleanup note | Required when it routes future cleanup | Queue item, retained reason, non-canonical boundary, promotion/removal condition, review/expiry | Recheck `review_by` or `expires_on`, owner/source lane, and whether removal condition is met | Authority, validation, readiness, product proof, or lifecycle completion |
-| `_inbox` scratch | Excluded unless promoted | Creation note or queue item only when retained | Promote, queue, archive, or delete before citing | Orca authority |
+| `_inbox` scratch | Excluded unless promoted | Creation note or queue item only when retained | Promote, queue, archive, or delete before citing | Forseti authority |
 | Code, tests, generated outputs, installed copies, raw hits | Excluded unless future authority binds them as workflow evidence | Ordinary local conventions only | Use future code/test/generated controls if implementation is authorized | Workflow authority through metadata |
 
 ## Header Discipline
@@ -168,9 +168,9 @@ or workflow records disagree, use this order:
 
 1. Current user instruction.
 2. `AGENTS.md`.
-3. `.agents/workflow-overlay/` for Orca project facts, constraints, artifact
+3. `.agents/workflow-overlay/` for Forseti project facts, constraints, artifact
    folders, review lanes, validation gates, safety rules, and source hierarchy.
-4. Accepted Orca docs under `docs/` when they do not conflict with the overlay.
+4. Accepted Forseti docs under `docs/` when they do not conflict with the overlay.
 5. The target artifact body for its own evidence, reasoning, decision, review,
    or contract when it is fresh and has normal authority.
 6. Retrieval header fields for orientation only.
@@ -295,7 +295,7 @@ Flag:
   lane when inferable;
 - broad backfill or metadata-normalization work not explicitly authorized;
 - JB-specific paths, lifecycle rules, handoffs, validation habits, or policy
-  treated as Orca authority.
+  treated as Forseti authority.
 
 ## Examples
 
@@ -304,7 +304,7 @@ Good durable workflow header:
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow record
-scope: Architecture discussion for Orca artifact retrievability hardening.
+scope: Architecture discussion for Forseti artifact retrievability hardening.
 use_when:
   - Deciding whether the retrieval-spine architecture has been accepted.
 open_next:
@@ -335,7 +335,7 @@ created: 2026-05-24
 source_or_owner_lane: current Codex thread
 current_location: docs/_inbox/example.md
 reason_retained: preserves unresolved review input for a named follow-up
-non_canonical_boundary: scratch only; not Orca authority
+non_canonical_boundary: scratch only; not Forseti authority
 promote_to: docs/review-inputs/ if review is authorized
 review_or_removal_condition: remove after follow-up review input is written
 review_by: 2026-06-07

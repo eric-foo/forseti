@@ -244,7 +244,7 @@ Do not route directly to implementation. If implementation is later desired, fir
 Required controlling sources read:
 
 - `AGENTS.md`: workspace operating constraints.
-- `.agents/workflow-overlay/README.md`: Orca overlay entrypoint.
+- `.agents/workflow-overlay/README.md`: Forseti overlay entrypoint.
 - `.agents/workflow-overlay/source-of-truth.md`: source hierarchy and conflict rules.
 - `.agents/workflow-overlay/source-loading.md`: source packs, dirty-state caveats, and source-heavy economy.
 - `.agents/workflow-overlay/prompt-orchestration.md`: prompt output mode, source-gated method sequencing, and validation gates.
@@ -256,7 +256,7 @@ Required controlling sources read:
 - `docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md`: thesis consumption and drift guard.
 - `docs/research/judgment-spine/README.md`: parent case unit, tiers, loop, and non-claims.
 - `docs/research/judgment-spine/manifest_v0.md`: current case inventory and harness spec inventory.
-- `docs/workflows/orca_repo_map_v0.md`: repo navigation and Judgment Spine area.
+- `docs/workflows/forseti_repo_map_v0.md`: Forseti repo navigation and Judgment Spine area.
 - `docs/research/judgment-spine/harness/v0_14/index.md`: v0.14 spec index and source-of-truth roles.
 - v0.14 spec files for thesis, strategy, action-band mapping, scorer formula, schemas, labeling rubric, blind judgment protocol, case construction, memorization probe, failure log, and proof/memory plan: harness-entry controls.
 - `docs/research/judgment-spine/cases/milwaukee-fiscal-crossroads/case_index.md`: Milwaukee artifact status and missing residue.

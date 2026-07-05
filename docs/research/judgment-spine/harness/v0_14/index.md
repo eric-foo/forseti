@@ -1,9 +1,9 @@
-# Orca Judgement Harness v0.14 Index
+# Forseti Judgement Harness v0.14 Index
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Judgment Harness spec index
-scope: Navigation index for the imported v0.14 Judgment Harness code-readiness spec and Orca-local execution-isolation additions.
+scope: Navigation index for the imported v0.14 Judgment Harness code-readiness spec and Forseti-local execution-isolation additions.
 use_when:
   - Working from the v0.14 Judgment Harness spec.
   - Choosing the controlling v0.14 harness file for schemas, scoring, cases, or runner contracts.
@@ -20,7 +20,7 @@ v0.14 is the **Phase 1 code-readiness spec**.
 
 It freezes the final details needed before implementing the first runnable harness loop.
 
-In Orca workspace allocation, this folder is the working Judgment Harness spec under Judgment Spine. It does not authorize implementation by itself, and it does not define Data Capture Spine, Evidence Candidate Record, or Cleaning Spine.
+In Forseti workspace allocation, this folder is the working Judgment Harness spec under Judgment Spine. It does not authorize implementation by itself, and it does not define Data Capture Spine, Evidence Candidate Record, or Cleaning Spine.
 
 ## Bridge Foundation
 
