@@ -313,6 +313,172 @@ def test_write_tiktok_batch_packet_preserves_dom_visible_comment_fallback(tmp_pa
     ]
 
 
+def test_write_tiktok_batch_packet_preserves_subtitle_non_capture_reason(tmp_path: Path) -> None:
+    output = tmp_path / "batch_packet"
+    row = _result_row(VIDEO_1, 1761930827, subtitle=False)
+    row["hydration"] = {
+        "subtitle_info_count": 1,
+        "subtitle_infos_sanitized": [
+            {
+                "Format": "webvtt",
+                "LanguageCodeName": "eng-US",
+                "Source": "ASR",
+                "Size": 99,
+                "url_present_but_redacted": True,
+            }
+        ],
+    }
+    row["subtitle"] = {
+        "attempted": False,
+        "success": False,
+        "reason": "unsupported_subtitle_url_host_live_probe_v0",
+        "subtitle_url_sha256": "subtitleurlsha",
+        "subtitle_url_length": 180,
+    }
+    cadence = json.dumps(
+        {
+            "attempted_count": 1,
+            "completed_count": 1,
+            "challenge_count": 0,
+            "run_complete_utc": "2026-06-30T17:02:46Z",
+            "capture_contract": _contract(),
+            "results": [row],
+        }
+    ).encode("utf-8")
+
+    code, message = write_tiktok_batch_packet(
+        creator_handle="@funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[cadence],
+        output_directory=output,
+        decision_question="admit TikTok subtitle non-capture reason",
+        batch_label="funmi_subtitle_reason_fixture",
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+
+    assert code == 0
+    payload_text = (Path(message) / "raw" / "01_tiktok_batch_capture.json").read_text(
+        encoding="utf-8"
+    )
+    payload = json.loads(payload_text)
+    subtitles = payload["videos"][0]["subtitles"]
+    assert subtitles["posture"] == "source_native_subtitle_not_captured"
+    assert subtitles["non_capture_reason"] == "unsupported_subtitle_url_host_live_probe_v0"
+    assert subtitles["subtitle_url_sha256"] == "subtitleurlsha"
+    assert subtitles["subtitle_url_length"] == 180
+    assert "tiktokcdn" not in payload_text
+    assert "subtitle.webvtt" not in payload_text
+
+
+def test_write_tiktok_batch_packet_labels_human_handoff_as_intervention(tmp_path: Path) -> None:
+    output = tmp_path / "batch_packet"
+    row = _result_row(VIDEO_1, 1761930827, subtitle=False)
+    row["capture_receipt"] = {
+        "challenge_close_followthrough": True,
+        "challenge_close_accepted": True,
+        "challenge_close_action": {
+            "action_name": "tiktok_challenge_modal_close_followthrough_pointer_v0",
+            "clicked": True,
+            "target_kind": "visual_x",
+            "selection_strategy": "center_modal_visual_x",
+            "post_click_absence_verified": True,
+            "post_click_visual_target_absent": True,
+        },
+        "human_challenge_handoff": True,
+        "human_challenge_handoff_attempts": [
+            {
+                "action_name": "human_challenge_handoff_v0",
+                "action_mode": "source_access_intervention",
+                "action_taken": True,
+                "captcha_solving_by_agent": False,
+                "prompted": True,
+                "prompt_surface": "test_prompt",
+                "matched_marker": "drag the slider",
+                "marker_count": 1,
+                "timeout_seconds": 1,
+                "cleared": True,
+                "wait_ms": 0,
+                "after_action_name": "tiktok_challenge_modal_close_followthrough_pointer_v0",
+            }
+        ],
+    }
+    cadence = json.dumps(
+        {
+            "attempted_count": 1,
+            "completed_count": 1,
+            "challenge_count": 0,
+            "run_complete_utc": "2026-06-30T17:02:46Z",
+            "capture_contract": _contract(),
+            "results": [row],
+        }
+    ).encode("utf-8")
+
+    code, message = write_tiktok_batch_packet(
+        creator_handle="@funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[cadence],
+        output_directory=output,
+        decision_question="admit TikTok human handoff intervention",
+        batch_label="funmi_human_handoff_fixture",
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+
+    assert code == 0
+    payload = json.loads(
+        (Path(message) / "raw" / "01_tiktok_batch_capture.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    intervention = payload["videos"][0]["source_access_intervention"]
+    assert intervention["posture"] == (
+        "owner_manual_challenge_handoff_after_challenge_close_followthrough"
+    )
+    assert intervention["human_challenge_handoff"] is True
+    assert intervention["human_challenge_handoff_attempt_count"] == 1
+    assert intervention["human_challenge_handoff_cleared"] is True
+    assert intervention["human_challenge_handoff_prompt_surfaces"] == ["test_prompt"]
+    assert intervention["human_challenge_handoff_matched_markers"] == ["drag the slider"]
+    assert intervention["agent_may_solve_challenge"] is False
+    assert intervention["counts_as_clean_capture"] is False
+
+
+def test_tiktok_batch_rejects_agent_challenge_solving_receipt(tmp_path: Path) -> None:
+    output = tmp_path / "packet"
+    cadence = json.loads(_cadence_payload().decode("utf-8"))
+    cadence["results"][0]["capture_receipt"] = {"agent_may_solve_challenge": True}
+
+    with pytest.raises(ValueError, match="permits agent challenge solving"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[json.dumps(cadence).encode("utf-8")],
+            output_directory=output,
+            decision_question="reject agent challenge solving",
+        )
+
+
+def test_tiktok_batch_rejects_owner_attention_clean_capture_claim(tmp_path: Path) -> None:
+    output = tmp_path / "packet"
+    cadence = json.loads(_cadence_payload().decode("utf-8"))
+    cadence["results"][0]["capture_receipt"] = {
+        "owner_attention_required": True,
+        "manual_challenge_attention_required": True,
+        "owner_attention_counts_as_clean_capture": True,
+    }
+
+    with pytest.raises(ValueError, match="counts owner attention as clean capture"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[json.dumps(cadence).encode("utf-8")],
+            output_directory=output,
+            decision_question="reject owner attention clean claim",
+        )
+
 def test_tiktok_batch_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     grid_path = tmp_path / "grid.json"
@@ -431,6 +597,24 @@ def test_tiktok_batch_rejects_diagnostic_mode_contract(tmp_path: Path) -> None:
             decision_question="admit TikTok creator batch",
         )
 
+
+def test_tiktok_batch_rejects_human_handoff_clean_capture_contract(tmp_path: Path) -> None:
+    output = tmp_path / "packet"
+    cadence = json.loads(_cadence_payload().decode("utf-8"))
+    cadence["capture_contract"]["human_challenge_handoff_counts_as_clean_capture"] = True
+
+    with pytest.raises(
+        ValueError,
+        match="human_challenge_handoff_counts_as_clean_capture=true",
+    ):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[json.dumps(cadence).encode("utf-8")],
+            output_directory=output,
+            decision_question="reject human handoff clean capture contract",
+        )
 
 def test_tiktok_batch_rejects_mismatched_completed_count(tmp_path: Path) -> None:
     output = tmp_path / "packet"

@@ -61,16 +61,16 @@ def run_cloakbrowser_profile_warmup(
         user_data_root=user_data_root,
     )
     user_data_dir = ensure_browser_user_data_directory(user_data_label, user_data_root=user_data_root)
+    write_browser_user_data_provenance(
+        user_data_label,
+        payload=provenance,
+        user_data_root=user_data_root,
+    )
     warmup_engine = engine or _DirectCloakBrowserProfileWarmupEngine()
     final_url = warmup_engine.warm_profile(
         login_url=normalized_url,
         user_data_dir=user_data_dir,
         proxy_profile=proxy_profile,
-    )
-    write_browser_user_data_provenance(
-        user_data_label,
-        payload=provenance,
-        user_data_root=user_data_root,
     )
     proxy_clause = (
         f" with proxy profile label {proxy_profile_label} ({proxy_profile.proxy_category.value})"
