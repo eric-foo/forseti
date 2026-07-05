@@ -40,7 +40,7 @@ Baseline census observed from `origin/main` after PR #675 merged as `c10f1d7f` o
 | Harness distribution label | Executed by PR #675: package distribution label is `forseti-harness`. | Python import namespaces remain unchanged. |
 | CI check identity | Executed by PR #675: required check is `forseti-harness-tests`. | Do not revive `orca-harness-tests` in live automation. |
 | GitHub repository slug | Executed on 2026-07-05: live repo is `eric-foo/forseti`; the former web repo moved from `eric-foo/Forseti` to `eric-foo/ForsetiWeb`. | Local `origin` was updated to `https://github.com/eric-foo/forseti.git`; keep historical repo links as provenance. |
-| Local parent checkout folder | Not migrated: active workspace path remains under `projects/orca`. | Use a fresh clone or controlled shutdown/move; do not rename the active workspace in-place. |
+| Local parent checkout folder | Partially executed on 2026-07-05: a fresh main-repo clone exists at `C:\Users\vmon7\Desktop\projects\forseti` and tracks `eric-foo/forseti`; the local web checkout moved to `C:\Users\vmon7\Desktop\projects\ForsetiWeb`. The legacy active workspace remains under `projects/orca`. | Use `projects/forseti` for new main-repo sessions; do not rename or delete `projects/orca` until its active worktrees/sessions are closed or deliberately migrated. |
 | Skill command/path | Executed by the skill identity lane: `forseti-product-lead` is the primary accepted/deployed product-lead skill ID; `/orca-product-lead` remains a thin compatibility wrapper. | Resolver activation in an already-running thread is not claimed; keep wrapper for one transition window. |
 | Start-preflight alias | Deferred: `orca_start_preflight` remains a legacy alias. | New live prompts and reports prefer `forseti_start_preflight`; alias retirement is last-mile compatibility work. |
 | Lowercase `orca_*` filenames | Deferred by default. | Migrate only by family with moved-path/index coverage; do not word-match historical prompts, reviews, receipts, or snapshots. |
@@ -64,8 +64,9 @@ The next high-leverage migration is not another word-match cleanup. After the
 external repo identity and product-lead skill identity cutovers, the remaining
 material lanes are:
 
-1. Rename or replace the local parent checkout folder only after active
-   worktrees/sessions close; prefer a fresh clone at `projects/forseti`.
+1. Close or migrate the legacy active `projects/orca` workspace/worktrees once no
+   running sessions depend on them; the fresh `projects/forseti` clone is now
+   available for new main-repo sessions.
 2. Family-by-family live filename migration for current product sources whose
    `orca_*` filenames are still operator-facing, each with moved-path coverage.
 3. Retire `orca_start_preflight` only after durable prompt/history consumers are
@@ -73,6 +74,6 @@ material lanes are:
 
 ## Non-Claims
 
-- This status record is not validation, readiness, product proof, package publication, GitHub repo rename execution, local checkout rename execution, or resolver activation proof.
+- This status record is not validation, readiness, product proof, package publication, GitHub repo rename execution, legacy workspace retirement, or resolver activation proof.
 - This status record does not classify every residual content line.
 - This status record does not make historical prompts, review outputs, DCP receipts, or snapshots stale merely because they contain Orca.
