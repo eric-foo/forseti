@@ -16,7 +16,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Inspect or rebuild the generated Bronze catalog index."
     )
-    parser.add_argument("--data-root", help="Explicit Orca data root path.")
+    parser.add_argument("--data-root", help="Explicit Forseti data root path.")
     parser.add_argument(
         "--rebuild",
         action="store_true",

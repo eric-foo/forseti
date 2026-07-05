@@ -549,7 +549,7 @@ def _read_json_object(path: Path) -> dict[str, Any]:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run requested IG Reels capture lanes in sequence.")
     parser.add_argument("--handle", required=True, help="IG handle, with or without @.")
-    parser.add_argument("--data-root", default=None, help="Orca data lake root. Defaults to ORCA_DATA_ROOT.")
+    parser.add_argument("--data-root", default=None, help="Forseti data lake root. Defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT).")
     parser.add_argument("--lanes", default=",".join(DEFAULT_LANES), help="Comma list: grid,deep_capture,product_extract,projection,all.")
     parser.add_argument("--top-n", type=int, default=1, help="How many ranked reels to deep-capture.")
     parser.add_argument("--max-rows", type=int, default=12, help="How many grid rows to scan.")

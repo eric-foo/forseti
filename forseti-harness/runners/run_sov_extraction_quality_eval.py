@@ -283,7 +283,7 @@ def main(argv: list[str] | None = None) -> int:
         "--root",
         "--data-root",
         dest="data_root",
-        help="Explicit Orca data root path (falls back to ORCA_DATA_ROOT).",
+        help="Explicit Forseti data root path (falls back to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT)).",
     )
     parser.add_argument(
         "--out",

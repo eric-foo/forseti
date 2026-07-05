@@ -4,7 +4,7 @@ cut-over.
 The STEP-2b generator (``silver_metric_snapshot.py``) is PURE: it reads the lake
 and returns the snapshot + selection-manifest dicts, writing nothing. This runner
 is the operator-facing shell the generator was built to feed: it resolves the
-real external lake (``DataLakeRoot.resolve``, fail-closed when ``ORCA_DATA_ROOT``
+real external lake (``DataLakeRoot.resolve``, fail-closed when ``FORSETI_DATA_ROOT``/``ORCA_DATA_ROOT``
 is unset), rebuilds the availability index first (IG discovery depends on it),
 loads the prior committed manifest, runs the generator for ONE platform, gates
 the result against the live lake, and writes the snapshot + manifest + a

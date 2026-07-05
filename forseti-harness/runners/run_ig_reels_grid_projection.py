@@ -25,7 +25,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     input_group = parser.add_mutually_exclusive_group(required=True)
     input_group.add_argument("--packet", type=Path, help="Packet directory or manifest.json path.")
-    input_group.add_argument("--packet-id", help="Committed raw packet id in the Orca data lake.")
+    input_group.add_argument("--packet-id", help="Committed raw packet id in the Forseti data lake.")
     input_group.add_argument(
         "--bronze-source-surface",
         action="store_true",
@@ -34,7 +34,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--data-root",
         default=None,
-        help="Orca data-lake root for --packet-id mode (or set ORCA_DATA_ROOT).",
+        help="Forseti data-lake root for --packet-id mode (or set FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT)).",
     )
     parser.add_argument(
         "--record-id",
@@ -74,8 +74,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 raise ValueError("--record-id-prefix is only valid with --bronze-source-surface")
             if args.skip_existing:
                 raise ValueError("--skip-existing is only valid with --bronze-source-surface")
-            if args.data_root is None and not os.environ.get("ORCA_DATA_ROOT"):
-                raise ValueError("--data-root/ORCA_DATA_ROOT is required with --packet-id")
+            if args.data_root is None and not (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")):
+                raise ValueError("--data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required with --packet-id")
             data_root = DataLakeRoot.resolve(explicit=args.data_root)
             _projection, derived_path = project_ig_reels_grid_into_lake(
                 data_root=data_root,
@@ -90,8 +90,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 raise ValueError("--output is only valid with --packet; lake mode appends derived records")
             if args.record_id is not None:
                 raise ValueError("--record-id is only valid with --packet-id")
-            if args.data_root is None and not os.environ.get("ORCA_DATA_ROOT"):
-                raise ValueError("--data-root/ORCA_DATA_ROOT is required with --bronze-source-surface")
+            if args.data_root is None and not (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")):
+                raise ValueError("--data-root/FORSETI_DATA_ROOT/ORCA_DATA_ROOT is required with --bronze-source-surface")
             data_root = DataLakeRoot.resolve(explicit=args.data_root)
             projected = project_ig_reels_grid_from_bronze_catalog(
                 data_root=data_root,

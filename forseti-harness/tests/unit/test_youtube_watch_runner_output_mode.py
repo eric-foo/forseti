@@ -37,7 +37,7 @@ def test_youtube_watch_runner_ignores_env_data_root_when_output_is_explicit(
     monkeypatch, tmp_path: Path
 ) -> None:
     output = tmp_path / "packet"
-    monkeypatch.setenv("ORCA_DATA_ROOT", str(tmp_path / "lake"))
+    monkeypatch.setenv("FORSETI_DATA_ROOT", str(tmp_path / "lake"))
 
     def fake_run(**kwargs):
         assert kwargs["video_id"] == _VIDEO_ID
@@ -67,7 +67,7 @@ def test_youtube_watch_runner_accepts_leading_dash_video_id(monkeypatch, tmp_pat
 
 def test_youtube_watch_runner_rejects_data_root_flag_as_missing_video_id(monkeypatch, tmp_path: Path) -> None:
     resolved_root = object()
-    monkeypatch.setenv("ORCA_DATA_ROOT", str(tmp_path / "lake"))
+    monkeypatch.setenv("FORSETI_DATA_ROOT", str(tmp_path / "lake"))
 
     class FakeDataLakeRoot:
         @staticmethod

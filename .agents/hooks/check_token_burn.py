@@ -20,8 +20,10 @@ Behavior:
     the session.
 
 Thresholds (env overrides, in input tokens for one turn's prompt):
-  ORCA_TOKEN_BURN_WARN   default 200000   ("a little absurd")
-  ORCA_TOKEN_BURN_ALARM  default 500000   ("absurd")
+  FORSETI_TOKEN_BURN_WARN   default 200000   ("a little absurd")
+      legacy fallback: ORCA_TOKEN_BURN_WARN
+  FORSETI_TOKEN_BURN_ALARM  default 500000   ("absurd")
+      legacy fallback: ORCA_TOKEN_BURN_ALARM
 Set a threshold to 0 to disable that rung.
 
 Harness contract + portability: see .agents/hooks/README.md. Advisory tooling --
@@ -35,6 +37,10 @@ import tempfile
 
 WARN_DEFAULT = 200_000
 ALARM_DEFAULT = 500_000
+FORSETI_TOKEN_BURN_WARN_ENV = "FORSETI_TOKEN_BURN_WARN"
+FORSETI_TOKEN_BURN_ALARM_ENV = "FORSETI_TOKEN_BURN_ALARM"
+LEGACY_ORCA_TOKEN_BURN_WARN_ENV = "ORCA_TOKEN_BURN_WARN"
+LEGACY_ORCA_TOKEN_BURN_ALARM_ENV = "ORCA_TOKEN_BURN_ALARM"
 
 
 def _turn_context_size(usage):
@@ -80,15 +86,28 @@ def _latest_context_size(transcript_path):
 
 def _rungs():
     """Ascending [(threshold, kind)]; 'warn' then 'alarm'. Disabled rungs dropped."""
-    def _env(name, default):
+    def _env(primary, legacy, default):
+        raw = os.environ.get(primary)
+        if raw is None:
+            raw = os.environ.get(legacy)
+        if raw is None:
+            return default
         try:
-            return int(os.environ.get(name, str(default)))
+            return int(raw)
         except (TypeError, ValueError):
             return default
 
     out = []
-    warn = _env("ORCA_TOKEN_BURN_WARN", WARN_DEFAULT)
-    alarm = _env("ORCA_TOKEN_BURN_ALARM", ALARM_DEFAULT)
+    warn = _env(
+        FORSETI_TOKEN_BURN_WARN_ENV,
+        LEGACY_ORCA_TOKEN_BURN_WARN_ENV,
+        WARN_DEFAULT,
+    )
+    alarm = _env(
+        FORSETI_TOKEN_BURN_ALARM_ENV,
+        LEGACY_ORCA_TOKEN_BURN_ALARM_ENV,
+        ALARM_DEFAULT,
+    )
     if warn > 0:
         out.append((warn, "warn"))
     if alarm > 0:
@@ -107,7 +126,7 @@ def _rung_index(size, rungs):
 
 def _state_path(session_id):
     key = hashlib.sha1((session_id or "nosession").encode("utf-8")).hexdigest()[:16]
-    return os.path.join(tempfile.gettempdir(), "orca_token_burn_%s.json" % key)
+    return os.path.join(tempfile.gettempdir(), "forseti_token_burn_%s.json" % key)
 
 
 def _read_last_rung(path):
@@ -206,9 +225,17 @@ def _tmp_transcript(size):
 
 def _selftest():
     fails = []
-    saved = {k: os.environ.get(k) for k in ("ORCA_TOKEN_BURN_WARN", "ORCA_TOKEN_BURN_ALARM")}
-    os.environ["ORCA_TOKEN_BURN_WARN"] = "200000"
-    os.environ["ORCA_TOKEN_BURN_ALARM"] = "500000"
+    env_keys = (
+        FORSETI_TOKEN_BURN_WARN_ENV,
+        FORSETI_TOKEN_BURN_ALARM_ENV,
+        LEGACY_ORCA_TOKEN_BURN_WARN_ENV,
+        LEGACY_ORCA_TOKEN_BURN_ALARM_ENV,
+    )
+    saved = {k: os.environ.get(k) for k in env_keys}
+    for key in env_keys:
+        os.environ.pop(key, None)
+    os.environ[FORSETI_TOKEN_BURN_WARN_ENV] = "200000"
+    os.environ[FORSETI_TOKEN_BURN_ALARM_ENV] = "500000"
     try:
         # 1. context size sums the three input fields, ignores output
         usage = {
@@ -247,7 +274,23 @@ def _selftest():
                 fails.append("rung_index(%d)=%d want %d"
                              % (size, _rung_index(size, rungs), want))
 
-        # 4. escalation throttle: warn on entry, silent on plateau, alarm on climb,
+        # 4. primary Forseti env vars override legacy Orca fallbacks
+        os.environ[FORSETI_TOKEN_BURN_WARN_ENV] = "111"
+        os.environ[FORSETI_TOKEN_BURN_ALARM_ENV] = "333"
+        os.environ[LEGACY_ORCA_TOKEN_BURN_WARN_ENV] = "222"
+        os.environ[LEGACY_ORCA_TOKEN_BURN_ALARM_ENV] = "444"
+        if _rungs() != [(111, "warn"), (333, "alarm")]:
+            fails.append("primary Forseti env vars did not win: %r" % (_rungs(),))
+        os.environ.pop(FORSETI_TOKEN_BURN_WARN_ENV, None)
+        os.environ.pop(FORSETI_TOKEN_BURN_ALARM_ENV, None)
+        if _rungs() != [(222, "warn"), (444, "alarm")]:
+            fails.append("legacy Orca env fallback failed: %r" % (_rungs(),))
+        os.environ[FORSETI_TOKEN_BURN_WARN_ENV] = "200000"
+        os.environ[FORSETI_TOKEN_BURN_ALARM_ENV] = "500000"
+        os.environ.pop(LEGACY_ORCA_TOKEN_BURN_WARN_ENV, None)
+        os.environ.pop(LEGACY_ORCA_TOKEN_BURN_ALARM_ENV, None)
+
+        # 5. escalation throttle: warn on entry, silent on plateau, alarm on climb,
         #    re-warn after a dip below
         state = _state_path("selftest-session")
         if os.path.exists(state):
@@ -276,7 +319,7 @@ def _selftest():
             if os.path.exists(state):
                 os.unlink(state)
 
-        # 5. message carries the K figure and serializes to ascii JSON cleanly
+        # 6. message carries the K figure and serializes to ascii JSON cleanly
         msg = _message(213000, "warn")
         if "213K" not in msg or not json.dumps({"systemMessage": msg}):
             fails.append("message format/serialize issue")

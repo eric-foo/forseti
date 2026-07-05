@@ -39,7 +39,7 @@ def test_youtube_asr_runner_accepts_leading_dash_video_id(monkeypatch, tmp_path:
 
 def test_youtube_asr_runner_rejects_data_root_flag_as_missing_video_id(monkeypatch, tmp_path: Path) -> None:
     resolved_root = object()
-    monkeypatch.setenv("ORCA_DATA_ROOT", str(tmp_path / "lake"))
+    monkeypatch.setenv("FORSETI_DATA_ROOT", str(tmp_path / "lake"))
 
     class FakeDataLakeRoot:
         @staticmethod

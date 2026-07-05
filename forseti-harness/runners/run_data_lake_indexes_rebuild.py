@@ -1,7 +1,7 @@
 """The contract-pinned lake indexes rebuild command (runner packaging).
 
 Shape pinned by the derived-layout contract:
-``lake indexes rebuild --root <ORCA_DATA_ROOT> --target
+``lake indexes rebuild --root <FORSETI_DATA_ROOT> --target
 availability|derived_retrieval|all --prove-rebuildability`` — the semantics
 are the contract; the argparse runner is the incumbent CLI packaging
 (consumption seam contract, Rebuild Command Binding).
@@ -76,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         "--root",
         "--data-root",
         dest="data_root",
-        help="Explicit Orca data root path (falls back to ORCA_DATA_ROOT).",
+        help="Explicit Forseti data root path (falls back to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT)).",
     )
     parser.add_argument(
         "--target",

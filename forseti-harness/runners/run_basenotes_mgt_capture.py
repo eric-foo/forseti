@@ -340,7 +340,7 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Optional explicit Orca data lake root. When supplied, the packet is committed "
+            "Optional explicit Forseti data lake root. When supplied, the packet is committed "
             "to raw/<shard>/<packet_id>; the bundle summary remains under --output-root."
         ),
     )

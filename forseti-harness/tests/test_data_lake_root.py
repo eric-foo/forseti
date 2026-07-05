@@ -9,9 +9,13 @@ from data_lake.root import (
     DataLakeRoot,
     DataLakeRootError,
     EPOCH_MARKER_FILENAME,
+    FORSETI_DATA_ROOT_ENV,
     LAKE_EPOCH,
     LAKE_EPOCH_POLICY,
     LAKE_SUBDIRECTORIES,
+    LEGACY_EPOCH_MARKER_FILENAME,
+    LEGACY_ORCA_DATA_ROOT_ENV,
+    LEGACY_ROOT_MARKER_FILENAME,
     ROOT_MARKER_CONTRACT_VERSION,
     ROOT_MARKER_DEFAULT_LABEL,
     ROOT_MARKER_FILENAME,
@@ -22,7 +26,7 @@ from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
 
-def _init(tmp_path: Path, name: str = "orca-data") -> DataLakeRoot:
+def _init(tmp_path: Path, name: str = "forseti-data") -> DataLakeRoot:
     # tmp_path lives inside the repo working tree; for_test bypasses the
     # outside-repo production guard (which is exercised separately below).
     return DataLakeRoot.for_test(tmp_path / name)
@@ -64,7 +68,49 @@ def test_resolve_marker_uuid_mismatch_rejected(tmp_path: Path) -> None:
 
 def test_resolve_success_with_env(tmp_path: Path) -> None:
     root = _init(tmp_path)
-    resolved = DataLakeRoot.resolve(env={"ORCA_DATA_ROOT": str(root.path)}, repo_root=None)
+    resolved = DataLakeRoot.resolve(env={FORSETI_DATA_ROOT_ENV: str(root.path)}, repo_root=None)
+    assert resolved.path == root.path
+    assert resolved.root_uuid == root.root_uuid
+
+
+def test_resolve_success_with_legacy_orca_env(tmp_path: Path) -> None:
+    root = _init(tmp_path)
+    resolved = DataLakeRoot.resolve(
+        env={LEGACY_ORCA_DATA_ROOT_ENV: str(root.path)}, repo_root=None
+    )
+    assert resolved.path == root.path
+    assert resolved.root_uuid == root.root_uuid
+
+
+def test_resolve_prefers_forseti_env_over_legacy_orca_env(tmp_path: Path) -> None:
+    forseti_root = _init(tmp_path, "forseti")
+    legacy_root = _init(tmp_path, "legacy")
+    resolved = DataLakeRoot.resolve(
+        env={
+            FORSETI_DATA_ROOT_ENV: str(forseti_root.path),
+            LEGACY_ORCA_DATA_ROOT_ENV: str(legacy_root.path),
+        },
+        repo_root=None,
+    )
+    assert resolved.path == forseti_root.path
+
+
+def test_resolve_accepts_legacy_orca_marker_names(tmp_path: Path) -> None:
+    root = _init(tmp_path)
+    (root.path / LEGACY_ROOT_MARKER_FILENAME).write_text(
+        (root.path / ROOT_MARKER_FILENAME).read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (root.path / ROOT_MARKER_FILENAME).unlink()
+    (root.path / LEGACY_EPOCH_MARKER_FILENAME).write_text(
+        (root.path / EPOCH_MARKER_FILENAME).read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    (root.path / EPOCH_MARKER_FILENAME).unlink()
+
+    resolved = DataLakeRoot.resolve(
+        env={LEGACY_ORCA_DATA_ROOT_ENV: str(root.path)}, repo_root=None
+    )
     assert resolved.path == root.path
     assert resolved.root_uuid == root.root_uuid
 
@@ -91,7 +137,7 @@ def test_resolve_precedence_explicit_over_env(tmp_path: Path) -> None:
     a = _init(tmp_path, "a")
     b = _init(tmp_path, "b")
     resolved = DataLakeRoot.resolve(
-        explicit=a.path, env={"ORCA_DATA_ROOT": str(b.path)}, repo_root=None
+        explicit=a.path, env={FORSETI_DATA_ROOT_ENV: str(b.path)}, repo_root=None
     )
     assert resolved.path == a.path
 

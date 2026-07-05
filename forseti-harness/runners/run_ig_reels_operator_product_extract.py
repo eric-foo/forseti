@@ -219,14 +219,14 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     export = subparsers.add_parser("export", help="Export one operator packet for an IG transcript.")
-    export.add_argument("--data-root", default=None, help="Orca data lake root. Defaults to ORCA_DATA_ROOT.")
+    export.add_argument("--data-root", default=None, help="Forseti data lake root. Defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT).")
     export.add_argument("--transcript-source-key", default=None, help="Exact transcript source key to export.")
     export.add_argument("--platform-item-id", default=None, help="IG Reel shortcode; deep capture is preferred if unique.")
     export.add_argument("--model", default=DEFAULT_OPERATOR_MODEL, help="Model token used in the mentions record_id.")
     export.add_argument("--out", type=Path, default=None, help="Write packet JSON here; stdout emits packet if omitted.")
 
     imp = subparsers.add_parser("import", help="Import an operator JSON-array response into the lake.")
-    imp.add_argument("--data-root", default=None, help="Orca data lake root. Defaults to ORCA_DATA_ROOT.")
+    imp.add_argument("--data-root", default=None, help="Forseti data lake root. Defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT).")
     imp.add_argument("--packet", type=Path, required=True, help="Packet JSON previously exported by this runner.")
     imp.add_argument("--response", type=Path, required=True, help="Operator response file containing only the JSON array.")
     imp.add_argument("--model", default=None, help="Optional override for the packet model token.")

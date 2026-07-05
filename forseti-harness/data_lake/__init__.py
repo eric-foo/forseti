@@ -1,4 +1,4 @@
-"""Orca Data Lake — physical foundation (filesystem-incumbent).
+"""Forseti Data Lake — physical foundation (filesystem-incumbent).
 
 Foundation slice of the adopted Data Lake decision contracts: the external
 data-root resolver, the per-root identity marker, the directory skeleton, and
@@ -12,9 +12,13 @@ from data_lake.root import (
     DataLakeRoot,
     DataLakeRootError,
     EPOCH_MARKER_FILENAME,
+    FORSETI_DATA_ROOT_ENV,
     LAKE_EPOCH,
     LAKE_EPOCH_POLICY,
     LAKE_SUBDIRECTORIES,
+    LEGACY_EPOCH_MARKER_FILENAME,
+    LEGACY_ORCA_DATA_ROOT_ENV,
+    LEGACY_ROOT_MARKER_FILENAME,
     ROOT_MARKER_CONTRACT_VERSION,
     ROOT_MARKER_DEFAULT_LABEL,
     ROOT_MARKER_FILENAME,
@@ -26,9 +30,13 @@ __all__ = [
     "DataLakeRoot",
     "DataLakeRootError",
     "EPOCH_MARKER_FILENAME",
+    "FORSETI_DATA_ROOT_ENV",
     "LAKE_EPOCH",
     "LAKE_EPOCH_POLICY",
     "LAKE_SUBDIRECTORIES",
+    "LEGACY_EPOCH_MARKER_FILENAME",
+    "LEGACY_ORCA_DATA_ROOT_ENV",
+    "LEGACY_ROOT_MARKER_FILENAME",
     "ROOT_MARKER_CONTRACT_VERSION",
     "ROOT_MARKER_DEFAULT_LABEL",
     "ROOT_MARKER_FILENAME",
