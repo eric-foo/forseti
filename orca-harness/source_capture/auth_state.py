@@ -12,6 +12,12 @@ from source_capture.local_secret_store import (
     store_path_for_label,
     write_sidecar,
 )
+from source_capture.source_access_provenance import (
+    SOURCE_ACCESS_PROVENANCE_KEY,
+    SOURCE_ACCESS_PROVENANCE_SCHEMA_VERSION,
+    HarnessProxyProfilePosture,
+    validate_auth_state_source_access_provenance as validate_source_access_provenance_payload,
+)
 
 
 AUTH_STATE_DIRNAME = "_auth_state"
@@ -72,13 +78,26 @@ def write_auth_state_metadata(
     *,
     session_mode: AuthenticatedSessionMode,
     auth_state_root: Path | None = None,
+    source_access_provenance: dict[str, object] | None = None,
 ) -> Path:
     root = auth_state_root or default_auth_state_root()
     state_path = validate_auth_state_file(state_label, auth_state_root=root)
     metadata_path = auth_state_metadata_path_for_label(state_label, auth_state_root=root)
+    payload: dict[str, object] = {
+        "auth_state_file": state_path.name,
+        "session_mode": session_mode.value,
+    }
+    if source_access_provenance is not None:
+        validate_source_access_provenance_payload(
+            source_access_provenance,
+            state_path=state_path,
+            expected_source_access_posture=session_mode.value,
+        )
+        payload["schema_version"] = SOURCE_ACCESS_PROVENANCE_SCHEMA_VERSION
+        payload[SOURCE_ACCESS_PROVENANCE_KEY] = source_access_provenance
     write_sidecar(
         metadata_path,
-        payload={"auth_state_file": state_path.name, "session_mode": session_mode.value},
+        payload=payload,
         kind=_AUTH_STATE_KIND,
         label=state_label,
     )
@@ -108,4 +127,39 @@ def validate_auth_state_session_mode(
             "auth-state session mode mismatch for label: "
             f"{state_label}; bootstrapped as {bootstrapped_mode!r} but capture declared {session_mode.value!r}"
         )
+    return state_path
+
+
+def validate_auth_state_provenance_requirement(
+    state_label: str,
+    *,
+    session_mode: AuthenticatedSessionMode,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture,
+    auth_state_root: Path | None = None,
+) -> Path:
+    root = auth_state_root or default_auth_state_root()
+    state_path = validate_auth_state_session_mode(
+        state_label,
+        session_mode=session_mode,
+        auth_state_root=root,
+    )
+    metadata_path = auth_state_metadata_path_for_label(state_label, auth_state_root=root)
+    payload = read_sidecar(metadata_path, kind=_AUTH_STATE_KIND, label=state_label)
+    if payload.get("schema_version") != SOURCE_ACCESS_PROVENANCE_SCHEMA_VERSION:
+        raise ValueError(
+            "auth-state source-access provenance is missing or legacy-only for label: "
+            f"{state_label}; re-export from a warmed user-data profile with provenance"
+        )
+    source_access_provenance = payload.get(SOURCE_ACCESS_PROVENANCE_KEY)
+    if not isinstance(source_access_provenance, dict):
+        raise ValueError(
+            "auth-state source-access provenance is missing for label: "
+            f"{state_label}; re-export from a warmed user-data profile with provenance"
+        )
+    validate_source_access_provenance_payload(
+        source_access_provenance,
+        state_path=state_path,
+        expected_source_access_posture=session_mode.value,
+        required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
+    )
     return state_path

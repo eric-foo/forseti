@@ -1,6 +1,6 @@
-# Orca Product
+# Forseti Product
 
-Product substance for Orca lives here, organized **spine-first**. This is the
+Product substance for Forseti lives here, organized **spine-first**. This is the
 product-facing tree; runtime stays in `orca-harness/`.
 
 ## Structure
@@ -32,7 +32,7 @@ and `shared/`.
   `creator_signal/` spine).
 - Placement enforced by `.agents/workflow-overlay/artifact-folders.md` +
   `repo-structure.yaml`.
-- Route card: `docs/workflows/orca_repo_map_v0.md`.
+- Route card: `docs/workflows/forseti_repo_map_v0.md`.
 - Historical pre-migration `docs/product/...` references resolve through
   `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`.
 

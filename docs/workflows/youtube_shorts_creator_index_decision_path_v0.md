@@ -41,7 +41,7 @@ Owner clarification, 2026-06-27: this is not a one-off workflow routing helper. 
 
 Do not use for: creator identity verification, cross-platform identity linking, creator quality ranking, buyer proof, energy/prosody claims, runtime capture, crawler design, or transcript storage.
 
-Authority boundary: this is a workflow recommendation and routing record. `AGENTS.md` and `.agents/workflow-overlay/` control Orca project rules. The source JSON artifacts control observed pool and ledger facts. Product-spine contracts must own recurring infrastructure before runtime implementation or stronger source-of-truth claims.
+Authority boundary: this is a workflow recommendation and routing record. `AGENTS.md` and `.agents/workflow-overlay/` control Forseti project rules. The source JSON artifacts control observed pool and ledger facts. Product-spine contracts must own recurring infrastructure before runtime implementation or stronger source-of-truth claims.
 
 Recheck recipe: re-hash the two JSON inputs in the retrieval header, re-run the count assertions in "Verified Inputs", and re-read Capture/Data Lake boundary sources before promoting, implementing, or materially changing this route.
 

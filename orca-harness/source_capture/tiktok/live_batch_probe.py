@@ -8,6 +8,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Callable, Sequence
 from urllib.parse import parse_qsl, urlparse
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from harness_utils import utc_now_z
 from source_capture.adapters.browser_snapshot import (
@@ -18,12 +19,18 @@ from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotFailure,
     fetch_browser_page_observation_capture,
 )
-from source_capture.auth_state import AuthenticatedSessionMode, validate_auth_state_session_mode
+from source_capture.auth_state import (
+    AuthenticatedSessionMode,
+    validate_auth_state_provenance_requirement,
+    validate_auth_state_session_mode,
+)
+from source_capture.source_access_provenance import HarnessProxyProfilePosture
 from source_capture.cadence import build_cadence_plan
 from source_capture.tiktok.admission import (
     assert_no_sensitive_tiktok_material,
     decoded_aweme_id_create_time_utc,
     json_dumps_sanitized,
+    parse_webvtt_cues,
 )
 from source_capture.tiktok.blocker_triage import (
     TIKTOK_BLOCKER_ACTION_STOP,
@@ -40,8 +47,60 @@ TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME = "tiktok_live_cadence_result.json"
 TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
 () => {
   const hydration = document.querySelector('#__UNIVERSAL_DATA_FOR_REHYDRATION__');
+  const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+  const candidateSelectors = [
+    '[data-e2e="comment-item"]',
+    '[data-e2e*="comment-level"]',
+    '[data-e2e*="comment"]',
+    '[class*="CommentItem"]',
+    '[class*="comment-item"]'
+  ];
+  const hardSkipMarkers = [
+    'drag the slider',
+    'verify to continue',
+    'captcha',
+    'log in to comment'
+  ];
+  const exactSkipMarkers = [
+    'comments',
+    'you may like'
+  ];
+  const candidates = [];
+  const seen = new Set();
+  for (const selector of candidateSelectors) {
+    for (const node of Array.from(document.querySelectorAll(selector))) {
+      const rect = node.getBoundingClientRect();
+      if (!rect || rect.width <= 0 || rect.height <= 0) {
+        continue;
+      }
+      const text = normalizeText(node.innerText || node.textContent || '');
+      const lowered = text.toLowerCase();
+      if (text.length < 2 || text.length > 600 || exactSkipMarkers.includes(lowered)) {
+        continue;
+      }
+      if (hardSkipMarkers.some((marker) => lowered.includes(marker))) {
+        continue;
+      }
+      if (seen.has(text)) {
+        continue;
+      }
+      seen.add(text);
+      candidates.push({
+        text,
+        selector,
+        text_char_count: text.length
+      });
+      if (candidates.length >= 12) {
+        break;
+      }
+    }
+    if (candidates.length >= 12) {
+      break;
+    }
+  }
   return {
-    hydration_json_text: hydration ? hydration.textContent : null
+    hydration_json_text: hydration ? hydration.textContent : null,
+    visible_comment_candidates: candidates
   };
 }
 """.strip()
@@ -50,11 +109,18 @@ TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME = "tiktok_open_comments_pointer_v0"
 TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME = "tiktok_open_more_like_this_pointer_v0"
 TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME = "tiktok_reopen_comments_pointer_v0"
 TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME = "tiktok_dismiss_benign_overlay_pointer_v0"
+TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME = "tiktok_retry_visible_error_pointer_v0"
 TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME = (
     "tiktok_challenge_modal_close_diagnostic_pointer_v0"
 )
 TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME = (
     "tiktok_challenge_modal_visual_close_diagnostic_pointer_v0"
+)
+TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME = (
+    "tiktok_challenge_modal_close_followthrough_pointer_v0"
+)
+TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME = (
+    "tiktok_challenge_modal_visual_close_followthrough_pointer_v0"
 )
 TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME = (
     "comment_surface_toggle_pointer_sequence_v0"
@@ -63,13 +129,49 @@ TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON = "challenge_close_diagnostic_only"
 TIKTOK_CHALLENGE_AFTER_CLOSE_DIAGNOSTIC_REASON = (
     "platform_challenge_observed_after_close_diagnostic"
 )
+TIKTOK_CHALLENGE_AFTER_CLOSE_FOLLOWTHROUGH_REASON = (
+    "platform_challenge_observed_after_close_followthrough"
+)
+TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON = (
+    "challenge_x_click_attempted_close_not_accepted"
+)
+TIKTOK_CHALLENGE_TEXT_MARKERS = (
+    "drag the slider",
+    "verify to continue",
+    "captcha",
+    "security check",
+)
+TIKTOK_BROWSER_BACKEND_DEFAULT = "play" + "wright"
+TIKTOK_BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
+TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS = 180.0
+TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT = (
+    "TikTok slider/captcha/security text remained after the scripted X/Close "
+    "path. If authorized for this run, solve it manually in the open browser, "
+    "then click OK here. The receipt will mark human_challenge_handoff; the "
+    "agent does not drag or solve the puzzle."
+)
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
 TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON = "comment_list_response_absent"
+TIKTOK_LOGGED_OUT_SESSION_MODE = "public_logged_out"
+TIKTOK_DOM_VISIBLE_COMMENT_CANDIDATE_CAP = 12
+TIKTOK_DOM_VISIBLE_COMMENT_TEXT_MAX_CHARS = 500
+TIKTOK_SUBTITLE_WEBVTT_MAX_BYTES = 1_000_000
+TIKTOK_SUBTITLE_FETCH_TIMEOUT_SECONDS = 5.0
+TIKTOK_SUBTITLE_ALLOWED_HOST_SUFFIXES = (
+    "tiktokcdn.com",
+    "tiktokcdn-us.com",
+    "tiktokcdn-eu.com",
+    "byteoversea.com",
+)
+_URL_IN_TEXT_RE = re.compile(r"https?://\S+")
+# DOM fallback must capture comment-body-like text, not visible count badges.
+_COUNT_ONLY_TEXT_RE = re.compile(r"^[\d\s,._+-]+[kmb]?(?:\s+comments?)?$", re.IGNORECASE)
 
 _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)$")
 
 JsonObject = dict[str, Any]
 SleepFn = Callable[[float], None]
+SubtitleFetchFn = Callable[[str], bytes]
 
 
 @dataclass(frozen=True)
@@ -83,8 +185,9 @@ def write_tiktok_live_batch_probe_outputs(
     creator_handle: str,
     creator_profile_url: str,
     video_urls: Sequence[str],
-    state_label: str,
-    session_mode: AuthenticatedSessionMode,
+    state_label: str | None = None,
+    session_mode: AuthenticatedSessionMode | None = None,
+    logged_out: bool = False,
     output_dir: Path,
     auth_state_root: Path | None = None,
     timeout_seconds: float = 30.0,
@@ -95,13 +198,20 @@ def write_tiktok_live_batch_probe_outputs(
     settle_seconds: float = 2.0,
     selector_timeout_seconds: float = 5.0,
     browser_channel: str | None = None,
+    browser_backend: str = TIKTOK_BROWSER_BACKEND_DEFAULT,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture | None = None,
+    cloakbrowser_humanize: bool = False,
+    human_challenge_handoff: bool = False,
+    human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
     cadence_min_gap_seconds: float = 75.0,
     cadence_max_gap_seconds: float = 120.0,
     cadence_window_seconds: float | None = None,
     random_seed: int | None = None,
     allow_challenge_close_diagnostic: bool = False,
+    allow_challenge_close_followthrough: bool = False,
     engine: BrowserPageObservationEngine | None = None,
     sleep_fn: SleepFn = time.sleep,
+    subtitle_fetcher: SubtitleFetchFn | None = None,
 ) -> TikTokLiveBatchProbeOutputPaths:
     """Capture sanitized TikTok live staging JSON for one creator.
 
@@ -115,6 +225,7 @@ def write_tiktok_live_batch_probe_outputs(
         video_urls=video_urls,
         state_label=state_label,
         session_mode=session_mode,
+        logged_out=logged_out,
         auth_state_root=auth_state_root,
         timeout_seconds=timeout_seconds,
         wait_until=wait_until,
@@ -124,13 +235,20 @@ def write_tiktok_live_batch_probe_outputs(
         settle_seconds=settle_seconds,
         selector_timeout_seconds=selector_timeout_seconds,
         browser_channel=browser_channel,
+        browser_backend=browser_backend,
+        required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
+        cloakbrowser_humanize=cloakbrowser_humanize,
+        human_challenge_handoff=human_challenge_handoff,
+        human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
         cadence_min_gap_seconds=cadence_min_gap_seconds,
         cadence_max_gap_seconds=cadence_max_gap_seconds,
         cadence_window_seconds=cadence_window_seconds,
         random_seed=random_seed,
         allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
+        allow_challenge_close_followthrough=allow_challenge_close_followthrough,
         engine=engine,
         sleep_fn=sleep_fn,
+        subtitle_fetcher=subtitle_fetcher,
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -149,8 +267,9 @@ def run_tiktok_live_batch_probe(
     creator_handle: str,
     creator_profile_url: str,
     video_urls: Sequence[str],
-    state_label: str,
-    session_mode: AuthenticatedSessionMode,
+    state_label: str | None = None,
+    session_mode: AuthenticatedSessionMode | None = None,
+    logged_out: bool = False,
     auth_state_root: Path | None = None,
     timeout_seconds: float = 30.0,
     wait_until: str = "domcontentloaded",
@@ -160,13 +279,20 @@ def run_tiktok_live_batch_probe(
     settle_seconds: float = 2.0,
     selector_timeout_seconds: float = 5.0,
     browser_channel: str | None = None,
+    browser_backend: str = TIKTOK_BROWSER_BACKEND_DEFAULT,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture | None = None,
+    cloakbrowser_humanize: bool = False,
+    human_challenge_handoff: bool = False,
+    human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
     cadence_min_gap_seconds: float = 75.0,
     cadence_max_gap_seconds: float = 120.0,
     cadence_window_seconds: float | None = None,
     random_seed: int | None = None,
     allow_challenge_close_diagnostic: bool = False,
+    allow_challenge_close_followthrough: bool = False,
     engine: BrowserPageObservationEngine | None = None,
     sleep_fn: SleepFn = time.sleep,
+    subtitle_fetcher: SubtitleFetchFn | None = None,
 ) -> JsonObject:
     normalized_handle = _normalize_handle(creator_handle)
     normalized_profile_url = _normalize_profile_url(creator_profile_url, normalized_handle)
@@ -175,12 +301,50 @@ def run_tiktok_live_batch_probe(
     ]
     if not normalized_video_urls:
         raise ValueError("at least one TikTok video URL is required")
+    subtitle_fetcher = subtitle_fetcher or _fetch_subtitle_webvtt
+    browser_backend = browser_backend.strip().lower()
+    if browser_backend not in (
+        TIKTOK_BROWSER_BACKEND_DEFAULT,
+        TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+    ):
+        raise ValueError("browser_backend must be one of: cloakbrowser, " + TIKTOK_BROWSER_BACKEND_DEFAULT)
 
-    storage_state_path = validate_auth_state_session_mode(
-        state_label,
-        session_mode=session_mode,
-        auth_state_root=auth_state_root,
-    )
+    if allow_challenge_close_diagnostic and allow_challenge_close_followthrough:
+        raise ValueError(
+            "challenge-close diagnostic and followthrough modes are mutually exclusive"
+        )
+    if human_challenge_handoff and not allow_challenge_close_followthrough:
+        raise ValueError("human_challenge_handoff requires challenge-close followthrough mode")
+    if (
+        browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
+        and cloakbrowser_humanize
+    ):
+        raise ValueError("cloakbrowser_humanize requires browser_backend='cloakbrowser'")
+
+    if logged_out:
+        if state_label is not None or session_mode is not None:
+            raise ValueError("logged_out mode must not receive state_label or session_mode")
+        if required_harness_proxy_profile_posture is not None:
+            raise ValueError("required_harness_proxy_profile_posture requires sessioned mode")
+        storage_state_path: Path | None = None
+        comment_response_cap = 1
+    else:
+        if state_label is None or session_mode is None:
+            raise ValueError("sessioned TikTok capture requires state_label and session_mode")
+        if required_harness_proxy_profile_posture is not None:
+            storage_state_path = validate_auth_state_provenance_requirement(
+                state_label,
+                session_mode=session_mode,
+                required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
+                auth_state_root=auth_state_root,
+            )
+        else:
+            storage_state_path = validate_auth_state_session_mode(
+                state_label,
+                session_mode=session_mode,
+                auth_state_root=auth_state_root,
+            )
+        comment_response_cap = TIKTOK_COMMENT_LIST_RESPONSE_CAP
     cadence_plan = _build_probe_cadence_plan(
         video_count=len(normalized_video_urls),
         min_gap_seconds=cadence_min_gap_seconds,
@@ -191,6 +355,7 @@ def run_tiktok_live_batch_probe(
 
     attempts = 0
     challenge_count = 0
+    challenge_close_followthrough_count = 0
     failures: list[JsonObject] = []
     results: list[JsonObject] = []
     grid_items: list[JsonObject] = []
@@ -211,6 +376,7 @@ def run_tiktok_live_batch_probe(
                 video_id=video_id,
                 random_seed=random_seed,
                 allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
+                allow_challenge_close_followthrough=allow_challenge_close_followthrough,
             ),
             timeout_seconds=timeout_seconds,
             wait_until=wait_until,
@@ -222,6 +388,18 @@ def run_tiktok_live_batch_probe(
             storage_state_path=storage_state_path,
             headless=False,
             browser_channel=browser_channel,
+            browser_backend=browser_backend,
+            cloakbrowser_humanize=cloakbrowser_humanize,
+            human_challenge_handoff_markers=(
+                TIKTOK_CHALLENGE_TEXT_MARKERS if human_challenge_handoff else ()
+            ),
+            human_challenge_handoff_after_action_names=(
+                _tiktok_human_challenge_handoff_after_action_names()
+                if human_challenge_handoff
+                else ()
+            ),
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
+            human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
             engine=engine,
         )
 
@@ -237,11 +415,15 @@ def run_tiktok_live_batch_probe(
             )
             continue
 
-        challenge_close_diagnostic = _challenge_close_diagnostic_summary(capture_result)
-        challenge_close_clicked = _first_bool(challenge_close_diagnostic.get("clicked")) is True
+        challenge_close_action = _challenge_close_action_summary(capture_result)
+        challenge_close_clicked = _first_bool(challenge_close_action.get("clicked")) is True
+        challenge_close_accepted = _challenge_close_accepted(challenge_close_action)
         blocker_triage = classify_tiktok_capture(capture_result)
         challenge_reason = _challenge_reason_from_triage(blocker_triage)
         if challenge_reason is not None:
+            close_followthrough_attempted = (
+                allow_challenge_close_followthrough and challenge_close_clicked
+            )
             challenge_count += 1
             failures.append(
                 _failure_entry(
@@ -249,25 +431,45 @@ def run_tiktok_live_batch_probe(
                     video_id=video_id,
                     observed_utc=observed_utc,
                     reason=(
-                        TIKTOK_CHALLENGE_AFTER_CLOSE_DIAGNOSTIC_REASON
+                        TIKTOK_CHALLENGE_AFTER_CLOSE_FOLLOWTHROUGH_REASON
+                        if close_followthrough_attempted
+                        else TIKTOK_CHALLENGE_AFTER_CLOSE_DIAGNOSTIC_REASON
                         if challenge_close_clicked
                         else challenge_reason
                     ),
                     detail=(
-                        "TikTok challenge/auth-wall marker observed after the "
+                        "TikTok challenge/auth-wall marker remained visible after the "
+                        "owner-authorized challenge-close followthrough pointer path; "
+                        "probe stopped."
+                        if close_followthrough_attempted
+                        else "TikTok challenge/auth-wall marker observed after the "
                         "challenge-close diagnostic pointer path; probe stopped."
                         if challenge_close_clicked
                         else "TikTok challenge/auth-wall marker observed; probe stopped."
                     ),
-                    blocker_triage=_with_challenge_close_diagnostic(
-                        _blocker_triage_receipt(blocker_triage),
-                        challenge_close_diagnostic,
+                    blocker_triage=_with_comment_route_observation(
+                        _with_challenge_close_action(
+                            _blocker_triage_receipt(blocker_triage),
+                            challenge_close_action,
+                            challenge_close_followthrough=False,
+                            challenge_close_diagnostic=(
+                                challenge_close_clicked and not close_followthrough_attempted
+                            ),
+                            challenge_close_accepted=(
+                                False
+                                if close_followthrough_attempted
+                                else challenge_close_accepted
+                            ),
+                        ),
+                        capture_result,
+                        comment_response_cap=comment_response_cap,
+                        admit_comment_responses=False,
                     ),
                 )
             )
             break
 
-        if challenge_close_clicked:
+        if challenge_close_clicked and not allow_challenge_close_followthrough:
             challenge_count += 1
             failures.append(
                 _failure_entry(
@@ -282,11 +484,47 @@ def run_tiktok_live_batch_probe(
                     ),
                     blocker_triage=_challenge_close_diagnostic_blocker_receipt(
                         capture_result,
-                        challenge_close_diagnostic=challenge_close_diagnostic,
+                        challenge_close_diagnostic=challenge_close_action,
+                        comment_response_cap=comment_response_cap,
                     ),
                 )
             )
             break
+        if (
+            challenge_close_clicked
+            and allow_challenge_close_followthrough
+            and not challenge_close_accepted
+        ):
+            challenge_count += 1
+            failures.append(
+                _failure_entry(
+                    video_url=video_url,
+                    video_id=video_id,
+                    observed_utc=observed_utc,
+                    reason=TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON,
+                    detail=(
+                        "TikTok challenge X/Close received a pointer click, but the "
+                        "post-click verification did not prove the slider modal cleared; "
+                        "probe stopped before comment admission."
+                    ),
+                    blocker_triage=_with_comment_route_observation(
+                        _with_challenge_close_action(
+                            _challenge_close_not_accepted_blocker_receipt(
+                                challenge_close_action
+                            ),
+                            challenge_close_action,
+                            challenge_close_followthrough=False,
+                            challenge_close_accepted=False,
+                        ),
+                        capture_result,
+                        comment_response_cap=comment_response_cap,
+                        admit_comment_responses=False,
+                    ),
+                )
+            )
+            break
+        if challenge_close_accepted:
+            challenge_close_followthrough_count += 1
 
         item_struct = _extract_item_struct(capture_result.dom_observation)
         blocker_triage = classify_tiktok_capture(
@@ -362,12 +600,19 @@ def run_tiktok_live_batch_probe(
             observed_utc=observed_utc,
             grid_candidate=grid_candidate,
             blocker_triage=blocker_triage,
+            comment_response_cap=comment_response_cap,
+            challenge_close_action=challenge_close_action,
+            challenge_close_followthrough_allowed=allow_challenge_close_followthrough,
+            subtitle_fetcher=subtitle_fetcher,
         )
         assert_no_sensitive_tiktok_material(row)
         assert_no_sensitive_tiktok_material(grid_candidate)
 
         comment_receipt = _as_dict(row.get("capture_receipt"))
-        if _first_int(comment_receipt.get("admitted_comment_response_count"), 0) == 0:
+        if (
+            _first_int(comment_receipt.get("admitted_comment_response_count"), 0) == 0
+            and _first_int(comment_receipt.get("dom_visible_comment_candidate_count"), 0) == 0
+        ):
             failures.append(
                 _failure_entry(
                     video_url=video_url,
@@ -376,25 +621,22 @@ def run_tiktok_live_batch_probe(
                     reason=TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
                     detail=(
                         "No page-owned TikTok /api/comment/list response was observed after "
-                        "the bounded comments/more-like-this/comments route-opening action; "
-                        "probe stopped before treating this as a completed comment-capture row."
+                        "the bounded comments/more-like-this/comments route-opening action, "
+                        "and no DOM-visible comment candidates were found; probe stopped before "
+                        "treating this as a completed comment-capture row."
                     ),
-                    blocker_triage={
-                        "blocker_class": "comment_route_zero_yield",
-                        "action": "stop",
-                        "reason": TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
-                        "action_mode": "diagnosis_only",
-                        "action_taken": False,
-                        "benign_overlay_action": _as_dict(
-                            comment_receipt.get("benign_overlay_action")
+                    blocker_triage=_comment_route_zero_yield_blocker_triage(
+                        comment_receipt,
+                        challenge_close_action=(
+                            challenge_close_action if challenge_close_accepted else None
                         ),
-                        "comment_action": _as_dict(comment_receipt.get("comment_action")),
-                        "response_count": _first_int(comment_receipt.get("response_count"), 0),
-                        "matched_comment_response_count": _first_int(
-                            comment_receipt.get("matched_comment_response_count"), 0
+                        challenge_close_followthrough=(
+                            allow_challenge_close_followthrough and challenge_close_accepted
                         ),
-                        "admitted_comment_response_count": 0,
-                    },
+                        challenge_close_accepted=(
+                            challenge_close_accepted if challenge_close_accepted else None
+                        ),
+                    ),
                 )
             )
             break
@@ -409,7 +651,14 @@ def run_tiktok_live_batch_probe(
         "creator_profile_url": normalized_profile_url,
         "capture_contract": _capture_contract(
             session_mode=session_mode,
+            logged_out=logged_out,
+            browser_backend=browser_backend,
+            required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
+            cloakbrowser_humanize=cloakbrowser_humanize,
+            human_challenge_handoff=human_challenge_handoff,
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
             allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
+            allow_challenge_close_followthrough=allow_challenge_close_followthrough,
         ),
         "response_items": grid_items,
         "run_complete_utc": run_complete_utc,
@@ -423,9 +672,17 @@ def run_tiktok_live_batch_probe(
         "attempted_count": attempts,
         "completed_count": len(results),
         "challenge_count": challenge_count,
+        "challenge_close_followthrough_count": challenge_close_followthrough_count,
         "capture_contract": _capture_contract(
             session_mode=session_mode,
+            logged_out=logged_out,
+            browser_backend=browser_backend,
+            required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
+            cloakbrowser_humanize=cloakbrowser_humanize,
+            human_challenge_handoff=human_challenge_handoff,
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
             allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
+            allow_challenge_close_followthrough=allow_challenge_close_followthrough,
         ),
         "cadence_plan": cadence_plan.to_dict(),
         "results": results,
@@ -465,11 +722,163 @@ def _blocker_triage_receipt(triage: TikTokBlockerTriage) -> JsonObject:
     return receipt
 
 
-def _with_challenge_close_diagnostic(
-    receipt: JsonObject, challenge_close_diagnostic: JsonObject
+def _comment_route_zero_yield_blocker_triage(
+    comment_receipt: JsonObject,
+    *,
+    challenge_close_action: JsonObject | None = None,
+    challenge_close_followthrough: bool = False,
+    challenge_close_accepted: bool | None = None,
 ) -> JsonObject:
-    if challenge_close_diagnostic:
-        receipt["challenge_close_diagnostic"] = challenge_close_diagnostic
+    receipt = {
+        "blocker_class": "comment_route_zero_yield",
+        "action": "stop",
+        "reason": TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
+        "action_mode": "diagnosis_only",
+        "action_taken": False,
+        "benign_overlay_action": _as_dict(
+            comment_receipt.get("benign_overlay_action")
+        ),
+        "comment_action": (
+            _as_dict(comment_receipt.get("comment_action"))
+            or _missing_comment_route_action_summary()
+        ),
+        "response_count": _first_int(comment_receipt.get("response_count"), 0),
+        "matched_comment_response_count": _first_int(
+            comment_receipt.get("matched_comment_response_count"), 0
+        ),
+        "admitted_comment_response_count": 0,
+        "dom_visible_comment_candidate_count": _first_int(
+            comment_receipt.get("dom_visible_comment_candidate_count"), 0
+        ),
+    }
+    challenge_close_action = _as_dict(challenge_close_action)
+    if challenge_close_action:
+        receipt["challenge_close_action"] = challenge_close_action
+    if challenge_close_followthrough:
+        receipt["challenge_close_followthrough"] = True
+    if challenge_close_accepted is not None:
+        receipt["challenge_close_accepted"] = challenge_close_accepted
+    return receipt
+
+
+def _missing_comment_route_action_summary() -> JsonObject:
+    return {
+        "sequence_name": TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME,
+        "action_count": 0,
+        "action_sequence": [],
+        "clicked_all_targets": False,
+    }
+
+def _with_challenge_close_action(
+    receipt: JsonObject,
+    challenge_close_action: JsonObject,
+    *,
+    challenge_close_followthrough: bool = False,
+    challenge_close_diagnostic: bool = False,
+    challenge_close_accepted: bool | None = None,
+) -> JsonObject:
+    if challenge_close_action:
+        receipt["challenge_close_action"] = challenge_close_action
+        if challenge_close_followthrough:
+            receipt["challenge_close_followthrough"] = True
+        if challenge_close_accepted is not None:
+            receipt["challenge_close_accepted"] = challenge_close_accepted
+        if challenge_close_diagnostic:
+            receipt["challenge_close_diagnostic"] = challenge_close_action
+    return receipt
+
+
+def _challenge_close_not_accepted_blocker_receipt(
+    challenge_close_action: JsonObject,
+) -> JsonObject:
+    matched_marker = _first_str(challenge_close_action.get("page_text_matched_marker"))
+    return _drop_none(
+        {
+            "blocker_class": "challenge_close_not_accepted",
+            "action": "stop",
+            "reason": TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON,
+            "action_mode": "source_access_intervention",
+            "action_taken": True,
+            "marker_family": "challenge_or_security" if matched_marker else None,
+            "matched_marker": matched_marker,
+            "challenge_kind": _challenge_kind_from_close_action(challenge_close_action),
+        }
+    )
+
+
+def _challenge_kind_from_close_action(challenge_close_action: JsonObject) -> str | None:
+    matched_marker = _first_str(challenge_close_action.get("page_text_matched_marker"))
+    if matched_marker:
+        return _challenge_kind_from_marker(matched_marker)
+    if _first_bool(challenge_close_action.get("page_text_gate_matched")) is True:
+        return "closeable_challenge_modal"
+    if _first_bool(challenge_close_action.get("post_click_visual_target_absent")) is False:
+        return "visual_challenge_target_remaining"
+    return None
+
+
+def _challenge_kind_from_marker(marker: str) -> str:
+    if marker == "drag the slider":
+        return "slider"
+    if marker == "captcha":
+        return "captcha"
+    if marker == "security check":
+        return "security_check"
+    if marker == "verify to continue":
+        return "verification_gate"
+    return "unknown_platform_challenge"
+
+def _challenge_close_accepted(challenge_close_action: JsonObject) -> bool:
+    if _first_bool(challenge_close_action.get("clicked")) is not True:
+        return False
+    verification_values = [
+        value
+        for value in (
+            _first_bool(challenge_close_action.get("post_click_absence_verified")),
+            _first_bool(challenge_close_action.get("post_click_visual_target_absent")),
+        )
+        if value is not None
+    ]
+    return bool(verification_values) and all(verification_values)
+
+
+def _with_comment_route_observation(
+    receipt: JsonObject,
+    capture_result: BrowserPageObservationSuccess,
+    *,
+    comment_response_cap: int,
+    admit_comment_responses: bool = True,
+) -> JsonObject:
+    comment_list_responses = _page_owned_comment_list_responses(
+        capture_result,
+        response_cap=comment_response_cap,
+    )
+    receipt["benign_overlay_action"] = _benign_overlay_action_summary(capture_result)
+    comment_action = _comment_action_summary(capture_result)
+    if comment_action:
+        receipt["comment_action"] = comment_action
+    receipt["response_count"] = len(capture_result.responses)
+    receipt["matched_comment_response_count"] = sum(
+        1
+        for response in capture_result.responses
+        if _is_page_owned_comment_list_response(response)
+    )
+    receipt["admitted_comment_response_count"] = (
+        len(comment_list_responses) if admit_comment_responses else 0
+    )
+    receipt["dom_visible_comment_candidate_count"] = len(
+        _dom_visible_comment_candidates(capture_result)
+    )
+    pointer_chronology = _pointer_action_chronology(capture_result)
+    if pointer_chronology:
+        receipt["pointer_action_chronology"] = pointer_chronology
+    challenge_close_attempts = _challenge_close_attempts(capture_result)
+    if challenge_close_attempts:
+        receipt["challenge_close_attempts"] = challenge_close_attempts
+    human_handoff_attempts = _human_challenge_handoff_attempts(capture_result)
+    if human_handoff_attempts:
+        receipt["human_challenge_handoff_attempts"] = human_handoff_attempts
+        receipt["human_challenge_handoff"] = True
     return receipt
 
 
@@ -477,27 +886,24 @@ def _challenge_close_diagnostic_blocker_receipt(
     capture_result: BrowserPageObservationSuccess,
     *,
     challenge_close_diagnostic: JsonObject,
+    comment_response_cap: int,
 ) -> JsonObject:
-    comment_list_responses = _page_owned_comment_list_responses(capture_result)
-    return _drop_none(
-        {
-            "blocker_class": "challenge_close_diagnostic",
-            "action": "stop",
-            "reason": TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON,
-            "action_mode": "diagnosis_only",
-            "action_taken": True,
-            "challenge_close_diagnostic": challenge_close_diagnostic,
-            "benign_overlay_action": _benign_overlay_action_summary(capture_result),
-            "comment_action": _comment_action_summary(capture_result),
-            "response_count": len(capture_result.responses),
-            "matched_comment_response_count": sum(
-                1
-                for response in capture_result.responses
-                if _is_page_owned_comment_list_response(response)
-            ),
-            "admitted_comment_response_count": len(comment_list_responses),
-        }
+    receipt = _with_comment_route_observation(
+        _drop_none(
+            {
+                "blocker_class": "challenge_close_diagnostic",
+                "action": "stop",
+                "reason": TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON,
+                "action_mode": "diagnosis_only",
+                "action_taken": True,
+                "challenge_close_diagnostic": challenge_close_diagnostic,
+            }
+        ),
+        capture_result,
+        comment_response_cap=comment_response_cap,
+        admit_comment_responses=False,
     )
+    return _drop_none(receipt)
 
 
 def _tiktok_live_pointer_actions(
@@ -505,7 +911,12 @@ def _tiktok_live_pointer_actions(
     video_id: str,
     random_seed: int | None,
     allow_challenge_close_diagnostic: bool,
+    allow_challenge_close_followthrough: bool,
 ) -> tuple[BrowserPagePointerAction, ...]:
+    retry_action = _tiktok_retry_visible_error_pointer_action(
+        video_id=video_id,
+        random_seed=random_seed,
+    )
     benign_overlay_action = _tiktok_dismiss_benign_overlay_pointer_action(
         video_id=video_id,
         random_seed=random_seed,
@@ -514,19 +925,86 @@ def _tiktok_live_pointer_actions(
         video_id=video_id,
         random_seed=random_seed,
     )
+    if allow_challenge_close_followthrough:
+        return (
+            retry_action,
+            benign_overlay_action,
+            _tiktok_challenge_close_followthrough_pointer_action(
+                video_id=video_id,
+                random_seed=random_seed,
+            ),
+            _tiktok_challenge_visual_close_followthrough_pointer_action(
+                video_id=video_id,
+                random_seed=random_seed,
+            ),
+            *_interleave_challenge_followthrough_actions(
+                comment_actions,
+                video_id=video_id,
+                random_seed=random_seed,
+            ),
+        )
     if not allow_challenge_close_diagnostic:
-        return (benign_overlay_action, *comment_actions)
+        return (retry_action, benign_overlay_action, *comment_actions)
     return (
+        retry_action,
         benign_overlay_action,
         _tiktok_challenge_close_diagnostic_pointer_action(
             video_id=video_id,
             random_seed=random_seed,
         ),
-        *comment_actions,
-        _tiktok_challenge_visual_close_diagnostic_pointer_action(
+        *_interleave_challenge_diagnostic_actions(
+            comment_actions,
             video_id=video_id,
             random_seed=random_seed,
         ),
+    )
+
+
+def _interleave_challenge_followthrough_actions(
+    comment_actions: Sequence[BrowserPagePointerAction],
+    *,
+    video_id: str,
+    random_seed: int | None,
+) -> tuple[BrowserPagePointerAction, ...]:
+    interleaved: list[BrowserPagePointerAction] = []
+    for action in comment_actions:
+        interleaved.append(action)
+        interleaved.append(
+            _tiktok_challenge_close_followthrough_pointer_action(
+                video_id=video_id,
+                random_seed=random_seed,
+            )
+        )
+        interleaved.append(
+            _tiktok_challenge_visual_close_followthrough_pointer_action(
+                video_id=video_id,
+                random_seed=random_seed,
+            )
+        )
+    return tuple(interleaved)
+
+
+def _interleave_challenge_diagnostic_actions(
+    comment_actions: Sequence[BrowserPagePointerAction],
+    *,
+    video_id: str,
+    random_seed: int | None,
+) -> tuple[BrowserPagePointerAction, ...]:
+    interleaved: list[BrowserPagePointerAction] = []
+    for action in comment_actions:
+        interleaved.append(action)
+        interleaved.append(
+            _tiktok_challenge_visual_close_diagnostic_pointer_action(
+                video_id=video_id,
+                random_seed=random_seed,
+            )
+        )
+    return tuple(interleaved)
+
+def _tiktok_human_challenge_handoff_after_action_names() -> tuple[str, ...]:
+    return (
+        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
     )
 
 
@@ -535,7 +1013,7 @@ def _tiktok_comment_route_pointer_actions(
     video_id: str,
     random_seed: int | None,
 ) -> tuple[BrowserPagePointerAction, ...]:
-    return (
+    route_once = (
         _tiktok_open_comments_pointer_action(
             video_id=video_id,
             random_seed=random_seed,
@@ -553,6 +1031,7 @@ def _tiktok_comment_route_pointer_actions(
             wait_after_ms=3500,
         ),
     )
+    return (*route_once, *route_once)
 
 
 def _tiktok_dismiss_benign_overlay_pointer_action(
@@ -571,9 +1050,13 @@ def _tiktok_dismiss_benign_overlay_pointer_action(
             "scroll, use the",
             "browse your feed",
             "got it",
+            "press ok",
+            "tap ok",
+            "okay",
             "continue in browser",
             "open app",
         ),
+        exact_text_markers=("ok", "okay"),
         wait_after_ms=1500,
         move_steps_min=6,
         move_steps_max=12,
@@ -588,24 +1071,78 @@ def _tiktok_dismiss_benign_overlay_pointer_action(
     )
 
 
-def _tiktok_challenge_close_diagnostic_pointer_action(
+def _tiktok_retry_visible_error_pointer_action(
     *,
     video_id: str,
     random_seed: int | None,
 ) -> BrowserPagePointerAction:
     return BrowserPagePointerAction(
+        action_name=TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
+        candidate_selector=(
+            'button,[role="button"],[aria-label],[title],[data-e2e],'
+            '[data-testid],[data-test-id],a'
+        ),
+        text_markers=("retry", "retry again", "try again", "reload"),
+        page_text_markers=(
+            "retry",
+            "retry again",
+            "try again",
+            "something went wrong",
+            "couldn't load",
+            "could not load",
+            "failed to load",
+        ),
+        wait_after_ms=2500,
+        move_steps_min=6,
+        move_steps_max=12,
+        target_fraction_min=0.35,
+        target_fraction_max=0.65,
+        random_seed=_stable_pointer_seed(
+            video_id=video_id,
+            random_seed=random_seed,
+            action_name=TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
+        ),
+    )
+
+
+def _tiktok_challenge_close_diagnostic_pointer_action(
+    *,
+    video_id: str,
+    random_seed: int | None,
+) -> BrowserPagePointerAction:
+    return _tiktok_challenge_close_pointer_action(
+        video_id=video_id,
+        random_seed=random_seed,
         action_name=TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+    )
+
+
+def _tiktok_challenge_close_followthrough_pointer_action(
+    *,
+    video_id: str,
+    random_seed: int | None,
+) -> BrowserPagePointerAction:
+    return _tiktok_challenge_close_pointer_action(
+        video_id=video_id,
+        random_seed=random_seed,
+        action_name=TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+    )
+
+
+def _tiktok_challenge_close_pointer_action(
+    *,
+    video_id: str,
+    random_seed: int | None,
+    action_name: str,
+) -> BrowserPagePointerAction:
+    return BrowserPagePointerAction(
+        action_name=action_name,
         candidate_selector=(
             "button,[role=\"button\"],[aria-label],[title],[data-e2e],"
             "[data-testid],[data-test-id],[class]"
         ),
         text_markers=("close", "dismiss"),
-        page_text_markers=(
-            "drag the slider",
-            "verify to continue",
-            "captcha",
-            "security check",
-        ),
+        page_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         exact_text_markers=("x", "×"),
         wait_after_ms=2000,
         move_steps_min=6,
@@ -614,10 +1151,15 @@ def _tiktok_challenge_close_diagnostic_pointer_action(
         target_fraction_max=0.65,
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
+        visual_x_target_zone="center_modal",
+        # Geometric fallback caused false X-click claims on TikTok challenge modals.
+        visual_x_geometric_fallback=False,
+        post_click_absent_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
+        post_click_visual_target_absence_check=True,
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
-            action_name=TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+            action_name=action_name,
         ),
     )
 
@@ -627,18 +1169,43 @@ def _tiktok_challenge_visual_close_diagnostic_pointer_action(
     video_id: str,
     random_seed: int | None,
 ) -> BrowserPagePointerAction:
-    return BrowserPagePointerAction(
+    return _tiktok_challenge_visual_close_pointer_action(
+        video_id=video_id,
+        random_seed=random_seed,
         action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+    )
+
+
+def _tiktok_challenge_visual_close_followthrough_pointer_action(
+    *,
+    video_id: str,
+    random_seed: int | None,
+) -> BrowserPagePointerAction:
+    return _tiktok_challenge_visual_close_pointer_action(
+        video_id=video_id,
+        random_seed=random_seed,
+        action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        stop_sequence_on_failed_post_click_verification=True,
+    )
+
+
+def _tiktok_challenge_visual_close_pointer_action(
+    *,
+    video_id: str,
+    random_seed: int | None,
+    action_name: str,
+    require_visible_challenge_text: bool = True,
+    stop_sequence_on_failed_post_click_verification: bool = False,
+) -> BrowserPagePointerAction:
+    return BrowserPagePointerAction(
+        action_name=action_name,
         candidate_selector=(
             "button,[role=\"button\"],[aria-label],[title],[data-e2e],"
             "[data-testid],[data-test-id],[class]"
         ),
         text_markers=("__tiktok_visual_close_diagnostic_never_dom_match__",),
         page_text_markers=(
-            "drag the slider",
-            "verify to continue",
-            "captcha",
-            "security check",
+            TIKTOK_CHALLENGE_TEXT_MARKERS if require_visible_challenge_text else ()
         ),
         exact_text_markers=("__tiktok_visual_close_diagnostic_never_dom_match__",),
         wait_after_ms=2000,
@@ -648,10 +1215,18 @@ def _tiktok_challenge_visual_close_diagnostic_pointer_action(
         target_fraction_max=0.65,
         prefer_top_right=True,
         visual_top_right_x_fallback=True,
+        visual_x_target_zone="center_modal",
+        # Geometric fallback caused false X-click claims on TikTok challenge modals.
+        visual_x_geometric_fallback=False,
+        post_click_absent_text_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
+        post_click_visual_target_absence_check=True,
+        stop_sequence_on_failed_post_click_verification=(
+            stop_sequence_on_failed_post_click_verification
+        ),
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
-            action_name=TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+            action_name=action_name,
         ),
     )
 
@@ -673,6 +1248,8 @@ def _tiktok_open_comments_pointer_action(
         move_steps_max=12,
         target_fraction_min=0.35,
         target_fraction_max=0.65,
+        stop_wait_on_observed_response=True,
+        observed_response_wait_poll_ms=100,
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
@@ -689,16 +1266,28 @@ def _tiktok_open_more_like_this_pointer_action(
     return BrowserPagePointerAction(
         action_name=TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
         candidate_selector=(
-            '[role="tab"],button,[role="button"],a,[data-e2e*="more-like"],'
-            '[data-e2e*="more_like"],[data-testid*="more-like"],'
-            '[data-test-id*="more-like"]'
+            '[role="tab"],[aria-selected],button,[role="button"],a,'
+            '[data-e2e*="more-like"],[data-e2e*="more_like"],'
+            '[data-e2e*="you-may-like"],[data-e2e*="you_may_like"],'
+            '[data-testid*="more-like"],[data-testid*="you-may-like"],'
+            '[data-test-id*="more-like"],[data-test-id*="you-may-like"],'
+            'div,span,p'
         ),
-        text_markers=("more like this", "more-like-this", "more_like_this"),
+        text_markers=(
+            "more like this",
+            "more-like-this",
+            "more_like_this",
+            "you may like",
+            "you-may-like",
+            "you_may_like",
+        ),
+        exact_text_markers=("more like this", "you may like"),
         wait_after_ms=2000,
         move_steps_min=6,
         move_steps_max=12,
         target_fraction_min=0.35,
         target_fraction_max=0.65,
+        prefer_smallest_match=True,
         random_seed=_stable_pointer_seed(
             video_id=video_id,
             random_seed=random_seed,
@@ -744,14 +1333,61 @@ def _cadence_row_from_capture(
     observed_utc: str,
     grid_candidate: JsonObject,
     blocker_triage: TikTokBlockerTriage,
+    comment_response_cap: int = TIKTOK_COMMENT_LIST_RESPONSE_CAP,
+    challenge_close_action: JsonObject | None = None,
+    challenge_close_followthrough_allowed: bool = False,
+    subtitle_fetcher: SubtitleFetchFn | None = None,
 ) -> JsonObject:
     subtitle_infos = _sanitize_subtitle_infos(_subtitle_infos_from_item_struct(item_struct))
+    subtitle_capture = _subtitle_capture_from_item_struct(
+        item_struct,
+        subtitle_fetcher=subtitle_fetcher or _fetch_subtitle_webvtt,
+    )
     matched_comment_response_count = sum(
         1
         for response in capture_result.responses
         if _is_page_owned_comment_list_response(response)
     )
-    comment_list_responses = _page_owned_comment_list_responses(capture_result)
+    comment_list_responses = _page_owned_comment_list_responses(
+        capture_result,
+        response_cap=comment_response_cap,
+    )
+    dom_visible_comments = _dom_visible_comment_candidates(capture_result)
+    challenge_close_action = _as_dict(challenge_close_action)
+    challenge_close_clicked = _first_bool(challenge_close_action.get("clicked")) is True
+    challenge_close_accepted = _challenge_close_accepted(challenge_close_action)
+    capture_receipt = {
+        "page_url_sha256": _sha256_text(video_url),
+        "final_url_sha256": _sha256_text(capture_result.final_url),
+        "response_count": len(capture_result.responses),
+        "blocker_triage": _blocker_triage_receipt(blocker_triage),
+        "benign_overlay_action": _benign_overlay_action_summary(capture_result),
+        "comment_action": _comment_action_summary(capture_result),
+        "matched_comment_response_count": matched_comment_response_count,
+        "admitted_comment_response_count": len(comment_list_responses),
+        "comment_response_cap": comment_response_cap,
+        "dom_visible_comment_candidate_count": len(dom_visible_comments),
+        "warning_count": len(capture_result.warning_notes),
+        "limitation_count": len(capture_result.limitation_notes),
+    }
+    pointer_chronology = _pointer_action_chronology(capture_result)
+    if pointer_chronology:
+        capture_receipt["pointer_action_chronology"] = pointer_chronology
+    challenge_close_attempts = _challenge_close_attempts(capture_result)
+    if challenge_close_attempts:
+        capture_receipt["challenge_close_attempts"] = challenge_close_attempts
+    human_handoff_attempts = _human_challenge_handoff_attempts(capture_result)
+    if human_handoff_attempts:
+        capture_receipt["human_challenge_handoff_attempts"] = human_handoff_attempts
+        capture_receipt["human_challenge_handoff"] = True
+    if dom_visible_comments and not comment_list_responses:
+        capture_receipt["comment_capture_fallback"] = "dom_visible_comment_candidates_v0"
+    if challenge_close_action:
+        capture_receipt["challenge_close_action"] = challenge_close_action
+        if challenge_close_clicked:
+            capture_receipt["challenge_close_accepted"] = challenge_close_accepted
+    if challenge_close_followthrough_allowed and challenge_close_accepted:
+        capture_receipt["challenge_close_followthrough"] = True
     return {
         "video_id": video_id,
         "url_path": urlparse(video_url).path,
@@ -762,42 +1398,76 @@ def _cadence_row_from_capture(
             _comment_response_from_page_response(response, observed_utc=observed_utc)
             for response in comment_list_responses
         ],
+        "dom_visible_comment_candidates": dom_visible_comments,
         "hydration": {
             "subtitle_info_count": len(subtitle_infos),
             "subtitle_infos_sanitized": subtitle_infos,
         },
-        "subtitle": {
-            "attempted": False,
-            "success": False,
-            "reason": "subtitle_body_fetch_deferred_live_probe_v0",
-        },
-        "capture_receipt": {
-            "page_url_sha256": _sha256_text(video_url),
-            "final_url_sha256": _sha256_text(capture_result.final_url),
-            "response_count": len(capture_result.responses),
-            "blocker_triage": _blocker_triage_receipt(blocker_triage),
-            "benign_overlay_action": _benign_overlay_action_summary(capture_result),
-            "comment_action": _comment_action_summary(capture_result),
-            "matched_comment_response_count": matched_comment_response_count,
-            "admitted_comment_response_count": len(comment_list_responses),
-            "comment_response_cap": TIKTOK_COMMENT_LIST_RESPONSE_CAP,
-            "warning_count": len(capture_result.warning_notes),
-            "limitation_count": len(capture_result.limitation_notes),
-        },
+        "subtitle": subtitle_capture,
+        "capture_receipt": capture_receipt,
     }
 
 
 def _page_owned_comment_list_responses(
     capture_result: BrowserPageObservationSuccess,
+    *,
+    response_cap: int = TIKTOK_COMMENT_LIST_RESPONSE_CAP,
 ) -> list[BrowserPageResponse]:
     responses: list[BrowserPageResponse] = []
     for response in capture_result.responses:
         if not _is_page_owned_comment_list_response(response):
             continue
         responses.append(response)
-        if len(responses) >= TIKTOK_COMMENT_LIST_RESPONSE_CAP:
+        if len(responses) >= response_cap:
             break
     return responses
+
+
+def _dom_visible_comment_candidates(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[JsonObject]:
+    observation = _as_dict(capture_result.dom_observation)
+    candidates: list[JsonObject] = []
+    seen: set[str] = set()
+    for raw in _as_list(observation.get("visible_comment_candidates")):
+        item = _as_dict(raw)
+        text = _clean_dom_comment_text(_first_str(item.get("text"), ""))
+        if not text:
+            continue
+        key = text.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        candidate = {
+            "source_order": len(candidates),
+            "text": text,
+            "text_sha256": _sha256_text(text),
+            "text_char_count": len(text),
+            "selector": _first_str(item.get("selector")),
+            "capture_posture": "visible_dom_after_comment_route",
+        }
+        assert_no_sensitive_tiktok_material(candidate)
+        candidates.append(_drop_none(candidate))
+        if len(candidates) >= TIKTOK_DOM_VISIBLE_COMMENT_CANDIDATE_CAP:
+            break
+    return candidates
+
+
+def _clean_dom_comment_text(value: str | None) -> str:
+    text = re.sub(r"\s+", " ", value or "").strip()
+    if not text:
+        return ""
+    lowered = text.lower()
+    if lowered in {"comments", "you may like", "log in to comment"}:
+        return ""
+    if _COUNT_ONLY_TEXT_RE.fullmatch(lowered):
+        return ""
+    if any(marker in lowered for marker in ("drag the slider", "verify to continue", "captcha")):
+        return ""
+    text = _URL_IN_TEXT_RE.sub("[url redacted]", text)
+    if len(text) > TIKTOK_DOM_VISIBLE_COMMENT_TEXT_MAX_CHARS:
+        text = text[:TIKTOK_DOM_VISIBLE_COMMENT_TEXT_MAX_CHARS].rstrip()
+    return text
 
 
 def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> JsonObject:
@@ -810,7 +1480,10 @@ def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> Js
         if summary.get("action_name") in {
             TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
             TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+            TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+            TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
             TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
+            TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
         }:
             continue
         action_sequence.append(summary)
@@ -826,6 +1499,8 @@ def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> Js
         }
     if len(action_sequence) == 1:
         return action_sequence[0]
+    if _as_list(metadata.get("post_load_pointer_actions")):
+        return {}
 
     action = _as_dict(metadata.get("post_load_pointer_action"))
     if action:
@@ -842,6 +1517,48 @@ def _comment_action_summary(capture_result: BrowserPageObservationSuccess) -> Js
     )
 
 
+def _pointer_action_chronology(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[JsonObject]:
+    metadata = _as_dict(capture_result.metadata)
+    actions: list[JsonObject] = []
+    for action in _as_list(metadata.get("post_load_pointer_actions")):
+        summary = _pointer_action_summary(_as_dict(action))
+        if summary:
+            actions.append(summary)
+    if actions:
+        return actions
+    action = _as_dict(metadata.get("post_load_pointer_action"))
+    summary = _pointer_action_summary(action) if action else {}
+    return [summary] if summary else []
+
+
+def _human_challenge_handoff_attempts(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[JsonObject]:
+    metadata = _as_dict(capture_result.metadata)
+    return [
+        _as_dict(attempt)
+        for attempt in _as_list(metadata.get("human_challenge_handoff_attempts"))
+        if _as_dict(attempt)
+    ]
+
+
+def _challenge_close_attempts(
+    capture_result: BrowserPageObservationSuccess,
+) -> list[JsonObject]:
+    challenge_action_names = {
+        TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+    }
+    return [
+        action
+        for action in _pointer_action_chronology(capture_result)
+        if action.get("action_name") in challenge_action_names
+    ]
+
 def _benign_overlay_action_summary(
     capture_result: BrowserPageObservationSuccess,
 ) -> JsonObject:
@@ -853,7 +1570,7 @@ def _benign_overlay_action_summary(
     return {}
 
 
-def _challenge_close_diagnostic_summary(
+def _challenge_close_action_summary(
     capture_result: BrowserPageObservationSuccess,
 ) -> JsonObject:
     metadata = _as_dict(capture_result.metadata)
@@ -861,12 +1578,17 @@ def _challenge_close_diagnostic_summary(
     diagnostic_names = {
         TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
         TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
     }
     for action in _as_list(metadata.get("post_load_pointer_actions")):
         summary = _pointer_action_summary(_as_dict(action))
         if summary.get("action_name") in diagnostic_names:
             diagnostic_summaries.append(summary)
     for summary in diagnostic_summaries:
+        if _challenge_close_accepted(summary):
+            return summary
+    for summary in reversed(diagnostic_summaries):
         if _first_bool(summary.get("clicked")) is True:
             return summary
     for summary in diagnostic_summaries:
@@ -885,10 +1607,23 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             "clicked": _first_bool(action.get("clicked")),
             "move_steps": _first_int(action.get("move_steps")),
             "wait_ms": _first_int(action.get("wait_ms")),
+            "observed_response_count_before": _first_int(
+                action.get("observed_response_count_before")
+            ),
+            "observed_response_count_after": _first_int(
+                action.get("observed_response_count_after")
+            ),
+            "observed_response_delta": _first_int(action.get("observed_response_delta")),
+            "observed_response_seen": _first_bool(action.get("observed_response_seen")),
             "target_kind": _first_str(action.get("target_kind")),
             "page_text_gate_matched": _first_bool(action.get("page_text_gate_matched")),
+            "page_text_matched_marker": _first_str(
+                action.get("page_text_matched_marker")
+            ),
             "selection_strategy": _first_str(action.get("selection_strategy")),
             "failure": _first_str(action.get("failure")),
+            "target_box": _as_dict(action.get("target_box")) or None,
+            "click_point": _as_dict(action.get("click_point")) or None,
             "visual_fallback_attempted": _first_bool(
                 action.get("visual_fallback_attempted")
             ),
@@ -897,6 +1632,9 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             ),
             "visual_fallback_candidate_count": _first_int(
                 action.get("visual_fallback_candidate_count")
+            ),
+            "visual_fallback_zone_candidate_count": _first_int(
+                action.get("visual_fallback_zone_candidate_count")
             ),
             "visual_fallback_confidence": _first_float(
                 action.get("visual_fallback_confidence")
@@ -907,8 +1645,59 @@ def _pointer_action_summary(action: JsonObject) -> JsonObject:
             "visual_fallback_crop_box": _as_dict(
                 action.get("visual_fallback_crop_box")
             ) or None,
+            "visual_fallback_target_zone": _first_str(
+                action.get("visual_fallback_target_zone")
+            ),
+            "visual_fallback_geometric_target": _first_bool(
+                action.get("visual_fallback_geometric_target")
+            ),
             "visual_fallback_failure": _first_str(
                 action.get("visual_fallback_failure")
+            ),
+            "post_click_absence_checked": _first_bool(
+                action.get("post_click_absence_checked")
+            ),
+            "post_click_absence_marker_count": _first_int(
+                action.get("post_click_absence_marker_count")
+            ),
+            "post_click_absence_verified": _first_bool(
+                action.get("post_click_absence_verified")
+            ),
+            "post_click_absence_matched_marker": _first_str(
+                action.get("post_click_absence_matched_marker")
+            ),
+            "post_click_absence_failure": _first_str(
+                action.get("post_click_absence_failure")
+            ),
+            "post_click_visual_check_attempted": _first_bool(
+                action.get("post_click_visual_check_attempted")
+            ),
+            "post_click_visual_target_found": _first_bool(
+                action.get("post_click_visual_target_found")
+            ),
+            "post_click_visual_target_absent": _first_bool(
+                action.get("post_click_visual_target_absent")
+            ),
+            "post_click_visual_candidate_count": _first_int(
+                action.get("post_click_visual_candidate_count")
+            ),
+            "post_click_visual_zone_candidate_count": _first_int(
+                action.get("post_click_visual_zone_candidate_count")
+            ),
+            "post_click_visual_confidence": _first_float(
+                action.get("post_click_visual_confidence")
+            ),
+            "post_click_visual_screenshot_sha256": _first_str(
+                action.get("post_click_visual_screenshot_sha256")
+            ),
+            "post_click_visual_crop_box": _as_dict(
+                action.get("post_click_visual_crop_box")
+            ) or None,
+            "post_click_visual_target_box": _as_dict(
+                action.get("post_click_visual_target_box")
+            ) or None,
+            "post_click_visual_failure": _first_str(
+                action.get("post_click_visual_failure")
             ),
         }
     )
@@ -1126,6 +1915,145 @@ def _subtitle_infos_from_item_struct(item_struct: JsonObject) -> Sequence[Any]:
     return []
 
 
+def _subtitle_capture_from_item_struct(
+    item_struct: JsonObject,
+    *,
+    subtitle_fetcher: SubtitleFetchFn,
+) -> JsonObject:
+    subtitle_url = _subtitle_url_from_item_struct(item_struct)
+    if subtitle_url is None:
+        return {
+            "attempted": False,
+            "success": False,
+            "reason": "no_subtitle_url_in_hydration_v0",
+        }
+    url_sha256 = _sha256_text(subtitle_url)
+    base: JsonObject = {
+        "attempted": False,
+        "success": False,
+        "subtitle_url_sha256": url_sha256,
+        "subtitle_url_length": len(subtitle_url),
+    }
+    if not _is_supported_subtitle_url(subtitle_url):
+        base["reason"] = "unsupported_subtitle_url_host_live_probe_v0"
+        assert_no_sensitive_tiktok_material(base)
+        return base
+
+    base["attempted"] = True
+    try:
+        body = subtitle_fetcher(subtitle_url)
+    except Exception:
+        base["reason"] = "subtitle_body_fetch_failed_live_probe_v0"
+        assert_no_sensitive_tiktok_material(base)
+        return base
+
+    body = body[: TIKTOK_SUBTITLE_WEBVTT_MAX_BYTES + 1]
+    base["body_sha256"] = sha256(body).hexdigest()
+    base["body_byte_count"] = len(body)
+    if len(body) > TIKTOK_SUBTITLE_WEBVTT_MAX_BYTES:
+        base["reason"] = "subtitle_body_size_cap_exceeded_live_probe_v0"
+        assert_no_sensitive_tiktok_material(base)
+        return base
+
+    try:
+        cues = parse_webvtt_cues(body)
+    except ValueError:
+        base["reason"] = "subtitle_body_parse_failed_live_probe_v0"
+        assert_no_sensitive_tiktok_material(base)
+        return base
+
+    transcript_text = "\n".join(cue.text for cue in cues)
+    result = {
+        **base,
+        "success": True,
+        "reason": "source_native_webvtt_captured_live_probe_v0",
+        "parsed_webvtt": {
+            "cue_count": len(cues),
+            "transcript_char_count": len(transcript_text),
+            "transcript_text_sha256": _sha256_text(transcript_text),
+            "transcript_text": transcript_text,
+            "cues": [
+                {
+                    "start_ms": cue.start_ms,
+                    "end_ms": cue.end_ms,
+                    "start": _format_webvtt_timestamp_ms(cue.start_ms),
+                    "end": _format_webvtt_timestamp_ms(cue.end_ms),
+                    "text": cue.text,
+                }
+                for cue in cues
+            ],
+        },
+    }
+    assert_no_sensitive_tiktok_material(result)
+    return result
+
+
+def _subtitle_url_from_item_struct(item_struct: JsonObject) -> str | None:
+    for info in _subtitle_infos_from_item_struct(item_struct):
+        if not isinstance(info, dict):
+            continue
+        url = _first_str(info.get("Url"), info.get("url"), info.get("URL"))
+        if url:
+            return url
+    return None
+
+
+def _is_supported_subtitle_url(url: str) -> bool:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"}:
+        return False
+    host = (parsed.hostname or "").lower()
+    if not host:
+        return False
+    return any(
+        _host_matches_suffix(host, suffix)
+        for suffix in TIKTOK_SUBTITLE_ALLOWED_HOST_SUFFIXES
+    )
+
+
+def _host_matches_suffix(host: str, suffix: str) -> bool:
+    normalized_host = host.lower().rstrip(".")
+    normalized_suffix = suffix.lower().rstrip(".")
+    return normalized_host == normalized_suffix or normalized_host.endswith(
+        f".{normalized_suffix}"
+    )
+
+
+class _TikTokSubtitleRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(
+        self,
+        req: object,
+        fp: object,
+        code: int,
+        msg: str,
+        headers: object,
+        newurl: str,
+    ) -> object:
+        if not _is_supported_subtitle_url(newurl):
+            raise ValueError("unsupported subtitle redirect host")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _fetch_subtitle_webvtt(url: str) -> bytes:
+    request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    opener = build_opener(_TikTokSubtitleRedirectHandler)
+    with opener.open(request, timeout=TIKTOK_SUBTITLE_FETCH_TIMEOUT_SECONDS) as response:
+        final_url = ""
+        try:
+            final_url = str(response.geturl())
+        except Exception:
+            final_url = ""
+        if final_url and not _is_supported_subtitle_url(final_url):
+            raise ValueError("unsupported subtitle final host")
+        return response.read(TIKTOK_SUBTITLE_WEBVTT_MAX_BYTES + 1)
+
+
+def _format_webvtt_timestamp_ms(value: int) -> str:
+    hours, remainder = divmod(max(0, int(value)), 3_600_000)
+    minutes, remainder = divmod(remainder, 60_000)
+    seconds, millis = divmod(remainder, 1_000)
+    return f"{hours:02}:{minutes:02}:{seconds:02}.{millis:03}"
+
 def _extract_item_struct(dom_observation: object) -> JsonObject | None:
     observation = _as_dict(dom_observation)
     hydration_text = _first_str(observation.get("hydration_json_text"))
@@ -1189,25 +2117,52 @@ def _failure_entry(
 
 def _capture_contract(
     *,
-    session_mode: AuthenticatedSessionMode,
+    session_mode: AuthenticatedSessionMode | None,
+    logged_out: bool = False,
+    browser_backend: str = TIKTOK_BROWSER_BACKEND_DEFAULT,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture | None = None,
+    cloakbrowser_humanize: bool = False,
+    human_challenge_handoff: bool = False,
+    human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
     allow_challenge_close_diagnostic: bool = False,
+    allow_challenge_close_followthrough: bool = False,
 ) -> JsonObject:
+    session_mode_value = (
+        TIKTOK_LOGGED_OUT_SESSION_MODE
+        if logged_out
+        else session_mode.value if session_mode is not None else None
+    )
+    if session_mode_value is None:
+        raise ValueError("session_mode is required unless logged_out is true")
     return {
+        "browser_backend": browser_backend,
+        "required_harness_proxy_profile_posture": (
+            required_harness_proxy_profile_posture.value
+            if isinstance(required_harness_proxy_profile_posture, HarnessProxyProfilePosture)
+            else required_harness_proxy_profile_posture
+        ),
+        "cloakbrowser_humanize": cloakbrowser_humanize,
         "captcha_solving": False,
+        "human_challenge_handoff_allowed": human_challenge_handoff,
+        "human_challenge_handoff_counts_as_clean_capture": False,
+        "human_challenge_handoff_timeout_seconds": human_challenge_handoff_timeout_seconds,
         "challenge_close_diagnostic_allowed": allow_challenge_close_diagnostic,
+        "challenge_close_followthrough_allowed": allow_challenge_close_followthrough,
         "challenge_close_counts_as_success": False,
         "cookies_or_tokens_persisted": False,
         "direct_forged_api_calls": False,
+        "dom_visible_comment_fallback": True,
         "page_owned_comment_list_response": True,
         "page_owned_video_navigation": True,
         "raw_comment_response_bodies_persisted": False,
         "raw_endpoint_urls_persisted": False,
         "raw_subtitle_bodies_persisted": False,
         "raw_subtitle_urls_persisted": False,
-        "session_mode": session_mode.value,
+        "session_mode": session_mode_value,
+        "logged_out_public": logged_out,
         "staging_only": True,
         "stop_on_challenge": True,
-        "subtitle_tier": "source_native_subtitle_metadata_only_live_probe_v0",
+        "subtitle_tier": "source_native_webvtt_transcript_live_probe_v0",
     }
 
 
@@ -1217,7 +2172,7 @@ def _non_claims() -> list[str]:
         "not_product_or_judgment_extraction",
         "not_bulk_scale_capture",
         "not_raw_comment_body_preservation",
-        "not_subtitle_body_capture",
+        "not_raw_subtitle_body_preservation",
     ]
 
 
@@ -1347,8 +2302,12 @@ __all__ = [
     "TIKTOK_LIVE_BATCH_GRID_JSON_NAME",
     "TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION",
     "TIKTOK_CHALLENGE_AFTER_CLOSE_DIAGNOSTIC_REASON",
+    "TIKTOK_CHALLENGE_AFTER_CLOSE_FOLLOWTHROUGH_REASON",
     "TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME",
     "TIKTOK_CHALLENGE_VISUAL_CLOSE_DIAGNOSTIC_POINTER_ACTION_NAME",
+    "TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME",
+    "TIKTOK_CHALLENGE_X_CLOSE_NOT_ACCEPTED_REASON",
+    "TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME",
     "TIKTOK_CHALLENGE_CLOSE_DIAGNOSTIC_REASON",
     "TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON",
     "TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME",

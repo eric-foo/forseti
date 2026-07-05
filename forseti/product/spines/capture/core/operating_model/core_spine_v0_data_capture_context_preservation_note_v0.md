@@ -155,7 +155,7 @@ Capture should preserve, categorically:
   the relevant decision window.
 
 Why: docs can silently change after the fact. Without version/cutoff discipline,
-Orca can accidentally treat later knowledge as pre-cutoff evidence or misread a
+Forseti can accidentally treat later knowledge as pre-cutoff evidence or misread a
 future/planned state as current behavior.
 
 ## Domain-Native Language
@@ -164,7 +164,7 @@ Capture should preserve domain-native language, jargon, abbreviations, and
 buyer/operator phrasing exactly when that language carries signal.
 
 The risk is not that expert buyers dislike jargon. Expert buyers often trust
-precise domain language more than generic paraphrase. The risk is that Orca, a
+precise domain language more than generic paraphrase. The risk is that Forseti, a
 future reviewer, or a cross-domain artifact may flatten or misread the term.
 
 Downstream work may add a short interpretation note when needed for
@@ -206,7 +206,7 @@ Capture may need to reason about:
 - source surfaces visible in the prior decision window.
 
 Why: if a signal disappeared, changed, or was only visible during the relevant
-window, Orca still needs a public, non-deceptive way to preserve or recover what
+window, Forseti still needs a public, non-deceptive way to preserve or recover what
 was visible. Runtime tooling for historical capture is deferred, but the
 conceptual obligation is core.
 
@@ -215,13 +215,13 @@ conceptual obligation is core.
 Core owns the invariant obligations:
 
 - preserve the raw observable and related context;
-- keep source claim separate from Orca interpretation;
+- keep source claim separate from Forseti interpretation;
 - preserve event/capture/cutoff timing where visible;
 - expose visibility, deletion, edit, archive, and moderation constraints;
 - preserve source-visible bundle membership, framing, dependencies, and
   packaging cues when a source presents a multi-term proposal;
 - preserve modality when modality carries the signal;
-- keep capture inside the current Orca source-access boundary;
+- keep capture inside the current Forseti source-access boundary;
 - hand off enough categorical context for later Evidence Candidate Record,
   Cleaning, and Judgment work without designing those layers here.
 

@@ -23,7 +23,7 @@ from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from runners import run_parfumo_cleaning_catchup as pf_runner
 from runners.run_parfumo_cleaning_catchup import main, pending_packets, run_catchup
-from source_capture.models import known_fact
+from source_capture.models import VisibleFact, known_fact
 from source_capture.parfumo_projection import (
     PARFUMO_DIRECT_HTTP_SOURCE_SURFACE,
     PARFUMO_TARGETED_RENDERED_SOURCE_SURFACE,
@@ -62,6 +62,12 @@ _HTML = f"""
 """
 
 
+_BLOCKED_CAPTURE_BODY = "<html><body>blocked</body></html>"
+_BLOCKED_CAPTURE_ACCESS_POSTURE = known_fact(
+    "direct_http access_failed with HTTP 403 Forbidden; response body preserved"
+)
+
+
 def _commit_family_packet(
     data_root,
     tmp_path: Path,
@@ -69,6 +75,7 @@ def _commit_family_packet(
     name: str = "pf",
     source_surface: str = PARFUMO_DIRECT_HTTP_SOURCE_SURFACE,
     body_text: str | None = None,
+    access_posture: VisibleFact | None = None,
 ) -> str:
     body_path = tmp_path / f"{name}_body.bin"
     body_path.write_text(body_text if body_text is not None else _HTML, encoding="utf-8")
@@ -82,6 +89,7 @@ def _commit_family_packet(
         source_locator=known_fact(_LOCATOR),
         decision_question="q",
         capture_context="parfumo cleaning catchup test",
+        access_posture=access_posture,
     ).packet.packet_id
 
 
@@ -329,6 +337,83 @@ def test_damaged_packet_fails_loud_without_ack_and_resurfaces(tmp_path) -> None:
     assert results[0]["error"]
     assert find_acks(data_root, raw_anchor=pid, ack_namespace=PARFUMO_CLEANING_AUDIT_LANE) == []
     assert list((data_root.path / "derived").glob(f"*/{pid}/*")) == []
+
+    second = run_catchup(data_root=data_root)
+    assert [r["status"] for r in second] == ["derive_failed"]
+    assert find_acks(data_root, raw_anchor=pid, ack_namespace=PARFUMO_CLEANING_AUDIT_LANE) == []
+
+
+def test_blocked_capture_zero_handles_acks_only_direct_http_surface(tmp_path) -> None:
+    # A recorded source-side access failure (e.g. Cloudflare/anti-bot 403 block) on
+    # the in-scope direct-HTTP surface yields zero projection rows/handles -- an
+    # honest non-cleanable outcome, not a parser bug, so it must ack rather than
+    # raise derive_failed (F-CAD-002-class parfumo empty-handles fix).
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_family_packet(
+        data_root,
+        tmp_path,
+        name="blocked",
+        body_text=_BLOCKED_CAPTURE_BODY,
+        access_posture=_BLOCKED_CAPTURE_ACCESS_POSTURE,
+    )
+
+    results = run_catchup(data_root=data_root)
+    assert [r["status"] for r in results] == ["acked_no_cleanable_content"]
+    assert results[0]["source_surface"] == PARFUMO_DIRECT_HTTP_SOURCE_SURFACE
+
+    acks = find_acks(data_root, raw_anchor=pid, ack_namespace=PARFUMO_CLEANING_AUDIT_LANE)
+    assert len(acks) == 1
+    assert acks[0]["evidence"] == [
+        {
+            "kind": "no_cleanable_content_for_blocked_capture",
+            "raw_anchor": pid,
+            "source_surface": PARFUMO_DIRECT_HTTP_SOURCE_SURFACE,
+            "basis": _BLOCKED_CAPTURE_ACCESS_POSTURE.value,
+        }
+    ]
+    assert list((data_root.path / "derived").glob(f"*/{pid}/*")) == []
+    assert pending_packets(data_root=data_root) == []
+
+    targeted_root = DataLakeRoot.for_test(tmp_path / "targeted_lake")
+    targeted = _commit_family_packet(
+        targeted_root,
+        tmp_path,
+        name="targetedblocked",
+        source_surface=PARFUMO_TARGETED_RENDERED_SOURCE_SURFACE,
+        body_text=_BLOCKED_CAPTURE_BODY,
+        access_posture=_BLOCKED_CAPTURE_ACCESS_POSTURE,
+    )
+
+    targeted_results = run_catchup(data_root=targeted_root)
+    assert [r["status"] for r in targeted_results] == ["derive_failed"]
+    assert "too_short" in targeted_results[0]["error"]
+    assert (
+        find_acks(
+            targeted_root,
+            raw_anchor=targeted,
+            ack_namespace=PARFUMO_CLEANING_AUDIT_LANE,
+        )
+        == []
+    )
+
+
+def test_zero_handles_without_blocked_signal_still_fails_loud(tmp_path) -> None:
+    # Same zero-row body, but WITHOUT a recorded access-failure signal (default
+    # access_posture): the fork between "parser found nothing on a blocked capture"
+    # and "parser found nothing on what looks like a real page" must stay
+    # distinguishable -- this must still surface loudly and never ack.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_family_packet(
+        data_root,
+        tmp_path,
+        name="emptynotblocked",
+        body_text=_BLOCKED_CAPTURE_BODY,
+    )
+
+    results = run_catchup(data_root=data_root)
+    assert [r["status"] for r in results] == ["derive_failed"]
+    assert "too_short" in results[0]["error"]
+    assert find_acks(data_root, raw_anchor=pid, ack_namespace=PARFUMO_CLEANING_AUDIT_LANE) == []
 
     second = run_catchup(data_root=data_root)
     assert [r["status"] for r in second] == ["derive_failed"]

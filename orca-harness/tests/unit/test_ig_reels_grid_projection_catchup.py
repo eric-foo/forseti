@@ -230,9 +230,10 @@ def test_check_mode_counts_pending_without_writing(tmp_path: Path) -> None:
 def test_catchup_record_wins_consumer_tie_break_against_stale_catalog_sibling(
     tmp_path: Path,
 ) -> None:
-    # The real creator-metric seed tie-breaks equal row-count/capture-time
-    # projections by lexical path. A stale bronze_catalog sibling must not beat
-    # the catch-up record the seam just wrote.
+    # The real creator-metric seed selects via the lane's DECLARED record-id
+    # derivation rank (catch-up supersedes earlier siblings of the same anchor).
+    # A stale bronze_catalog sibling must not beat the catch-up record the seam
+    # just wrote -- regardless of lexical order (F-IGRC-001).
     root = DataLakeRoot.for_test(tmp_path / "orca-data")
     pid = _commit_packet(root, tmp_path)
     (result,) = catchup.run_catchup(data_root=root)

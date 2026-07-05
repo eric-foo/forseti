@@ -52,10 +52,12 @@ platform account may seed the current profile before cross-platform linkage.
 least two platforms.
 
 This document records the target view and placement. The current static proof
-export now includes source-backed YouTube fragrance accounts plus selected-grid
-Instagram account rows, but the contract still does not choose SQLite, create
-runtime tables, authorize live capture, start a data-lake job, or claim
-validation/readiness.
+export now includes source-backed YouTube fragrance accounts, selected-grid
+Instagram account rows, and identity-only TikTok account rows from logged-out
+profile browser packets. TikTok rows may be present without metric rollups when
+capture has not produced source-backed metric observations; the contract still
+does not choose SQLite, create runtime tables, authorize live capture, start a
+data-lake job, or claim validation/readiness.
 
 ## Start Preflight
 
@@ -304,7 +306,7 @@ creator_profile_current:
   review_state_or_none: nullable from identity ledger; required whenever link_state_or_none is present
   platform_accounts: required joined public handles
   identity_evidence_summary: required short summary and pointers
-  current_metric_rollups: required latest non-stale rollups by platform/window
+  current_metric_rollups: required list; may be empty for identity-only platform_account rows with no source-backed metric rollup yet
   ideal_audience_profile: nullable latest allowed profile snapshot
   wind_calling_summary: nullable derived operator summary
   freshness:
@@ -370,7 +372,8 @@ Minimum rollup rules:
 Allowed dashboard use:
 
 - show one observed platform account or one linked creator/account cluster;
-- show latest average/aggregate influence metrics;
+- show identity-only account rows with explicit metric-unavailable limitations;
+- show latest average/aggregate influence metrics when source-backed rollups exist;
 - show the source window and freshness for each aggregate;
 - show the ideal-audience/content-fit profile when available;
 - show limitations and missing-data states;
@@ -561,3 +564,43 @@ direction_change_propagation:
 ```
 
 Older receipts, when cycled out, are archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    creator_profile_current may now materialize identity-only TikTok
+    platform_account rows from source-backed logged-out profile browser packets
+    without requiring a metric rollup. These rows preserve public account
+    identity and source drill-back only; current_metric_rollups stays empty,
+    metrics_computed_at_or_none stays null, and dashboard/operator surfaces must
+    show metric-unavailable limitations instead of inferring views, engagement,
+    cadence, comments, or influence.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
+    - orca-harness/capture_spine/creator_profile_current/materialize.py
+    - orca-harness/capture_spine/creator_profile_current/validation.py
+  downstream_surfaces_checked:
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+    - orca-harness/tests/unit/test_creator_public_handle_linkage.py
+    - orca-harness/tests/unit/test_creator_registry_index.py
+    - orca-harness/tests/unit/test_creator_profile_current_static_view.py
+  intentionally_not_updated:
+    - path: orca/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+      reason: This change records logged-out profile identity rows and does not relax TikTok metric/comment capture admission or the no-CAPTCHA-solving boundary.
+  non_claims:
+    - not metric authority
+    - not TikTok comment capture success
+    - not source completeness
+    - not validation or readiness
+    - not cross-platform identity proof
+    - not dashboard implementation
+```

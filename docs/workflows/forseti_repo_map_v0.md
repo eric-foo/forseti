@@ -47,6 +47,29 @@ downstream surfaces. That contract owns primary `trigger` plus
 to identify likely downstream surfaces; do not treat the map itself as
 propagation evidence.
 
+Cold fact lookup: check the Decisive-File Quick Index below FIRST; if a row
+matches your question, open that file directly instead of walking the doctrine
+chain.
+
+## Decisive-File Quick Index (Cold Retrieval)
+
+Fact-lookup shortcuts only (added 2026-07-04 after a measured cold-retrieval
+run exceeded the source-loading read budget by verifying through the doctrine
+chain). Each row names the single decisive file for a common question — open it
+directly. Authority, precedence, and doctrine questions still route via
+`.agents/workflow-overlay/source-of-truth.md`; these rows do not change source
+hierarchy.
+
+| Question | Open this file directly | Why it is decisive |
+| --- | --- | --- |
+| Fragrance facts: resolve a fragrance/house to canonical ids, note families, tier, dupes, per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` | Self-describing DATA SSOT: facts, per-fact provenance, and the extension pattern live in-file; the backbone doc and object cards are authority/rationale surfaces, not the fact source. |
+| Ontology type roster, namespaces, typed links, dimensions, deferred set | `forseti/product/spines/foundation/ontology/ontology.yaml` | Machine-readable SSOT of the adopted backbone; open the backbone doc only for rationale or conflict adjudication. |
+| Any LinkedIn task | `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` | The lane's canonical cold-start index (its own row says "open first"). |
+| ECR spine orientation | `docs/workflows/ecr_spine_submap_v0.md` | Delegated submap for the ECR spine. |
+| Data Capture spine orientation | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Delegated Data Capture submap. |
+| Source-capture access routes / anti-blocking playbook | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | Armory index over the tested per-source capture routes. |
+| Known source capture-to-lake route (TikTok, YouTube, Instagram, Reddit, fragrance-native database, Retail/PDP, vendor pricing page) | `forseti/product/spines/capture/core/source_families/README.md` | Source-family lane catalog routes from the generic playbook/Armory into the owning family index and onward to runners/projection/lake/cleaning seams without duplicating lake doctrine. |
+
 ## Active Hooks (IMPORTANT)
 
 Forseti enforces load-bearing, mechanically-checkable rules at **tool
@@ -349,19 +372,23 @@ overlay README) — so a new or re-oriented lane does not re-derive mechanical s
 turn. Observed git state only; loads no doctrine, asserts nothing beyond git output; exit 0,
 fails open. Reinstall = re-add the `SessionStart` entry, then restart the session.
 
-**CSB-first scanning artifact checker (portable + CI diff-scoped).** `.agents/hooks/check_csb_scanning_artifact.py`
+**Scan artifact checker (portable + CI diff-scoped).** `.agents/hooks/check_csb_scanning_artifact.py`
 checks future CSB-first scanning artifacts for minimum reviewable receipt shape:
 source context, caps, broad-scout accounting, CSB-row accountability, exact-query
 accounting, venue/hidden-venue accounting, observations, negatives/access notes,
 capture-request accounting including the Creator Registry preflight block,
-candidate closeout, and obvious recency/Capture overclaim leakage. CI runs `--diff origin/main --strict` forward-only over changed
-`docs/research/` artifacts that look like CSB-first scan outputs; explicit paths
-remain available when producing or reviewing a CSB-first scan artifact. It is not
-wired as an automatic PostToolUse hook. Fixtures live under
+candidate closeout, and obvious recency/Capture overclaim leakage. It also
+verifies cited Creator Registry match-preflight receipt JSON content for detected
+`docs/research/` scan artifacts carrying `creator_registry_match_preflight`
+markers or for explicit checker paths. CI runs `--diff origin/main --strict`
+forward-only over changed `docs/research/` artifacts that look like CSB-first or
+Creator Registry preflight scan outputs; explicit paths remain available when
+producing or reviewing scan artifacts. It is not wired as an automatic
+PostToolUse hook. Fixtures live under
 `orca-harness/tests/fixtures/csb_scanning_artifacts/`; focused tests live at
 `orca-harness/tests/unit/test_csb_scanning_artifact_validator.py`. A pass is
-receipt-shape only, never scan-quality validation, buyer proof, candidate
-approval, or Capture route authorization.
+receipt-shape/receipt-content consistency only, never scan-quality validation,
+buyer proof, candidate approval, or Capture route authorization.
 
 **Doctrine-change receipt-shape gate (EP-09) + retrieval-header forbidden-field
 scan (EP-07).** Two further substrates built under owner authorization, following
@@ -550,9 +577,9 @@ nickname: "crawling graph." The runner is
 | `forseti/product/spines/data_lake/authority/` | Data Lake contracts/invariants: core, storage and engine-selection boundary, Attachment-Record implementation, Bronze MGT baseline declaration, medallion/gold-readiness, and capture-propagation classification contracts. |
 | `forseti/product/spines/data_lake/workflows/` | Data Lake operational/read-flow docs: the canonical mechanics map (supersedes the retired `shared/data_lake_mechanics/`) plus Bronze full-GT upgrade scoping and physicalization decision records. |
 | `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md` | Signal-first Bronze MGT to full-GT upgrade scoping record for batches A-D: discovery/Manifest fork, AR physicalization fork, retention/lawful-erasure/backend lock-in posture, and lake-doctor/CI plus representative proof threshold. Non-runtime; does not declare full GT. |
-| `forseti/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + cards), demand-read taxonomy, vertical-exploration. |
+| `forseti/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + SSOT + cards + fragrance reference data), demand-read taxonomy, vertical-exploration. For fragrance FACT lookup go straight to `ontology/fragrance_reference_v0.yaml` (self-describing: facts + per-fact provenance + extension pattern in-file; see the Decisive-File Quick Index). |
 | `forseti/product/spines/scanning/` | Scanning (discovery-side) spine: open `forseti/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, default CSB broad-scout phase, recency/current-state frontier priority, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. |
-| `forseti/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families (`retail_pdp`, `social_media/{instagram,tiktok,youtube}`, plus the social-media-level creator public-handle linkage spec/current profile view spec/record contract and the YouTube creator-observation ledger spec/static seed). Dense - open the Data Capture submap. |
+| `forseti/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families. Open `forseti/product/spines/capture/core/source_families/README.md` for known source-family capture-to-lake route homes (`fragrance_native_database`, `retail_pdp`, `social_media/{instagram,tiktok,youtube,reddit}`, creator_registry, and cross-archive pointers). Dense - open the Data Capture submap. |
 | `forseti/product/spines/creator_signal/` | Creator Signal product/signal spine (promotion-bound 2026-06-28). Owns product-facing creator intelligence surfaces: profile IA, aggregate influence display, ideal/content-fit audience display, freshness, limitations, and source drill-back over Capture-owned creator records. Binding: `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md`. |
 | `forseti/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver, now deprecated/dormant as default pre-Judgment layer). |
 | `forseti/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
@@ -606,6 +633,12 @@ nickname: "crawling graph." The runner is
 | `docs/workflows/forseti_repo_map_v0.md` | Compact navigation map for bounded source-pack selection and prompt setup. |
 | `docs/workflows/orca_repo_map_v0.md` | Legacy compatibility pointer to the live Forseti repo map; kept so older links resolve. |
 | `docs/workflows/creator_registry_cold_agent_preflight_rehearsal_v0.md` | Cold-agent rehearsal of Creator Registry match preflight behavior: known account blocks duplicate `new_capture`, exact-unmatched row clears via `can_start_new_capture`, mixed batches exit nonzero when any requested action is blocked. |
+| `docs/workflows/creator_registry_operational_next_steps_handoff_v0.md` | Cold-reader handoff for continuing the Creator Registry operational lane after PR #669 merged: use the cold creator discovery scan handoff prompt on a real target, keep scan/capture/registry boundaries intact, and route the receipt-provenance checker gap to an explicit decision. |
+| `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md` | Creator Ledger operational evolution contract: migration-stable additive upgrade rule, capability routing matrix, and upgrade-intake shape for registry/linkage/observation/metric/profile-current layers, with efficacy-first God Tier criteria and Mini God Tier accepted residuals. |
+| `docs/workflows/creator_ledger_first_operational_proof_checkpoint_v0.md` | First operational proof-loop checkpoint for the Creator Ledger: applies the efficacy-first, migration-stable proof loop to the first public YouTube fragrance creator scan, preserved preflight receipt, and current receipt-content checker state. |
+| `docs/workflows/creator_ledger_known_account_preflight_checkpoint_v0.md` | Second operational proof-loop checkpoint for the Creator Ledger: known-account preflight proof that allows update-existing routing, blocks duplicate new capture, preserves a receipt, and avoids registry/capture/Silver mutation. |
+| `docs/workflows/creator_ledger_observation_sibling_checkpoint_v0.md` | Third operational proof-loop checkpoint for the Creator Ledger: binds the YouTube creator-observation ledger as a source-backed sibling evidence layer for repeat-observation and metric-upgrade work without remigrating registry/profile data. |
+| `docs/workflows/creator_ledger_additive_upgrade_intake_rehearsal_v0.md` | Additive-upgrade-intake rehearsal for a Creator Ledger capability that does not fit the initial routing matrix cleanly: routes ideal/content-fit audience profile snapshots as sibling evidence joined into profile-current without registry/profile data remigration. |
 | `docs/workflows/repo_map_recent_changes/` | Low-conflict, one-file-per-change notes for repo-map-affecting additions; retrieval-only context, not a substitute for updating actual map routes when navigation changes. |
 | `docs/workflows/bronze_silver_two_family_consumer_proof_closeout_v0.md` | Post-PR #537/#540 Bronze/Silver consumer-proof closeout: two source-family Silver producers consume public Bronze source-surface catalog / Attachment Record rows for source-backed `raw_refs`; routes the lane away from default third-family proof expansion and toward full-GT residual scoping. |
 | `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md` | Data Lake spine scoping record that turns the PR #542 consumer-proof boundary into A-D full-GT success signals and review timing without selecting runtime physicalization choices or claiming Bronze full GT. |
@@ -629,6 +662,7 @@ nickname: "crawling graph." The runner is
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Data Capture Spine repo submap. Open before enumerating capture owner docs. |
 | `docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md` | Cold-lane handoff for the owner-gated TikTok live micro-batch after the bounded pointer-action and blocker-triage patches: 3-5 creators, checkpoint after the first creator, sanitized staging plus batch admission, stop on challenge, no CAPTCHA solving, no product extraction, and no scale/readiness claim. |
 | `docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md` | Cold-agent playbook mapping TikTok live UI blocker classes to the bounded `BrowserPagePointerAction` substrate: benign overlay dismissal, comments -> More like this -> comments routing, DOM close diagnosis, visual-X close diagnosis, and no-solve/no-success stop semantics. |
+| `docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md` | Architecture decision for TikTok sessioned auth-state provenance: extend the ignored auth-state sidecar with typed category-only provenance, merge warmup/export evidence forward, enforce requested claims in the live runner, and distinguish `no_proxy_profile_loaded` from unproven full-network no-proxy egress. |
 | `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md` | Accepted Data Lake / Capture propagation classification contract: classifies lake semantics, raw packet-runner seams, behavioral projection shape, source-family-local acquisition routes, and downstream residual/completeness semantics into same-class checks. |
 | `docs/decisions/data_lake_capture_propagation_classification_contract_proposal_v0.md` | Prepare-only proposal for narrow Data Lake / Capture propagation classification: generic lake/storage and packet-runner checks, platform behavioral parity checks, source-family-local acquisition routes, and downstream residual/Gold-boundary propagation. Proposal only; not accepted doctrine. |
 | `docs/workflows/ecr_spine_submap_v0.md` | ECR source-side spine repo submap (integrity postures SP-1/2/3/6 + deprecated/dormant Signal Content Record contract). Open before enumerating ECR/SCR owner docs. |
@@ -730,6 +764,7 @@ the owner sources. Do not pre-load all capture artifacts from this map.
 | `forseti/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md` | Capture-spine-level backlog of deferred, legally-gated capabilities (relationship-graph analytics; contact/outreach) surfaced during LinkedIn discovery design — non-authorizing, out of scope for all discovery lanes. |
 | `forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` | **Capture-investigation method (the playbook).** The repeatable "read the problem -> point to the route" method for deciding whether/how a NEW source is capturable, within entitlement, by the cheapest route. Recency/currentness can raise preservation urgency/source-drift priority without changing proof or route binding. The IG lane now records standalone anonymous `yt-dlp` empty media as a route-specific failure whose next matching route is browser-rendered deep-capture, while full durable media/video preservation remains unproven. MVP = entitlement gate (Step 0) + read + route catalog + pointer + guardrails; per-source recipe cards are a growing tail authored BY probes. Review-hardened draft (de-correlated artifact review, AR-01..AR-07 adjudicated) with a later owner risk-posture amendment (status `RISK_POSTURE_AMENDED_V0` - check the Risk Posture section before applying); non-authorizing, not validation/readiness. |
 | `forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md` | Capture recon consolidation index - the per-source probe findings (forums / pricing / archive / PDF / reviews / embedded-state / social routes) the playbook distills from, incl. worktree-pending findings, IG public-web route probes, and the explicit remaining TikTok recon gap. Non-authorizing. |
+| `forseti/product/spines/capture/core/source_families/README.md` | **Capture source-family lane catalog - open first after the generic Source Capture Playbook identifies a known source/platform.** Routes to family indexes for fragrance native database, Retail/PDP, Instagram, TikTok, YouTube, Reddit, creator registry, and the cross-archive historical route; retrieval-only, not Data Lake/ECR/Cleaning authority. |
 
 ## Creator Signal Spine
 
@@ -863,6 +898,7 @@ pending hygiene triage.
 | `docs/research/orca_discovery_candidate_scan_imaginary_authors_broad_scout_deep_scan_v0.md` | Fresh CSB broad-scout plus main deep-scan artifact for Imaginary Authors; confirms Parfumo as the high-value public buyer-language venue, carries two hold-low-commitment candidate entries, and records preservation-only capture requests. |
 | `docs/research/orca_discovery_candidate_scan_beauty_neutral_chatgptpro_v0.md` | Clean advisory intake of the neutral ChatGPT Pro beauty/personal-care niche answer; use before any no-contact verification scan or owner niche-selection decision. |
 | `docs/research/orca_discovery_candidate_scan_food_vs_fragrance_chatgptpro_v0.md` | Advisory intake of the ChatGPT Pro food-vs-fragrance category answer; use before deciding whether to keep fragrance as the first no-contact verification scan or reopen food as a comparator category. |
+| `docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md` | Bounded public/no-login YouTube fragrance creator discovery scan using Creator Registry exact-match preflight; carries candidate batch and receipt pointers plus capture-request handoff rows only, with no capture, registry mutation, metric refresh, or Silver write. |
 | `docs/research/judgment-spine/` | Judgment Spine corpus (parent contract, manifest, case tracks, harness, case-learning). **Open the consolidation map first** — see the Judgment Spine section above; it routes to every owner across both trees instead of enumerating them here. |
 | `docs/research/daimler_advisory_001_source_registry_v0.md` | Manual Daimler source-unit registry separating participant-safe candidates, date ambiguity, missing evidence, and reveal-only material before any packet rebuild or judgment-quality claim. |
 | `docs/research/packing-phase/` | Boundary note for decision-packet construction between cleaned evidence and Judgment Harness inputs. |
@@ -1086,6 +1122,7 @@ status field. Open the owning doc for authority; this table is navigation only.
 | Search lane | `docs/decisions/orca_search_product_lane_binding_v0.md` | owner-authorized v0; demand-signal intelligence (search-led): search/answer-engine surfaces + demand-scan/read/gate method |
 | Spine-first target structure | `docs/decisions/orca_spine_first_target_structure_binding_v0.md` | executed by spine-first migration; current product tree routes through `forseti/product/` |
 | Spine-first blocker authorization | `docs/decisions/orca_spine_first_blocker_authorization_v0.md` | B1-B7 execution settlement consumed by the spine-first migration |
+| Aphrodite fragrance sub-ontology | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` | `DATED_DATA_2026-07-04` |
 
 ## Not-Proven Boundaries
 
