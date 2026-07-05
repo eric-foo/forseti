@@ -25,7 +25,7 @@
     Pull request number.
 
 .PARAMETER Repo
-    owner/repo (default: eric-foo/orca).
+    owner/repo. Defaults to FORSETI_GITHUB_REPOSITORY, then GITHUB_REPOSITORY, then eric-foo/orca.
 
 .PARAMETER Check
     Name of the required check that must be green (default: forseti-harness-tests).
@@ -45,7 +45,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][int]$Pr,
-    [string]$Repo = 'eric-foo/orca',
+    [string]$Repo = '',
     [string]$Check = 'forseti-harness-tests',
     [ValidateSet('squash', 'merge', 'rebase')][string]$Method = 'squash',
     [switch]$DryRun
@@ -56,6 +56,28 @@ $ErrorActionPreference = 'Stop'
 function Stop-WithRefusal([string]$Message) {
     Write-Host "REFUSED: $Message" -ForegroundColor Red
     exit 1
+}
+
+function Resolve-RepoSlug {
+    $candidate = if ($env:FORSETI_GITHUB_REPOSITORY) {
+        $env:FORSETI_GITHUB_REPOSITORY
+    } elseif ($env:GITHUB_REPOSITORY) {
+        $env:GITHUB_REPOSITORY
+    } else {
+        'eric-foo/orca'
+    }
+    if ($candidate -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$') {
+        Stop-WithRefusal "invalid repo slug '$candidate'."
+    }
+    return $candidate
+}
+
+if ([string]::IsNullOrWhiteSpace($Repo)) {
+    $Repo = Resolve-RepoSlug
+}
+
+if ($Repo -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$') {
+    Stop-WithRefusal "invalid repo slug '$Repo'."
 }
 
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
