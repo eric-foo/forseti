@@ -53,6 +53,9 @@ jobs:
       - name: ontology<->runtime drift check
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_ontology_drift.py --strict
+      - name: fragrance reference-data integrity
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_fragrance_reference.py --strict
       - name: deletion-evidence (governed deletions carry evidence)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_deletion_evidence.py --strict

@@ -393,13 +393,28 @@ def _validate_source_drill_back(
     if not isinstance(value, Mapping):
         _fail("invalid_source_drill_back", "source_drill_back must be a mapping")
     _reject_unknown_keys(value, _ALLOWED_SOURCE_DRILL_BACK_KEYS, "source_drill_back")
-    _require(value, tuple(_ALLOWED_SOURCE_DRILL_BACK_KEYS), "source_drill_back")
+    missing = sorted(key for key in _ALLOWED_SOURCE_DRILL_BACK_KEYS if key not in value)
+    if missing:
+        _fail("missing_source_drill_back_field", f"source_drill_back missing field(s): {missing}")
     identity_pointer = _validate_non_empty_str(value["identity_ledger_pointer"], "source_drill_back.identity_ledger_pointer")
     if identity_pointer != identity_evidence_summary["account_pointer"]:
         _fail(
             "source_drill_back_identity_pointer_mismatch",
             "source_drill_back identity pointer must match identity evidence account pointer",
         )
+    if not rollups:
+        if value["metric_rollup_pointer"] is not None or value["metric_snapshot_pointer"] is not None:
+            _fail(
+                "identity_only_source_drill_back_has_metric_pointer",
+                "identity-only profiles must not carry metric drill-back pointers",
+            )
+        source_ids = value["source_metric_observation_ids"]
+        if not _is_list(source_ids) or source_ids:
+            _fail(
+                "identity_only_source_drill_back_has_metric_observations",
+                "identity-only profiles must carry an empty source_metric_observation_ids list",
+            )
+        return
     _validate_non_empty_str(value["metric_rollup_pointer"], "source_drill_back.metric_rollup_pointer")
     _validate_non_empty_str(value["metric_snapshot_pointer"], "source_drill_back.metric_snapshot_pointer")
     source_ids = _validate_str_list(

@@ -40,7 +40,7 @@ Deferred:
 
 - Historical review outputs remain for later batches; many are large and should be grouped by review family or current retrieval demand.
 - Hygiene packets remain deferred until their live routing value is confirmed.
-- Generated migration moved-path indexes and inventories remain deferred because generated outputs are header-excluded unless later promoted into a durable Orca artifact role.
+- Generated migration moved-path indexes and inventories remain deferred because generated outputs are header-excluded unless later promoted into a durable Forseti artifact role.
 
 Observed post-patch residual:
 

@@ -8,8 +8,6 @@
     {"type": "Org", "basis": "RESERVED (§2.2 row 17, §6.1): graduates by dated owner amendment when a real Org-object backing lands. Org-motion / EDGAR headcount data corroborates (G4) but is NOT an Org-object definition, so it does not auto-trigger a card."},
     {"type": "Buyer", "basis": "RESERVED (§2.2 row 16, §6.1): graduates by dated owner amendment when a landed backing artifact appears."},
     {"type": "Memo", "basis": "Backing = buyer-proof packet (§2.2 row 11). Card when a real Memo instance is produced; no concrete artifact path to watch yet."},
-    {"type": "Product", "basis": "No single backing artifact yet (§2.2 row 3, §3). Card when a Product backing lands."},
-    {"type": "WindCaller", "basis": "No card-set asset yet (§2.2 row 5, §3); a future asset parallel to the venue cards."},
     {"type": "CapturePacket", "basis": "Backing exists (orca-harness/source_capture/models.py, §2.2 row 14). Available now; deferred for consumer pull, not a trigger to wait on."},
     {"type": "EvidenceUnit", "basis": "Backing = IPF foundation + evidence ladder (§2.2 row 15). Available on pull, not a trigger to wait on."},
     {"type": "Observation", "basis": "Backing = CapturePacket / scan-spec forward (§2.2 row 7, §3). Owner-deferred 2026-06-18: the demand-scan-core spec is PROPOSED and authorizes no scan run, so no real captured Observation instance exists yet (the candidate pool is a candidate table, not observation instances). Card on the first scan-emitted Observation; no concrete emission artifact to watch yet. Re-expressing the §3 schema alone would duplicate §2.2/§3 (cards are instances, pointer-not-restate)."},

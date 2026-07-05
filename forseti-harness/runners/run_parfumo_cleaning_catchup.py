@@ -34,10 +34,16 @@ future surface.
 Failure stays loud and isolated per packet: a missing availability entry is a
 ``discovery_failed`` status; a verified-read/validation/derivation raise is a
 ``derive_failed`` status; both leave the packet unacknowledged and re-surfacing every
-run. An ack write failure surfaces as ``ack_failed``. Acked-and-unchanged packets
-emit NO per-run status entries. Per-packet availability reconcile failures surface as
-``availability_reconcile_failed`` (the F-ECR-001 adjudicated shape) while healthy
-packets still index and process.
+run. The one narrow exception: a zero-``handles`` ``CleaningPacket`` validation
+failure whose direct-HTTP packet manifest records a source-side access failure
+(e.g. a Cloudflare/anti-bot HTTP block) is an honest non-cleanable outcome, not a
+parser bug, and is acknowledged with explicit
+``no_cleanable_content_for_blocked_capture`` evidence naming the recorded access
+posture; any other zero-``handles`` shape still raises ``derive_failed`` unchanged.
+An ack write failure surfaces as ``ack_failed``.
+Acked-and-unchanged packets emit NO per-run status entries. Per-packet availability
+reconcile failures surface as ``availability_reconcile_failed`` (the F-ECR-001
+adjudicated shape) while healthy packets still index and process.
 
 No-LLM zone (`runners/`): the Cleaning derivation is mechanical — this runner needs
 no transport, so ``--run`` IS the cadence entrypoint.
@@ -53,6 +59,8 @@ from typing import Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from pydantic import ValidationError
 
 from cleaning.models import CLEANING_CORE_VERSION
 from cleaning.parfumo import PARFUMO_RATING_CARRY_RULE
@@ -78,6 +86,7 @@ from data_lake.consumption import (
     reconcile_availability_per_packet,
 )
 from data_lake.root import DataLakeRootError
+from source_capture.models import SourceCapturePacket, VisibleFactStatus
 from source_capture.parfumo_projection import (
     PARFUMO_DIRECT_HTTP_SOURCE_SURFACE,
     PARFUMO_PROJECTION_CERTIFICATION,
@@ -104,6 +113,53 @@ _KNOWN_OUT_OF_SCOPE_SURFACES = frozenset(
         "basenotes_product_page_cloakbrowser_deep_scroll_current_window",
     }
 )
+# Producer convention written by runners/run_source_capture_http_packet.py onto
+# access_posture for any non-2xx direct-HTTP response (e.g. a Cloudflare/anti-bot
+# 403 block): "direct_http access_failed with HTTP {status} {reason}; response
+# body preserved". Distinguishes an honest source-side block (this packet class
+# genuinely has nothing to clean) from a real extraction bug on a real page.
+_BLOCKED_CAPTURE_ACCESS_POSTURE_PREFIX = "direct_http access_failed with HTTP "
+
+
+def _is_zero_handles_validation_error(exc: ValidationError) -> bool:
+    """True only for the exact CleaningPacket.handles too_short shape -- never a
+    broader match that could absorb an unrelated validation failure."""
+    errors = exc.errors()
+    if len(errors) != 1:
+        return False
+    error = errors[0]
+    return error.get("type") == "too_short" and error.get("loc") == ("handles",)
+
+
+def _blocked_capture_evidence_or_none(
+    *, data_root, packet_id: str, surface: str
+) -> dict | None:
+    """Re-read the committed packet manifest and return blocked-capture ack
+    evidence when a direct-HTTP packet's access_posture confirms a recorded
+    source-side access failure, else None. Any re-read failure returns None
+    (never acks on an uncertain classification)."""
+    if surface != PARFUMO_DIRECT_HTTP_SOURCE_SURFACE:
+        return None
+    try:
+        loaded = data_root.load_raw_packet(packet_id)
+        packet = SourceCapturePacket.model_validate(loaded.manifest)
+    except Exception:  # noqa: BLE001 - classification-only re-read; never surfaced as the cause
+        return None
+    if packet.source_surface != PARFUMO_DIRECT_HTTP_SOURCE_SURFACE:
+        return None
+    access_posture = packet.access_posture
+    if access_posture.status != VisibleFactStatus.KNOWN:
+        return None
+    if access_posture.value is None or not access_posture.value.startswith(
+        _BLOCKED_CAPTURE_ACCESS_POSTURE_PREFIX
+    ):
+        return None
+    return {
+        "kind": "no_cleanable_content_for_blocked_capture",
+        "raw_anchor": packet_id,
+        "source_surface": surface,
+        "basis": access_posture.value,
+    }
 
 
 def _packet_obligation() -> dict:
@@ -256,6 +312,38 @@ def run_catchup(*, data_root) -> list[dict]:
             continue
         try:
             derived = derive_parfumo_cleaning_into_lake(data_root=data_root, packet_id=packet_id)
+        except ValidationError as exc:
+            blocked_evidence = None
+            if _is_zero_handles_validation_error(exc):
+                blocked_evidence = _blocked_capture_evidence_or_none(
+                    data_root=data_root, packet_id=packet_id, surface=surface
+                )
+            if blocked_evidence is None:
+                results.append(
+                    {
+                        "packet_id": packet_id,
+                        "status": "derive_failed",
+                        "error": f"{type(exc).__name__}: {exc}"[:200],
+                    }
+                )
+                continue
+            # Honest zero-handle outcome: the capture is a recorded source-side
+            # access failure (e.g. a Cloudflare/anti-bot block), not a parser bug --
+            # a surface is immutable, so the discovery + access-posture evidence IS
+            # the completion evidence (mirrors the known-out-of-scope-surface ack
+            # above).
+            outcome = _ack_packet(data_root, item, [blocked_evidence])
+            if outcome != "acked":
+                results.append({"packet_id": packet_id, "status": "ack_failed", "error": outcome})
+            else:
+                results.append(
+                    {
+                        "packet_id": packet_id,
+                        "status": "acked_no_cleanable_content",
+                        "source_surface": surface,
+                    }
+                )
+            continue
         except Exception as exc:  # noqa: BLE001 - per-packet failure isolation (daemon-ready)
             results.append(
                 {

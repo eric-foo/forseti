@@ -12,12 +12,12 @@
 
 ## 1. Purpose
 
-This rubric defines the next method-validation shape for Orca after the first
+This rubric defines the next method-validation shape for Forseti after the first
 bounded Core Spine v0 proof packet.
 
 The validation question is:
 
-> Can Orca repeatedly improve high-stakes competitive or category-response
+> Can Forseti repeatedly improve high-stakes competitive or category-response
 > decisions before the outcome is obvious, and does cleaned second-order public
 > evidence change or sharpen the correct action ceiling?
 
@@ -36,7 +36,7 @@ The buyer problem is:
 > but the evidence is polluted by vendor claims, campaign language, benchmarks,
 > review-platform bias, bots, social proof, and weak second-order signals.
 
-Orca's value hierarchy for this wedge is:
+Forseti's value hierarchy for this wedge is:
 
 1. Judgment: what action can this evidence validly support?
 2. Cleaning: what evidence is polluted, duplicated, incentive-shaped, bot-shaped, or misclassified?
@@ -64,8 +64,8 @@ The five-case set should include:
 - at least one SH-01-like competitor narrative pressure case;
 - at least one AI or technology-disruption case where a company had to decide whether to respond before demand was clean;
 - at least one pricing, packaging, or business-model disruption case;
-- at least one positive-action case where Orca should be tested on whether it would have justified a reliable `Test`, bounded `Move`, acquisition, partnership, or build path before the later outcome (Outcome) was obvious;
-- at least one reverse case where a company made a visible move that later performed badly, and Orca should be tested on whether it would have advised `Hold`, `Probe`, `Test`, or a narrower move;
+- at least one positive-action case where Forseti should be tested on whether it would have justified a reliable `Test`, bounded `Move`, acquisition, partnership, or build path before the later outcome (Outcome) was obvious;
+- at least one reverse case where a company made a visible move that later performed badly, and Forseti should be tested on whether it would have advised `Hold`, `Probe`, `Test`, or a narrower move;
 - at least one case where second-order data is likely to matter more than first-order official claims.
 
 Do not use five near-identical cases. The point is to test method portability,
@@ -83,7 +83,7 @@ Strong candidate cases have most of these traits:
 - enough public source availability before cutoff;
 - plausible buyer, operator, partner, reviewer, community, or workflow evidence;
 - realistic alternative actions at cutoff, not one obvious path;
-- credible chance that Orca could have been early, useful, cautious, wrong, overconfident, or underconfident.
+- credible chance that Forseti could have been early, useful, cautious, wrong, overconfident, or underconfident.
 
 Weak candidate cases have one or more of these problems:
 
@@ -116,7 +116,7 @@ Use only first-order sources such as:
 
 Pass A asks:
 
-> What action ceiling would Orca assign from official and near-official public
+> What action ceiling would Forseti assign from official and near-official public
 > evidence alone?
 
 ### Pass B - Second-Order Evidence
@@ -170,7 +170,7 @@ Record one of these outcomes for each case:
 - Reframe: the ceiling stays similar, but the correct response angle changes.
 - Blocked: timing, source visibility, or decision frame cannot be established.
 
-For high-stakes and less reversible moves, Orca should not require certainty.
+For high-stakes and less reversible moves, Forseti should not require certainty.
 It should require a reliable bet:
 
 - evidence convergence across independent source families;
@@ -185,16 +185,16 @@ It should require a reliable bet:
 
 The five-case method validation is strong if most of these are true:
 
-- Orca improves the at-cutoff decision in at least three of five cases.
+- Forseti improves the at-cutoff decision in at least three of five cases.
 - Second-order evidence changes or materially sharpens the action ceiling in at least two cases.
 - At least one positive-action case identifies a reliable `Test`, bounded `Move`, acquisition, partnership, or build path before the later outcome is obvious.
-- At least one reverse case shows that Orca would have advised against, delayed, narrowed, or downgraded a move that later performed badly.
-- Orca avoids at least one false `Move` caused by vendor, campaign, social-proof, or benchmark pollution.
-- Orca preserves misses, underconfidence, overconfidence, and inconclusive results as calibration input.
+- At least one reverse case shows that Forseti would have advised against, delayed, narrowed, or downgraded a move that later performed badly.
+- Forseti avoids at least one false `Move` caused by vendor, campaign, social-proof, or benchmark pollution.
+- Forseti preserves misses, underconfidence, overconfidence, and inconclusive results as calibration input.
 - The final comparison explains why the method was useful, wrong, early, late, overconfident, or underconfident.
 
 The reverse-case criterion matters. A method that only finds promising moves is
-not enough. Orca must also show that it can block or downgrade bad moves before
+not enough. Forseti must also show that it can block or downgrade bad moves before
 they become obvious failures.
 
 ## 9. Weak Method Signal
@@ -204,7 +204,7 @@ The validation is weak if most of these are true:
 - every case collapses into generic `Test`;
 - second-order evidence adds color but no decision movement;
 - the method only works on famous hindsight cases;
-- Orca cannot distinguish campaign pressure from buyer behavior;
+- Forseti cannot distinguish campaign pressure from buyer behavior;
 - official claims dominate the conclusion after cleaning;
 - reverse cases are rationalized after the fact instead of judged from pre-cutoff evidence;
 - memos feel like research summaries rather than action-ceiling decisions.

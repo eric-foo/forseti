@@ -14,9 +14,9 @@ use_when:
   - Deciding what the operator and the agent each do across the lane's six stages without widening into capture or outreach.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md
-  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
-  - orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
+  - forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md
+  - forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
 stale_if:
   - The LinkedIn Lane architecture changes stages, run envelope, candidate classes, row schema, source-surface matrix, bounded-watch posture, promotion gate, or hard stops.
@@ -29,7 +29,7 @@ stale_if:
 Status: `OPERATOR_PILOT_LAYER_RECOMMENDED`.
 
 This plan operationalizes the **accepted** LinkedIn Lane discovery-planning
-architecture (`docs/product/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md`).
+architecture (`forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md`).
 It adds sequencing and a default no-live pilot mode; it confers **no new
 permission**. It does not authorize a live LinkedIn runner, autonomous scraping,
 supervised browser-assist by default, no-entitlement gate bypass, contact
@@ -278,7 +278,7 @@ This plan's default does **not** invoke it. A pilot may opt into
   never extends to private/gated material);
 - a stop-on-friction / stop-on-person-data-drift rule.
 
-It remains green for Orca personal / pre-commercial POC routing only — not a
+It remains green for Forseti personal / pre-commercial POC routing only — not a
 platform, legal, or commercial claim.
 
 A second opt-in variant, `method_mode:

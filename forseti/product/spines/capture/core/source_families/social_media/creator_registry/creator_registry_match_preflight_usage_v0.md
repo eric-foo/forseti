@@ -63,6 +63,26 @@ Candidate rows must provide:
 For handle-only candidates, provide `platform`. Profile URLs may infer platform
 for known social hosts. Unsupported platforms or unknown profile URL hosts are invalid candidates.
 
+## Checker Enforcement Note
+
+`check_csb_scanning_artifact.py` now performs two distinct checks for scan
+artifacts that carry `creator_registry_match_preflight` blocks:
+
+- shape/self-consistency: required preflight fields are present, concrete-looking,
+  and clearance-shaped for `new_capture` handoff rows;
+- receipt-content verification: for detected `docs/research/` scan artifacts or
+  explicit checker paths, cited repo-relative receipt JSON files must exist, use
+  `creator_registry_match_preflight_receipt_v0`, have a summary consistent with
+  their `results`, and contain result rows whose `candidate_id`,
+  `intended_action`, `decision`, `action_status`, and `can_start_new_capture`
+  match the artifact's handoff row.
+
+The checker still does not prove fuzzy duplicate absence, cross-platform
+identity, discovery quality, source adequacy, runner provenance beyond the
+preserved JSON receipt content, registry mutation, or Capture execution. Treat a
+green checker run as receipt-content consistency evidence, not scan validation or
+Capture authorization.
+
 ## Non-Claims
 
 This preflight is exact-match enforcement only:
@@ -85,6 +105,82 @@ linkage workflow for creator-level promotion.
 
 Metric freshness is not handled here. If the candidate already exists but stats
 are stale, update the existing identity in the relevant capture/metric lane.
+
+## Direction Change Propagation - Receipt Content Checker
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The scan-artifact checker now verifies Creator Registry match-preflight
+    receipt content for scan artifacts that carry creator_registry_match_preflight
+    blocks: cited repo-relative receipt JSON files must exist, use the expected
+    receipt schema, have summary counts consistent with results, and contain
+    result rows whose candidate_id and clearance fields match the artifact's
+    handoff rows. This closes the prior shape-only checker residual for the
+    first real receipt-bearing scan artifact, without expanding into fuzzy
+    duplicate detection, source adequacy, runner-provenance proof, registry
+    mutation, or Capture authorization.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - ".agents/hooks/check_csb_scanning_artifact.py"
+    - "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md"
+    - "docs/workflows/forseti_repo_map_v0.md"
+    - "orca-harness/tests/fixtures/csb_scanning_artifacts/valid_creator_registry_preflight_scan.md"
+    - "orca-harness/tests/fixtures/csb_scanning_artifacts/valid_creator_registry_preflight_receipt.json"
+    - "orca-harness/tests/fixtures/csb_scanning_artifacts/bad_creator_registry_preflight_mismatch.md"
+    - "orca-harness/tests/fixtures/csb_scanning_artifacts/bad_creator_registry_preflight_mismatch_receipt.json"
+  downstream_surfaces_checked:
+    - path: ".agents/workflow-overlay/validation-gates.md"
+      note: >
+        Existing receipt-field provenance and review-routing gates cover the
+        governing validation philosophy; no overlay edit required for this
+        source-family checker extension.
+    - path: "orca-harness/docs/source_capture_agent_runbook.md"
+      note: >
+        Runbook routes to this usage note for Creator Registry match-preflight
+        details and carries no stale checker-scope claim.
+    - path: "forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md"
+      note: >
+        Scan core routes to this usage note for the exact-match receipt; no
+        stale checker-scope claim found.
+    - path: "forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md"
+      note: >
+        MGT operating model carries the preflight block shape but no stale
+        checker-scope claim.
+  intentionally_not_updated:
+    - path: ".agents/workflow-overlay/validation-gates.md"
+      reason: >
+        This is a concrete source-family checker implementation of the existing
+        receipt-field provenance principle, not a new global validation gate.
+    - path: "orca-harness/docs/source_capture_agent_runbook.md"
+      reason: >
+        The runbook intentionally delegates detailed Creator Registry preflight
+        semantics to this usage note.
+  stale_language_search: >
+    rg -n "Checker Scope Note|receipt-authenticity|receipt authenticity|content-verification|check_csb_scanning_artifact|creator_registry_match_preflight"
+    forseti/product/spines/capture/core/source_families/social_media/creator_registry
+    orca-harness/docs/source_capture_agent_runbook.md
+    forseti/product/spines/scanning
+    docs/workflows/forseti_repo_map_v0.md
+    .agents/workflow-overlay/validation-gates.md
+  stale_language_search_result: >
+    Executed 2026-07-04. Hits are the updated usage note, runbook/spec/model
+    pointers to the usage note or preflight block, the updated repo-map checker
+    entry, the existing scanning README checker references, and the overlay's
+    generic receipt-field provenance gate. No live surface still says the
+    Creator Registry preflight checker is shape-only for receipt content.
+  non_claims:
+    - "not scan validation"
+    - "not Capture authorization"
+    - "not fuzzy duplicate detection"
+    - "not cross-platform identity proof"
+    - "not source adequacy proof"
+    - "not runner-provenance proof beyond preserved JSON content"
+    - "not registry mutation"
+```
 
 ## Direction Change Propagation - Scan/Capture Receipt Handoff
 

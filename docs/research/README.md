@@ -1,8 +1,8 @@
-# Orca Research
+# Forseti Research
 
-This folder holds docs-first public and source-backed research artifacts that support Orca product, proof, and decision work.
+This folder holds docs-first public and source-backed research artifacts that support Forseti product, proof, and decision work.
 
-Research artifacts are not product authority by default. They may gather evidence, preserve raw lane outputs, screen candidates, map rejected sources, or synthesize source-backed findings. Product claims, accepted decisions, and proof locks belong in `docs/product/` or `docs/decisions/` after a later explicit promotion step.
+Research artifacts are not product authority by default. They may gather evidence, preserve raw lane outputs, screen candidates, map rejected sources, or synthesize source-backed findings. Product claims, accepted decisions, and proof locks belong in `forseti/product/` or `docs/decisions/` after a later explicit promotion step.
 
 Use this folder when the main artifact is:
 

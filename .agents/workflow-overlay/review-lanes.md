@@ -182,7 +182,7 @@ template_retrieval_binding:
   authority_order:
     - current_turn_explicit_user_instruction
     - template_registry_entry
-    - accepted_orca_handoff_or_prior_thread_state
+    - accepted_forseti_handoff_or_prior_thread_state
     - reusable_workflow_kernel_advisory_template_guidance
   conflict_rule: use the highest listed source that explicitly selects a prompt template target, without expanding source-changing authority or runtime model choice.
 ```

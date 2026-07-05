@@ -31,6 +31,13 @@ from source_capture.packet_assembly import stage_and_write_packet, staged_file_i
 
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 
+# Record-SHAPE schema token for transcript_asr derived records (V4: vault-versioned;
+# closes the weak-envelope residual). Shared by the YT writer here and the IG writer
+# in ig_reels_audio_packet.py (same lane, same record family). Added additively:
+# earlier committed records lack the field and read as pre-token vintage; no
+# derivation-policy token was bumped, so no committed packet re-surfaces on cadence.
+TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION = "transcript_asr_record_v0"
+
 AUDIO_NON_CLAIMS = [
     "not Cleaning implementation (cue dedup/readable transform is downstream)",
     "not Judgment scoring (no sentiment, verdict, or commentary decision)",
@@ -102,6 +109,7 @@ def _append_transcript_record(
     (record_id, record relpath). The completion marker in ``transcript_asr__set``
     commits the derivation-time content sha256."""
     record = {
+        "record_schema_version": TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION,
         "video_id": video_id,
         "platform": "youtube",
         "posture": posture,                      # transcribed | no_speech | failed

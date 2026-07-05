@@ -24,7 +24,7 @@ written. Return the compact YAML review summary from
 
 Review reports are findings-first by default. Formal verdicts, blocked/ready
 status, validation pass/fail claims, approval, readiness, mandatory
-remediation, patch queues, and executor-ready handoffs require Orca overlay or
+remediation, patch queues, and executor-ready handoffs require Forseti overlay or
 prompt binding. Actionable findings should state the
 `minimum_closure_condition` and `next_authorized_action`; `patch_queue_entry`
 belongs only in a patch-queue review or separately authorized patch/integration

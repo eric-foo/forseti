@@ -1,0 +1,157 @@
+{
+  "creator_registry_match_preflight_receipt": {
+    "accepted_residuals": [
+      "Exact preflight does not perform fuzzy display-name matching.",
+      "Exact preflight does not prove cross-platform creator identity.",
+      "Exact preflight does not prove discovery search quality.",
+      "Exact preflight does not refresh silver metrics or mutate capture outputs."
+    ],
+    "generated_at_utc": "2026-07-04T16:00:05Z",
+    "non_claims": [
+      "not fuzzy identity resolver",
+      "not cross-platform linkage proof",
+      "not capture authorization without receipt review",
+      "not registry mutation",
+      "not live social search",
+      "not silver metric refresh"
+    ],
+    "registry_source": {
+      "generated_at_utc": "2026-07-03T09:04:50Z",
+      "profiles_total": 36,
+      "schema_version": "creator_profile_current_view_v0",
+      "sha256": "a0998cb1100dbeccb8e77768f847ba0f688edcf0105b6485abbffd02f0ac1e49",
+      "source_pointer": "forseti\\product\\spines\\capture\\core\\source_families\\social_media\\creator_registry\\creator_profile_current_view_v0.json"
+    },
+    "results": [
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": [
+          "update_existing"
+        ],
+        "can_start_new_capture": false,
+        "candidate_id": "proof_existing_bowtie_update_existing",
+        "decision": "existing_match",
+        "duplicate_candidate_identity_keys": [],
+        "errors": [],
+        "input_index": 0,
+        "intended_action": "update_existing",
+        "matched_registry_profiles": [
+          {
+            "match_reasons": [
+              "platform_account_id",
+              "platform_public_account_id",
+              "public_profile_url",
+              "same_platform_public_handle"
+            ],
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_001",
+            "platform_public_account_id_or_none": "UCVvzGrPSok_sf8hfDhvTg7w",
+            "profile_subject_id": "acct_yt_fragrance_001",
+            "profile_subject_kind": "platform_account",
+            "public_handle": "BowTieFragranceGuy",
+            "public_profile_url": "https://www.youtube.com/channel/UCVvzGrPSok_sf8hfDhvTg7w"
+          }
+        ],
+        "normalized_candidate": {
+          "display_name_or_none": null,
+          "handles": [
+            "bowtiefragranceguy"
+          ],
+          "platform_account_id_or_none": "acct_yt_fragrance_001",
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UCVvzGrPSok_sf8hfDhvTg7w",
+          "profile_subject_id_or_none": null,
+          "profile_urls": [
+            "https://youtube.com/channel/UCVvzGrPSok_sf8hfDhvTg7w"
+          ],
+          "source_url_or_none": null
+        }
+      },
+      {
+        "action_blockers": [
+          "new_capture_existing_match"
+        ],
+        "action_status": "blocked",
+        "allowed_next_actions": [
+          "update_existing",
+          "resolve_identity_if_not_same"
+        ],
+        "can_start_new_capture": false,
+        "candidate_id": "proof_existing_chaos_new_capture_blocked",
+        "decision": "existing_match",
+        "duplicate_candidate_identity_keys": [],
+        "errors": [],
+        "input_index": 1,
+        "intended_action": "new_capture",
+        "matched_registry_profiles": [
+          {
+            "match_reasons": [
+              "platform_public_account_id",
+              "public_profile_url",
+              "same_platform_public_handle"
+            ],
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_002",
+            "platform_public_account_id_or_none": "UC0fOGtvT1x8irPUZOFdF2mA",
+            "profile_subject_id": "acct_yt_fragrance_002",
+            "profile_subject_kind": "platform_account",
+            "public_handle": "ChaosFragrances",
+            "public_profile_url": "https://www.youtube.com/channel/UC0fOGtvT1x8irPUZOFdF2mA"
+          }
+        ],
+        "normalized_candidate": {
+          "display_name_or_none": null,
+          "handles": [
+            "chaosfragrances"
+          ],
+          "platform_account_id_or_none": null,
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UC0fOGtvT1x8irPUZOFdF2mA",
+          "profile_subject_id_or_none": null,
+          "profile_urls": [
+            "https://youtube.com/channel/UC0fOGtvT1x8irPUZOFdF2mA"
+          ],
+          "source_url_or_none": null
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": [
+          "new_capture"
+        ],
+        "can_start_new_capture": true,
+        "candidate_id": "proof_synthetic_unique_new_capture_allowed",
+        "decision": "new_candidate",
+        "duplicate_candidate_identity_keys": [],
+        "errors": [],
+        "input_index": 2,
+        "intended_action": "new_capture",
+        "matched_registry_profiles": [],
+        "normalized_candidate": {
+          "display_name_or_none": null,
+          "handles": [
+            "orca_ledger_unique_probe_20260704"
+          ],
+          "platform_account_id_or_none": null,
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": null,
+          "profile_subject_id_or_none": null,
+          "profile_urls": [],
+          "source_url_or_none": null
+        }
+      }
+    ],
+    "schema_version": "creator_registry_match_preflight_receipt_v0",
+    "summary": {
+      "ambiguous_matches": 0,
+      "blocked_actions": 1,
+      "existing_matches": 2,
+      "invalid_candidates": 0,
+      "new_candidates": 1,
+      "safe_to_capture_new": 1,
+      "total_candidates": 3
+    }
+  }
+}

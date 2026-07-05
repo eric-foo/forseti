@@ -14,7 +14,7 @@ authority_boundary: retrieval_only
 ## Preflight
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: S1 plus target Judgment Spine and Unity specimen artifacts
@@ -262,13 +262,13 @@ Subagent prompts:
 ## Artifact Links
 
 - Pre-cutoff source packet:
-  `docs/product/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md`
+  `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md`
 - Sealed at-cutoff memo:
-  `docs/product/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md`
+  `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md`
 - Outcome calibration:
-  `docs/product/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`
+  `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`
 - Adjacent method-validation replay:
-  `docs/product/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md`
+  `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md`
 
 ## Non-Claims
 
