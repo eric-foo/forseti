@@ -12,6 +12,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_rename_migration_policy_v0.md
   - docs/decisions/forseti_compatibility_migration_boundary_v0.md
+  - docs/workflows/forseti_post_harness_migration_status_v0.md
   - docs/workflows/forseti_rename_stale_reference_audit_v0.md
   - docs/workflows/forseti_repo_map_v0.md
 ```
@@ -32,6 +33,18 @@ branch: codex/forseti-path-migration-plan
 base_commit_observed: 0696c641 docs: bound Forseti rename compatibility batches (#649)
 output_mode: file-write
 ```
+
+## Current Status Note
+
+This decision remains authoritative for the external identity gate: the live
+GitHub repo slug is still `eric-foo/orca` until the owner frees
+`eric-foo/Forseti` or chooses another target and the slug probe is re-run.
+
+Its internal migration-unit table is now superseded in part. Since this record
+landed, the product root, repo-map path, harness root, harness distribution
+label, and harness CI check have all migrated to Forseti naming. Use
+`docs/workflows/forseti_post_harness_migration_status_v0.md` for the current
+post-PR-675 ledger.
 
 ## Decision
 

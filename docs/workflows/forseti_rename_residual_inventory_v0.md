@@ -12,8 +12,18 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_rename_migration_policy_v0.md
   - docs/decisions/forseti_compatibility_migration_boundary_v0.md
+  - docs/workflows/forseti_post_harness_migration_status_v0.md
   - docs/prompts/handoffs/forseti_compatibility_batches_fused_handoff_v0.md
 ```
+
+## Post-Merge Supersession
+
+This inventory is a pre-product-root and pre-harness-root migration census. Its
+counts and samples remain historical evidence, but its rows that describe
+`orca/product/`, `orca-harness/`, or `orca-harness-tests` as live/deferred
+surfaces are superseded by the later product-root, repo-map, and harness
+migrations. Use `docs/workflows/forseti_post_harness_migration_status_v0.md`
+for current residual counts and the active migration queue.
 
 ## Start Preflight
 
