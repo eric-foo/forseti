@@ -127,11 +127,20 @@ person-level directory, demographics without gates, single vanity score,
 unstamped/LLM-only claims, zero-filled metrics) and honesty-as-product
 (explicit missingness, per-number provenance).
 
-**Honest boundary:** a funded competitor who chose to could replicate the
-corpus in months — LLMs commoditize extraction for everyone. The claim is a
-*defensible head start in a niche the incumbents are structurally blind to*,
-hardening into a real barrier as the time axis accrues. Layer 1 is the bridge
-that makes Layer 2's years survivable.
+**Honest boundary (moat strength — amended 2026-07-05):** LLMs commoditize
+*extraction* for everyone, so extraction-only depth is not the moat and a funded
+competitor who *chose* to could replicate the corpus in months — that residual is
+kept, not waved away. But replication is strategically unattractive and off-core
+for the incumbents (horizontal-breadth players will not *sustain* per-vertical
+depth — it is a distraction from their core), and a fresh entrant takes the same
+capture/ToS risk *before* proving the business, so risk-adjusted it is a worse bet
+for them than for us. Both layers compound against a late entrant: the *depth*
+layer via roster judgment + ontology + stamped derivation + scene relationships
+(not the commodity extraction), and the *time* layer via a longitudinal series
+that cannot be backfilled. The durable claim stands: a defensible head start in a
+niche the incumbents are structurally blind to, hardening into a real barrier as
+the time axis accrues. Layer 1 is the bridge that makes Layer 2's years
+survivable.
 
 ## 4. First sellable unit — the Vetting Sprint
 
@@ -470,4 +479,29 @@ direction_change_propagation:
     - not buyer proof or willingness-to-pay evidence
     - not rehearsal completion — the gate is defined, not fired
     - not build authorization: depth-layer build and Vetting v0 keep their own owner gates
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    §3 "Honest boundary" strengthened (2026-07-05, owner-approved in-thread): the
+    moat claim now names why replication is strategically unattractive and
+    off-core for incumbents (unsustained per-vertical depth) and risk-asymmetric
+    for a fresh entrant, and that both the depth layer (judgment / ontology /
+    stamped derivation / scene relationships) and the time layer (un-backfillable
+    longitudinal series) compound against a late entrant — while explicitly
+    KEEPING the honest residual that LLM-commoditized extraction is replicable.
+    Framing strengthened; no phase, gate, offer, or ownership boundary changes.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # §3 Honest boundary
+  downstream_surfaces_checked:
+    - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md   # moat/premium reasoning consumed as-is; sizing not re-derived
+    - docs/decisions/orca_product_thesis_consumer_demand_v0.md                    # parent moat language (outcome memory) consistent; not amended
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - framing strengthened; not a new moat claim tier; extraction residual kept
 ```

@@ -126,7 +126,7 @@ vocabulary:
         fragrance; applies when the format or brand promise sits outside
         personal fragrance even if scent is central.
       inheritance: products inherit the house tier unless the product itself is explicitly a dupe/clone or an adjacent non-wearable scent line.
-      tie_break_order: [clone-house, creator-owned-dtc, adjacent-format, luxury-exclusivity, niche-fragrance-first, designer]
+      tie_break_order: [clone-house, creator-owned-dtc, adjacent, luxury, niche, designer]   # 2026-07-05 (R0): canonicalized to tiers.values vocabulary (was adjacent-format / luxury-exclusivity / niche-fragrance-first)
   occasions:
     values: [daily, office, evening, formal, casual, night-out, summer, winter, spring, fall, versatile]
     provenance: operator_asserted_pending_source
