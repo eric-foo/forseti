@@ -28,7 +28,7 @@
     owner/repo. Defaults to FORSETI_GITHUB_REPOSITORY, then GITHUB_REPOSITORY, then eric-foo/orca.
 
 .PARAMETER Check
-    Name of the required check that must be green (default: orca-harness-tests).
+    Name of the required check that must be green (default: forseti-harness-tests).
 
 .PARAMETER Method
     Merge method: squash (default), merge, or rebase.
@@ -46,7 +46,7 @@
 param(
     [Parameter(Mandatory)][int]$Pr,
     [string]$Repo = '',
-    [string]$Check = 'orca-harness-tests',
+    [string]$Check = 'forseti-harness-tests',
     [ValidateSet('squash', 'merge', 'rebase')][string]$Method = 'squash',
     [switch]$DryRun
 )

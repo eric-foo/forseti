@@ -462,8 +462,8 @@ Start with:
   `retrieval_only` front door: it states the cross-kind invariants and routes one
   hop to every owner (the SCR deprecation/direction + deriver plan, the ECR frame
   + SP-1/2/3 and SP-6 slices, the receipt-translator origin, the
-  schema-evolution doctrine, and the built `orca-harness/ecr/` + retained
-  `orca-harness/signal_content/` code).
+  schema-evolution doctrine, and the built `forseti-harness/ecr/` + retained
+  `forseti-harness/signal_content/` code).
 
 Then open only the controlling owner doc named by the submap for the current
 claim. Do not bulk-load every ECR/SCR plan or all derived-record code from this

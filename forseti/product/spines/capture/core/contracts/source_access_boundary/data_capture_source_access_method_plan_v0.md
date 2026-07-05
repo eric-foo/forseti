@@ -181,7 +181,7 @@ Note on the archive.org block: the Wayback Machine availability API (`archive.or
 
 ### Method 5: Rate-Limited Polite Fetching with Honest Identification
 
-**What it is:** Direct HTTP GET requests with an honest user-agent string (identifying Orca or "OrcaDataBot"), crawl delay, and robots.txt compliance. No browser rendering.
+**What it is:** Direct HTTP GET requests with an honest user-agent string (identifying Forseti source capture), crawl delay, and robots.txt compliance. No browser rendering.
 
 **Boundary test:**
 1. Source material inside boundary: YES.

@@ -353,7 +353,7 @@ direction_change_propagation:
     its own home rather than forseti/product/shared/data_lake_mechanics/ because it
     owns hard cross-layer storage contracts. SHAPE/PROMOTION binding only: no
     files moved, no docs/product re-creation, no capture/projection/engagement
-    re-org, runtime stays in orca-harness. Content relocation (3 lake contracts
+    re-org, runtime stays in forseti-harness. Content relocation (3 lake contracts
     from the codex/data-lake-core-contract lane -> authority/; mechanics map from
     shared/data_lake_mechanics/ -> workflows/) is a separate later R2 move pass.
   trigger: architecture_doctrine

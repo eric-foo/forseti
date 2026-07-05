@@ -147,7 +147,7 @@ in place.
 Command shape (non-executable here):
 
 ```text
-lake indexes rebuild --root <ORCA_DATA_ROOT> --target availability|derived_retrieval|all --prove-rebuildability
+lake indexes rebuild --root <FORSETI_DATA_ROOT> --target availability|derived_retrieval|all --prove-rebuildability
 ```
 
 - `availability` rebuilds only from committed raw packet + attachment key/ref/hash/

@@ -162,7 +162,7 @@ def selftest() -> int:
 
 def main(argv: list[str]) -> int:
     # Forced-exception probe: proves the __main__ gating handler
-    # (orca-harness/tests/unit/test_hook_internal_error_gating.py).
+    # (forseti-harness/tests/unit/test_hook_internal_error_gating.py).
     if "--force-internal-error" in argv:
         raise RuntimeError("forced internal error (probe)")
     if "--selftest" in argv:

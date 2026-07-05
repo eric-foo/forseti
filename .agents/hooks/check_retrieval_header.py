@@ -32,7 +32,7 @@ SCOPE (forward-only, low false-positive by design)
     docs/hygiene/).
   - Out of scope (silently skipped): everything else, plus directory README.md
     files, docs/_inbox/ scratch, skill copies (.agents/skills/, .claude/), and
-    code (orca-harness/). These mirror the contract's own exclusions. Folders
+    code (forseti-harness/). These mirror the contract's own exclusions. Folders
     the contract does not enumerate (e.g. docs/research/, which carries embedded
     evidence units) are intentionally NOT in scope to keep false positives near
     zero; widen IN_SCOPE_PREFIXES if the contract's applicability list grows.
@@ -91,7 +91,7 @@ EXCLUDED_PREFIXES = (
     "docs/_inbox/",
     ".agents/skills/",
     ".claude/",
-    "orca-harness/",
+    "forseti-harness/",
 )
 
 HEAD_LINES = 80  # the header sits near the top, just after the H1 title

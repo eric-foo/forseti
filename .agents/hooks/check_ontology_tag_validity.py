@@ -19,6 +19,8 @@ from typing import Iterable
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ONTOLOGY_PATH = REPO_ROOT / "forseti/product/spines/foundation/ontology/ontology.yaml"
+FORSETI_HOOK_TMPDIR_ENV = "FORSETI_HOOK_TMPDIR"
+LEGACY_ORCA_HOOK_TMPDIR_ENV = "ORCA_HOOK_TMPDIR"
 
 PAREN_RE = re.compile(r"\(([^()\n]{1,80})\)")
 TYPE_TOKEN_RE = re.compile(r"^[A-Z][A-Za-z0-9]*$")
@@ -130,12 +132,24 @@ def load_roster(path: Path = ONTOLOGY_PATH) -> set[str]:
     return set(types)
 
 
-def writable_temp_parent() -> Path:
+def temp_parent_candidates() -> list[Path]:
     candidates: list[Path] = []
-    for var in ("ORCA_HOOK_TMPDIR", "RUNNER_TEMP", "TMPDIR", "TEMP", "TMP"):
+    for var in (
+        FORSETI_HOOK_TMPDIR_ENV,
+        LEGACY_ORCA_HOOK_TMPDIR_ENV,
+        "RUNNER_TEMP",
+        "TMPDIR",
+        "TEMP",
+        "TMP",
+    ):
         value = os.environ.get(var)
         if value:
             candidates.append(Path(value))
+    return candidates
+
+
+def writable_temp_parent() -> Path:
+    candidates = temp_parent_candidates()
     candidates.append(REPO_ROOT)
 
     for candidate in candidates:
@@ -296,6 +310,27 @@ def run_selftest() -> int:
         "Buyer",
         "Org",
     }
+    env_keys = (FORSETI_HOOK_TMPDIR_ENV, LEGACY_ORCA_HOOK_TMPDIR_ENV)
+    saved = {key: os.environ.get(key) for key in env_keys}
+    env_failures: list[str] = []
+    try:
+        os.environ[FORSETI_HOOK_TMPDIR_ENV] = "forseti-temp-parent"
+        os.environ[LEGACY_ORCA_HOOK_TMPDIR_ENV] = "orca-temp-parent"
+        if temp_parent_candidates()[:2] != [
+            Path("forseti-temp-parent"),
+            Path("orca-temp-parent"),
+        ]:
+            env_failures.append("Forseti tempdir env did not precede Orca fallback")
+        os.environ.pop(FORSETI_HOOK_TMPDIR_ENV, None)
+        if temp_parent_candidates()[0] != Path("orca-temp-parent"):
+            env_failures.append("legacy Orca tempdir fallback was not preserved")
+    finally:
+        for key, value in saved.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+
     root = writable_temp_parent() / f".ontology_tag_validity_selftest_{os.getpid()}"
     root.mkdir(exist_ok=False)
     try:
@@ -334,10 +369,14 @@ def run_selftest() -> int:
         ("invalid.md", "Signal"),
         ("invalid.md", "PacketThing"),
     }
-    if found != expected:
+    if env_failures or found != expected:
         print("ontology tag validity selftest: FAILED")
-        print(f"expected: {sorted(expected)}")
-        print(f"found:    {sorted(found)}")
+        if env_failures:
+            for failure in env_failures:
+                print(f"env: {failure}")
+        if found != expected:
+            print(f"expected: {sorted(expected)}")
+            print(f"found:    {sorted(found)}")
         return 1
     print("ontology tag validity selftest: OK")
     return 0
