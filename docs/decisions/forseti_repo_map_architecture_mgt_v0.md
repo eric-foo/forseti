@@ -17,7 +17,7 @@ use_when:
   - Checking whether a standing gardener or committed generated inventory is justified.
 authority_boundary: retrieval_only
 open_next:
-  - docs/workflows/orca_repo_map_v0.md
+  - docs/workflows/forseti_repo_map_v0.md
   - .agents/hooks/check_map_links.py
   - .agents/hooks/header_index.py
   - .agents/hooks/session_context_capsule.py
@@ -88,7 +88,7 @@ retrieval failures or backlog behavior show that promotion-on-touch is not enoug
 
 | Tier | Owns | Churn |
 | --- | --- | --- |
-| **T1 — the map** (`docs/workflows/orca_repo_map_v0.md`) | top-level dirs; the spine axis + **major areas** (one or two levels deep); fast-route Q&A; governance/active-hooks notes; the **submap registry** | only on *structural* change (new spine/area) — stable across the bloat cut |
+| **T1 — the map** (`docs/workflows/forseti_repo_map_v0.md`) | top-level dirs; the spine axis + **major areas** (one or two levels deep); fast-route Q&A; governance/active-hooks notes; the **submap registry** | only on *structural* change (new spine/area) — stable across the bloat cut |
 | **T2 — per-spine submaps** (`docs/workflows/*submap*.md`) | internal routing for **dense** spines only (ECR exists; capture + judgment are the next candidates) | localized to one area |
 | **T3 — retrieval headers** (per durable doc) | the per-doc index: role / scope / use_when / open_next | travels with the doc; **zero map churn on delete** |
 
@@ -173,7 +173,7 @@ direction_change_propagation:
     - workflow_authority
     - validation_philosophy
   controlling_sources_updated:
-    - docs/decisions/orca_repo_map_architecture_mgt_v0.md
+    - docs/decisions/forseti_repo_map_architecture_mgt_v0.md
     - docs/decisions/forseti_doctrine_index_v0.md
     - docs/workflows/repo_map_retrieval_probe_batch_2_v0.md
     - .agents/hooks/header_index.py
@@ -183,7 +183,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
     - .agents/workflow-overlay/validation-gates.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
     - docs/workflows/repo_map_recent_changes/README.md
     - .agents/hooks/check_map_links.py
     - .agents/hooks/session_context_capsule.py
@@ -236,9 +236,9 @@ direction_change_propagation:
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
-    - docs/decisions/orca_repo_map_architecture_mgt_v0.md
+    - docs/decisions/forseti_repo_map_architecture_mgt_v0.md
   downstream_surfaces_checked:
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
     - .agents/hooks/check_map_links.py
     - .agents/hooks/header_index.py
     - .agents/workflow-overlay/validation-gates.md

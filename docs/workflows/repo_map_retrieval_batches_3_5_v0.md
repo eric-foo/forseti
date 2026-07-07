@@ -9,7 +9,7 @@ use_when:
   - Deciding whether to promote repo-map recent-change notes.
   - Deciding whether to tighten retrieval guardrails after the Windows header-index fix.
 open_next:
-  - docs/decisions/orca_repo_map_architecture_mgt_v0.md
+  - docs/decisions/forseti_repo_map_architecture_mgt_v0.md
   - docs/workflows/repo_map_retrieval_probe_batch_2_v0.md
   - docs/workflows/repo_map_recent_changes/README.md
   - .agents/hooks/header_index.py

@@ -295,7 +295,7 @@ def parse_open_next(header_text: str) -> tuple[list[str], int]:
 
 # Structural-root prefixes too shallow to be a navigation anchor: they never
 # confer coverage on their own (anti-vacuity). Coverage requires a NON-root
-# ancestor area to be declared. See docs/decisions/orca_repo_map_architecture_mgt_v0.md.
+# ancestor area to be declared. See docs/decisions/forseti_repo_map_architecture_mgt_v0.md.
 _COVERAGE_ROOT_PREFIXES = frozenset({
     "forseti", "forseti/product", "forseti/product/spines",
     "forseti/product/satellites", "forseti/product/case_families", "forseti/product/shared",
@@ -324,7 +324,7 @@ def dir_is_covered(rel_dir: str, map_text: str) -> bool:
     invariant: some canonical first-cell path token is an ANCESTOR-or-self of
     rel_dir and is NOT a structural root.
 
-    Reachability semantics (docs/decisions/orca_repo_map_architecture_mgt_v0.md):
+    Reachability semantics (docs/decisions/forseti_repo_map_architecture_mgt_v0.md):
     a folder is covered iff it or an ancestor *area* is declared. Structural roots
     (forseti/product, docs, ...) never confer coverage (else the gate is vacuous); a
     sibling, a child (child-covers-parent), prose, an answer-cell path, or a debt

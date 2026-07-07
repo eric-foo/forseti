@@ -10,7 +10,7 @@ use_when:
   - Reviewing why `header_index.py` gained Windows-safe stdout/stderr configuration.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_repo_map_architecture_mgt_v0.md
+  - docs/decisions/forseti_repo_map_architecture_mgt_v0.md
   - docs/workflows/orca_repo_map_v0.md
   - docs/workflows/repo_map_recent_changes/README.md
   - .agents/hooks/header_index.py

@@ -9,7 +9,7 @@ use_when:
   - Deciding why prompt artifacts were patched before old review outputs or generated migration records.
   - Continuing the remaining retrieval-header backlog without broad backfill.
 open_next:
-  - docs/decisions/orca_repo_map_architecture_mgt_v0.md
+  - docs/decisions/forseti_repo_map_architecture_mgt_v0.md
   - docs/workflows/repo_map_retrieval_batches_3_5_v0.md
   - .agents/workflow-overlay/retrieval-metadata.md
 authority_boundary: retrieval_only
