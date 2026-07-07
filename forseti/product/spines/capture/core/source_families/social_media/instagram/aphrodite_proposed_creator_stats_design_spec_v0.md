@@ -607,6 +607,10 @@ sub-parts: taxonomy (§5.1), per-reel classifier (§5.2), success rollup (§5.3)
   transition, haul, before/after, talking-head) is recorded here as an
   **illustrative candidate seed only** — explicitly `REQUIRES_SOURCED_TAXONOMY`
   before any build; it is not asserted as the taxonomy.
+- **Owner direction (2026-07-08, leaning):** source the taxonomy by **harvesting it
+  from real captured videos** (option 1) rather than importing an external list — the
+  emergent, fragrance-fit set, ratified after harvest. Recorded as the selected
+  approach; not yet locked.
 
 ### 5.2 Per-reel fields — emit SEPARATELY, never collapsed into one
 
@@ -684,6 +688,17 @@ them into a single label or score):
   bucket is `insufficient_sample` (shown with reason, never ranked). Only
   `observed` success metrics enter the rollup (S2/S3); non-observed reels are
   excluded with reason, not zero-filled.
+- **Selection-bias limitation (load-bearing, 2026-07-08):** format labels come from
+  deep-captured reels, and deep capture is **success-skewed** (onboarding top ~20–25%
+  by views+engagement; ongoing event-triggered on spikes/breakouts). Grid views exist
+  for *all* reels, but format labels only for the captured (winning) subset. So this
+  rollup describes **the format/emphasis pattern among a creator's stronger / promoted
+  reels** — it is **not** a fair winners-vs-losers comparison (the low performers are
+  not transcribed), and the §5.3 "out-view the rest" wording holds only if the rest
+  are also labeled. It must carry that scope in `limitations`. To compare across the
+  full distribution, the option is **caption-only format labels over all grid reels**
+  (cheaper, lower-confidence) with transcripts enriching the deep set — an
+  owner-gated cost call, decoupled from the deep-capture budget.
 - **Posture / provenance:** calculation-derived rollup over the (extraction-derived)
   labels + (observed) metrics; each bucket carries its own `sample_support` and
   `limitations` (labels are inferred; success is a within-creator descriptive
@@ -867,10 +882,10 @@ extracted product mentions, so it rides Pass 2 for free.
   and Pass B positioning / audience (interpretive; carries the audience-spec's CE1–CE12
   bias controls). **Never more than 2.**
 - **Boundary:** this consolidation spans lanes owned elsewhere (product extraction,
-  audience inference, SoV). Recorded here as the extraction architecture the §4 / §5
-  classifiers ride, **and** as a **proposed cross-lane consolidation** that needs
-  owner ratification + a cross-lane note before those existing lanes are refactored
-  onto it. This design lane does not unilaterally refactor them.
+  audience inference, SoV). **Owner-ratified 2026-07-08** as the target extraction
+  architecture the §4 / §5 classifiers ride. Ratification fixes the *direction*; the
+  actual refactor of those existing lanes onto the shared pass is still a separate,
+  cross-lane build step (with a cross-lane note), not performed by this design lane.
 
 ## Out of scope for this lane
 
