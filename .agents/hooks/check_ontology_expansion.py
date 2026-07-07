@@ -15,7 +15,7 @@ WHAT THIS DOES
 
   This is the "agent nudges me" half of the pull-trigger wiring.  The backlog is
   the data; this hook is the check that reads it.  Pointers only: the adopted
-  deliverable (orca_ontology_backbone_architecture_v0.md, §2.2/§3/§4/§9) is the
+  deliverable (forseti_ontology_backbone_architecture_v0.md, §2.2/§3/§4/§9) is the
   authority for what each type is and why it is deferred.
 
 MODES
@@ -43,6 +43,8 @@ REGISTRATION
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -222,21 +224,28 @@ def selftest() -> int:
         print("%s  %s" % ("PASS" if passed else "FAIL", label))
 
     print()
+    print()
     print("--- load_backlog (fail-open) ---")
-    import tempfile
     fb_ok = True
-    with tempfile.TemporaryDirectory() as td:
-        tdp = Path(td)
+    tdp = repo_root() / "_scratch" / ("ontology_expansion_selftest_%s" % os.getpid())
+    bad = tdp / BACKLOG_RELPATH
+    try:
         # missing file -> None
         fb_ok = fb_ok and (load_backlog(tdp) is None)
         # malformed json -> None
-        bad = tdp / BACKLOG_RELPATH
         bad.parent.mkdir(parents=True, exist_ok=True)
         bad.write_text("{not json", encoding="utf-8")
         fb_ok = fb_ok and (load_backlog(tdp) is None)
         # valid dict -> dict
         bad.write_text('{"cards_dir": "x"}', encoding="utf-8")
         fb_ok = fb_ok and (load_backlog(tdp) == {"cards_dir": "x"})
+    finally:
+        shutil.rmtree(tdp, ignore_errors=True)
+        scratch = repo_root() / "_scratch"
+        try:
+            scratch.rmdir()
+        except OSError:
+            pass
     ok = ok and fb_ok
     print("%s  load_backlog missing/malformed/valid" % ("PASS" if fb_ok else "FAIL"))
 

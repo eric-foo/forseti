@@ -2,7 +2,7 @@
 #
 # This file is the SINGLE SOURCE OF TRUTH for the adopted demand-ontology type
 # names, namespaces, typed links, and dimensions. It is a faithful PROMOTION of
-# the prose naming authority (orca_ontology_backbone_architecture_v0.md, §2.1-2.5,
+# the prose naming authority (forseti_ontology_backbone_architecture_v0.md, §2.1-2.5,
 # ADOPTED 2026-06-15) into machine-readable form — not a redesign. The backbone
 # doc remains the human rationale; on any conflict the backbone governs until this
 # SSOT and the backbone are reconciled. Validated by .agents/hooks/check_ontology_ssot.py
@@ -16,7 +16,7 @@
 ontology_ssot_version: 0
 status: ADOPTED_2026-06-15            # core 15/18 adopted; Buyer + Org reserved
 type_cap: 18                          # "19th in = one out"; 17 used + 1 open slot
-source_authority: forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
+source_authority: forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
 backlog: forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json
 
 # §2.1 stable-ID grammar (naming authority, NOT a registry)
@@ -118,7 +118,7 @@ guards:
 dimensions:
   persistence_state: { values: [durable, transient],    on: [TrendVector, Outcome] }
   integrity_state:   { values: [real, manufactured],    on: [TrendVector, Outcome] }
-  # 2026-07-05 SSOT alignment (R0, per docs/decisions/orca_ontology_gt_foundation_ladder_v0.md): action_ceiling value set aligned to backbone §256 / demand-read C3 2026-06-20 amendment (flat verb set); prior stale ladder [Excluded, Watch, Probe, Test, Hold, Move, Commit] removed.
+  # 2026-07-05 SSOT alignment (R0, per docs/decisions/forseti_ontology_gt_foundation_ladder_v0.md): action_ceiling value set aligned to backbone §256 / demand-read C3 2026-06-20 amendment (flat verb set); prior stale ladder [Excluded, Watch, Probe, Test, Hold, Move, Commit] removed.
   action_ceiling:    { values: [monitor, probe, commit, hold, scale, avoid, reduce], on: [Reading], capped_by: signal_integrity }
   read_type:         { values: [durable-demand, transient-spike, manufactured-demand, brand-decision-event, wind-caller-calibration], on: [Reading] }
   claim_tier:        { values: [product_learning, buyer_proof, judgment_quality], on: [Reading, Memo, Case, Outcome], receipt_gated: true }

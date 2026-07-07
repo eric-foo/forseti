@@ -1,7 +1,7 @@
 # Aphrodite Fragrance Sub-Ontology — reference data v0
 #
 # Schema-light reference DATA on the adopted Orca/Forseti ontology backbone
-# (orca_ontology_backbone_architecture_v0.md, ADOPTED 2026-06-15; windcaller_kind
+# (forseti_ontology_backbone_architecture_v0.md, ADOPTED 2026-06-15; windcaller_kind
 # amendment 2026-07-04). Houses are `brand:` entries, fragrances are `product:`
 # entries, creators are `windcaller:creator.*` entries — all per the §2.1 dotted-ID
 # grammar. This file is DATA, not schema: the backbone freezes no property lists,
@@ -48,7 +48,7 @@
 fragrance_reference_version: 0
 status: DATED_DATA_2026-07-04
 vertical: vertical:beauty.fragrance
-naming_authority: forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
+naming_authority: forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
 ssot: forseti/product/spines/foundation/ontology/ontology.yaml
 seed_sources:
   - docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md       # 10 houses / 10 products, receipt-backed

@@ -1,16 +1,16 @@
-# Orca Ontology Backbone — Architecture (PROPOSED) v0
+# Forseti Ontology Backbone — Architecture (PROPOSED) v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact (architecture-pass deliverable — PROPOSED ontology backbone)
 scope: >
-  PROPOSED design for Orca's shared, governed semantic backbone: a Foundry-style
+  PROPOSED design for Forseti's shared, governed semantic backbone: a Foundry-style
   domain ontology in two layers — Layer 1 (domain object/link/action roster to
   BUILD) and Layer 2 (workflow ontology that MAPS to existing overlay owners,
   never rebuilds). Naming-normative / schema-light. Returns a design for owner
   adjudication; enacts nothing.
 use_when:
-  - Adjudicating whether to adopt the Orca ontology as the repo's semantic backbone.
+  - Adjudicating whether to adopt the Forseti ontology as the repo's semantic backbone.
   - Locating the proposed object roster, links, action gates, ID grammar, and binding plan.
 authority_boundary: retrieval_only
 status: ADOPTED_2026-06-15 (owner-signed) — core 15 of 18 names; Buyer + Org RESERVED (deferred, §6.1)
@@ -69,7 +69,7 @@ validation or lifecycle authority. Property lists are deliberately NOT frozen.
 
 ## §1. Goal Frame
 
-**Long-term goal.** Orca becomes a consumer-demand decision-intelligence product
+**Long-term goal.** Forseti becomes a consumer-demand decision-intelligence product
 (beauty first) whose every lane, scan, capture, backtest, judgment, and proof
 artifact reasons over ONE shared, governed vocabulary of demand-world
 objects/links/actions — so repo knowledge compounds (the outcome-memory moat)
@@ -179,7 +179,7 @@ AR-01 residual for `Memo` / `EvidenceUnit`). Gates are **actions**, not types (�
 | 7 | **Observation** | One captured demand-signal instance from a Venue — the node the two provenance links connect. | integrity flags | CapturePacket / scan-spec (forward) |
 | 8 | **TrendVector** | The demand movement: demand moving toward/away from a target (ingredient/category/format/claim), with direction, velocity, expected lifespan. *(Reading it — emitting a calibrated decision — is the `Read` action, §2.5.)* | persistence_state, integrity_state | demand-read taxonomy |
 | 9 | **DecisionEvent** | The live brand-decision event the `Read` action serves (the monetization unit a Memo is produced for); a discovery scan evaluates *candidate* DecisionEvents (absorbs the former Slot). | trigger status, discovery_status: slot_open\|filled\|qualified | candidate pool, discovery brief |
-| 10 | **Reading** | The dated calibrated output of the `Read` action — Orca's call on a `TrendVector` for a `DecisionEvent`: an action ceiling (monitor/probe/commit/hold/scale/avoid/reduce) + read_type, capped by integrity, bound by never-a-feed. The lightweight decision record; a `Memo` elaborates it for a qualified buyer decision. | read_type, action_ceiling, claim_tier | read outputs (gap — scan-spec forward consumer + memos) |
+| 10 | **Reading** | The dated calibrated output of the `Read` action — Forseti's call on a `TrendVector` for a `DecisionEvent`: an action ceiling (monitor/probe/commit/hold/scale/avoid/reduce) + read_type, capped by integrity, bound by never-a-feed. The lightweight decision record; a `Memo` elaborates it for a qualified buyer decision. | read_type, action_ceiling, claim_tier | read outputs (gap — scan-spec forward consumer + memos) |
 | 11 | **Memo** | The Public-Signal Demand-Allocation Decision-Risk Memo for one qualified DecisionEvent (reasoning substrate + proof gate). | claim_tier; gate pass/cap/fail | buyer-proof packet |
 | 12 | **Case** | A backtest/proof case: a historical decision with known outcome. | known_outcome; receipt-backed claim-cap pointers only. `split` and `entry_basis` are batch-ledger metadata, not standing ontology dimensions. | batch-1 ledger declaration |
 | 13 | **Outcome** | The realized result a Reading/Call/Case is graded against (calibration target). | — | case ledger / calibration |
@@ -286,7 +286,7 @@ Each names the gate that ALREADY governs it; the ontology makes the gate
 | `TrendVector.monitor` | TrendVector | persistence is observed, not predicted (taxonomy) |
 | `TrendVector.earn_durable` | TrendVector | monitored persistence holds past the trigger (taxonomy) — the earned upgrade transient→durable |
 | `TrendVector.decay` | TrendVector | spike decays as called (taxonomy) |
-| `Read` (emit calibrated decision) | TrendVector → Reading | reads a `TrendVector` for a `DecisionEvent`; emits a `Reading` (action ceiling + read_type), capped by signal integrity and bound by `never_a_feed` (demand-read taxonomy + Orca Promise) |
+| `Read` (emit calibrated decision) | TrendVector → Reading | reads a `TrendVector` for a `DecisionEvent`; emits a `Reading` (action ceiling + read_type), capped by signal integrity and bound by `never_a_feed` (demand-read taxonomy + Forseti Promise) |
 | `Gate.G1` (independence) | TrendVector / candidate | ≥2 de-correlated origination families for material commitment; `derived_from`-chain siblings collapse to one (demand-gate closures) |
 | `Gate.G2` (costly-behavior floor) | TrendVector / candidate | ≥1 gradeable costly-behavior instance in ≥1 qualifying demand-venue family; absence of demand is not a pass (demand-gate closures) |
 | `Gate.G4` (org-motion corroboration) | TrendVector | separate org-motion cards; corroborates but excluded from the G1 count (demand-gate closures) |
@@ -295,7 +295,7 @@ Each names the gate that ALREADY governs it; the ontology makes the gate
 | `Call.grade` | Call | requires an Outcome receipt (wind-caller calibration; demand-side calibration is a gap — §3) |
 | `Case.seal` | Case | requires a pre-declared ledger row (batch-1 ledger declaration) |
 | `DecisionEvent.fill_from_scan` | DecisionEvent | a discovery slot (candidate DecisionEvent) is filled only from a dated, provenance-noted candidate scan by an authorized lane (discovery brief) |
-| *constraint* `never_a_feed` | the `Read` action | every output is a calibrated decision with an action ceiling — never a feed/stream (Orca Promise; buyer-proof packet) |
+| *constraint* `never_a_feed` | the `Read` action | every output is a calibrated decision with an action ceiling — never a feed/stream (Forseti Promise; buyer-proof packet) |
 
 Judgment-spine gates JSG-01..JSG-10 that govern Case/EvidenceUnit/Memo as they move
 toward judgment-quality evidence are MAPPED, not restated (§5).
@@ -559,7 +559,7 @@ Adoption (owner-signed) would require, in order:
 1. **Create the `docs/product/ontology/` lane.** It is NOT currently an accepted
    lane (the product second-level axis is a closed set; a new lane needs a recorded
    decision). This v0 deliverable is therefore written to the commission's prescribed
-   fallback `forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md`.
+   fallback `forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md`.
    - *artifact-folders.md amendment:* add `ontology/` to the bound product-lane set.
    - *repo-structure.yaml amendment:* add `{ name: ontology, status: current }` to
      `product_lanes` and `{ home: docs/product/ontology, entry: docs/product/ontology/README.md }`
@@ -579,7 +579,7 @@ and is the template the adoption edit must complete):
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    PROPOSED: Orca adopts a two-layer, naming-normative / schema-light ontology
+    PROPOSED: Forseti adopts a two-layer, naming-normative / schema-light ontology
     backbone — a capped domain object/link/action roster + stable-ID grammar (Layer 1
     BUILD) and a workflow-ontology MAP to existing overlay owners (Layer 2, mints no
     authority) — as the repo's shared semantic reference layer.
@@ -587,7 +587,7 @@ direction_change_propagation:
   related_triggers:
     - output_authority
   controlling_sources_updated:
-    - docs/product/ontology/orca_ontology_backbone_architecture_v0.md   # on adoption (this doc, promoted from the core_spine fallback)
+    - docs/product/ontology/forseti_ontology_backbone_architecture_v0.md   # on adoption (this doc, promoted from the core_spine fallback)
   downstream_surfaces_to_check_on_adoption:
     - .agents/workflow-overlay/artifact-folders.md      # add ontology lane
     - repo-structure.yaml                                # add product_lane + docs_role

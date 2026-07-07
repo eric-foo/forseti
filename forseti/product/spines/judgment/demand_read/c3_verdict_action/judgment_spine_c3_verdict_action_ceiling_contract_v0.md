@@ -129,7 +129,7 @@ direction_change_propagation:
     - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
     - forseti/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
-    - forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
+    - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
     - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
     - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
     - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md

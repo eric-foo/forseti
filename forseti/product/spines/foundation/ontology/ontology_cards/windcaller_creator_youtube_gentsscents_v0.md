@@ -14,7 +14,7 @@ scope: >
 authority_boundary: retrieval_only
 status: DATED_HINT_2026-07-04
 review_by: 2027-01-05   # R0 card-convention conformance 2026-07-05
-naming_authority: forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md  # §2.2 (type WindCaller) + §2.1 (ID grammar) + §6.1 amendment 2026-07-04
+naming_authority: forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md  # §2.2 (type WindCaller) + §2.1 (ID grammar) + §6.1 amendment 2026-07-04
 ```
 
 > Dated instance hint, fail-soft — **not** a current-state claim, **not** authority.

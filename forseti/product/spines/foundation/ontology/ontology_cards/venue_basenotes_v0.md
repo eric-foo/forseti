@@ -5,12 +5,12 @@ retrieval_header_version: 1
 artifact_role: Ontology object card (instance hint — Venue)
 scope: >
   First object card for the adopted Orca ontology backbone — a dated instance hint
-  for one Venue. The §2.2 roster in orca_ontology_backbone_architecture_v0.md is the
+  for one Venue. The §2.2 roster in forseti_ontology_backbone_architecture_v0.md is the
   naming authority; this card is an instance hint, not authority, and restates no
   owner-lane content (it points).
 authority_boundary: retrieval_only
 status: DATED_HINT_2026-06-15
-naming_authority: forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md  # §2.2 (type Venue) + §2.1 (ID grammar)
+naming_authority: forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md  # §2.2 (type Venue) + §2.1 (ID grammar)
 ```
 
 > Dated instance hint, fail-soft (venue-card-set discipline) — **not** a current-state

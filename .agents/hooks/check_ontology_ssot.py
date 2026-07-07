@@ -3,7 +3,7 @@
 
 Validates `forseti/product/spines/foundation/ontology/ontology.yaml` as a faithful,
 self-consistent promotion of the prose backbone
-(`orca_ontology_backbone_architecture_v0.md`):
+(`forseti_ontology_backbone_architecture_v0.md`):
 
   - parses; every type has a known namespace + a valid status (adopted|reserved);
   - every typed-link endpoint resolves to a defined type;
@@ -35,7 +35,7 @@ from pathlib import Path
 ONT_DIR = "forseti/product/spines/foundation/ontology"
 YAML_REL = ONT_DIR + "/ontology.yaml"
 BACKLOG_REL = ONT_DIR + "/ontology_expansion_backlog_v0.json"
-BACKBONE_REL = ONT_DIR + "/orca_ontology_backbone_architecture_v0.md"
+BACKBONE_REL = ONT_DIR + "/forseti_ontology_backbone_architecture_v0.md"
 
 VALID_STATUS = {"adopted", "reserved"}
 # Backbone section 2.2 roster rows: "| <n> | **<Type>** | ... |"
