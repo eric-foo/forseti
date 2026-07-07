@@ -774,9 +774,72 @@ capture were daily:
 
 ### Still to walk (next, one by one)
 
-`breakout_state` / `decay_or_plateau_state` / `active_watch_expiry_state` (their
-thresholds flow from the spike + velocity decisions above), `momentum_call` weights,
 `sub_niche` keyword/cluster thresholds, and the §5.1 format taxonomy source.
+(`breakout_state` / `decay_or_plateau_state` / `active_watch_expiry_state` /
+`momentum_call` decided below.)
+
+## Implementation decisions — event states + momentum (2026-07-08)
+
+Same status: architecture decided; thresholds are **proposed starting values to
+validate on the first real series**. These flow from the spike + velocity decisions
+above. Build deferred.
+
+### breakout_state — high AND still growing
+
+- **Rule:** `breakout_active` iff **level is high AND slope is positive**:
+  - per-video level: latest views ≥ **2× the creator age-cohort norm** (§spike) —
+    this reel is ≥2× the creator's typical reel at the same age;
+  - account level: `spike_score ≥ 2.0` (≈2σ above the creator's own baseline);
+  - slope: the reactive level (EMA, 7d half-life) is **still rising** over the
+    trailing ~7d.
+  Else `high_not_growing` / `growing_not_high` / `neither`; `insufficient_evidence`
+  when either input is below its floor.
+- **Hysteresis (anti-flap):** enter at the thresholds above; **exit only below a
+  lower band** (e.g. level < 1.5× cohort norm OR slope turns negative), so a reel
+  does not flicker in and out of breakout between captures.
+- **Levels:** mainly **per-video** (a specific reel breaking out = the deep-capture
+  promotion trigger); also **account** (creator on a run = tiering).
+
+### decay_or_plateau_state — the demotion side
+
+- **Relative, not absolute** (view scales vary hugely across creators):
+  - `decaying`: the reactive level (EMA) is **≥15% below its trailing-window peak**;
+  - `plateaued`: within **±10% for ≥3 consecutive samples**;
+  - `rising`: above the plateau band;
+  - `insufficient_evidence`: below the 3-sample floor.
+- **Role:** drives demotion — a `decaying` breakout is demoted and its active-watch
+  closes.
+
+### active_watch_expiry_state — explicit, self-expiring
+
+- **State machine:** `not_watched` → (breakout promotion) → `watching{opened_at,
+  expires_at, recheck_cadence, reason, source_refs}` → `expired`.
+- **Recheck cadence:** tight (**6–12h**, the hot-list cadence) while the reel is
+  still spiking; relaxes as it plateaus/decays.
+- **Expiry — whichever comes first (guarantees termination; no forever-watch):**
+  (a) `decay_or_plateau_state = decaying` for **≥2 consecutive checks**; OR
+  (b) a **hard cap of ~30d** from the reel's first capture (the curve window); OR
+  (c) a read cap is hit. `expires_at` is set at open (e.g. +14d) and may be
+  refreshed **only while still growing**, never past the 30d hard cap.
+
+### momentum_call — a transparent tier, not an opaque score
+
+To honor "no single vanity score that hides weak inputs" (S5), momentum is a
+**component-driven tier**, not a black-box weighted float:
+
+- `calling_strong`: `breakout_active` AND rising AND high `spike_score`;
+- `calling_emerging`: spike high but not yet breakout (`growing_not_high` /
+  `high_not_growing`);
+- `fading`: was breakout, now `decaying`;
+- `quiet`: none of the above.
+
+The **optional call-text component** (the creator's own stated conviction, read by
+the consolidated LLM pass) is shown **separately** and **downgraded to text-only**
+when there is no metric support — a call with no view movement is talk, not momentum.
+If a numeric score is later wanted, its weights are hand-set starting values (like
+the audience signal weights), to validate — but the tier is the default so the inputs
+stay visible. **Levels:** per-video (is this reel calling → promotion) and account
+(is this creator on a run → tiering).
 
 ## Consolidated LLM extraction — one read, many code-decided fields
 
