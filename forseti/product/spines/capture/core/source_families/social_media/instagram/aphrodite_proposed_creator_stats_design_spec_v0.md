@@ -671,38 +671,46 @@ them into a single label or score):
 
 ### 5.3 Per-creator format x emphasis x success rollup — descriptive only
 
-- **Computes:** for one creator, an **emphasis pattern for review** — format ×
-  product-density × per-product emphasis × **observed** success — e.g. "this
-  creator's GRWMs push one hero product 5× and those out-view the rest."
-  **Descriptive only**, per creator; **an emphasis pattern surfaced for review,
-  never a demand, ad, causal, or performance claim** (the §5.2 guardrails travel
-  with the rollup: emphasis ≠ demand; no undisclosed-push verdict).
+- **Computes:** for one creator, **their winning formats/patterns** — the formats
+  and product-emphasis patterns that recur among their **observed** successes, e.g.
+  "this creator wins with GRWMs that push one hero product." A **winners-only,
+  positive description by design** (see below), **not** a winners-vs-losers
+  comparison; **never a demand, ad, causal, or cross-format performance claim** (the
+  §5.2 guardrails travel with the rollup).
 - **Inputs:** the creator's per-reel `format_label`, `product_density`, per-product
   `mention_count` (§5.2), joined to each reel's **observed** view/engagement
   metrics; grouped into per-format buckets.
-- **Recipe:** per format bucket, summarize the observed success distribution
-  (e.g. median views/engagement) with the bucket's sample support; report the
-  within-creator format ordering as a descriptive comparison, not a score.
+- **Recipe:** among the creator's observed successes, list the recurring formats +
+  product-emphasis patterns with each bucket's sample support; report them as **this
+  creator's winning patterns**, not a ranked X-beats-Y comparison or a score.
 - **Required history / sample support (gate):** a recipe-pinned **minimum reels
   per format bucket** before that bucket is emitted or compared; below it the
   bucket is `insufficient_sample` (shown with reason, never ranked). Only
   `observed` success metrics enter the rollup (S2/S3); non-observed reels are
   excluded with reason, not zero-filled.
-- **Selection-bias limitation (load-bearing, 2026-07-08):** format labels come from
-  deep-captured reels, and deep capture is **success-skewed** (onboarding top ~20–25%
-  by views+engagement; ongoing event-triggered on spikes/breakouts). Grid views exist
-  for *all* reels, but format labels only for the captured (winning) subset. So this
-  rollup describes **the format/emphasis pattern among a creator's stronger / promoted
-  reels** — it is **not** a fair winners-vs-losers comparison (the low performers are
-  not transcribed), and the §5.3 "out-view the rest" wording holds only if the rest
-  are also labeled. It must carry that scope in `limitations`. To compare across the
-  full distribution, the option is **caption-only format labels over all grid reels**
-  (cheaper, lower-confidence) with transcripts enriching the deep set — an
-  owner-gated cost call, decoupled from the deep-capture budget.
+- **Winners-only by design (owner decision, 2026-07-08).** Format labels come from
+  deep-captured reels, and deep capture is success-skewed (onboarding top ~20–25%;
+  ongoing event-triggered). Because the claim is scoped to *"this creator's winning
+  formats,"* that skew is **a feature, not a bias**: the losers are not needed — an
+  under-performing format usually reflects the creator's **execution skill in that
+  format (fixable)**, not audience demand, so it would not inform the claim. **No
+  cross-format "X out-performs Y" statement is made.** (If a full-distribution view is
+  ever wanted, the option is **caption-only format labels over all grid reels** —
+  captions are grid-available (truncated ~59–86% via `og:description`, full via the
+  DOM node), so this is cheaper and **decoupled from the deep-capture budget**, at
+  lower confidence.)
+- **Reception vs emphasis (keep distinct).** The success / reception side uses
+  **observed audience response** — engagement plus **product-directed comment
+  sentiment** — read **comparatively** ("this reel was better received than their
+  others"). That is inside the guardrail: emphasis ≠ demand bars inferring want from
+  creator **repetition** (`mention_count`), **not** from observed response. Two honest
+  limits stay: it is **relative reception, not a hard bought / market-demand number**,
+  and it is strongest when the positive comments are **about the product**, not just
+  the creator (the comment extraction distinguishes these).
 - **Posture / provenance:** calculation-derived rollup over the (extraction-derived)
   labels + (observed) metrics; each bucket carries its own `sample_support` and
-  `limitations` (labels are inferred; success is a within-creator descriptive
-  comparison, not cross-creator ranking).
+  `limitations` (labels are inferred; success is described within-creator only,
+  never a cross-creator ranking).
 - **Silver routing:** `MetricRollupObservation`, `rollup_kind:
   format_success_descriptive`; `calculation_recipe_version:
   creator_format_success_rollup_ig_reels_v0`; `derived_refs` → the per-reel format
