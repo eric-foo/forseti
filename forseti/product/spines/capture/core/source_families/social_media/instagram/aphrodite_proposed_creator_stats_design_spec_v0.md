@@ -701,6 +701,114 @@ them into a single label or score):
 
 ---
 
+## Implementation decisions — temporal metrics + spike (2026-07-08)
+
+Decided while walking the numbers with the owner. **Architecture is decided; the
+specific window / half-life / k / α numbers are proposed starting values to validate
+on the first real captured series** — we do not have the series yet, which is the
+reason these are deferred. Build stays deferred.
+
+### Two levels — every view stat computes at both
+
+- **Account / grid level:** the stat over the account's `average_views` rollup
+  **series** (each rollup = a snapshot of the current grid pool). Detects "this
+  creator is heating up overall." A moving-pool statistic — **immune to individual
+  videos rotating out** (it always reflects the current pool; the moving-pool caveat
+  already travels as a limitation, S2).
+- **Per-video level:** the stat over one reel's own capture curve. Detects "this
+  specific reel is breaking out" — the deep-capture promotion trigger.
+
+### Grid vs deep capture — which layer feeds which stat
+
+- **Grid heartbeat feeds all numeric momentum** (§1 temporal, §2 events, §3
+  momentum). Grid is the primary v0 source for view/like/comment counts; the
+  age-bucket scheduler re-capturing a reel's `view_count` over time **is** the
+  per-video series. **Deep capture does not feed the view metrics.**
+- **Deep capture feeds the content classifiers** (§5 format + product; §4
+  sub-niche's transcript enrichment). §4's primary bio/caption/graph signal is
+  grid-available; full caption + transcript are deep.
+
+### SMA / EMA / velocity / delta — starting values (grid; account + per-video)
+
+Capture cadence is **irregular by tier** (age-bucket 0–5d daily → 6–15d every 3d →
+16–30d weekly; Tier-C ≈ weekly). Fixed-`k` SMA and fixed-`α` EMA assume regular
+spacing, so the honest forms are **time-based**, reducing to textbook k / α only if
+capture were daily:
+
+- **SMA → trailing time-window mean.** Default **W = 30d** (the reel curve window /
+  "current month" level; ≈ k=30 if daily, k≈4 if weekly). **Min 3 compatible rollups
+  in the window, else abstain** (a 1–2 point "average" is noise; also gates
+  low-cadence creators). Role: the **stable baseline**.
+- **EMA → time-decayed by half-life, not fixed α.** Default **half-life H = 7d**
+  (weight halves weekly; recent week dominates → catches acceleration; ≈ α=0.25 /
+  span-7 only if daily). Min 3. Role: the **reactive level**.
+- **velocity (= `recent_velocity`) → windowed two-point.** `(latest − rollup ≈14d
+  prior) / elapsed_days`, on grid, using a ~14d baseline rather than the adjacent
+  capture to avoid whipsaw. Positive elapsed time required.
+- **`capture_window_delta` → velocity's un-normalized fallback, NOT a peer metric.**
+  `delta = latest − prior`; `velocity = delta / elapsed_days`. On the regular grid
+  series with reliable capture timestamps **velocity subsumes it.** Keep
+  `capture_window_delta` only for the **irregular / large-gap** case where dividing
+  by time would fake a smooth rate — chiefly a **re-found breakout** ("gained X since
+  last seen, N weeks ago") and cross-window comparison. Demoted to velocity's
+  fallback mode (supersedes §1.4's peer framing).
+
+### Spike — account + per-video, and the rotate-out problem
+
+- **Account-level spike:** latest account rollup vs the account's **SMA(30d)
+  baseline**, normalized by the series' dispersion (MAD / stdev). No rotate-out
+  problem — continuous moving-pool statistic.
+- **Per-video spike:** the reel's latest `view_count` vs a **creator age-cohort
+  norm** — "this creator's reels typically have X views at age *d*" — so a **new
+  reel needs no long self-history**; the reel's own slope is corroboration. Falls
+  back to a platform / content-kind norm for a creator with no history.
+- **Rotate-out, resolved (fine by design):** a reel is sampled densely 0–5d,
+  thinning to weekly, then leaves the grid at ~30d and goes **cold by default**.
+  **Breakouts happen in the first days — when sampling is densest — so the spike is
+  caught in-flight;** after ~30d there is no momentum left to miss. The tail is
+  covered three ways: (1) **account-level spike** catches aggregate late lift; (2) if
+  IG **re-surfaces** the reel in grid it is re-captured; (3) a **promoted breakout**
+  stays under **active-watch** (§2.4) with bounded pagination to re-find that
+  specific reel until expiry. "Stop capturing a reel after it rotates out" is
+  correct — what is left after the curve window is not momentum.
+
+### Still to walk (next, one by one)
+
+`breakout_state` / `decay_or_plateau_state` / `active_watch_expiry_state` (their
+thresholds flow from the spike + velocity decisions above), `momentum_call` weights,
+`sub_niche` keyword/cluster thresholds, and the §5.1 format taxonomy source.
+
+## Consolidated LLM extraction — one read, many code-decided fields
+
+Every content-derived claim — product mentions (→ `product_density`, SoV, per-product
+emphasis), `format_label` (§5), sub-niche cues (§4), and the ideal-audience profile —
+reads the **same per-reel content** (transcript + caption + on-screen text). A
+separate LLM call per field per reel is N× cost / latency and gives each field a
+different input hash and provenance.
+
+**Decision (target): one consolidated per-reel extraction pass.** A single LLM call
+per reel reads {transcript, caption, on-screen text} once under a fixed rubric and
+emits **one structured evidence record** (sections: products / format / audience /
+sub-niche). Then **per-field code deciders (Pass 2)** turn that shared evidence into
+each derived claim — the audience-spec's "LLM reads, code decides" extended across all
+content-derived fields. **SoV is not an LLM pass** — it is a code rollup over the
+extracted product mentions, so it rides Pass 2 for free.
+
+- **Benefits:** 1 model call / reel instead of ~5; one shared `input_content_hash` +
+  `extraction_timestamp` across the derived claims (cleaner provenance); evidence is
+  **cached**, re-run only on model / rubric version change; Pass-2 re-tuning is free;
+  reels **batch** through the extractor.
+- **1 pass target, 2 max:** design for **1 consolidated pass**; the sanctioned
+  fallback if a mega-rubric degrades quality in testing is a **2-pass split** —
+  Pass A content-facts (products, format, on-screen structure: concrete / extractive)
+  and Pass B positioning / audience (interpretive; carries the audience-spec's CE1–CE12
+  bias controls). **Never more than 2.**
+- **Boundary:** this consolidation spans lanes owned elsewhere (product extraction,
+  audience inference, SoV). Recorded here as the extraction architecture the §4 / §5
+  classifiers ride, **and** as a **proposed cross-lane consolidation** that needs
+  owner ratification + a cross-lane note before those existing lanes are refactored
+  onto it. This design lane does not unilaterally refactor them.
+
 ## Out of scope for this lane
 
 **Tier-2A audience demographics** (`gender_skew`, `age_band`) — separately
