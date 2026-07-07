@@ -3,214 +3,241 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: >
-  Research inventory record (Aphrodite creator-metric capture/monitoring
-  inventory; documentation lane, not implementation authorization)
+  Retrieval-only inventory for Aphrodite/Forseti capture surfaces and metric
+  families. Documentation lane only; not implementation, capture authorization,
+  lake-write authorization, validation, readiness, buyer proof, or product authority.
 scope: >
-  Source-backed inventory of which creator metrics Forseti currently captures and
-  rolls up in Silver, which freshness/revalidation checks exist, and which
-  Aphrodite monitoring recipes (moving average, EMA, velocity, spike, breakout,
-  decay, active-watch expiry) are proposed-but-not-implemented. Documents the gap
-  so Aphrodite Signals reads it, and does not invent it.
+  Point-in-time source-backed inventory of what Forseti can capture, what committed
+  artifacts show has already been captured, what metric families are current,
+  deferred, proposed, or forbidden, and which Aphrodite monitoring recipes must
+  not be invented inside a product surface.
 use_when:
-  - Deciding which creator stat is safe to surface as observed vs. deferred vs. proposed.
-  - Preparing the later Aphrodite roster-size / request-budget calculation.
-  - Scoping the first Silver metric recipe (which of SMA/EMA/velocity/spike/breakout to document first).
+  - Checking which source surfaces already have a Capture or Scanning route.
+  - Distinguishing capturable route posture from committed captured evidence.
+  - Deciding whether a metric family is current, deferred, proposed, or forbidden.
+  - Scoping Aphrodite monitoring without fabricating moving averages, velocity,
+    spike, breakout, decay, audience/person, or buyer-proof claims.
 authority_boundary: retrieval_only
+source_context_status: SOURCE_CONTEXT_READY_PATCH_LEVEL
+source_pack: whole_repo_custom_capture_metric_inventory
 open_next:
-  - docs/research/aphrodite_creator_capture_strategy_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
+  - docs/workflows/forseti_repo_map_v0.md
+  - forseti/product/spines/capture/core/source_families/README.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md
+  - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
 branch_or_commit: >
-  Harness/contract state inventoried on branch
-  codex/aphrodite-creator-capture-strategy @ b41b669f (creator-metric harness is
-  main-line, branched from 0af842e5). Recheck if the producers or contracts change.
+  Inventoried on branch codex/aphrodite-creator-capture-strategy @ 055ff9de.
+  Recheck if source-family catalogs, committed snapshots, metric producers,
+  data-lake metric-family code, or Creator Signal contracts change.
 stale_if:
-  - Creator metric Silver contracts, profile-current contracts, or runner entrypoints change.
-  - Aphrodite capture strategy is superseded.
-  - Moving-average, EMA, velocity, spike, or breakout-state recipes are implemented (this inventory then understates what exists).
+  - Capture or Scanning source-family catalogs change.
+  - Creator metric Silver producers, snapshots, validation, or profile-current
+    materialization change.
+  - Share-of-voice readout code, movement-threshold contracts, or metric-family
+    gates change.
+  - Any monitoring recipe named here lands with a recipe/version/runner.
+external_source_boundary: >
+  External workflow source and unrelated project trees are not Forseti authority.
+  Paths in this record use only forseti/ and forseti-harness/ repository roots.
 ```
 
 ## Status
 
-`PROPOSED_DOCS_INVENTORY_V0`.
+`PROPOSED_DOCS_INVENTORY_V1`.
 
-Documentation-only. This is not validation, readiness, capture authorization, live
-monitoring approval, lake-write approval, request-budget feasibility, buyer proof,
-or product readiness. It reports the contract and harness-code state as read on the
-Aphrodite lane at the commit above; recheck the primary sources before relying on
-any absence claim below.
+This is a retrieval-only inventory. It does not validate a product, authorize
+capture, mutate the lake, create metric records, prove request-budget feasibility,
+or authorize a customer-facing claim.
 
-Consumes the handoff `docs/workflows/aphrodite_silver_metric_monitoring_docs_handoff_v0.md`.
+`SOURCE_CONTEXT_READY_PATCH_LEVEL`: loaded sources covered the Forseti repo map,
+capture source-family catalog, scanning source-family docs, creator registry and
+profile-current artifacts, Silver/Vault authority, Data Lake metric-family
+contracts, share-of-voice implementation, committed creator metric snapshots,
+committed product-learning capture receipts, and creator-metric producer/runner
+code. Residual risk: two broad read-only survey lanes timed out, so treat this as
+a strong patch-level inventory rather than a permanent no-omissions claim.
 
-## Why This Exists
+## Boundary Problem
 
-Aphrodite Signals sits directly on top of Silver/Vault and the creator registry. The
-product surface must **not** invent moving averages, EMA, velocity, spike state, or
-breakout state inside `creator_profile_current`. Those recipes belong in Silver
-`MetricObservation` / `MetricRollupObservation` with a named recipe version, lineage,
-and posture — then the registry read model copies only the accepted, lineage-backed
-field.
+A complete inventory here must keep two things separate:
 
-This inventory separates five things the strategy asks Aphrodite to keep distinct:
+1. **Capture surfaces:** what Forseti can route, and what committed artifacts show
+   has already been captured.
+2. **Metric families:** calculations/readouts Forseti can calculate, precompute,
+   materialize, or must forbid, with status, posture, lineage, sample/history
+   requirements, and source cites.
 
-1. currently emitted source metric observations;
-2. currently emitted rollups;
-3. current freshness and revalidation checks;
-4. candidate Aphrodite monitoring recipes (proposed, not built);
-5. forbidden, unsupported, or source-hidden stats.
+Failure modes this record attacks: omitting non-creator surfaces, calling a route
+"captured" without committed evidence, treating `not_attempted` as implemented,
+asserting absence without point-in-time cites, zero-filling hidden/missing values,
+and making Aphrodite the metric authority.
 
-## Reading Rule (Posture / Value Coupling)
+Decision criteria: `current` means committed contract/code/artifact exists;
+`deferred` means named or schema-reserved but currently non-observed; `proposed`
+means desired or source-classed without an implemented metric/readout; `forbidden`
+means current authority says the field/claim/output must not exist.
 
-Every metric obeys the Silver Vault coupling and it is load-bearing for every table below:
+## Reading Rule: Posture And Value
+
+Every metric inherits Silver posture/value coupling:
 
 ```text
-observed      -> numeric value, no reason
-non-observed  -> null value, a reason (unavailable_with_reason / out_of_window / not_attempted / not_applicable)
+observed     => numeric value, no reason
+non-observed => null value, explicit reason
 ```
 
-`metric_value = 0` is valid **only** as a real observed zero from the source. Missing,
-hidden, blocked, not-attempted, and not-applicable are never zero and must never be
-ranked, averaged, or shown as poor performance. Silver owns the recipe-backed rollups;
-`creator_profile_current` stores and presents the latest accepted rollup — it does not
-compute global longitudinal stats.
+Zero is valid only as a real observed zero from a source-backed record. Missing,
+hidden, blocked, out-of-window, not-applicable, and not-attempted are never zero
+and must not be ranked, averaged, or displayed as low performance. Authority:
+`forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md:322-365`,
+`forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md:442-456`,
+`forseti-harness/capture_spine/creator_profile_current/validation.py:452-475`.
 
-## Table A — Capture Surfaces Currently Emitting Silver Metrics
+## Capture Surface Inventory
 
-| Platform / source surface | Source-visible raw facts observed | Freshness / revalidation / materialization | `calculation_recipe_version` + lineage owner | Status |
+| Surface / family | Capturable route | Already captured / committed evidence | Metric posture | Status | Cites |
+| --- | --- | --- | --- | --- | --- |
+| Fragrance native database: Fragrantica, Parfumo, Basenotes | Targeted current-window source-native capture, projection, and Cleaning/Silver seams. | Route contracts exist; this pass did not verify a complete committed corpus. | No creator metric family; source-visible review/community text can feed downstream Cleaning/Silver only under its lane. | current route; captured corpus unknown | `forseti/product/spines/capture/core/source_families/README.md:51`; `forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md:42-46`; `forseti/product/spines/capture/core/source_families/fragrance_native_database/README.md:48-58` |
+| Retail/PDP purchase-review storefronts | Rendered/embedded-state Retail/PDP packets and projections over product, offer, review-substrate, embedded JSON, and module rows. | Committed product-learning case receipts preserve archived storefront/PDP snapshots. | No price truth, demand proof, ECR/Judgment, or full review corpus by default. | current route; committed archive packets exist | `forseti/product/spines/capture/core/source_families/README.md:52`; `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md:75-116`; `forseti-harness/cases/product_learning/cocokind_holdprice_2025_v0/source_captures/e10_chagaglo_highlighter/receipt.md:3-44` |
+| Vendor pricing page | Narrow SPA/JS-payload route for public vendor pricing pages. | Route/runner contract exists; no committed vendor-pricing packet was verified in this pass. | No universal price checker, standing scheduler, rendered retail price truth, or Judgment. | current route; captured material unknown | `forseti/product/spines/capture/core/source_families/README.md:53`; `forseti/product/spines/capture/core/source_families/vendor_pricing_page/README.md:27-36`; `forseti/product/spines/capture/core/source_families/vendor_pricing_page/README.md:58-63` |
+| Instagram public creator/reels | Grid/creator packet routes, deep capture/transcript routes, audience post-text seam, product-extraction handoff. | Committed IG creator metric seed/snapshot files exist; profile-current joins IG metric rows. | Current creator metrics for view/like/comment and engagement rollups; product mentions are downstream Cleaning/Silver. | current | `forseti/product/spines/capture/core/source_families/README.md:54`; `forseti/product/spines/capture/core/source_families/social_media/instagram/README.md:35-40`; `forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json:3-9` |
+| TikTok public/sessioned creator capture | Sessioned/live staging, raw packet admission, coverage/projection, and source-specific batch evidence. | Funmi N30 source-family evidence exists; current creator registry rows are identity/profile-only and no TikTok metric rollup is admitted in profile-current. | TikTok metric seed code exists in harness; committed profile-current TikTok rollups were not found. | current route; profile metric captured-current absent | `forseti/product/spines/capture/core/source_families/README.md:55`; `forseti/product/spines/capture/core/source_families/social_media/tiktok/README.md:37-54`; `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json:1333-1338` |
+| YouTube public watch/Shorts/transcript | Watch metadata/comments packets, captions/ASR packets, creator observations, metric rollups, audience post-text, transcript product extraction. | Committed YouTube metric seed/snapshot files exist; profile-current joins YouTube metric rollups and source drill-back pointers. | Current creator metrics for view-only genesis and watch-packet engagement; transcript/product mentions can feed Cleaning/Silver and SoV when source-backed. | current | `forseti/product/spines/capture/core/source_families/README.md:56`; `forseti/product/spines/capture/core/source_families/social_media/youtube/README.md:34-42`; `forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json:3-9`; `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json:180-205` |
+| Reddit bounded candidate/intake/capture | Candidate URL intake, graph/frontier selection, exact old Reddit thread capture, consolidation, archive fallback, one-URL browser fallback when needed. | Route and runner boundaries exist; no current committed Reddit packet corpus was verified in this pass. | Not source-wide monitoring or metrics; candidate rows do not auto-promote to capture. | current route; captured corpus unknown | `forseti/product/spines/capture/core/source_families/README.md:57`; `forseti/product/spines/capture/core/source_families/social_media/reddit/README.md:26-35`; `forseti/product/spines/capture/core/source_families/social_media/reddit/README.md:50-57` |
+| Creator registry / public-handle linkage | Static known-account dedupe, linkage ledger, and profile-current materializer; not source access. | Registry/profile-current has 36 profiles, 33 with metric rollups, 31 with observed engagement_rate. | Current read model copies accepted platform-account rollups and freshness/source pointers; no cross-platform creator rollup. | current | `forseti/product/spines/capture/core/source_families/README.md:58`; `forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md:41-50`; `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json:14-22` |
+| Cross-archive historical capture | Cross-source archive/history packet route, not a source-family identity. | At least 88 committed product-learning source-capture receipts exist under case folders; examples preserve archive availability metadata and snapshot bodies. | Captured facts only; not archive completeness, source-state truth, Cleaning, Judgment, or buyer proof. | current route; committed packets exist | `forseti/product/spines/capture/core/source_families/README.md:59`; `forseti-harness/cases/product_learning/beautypie_repricing_2023_v0/source_captures/e1_homepage_20230225/receipt.md:3-44`; `forseti-harness/cases/product_learning/beautypie_repricing_2023_v0/source_captures/e1_homepage_20230225/receipt.md:54-68` |
+| LinkedIn scanning lane | Bounded discovery/candidate-frontier lane; downstream capture/outreach are separate authorization gates. Harness has no-live adapter/runtime gates and attended live-run skeletons behind explicit owner authorization. | Built harness slices exist, but the lane index says no-live planning discovery by default. | Visible influence/trajectory may corroborate a public-actor basis, never replace it; no follower/connection graph, contact harvesting, profile body, or content capture. | current scanning lane; live capture gated; watch deferred | `docs/workflows/forseti_repo_map_v0.md:67`; `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md:21-36`; `forseti-harness/capture_spine/linkedin_live_runtime/runtime.py:1-18`; `forseti-harness/capture_spine/linkedin_live_runtime/runtime.py:79-89` |
+| Search-interest / answer-engine visibility | Proposed source-class/gate-read delta. Search-interest can become observation only under approved source placement; AEO needs schema amendment and routes to Capture only as a capture request. | No committed AEO historical corpus or gate-recordable AEO schema was found in loaded evidence. | Search-interest is attention-only; AEO is non-origin visibility corroboration, not demand proof or query-volume truth. | proposed | `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md:5-17`; `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md:173-190`; `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md:286-301` |
+
+## Current Creator Metric Families
+
+The current creator-metric family is account/platform-scoped. It emits
+`MetricObservation` and `MetricRollupObservation` records with lineage, raw/derived
+refs, posture/value coupling, sample support, freshness, limitations, and named
+`calculation_recipe_version` values (`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md:40-50`,
+`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md:71-88`).
+
+| Surface | Current source metrics | Current rollups | Required support | Recipe/version and lineage owner | Status |
+| --- | --- | --- | --- | --- | --- |
+| Instagram reels-grid | Per-content `view_count`, `like_count`, `comment_count`; profile `follower_count` is observation-only and excluded from rollup math. | `average_views`, `median_views`, `engagement_rate`, `average_like_count`, `average_comment_count`; cadence/velocity `not_attempted`. | Admitted/selected grid pool; visible sample support. | `creator_metric_rollup_instagram_reels_grid_engagement_v0`; harness seed and Silver wrapper. | current (`forseti-harness/capture_spine/creator_profile_current/instagram_metric_seed.py:26-30`; `forseti-harness/capture_spine/creator_profile_current/instagram_metric_seed.py:397-415`; `forseti-harness/capture_spine/creator_profile_current/instagram_metric_seed.py:524-544`) |
+| YouTube Shorts genesis seed | Per-Short `view_count` only from checked-in source artifacts. | `average_views`, `median_views`; like/comment/engagement unavailable; cadence/velocity `not_attempted`. | Admitted source pool; thin rows must be presentation-downgraded. | `creator_metric_rollup_admitted_youtube_shorts_average_v0`; static product artifact over checked-in records. | current view-only (`forseti-harness/capture_spine/creator_profile_current/youtube_metric_seed.py:15`; `forseti-harness/capture_spine/creator_profile_current/youtube_metric_seed.py:157-176`; `forseti-harness/capture_spine/creator_profile_current/youtube_metric_seed.py:615-634`) |
+| YouTube watch-packet | Per-video `view_count`, `like_count`, `total_comment_count` where observed. | `average_views`, `median_views`, optional like/comment averages, `engagement_rate` over complete triples; cadence/velocity `not_attempted`. | Admitted videos with observed inputs; engagement uses complete view/like/comment triples only. | `creator_metric_rollup_admitted_youtube_shorts_watch_packet_engagement_v0`; watch-packet metric document and YouTube Silver producer. | current (`forseti-harness/capture_spine/creator_profile_current/youtube_watch_packet_metric_document.py:19-29`; `forseti-harness/capture_spine/creator_profile_current/youtube_watch_packet_metric_document.py:76-83`; `forseti-harness/capture_spine/creator_profile_current/youtube_watch_packet_metric_document.py:623-648`) |
+| TikTok batch | Harness maps `playCount`, `diggCount`, `commentCount`, `shareCount`, `collectCount` to observations; only view/like/comment are engagement inputs. | `average_views`, `median_views`, `engagement_rate`, like/comment averages; cadence/velocity `not_attempted`. | Complete triples for engagement. Current profile-current rows stay identity-only unless a rollup is admitted. | `creator_metric_rollup_tiktok_profile_grid_engagement_v0`; TikTok seed/Silver producer code. | current in harness; not current in committed profile-current view (`forseti-harness/capture_spine/creator_profile_current/tiktok_metric_seed.py:10-13`; `forseti-harness/capture_spine/creator_profile_current/tiktok_metric_seed.py:47-86`; `forseti-harness/capture_spine/creator_profile_current/tiktok_metric_seed.py:612-635`; `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json:1333-1338`) |
+
+Allowed rollup keys are fixed in validation: `average_views`, `median_views`,
+`engagement_rate`, `average_like_count`, `average_comment_count`,
+`posting_cadence`, `recent_velocity` (`forseti-harness/capture_spine/creator_profile_current/validation.py:112-121`).
+`sample_support.observation_count` must match `observation_count`
+(`forseti-harness/capture_spine/creator_profile_current/validation.py:493-502`).
+
+## Deferred Creator Metric Fields
+
+| Metric | Current posture | Required support before first observed value | Owner/lineage | Status |
 | --- | --- | --- | --- | --- |
-| **Instagram** reels-grid projection | per-content `view_count`, `like_count`, `comment_count`; per-account `follower_count` (observation only, not yet a rollup field) | freshness gate + formula revalidation + materialize (shared, see Table C-freshness) | `creator_metric_rollup_instagram_reels_grid_engagement_v0` — `forseti-harness/capture_spine/creator_profile_current/instagram_metric_seed.py` → `silver_metric_producer.py` | current |
-| **YouTube Shorts** — genesis seed (checked-in review-input pool) | per-Short `view_count` only | same shared checks | `creator_metric_rollup_admitted_youtube_shorts_average_v0` — `youtube_metric_seed.py` → `youtube_silver_metric_producer.py` | current (view-only) |
-| **YouTube Shorts** — live watch-packet (committed `youtube_watch_metadata_comments` lake packets) | per-Short `view_count`, `like_count`, `total_comment_count` | same shared checks | `creator_metric_rollup_admitted_youtube_shorts_watch_packet_engagement_v0` — `youtube_watch_packet_metric_document.py` → `youtube_silver_metric_producer.py` | current |
-| **TikTok** batch-admission packets | per-video `view_count` (`playCount`), `like_count` (`diggCount`), `total_comment_count` (`commentCount`); `shareCount`/`collectCount` preserved but **not** rollup inputs | same shared checks | `creator_metric_rollup_tiktok_profile_grid_engagement_v0` — `tiktok_metric_seed.py` → `tiktok_silver_metric_producer.py` | current |
+| `posting_cadence` | Present in rollup schema, emitted as `not_attempted`. | Source-backed content records/history, source publication timestamps or explicit cadence basis, declared window, named recipe version, source ids, and posture/value coupling. Capture timing cannot be smuggled in as posting behavior. | Creator profile-current contract and future Silver recipe. | deferred (`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md:302-336`; `forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:65-70`) |
+| `recent_velocity` | Present in rollup schema, emitted as `not_attempted`. | At least two compatible Silver rollups for the same subject/scope/window, observed base metric in both, positive elapsed time, and source record ids. | Creator profile-current contract and future Silver recipe. | deferred (`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md:338-388`; `forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:65-70`) |
 
-All producers **reuse tested seed numbers and never recompute** inside the Silver
-wrapper; the Silver records carry the common Vault header, posture/value coupling, and
-`derived_refs` lineage per
-`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md`.
-Subjects are per-platform account `entity_key`s only — **no cross-platform creator rollups**.
+`rollup_formula_revalidation.py` independently restates known recipes, fails unknown
+recipe versions, and lists `posting_cadence` and `recent_velocity` under
+`_NEVER_COMPUTED_METRICS` (`forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:29-39`,
+`forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:65-70`,
+`forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:207-221`).
 
-## Table B — Rollup Field Status by Surface
+## Data Lake Metric Families
 
-The rollup field set is fixed (`_ALLOWED_METRIC_KEYS` in
-`forseti-harness/capture_spine/creator_profile_current/validation.py`) and is identical
-across every surface; only the posture differs by source completeness.
+| Metric family / readout | What it can calculate or precompute | Posture and missingness | Required support | Lineage owner | Status |
+| --- | --- | --- | --- | --- | --- |
+| Creator source metric rollups | Platform/account pool statistics and engagement rates for named recipes. | Missing is null+reason; read model copies latest accepted rollup and does not compute global stats. | Admitted observations, sample_support, recipe version, source ids, raw/derived refs. | Creator metric Silver contract, producer code, profile-current materializer. | current (`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md:107-126`; `forseti-harness/capture_spine/creator_profile_current/materialize.py:21-45`; `forseti-harness/capture_spine/creator_profile_current/materialize.py:220-248`) |
+| Creator-profile-current view | Static profile export joining public account identity, metric rollups, source drill-back, and freshness pointers. | Not source of truth for identity/metrics/audience inference; no cross-platform rollup without promoted linkage. | Current sibling ledgers/snapshots; profile rows preserve pointers/freshness. | Creator registry/profile-current specs and materializer. | current (`forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md:7-11`; `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md:182-190`; `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json:14-22`) |
+| Source-backed brand/line share of voice | Computes `source_backed_brand_line_share_of_voice` on demand from committed `silver__cleaning__product_mentions`; can optionally materialize a rebuildable, manifest-backed, non-authoritative cache. | Denominator is captured source-backed mentions only; empty scope is unavailable-with-reason; zero rows require declared comparison set. No market-total or cross-platform implication. | Source-backed complete mention records, per-mention refs, declared platform/cohort/window, window basis, comparison-set policy if zeros are emitted. | Data Lake SoV field contract and `sov_readout.py`. | current implementation, bounded readout (`forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md:41-48`; `forseti-harness/data_lake/sov_readout.py:1-35`; `forseti-harness/data_lake/sov_readout.py:421-461`; `forseti-harness/runners/run_data_lake_sov_readout.py:1-17`) |
+| Movement threshold crossings | Pre-gold `SourceObjectMovementThresholdCrossingRecord` vocabulary for a source object crossing a declared profile/baseline/window/cohort/threshold. | Means only "usual-range threshold crossed"; no actor/person implication and no viral/suspicious/bot/fake/paid language. | Declared baseline/window/cohort/threshold profile; currently parked/gate-blocked. | Data Lake physicality and Gold-readiness contracts. | deferred/gate-blocked (`forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md:234-251`; `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md:174-185`; `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md:324-326`) |
+| AEO/search-interest visibility | Search-interest can be a scoped attention-only read; AEO can be a visibility annotation/capture request after schema amendment. | AEO `not_shown` is an observation state, not absence of demand; AEO has no query-volume truth and is not gate-recordable today. | Owner-approved source placement, source pins, scan-schema amendment for AEO, source-specific capture minimums. | Scanning answer-engine spec and consumed search-interest capture profile. | proposed (`forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md:146-179`; `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md:189-214`; `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md:286-301`) |
 
-| Rollup field | IG reels-grid | YT genesis seed | YT watch-packet | TikTok batch |
-| --- | --- | --- | --- | --- |
-| `average_views` | observed | observed | observed | observed |
-| `median_views` | observed | observed | observed | observed |
-| `average_like_count` | observed | `unavailable_with_reason` | observed | observed |
-| `average_comment_count` | observed | `unavailable_with_reason` | observed | observed |
-| `engagement_rate` | observed | `unavailable_with_reason` | observed | observed |
-| `posting_cadence` | `not_attempted` | `not_attempted` | `not_attempted` | `not_attempted` |
-| `recent_velocity` | `not_attempted` | `not_attempted` | `not_attempted` | `not_attempted` |
+## Aphrodite Monitoring Recipes: Implemented Versus Absent
 
-Notes:
+Current creator metric code implements pool means/medians and complete-input
+engagement rates. It does not implement longitudinal monitoring recipes. Each
+absence claim below is point-in-time at `055ff9de`.
 
-- `average_views` / `median_views` are a plain mean / median over the admitted/selected
-  pool — **not** a time-windowed or rolling average.
-- `engagement_rate` is computed as `(Σ likes + Σ comments) / Σ views` over **complete**
-  view/like/comment trios; where like/comment inputs are absent (YouTube genesis seed) it
-  is `unavailable_with_reason`, never a zero.
-- Rollups also carry `view_count_min` / `view_count_max`, `observation_count`,
-  `sample_support` (`thin_n_1_to_3` / `limited_n_4_to_7` / `stronger_admitted_pool_n_8_plus`),
-  and `freshness_state`. `sample_support` gates **presentation** (thin samples must be
-  downgraded or withheld), not computation.
+| Recipe | Required support | Point-in-time verdict | Status |
+| --- | --- | --- | --- |
+| Simple moving average over time | Compatible rollup series and declared time window. | No implemented SMA recipe found in creator-metric producers. Existing `average_*` values are plain admitted-pool means. | proposed (`forseti-harness/capture_spine/creator_profile_current/instagram_metric_seed.py:399-407`; `forseti-harness/capture_spine/creator_profile_current/youtube_watch_packet_metric_document.py:623-643`; `forseti-harness/capture_spine/creator_profile_current/tiktok_metric_seed.py:612-623`) |
+| Exponential moving average | Compatible rollup series, smoothing factor, named recipe version. | No EMA recipe/version/runner was found in loaded harness evidence. | proposed (`forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:207-221`) |
+| Compatible-window velocity | At least two compatible Silver rollups, positive elapsed time, observed base values. | Reserved as `recent_velocity`, but every current creator metric producer emits `not_attempted`, and revalidation marks it never-computed. | deferred (`forseti-harness/capture_spine/creator_profile_current/instagram_metric_seed.py:408-409`; `forseti-harness/capture_spine/creator_profile_current/youtube_metric_seed.py:627-628`; `forseti-harness/capture_spine/creator_profile_current/youtube_watch_packet_metric_document.py:644-648`; `forseti-harness/capture_spine/creator_profile_current/tiktok_metric_seed.py:624-628`) |
+| Capture-window delta | At least two comparable captures and explicit capture-window labeling. | No cross-capture delta recipe found; snapshot/freshness machinery compares latest snapshots for staleness, not magnitude deltas. | proposed (`forseti-harness/capture_spine/creator_profile_current/live_lake_freshness_gate.py:1-23`; `forseti-harness/capture_spine/creator_profile_current/live_lake_freshness_gate.py:72-105`) |
+| Spike / breakout | Baseline/profile/window/cohort/threshold plus source-backed recent value. | No creator-metric spike/breakout recipe found. Data Lake movement-threshold vocabulary is parked/gate-blocked and cannot be relabeled as implemented Aphrodite breakout. | proposed/deferred (`forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md:174-185`; `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md:113-119`; `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md:243-251`) |
+| Decay / plateau | Repeated observations and declared slope/plateau profile. | No creator-metric decay/plateau recipe found in loaded harness evidence. | proposed (`forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:207-221`) |
+| Active-watch expiry | Explicit watch window, source-backed recheck cadence, self-expiring state. | LinkedIn has a deferred bounded-watch spec; creator metrics do not have an active-watch expiry state machine. | proposed/deferred (`forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_influence_trajectory_watch_spec_v0.md:72-90`; `forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:207-221`) |
 
-## Deferred-In-Schema Fields (`posting_cadence`, `recent_velocity`)
+## Freshness, Revalidation, And Materialization
 
-These are contract fields, present in **every** rollup on **every** platform, always as
-`not_attempted` with `value_or_none: null` and reason "recipe is out of scope for this
-metric seed/document." This is a deliberate, structurally-enforced deferral, not an
-oversight: `forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py`
-hard-asserts (`_NEVER_COMPUTED_METRICS`) that neither field may ever carry `observed`
-posture, across all four recipe versions.
+- `live_lake_freshness_gate.py` compares committed snapshot versus fresh live-lake
+  selection using content-addressed watermarks and per-account hashes; it writes
+  nothing and returns fresh versus `snapshot_behind_lake`
+  (`forseti-harness/capture_spine/creator_profile_current/live_lake_freshness_gate.py:1-23`,
+  `forseti-harness/capture_spine/creator_profile_current/live_lake_freshness_gate.py:72-105`).
+- `rollup_formula_revalidation.py` independently recomputes known recipes and
+  fails on unknown recipe versions
+  (`forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:29-39`,
+  `forseti-harness/capture_spine/creator_profile_current/rollup_formula_revalidation.py:207-221`).
+- `materialize.py` builds profile-current from account ledger and metric
+  seed/snapshot inputs, carrying source pointers and roles; it does not compute
+  deferred metric recipes (`forseti-harness/capture_spine/creator_profile_current/materialize.py:21-45`,
+  `forseti-harness/capture_spine/creator_profile_current/materialize.py:220-248`).
 
-Activation conditions before first observed population (from
-`creator_profile_current_record_contract_v0.md` §3):
+These are checks/materializers, not time-decay scores, monitoring schedulers, or
+request-budget proof.
 
-- `posting_cadence = observed_content_count / window_days` — requires source-backed
-  **publication timestamps** and a declared window. If publication timing is unavailable,
-  the field must stay non-observed; capture timing must not be smuggled in as posting behavior.
-- `recent_velocity = (latest − prior compatible rollup value) / elapsed_days` — requires
-  **≥2 compatible Silver rollups** for the same subject, compatible scope/window, observed
-  base metric in both, and positive elapsed time. A single capture cycle cannot produce it.
+## Forbidden Or Unsupported Outputs
 
-## Table C — Candidate Aphrodite Monitoring Recipes (Proposed)
+- Cross-platform person identity, default `person_id`, private contact, outreach,
+  demographics, follower/connection/commenter graph capture, and audience estimate
+  claims are forbidden in current Creator Vault/profile surfaces
+  (`forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md:512-553`; `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md:61-72`).
+- Gold/Judgment fields in Silver or Creator Vault are forbidden: no credibility,
+  durability, manufactured-demand, fake/bot/paid verdict, partner/action
+  recommendation, or product ranking
+  (`forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md:568-605`; `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md:618-626`).
+- A YouTube view-only seed cannot produce engagement, average likes, or average
+  comments; those stay `unavailable_with_reason`
+  (`forseti-harness/capture_spine/creator_profile_current/youtube_metric_seed.py:157-176`; `forseti-harness/capture_spine/creator_profile_current/youtube_metric_seed.py:615-628`).
+- TikTok `shareCount` and `collectCount` are preserved as observations in the
+  harness builder but are not rollup inputs
+  (`forseti-harness/capture_spine/creator_profile_current/tiktok_metric_seed.py:10-13`; `forseti-harness/capture_spine/creator_profile_current/tiktok_metric_seed.py:47-86`).
+- AEO is not query-volume truth, not independence proof, not floor clearance, and
+  not gate-recordable without schema hardening
+  (`forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md:286-301`).
 
-Each candidate below was checked against the creator-metric harness by reading every
-producer/runner and grepping the tree. **None has implementing code** at the inventoried
-commit — each is `proposed` and, per the strategy, must route through Silver
-`MetricObservation` / `MetricRollupObservation` with an explicit recipe version, source
-observation ids, posture/value coupling, sample support, freshness, and limitations.
-Do **not** document any of these as product-ready.
+## Product-Surface Implication For Aphrodite
 
-| Candidate recipe | Required history / sample support | Posture / missingness behavior | Implemented-code verdict (file:line evidence) | Status |
-| --- | --- | --- | --- | --- |
-| Simple moving average (SMA) | ≥1 compatible Silver rollup series over a declared time window | observed only over compatible windows; else null+reason | **ABSENT** — `average_*` are plain `statistics.mean()` over a pool, not windowed (`instagram_metric_seed.py:399`, `tiktok_metric_seed.py:613`, `youtube_watch_packet_metric_document.py:625`) | proposed |
-| Exponential moving average (EMA) | as SMA, plus a declared smoothing factor | observed only over compatible windows; else null+reason | **ABSENT** — no EMA/exponential-smoothing code in any metric module (only "exponential" hit is unrelated HTTP retry backoff) | proposed |
-| Compatible-window velocity | ≥2 compatible rollups, positive elapsed time, observed base metric in both | non-observed with reason until compatible history exists | **ABSENT** — `recent_velocity` always `not_attempted`; hard-enforced by `rollup_formula_revalidation.py` `_NEVER_COMPUTED_METRICS` | deferred (schema field reserved) |
-| Capture-window delta (when publication timing unavailable) | ≥2 grid heartbeats of the same subject; a prior snapshot | delta only where prior observation exists; label as capture-window, **not** posting cadence/age velocity | **ABSENT** — no cross-capture delta computed; snapshot machinery selects the latest rollup, it does not diff magnitudes | proposed |
-| Spike score vs. creator baseline or platform/content-kind norm | compatible recent baseline for the subject/norm | observed only when baseline inputs observed; else null+reason; nulls never ranked as low | **ABSENT** — no spike scoring; the only "spike" hits are explicit non-claims in an unrelated RSS monitor | proposed |
-| Breakout state (high **and** still growing) | a spike/velocity signal plus a growth check | state only from observed inputs; expiry required (below) | **ABSENT** — zero "breakout" occurrences in `forseti-harness` | proposed |
-| Decay / plateau state | a tracked breakout with measured slope over rechecks | state only from observed slope; else null+reason | **ABSENT** — no decay/plateau metric ("decay" hits are IG rate-limit cooldown non-claims) | proposed |
-| Active-watch expiry state | an explicit, self-expiring recheck window on a promoted item | must be explicit, source-backed, self-expiring; no hidden forever-watch | **ABSENT** — nearest is manual `operator_video_retirements`/`excluded_video_ids` (attested exclusion), not a time-based expiry state machine | proposed |
+Aphrodite can read accepted, lineage-backed fields and display limitations,
+freshness, sample support, and missingness. It must not become the metric authority
+or silently compute hidden recipes inside `creator_profile_current`.
 
-**Shared freshness / revalidation / materialization runners** referenced above (current, platform-agnostic):
+Safe now: show observed platform/account rollups; show `unavailable_with_reason`
+and `not_attempted`; downgrade or withhold thin admitted-pool rows; show source
+drill-back and freshness; keep platforms separate unless future linkage authority
+and a downstream surface contract authorize more.
 
-- `forseti-harness/capture_spine/creator_profile_current/live_lake_freshness_gate.py`
-  (+ runner `run_live_lake_freshness_gate.py`) — re-runs the pure snapshot generator against
-  the live lake and compares content-addressed watermarks/per-account hashes to the committed
-  snapshot. Binary verdict `is_fresh` / `snapshot_behind_lake`; **no time-decay staleness scoring**.
-- `rollup_formula_revalidation.py` (+ `run_creator_rollup_formula_revalidation.py`) —
-  independently re-derives every rollup from source observations per its recipe version;
-  checks content-hash reproducibility, lineage, cardinality, posture coupling, and the
-  never-computed guard. Unknown recipe = failure.
-- `materialize.py` (+ `run_creator_profile_current_materialize.py`) — joins the account
-  ledger with metric seeds/snapshots into `creator_profile_current_view`; copies rollup
-  fields verbatim, computes nothing.
-- Rollup production / snapshot: `run_creator_metric_rollup_producer.py`,
-  `run_youtube_creator_metric_rollup_producer.py`, `run_youtube_watch_packet_metric_rollup_producer.py`,
-  `run_tiktok_batch_metric_rollup_producer.py`, `run_creator_metric_rollup_snapshot.py`,
-  `run_instagram_reels_creator_metric_seed_materialize.py`.
+Unsafe now: sorting by non-observed metrics; showing null as zero; fabricating
+YouTube engagement from view-only data; labeling admitted-pool means as moving
+averages, trends, velocity, spikes, breakouts, decay, or active watch; using SoV as
+market total/cross-platform share/buyer proof; treating LinkedIn/AEO observations
+as independent demand proof or outreach basis.
 
-## Forbidden, Unsupported, or Source-Hidden Stats
+## Successor Recommendation
 
-- **No engagement number from view-only data.** The YouTube genesis seed exposes only
-  `view_count`; `engagement_rate`, `average_like_count`, `average_comment_count` are
-  `unavailable_with_reason`, never a fabricated zero.
-- **No hidden derived metrics inside `creator_profile_current`.** SMA/EMA/velocity/spike/
-  breakout/decay/active-watch must live in Silver with recipe + lineage, never as registry
-  read-model logic.
-- **No cross-platform creator rollups or person identity.** Per-platform account subjects
-  only; no `person_id`, follower graph, audience estimate, demographics, or contact/outreach fields.
-- **No Gold/Judgment fields** in Silver, Creator Vault, or profile-current: no credibility
-  score, fake/bot label, paid/unpaid verdict, manufactured-demand or durability verdict,
-  partnership/action recommendation.
-- **TikTok `shareCount` / `collectCount`** are preserved as source facts but are **not**
-  rollup inputs and must not be folded into `engagement_rate` without a new accepted recipe.
-- **Aphrodite Signals is not the metric authority.** Silver owns recipe-backed observations
-  and rollups; Aphrodite reads accepted, lineage-backed fields and their visible limitations.
+This doc is broad enough for Aphrodite scoping, but it now carries two catalogs at
+once: capture-surface routing and metric-family/readout posture. If ongoing
+maintenance is desired, split it into:
 
-## Boundaries (This Docs Pass)
+1. `forseti_capture_surface_inventory_v0.md`: route/capturable/captured evidence by
+   source family and scanning family.
+2. `forseti_metric_family_inventory_v0.md`: current/deferred/proposed/forbidden
+   metrics/readouts with recipe versions, posture, lineage, and implementation
+   evidence.
 
-- Do not implement moving average, EMA, velocity, spike score, breakout, or scheduler
-  behavior in this lane.
-- Do not run live capture, mutate the lake, or create new metric records.
-- Do not hide derived metrics inside `creator_profile_current`.
-- Do not turn Aphrodite Signals into the metric authority.
-- Do not claim request-budget readiness or daily monitoring feasibility from this inventory
-  alone (the strategy's "Open Decisions Before Calculation" remain open).
-
-## Provenance and Placement
-
-- **Placement:** `docs/research/`, sibling to `docs/research/aphrodite_creator_capture_strategy_v0.md`.
-  It is a synthesis/inventory that supports the Aphrodite strategy without becoming product
-  authority (per `.agents/workflow-overlay/artifact-folders.md`); it is not a contract and
-  does not belong under the `creator_registry/` authority folder.
-- **Absence claims** in Table C were verified by reading every creator-metric producer/runner
-  under `forseti-harness/capture_spine/creator_profile_current/` and `forseti-harness/runners/`
-  plus a tree grep; they are point-in-time at the inventoried commit. A grep/read is not a
-  guarantee for the future — if a recipe is later implemented, this inventory becomes stale
-  (see `stale_if`).
+Do not mint that split from this commission without new bounded authorization.
