@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/data_lake/README.md
-  - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+  - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
   - docs/decisions/forseti_repo_structure_binding_v0.md
   - .agents/workflow-overlay/artifact-folders.md
 supersedes: []
@@ -149,7 +149,7 @@ R2 preconditions (load-bearing; do not bury):
 ## Supersession
 
 This binding supersedes the `shared/data_lake_mechanics/` entry in the **Accepted
-target tree** of `docs/decisions/orca_spine_first_target_structure_binding_v0.md`
+target tree** of `docs/decisions/forseti_spine_first_target_structure_binding_v0.md`
 (now the historical target record): the mechanics map's bound future home is
 `data_lake/workflows/`, and the lake's contracts are `data_lake/authority/`-owned,
 not `shared/`. `shared/projection_doctrine/` and `shared/engagement_registry/`

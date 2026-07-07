@@ -25,7 +25,7 @@ and `shared/`.
 
 ## Authority
 
-- Tree bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md`
+- Tree bound by `docs/decisions/forseti_spine_first_target_structure_binding_v0.md`
   (+ `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` for the
   `data_lake/` spine and
   `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md` for the

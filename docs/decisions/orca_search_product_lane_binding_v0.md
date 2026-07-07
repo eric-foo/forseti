@@ -16,7 +16,7 @@ use_when:
   - Planning or executing the search-lane migration.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_spine_first_blocker_authorization_v0.md
+  - docs/decisions/forseti_spine_first_blocker_authorization_v0.md
   - docs/decisions/forseti_repo_structure_binding_v0.md
   - .agents/workflow-overlay/artifact-folders.md
   - repo-structure.yaml
@@ -42,7 +42,7 @@ proof.
 
 Spine-first supersession note (2026-06-18): the lane remains the current
 physical home until the spine-first migration executes, but
-`docs/decisions/orca_spine_first_blocker_authorization_v0.md` confirms that
+`docs/decisions/forseti_spine_first_blocker_authorization_v0.md` confirms that
 future spine-first placement supersedes this record's physical
 `docs/product/search/` home and topic-primacy precedence. The demand-signal
 method docs keep their venue-spanning authority; only the physical home changes
