@@ -1,4 +1,4 @@
-# Orca Data Lake derived_retrieval Activation Proposal v0
+# Forseti Data Lake derived_retrieval Activation Proposal v0
 
 ```yaml
 retrieval_header_version: 1
@@ -19,9 +19,9 @@ use_when:
   - Scoping incremental work-discovery for the transcript/extraction runner (the O(total) rescan).
   - Checking that a creator/mention retrieval design stays object-level and non-dossier.
 open_next:
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
 authority_boundary: retrieval_only
 status: >

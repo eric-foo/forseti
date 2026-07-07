@@ -48,7 +48,7 @@ engine/backend, or per-lane schema selection by this artifact.
 trigger in Accepted Residuals is met, so the `derived_retrieval` population gate is
 OPENED for three OBJECT-LEVEL reverse-lookup views — `by_creator` (per-platform observed
 public handle), `by_mention` (brand/line entity), and `undone` (committed − done work
-discovery) — per `docs/decisions/orca_data_lake_derived_retrieval_activation_proposal_v0.md`
+discovery) — per `docs/decisions/forseti_data_lake_derived_retrieval_activation_proposal_v0.md`
 (#372). Opening the gate is a governance act ONLY: it selects no engine (by-key discovery
 stays authority; the SQL query-lens stays deferred to the scan/query-latency trigger),
 authorizes no implementation here (the builder is a separate bounded work unit), opens no
