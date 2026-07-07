@@ -15,7 +15,7 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 | Script | When | Effect |
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) irreversible / main-affecting actions: an agent's `gh pr merge` → main, push-to-main, force-push, `reset --hard`, `git clean`, and writes into protected external roots. **Allows** a benign lane-branch push. Fires in **all** permission modes. **Fails OPEN** on internal error. |
-| `.codex/hooks/orca_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, and blocks raw shell durable-write primitives for repo source/docs files. |
+| `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, and blocks raw shell durable-write primitives for repo source/docs files. |
 | `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it then mirrors the strict CI doc gates (`check_map_links.py --strict`, `header_index.py --strict`, `check_review_routing.py --strict`; diff-scoped base `origin/main`, same as CI) so a durable-doc gate miss — e.g. a headerless `docs/review-outputs/` report (PR #613) — fails before push instead of in CI. Bypassable with `--no-verify`; misses GitHub API merges; CI stays the authoritative gate. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
 | `check_dcp_receipt_hygiene.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on deterministic DCP receipt storage defects in changed durable docs: more than two inline receipts, missing archive pointer, or unauthorized standalone DCP receipt files. Shape only; never receipt truth, validation, readiness, or acceptance. |
@@ -45,7 +45,7 @@ header and references that source instead of restating it.
   blocking exit code can use these as-is (adapt field names with a tiny shim if yours differ).
 - Harnesses with their own denial protocol should use a small adapter rather than
   assuming stderr + exit code is the only blocking contract. Codex uses
-  `.codex/hooks/orca_guard_codex_adapter.py` for that translation.
+  `.codex/hooks/forseti_guard_codex_adapter.py` for that translation.
 
 ## Wiring per harness
 
@@ -81,7 +81,8 @@ Codex does not read `.claude/settings.json`. Forseti wires Codex through the
 tracked project-local `.codex/hooks.json`, which registers:
 
 - `PreToolUse` for `Bash|PowerShell|apply_patch|Edit|Write`;
-- `.codex/hooks/orca_guard_codex_adapter.py` as the command hook.
+- `.codex/hooks/forseti_guard_codex_adapter.py` as the command hook.
+- `.codex/hooks/orca_guard_codex_adapter.py` remains only as a legacy shim for already-loaded Codex hook sessions; active config should use the Forseti path.
 - `PostToolUse` for `apply_patch|Edit|Write`;
 - `.agents/hooks/check_repo_map_freshness.py --hook` as the repo-map commit interrupt / freshness advisory.
 - `.agents/hooks/check_search_surface_google_route.py --hook` as the Google search-surface route policy advisory.
@@ -136,7 +137,7 @@ python .agents/hooks/check_handoff_pointers.py --selftest
 python .agents/hooks/check_repo_map_freshness.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --strict --base main
-python .codex/hooks/orca_guard_codex_adapter.py --selftest
+python .codex/hooks/forseti_guard_codex_adapter.py --selftest
 ```
 
 ### Another harness
