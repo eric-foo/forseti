@@ -181,8 +181,9 @@ Strong evidence types:
 - `mutual_profile_link`
 - `official_link_hub`
 
-For seed-driven creator graphing, a public platform bio that links to an
-official public link hub, and that hub links to Instagram, YouTube, TikTok, or
+For creator channel graphing, any public creator profile surface, bio, about
+section, or channel link area that links to an official public link hub, and
+that hub links to Instagram, YouTube, TikTok, or
 other public creator accounts, is `official_link_hub` evidence for candidate
 public-handle linkage. It may also create candidate platform-account rows for
 exact-match preflight. It does not by itself create a final creator record,

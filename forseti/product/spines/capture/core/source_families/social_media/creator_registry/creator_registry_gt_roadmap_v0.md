@@ -147,7 +147,7 @@ evidence-bound:
 1. Start from an existing or newly scanned public account.
 2. Read only public/no-login profile surfaces, visible bio text, source-visible
    location/self-description text, and explicitly visible social links.
-3. If a seed profile bio links to an official public link hub, follow only the
+3. If the known account profile links to an official public link hub, follow only the
    source-visible public hub links needed to identify sibling public accounts.
 4. Convert discovered social links into candidate account rows, not registry
    mutations.
@@ -159,12 +159,13 @@ evidence-bound:
 8. If the candidate may belong to the same public creator, add candidate-link
    review evidence; do not collapse accounts.
 
-For TikTok-seeded creator graphing, the default probe sequence is:
+For creator channel graphing, the default probe sequence is platform-agnostic:
 
 ```text
-seed TikTok handle -> public TikTok bio -> official public link hub, if present
--> public IG / YouTube / Shorts links on the hub -> candidate account rows
--> Creator Registry exact-match preflight -> linkage/update/new-capture routing
+known public creator account -> public profile bio/about/channel links
+-> official public link hub, if present -> sibling public channel links
+-> candidate account rows -> Creator Registry exact-match preflight
+-> linkage/update/new-capture routing
 ```
 
 If a public bio or official link hub states a region such as `NYC`, record it as
@@ -180,9 +181,11 @@ registry into a crawler or person dossier.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Creator graphing now explicitly starts from source-visible seed profile bio
-    text and official public link hubs when present: TikTok bio -> official link
-    hub -> public IG/YT links -> candidate rows -> exact-match preflight ->
+    Creator graphing now explicitly starts from a known public creator account's
+    source-visible profile bio, profile/about/channel links, and official public
+    link hubs when
+    present: known creator channel -> official link hub or sibling public
+    channel links -> candidate rows -> exact-match preflight ->
     linkage/update/new-capture routing; source-visible region text such as NYC
     may be recorded as region evidence with a source pointer, but not as private
     demographic, residence, identity, contact, or outreach evidence.
