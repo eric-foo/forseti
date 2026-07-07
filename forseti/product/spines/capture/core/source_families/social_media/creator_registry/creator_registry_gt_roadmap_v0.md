@@ -168,6 +168,14 @@ known public creator account -> public profile bio/about/channel links
 -> linkage/update/new-capture routing
 ```
 
+Low-latency link-hub rule: when a public profile exposes a Linktree or similar
+public link hub, try direct HTTP capture of the hub first and inspect structured
+public page data such as JSON-LD `sameAs` before browser clicking. If direct HTTP
+omits the outbound social graph, attach to one already-open persistent browser
+session and DOM-read scripts/app state/buttons; do not repeatedly close and
+relaunch the browser for each probe. Click-through to IG/YT/TikTok is reserved
+for cases where the hub does not expose enough public account evidence.
+
 If a public bio or official link hub states a region such as `NYC`, record it as
 source-visible region evidence (`US / NYC`) with the source pointer. Do not infer
 private demographics, residence, legal identity, or outreach/contact permission

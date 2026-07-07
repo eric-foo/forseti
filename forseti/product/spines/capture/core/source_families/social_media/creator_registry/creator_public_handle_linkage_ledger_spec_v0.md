@@ -195,6 +195,13 @@ as `NYC`. Store that as source-visible region text with the source pointer. Do
 not convert it into private demographic, legal identity, residence, or contact
 enrichment.
 
+For Linktree-style public link hubs, prefer a direct HTTP source capture and
+parse public structured page data such as JSON-LD `sameAs` when present. This is
+lower latency and lower browser-session churn than opening and clicking each
+social icon. Browser DOM inspection is the fallback when direct HTTP does not
+expose the outbound account URLs; keep one persistent browser session open for
+the lane rather than repeatedly opening and closing profile windows.
+
 Weak evidence types:
 
 - `handle_similarity`
