@@ -9,8 +9,8 @@ authority_boundary: retrieval_only_docs_structure_not_runtime
 
 canonical_artifacts:
   readme: forseti/product/spines/commission_signal_board/README.md
-  prompt_structure_rules: forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
-  prompt_structure: forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+  prompt_structure_rules: forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+  prompt_structure: forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
   playbook: forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   validator_pointer: forseti/product/spines/commission_signal_board/harness/validator.md
   tests_pointer: forseti/product/spines/commission_signal_board/tests/validator_tests.md
@@ -18,10 +18,10 @@ canonical_artifacts:
 
 legacy_non_controlling_artifacts:
   demand_gate_run_commission_criteria:
-    path: forseti/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
+    path: forseti/product/spines/commission_signal_board/dispatch_rules/forseti_demand_gate_run_commission_criteria_v0.md
     status: historical_only_not_live_csb_dispatch
     current_authority:
-      - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+      - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
       - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
     reason: csb_is_signal_board_not_demand_gate
 

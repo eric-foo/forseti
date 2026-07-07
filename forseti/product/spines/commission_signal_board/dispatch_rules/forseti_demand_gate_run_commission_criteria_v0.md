@@ -1,4 +1,4 @@
-# Orca Demand-Gate Run Commission Criteria - LEGACY NON-CONTROLLING v0
+# Forseti Demand-Gate Run Commission Criteria - LEGACY NON-CONTROLLING v0
 
 ```yaml
 retrieval_header_version: 1
@@ -14,10 +14,10 @@ use_when:
   - Understanding why current CSB prompt/playbook artifacts explicitly reject gate verdicts.
 authority_boundary: retrieval_only
 superseded_by:
-  - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+  - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
   - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
 open_next:
-  - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+  - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
   - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
 ```
 

@@ -27,8 +27,8 @@ stale_if:
 
 | Old path | Canonical path | Resolution |
 | --- | --- | --- |
-| `docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | `forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md` | Old path is absent on current `main`; use the canonical spine path. |
-| `docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md` | `forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md` | Old path is absent on current `main`; use the canonical spine path. |
+| `docs/product/product_lead/orca_commission_signal_board_prompt_adjudication_packet_v0.md` | `forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md` | Old path is absent on current `main`; use the canonical spine path. |
+| `docs/prompts/product-planning/orca_commission_signal_board_prompt_v0.md` | `forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md` | Old path is absent on current `main`; use the canonical spine path. |
 | `docs/workflows/commission_signal_board_playbook_v0.md` | `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` | Old path is absent on current `main`; use the canonical spine path. |
 
 ## Indexed But Not Moved

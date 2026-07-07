@@ -1,10 +1,10 @@
-# Orca Commission Signal Board Prompt Structure v0
+# Forseti Commission Signal Board Prompt Structure v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Prompt Structure
 scope: >
-  Reusable prompt for producing an Orca Commission Signal Board: an
+  Reusable prompt for producing a Forseti Commission Signal Board: an
   evidence/signals-only board, graph retrieval brief, and classifier handoff
   packet for one commission candidate or decision context. The board does not
   decide demand, buyer proof, forecast, judgment, or graph scoring.
@@ -15,7 +15,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
-  - forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
+  - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
   - .agents/hooks/check_commission_signal_board_output.py
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
@@ -27,7 +27,7 @@ stale_if:
   - A graph artifact/schema contract supersedes this prompt's graph-light contract.
 ```
 
-- Prompt Structure path: `forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`.
+- Prompt Structure path: `forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md`.
 - Prompt family: product-planning / Prompt Structure.
 - Prompt output mode: `chat-only`.
 - Prompt authoring route: authored through `workflow-prompt-orchestrator` mechanics in the legacy-named `codex/commission-gate` lane.
@@ -75,7 +75,7 @@ defaults to `chat-only`.
 ## Prompt Body
 
 ````text
-You are preparing an Orca Commission Signal Board for one commission candidate
+You are preparing a Forseti Commission Signal Board for one commission candidate
 or decision context.
 
 Your job is to organize evidence and signal routes. You are NOT a gate, demand
@@ -122,7 +122,7 @@ Public-reaction engagement handling:
 
 ## Start Preflight
 
-If you are running inside the Orca repo, read `AGENTS.md` and
+If you are running inside the Forseti repo, read `AGENTS.md` and
 `.agents/workflow-overlay/README.md` before starting. If you cannot access the
 repo, continue from the supplied prompt and mark repo authority as
 `not_accessible`.
@@ -147,7 +147,7 @@ orca_start_preflight:
   blocked_if_missing:
 ```
 
-Run the Orca Cynefin router only if this invocation asks you to plan a new lane,
+Run the Forseti Cynefin router only if this invocation asks you to plan a new lane,
 delegate work, review a prompt, write files, or resolve a messy worktree. For a
 plain signal-board run with supplied inputs, use this bypass line:
 
@@ -254,7 +254,7 @@ retrieval route.
 
 ## Mini God Tier Target And Visible Limitations
 
-Aim for mini god tier in the limited Orca sense: most of the value of a heavier
+Aim for mini god tier in the limited Forseti sense: most of the value of a heavier
 signal-intelligence and graph-prep system, at prompt-first/manual-first speed.
 This is a capability target only, not validation, readiness, proof, or scope
 expansion.
@@ -291,7 +291,7 @@ requires them.
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | Instagram has current adjacent capture/discovery work. TikTok, YouTube, and Reddit creator profiles are planned/deferred seams unless separately authorized. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
 | Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with owning search-interest/AEO specs, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
-| AEO / answer engines | Google AI Overviews, Gemini, ChatGPT, other answer-engine surfaces | answer visibility, cited-source ecosystem, entity association, visibility gaps | Visibility annotation only; never an independent demand-origin surface. Any change to this posture requires an Orca owner decision, not a per-run dispatcher override. |
+| AEO / answer engines | Google AI Overviews, Gemini, ChatGPT, other answer-engine surfaces | answer visibility, cited-source ecosystem, entity association, visibility gaps | Visibility annotation only; never an independent demand-origin surface. Any change to this posture requires a Forseti owner decision, not a per-run dispatcher override. |
 | News / editorial / trade | trade publications, editorial, newsletters, specialist blogs, press | launch chronology, industry framing, awareness, third-party narrative | News is a distinct family; LinkedIn reposts of news point back to the actual source. |
 | Professional / org-motion | ATS/careers pages, hiring pages, founder/executive public posts, partnership announcements, LinkedIn when explicitly routed | hiring/movement, organizational intent, operator-side propagation | ATS/careers pages are better movement sources than LinkedIn. LinkedIn remains no-live/planning-only unless separately authorized. |
 | Owned channels | brand site, brand socials, email archive, product pages, press releases | official chronology, brand claims, launch framing | High chronology value, low independence. |
@@ -651,8 +651,8 @@ direction_change_propagation:
     - product_doctrine
     - output_authority
   controlling_sources_updated:
-    - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
-    - forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -711,8 +711,8 @@ direction_change_propagation:
   related_triggers:
     - output_authority
   controlling_sources_updated:
-    - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
-    - forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
     - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
     - .agents/hooks/check_commission_signal_board_output.py
     - orca-harness/tests/unit/test_commission_signal_board_output_validator.py
