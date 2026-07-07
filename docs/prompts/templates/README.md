@@ -2,9 +2,7 @@
 
 This folder stores Forseti-local prompt templates.
 
-The authoritative registry is:
-
-`C:\Users\vmon7\Desktop\projects\orca\.agents\workflow-overlay\template-registry.md`
+The authoritative registry is `.agents/workflow-overlay/template-registry.md`.
 
 Template files are subordinate to the registry. If a template path, status,
 template target, or output mode differs from the registry, stop and resolve the
@@ -25,3 +23,7 @@ Note: model-target templates (`_generic/`) were retired 2026-06-13 (unused; owne
 
 Do not add implementation, runtime, package, test, scraping, or automation
 templates while Forseti remains docs-first.
+
+Old Orca-named shared template paths under `shared/` are compatibility pointers
+for already-filed prompts and source packs. New or materially touched templates
+should use Forseti-named shared template paths from the registry.

@@ -17,13 +17,13 @@ rank, or route runtime model choice.
 Output mode: `paste-ready-chat` or `file-write`
 
 Use shared contract:
-`docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md`
+`docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md`
 
 ```text
 You are launching a Forseti prompt from a thin wrapper.
 
 Workspace:
-`C:\Users\vmon7\Desktop\projects\orca`
+`C:\Users\vmon7\Desktop\projects\forseti`
 
 Wrapped source:
 [FILL_PROMPT_OR_ARTIFACT_PATH]

@@ -36,7 +36,7 @@ novel cases. State, per prompt:
 
 Repo-constant fields (workspace path, required reads, external-source boundary,
 retrieval-header defaults) may be referenced via
-`docs/prompts/templates/shared/orca_preflight_defaults_v0.md`; the per-prompt
+`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`; the per-prompt
 deltas above stay explicit. This core is the routine fast-path; it does not reduce
 the Required Preflight Fields obligation and does not replace the full contract for
 fused, delegated-review-patch, or novel/cross-lane prompts, which author through
@@ -220,7 +220,7 @@ surface. The contract is applied at two depths:
   skill reload. The core is how a routine prompt *satisfies* the contract without
   reloading the skill — not a shorter field set: a repo-aware prompt still owes the
   full Required Preflight Fields (most carried by the core's deltas plus the
-  referenced `orca_preflight_defaults_v0.md`). Use the routine path only for a
+  referenced `forseti_preflight_defaults_v0.md`). Use the routine path only for a
   prompt that is ordinary, already-scoped, and single-target.
 - **Fused, delegated-review-patch, and novel or cross-lane prompts** author through
   the full **`workflow-prompt-orchestrator`** skill, which owns prompt
@@ -523,7 +523,7 @@ Every repo-aware Forseti prompt must include or reference the
 fields in that receipt or in adjacent preflight prose, but the prompt must make
 the start state checkable. Repo-constant fields (workspace path, required reads,
 external source boundary, retrieval header defaults) may be referenced via
-`docs/prompts/templates/shared/orca_preflight_defaults_v0.md` instead of
+`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` instead of
 restated; required per-prompt deltas listed in that artifact must still be
 stated explicitly in every prompt that references it.
 
