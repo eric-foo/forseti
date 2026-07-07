@@ -18,7 +18,7 @@ use_when:
   - Checking what the discovery lane has produced without reading 3 ledgers.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/foundation/vertical_exploration/orca_memorization_resistant_case_finder_frame_v0.md   # operative obscurity bar + probe protocol
+  - forseti/product/spines/foundation/vertical_exploration/forseti_memorization_resistant_case_finder_frame_v0.md   # operative obscurity bar + probe protocol
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md        # recognition/swap/split machinery exemplar
   - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md # claim caps for any consumer
 stale_if:

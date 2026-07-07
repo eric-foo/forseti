@@ -20,8 +20,8 @@ use_when:
   - Deciding or executing the owner-gated dispositions proposed here.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
-  - orca/product/spines/foundation/vertical_exploration/orca_memorization_resistant_case_finder_frame_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/forseti_memorization_resistant_case_finder_frame_v0.md
   - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
   - docs/research/source_registry_practices_deep_research_report_v0.md
 stale_if:
@@ -103,7 +103,7 @@ chartered as its own spine? Options compared:
 ## Operative ownership and relationships (no new spine)
 
 - **WHERE-side venue exploration:** owned by
-  `docs/product/core_spine/orca_vertical_exploration_guide_v0.md` (Shape C;
+  `forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md` (Shape C;
   runs only inside an authorized batch screen; subordinate to the finder
   frame; fold-or-re-home at frame sign-off).
 - **WHERE memory:** append-only `Screen Provenance` blocks in batch ledgers
@@ -178,11 +178,11 @@ does not exist today and must be created at that point.
 
 1. **Reverse retrieval pointer** (the commissioned contained task; one header
    line, retrieval plumbing only, changes no rule). In
-   `docs/product/core_spine/orca_memorization_resistant_case_finder_frame_v0.md`,
+   `forseti/product/spines/foundation/vertical_exploration/forseti_memorization_resistant_case_finder_frame_v0.md`,
    append to `open_next`:
 
    ```yaml
-   - docs/product/core_spine/orca_vertical_exploration_guide_v0.md   # WHERE-side venue procedure (owner-adopted shape, subordinate to this frame)
+   - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md   # WHERE-side venue procedure (owner-adopted shape, subordinate to this frame)
    ```
 
    Disposition: **proposed** — the frame is pending owner sign-off and no

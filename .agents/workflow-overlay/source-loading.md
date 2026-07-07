@@ -441,7 +441,7 @@ retired `capture_investigation_playbook_v0.md` is its pre-rename name); load it 
 route, and do not re-derive the access-control gate (Step 0) or the route catalog from scratch.
 
 Scanning / screening activity reads the screening-side distillation of this method — the **Walker
-Equipment Kit** in `forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md` (public pages,
+Equipment Kit** in `forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md` (public pages,
 no logins, URLs + short quotes) — and escalates to the full playbook only for packet-grade capture.
 
 For raw-to-Judgment projection views, also open

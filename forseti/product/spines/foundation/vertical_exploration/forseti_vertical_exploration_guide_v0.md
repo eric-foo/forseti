@@ -1,4 +1,4 @@
-# Orca Vertical Exploration Guide v0
+# Forseti Vertical Exploration Guide v0
 
 ```yaml
 retrieval_header_version: 1
@@ -16,7 +16,7 @@ use_when:
   - Re-deciding whether a venue registry/atlas is warranted (see the promote-on-reuse trigger).
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/foundation/vertical_exploration/orca_memorization_resistant_case_finder_frame_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/forseti_memorization_resistant_case_finder_frame_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md   # exemplar Screen Provenance block
   - docs/research/source_registry_practices_deep_research_report_v0.md       # evidence base for this shape
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md            # canonical capture-method playbook (HOW-side)
@@ -296,7 +296,7 @@ Mints no ladder vocabulary; the Status label is doc-local.
   `docs/decisions/beauty_subtle_decision_screen3_ledger_v0.md`.
 - 2026-06-11 (owner-directed rename): this artifact is now the VERTICAL
   EXPLORATION GUIDE — renamed from `orca_venue_exploration_procedure_v0.md` to
-  `orca_vertical_exploration_guide_v0.md` (the walk explores a VERTICAL;
+  `forseti_vertical_exploration_guide_v0.md` (the walk explores a VERTICAL;
   venues are its waypoints). Path references in live artifacts updated the
   same turn; historical records (the commissioning prompt, past cleanup
   reports, dated ledger filenames) keep their original path text. Section-name

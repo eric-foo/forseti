@@ -26,7 +26,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
-  - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
   - docs/decisions/orca_venue_registry_rejection_decision_v0.md
   - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
   - forseti/product/spines/scanning/admissibility_checkability/orca_demand_scan_gate_adjudication_packet_v0.md

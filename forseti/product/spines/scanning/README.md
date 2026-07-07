@@ -17,7 +17,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
   - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
-  - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
 stale_if:
   - The MGT intelligent-walk operating model changes its shared vocabulary or hard boundaries.
   - The Demand Scan-Core Spec is owner-adjudicated or superseded.
