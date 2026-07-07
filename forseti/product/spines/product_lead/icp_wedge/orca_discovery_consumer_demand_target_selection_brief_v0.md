@@ -19,7 +19,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md  # owns the live substrate gate + disqualifiers
-  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
   - .agents/workflow-overlay/product-proof.md
 input_hashes:
   docs/decisions/orca_product_thesis_consumer_demand_v0.md: 5FEA48AE8B0C0E22D24CE2194F1F17617C5C94D2C75A204AAD5CD8CC149B2B0E

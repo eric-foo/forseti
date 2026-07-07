@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
-  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
   - forseti/product/spines/product_lead/icp_wedge/orca_icp_ratification_readiness_report_v0.md   # findings F-01..F-09 referenced below
 input_hashes:
   # Anchors (must match before executing; on mismatch STOP and re-anchor)
@@ -39,7 +39,7 @@ stale_if:
 
 `EXECUTED_2026-06-12` — the owner ratified asks 1-4 in-thread 2026-06-12
 (verbatim words: Owner Decision Record in
-`docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md`) and
+`docs/decisions/forseti_consumer_demand_ratification_decision_memo_v0.md`) and
 the cascade ran the same turn. Execution deviations from the prepared text
 (recorded, not silent):
 
@@ -115,22 +115,22 @@ Execute in order. Each step names the file, the edit, and its check.
 
 - Check: `rg -n "superseded_by|SUPERSEDED" docs/decisions/turn_08_product_thesis_v0.md` hits the banner.
 
-**Step 3 — Wedge record** (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`) — full pass only
+**Step 3 — Wedge record** (`docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`) — full pass only
 - Status: `PROPOSED_PENDING_OWNER_SIGNOFF` → `OWNER_LOCKED_DIRECTION`, dated,
   owner words quoted.
-- Header: add `supersedes: [docs/decisions/orca_icp_wedge_pricing_first_v0.md]`.
+- Header: add `supersedes: [docs/decisions/forseti_icp_wedge_pricing_first_v0.md]`.
 - Optional fold-in (F-03, cosmetic): update the two "untracked" parentheticals
   (batch-1 ledger, capture recon index) — all three cited records are tracked
   as of 2026-06-11.
 - Check: status string flipped; `supersedes` present.
 
-**Step 4 — Pricing-first supersession banner** (`docs/decisions/orca_icp_wedge_pricing_first_v0.md`)
-- Add `superseded_by: docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`
+**Step 4 — Pricing-first supersession banner** (`docs/decisions/forseti_icp_wedge_pricing_first_v0.md`)
+- Add `superseded_by: docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`
   and this banner under the H1 (mirrors the break-in banner pattern):
 
   > **SUPERSEDED AS FIRST-PROOF WEDGE (date of ratification)**
   > The first-proof wedge moves to beauty consumer-demand
-  > (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`, owner-ratified).
+  > (`docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`, owner-ratified).
   > Pricing-first is RETAINED as (a) an engine application reachable from the
   > same spine, (b) the two RETRO SaaS dev cases as cross-vertical method
   > anchors, and (c) the default re-entry candidate if the beauty wedge kills

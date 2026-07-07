@@ -10,7 +10,7 @@
 > and the firm is flying blind — with developer-facing SaaS as a strong
 > sub-instance only, not the defining qualifier. The wedge frame is
 > cross-sector-open. Authoritative direction:
-> `docs/decisions/orca_icp_wedge_pricing_first_v0.md`.
+> `docs/decisions/forseti_icp_wedge_pricing_first_v0.md`.
 > Retain this scan as historical record; do not use it to drive first-proof
 > candidate qualification without re-screening against the AI-monetization
 > beachhead criteria.

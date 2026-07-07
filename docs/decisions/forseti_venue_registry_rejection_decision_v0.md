@@ -1,4 +1,4 @@
-# Orca Venue Registry Rejection — Owner Decision Record v0
+# Forseti Venue Registry Rejection — Owner Decision Record v0
 
 ```yaml
 retrieval_header_version: 1

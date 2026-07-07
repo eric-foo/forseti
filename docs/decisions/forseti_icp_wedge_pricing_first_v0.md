@@ -1,8 +1,8 @@
-# Orca ICP Wedge — Pricing-First Direction (Un-Flip) v0
+# Forseti ICP Wedge — Pricing-First Direction (Un-Flip) v0
 
 > **SUPERSEDED AS FIRST-PROOF WEDGE (2026-06-12)**
 > The first-proof wedge moves to beauty consumer-demand
-> (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`,
+> (`docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`,
 > owner-co-ratified 2026-06-12). Pricing-first is RETAINED as (a) an engine
 > application reachable from the same spine and (b) the two RETRO SaaS dev
 > cases as cross-vertical method anchors. The original (c) — default re-entry
@@ -29,13 +29,13 @@ use_when:
   - Preparing commercial-frame or discovery inputs for the first proof.
 authority_boundary: retrieval_only
 supersedes:
-  - docs/decisions/orca_icp_wedge_convergence_break_in_first_v0.md
-superseded_by: docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+  - docs/decisions/forseti_icp_wedge_convergence_break_in_first_v0.md
+superseded_by: docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
 open_next:
   - docs/research/orca_icp_redo_evidence_targets_v0.md
   - docs/research/orca_wedge_alternatives_register_v0.md
   - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
-  - orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
 stale_if:
   - Owner accepts a different first-proof wedge.
   - The "decide-vs-confirm" method-validation test flips the call.
@@ -84,7 +84,7 @@ parallel + owner external o3) independently found:
   INDEPENDENT).
 - The 5-champion Opus tournament converged: every champion (including the
   break-in defender) returned conditional/no; pricing is the least-blocked wedge
-  — the only one putting Orca's DIFFERENTIATED read on a clean, decision-moving,
+  — the only one putting Forseti's DIFFERENTIATED read on a clean, decision-moving,
   dense substrate.
 
 Net: the reason to flip TO break-in was disproven; the hard gate + density +
@@ -248,5 +248,5 @@ pending product-lead freeze.
 ## Non-claims
 
 Not validation, WTP, readiness, buyer-proof, or ICP-proven. Pricing wins by being
-LEAST-BLOCKED on the evidence, not by being proven; no buyer has paid Orca. The
+LEAST-BLOCKED on the evidence, not by being proven; no buyer has paid Forseti. The
 two verification runs are corroborated market-context, not buyer validation.

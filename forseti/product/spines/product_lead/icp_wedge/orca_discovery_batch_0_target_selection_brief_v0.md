@@ -7,7 +7,7 @@
 > instrument is now
 > `forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md`.
 > Current wedge authority:
-> `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (owner
+> `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` (owner
 > co-ratified 2026-06-12). Retained as history; do not use this brief as a
 > live qualification instrument.
 
@@ -23,7 +23,7 @@ authority_boundary: retrieval_only
 superseded_by: forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/decisions/orca_icp_wedge_pricing_first_v0.md  # superseded wedge record (historical)
+  - docs/decisions/forseti_icp_wedge_pricing_first_v0.md  # superseded wedge record (historical)
   - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md # superseded by above; reread-required
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
@@ -53,7 +53,7 @@ Output boundary: docs-first target-selection brief only. This brief does not aut
 
 This brief's first-proof framing is REFINED by the owner-locked pricing-first
 direction. Controlling wedge authority:
-`docs/decisions/orca_icp_wedge_pricing_first_v0.md` (the pinned source hashes
+`docs/decisions/forseti_icp_wedge_pricing_first_v0.md` (the pinned source hashes
 below are superseded by it — reread-required; a hash-mismatch / BLOCKED_ROLE_DRIFT
 stop does NOT fire for this intentional refinement). Deltas:
 

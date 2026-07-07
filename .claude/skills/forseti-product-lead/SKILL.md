@@ -62,7 +62,7 @@ needs its own explicit owner authorization.
      (evidence-backed strategic decisions for consumer-market leaders; demand
      integrity and durability as first reads; beauty first vertical; US-first
      geography; OWNER_LOCKED) and
-     `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (beauty
+     `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` (beauty
      operator first door; OWNER_LOCKED_DIRECTION) — but the repo-map row and
      the records' own supersession banners govern, not this line.
    - `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md` — offer

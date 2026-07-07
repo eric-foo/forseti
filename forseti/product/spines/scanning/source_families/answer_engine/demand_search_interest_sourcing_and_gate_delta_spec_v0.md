@@ -28,7 +28,7 @@ open_next:
   - forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md                      # AR-04 unsourced-gap classification
   - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                                          # search-interest read type (read-grammar basis)
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md                 # access/ToS posture (capture-spine-owned)
-  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md                                          # wedge target (currently "US indie/DTC beauty or personal-care"; fragrance is a narrowing — see §2)
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md                                          # wedge target (currently "US indie/DTC beauty or personal-care"; fragrance is a narrowing — see §2)
 stale_if:
   - The capture envelope of record (obligation contract / models.py) or the scan-schema enums are amended in a way that covers these facts.
   - An owner decision adopts/narrows/rejects the search-interest or AEO source classes, or pins the fragrance sub-niche.
@@ -82,7 +82,7 @@ search-lane path-rewrite — no substantive source change since this spec's deri
 | `orca_demand_gate_definition_closures_proposal_v0.md` | `c84e9ad6439bbbbc` | AR-04 (search-interest = G1 unsourced demand-family gap, owner-owned). |
 | `orca_demand_read_taxonomy_v0.md` | `5fe5c41e1036d1a2` | search-interest read type (read-grammar basis). |
 | `data_capture_source_access_boundary_decision_v0.md` | `4f9dd359077bf9e1` | access/ToS posture (cite, never set/narrow). |
-| `orca_icp_wedge_consumer_demand_first_v0.md` | `9e27cba9bf71cc83` | wedge target — scopes "beauty/personal-care"; fragrance is a narrowing pending pin (§2). |
+| `forseti_icp_wedge_consumer_demand_first_v0.md` | `9e27cba9bf71cc83` | wedge target — scopes "beauty/personal-care"; fragrance is a narrowing pending pin (§2). |
 
 ## 2. Purpose & what this settles (and what it does NOT)
 

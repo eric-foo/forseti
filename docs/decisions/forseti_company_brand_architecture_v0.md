@@ -40,7 +40,7 @@ purchase execution.
 Relationship to existing records: this ADR adds a company/brand layer above
 the product records; it does not amend the product thesis
 (`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`), the wedge record
-(`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`), or the Creator
+(`docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`), or the Creator
 Signal carve-out architecture
 (`forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md`,
 ratified as working goal via PR #550 with Direction Update v0.1

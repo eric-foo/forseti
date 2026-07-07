@@ -496,7 +496,7 @@ direction_change_propagation_PLAN:   # prepared only — not a completion receip
   downstream_surfaces_to_check:
     - path: forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
       why: Demand-Substrate Hard Gate is the anti-trigger source; confirm no drift if Q1 amends pricing handling
-    - path: docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+    - path: docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
       why: org-motion-vs-wind-caller boundary distinction (Q3) is asserted there; keep consistent
     - path: docs/decisions/wind_caller_calibration_carveout_v0.md
       why: Q3 boundary owner; confirm taxonomy text matches the carve-out's reconciled form

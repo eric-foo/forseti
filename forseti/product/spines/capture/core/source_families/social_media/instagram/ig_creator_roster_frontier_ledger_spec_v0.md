@@ -13,7 +13,7 @@ use_when:
   - Separating current-main roster sizing and commercial target facts from old branch residue.
   - Checking whether a proposed creator roster design preserves privacy and ontology boundaries.
 open_next:
-  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
   - docs/decisions/wind_caller_calibration_carveout_v0.md
@@ -51,7 +51,7 @@ orca_start_preflight:
     - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
-    - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+    - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
     - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
     - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
@@ -74,7 +74,7 @@ relationship graph, person dossier, stale proof-slice sizing, or ontology fork.
 
 Current-main sources read for this spec:
 
-- `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`
+- `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`
 - `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`
 - `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
 - `forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md`

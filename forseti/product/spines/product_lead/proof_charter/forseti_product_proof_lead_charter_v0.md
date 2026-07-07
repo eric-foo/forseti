@@ -10,7 +10,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
   - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md  # superseded — historical (path updated 2026-06-12; phase-2 migration)
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md  # path updated 2026-06-12 (phase-2 migration); owns the Demand-Substrate Hard Gate
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
@@ -43,9 +43,9 @@ This charter's first-proof framing is RE-TARGETED by the owner-ratified
 consumer-demand direction. Controlling authority:
 `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` (thesis,
 `OWNER_LOCKED` 2026-06-12) and
-`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (wedge,
+`docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` (wedge,
 `OWNER_LOCKED_DIRECTION` 2026-06-12), which supersede
-`docs/decisions/orca_icp_wedge_pricing_first_v0.md` as first-proof authority
+`docs/decisions/forseti_icp_wedge_pricing_first_v0.md` as first-proof authority
 (pricing retained as engine application + re-entry candidate). Earlier pinned
 `input_hashes` / wedge references are superseded — reread-required.
 
@@ -112,8 +112,8 @@ make the memo credible.
 - Current owner instruction for Forseti product-proof planning.
 - `AGENTS.md` and `.agents/workflow-overlay/` authority, especially product artifact write permission under `docs/product/`.
 - `docs/decisions/turn_08_product_thesis_v0.md`, which frames Forseti as an outside-in strategic intelligence system for public market signals and allocation decisions.
-- `docs/decisions/orca_icp_wedge_pricing_first_v0.md` — wedge authority at authoring (owner-locked 2026-06-08; superseded 2026-06-12 by `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`); supersedes the v0 ICP wedge below.
-- `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md`, which selects the first proof lane and binds AI exposure as trigger/context ordering only. SUPERSEDED by `docs/decisions/orca_icp_wedge_pricing_first_v0.md`; reread-required.
+- `docs/decisions/forseti_icp_wedge_pricing_first_v0.md` — wedge authority at authoring (owner-locked 2026-06-08; superseded 2026-06-12 by `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`); supersedes the v0 ICP wedge below.
+- `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md`, which selects the first proof lane and binds AI exposure as trigger/context ordering only. SUPERSEDED by `docs/decisions/forseti_icp_wedge_pricing_first_v0.md`; reread-required.
 - `docs/review-outputs/adversarial-artifact-reviews/orca_ai_exposed_icp_refinement_adversarial_review_v0.md`, which rejects AI buyer-attribute filters and standalone AI/trust/competitive-positioning decision-family expansion.
 - `docs/product/core_spine_v0_method_validation_replay_packet_v0.md`, accepted only as bounded method signal, not validation, buyer validation, feature readiness, implementation readiness, or commercial readiness.
 - Advisory `workflow-product-ultraplan` standard lanes: directional, adversarial, and grounding. These were advisory inputs only, not verdicts or readiness proof.

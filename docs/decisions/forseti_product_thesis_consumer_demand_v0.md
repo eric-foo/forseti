@@ -21,7 +21,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/turn_08_product_thesis_v0.md
-  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
   - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
 stale_if:
@@ -39,7 +39,7 @@ inside this thesis body, not as separate override notes.
 
 The 2026-06-12 ratification receipt remains (ask 1 ratified AS AMENDED;
 verbatim words and effects recorded in the Owner Decision Record of
-`docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md`):
+`docs/decisions/forseti_consumer_demand_ratification_decision_memo_v0.md`):
 
 - Ask 1 — owner words: "no for 1 - it does not depend on no live ToS
   violating source. we accept the risks for ToS just not at an absurd level
@@ -48,7 +48,7 @@ verbatim words and effects recorded in the Owner Decision Record of
   the prior "does not depend on any live ToS-violating source" premise is
   retired.
 - Ask 2 — "co-ratify ok": the wedge record
-  (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`) is
+  (`docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`) is
   co-ratified as the wedge direction lock.
 - Ask 3 — "yes thats okay": durability probe Stage-1 feasibility gate
   authorized per the decision memo's recommendation (Stage 2 held until
@@ -298,7 +298,7 @@ market-agnostic per the Core Spine satellite contract.
 ## Buyer Ladder And First Application
 
 The first-proof application is decided in the subordinate wedge record
-(`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`, pending the same
+(`docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`, pending the same
 sign-off): indie/DTC beauty operator first door (live demand-allocation
 decision), consumer seed/VC fund screen as the second door, PE/family-office
 diligence as the destination — ordered by reachability under the owner's

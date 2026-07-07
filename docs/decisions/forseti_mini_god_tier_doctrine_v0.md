@@ -19,7 +19,7 @@ open_next:
   - .agents/workflow-overlay/retrieval-metadata.md   # doctrine family: the retrievability/header-schema doctrine all durable artifacts follow
   - docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md   # doctrine family: distillation doctrine + spine-binding index
   - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md   # operative example (Shape C + influence widening)
-  - docs/decisions/orca_venue_registry_rejection_decision_v0.md      # the rejected maximal shape
+  - docs/decisions/forseti_venue_registry_rejection_decision_v0.md      # the rejected maximal shape
 stale_if:
   - A later recorded owner decision supersedes or amends this lens.
   - The AGENTS.md trigger binding is removed or re-pointed.

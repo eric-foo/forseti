@@ -17,7 +17,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md          # controlling thesis (costly-behavior primitive, action ceilings)
-  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md         # wedge (beauty operator first door)
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md         # wedge (beauty operator first door)
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md           # Demand-Substrate Hard Gate
   - forseti/product/satellites/beauty/beauty_venue_card_set_v0.md               # venue discovery layer; card 11 = wind-caller exemplar
   - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md   # consumes this grammar for authorized scans

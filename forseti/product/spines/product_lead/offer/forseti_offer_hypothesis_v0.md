@@ -13,7 +13,7 @@ open_next:
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
   - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
-  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
   - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md # superseded — historical
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
@@ -58,9 +58,9 @@ This artifact's first-proof framing is RE-TARGETED by the owner-ratified
 consumer-demand direction. Controlling authority:
 `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` (thesis,
 `OWNER_LOCKED` 2026-06-12) and
-`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (wedge,
+`docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` (wedge,
 `OWNER_LOCKED_DIRECTION` 2026-06-12), which supersede
-`docs/decisions/orca_icp_wedge_pricing_first_v0.md` as first-proof authority
+`docs/decisions/forseti_icp_wedge_pricing_first_v0.md` as first-proof authority
 (pricing retained as engine application + re-entry candidate; disposition in
 that record's banner). Earlier pinned `input_hashes` / wedge references below
 are superseded — reread-required. Deltas:
@@ -140,7 +140,7 @@ Controlling Forseti sources:
   thesis (owner-ratified 2026-06-12; supersedes `turn_08_product_thesis_v0.md`)
 - `docs/product/core_spine_v0_product_contract.md`
 - `docs/product/core_spine_v0_information_production_foundation_v0.md`
-- `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` — current wedge
+- `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` — current wedge
   authority (supersedes pricing-first, 2026-06-12; pricing-first was the
   wedge authority at this artifact's 2026-06-08 refinement)
 - `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md` — superseded; historical
