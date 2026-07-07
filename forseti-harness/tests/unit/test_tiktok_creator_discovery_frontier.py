@@ -12,10 +12,15 @@ from capture_spine.tiktok_creator_discovery_frontier import (
     FrontierEdgeType,
     FrontierNode,
     FrontierNodeType,
+    RefreshOutcome,
+    ScanReceipt,
+    SuggestedAccountObservation,
     NextRunEnvelope,
     TikTokCreatorDiscoveryFrontierError,
+    build_tiktok_creator_discovery_frontier_register,
     validate_tiktok_creator_discovery_frontier_register,
     validate_tiktok_creator_discovery_next_run_envelope,
+    validate_tiktok_creator_discovery_scan_receipt,
 )
 
 _RUN_ID = "tiktok_creator_discovery_seed_001"
@@ -83,6 +88,55 @@ def _next_run(**overrides) -> NextRunEnvelope:
     )
     fields.update(overrides)
     return NextRunEnvelope(**fields)
+
+
+def _scan_receipt(**overrides) -> dict:
+    fields = dict(
+        receipt_id="receipt_tiktok_creator_discovery_seed_001",
+        run_id=_RUN_ID,
+        register_id="tiktok_creator_discovery_frontier_example",
+        root_seed={
+            "platform": "tiktok",
+            "handle": "fragranceknowledge",
+            "url": "https://www.tiktok.com/@fragranceknowledge",
+        },
+        source_surface="tiktok_profile_suggested_accounts_existing_cloakbrowser_cdp",
+        captured_at_utc="2026-07-07T18:06:35.790Z",
+        method_mode="existing_cloakbrowser_cdp_dom_extraction",
+        access_mode="owner_authorized_existing_session_screen_light_dom_read",
+        extraction_method="dom_visible_suggested_account_cards",
+        browser_session_label_or_none="cloakbrowser_existing_chowdakr",
+        parent_grid_packet_id_or_none="01KWYMDCZMSB4S5HBERVBYJQNG",
+        parent_grid_packet_path_or_none="F:/orca-data-lake/raw/4e6/01KWYMDCZMSB4S5HBERVBYJQNG",
+        source_packet_id_or_none="01KWYW8Q2SB612TWPA46NKVMKQ",
+        source_packet_path_or_none="F:/orca-data-lake/raw/841/01KWYW8Q2SB612TWPA46NKVMKQ",
+        parent_profile_capture_status="tiktok_parent_profile_grid_packet_available",
+        suggested_accounts_capture_status="tiktok_suggested_accounts_packet_available",
+        browser_closed_by_runner=False,
+        refresh_attempt_count=0,
+        refresh_outcome=RefreshOutcome.NOT_NEEDED,
+        pagination_bound=0,
+        suggested_accounts_observed=1,
+        candidate_profiles_opened=0,
+        follow_unfollow_actions_taken=0,
+        screenshots_emitted_to_chat=0,
+        caps_applied={
+            "root_profiles": 1,
+            "suggested_accounts_observed": 1,
+            "candidate_profiles_opened": 0,
+            "screenshots_emitted_to_chat": 0,
+        },
+        stop_reason="bounded_suggested_accounts_observation_complete",
+        exclusions=(
+            "no_candidate_profile_open",
+            "no_follow_unfollow_action",
+            "no_metric_rollup",
+            "no_registry_mutation",
+            "no_screenshot_chat_output",
+        ),
+    )
+    fields.update(overrides)
+    return ScanReceipt(**fields).to_dict()
 
 
 def _register(**wrapper_overrides) -> dict:
@@ -344,3 +398,77 @@ def test_packet_available_status_requires_packet_pointer() -> None:
     wrapper["provenance"]["parent_grid_packet_path_or_none"] = None
     wrapper["nodes"][2]["platform_capture_status"] = "tiktok_parent_profile_grid_packet_available"
     _raises_code(register, "missing_packet_pointer")
+
+
+def test_valid_scan_receipt_passes() -> None:
+    validate_tiktok_creator_discovery_scan_receipt(_scan_receipt())
+
+
+def test_scan_receipt_parent_packet_available_requires_parent_pointer() -> None:
+    receipt = _scan_receipt(
+        parent_grid_packet_id_or_none=None,
+        parent_grid_packet_path_or_none=None,
+    )
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "missing_parent_grid_packet_pointer"
+
+
+def test_scan_receipt_suggested_packet_available_requires_source_pointer() -> None:
+    receipt = _scan_receipt(
+        source_packet_id_or_none=None,
+        source_packet_path_or_none=None,
+    )
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "missing_source_packet_pointer"
+
+
+def test_scan_receipt_rejects_browser_close() -> None:
+    receipt = _scan_receipt(browser_closed_by_runner=True)
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "browser_close_forbidden"
+
+
+def test_scan_receipt_rejects_second_refresh() -> None:
+    receipt = _scan_receipt(
+        refresh_attempt_count=2,
+        refresh_outcome=RefreshOutcome.CLICKED_ONCE_NO_RECOVERY,
+    )
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "refresh_attempt_limit_exceeded"
+
+
+def test_scan_receipt_rejects_candidate_open_follow_and_screenshot() -> None:
+    for field_name, code in (
+        ("candidate_profiles_opened", "candidate_profile_open_forbidden"),
+        ("follow_unfollow_actions_taken", "follow_unfollow_forbidden"),
+        ("screenshots_emitted_to_chat", "screenshot_chat_output_forbidden"),
+    ):
+        receipt = _scan_receipt(**{field_name: 1})
+        with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+            validate_tiktok_creator_discovery_scan_receipt(receipt)
+        assert exc_info.value.code == code
+
+
+def test_register_builder_from_receipt_passes_and_keeps_next_runs_unauthorized() -> None:
+    register = build_tiktok_creator_discovery_frontier_register(
+        scan_receipt=_scan_receipt(),
+        suggested_accounts=(
+            {"handle": "3whiffs", "display_name_or_none": "Jonah | 3Whiffs Fragrance"},
+            SuggestedAccountObservation(handle="calcologne", display_name_or_none="Cal Cologne"),
+        ),
+        prior_register_pointer="docs/review-inputs/example.json#/tiktok_creator_discovery_frontier_register",
+        accepted_residuals=("No graph database; JSON registers remain sufficient.",),
+    )
+    validate_tiktok_creator_discovery_frontier_register(register)
+    wrapper = register["tiktok_creator_discovery_frontier_register"]
+    candidate_handles = {node["handle_or_none"] for node in wrapper["nodes"]}
+    assert {"3whiffs", "calcologne"}.issubset(candidate_handles)
+    assert all(envelope["execution_authorized"] is False for envelope in wrapper["next_run_envelopes"])
+    assert all(
+        edge["edge_type"] in {"discovered_from_run", "platform_suggested_account_relation"}
+        for edge in wrapper["edges"]
+    )

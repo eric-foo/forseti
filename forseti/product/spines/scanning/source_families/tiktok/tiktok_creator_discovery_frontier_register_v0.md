@@ -163,6 +163,16 @@ tiktok_creator_discovery_frontier_register:
   non_claims:
 ```
 
+## Receipt-Backed Writing
+
+The preferred code path is the network-free builder under
+`forseti-harness/capture_spine/tiktok_creator_discovery_frontier/`. It consumes a
+validated `tiktok_creator_discovery_scan_receipt_v0` plus already-observed
+suggested-account rows, then emits this register shape. The receipt records caps,
+packet/lake pointers, refresh outcome, pagination bound, browser-close posture,
+and no follow/open/screenshot actions. It still does not launch TikTok, create a
+live runner, prove source truth, authorize next runs, or mutate Creator Registry.
+
 ## Cross-Platform Linkage
 
 Cross-platform linkage is allowed as a separate strong-edge layer only after a

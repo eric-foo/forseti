@@ -63,6 +63,7 @@ stale_if:
 | Check public-handle creator account linkage across IG/TikTok/YouTube | `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md`, `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json`, `orca-harness/capture_spine/creator_public_handle_linkage/`, and `orca-harness/tests/unit/test_creator_public_handle_linkage.py` (static ledger/validator only; empty until source-backed public-handle evidence; no live capture, no contact/outreach, no SQLite) |
 | Check YouTube Shorts creator/channel observations from the 200-row fragrance pool | `forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md`, `forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_observation_ledger_v0.json`, `orca-harness/capture_spine/youtube_creator_observation/`, and `orca-harness/tests/unit/test_youtube_creator_observation_ledger.py` (source-backed YouTube-only observation ledger plus rebuild verifier and archived-lake evidence check — the seed ledger is bound to the retired `orca-canonical` v0 root per the lake-identity-drift decision packet; no cross-platform linkage, no metric rollups, no transcript bodies, no SQLite) |
 | Check the one-stop creator profile current view / dashboard-ready creator intelligence boundary | `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md` (derived view over identity, metric observations, metric rollups, and ideal-audience snapshots; no one giant ledger, no SQLite adoption, no dashboard implementation, no live capture) |
+| Check TikTok creator discovery frontier scans from suggested-account surfaces | `forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_frontier_register_v0.md`, `forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_enforcement_placement_v0.md`, `forseti-harness/capture_spine/tiktok_creator_discovery_frontier/`, and `forseti-harness/tests/unit/test_tiktok_creator_discovery_frontier.py` (receipt-backed weak discovery graph only; no live runner, registry mutation, metric rollups, or standing crawler) |
 | Check product/buyer presentation over the current creator profile | `forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md` (Creator Signal surface contract; presentation/claim language over Capture-owned records; no storage, dashboard runtime, outreach, or public directory) |
 | Handle old Reddit search/listing HTML for Candidate URL Intake pilots | `docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md` |
 | Plan bounded pre-commercial Reddit capture/consolidation | `forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` |
@@ -437,12 +438,13 @@ stale_if:
 
 - summary: Current runnable packet writers, adapters, runner docs, and tests.
   Implementation reality must be checked in code; docs may be ahead of runners.
-  Capture Spine local support includes Reddit Candidate URL Intake and Reddit
+  Capture Spine local support includes Reddit Candidate URL Intake, Reddit
   Graph Frontier register/receipt helpers under `orca-harness/capture_spine/`,
-  plus the bounded live Candidate URL Intake runner under
+  and TikTok Creator Discovery receipt/register helpers under
+  `forseti-harness/capture_spine/tiktok_creator_discovery_frontier/`, plus the
+  bounded live Candidate URL Intake runner under
   `orca-harness/runners/run_reddit_candidate_intake_live.py` and the Graph
-  Frontier register runner under
-  `orca-harness/runners/run_reddit_graph_frontier_register.py`; these are not
+  Frontier register runner under `orca-harness/runners/run_reddit_graph_frontier_register.py`; these are not
   source-capture packet runners, Source Capture Armory execution, storage,
   scheduler, dashboard, or production runtime.
   CloakBrowser anonymous non-persistent v0 has a live engine and packet runner

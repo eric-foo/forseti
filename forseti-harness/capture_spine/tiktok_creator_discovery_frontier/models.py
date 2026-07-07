@@ -16,6 +16,9 @@ TIKTOK_CREATOR_DISCOVERY_FRONTIER_REGISTER_SCHEMA_VERSION = (
 TIKTOK_CREATOR_DISCOVERY_NEXT_RUN_ENVELOPE_SCHEMA_VERSION = (
     "tiktok_creator_discovery_next_run_envelope_v0"
 )
+TIKTOK_CREATOR_DISCOVERY_SCAN_RECEIPT_SCHEMA_VERSION = (
+    "tiktok_creator_discovery_scan_receipt_v0"
+)
 
 DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS: tuple[str, ...] = (
     "not Creator Registry identity proof",
@@ -60,6 +63,65 @@ class ProjectionDecision(StrEnum):
     HOLD = "hold"
     REJECT = "reject"
     ALREADY_SEEN = "already_seen"
+
+
+class RefreshOutcome(StrEnum):
+    NOT_NEEDED = "not_needed"
+    NO_VISIBLE_REFRESH_CONTROL = "no_visible_refresh_control"
+    CLICKED_ONCE_RECOVERED = "clicked_once_recovered"
+    CLICKED_ONCE_NO_RECOVERY = "clicked_once_no_recovery"
+    VISIBLE_REFRESH_NOT_AUTHORIZED = "visible_refresh_not_authorized"
+
+
+@dataclass(frozen=True)
+class ScanReceipt:
+    receipt_id: str
+    run_id: str
+    register_id: str
+    root_seed: dict[str, str]
+    source_surface: str
+    captured_at_utc: str
+    method_mode: str
+    access_mode: str
+    extraction_method: str
+    browser_session_label_or_none: str | None
+    parent_grid_packet_id_or_none: str | None
+    parent_grid_packet_path_or_none: str | None
+    source_packet_id_or_none: str | None
+    source_packet_path_or_none: str | None
+    parent_profile_capture_status: str
+    suggested_accounts_capture_status: str
+    browser_closed_by_runner: bool
+    refresh_attempt_count: int
+    refresh_outcome: RefreshOutcome
+    pagination_bound: int
+    suggested_accounts_observed: int
+    candidate_profiles_opened: int
+    follow_unfollow_actions_taken: int
+    screenshots_emitted_to_chat: int
+    caps_applied: dict[str, int]
+    stop_reason: str
+    exclusions: tuple[str, ...]
+    schema_version: str = TIKTOK_CREATOR_DISCOVERY_SCAN_RECEIPT_SCHEMA_VERSION
+    non_claims: tuple[str, ...] = DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS
+
+    def to_dict(self) -> dict[str, Any]:
+        return _enum_values(asdict(self))
+
+
+@dataclass(frozen=True)
+class SuggestedAccountObservation:
+    handle: str
+    display_name_or_none: str | None = None
+    source_url_or_locator: str | None = None
+    registry_preflight_status_or_none: str | None = None
+    platform_capture_status: str = "tiktok_suggested_account_target_only_not_profile_captured"
+    cross_platform_graph_status: str = "not_started"
+    confidence: str = "weak_platform_suggestion_only"
+    observed_sections: tuple[str, ...] = ("suggested_accounts",)
+
+    def to_dict(self) -> dict[str, Any]:
+        return _enum_values(asdict(self))
 
 
 @dataclass(frozen=True)

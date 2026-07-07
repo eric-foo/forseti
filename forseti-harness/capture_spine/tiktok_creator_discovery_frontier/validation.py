@@ -9,6 +9,7 @@ from typing import Any
 from capture_spine.tiktok_creator_discovery_frontier.models import (
     TIKTOK_CREATOR_DISCOVERY_FRONTIER_REGISTER_SCHEMA_VERSION,
     TIKTOK_CREATOR_DISCOVERY_NEXT_RUN_ENVELOPE_SCHEMA_VERSION,
+    TIKTOK_CREATOR_DISCOVERY_SCAN_RECEIPT_SCHEMA_VERSION,
     FrontierDecision,
     FrontierEdge,
     FrontierEdgeType,
@@ -16,6 +17,8 @@ from capture_spine.tiktok_creator_discovery_frontier.models import (
     FrontierNodeType,
     NextRunEnvelope,
     ProjectionDecision,
+    RefreshOutcome,
+    ScanReceipt,
     TikTokCreatorDiscoveryFrontierError,
 )
 
@@ -56,10 +59,24 @@ _ALLOWED_NODE_KEYS = frozenset(f.name for f in fields(FrontierNode))
 _ALLOWED_EDGE_KEYS = frozenset(f.name for f in fields(FrontierEdge))
 _ALLOWED_DECISION_KEYS = frozenset(f.name for f in fields(FrontierDecision))
 _ALLOWED_NEXT_RUN_ENVELOPE_KEYS = frozenset(f.name for f in fields(NextRunEnvelope))
+_ALLOWED_SCAN_RECEIPT_KEYS = frozenset(f.name for f in fields(ScanReceipt))
 
 _ALLOWED_NODE_TYPES = frozenset(item.value for item in FrontierNodeType)
 _ALLOWED_EDGE_TYPES = frozenset(item.value for item in FrontierEdgeType)
 _ALLOWED_PROJECTION_DECISIONS = frozenset(item.value for item in ProjectionDecision)
+_ALLOWED_REFRESH_OUTCOMES = frozenset(item.value for item in RefreshOutcome)
+_REQUIRED_SCAN_RECEIPT_CAP_KEYS = (
+    "root_profiles",
+    "suggested_accounts_observed",
+    "candidate_profiles_opened",
+    "screenshots_emitted_to_chat",
+)
+_REQUIRED_SCAN_RECEIPT_EXCLUSION_MARKERS = (
+    "no_metric_rollup",
+    "no_registry_mutation",
+    "no_follow_unfollow",
+    "no_screenshot",
+)
 
 _REQUIRED_NON_CLAIM_CATEGORIES = (
     "creator registry identity proof",
@@ -140,6 +157,121 @@ _FORBIDDEN_OUTPUT_VALUE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("phone_url", re.compile(r"(?i)\btel:\+?[0-9][0-9 .()\-]{6,}")),
 )
 _REVERSAL_PREFIXES = ("not only ", "not merely ", "not just ", "no mere ")
+
+
+def validate_tiktok_creator_discovery_scan_receipt(receipt: Mapping[str, Any]) -> None:
+    """Validate one bounded TikTok discovery scan receipt without proving source truth."""
+    _assert_no_forbidden_output_fields(receipt)
+    _reject_unknown_keys(receipt, _ALLOWED_SCAN_RECEIPT_KEYS, "scan_receipt")
+    _require(
+        receipt,
+        (
+            "schema_version",
+            "receipt_id",
+            "run_id",
+            "register_id",
+            "root_seed",
+            "source_surface",
+            "captured_at_utc",
+            "method_mode",
+            "access_mode",
+            "extraction_method",
+            "browser_session_label_or_none",
+            "parent_grid_packet_id_or_none",
+            "parent_grid_packet_path_or_none",
+            "source_packet_id_or_none",
+            "source_packet_path_or_none",
+            "parent_profile_capture_status",
+            "suggested_accounts_capture_status",
+            "browser_closed_by_runner",
+            "refresh_attempt_count",
+            "refresh_outcome",
+            "pagination_bound",
+            "suggested_accounts_observed",
+            "candidate_profiles_opened",
+            "follow_unfollow_actions_taken",
+            "screenshots_emitted_to_chat",
+            "caps_applied",
+            "stop_reason",
+            "exclusions",
+            "non_claims",
+        ),
+        "scan_receipt",
+    )
+    if receipt.get("schema_version") != TIKTOK_CREATOR_DISCOVERY_SCAN_RECEIPT_SCHEMA_VERSION:
+        _fail(
+            "invalid_scan_receipt_schema_version",
+            "scan receipt schema_version must be "
+            f"{TIKTOK_CREATOR_DISCOVERY_SCAN_RECEIPT_SCHEMA_VERSION}",
+        )
+    _validate_root_seed(receipt.get("root_seed"))
+    _validate_packet_pair(receipt, "source_packet")
+    _validate_packet_pair(receipt, "parent_grid_packet")
+    if "packet_available" in str(receipt.get("parent_profile_capture_status")):
+        if not receipt.get("parent_grid_packet_id_or_none"):
+            _fail(
+                "missing_parent_grid_packet_pointer",
+                "parent packet-available status requires parent_grid packet pointer",
+            )
+    if "packet_available" in str(receipt.get("suggested_accounts_capture_status")):
+        if not receipt.get("source_packet_id_or_none"):
+            _fail(
+                "missing_source_packet_pointer",
+                "suggested-account packet-available status requires source packet pointer",
+            )
+    if receipt.get("browser_closed_by_runner") is not False:
+        _fail("browser_close_forbidden", "scan receipt must not close the browser by runner")
+
+    refresh_attempt_count = _require_non_negative_int(
+        receipt.get("refresh_attempt_count"), "refresh_attempt_count"
+    )
+    if refresh_attempt_count > 1:
+        _fail("refresh_attempt_limit_exceeded", "refresh_attempt_count must be 0 or 1")
+    refresh_outcome = receipt.get("refresh_outcome")
+    if refresh_outcome not in _ALLOWED_REFRESH_OUTCOMES:
+        _fail("invalid_refresh_outcome", "refresh_outcome is not in the allowed vocabulary")
+    if refresh_attempt_count == 1 and refresh_outcome not in {
+        RefreshOutcome.CLICKED_ONCE_RECOVERED.value,
+        RefreshOutcome.CLICKED_ONCE_NO_RECOVERY.value,
+    }:
+        _fail("refresh_outcome_attempt_mismatch", "one refresh attempt requires a clicked-once outcome")
+    if refresh_attempt_count == 0 and refresh_outcome in {
+        RefreshOutcome.CLICKED_ONCE_RECOVERED.value,
+        RefreshOutcome.CLICKED_ONCE_NO_RECOVERY.value,
+    }:
+        _fail("refresh_outcome_attempt_mismatch", "clicked-once outcome requires one refresh attempt")
+
+    for field_name in (
+        "pagination_bound",
+        "suggested_accounts_observed",
+        "candidate_profiles_opened",
+        "follow_unfollow_actions_taken",
+        "screenshots_emitted_to_chat",
+    ):
+        _require_non_negative_int(receipt.get(field_name), field_name)
+    if receipt.get("candidate_profiles_opened") != 0:
+        _fail("candidate_profile_open_forbidden", "scan receipt must not open candidate profiles")
+    if receipt.get("follow_unfollow_actions_taken") != 0:
+        _fail("follow_unfollow_forbidden", "scan receipt must not take follow/unfollow actions")
+    if receipt.get("screenshots_emitted_to_chat") != 0:
+        _fail("screenshot_chat_output_forbidden", "scan receipt must not emit screenshots to chat")
+
+    caps = receipt.get("caps_applied")
+    if not isinstance(caps, Mapping) or not caps:
+        _fail("missing_scan_receipt_caps", "scan receipt caps_applied must be a non-empty mapping")
+    for cap_key in _REQUIRED_SCAN_RECEIPT_CAP_KEYS:
+        if cap_key not in caps:
+            _fail("missing_scan_receipt_cap", f"scan receipt caps_applied missing {cap_key}")
+        _require_non_negative_int(caps.get(cap_key), f"caps_applied.{cap_key}")
+
+    exclusions = receipt.get("exclusions")
+    if not _is_list(exclusions):
+        _fail("missing_scan_receipt_exclusions", "scan receipt exclusions must be a list")
+    lowered_exclusions = [str(item).lower() for item in exclusions]
+    for marker in _REQUIRED_SCAN_RECEIPT_EXCLUSION_MARKERS:
+        if not any(marker in item for item in lowered_exclusions):
+            _fail("missing_scan_receipt_exclusion", f"scan receipt exclusions missing {marker}")
+    _validate_non_claims(receipt.get("non_claims"), "scan_receipt")
 
 
 def validate_tiktok_creator_discovery_frontier_register(register: Mapping[str, Any]) -> None:
@@ -484,6 +616,12 @@ def _require(value_map: Mapping[str, Any], field_names: Sequence[str], label: st
         value = value_map.get(field_name)
         if isinstance(value, str) and not value.strip():
             _fail(f"missing_{field_name}", f"{label} missing required field: {field_name}")
+
+
+def _require_non_negative_int(value: Any, label: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        _fail("invalid_non_negative_int", f"{label} must be a non-negative integer")
+    return value
 
 
 def _is_list(value: Any) -> bool:
