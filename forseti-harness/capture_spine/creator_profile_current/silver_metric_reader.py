@@ -33,6 +33,9 @@ from capture_spine.creator_profile_current.silver_metric_producer import (
     METRIC_ROLLUP_LANE,
     METRIC_ROLLUP_PAYLOAD_KIND,
 )
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_id_from_subject_ref as _platform_account_id_from_subject_ref,
+)
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -80,7 +83,9 @@ def _seed_rollup_from_silver_record(record: dict[str, Any]) -> dict[str, Any]:
     return {
         "metric_rollup_id": record["provenance"]["seed_metric_rollup_id"],
         "profile_subject_kind": "platform_account",
-        "profile_subject_id": subject_ref["orca_platform_account_id"],
+        "profile_subject_id": _platform_account_id_from_subject_ref(
+            subject_ref, what="rollup subject ref"
+        ),
         "creator_record_id_or_none": None,
         "platform_scope": observation["platform_scope"],
         "platform_account_ids": list(observation["platform_account_ids"]),
@@ -324,7 +329,7 @@ def discover_creator_metric_rollup_records(
 
     - **Instagram** (packet-anchored): ``list_available(source_family=
       "instagram_creator")`` -> packet ids -> ``lane_dir(raw_anchor=<packet_id>)``;
-      map each rollup to its account via ``subject.ref.orca_platform_account_id``
+      map each rollup to its account via ``subject.ref.forseti_platform_account_id``
       and keep the expected IG accounts. The ``instagram_creator`` family also
       holds packets with no rollup record (e.g. grid-metadata), which are simply
       skipped.
@@ -419,7 +424,9 @@ def _read_rollup_records(lane_dir: Path) -> list[dict[str, Any]]:
 
 
 def _rollup_record_account(record: Mapping[str, Any]) -> str:
-    return record["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+    return _platform_account_id_from_subject_ref(
+        record["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+    )
 
 
 def _add_unique_record(

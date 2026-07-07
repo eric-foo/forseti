@@ -66,7 +66,7 @@ from data_lake.root import DataLakeRoot, DataLakeRootError
 
 ROOT = Path(__file__).resolve().parents[2]
 _SOCIAL_MEDIA = (
-    ROOT / "orca" / "product" / "spines" / "capture" / "core" / "source_families" / "social_media"
+    ROOT / "forseti" / "product" / "spines" / "capture" / "core" / "source_families" / "social_media"
 )
 DEFAULT_ACCOUNT_LEDGER = (
     _SOCIAL_MEDIA / "creator_registry" / "creator_public_handle_linkage_ledger_v0.json"
