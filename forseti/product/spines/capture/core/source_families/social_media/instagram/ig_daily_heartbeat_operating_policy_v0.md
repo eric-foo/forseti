@@ -7,8 +7,8 @@ scope: >
   Current owner direction for steady-state Instagram creator grid heartbeat:
   daily first-visible-grid monitoring for registered creators, read-only source
   access, breakout-only deep capture eligibility, owner-attention challenge
-  handling, and the 2-egress posture for the 2.5k/day target. This excludes
-  onboarding capture.
+  handling, and the 2-egress posture for the approximately 2.5k registered
+  creators/day target. This excludes onboarding capture.
 use_when:
   - Scoping steady-state IG creator monitoring cadence or runner posture.
   - Checking whether old A/B/C sparse cadence docs are current for IG daily heartbeat.
@@ -20,7 +20,7 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
 stale_if:
   - A later owner decision reintroduces tiered sparse cadence for registered IG creators.
-  - Runner telemetry proves the 2-egress 2.5k/day posture is too tight or unnecessarily conservative.
+  - Runner telemetry proves the 2-egress 2.5k registered-creators/day posture is too tight or unnecessarily conservative.
   - The IG grid runner is patched and verified to a different asset, challenge, pagination, or deep-capture policy.
 ```
 
@@ -35,15 +35,20 @@ policy.
 ## Current Direction
 
 For now, registered IG creators are monitored with one daily first-visible-grid
-heartbeat. Do not use A/B/C sparse cadence as the current operating default for
-registered IG creators. Tiering, promotion, demotion, and future sparse Tier-C
-cadence remain deferred capacity tools, not current daily-heartbeat behavior.
+heartbeat. "Registered" means active IG roster entries selected for steady-state
+monitoring; onboarding candidates, paused/parked/removed roster rows, and
+non-rostered frontier candidates are outside this daily heartbeat until promoted
+or explicitly reactivated. Do not use A/B/C sparse cadence as the current
+operating default for registered IG creators. Tiering, promotion, demotion, and
+future sparse Tier-C cadence remain deferred capacity tools, not current
+daily-heartbeat behavior.
 
 The target roster posture is:
 
 ```text
-steady_state_registered_roster = daily heartbeat
-2.5k/day serious posture = 2 distinct egress lanes
+steady_state_registered_roster = active IG roster entries, one first-visible-grid heartbeat each day
+serious posture target = approximately 2.5k registered creators/day across 2 distinct egress lanes
+heartbeat unit = creator-grid heartbeat, not deep capture, comment capture, or total request count
 third_egress = only after telemetry shows two lanes cannot fit cleanly
 ```
 
@@ -53,9 +58,11 @@ lane 2 may be a separate phone-tether/mobile-data route. Verify lane separation
 with non-IG public-IP/provider checks before treating the lanes as distinct.
 Do not store exact public IPs in durable docs unless debugging requires it.
 
-The normal-grid target is `10-15s` end-to-end per creator. Owner-attention
-pauses, CAPTCHA/challenge waits, network outages, and manual intervention time
-must be recorded separately and excluded from the normal E2E average.
+The normal-grid target is an owner-set starting target of `10-15s` end-to-end
+per creator, to be tuned against runner telemetry rather than treated as
+measured capacity proof. Owner-attention pauses, CAPTCHA/challenge waits,
+network outages, and manual intervention time must be recorded separately and
+excluded from the normal E2E average.
 
 ## Daily Heartbeat Scope
 
@@ -102,6 +109,11 @@ If the owner-attention window expires or the run is not a supervised browser
 session, record the timepoint as an explicit access gap with the observed
 reason. Missing activity is missingness, not zero.
 
+This supervised bounded-wait posture is the owner-attention branch. It does not
+override unattended-egress abort/quiet rules in companion envelopes; an
+unattended runner should still fail closed instead of probing through a
+challenge.
+
 ## Read-Only Boundary
 
 The runner remains read-only. It must not auto-like, comment, follow, save,
@@ -125,6 +137,13 @@ monitoring as one of:
 - `fresh_breakout_candidate`;
 - `active_breakout_candidate`;
 - `durable_breakout_candidate`.
+
+These breakout tags are produced by the creator monitoring lane, not by the
+heartbeat runner; the tagging machinery and exact tag vocabulary are a forward
+dependency not yet bound in a cited source (the proposed spike/hot-list/breakout
+machinery is in `forseti_creator_monitoring_policy_architecture_v0.md`). The
+heartbeat runner deep-captures only posts the monitoring lane has actually
+tagged and must not synthesize its own breakout criteria.
 
 If no tagged candidate exists for a creator, the steady-state daily heartbeat
 does not deep-capture that creator. Do not run random `0-2 per creator` deep
@@ -160,8 +179,8 @@ they exist in current packets.
 
 ## Deferred
 
-- 2.5k/day live test. Wait until runner telemetry can measure normal E2E,
-  owner-attention rate, access gaps, and lane split cleanly.
+- 2.5k registered-creators/day live test. Wait until runner telemetry can
+  measure normal E2E, owner-attention rate, access gaps, and lane split cleanly.
 - Tiering, promotion, demotion, and sparse Tier-C cadence. All registered IG
   creators are daily for now.
 - Pagination and history backfill.
