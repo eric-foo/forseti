@@ -134,7 +134,7 @@ solves; the diagnosis selects the route. Blind climbing wastes probes and can mi
 These read-escalation patterns (Guardrail 4 + the Step 2 pointer) are distilled
 for *screening posture* - public pages, no logins, URLs + short quotes - in the
 Walker Equipment Kit
-(`forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md`).
+(`forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md`).
 Keep them in sync: when a route-escalation pattern here changes, the kit's READ
 ESCALATION / KNOWN WALLS block may need a dated note. Packet-grade capture still
 routes through this method; the kit is screening-read only.

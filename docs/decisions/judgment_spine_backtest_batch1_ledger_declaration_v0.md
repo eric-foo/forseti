@@ -15,7 +15,7 @@ use_when:
   - Auditing batch-1 case selection against the anti-cherry-pick rule.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/foundation/vertical_exploration/orca_memorization_resistant_case_finder_frame_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/forseti_memorization_resistant_case_finder_frame_v0.md
   - docs/research/judgment-spine/decide_vs_confirm_backtest_case_frame_template_v0.md
   - orca-harness/cases/product_learning/inoreader_repricing_2019_v0/cross_vendor_blind_run_findings_v0.md
 input_hashes:

@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/beauty_venue_card_set_promotion_decision_v0.md   # binding parameters + owner acceptance
-  - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md  # the consuming procedure
+  - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md  # the consuming procedure
   - forseti/product/satellites/beauty/beauty_manufactured_demand_tells_v0.md  # integrity companion (manufactured-demand tells; Step 0 see-also; a separate artifact, NOT a card)
 stale_if:
   - A card passes its review_by date (that card is a stale hint; review or retire it).

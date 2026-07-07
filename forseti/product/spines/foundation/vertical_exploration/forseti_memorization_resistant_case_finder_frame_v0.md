@@ -1,4 +1,4 @@
-# Orca Memorization-Resistant Case Finder — Doctrine Frame v0
+# Forseti Memorization-Resistant Case Finder — Doctrine Frame v0
 
 ```yaml
 retrieval_header_version: 1
@@ -19,7 +19,7 @@ open_next:
   - docs/research/judgment-spine/manifest_v0.md   # Selection-Rule-for-Case-2
   - docs/research/judgment-spine/decide_vs_confirm_backtest_case_frame_template_v0.md
   - docs/decisions/orca_moat_judgment_quality_proof_path_decision_chain_v0.md
-  - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md   # WHERE-side vertical exploration guide (owner-adopted shape, subordinate to this frame)
+  - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md   # WHERE-side vertical exploration guide (owner-adopted shape, subordinate to this frame)
 stale_if:
   - Owner signs off and promotes this into binding selection doctrine.
   - The deferred-architecture trigger fires (manual screen proven + throughput bottleneck).
@@ -175,7 +175,7 @@ A subject passes only if ALL hold. These are requirements, not a built mechanism
   outcome leaking.
 - **Decide-vs-confirm tension**: at cutoff the outcome was genuinely not obvious.
 - **Anti-cherry-pick**: drawn from a pre-declared lane, not chosen because the
-  outcome flatters Orca.
+  outcome flatters Forseti.
 
 ## Connection to Core Spine discovery
 

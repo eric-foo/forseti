@@ -342,7 +342,7 @@ Local doctrine and map sources:
 - `.agents/workflow-overlay/validation-gates.md`
 - `docs/research/judgment-spine/README.md`
 - `docs/research/judgment-spine/manifest_v0.md`
-- `forseti/product/spines/foundation/vertical_exploration/orca_memorization_resistant_case_finder_frame_v0.md`
+- `forseti/product/spines/foundation/vertical_exploration/forseti_memorization_resistant_case_finder_frame_v0.md`
 - `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_proof_case_selection_brief_v0.md`
 - `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md`
 - `forseti/product/spines/judgment/judgment_current_state_and_decomposition_v0.md`
