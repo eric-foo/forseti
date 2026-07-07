@@ -6,9 +6,10 @@ artifact_role: Handoff prompt (missing-work inventory and bounded PR fanout comm
 scope: >
   Commission a GPT-5.3-targeted lane to identify local branches, worktrees, and
   untracked artifacts whose wanted work is not present on verified origin/main,
-  classify them, and open small PRs only for coherent safe units.
+  reconcile apparent misses caused by the Orca-to-Forseti migration, classify
+  them, and open small PRs only for coherent safe units.
 use_when:
-  - Auditing Orca/Forseti local work against current origin/main after the owner notices no open PRs.
+  - Auditing Forseti (formerly Orca) local work against current origin/main after the owner notices no open PRs.
   - Commissioning bounded PR fanout from many branches, worktrees, and untracked files without bulk-importing scratch or stale work.
 authority_boundary: retrieval_only
 open_next:
@@ -18,11 +19,13 @@ open_next:
   - .agents/workflow-overlay/source-loading.md
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-of-truth.md
+  - docs/decisions/forseti_rename_migration_policy_v0.md
   - docs/workflows/forseti_repo_map_v0.md
 stale_if:
   - origin/main advances after this prompt is authored.
   - Local branches, worktrees, or untracked files are created, deleted, pruned, or materially changed.
   - Owner changes the PR fanout policy, PR cap, or disposition rules.
+  - A Forseti migration policy or moved-path index changes after this prompt is authored.
 branch_or_commit: codex/missing-work-pr-fanout-prompt @ 650e0e81 at authoring; execution must re-check current refs.
 ```
 
@@ -43,19 +46,21 @@ recommendation to change Forseti prompt templates.
 forseti_start_preflight:
   agents_read: required on intake
   overlay_read: required on intake
-  source_pack: custom (repo-state inventory + S1 map + targeted reads from candidate units)
+  source_pack: custom (repo-state inventory + S1 map + Forseti rename/migration reconciliation + targeted reads from candidate units)
   edit_permission: implementation-authorized for creating PR branches and commits; read-only until a unit is classified ready_for_pr
   target_scope: >
     Identify local work not present on verified origin/main, classify each unit,
-    write an inventory report, and open bounded PRs only for safe coherent units.
+    reconcile Orca-to-Forseti migration aliases, write an inventory report, and
+    open bounded PRs only for safe coherent units.
   dirty_state_checked: required on intake
-  blocked_if_missing: AGENTS.md, overlay README, decision-routing, source-loading, prompt-orchestration, source-of-truth, or git metadata
+  blocked_if_missing: AGENTS.md, overlay README, decision-routing, source-loading, prompt-orchestration, source-of-truth, Forseti rename migration policy, or git metadata
 output_mode: file-write
 prompt_artifact_path: docs/prompts/handoffs/missing_work_inventory_pr_fanout_handoff_prompt_v0.md
 template_kind: handoff
 authorization_basis: owner current-turn request to "find everything that isnt in here (use 5.3) and then spam PR it"; corrected to audit-first bounded fanout
 target_files_or_dirs:
   - entire repository branch/worktree/ref state for read-only inventory
+  - Forseti migration policy and moved-path indexes for read-only reconciliation
   - docs/hygiene/missing_work_inventory_pr_fanout_report_v0.md
   - per-PR files only after each unit is classified ready_for_pr
 branch_or_commit_reference: execution must verify origin/main at start; authoring observed origin/main 650e0e81 and active root 63694997 on codex/ig-reels-capture-spine
@@ -88,15 +93,21 @@ work, and the active checkout may be dirty.
 Decomposition: **stabilize first, then split and classify**.
 
 Current bottleneck: distinguishing wanted durable work from stale, duplicated,
-scratch, protected, generated, or already-merged work.
+scratch, protected, generated, already-merged work, or rename/path migration
+fallout.
 
 Riskiest assumption: every local delta not on `origin/main` is still desired and
 safe to PR.
 
+Secondary risky assumption: a legacy `Orca`, `orca/product`, `docs/product`,
+`orca-harness`, `orca_start_preflight`, or lowercase `orca_*` reference is
+missing work rather than an intentional compatibility alias, historical
+provenance, or already-landed Forseti migration successor.
+
 Stop or pivot condition: a candidate unit cannot be tied to an owning branch,
 source path, authoring context, validation path, or safe artifact role; remote
 state cannot be verified; a protected path would be touched; or the same change
-already appears on main or a closed/merged PR.
+already appears on main, a closed/merged PR, or a Forseti migration successor.
 
 Allowed next move: non-destructive inventory, classification, report write, then
 bounded PR fanout for `ready_for_pr` units only.
@@ -123,6 +134,10 @@ Interpretation: "no open PRs" can coexist with updated `origin/main` because
 PRs may have already merged and closed, another lane may have pushed/merged, or
 local `main` may simply be stale relative to `origin/main`.
 
+Migration interpretation: apparent missing work may be caused by the Orca-to-
+Forseti rename and path migrations rather than unfinished branches. Treat legacy
+Orca names and paths as aliases to reconcile first, not as automatic PR material.
+
 ## Required Intake Reads
 
 Read these before classification:
@@ -134,8 +149,14 @@ Read these before classification:
 5. `.agents/workflow-overlay/prompt-orchestration.md`
 6. `.agents/workflow-overlay/source-of-truth.md`
 7. `.agents/workflow-overlay/artifact-folders.md`
-8. `docs/workflows/forseti_repo_map_v0.md`
-9. Any candidate unit's nearest owning decision, prompt, review, report, or product source before classifying that unit as PR-ready.
+8. `docs/decisions/forseti_rename_migration_policy_v0.md`
+9. `docs/workflows/forseti_repo_map_v0.md`
+10. Conditional migration indexes when a candidate path or diff touches the relevant legacy surface:
+    - `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` for `docs/product/` -> `orca/product/`.
+    - `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md` for `orca/product/` -> `forseti/product/`.
+    - `docs/migration/forseti_harness_runtime_migration_v0/moved_paths_index.md` for `orca-harness/` -> `forseti-harness/`.
+    - `docs/migration/forseti_ontology_filename_migration_v0/moved_paths_index.md` for ontology `orca_*` filename successors.
+11. Any candidate unit's nearest owning decision, prompt, review, report, or product source before classifying that unit as PR-ready.
 
 Declare `SOURCE_CONTEXT_READY` only after these reads plus the repo-state
 inventory below are complete. If any controlling source is missing, declare
@@ -169,6 +190,7 @@ git -C <path> status --short --branch
 git -C <path> rev-parse --short HEAD
 git -C <path> merge-base --is-ancestor HEAD origin/main
 git -C <path> diff --name-status origin/main...HEAD
+git -C <path> diff --name-status --find-renames=70% origin/main...HEAD
 git -C <path> status --porcelain=v1 --untracked-files=all
 ```
 
@@ -187,6 +209,34 @@ gh pr list --state all --limit 200 --json number,title,state,headRefName,baseRef
 
 Do not assume "no open PRs" means "no merged PRs" or "all local work is missing."
 
+## Migration-Aware Reconciliation
+
+Before classifying any unit as `ready_for_pr`, run the Forseti migration lens
+over its candidate paths and visible prose:
+
+1. Read `docs/decisions/forseti_rename_migration_policy_v0.md` and classify
+   legacy references by rename class: live authority/doctrine, current route,
+   current product/architecture, compatibility name, historical provenance, or
+   scratch/inbox.
+2. For any candidate path under `docs/product/`, `orca/product/`,
+   `orca-harness/`, `forseti/product/`, `forseti-harness/`, or ontology
+   `orca_*` filenames, resolve the path through the relevant moved-path index
+   before deciding it is absent from main.
+3. If the candidate is only an old path/name and the successor exists on
+   verified `origin/main` with equivalent content, classify it as
+   `already_on_main_or_closed` or `superseded_or_duplicate`. Do not open a PR.
+4. If the old path and successor both exist but differ materially, classify it
+   as `needs_source_reconciliation`, name the old/new path pair, and do not PR
+   either version until the owning source says which one should survive.
+5. Preserve historical provenance and explicit compatibility names by default.
+   Do not mass-rename old prompt/review bodies, dated DCP receipts,
+   `orca_start_preflight`, `orca_preflight_defaults_v0.md`, lowercase legacy
+   filenames, package/import names, or runtime compatibility identifiers unless
+   the candidate's owning source explicitly authorizes that compatibility batch.
+6. Treat a live authority/doctrine surface that still uses stale Orca language
+   as a narrow `needs_source_reconciliation` or `ready_for_pr` candidate only
+   after the rename policy says that surface belongs to the live rename class.
+
 ## Classification Schema
 
 Write the inventory report to:
@@ -203,6 +253,7 @@ branch:
 head:
 base_ref:
 candidate_paths:
+migration_reconciliation:
 topic:
 classification:
 reason:
@@ -218,12 +269,12 @@ Allowed classifications:
 
 - `ready_for_pr`: coherent, current, source-backed, validation path known, safe to isolate on a new branch from verified `origin/main`.
 - `needs_owner_decision`: likely useful but scope, ownership, or desired disposition is ambiguous.
-- `needs_source_reconciliation`: candidate conflicts with current source hierarchy, repo map, prompt policy, or product/doctrine state.
-- `superseded_or_duplicate`: already represented on main, in a merged/closed PR, or by a newer artifact.
+- `needs_source_reconciliation`: candidate conflicts with current source hierarchy, repo map, prompt policy, migration policy, moved-path indexes, or product/doctrine state.
+- `superseded_or_duplicate`: already represented on main, in a merged/closed PR, by a newer artifact, or by a Forseti migration successor.
 - `scratch_or_non_authoritative`: `_scratch`, `docs/_inbox`, temporary notes, generated experiments, or unowned parked material.
 - `unsafe_or_protected`: protected path, installed skill/plugin source, external root, secrets, credentials, destructive migration, or hard-to-reverse action.
 - `generated_data_excluded`: raw capture/data-lake/cache/build output that should not be PR'd without a separate data policy decision.
-- `already_on_main_or_closed`: verified present on current main or already landed through a closed/merged PR.
+- `already_on_main_or_closed`: verified present on current main, already landed through a closed/merged PR, or present at a migration successor path on verified main.
 
 ## PR Fanout Rules
 
@@ -260,6 +311,8 @@ Do not open PRs for:
 - `.git`, `worktrees/**` as a folder, `.codex/plugins/**`, installed global skills, plugin caches, or external roots.
 - Files whose authority would change product, architecture, workflow, validation, review, output, or lifecycle doctrine without an accepted doctrine-change route.
 - A branch/worktree whose diff is already on `origin/main` or a merged/closed PR.
+- Legacy Orca references or paths that are historical provenance, explicit
+  compatibility aliases, or already resolved by a Forseti moved-path index.
 
 ## Output Contract
 
@@ -280,6 +333,10 @@ inventory_counts:
   unsafe_or_protected:
   generated_data_excluded:
   already_on_main_or_closed:
+migration_reconciliation:
+  checked_indexes:
+  alias_only_or_already_migrated:
+  needs_source_reconciliation:
 prs_opened:
   - url:
     branch:
@@ -299,4 +356,6 @@ substitute a green-sounding closeout for a blocked or stale remote state.
 This commission does not prove the work is correct, current, merged, accepted,
 validated, legally cleared, or product-ready. It only classifies local missing
 work against verified main, opens bounded PRs where safe, and records evidence
-for anything left out.
+for anything left out. It does not complete or validate the Orca-to-Forseti
+migration; it only prevents migration aliases from being mistaken for PR-ready
+missing work.
