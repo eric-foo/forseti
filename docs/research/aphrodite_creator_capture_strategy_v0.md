@@ -326,6 +326,77 @@ some fingerprint oddities, while also increasing bandwidth, page weight, storage
 processing, and exposure to route-specific platform behavior. Do not claim that
 blocking assets or loading assets is categorically safer; measure the route.
 
+## IG Grid Spot Probe
+
+On 2026-07-07, a bounded live spot probe was run against two existing registry
+Instagram accounts from `creator_registry_index_v0.json`: `jeremyfragrance` and
+`milanscents`. This is a route-cost spot check, not a capacity ceiling,
+at-scale safety proof, or authorization for standing live capture.
+
+Probe command shape:
+
+```text
+run_source_capture_ig_reels_grid_packet.py
+  --handle <registry_handle>
+  --max-rows 12
+  --timeout-seconds 25
+  --settle-seconds 4
+  --output C:\tmp\aphrodite_ig_grid_probe_20260707\<handle>_default
+```
+
+The current runner default was used: one logged-out public `/<handle>/reels/`
+grid load, no hover, no click, no item-page fanout, no comment-thread capture,
+no transcript capture, and image/media/font requests blocked while scripts and
+JSON/XHR remained intact.
+
+| Handle | Elapsed | Grid rows | Passive JSON media candidates | Passive JSON responses | Observed metrics | Raw grid JSON bytes | Warnings |
+| --- | ---: | ---: | ---: | ---: | --- | ---: | --- |
+| `jeremyfragrance` | 8.27s | 12 | 30 | 5 | 12 view_count, 12 like_count, 12 comment_count | 1,016,252 | none |
+| `milanscents` | 5.93s | 12 | 24 | 5 | 12 view_count, 12 like_count, 12 comment_count | 1,071,495 | none |
+
+For Aphrodite, "cheap grid heartbeat" means this kind of route: known registry
+handle, bounded grid rows, no item/media/comment/transcript fanout, and
+source-visible metric extraction from DOM/passive JSON. This spot probe supports
+the claim that the current grid route can be lightweight in wall-clock and output
+size for two registry creators. It does not yet measure true browser request
+count, transfer bytes, block-onset rate, or safe daily volume.
+
+Do not derive green/yellow/red thresholds from old planning numbers. The next
+Aphrodite scale calculation should treat `2.5k creators over 12h` as a planning
+hypothesis and measure it by route:
+
+```text
+2,500 creators / 12h ~= 208 grid checks/hour
+```
+
+Owner-current planning shape: 2.5k total registry creators, a 12h daily window,
+mixed 2h/3h operating batches rather than one full-roster blast, and an initial
+10-20s per grid-check spacing hypothesis. The spot probe observed 5.93-8.27s
+runner elapsed with no added inter-check delay; that shows the current route can
+fit inside the timing envelope for two clean accounts, not that the timing is a
+safe daily ceiling.
+
+That is only plausible if the measured grid route remains close to this spot
+probe's shape. If the route changes to full media loading, item-page opens,
+comment capture, transcript capture, OCR, or same-handle loops, the cost class
+changes and the roster math must reset.
+
+Initial Aphrodite scale probes should step up from small batches rather than
+asserting a safe ceiling:
+
+```text
+N=2 route spot check
+-> N=25 same-shape grid batch
+-> N=100 same-shape grid batch
+-> N=500 split-window grid batch
+-> daily-roster rehearsal
+```
+
+Each step should record elapsed time, route warnings, block/redirect outcomes,
+raw output size, observed metric coverage, and if possible true request/transfer
+counts. Sub-2s behavior is not an operating band; treat it as prohibited and as
+a stop/failure condition for this posture.
+
 ## Silver And Registry Metric Update Rule
 
 Every accepted heartbeat should update the ongoing metric layer before Aphrodite
@@ -354,8 +425,9 @@ current view copies only accepted, lineage-backed fields.
 
 ## Strategy Calls
 
-1. Use daily grid heartbeat as the registry currentness layer once budget and
-   platform posture are accepted.
+1. Use daily grid heartbeat as the target registry currentness layer for
+   Aphrodite, but compute the roster size from measured route cost and stop
+   outcomes, not from inherited IG planning anchors.
 2. Use event-triggered promotion for ongoing first deep capture: spike or fresh
    breakout. Buyer relevance is a label/priority, not a hard pre-gate; active
    breakout is a metric-recheck trigger, not repeat deep capture by default.
@@ -374,9 +446,13 @@ current view copies only accepted, lineage-backed fields.
 
 These must be decided or measured before computing realistic roster size:
 
-- Whether Aphrodite accepts daily grid heartbeat as the target posture, replacing
-  the current more conservative IG C-tier heartbeat assumption for this vertical.
-- Measured request cost for one grid heartbeat per platform/account.
+- True request and transfer cost for one grid heartbeat per platform/account.
+  The 2026-07-07 IG spot probe measured elapsed time and output size, but not
+  true browser request count.
+- Step-up grid heartbeat probes for IG using the Aphrodite route shape:
+  N=25, N=100, N=500, then daily-roster rehearsal if clean.
+- Whether the 2.5k over 12h planning hypothesis holds on measured route cost,
+  block outcomes, and operator window shape.
 - Expected daily new-content rate per creator.
 - Expected promotion rate from grid heartbeat into deep capture.
 - Deep-capture cost per promoted item by platform and source surface.
@@ -406,7 +482,8 @@ rate, and explicit safety stop conditions.
 
 ## Non-Goals
 
-- no live capture authorization;
+- no standing live capture authorization beyond the bounded 2026-07-07 N=2 IG
+  grid spot probe recorded here;
 - no scheduler, daemon, crawler, or standing passive discovery authorization;
 - no proxy, account-rotation, or bot-detection evasion plan;
 - no final 2.5k-3k roster claim;
