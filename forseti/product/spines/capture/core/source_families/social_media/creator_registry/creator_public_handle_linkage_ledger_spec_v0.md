@@ -181,6 +181,19 @@ Strong evidence types:
 - `mutual_profile_link`
 - `official_link_hub`
 
+For seed-driven creator graphing, a public platform bio that links to an
+official public link hub, and that hub links to Instagram, YouTube, TikTok, or
+other public creator accounts, is `official_link_hub` evidence for candidate
+public-handle linkage. It may also create candidate platform-account rows for
+exact-match preflight. It does not by itself create a final creator record,
+person identity claim, metric rollup, outreach authorization, or registry
+mutation.
+
+Public bio text may carry region evidence when the text is source-visible, such
+as `NYC`. Store that as source-visible region text with the source pointer. Do
+not convert it into private demographic, legal identity, residence, or contact
+enrichment.
+
 Weak evidence types:
 
 - `handle_similarity`
