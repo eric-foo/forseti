@@ -25,7 +25,7 @@ The demographic + special-category predicates live with the router in
 ``cleaning/audience_extractor.py`` (they gate what reaches a record); this module
 owns only the Tier-1 vocabulary that survives that gate.
 
-Adoption: docs/decisions/orca_audience_ballot_taxonomy_v0.md.
+Adoption: docs/decisions/forseti_audience_ballot_taxonomy_v0.md.
 """
 
 from __future__ import annotations

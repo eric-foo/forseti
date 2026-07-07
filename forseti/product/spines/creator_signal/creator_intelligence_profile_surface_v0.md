@@ -5,7 +5,7 @@ retrieval_header_version: 1
 artifact_role: product_signal_surface_contract
 scope: >
   Product-facing surface contract for the one-stop creator intelligence profile:
-  how Orca operators or buyers may view observed public accounts or linked
+  how Forseti operators or buyers may view observed public accounts or linked
   creator/account clusters, aggregate influence, ideal/content-fit audience
   signal, freshness, limitations, and source drill-back over the Capture-owned
   creator_profile_current view.
@@ -21,7 +21,7 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
-  - docs/decisions/orca_audience_ballot_taxonomy_v0.md
+  - docs/decisions/forseti_audience_ballot_taxonomy_v0.md
 stale_if:
   - The Capture creator_profile_current view contract is superseded.
   - The public-handle identity ledger, metric rollup, or ideal-audience schema home changes.
@@ -38,7 +38,7 @@ creator rows, buyer proof, or runtime implementation.
 
 ## Product job
 
-The surface gives an Orca operator or buyer one current, source-backed profile
+The surface gives a Forseti operator or buyer one current, source-backed profile
 for an observed public account or creator/account cluster:
 
 ```text
