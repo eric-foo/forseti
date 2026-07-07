@@ -34,6 +34,32 @@ not identify any non-report unit that cleared all gates: current source loading,
 Forseti migration reconciliation, non-protected paths, non-scratch artifact role,
 no duplicate/open PR, and a coherent validation path.
 
+## Post-Review Adjudication
+
+Status update: this report is now a historical snapshot, not a current fanout
+basis. A later fetch observed `origin/main` at `555410e4`, which satisfies this
+artifact's own `stale_if` condition because the report was generated against
+`f0ce5b14`. Do not use this report to open new work PRs without a fresh rerun or
+a targeted reconciliation pass against current `origin/main`.
+
+A delegated review couriered back one major caveat and three minor caveats. The
+claimed durable review report path
+`docs/review-outputs/adversarial-artifact-reviews/missing_work_inventory_pr_fanout_report_adversarial_review_v0.md`
+was not present in the checked worktrees or root workspace, so the courier text is
+accepted only as review-return decision input, not as a verified durable report.
+
+Accepted caveat: `needs_source_reconciliation` is branch/ref-level triage, not
+per-file content verification. Its rows mean "do not PR automatically; reconcile
+first." They do not prove that every listed file still differs from current main.
+Large rows in this bucket are content-unverified until spot-checked with
+per-file or per-branch content comparison.
+
+Accepted residuals: `unsafe_or_protected` is intentionally conservative and may
+contain recoverable sub-units after decomposition; the zero-open-PR observation
+was read from GitHub state but is not a substitute for a future fresh read; and
+`nonresolving:` handoff markers are inventory-only annotations, not retrievable
+cold-lane packets.
+
 ## Observed State
 
 Generated: 2026-07-07T16:54:11+08:00
@@ -41,6 +67,7 @@ Generated: 2026-07-07T16:54:11+08:00
 | Observation | Value | Evidence |
 | --- | --- | --- |
 | verified origin/main | f0ce5b14 | after git fetch --prune --all and rebase |
+| post-review current origin/main | 555410e4 | later fetch after delegated-review return; makes this report stale for new fanout |
 | source workspace | codex/ig-reels-capture-spine @ 63694997 | dirty; inventory-only |
 | execution branch pre-write HEAD | codex/missing-work-inventory-execution @ 874edcd4 | rebased report lane before this report rewrite; final commit SHA is verified outside the report |
 | non-report open PRs at generation | 0 | none before creating this report PR |
@@ -107,6 +134,8 @@ No open PRs observed.
 `Ahead/diff` is `unique cherry-picked commits ahead of origin/main` / `changed
 paths in git diff origin/main...ref`. Remote refs are preferred over same-named
 local refs for classification because they are the reviewable PR head surface.
+`needs_source_reconciliation` is a content-unverified triage bucket, not a claim
+that every listed path still differs from current main.
 
 | Classification | Branch | Local | Remote | PR | Ahead/diff | Top changed paths | Disposition |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -458,13 +487,18 @@ successors; they are not automatic PR material without per-unit source loading.
 
 ## Recommended Next Bounded Units
 
-1. Treat the demand-read taxonomy migration as resolved on main unless a fresh
+1. Treat this report as stale for new PR fanout until rerun or reconciled against
+   current `origin/main`.
+2. Treat the demand-read taxonomy migration as resolved on main unless a fresh
    GitHub read says otherwise; do not reopen a duplicate branch for it.
-2. If owner wants a next PR, pick one root untracked durable artifact family,
+3. Before acting on large `needs_source_reconciliation` rows, run targeted
+   content verification rather than trusting the branch/ref triage label as
+   confirmed drift.
+4. If owner wants a next PR, pick one root untracked durable artifact family,
    load its owning source, and classify it as a standalone unit before editing.
-3. Treat `docs/prompts/product-planning/orca_spine_first_target_structure_controller_prompt_v0.md`
+5. Treat `docs/prompts/product-planning/orca_spine_first_target_structure_controller_prompt_v0.md`
    and `docs/workflows/**` as migration-sensitive first candidates only if the
    owner wants to continue the Forseti rename cleanup lane.
-4. Keep `_scratch/**`, `.tmp*`, `.codex/hooks/**`, and `worktrees/**` out of PR
+6. Keep `_scratch/**`, `.tmp*`, `.codex/hooks/**`, and `worktrees/**` out of PR
    fanout unless a separate owner-authorized lane explicitly promotes a specific
    file.
