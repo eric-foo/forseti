@@ -250,7 +250,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/validation-gates.md
     - .agents/workflow-overlay/review-lanes.md
     - .agents/workflow-overlay/delegated-review-patch.md
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     - docs/decisions/data_lake_capture_propagation_classification_contract_proposal_v0.md
     - docs/review-outputs/adversarial-artifact-reviews/data_lake_capture_propagation_classification_delegated_adversarial_review_patch_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md

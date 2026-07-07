@@ -22,7 +22,7 @@ open_next:
   - .agents/hooks/header_index.py
   - .agents/hooks/session_context_capsule.py
   - docs/workflows/repo_map_recent_changes/README.md
-  - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+  - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
   - docs/migration/orca_second_pass_consolidation_plan_v0.md
 stale_if:
   - A later owner decision amends the tiers, coverage invariant, generated inventory role, health-surface role, or promotion-on-touch boundary.
@@ -34,7 +34,7 @@ stale_if:
 
 Owner-invoked mini-god-tier (MGT) design, 2026-06-19 (this thread; owner said
 "make it the MGT" for the repo-map structure). Per
-`docs/decisions/orca_mini_god_tier_doctrine_v0.md` this is a **design lens, not a
+`docs/decisions/forseti_mini_god_tier_doctrine_v0.md` this is a **design lens, not a
 claim tier** — it asserts no validation or readiness, and its mandatory
 named-limitations list is below.
 

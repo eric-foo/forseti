@@ -166,7 +166,7 @@ scoring, but not a commission signal-board schema, runner, or output contract.
 Owner direction sets a **mini god tier** bar for the future commission signal
 board. Under Forseti's mini-god-tier doctrine, that is a capability-target lens
 with mandatory visible limitations, not a validation, readiness, proof, or scope
-expansion claim (`docs/decisions/orca_mini_god_tier_doctrine_v0.md`).
+expansion claim (`docs/decisions/forseti_mini_god_tier_doctrine_v0.md`).
 
 For this board, mini god tier means: most of the value of a heavier signal
 intelligence and graph-prep system, at prompt-first/manual-first speed and cost.

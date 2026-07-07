@@ -36,7 +36,7 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 | Doctrine | Trigger | Full statement |
 | --- | --- | --- |
 | Smallest Complete Intervention Doctrine | "smallest complete X" | AGENTS.md (self-contained) |
-| Mini God Tier Doctrine | "mini god tier" / "god tier but small" | docs/decisions/orca_mini_god_tier_doctrine_v0.md |
+| Mini God Tier Doctrine | "mini god tier" / "god tier but small" | docs/decisions/forseti_mini_god_tier_doctrine_v0.md |
 
 ## Overlay-bound doctrine (`.agents/workflow-overlay/` — authority files; read per AGENTS.md before project work)
 
@@ -62,7 +62,7 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 
 | Doctrine | File | Status |
 | --- | --- | --- |
-| Mini God Tier Doctrine (record; kernel trigger above) | orca_mini_god_tier_doctrine_v0.md | OWNER-ADOPTED 2026-06-11 |
+| Mini God Tier Doctrine (record; kernel trigger above) | forseti_mini_god_tier_doctrine_v0.md | OWNER-ADOPTED 2026-06-11 |
 | Artifact Folders Doctrine — decision layer (subset) | orca_repo_structure_binding_v0.md | OWNER-AUTHORIZED v0 |
 | Distillation Doctrine — adoption index + spine bindings | distillation_doctrine_orca_spine_bindings_v0.md | PREPARE-ONLY |
 | Distillation Doctrine subset — enforcement-placement classification | overlay_enforcement_placement_classification_v0.md | PREPARE-ONLY (EP-01/03/06 substrates built) |

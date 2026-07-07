@@ -127,7 +127,7 @@ direction_change_propagation:
     - workflow_authority
     - output_authority
   controlling_sources_updated:
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - CLAUDE.md
@@ -175,7 +175,7 @@ direction_change_propagation:
   stale_language_search: >
     rg -n "80/20|90-95|90%|95%|fraction of its cost|cheap or obvious|Mini God Tier|mini god tier|Mini God-Tier"
     AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
-    docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
     orca/product/spines/capture/core/source_capture_toolbox/README.md
   stale_language_search_result: >
@@ -207,7 +207,7 @@ direction_change_propagation:
     - output_authority
   controlling_sources_updated:
     - AGENTS.md
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
   downstream_surfaces_checked:
     - CLAUDE.md
     - .agents/workflow-overlay/README.md
@@ -252,7 +252,7 @@ direction_change_propagation:
   stale_language_search: >
     rg -n "mini god tier|Mini God Tier|Mini God-Tier|visible limitations|accepted residual|source_quality_mini_god_tier"
     AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
-    docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
     orca/product/spines/capture/core/source_capture_toolbox/README.md
   stale_language_search_result: >

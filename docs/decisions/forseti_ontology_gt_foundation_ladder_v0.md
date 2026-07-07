@@ -19,7 +19,7 @@ open_next:
   - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
   - forseti/product/spines/foundation/ontology/ontology.yaml
   - forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json
-  - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+  - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
 stale_if:
   - The owner amends the GT direction or the ladder.
   - A rung's build-trigger fires or a rung is built (update its status, dated).
@@ -130,7 +130,7 @@ direction_change_propagation:
   downstream_surfaces_checked:
     - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md   # the ladder governs the infra roadmap over the backbone's object model; no backbone change
     - forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json           # sibling deferred-TYPE tracker; this ladder tracks infra RUNGS, not types; no overlap edited
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md                                          # MGT lens applied here; not amended
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md                                          # MGT lens applied here; not amended
   intentionally_not_updated:
     - path: forseti/product/spines/foundation/ontology/ontology.yaml
       reason: >

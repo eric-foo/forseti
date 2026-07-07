@@ -608,7 +608,7 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
 This contract deliberately stops short of maximal infrastructure.
 
 Each residual names the foregone slice, why it is acceptable now, the remaining
-risk, and the upgrade trigger (per `docs/decisions/orca_mini_god_tier_doctrine_v0.md`):
+risk, and the upgrade trigger (per `docs/decisions/forseti_mini_god_tier_doctrine_v0.md`):
 
 - **No graph/vector engine in v0.** By-key discovery plus SQL query tables prove
   the foundation without engine/maintenance burden. Risk: relationship-heavy or

@@ -14,7 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
-  - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+  - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
@@ -216,7 +216,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/retrieval-metadata.md
     - .agents/workflow-overlay/validation-gates.md
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
@@ -246,7 +246,7 @@ direction_change_propagation:
         This declaration names those residuals without settling them.
   stale_language_search: >
     rg -n "Bronze.*God Tier|full God Tier|BRONZE_MGT_BASELINE|bronze_mgt_baseline|AR-MGT-90"
-    AGENTS.md .agents docs/workflows/orca_repo_map_v0.md docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    AGENTS.md .agents docs/workflows/orca_repo_map_v0.md docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     forseti/product/spines/data_lake orca-harness/data_lake orca-harness/tests/test_data_lake_catalog.py
   non_claims:
     - not validation

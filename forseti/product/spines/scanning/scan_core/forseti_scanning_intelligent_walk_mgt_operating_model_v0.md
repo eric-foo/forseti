@@ -25,7 +25,7 @@ use_when:
   - Normalizing source-family lane outputs into shared scanning vocabulary and capture-request handoffs.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+  - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
   - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
   - docs/decisions/orca_venue_registry_rejection_decision_v0.md
   - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md

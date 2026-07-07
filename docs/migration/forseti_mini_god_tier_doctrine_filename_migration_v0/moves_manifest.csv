@@ -1,0 +1,2 @@
+old_path,new_path,tracking,move_class,batch
+docs/decisions/orca_mini_god_tier_doctrine_v0.md,docs/decisions/forseti_mini_god_tier_doctrine_v0.md,tracked,mini_god_tier_doctrine_filename_successor,forseti_mini_god_tier_doctrine_filename_migration_v0
