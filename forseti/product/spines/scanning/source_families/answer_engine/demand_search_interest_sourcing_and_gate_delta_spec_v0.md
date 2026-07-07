@@ -24,8 +24,8 @@ open_next:
   - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md                       # CONSUME — temporal regimes, cold-start, comparability
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md         # CONSUME — capture envelope of record / obligations
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                                            # the live Demand-Substrate Hard Gate (G1 cards, AR-04, floor/ceiling, defeater)
-  - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md                                           # candidate-observation schema (venue_family/gate_family/costly_behavior enums)
-  - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md                      # AR-04 unsourced-gap classification
+  - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md                                           # candidate-observation schema (venue_family/gate_family/costly_behavior enums)
+  - forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md                      # AR-04 unsourced-gap classification
   - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                                          # search-interest read type (read-grammar basis)
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md                 # access/ToS posture (capture-spine-owned)
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md                                          # wedge target (currently "US indie/DTC beauty or personal-care"; fragrance is a narrowing — see §2)
@@ -272,7 +272,7 @@ reviewer, run against the v0 zip), home-model adjudicated 2026-06-17: **all 10 f
 accepted** (2 critical, 6 major, 2 minor) plus the smallest-complete reshape and the
 mini-god-tier limitations list (§14). Key folds: query-set **taint rule** (C1); the
 **AEO-not-gate-recordable** dependency, verified against the scan schema's
-`gate_family` enum at `orca_demand_scan_core_spec_v0.md:340-343` (C2); **non-origin
+`gate_family` enum at `forseti_demand_scan_core_spec_v0.md:340-343` (C2); **non-origin
 visibility corroboration** relabel (M1); §6 demoted from capture-profile to
 source-selection (M2); Phase-0 self-authorization + GO criteria (M3); "source classes,
 not sourcing" honesty (M4); floor guard (M5); ledger + fragrance-pending-pin (M6);

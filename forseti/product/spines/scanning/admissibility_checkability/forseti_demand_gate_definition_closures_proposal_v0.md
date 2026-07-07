@@ -1,4 +1,4 @@
-# Orca Demand-Gate Definition Closures — APPLIED v0
+# Forseti Demand-Gate Definition Closures — APPLIED v0
 
 ```yaml
 retrieval_header_version: 1

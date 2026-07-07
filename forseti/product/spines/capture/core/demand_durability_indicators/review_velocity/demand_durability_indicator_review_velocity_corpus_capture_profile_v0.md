@@ -19,7 +19,7 @@ open_next:
   - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema)
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract §12 (review surfaces rule)
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                        # INV-1, Demand-Substrate Hard Gate, costly-behavior, integrity labels
-  - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
+  - forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
   - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md  # RQ-05 source-language-anchor status
 stale_if:
   - The Lane 1 envelope-delta spec (capture_envelope_durability_delta_spec_v0.md) is amended or superseded.
@@ -91,7 +91,7 @@ corresponding sections; this profile then becomes stale for those sections and
 §12 controls.
 
 **AR-04 deconfliction:** Review surfaces are classified in
-`forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md`
+`forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md`
 (AR-04) as **G1 unsourced demand-family gap** — owner-owned, not yet sourced.
 This profile is CONDITIONAL ON SOURCING; see below.
 
@@ -100,7 +100,7 @@ This profile is CONDITIONAL ON SOURCING; see below.
 ## Conditional-On-Sourcing Statement
 
 **Review-surface (Venue) sourcing is an UNSOURCED GAP (AR-04).** Per
-`forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md`,
+`forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md`,
 review surfaces are a G1 demand-family card that is currently unsourced — the
 sourcing route, vendor, API, or access method has not been authorized by the
 owner for Orca capture use.
@@ -379,7 +379,7 @@ lifecycle_verification:
     - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema, cited)
     - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract §12 (cite-and-extend)
     - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                        # INV-1, Hard Gate, integrity labels (consumed)
-    - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
+    - forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
     - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md  # RQ-05 carry_forward (cite-and-extend)
     - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)
   inv1_preserved: yes — observables+flag only; no credibility/integrity verdict; farm-detection is downstream Judgment

@@ -16,7 +16,7 @@ open_next:
   - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
   - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   - .agents/workflow-overlay/prompt-orchestration.md
-  - forseti/product/spines/scanning/admissibility_checkability/orca_demand_scan_gate_adjudication_packet_v0.md
+  - forseti/product/spines/scanning/admissibility_checkability/forseti_demand_scan_gate_adjudication_packet_v0.md
   - forseti/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
 stale_if:
@@ -125,7 +125,7 @@ historical/context artifacts. Under this correction, their gate language should
 not be copied into the commission object. Any future durable prompt should
 separate signal-board generation from demand classification
 (`docs/product/product_lead/orca_demand_gate_run_commission_criteria_v0.md`,
-`docs/product/product_lead/orca_demand_scan_gate_adjudication_packet_v0.md`).
+`forseti/product/spines/scanning/admissibility_checkability/forseti_demand_scan_gate_adjudication_packet_v0.md`).
 
 Data Capture doctrine already treats source-family adaptation as satellite
 work: source-family feasibility, blind spots, capture-fidelity heuristics,
