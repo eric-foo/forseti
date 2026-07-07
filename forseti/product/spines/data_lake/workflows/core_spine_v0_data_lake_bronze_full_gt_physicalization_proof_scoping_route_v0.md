@@ -34,7 +34,7 @@ implementation, implementation authorization, validation, readiness, review,
 serialization (A2) selection, backend selection, or a Bronze full-GT claim.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom proof-scope pack (both ratified gate ADRs, folded AR/storage/physicality contracts, raw-admission contract, next-material-decisions A1/A2 definitions, harness surfaces listed in the source-read ledger)

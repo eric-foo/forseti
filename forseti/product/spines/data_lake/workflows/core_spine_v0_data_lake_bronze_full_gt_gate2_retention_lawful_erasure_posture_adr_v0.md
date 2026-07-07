@@ -35,7 +35,7 @@ not backend selection, not implementation authorization, not validation,
 readiness, or a Bronze full-GT claim.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom gate2 pack (brief + storage + physicality contracts, read in full)
@@ -191,6 +191,8 @@ direction_change_propagation:
     - not implementation authorization
     - not validation, readiness, or Bronze full GT
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-Claims
 

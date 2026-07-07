@@ -31,7 +31,7 @@ pending. Not production-lake validation, backend selection (Gate 2 T3),
 retention semantics, readiness, or a Bronze full-GT claim.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: Lane A pack (ratified A2 ADR + folded contracts + catalog.py internals + proof gate)

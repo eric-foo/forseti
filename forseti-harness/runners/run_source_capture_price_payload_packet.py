@@ -633,7 +633,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--decision-question",
                    default="OpenAI ChatGPT consumer pricing tiers + amounts + effective date")
     p.add_argument("--capture-context",
-                   default="Orca pricing-wedge proof case C; rung-1.5 payload-extraction sub-lane")
+                   default="Forseti pricing-wedge proof case C; rung-1.5 payload-extraction sub-lane")
     p.add_argument("--operator-category", default="rung15_price_payload_cli_operator")
     p.add_argument("--session-id", default=None)
     p.add_argument("--timeout-seconds", type=float, default=25.0)

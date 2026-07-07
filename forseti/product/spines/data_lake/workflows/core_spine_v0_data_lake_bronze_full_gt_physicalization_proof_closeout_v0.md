@@ -31,7 +31,7 @@ delegated review pending. Not validation of a production lake, not all-source
 coverage, not A2/backend selection, not readiness, not a Bronze full-GT claim.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: proof-scope pack (scoping route + both gate ADRs + folded contracts + harness surfaces; spec + micro-decision lock in-lane)
@@ -173,6 +173,8 @@ direction_change_propagation:
     - not A2, backend, or serialization selection
     - not readiness or a Bronze full-GT claim
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-Claims
 
