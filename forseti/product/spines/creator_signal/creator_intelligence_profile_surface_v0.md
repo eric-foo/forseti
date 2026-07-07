@@ -15,7 +15,7 @@ use_when:
   - Checking whether a proposed creator profile claim is allowed or must be withheld.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
+  - docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md

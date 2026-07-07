@@ -14,7 +14,7 @@ use_when:
   - Distinguishing product interpretation from Capture identity, metrics, audience inference, storage, and runtime work.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
+  - docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md
   - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
 stale_if:
@@ -42,7 +42,7 @@ It consumes the low-level Capture current view; it does not replace it.
   contact enrichment, lead lists, public directories, or dashboard runtime code.
 
 Binding authority:
-`docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md`.
+`docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md`.
 
 ## Current artifacts
 

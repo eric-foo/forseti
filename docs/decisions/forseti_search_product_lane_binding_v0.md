@@ -1,10 +1,10 @@
-# Orca Search Product Lane Binding v0
+# Forseti Search Product Lane Binding v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca decision record
+artifact_role: Forseti decision record
 scope: >
-  Binds `search/` as a docs/product/ lane: Orca's search / answer-engine
+  Binds `search/` as a docs/product/ lane: Forseti's search / answer-engine
   surfaces PLUS the demand-signal discovery method (scan, read-grammar, gates)
   those surfaces feed. Holds the lane inclusion test + precedence rule and
   references the migration package that physically co-locates the member docs.
@@ -24,7 +24,7 @@ open_next:
   - docs/product/search/README.md # nonresolving: retired without successor; resolve via docs/migration/repo_structure_spine_first_v0/moved_paths_index.md
 stale_if:
   - repo-structure.yaml and this record disagree on the search lane or its status.
-  - A later accepted Orca decision supersedes the lane, its inclusion test, or its precedence rule.
+  - A later accepted Forseti decision supersedes the lane, its inclusion test, or its precedence rule.
 ```
 
 ## Status

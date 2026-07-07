@@ -23,7 +23,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
   - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
-  - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
+  - docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md
   - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
 stale_if:
   - The charter's pre-build gate 1 (Section 7) is amended or superseded.
@@ -146,7 +146,7 @@ direction_change_propagation:
     - forseti/product/spines/creator_signal/README.md                          # index row
   downstream_surfaces_checked:
     - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # Signal claim layer is the parent concept this extends; consistent, not amended
-    - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md              # claim-language ownership is Creator Signal's; this stays inside owns/does_not_own
+    - docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md              # claim-language ownership is Creator Signal's; this stays inside owns/does_not_own
     - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md # surface contract's claim-display rules are consistent; derived claims join the same discipline
   intentionally_not_updated:
     - path: forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md

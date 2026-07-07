@@ -112,7 +112,7 @@ docs/_inbox/).
 - `docs/product/` second-level axis: by lane. Bound lanes: `core_spine/`,
   `data_capture_spine/`, `judgment_spine/`, `signal_content/`, `ecr/`,
   `product_lead/`, plus the `search/` topic lane added by
-  `docs/decisions/orca_search_product_lane_binding_v0.md` (a deliberate topic
+  `docs/decisions/forseti_search_product_lane_binding_v0.md` (a deliberate topic
   vertical beside the function lanes; see that record for the inclusion test and
   the invariant-#1 note). Existing bound subfolders (e.g.
   `source_capture_toolbox/`) are unchanged. Files matching no lane may remain at `docs/product/` root

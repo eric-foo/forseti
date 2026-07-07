@@ -22,7 +22,7 @@ open_next:
   - docs/migration/spine_first_target_move_table_v0.md
   - docs/migration/spine_first_untagged_file_inventory_v0.md
   - docs/decisions/forseti_repo_structure_binding_v0.md
-  - docs/decisions/orca_search_product_lane_binding_v0.md
+  - docs/decisions/forseti_search_product_lane_binding_v0.md
 supersedes: []
 stale_if:
   - The owner changes the accepted target tree.
@@ -69,7 +69,7 @@ JSON only with a paired hook-path update. It does not execute the migration.
 Post-execution amendment (2026-06-18): the spine-first migration executed (#255),
 so this record is now the historical target. One correction since: the Data Lake
 is promoted to its own shared-foundation spine `orca/product/spines/data_lake/` by
-`docs/decisions/orca_data_lake_spine_promotion_binding_v0.md`, which **supersedes
+`docs/decisions/forseti_data_lake_spine_promotion_binding_v0.md`, which **supersedes
 the `shared/data_lake_mechanics/` entry** in the Accepted target tree below — the
 mechanics map's bound home becomes `data_lake/workflows/` and the lake contracts
 are `data_lake/authority/`-owned. Content relocation is a separate later move pass;
@@ -87,7 +87,7 @@ authorization.
 
 Post-execution Creator Signal amendment (2026-06-28):
 `orca/product/spines/creator_signal/` is promoted as a product_signal spine by
-`docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md`. It owns the
+`docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md`. It owns the
 product-facing creator-intelligence surface over the Capture-owned
 `creator_profile_current` view. It does not own identity linkage rows, metric
 rollup computation, ideal-audience inference schemas, storage, runtime, capture,
@@ -327,7 +327,7 @@ declared dependency hop to the Toolbox; the dependency is explicit, not a merge.
 
 The spine-first target **has no `search/` lane**. The demand-signal intelligence
 (search-led) lane bound by
-`docs/decisions/orca_search_product_lane_binding_v0.md` (#236/#241)
+`docs/decisions/forseti_search_product_lane_binding_v0.md` (#236/#241)
 **dissolves by spine function**:
 
 - the demand-read **taxonomy/grammar** -> `foundation/demand_read_taxonomy/`;
@@ -376,7 +376,7 @@ When a separately authorized execution pass runs, it must amend:
   lane-axis bullet with the `orca/product/` spine axis; add `docs/doctrine/`.
 - **`docs/decisions/forseti_repo_structure_binding_v0.md`** — the `docs/product/`
   by-lane parameter is superseded by the `orca/product/` spine axis bound here.
-- **`docs/decisions/orca_search_product_lane_binding_v0.md`** — its `search/`
+- **`docs/decisions/forseti_search_product_lane_binding_v0.md`** — its `search/`
   physical home and topic-primacy precedence are superseded by the
   search-dissolution policy above (authority of the method docs preserved).
 - **`docs/workflows/orca_repo_map_v0.md`**, the consolidation maps, and the ECR /
@@ -400,7 +400,7 @@ these items.
   `check_placement.py` would flag it unplaced. Execution is blocked until the
   machine map authorizes the `orca/` root.
 - **B2 — search-lane physical reversal.** The search-dissolution policy reverses
-  `orca_search_product_lane_binding_v0.md` placement days after it landed; needs
+  `forseti_search_product_lane_binding_v0.md` placement days after it landed; needs
   explicit owner confirmation before execution.
 - **B3 — `docs/doctrine/` boundary undefined.** The target adds `docs/doctrine/`
   while keeping `docs/decisions/` (and the doctrine **index** already lives at
@@ -516,7 +516,7 @@ direction_change_propagation:
     - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
   downstream_surfaces_checked:
     - docs/decisions/forseti_repo_structure_binding_v0.md
-    - docs/decisions/orca_search_product_lane_binding_v0.md
+    - docs/decisions/forseti_search_product_lane_binding_v0.md
     - repo-structure.yaml
     - .agents/workflow-overlay/artifact-folders.md
     - docs/workflows/orca_repo_map_v0.md
@@ -537,7 +537,7 @@ direction_change_propagation:
       reason: >
         Its docs/product by-lane parameter remains the live rule until execution;
         superseded only when the move applies.
-    - path: docs/decisions/orca_search_product_lane_binding_v0.md
+    - path: docs/decisions/forseti_search_product_lane_binding_v0.md
       reason: >
         Its search/ home governs current placement; the dissolution supersedes it
         only at execution and preserves the method docs' venue-spanning authority

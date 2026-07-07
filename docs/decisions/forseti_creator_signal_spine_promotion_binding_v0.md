@@ -1,10 +1,10 @@
-# Orca Creator Signal Spine Promotion Binding v0
+# Forseti Creator Signal Spine Promotion Binding v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca decision record
+artifact_role: Forseti decision record
 scope: >
-  Binds orca/product/spines/creator_signal/ as an accepted product_signal spine.
+  Binds forseti/product/spines/creator_signal/ as an accepted product_signal spine.
   This is a spine promotion and boundary binding for the creator-intelligence
   product surface; it does not move Capture contracts, create runtime storage,
   build a dashboard, or authorize live capture/outreach.
@@ -14,10 +14,10 @@ use_when:
   - Authoring or changing the creator intelligence profile surface.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/creator_signal/README.md
-  - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
+  - forseti/product/spines/creator_signal/README.md
+  - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
   - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - .agents/workflow-overlay/artifact-folders.md
 supersedes: []
 stale_if:
@@ -38,7 +38,7 @@ contact enrichment, outreach, or a public creator directory.
 
 ## Decision
 
-`orca/product/spines/creator_signal/` is an accepted **product_signal spine** under
+`forseti/product/spines/creator_signal/` is an accepted **product_signal spine** under
 `orca/product/spines/`.
 
 It earns a high-level home because the owner wants an Orca-facing and
@@ -52,7 +52,7 @@ turn the low-level identity ledger into one giant ledger.
 ```yaml
 name: creator_signal
 spine_kind: product_signal
-root: orca/product/spines/creator_signal/
+root: forseti/product/spines/creator_signal/
 consumes:
   - capture creator_profile_current view
   - capture public-handle identity linkage
@@ -83,7 +83,7 @@ does_not_own:
 The first accepted shape is intentionally small:
 
 ```text
-orca/product/spines/creator_signal/
+forseti/product/spines/creator_signal/
   README.md
   creator_intelligence_profile_surface_v0.md
 ```
@@ -141,13 +141,13 @@ direction_change_propagation:
     - workflow_authority
     - lifecycle_boundary
   controlling_sources_updated:
-    - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
+    - docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md
     - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
     - .agents/workflow-overlay/artifact-folders.md
     - orca/product/README.md
-    - orca/product/spines/creator_signal/README.md
-    - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+    - forseti/product/spines/creator_signal/README.md
+    - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
     - docs/workflows/orca_repo_map_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
   downstream_surfaces_checked:
@@ -156,8 +156,8 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/artifact-folders.md
     - docs/review-inputs/creator_signal_spine_pre_ratification_review_input_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
-    - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
     - docs/decisions/orca_audience_ballot_taxonomy_v0.md
   intentionally_not_updated:
     - path: repo-structure.yaml
@@ -170,7 +170,7 @@ direction_change_propagation:
         This is a docs/product promotion and surface-boundary pass only. It
         authorizes no runtime schema, validator expansion, dashboard, data-lake
         job, source access, or tests.
-    - path: orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+    - path: forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
       reason: >
         Identity linkage ownership remains unchanged. The high-level surface
         consumes identity rows but does not add metric, audience, contact, or

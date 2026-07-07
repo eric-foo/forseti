@@ -21,7 +21,7 @@ open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
   - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_lake_owner_explainer_v0.md
-  - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
+  - docs/decisions/forseti_data_lake_spine_promotion_binding_v0.md
   - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
 stale_if:
   - The Bronze MGT baseline declaration is amended or superseded.
@@ -57,7 +57,7 @@ layer.
   queue / retry / scheduling / lane orchestration.
 
 The binding authority is
-`docs/decisions/orca_data_lake_spine_promotion_binding_v0.md`.
+`docs/decisions/forseti_data_lake_spine_promotion_binding_v0.md`.
 
 Current Bronze capability status is recorded in
 `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md`:

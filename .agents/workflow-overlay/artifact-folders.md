@@ -28,7 +28,7 @@ authority_boundary: retrieval_only
 - `docs/review-outputs/adversarial-artifact-reviews/`: adversarial artifact review reports.
 - `docs/workflows/`: workflow records, repo maps, validation notes, and operational records owned by Forseti.
 - `docs/migration/`: migration and import queue records.
-- `forseti/product/` (repo root): the **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/forseti_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/forseti_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `creator_signal/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`, `data_lake/`), `satellites/`, `case_families/`, `shared/`. `creator_signal/` is a product-signal spine promotion-bound 2026-06-28 by `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md` for product-facing creator intelligence surfaces over Capture-owned creator records. `data_lake/` is a shared-foundation spine promotion-bound 2026-06-18 by `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` (R2 landed the contracts + mechanics into authority/+workflows/ and retired shared/data_lake_mechanics/; the 2 #239 repo-structure planning docs stay in `docs/migration/` as migration records). Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `forseti/` as a declared top-level area via `repo-structure.yaml`. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
+- `forseti/product/` (repo root): the **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/forseti_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/forseti_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `creator_signal/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`, `data_lake/`), `satellites/`, `case_families/`, `shared/`. `creator_signal/` is a product-signal spine promotion-bound 2026-06-28 by `docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md` for product-facing creator intelligence surfaces over Capture-owned creator records. `data_lake/` is a shared-foundation spine promotion-bound 2026-06-18 by `docs/decisions/forseti_data_lake_spine_promotion_binding_v0.md` (R2 landed the contracts + mechanics into authority/+workflows/ and retired shared/data_lake_mechanics/; the 2 #239 repo-structure planning docs stay in `docs/migration/` as migration records). Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `forseti/` as a declared top-level area via `repo-structure.yaml`. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
 - `repo-structure.yaml` (repo root): the machine structure map - router only, consumed by `.agents/hooks/check_placement.py` and agents for navigation. It declares homes and never states rules; this overlay file remains the placement authority and wins on conflict.
 - `docs/research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, and reject-pattern maps that support Forseti product or proof work without becoming product authority by default.
 - `docs/research/judgment-spine/harness/v0_14/smoke_tests/`: Judgment Harness v0.14 no-case smoke-test receipts and operator provenance records. Artifacts in this folder are plumbing evidence only and do not become real-case probe, validation, fixture-admission, product-proof, or judgment-quality evidence by location.
@@ -145,7 +145,7 @@ direction_change_propagation:
     Orca adds docs/product/search/ as a bound topic lane - the demand-signal
     intelligence (search-led) vertical: search / answer-engine surfaces PLUS the
     demand-signal discovery method (scan core, read taxonomy, demand gates) they
-    feed - bound by docs/decisions/orca_search_product_lane_binding_v0.md
+    feed - bound by docs/decisions/forseti_search_product_lane_binding_v0.md
     (inclusion test + precedence rule). 10 member docs are physically co-located
     via the migration package, applied on the lane branch. The demand-signal
     method docs are search-led but venue-spanning (consumed across
@@ -155,7 +155,7 @@ direction_change_propagation:
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
-    - docs/decisions/orca_search_product_lane_binding_v0.md   # lane binding + inclusion test + precedence rule (expanded to demand-signal method)
+    - docs/decisions/forseti_search_product_lane_binding_v0.md   # lane binding + inclusion test + precedence rule (expanded to demand-signal method)
     - docs/decisions/forseti_repo_structure_binding_v0.md        # bound-lanes bullet notes search/
     - repo-structure.yaml                                     # product_lanes += { search } (current once applied)
     - .agents/workflow-overlay/artifact-folders.md            # search accepted-folder entry + lane-subfolder list + this receipt
@@ -217,7 +217,7 @@ direction_change_propagation:
     - repo-structure.yaml
     - .agents/workflow-overlay/artifact-folders.md
     - docs/decisions/forseti_repo_structure_binding_v0.md
-    - docs/decisions/orca_search_product_lane_binding_v0.md
+    - docs/decisions/forseti_search_product_lane_binding_v0.md
   downstream_surfaces_checked:
     - docs/workflows/orca_repo_map_v0.md
     - .agents/hooks/check_placement.py
@@ -278,7 +278,7 @@ direction_change_propagation:
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
     - docs/decisions/forseti_repo_structure_binding_v0.md
-    - docs/decisions/orca_search_product_lane_binding_v0.md
+    - docs/decisions/forseti_search_product_lane_binding_v0.md
     - .agents/hooks/check_placement.py
     - .agents/hooks/check_map_links.py
   intentionally_not_updated:
@@ -361,7 +361,7 @@ direction_change_propagation:
     - workflow_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/artifact-folders.md
-    - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
+    - docs/decisions/forseti_data_lake_spine_promotion_binding_v0.md
     - forseti/product/spines/data_lake/README.md
     - docs/workflows/orca_repo_map_v0.md
     - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
@@ -405,7 +405,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - docs/workflows/orca_repo_map_v0.md
     - forseti/product/spines/data_lake/README.md
-    - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
+    - docs/decisions/forseti_data_lake_spine_promotion_binding_v0.md
     - docs/migration/repo_structure_data_lake_r2_v0/moved_paths_index.md
     - .agents/workflow-overlay/artifact-folders.md
   intentionally_not_updated:
