@@ -397,6 +397,38 @@ Interpretation:
   bounded lazy-load scroll passes, or browser backend selection. CloakBrowser
   row-shape testing needs a diagnostic path that exposes those controls.
 
+### Pre-DOM Formatting Matrix
+
+A 2026-07-08 follow-up matrix tested whether pre-DOM scroll/zoom formatting
+could load or expose more IG grid rows. The route still used one public
+`/milanscents/reels/` grid page, no item pages, no comments, no transcripts,
+20s gaps, `settle_seconds=4`, `maxRows=80`, and the candidate asset posture
+`block media+font, allow images`. All five runs completed without visible block
+markers.
+
+| Variant | Elapsed | Post-load formatting | Total media anchors | Visible media anchors | Selected JSON responses |
+| --- | ---: | --- | ---: | ---: | ---: |
+| baseline | 7.885s | none | 12 | 12 | 5 |
+| scroll 900px | 7.007s | `window.scrollTo(0, 900)` + 2s wait | 12 | 12 | 5 |
+| scroll bottom | 7.126s | `window.scrollTo(0, document.body.scrollHeight)` + 2s wait | 12 | 12 | 5 |
+| zoom 0.67 + scroll bottom | 7.562s | CSS zoom then bottom scroll | 12 | 12 | 5 |
+| zoom 0.50 + scroll bottom | 7.533s | CSS zoom then bottom scroll | 12 | 12 | 5 |
+
+Interpretation:
+
+- The 12-row ceiling is now observed as `totalMediaAnchors=12`, not merely a
+  viewport visibility limit.
+- Scroll-only formatting did not move the page because the non-zoomed document
+  height equaled the viewport height. Zoom changed geometry and document height
+  but still did not create additional media anchors.
+- Do not spend more planning confidence on viewport-only tuning. The next row
+  count lever is source-legible pagination/load-more behavior, a stable IG JSON
+  continuation route if available, or a runner change that explicitly performs
+  and measures a load-more path before DOM extraction.
+- Settlement tuning should not become manual operator work. If N=25 validates a
+  shorter settle window, pin it in the runner or route profile rather than asking
+  the operator to change it per capture.
+
 Do not derive green/yellow/red thresholds from old planning numbers. The next
 Aphrodite scale calculation should treat `2.5k creators over 12h` as a planning
 hypothesis and measure it by route:
