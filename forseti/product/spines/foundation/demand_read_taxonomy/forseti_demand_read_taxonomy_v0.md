@@ -20,7 +20,7 @@ open_next:
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md         # wedge (beauty operator first door)
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md           # Demand-Substrate Hard Gate
   - forseti/product/satellites/beauty/beauty_venue_card_set_v0.md               # venue discovery layer; card 11 = wind-caller exemplar
-  - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md   # consumes this grammar for authorized scans
+  - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md   # consumes this grammar for authorized scans
   - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md  # consumes this grammar for verdict/action-ceiling judgment
 stale_if:
   - The owner adjudicates (adopt / amend / reject) — fold the word in as a dated amendment.

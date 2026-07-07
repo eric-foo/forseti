@@ -245,7 +245,7 @@ orca/product/
 | --- | --- | --- |
 | #1 source-family phase separation | **accepted, verified; amended for Capture core** | `scanning/source_families/` and `capture/core/source_families/` are intentionally distinct phases; their member sets differ (LinkedIn is scanning-only; retail_pdp is capture-only). Social capture families group under `capture/core/source_families/social_media/`. README/cross-pointer required. |
 | #2 capture owns `demand_durability_indicators/`; judgment owns `demand_read/grading/` | **accepted, verified; amended for Capture core** | The four capture indicator profiles stay capture-owned under `capture/core/demand_durability_indicators/`; the demand-read grading rubric is judgment-owned. |
-| #3 rename `gate_run/` -> `admissibility_checkability/`; gate distribution | **accepted as structure; one clause unverified** | scanning-owns-columns ✓ (`docs/product/search/orca_demand_scan_core_spec_v0.md:614`); product-lead-owns-buyer-facing-Hard-Gate ✓ (`docs/product/product_lead/orca_buyer_proof_packet_v0.md:138`; gate-run criteria defers to it, `docs/product/search/orca_demand_gate_run_commission_criteria_v0.md:35`); judgment-consumes-only ✓. **CSB-owns-commission/work-order = UNKNOWN: no CSB artifact exists today** (Blocker B5). Hard Gate is NOT renamed to an indicator. |
+| #3 rename `gate_run/` -> `admissibility_checkability/`; gate distribution | **accepted as structure; one clause unverified** | scanning-owns-columns ✓ (`forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md:614`); product-lead-owns-buyer-facing-Hard-Gate ✓ (`docs/product/product_lead/orca_buyer_proof_packet_v0.md:138`; gate-run criteria defers to it, `docs/product/search/orca_demand_gate_run_commission_criteria_v0.md:35`); judgment-consumes-only ✓. **CSB-owns-commission/work-order = UNKNOWN: no CSB artifact exists today** (Blocker B5). Hard Gate is NOT renamed to an indicator. |
 | #4 product-learning three homes | **accepted; one boundary ambiguous** | machinery/contracts -> `judgment/product_learning/`; corpora/runs -> `case_families/product_learning/`; domain frame/skeleton/registry -> `satellites/<domain>/`. The fragrance **reconciliation** artifact straddles machinery vs the `satellites/fragrance/judgment_level1/reconciliation/` slot (tagging item U-J1). |
 | #5 moved-path indexes stay in `docs/migration/` | **accepted** | Process/navigation artifacts, not product substance; never under `orca/product/shared/`. |
 
@@ -289,7 +289,7 @@ an admissibility/checkability layer. Verified distribution:
   authored is a main-CA tagging decision (Blocker B5).
 - **Scanning** owns the columns/receipts that make admissibility checkable
   (`scan_core` "makes the gate's columns fillable",
-  `docs/product/search/orca_demand_scan_core_spec_v0.md:614`).
+  `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md:614`).
 - **Product Lead / buyer-proof** owns the buyer-facing Demand-Substrate Hard Gate
   commitments (`docs/product/product_lead/orca_buyer_proof_packet_v0.md:138`; the
   gate-run criteria defers to it on conflict,

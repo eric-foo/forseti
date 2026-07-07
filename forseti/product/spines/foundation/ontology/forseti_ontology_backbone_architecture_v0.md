@@ -47,7 +47,7 @@ validation or lifecycle authority. Property lists are deliberately NOT frozen.
 - **Source-read ledger** (read at the frozen base; extraction delegated read-only):
   - Layer-1 grammar: `forseti_product_thesis_consumer_demand_v0.md`,
     `forseti_demand_read_taxonomy_v0.md`, `forseti_demand_read_taxonomy_adjudication_v0.md`.
-  - Gates/proof: `orca_demand_gate_definition_closures_proposal_v0.md`,
+  - Gates/proof: `forseti_demand_gate_definition_closures_proposal_v0.md`,
     `forseti_buyer_proof_packet_v0.md`.
   - Object exemplars/kernel: `beauty_venue_card_set_v0.md`,
     `consumer_demand_candidate_pool_handoff_v0.md`,
@@ -60,7 +60,7 @@ validation or lifecycle authority. Property lists are deliberately NOT frozen.
   - Layer-2 owners + binding: `artifact-roles.md`, `artifact-folders.md`,
     `source-of-truth.md`, `orca_repo_structure_binding_v0.md`, `repo-structure.yaml`.
 - **Declared source gaps (not blockers; commission anticipated):**
-  1. `orca_demand_scan_core_spec_v0.md` is ABSENT (in-flight, not on `main`) —
+  1. `forseti_demand_scan_core_spec_v0.md` is ABSENT (in-flight, not on `main`) —
      designed FOR as a forward consumer; its Observation/Candidate schema is not pinned.
   2. `EvidenceUnit` is not a frozen schema anywhere; the concrete artifact is the
      3-tier `claim_tier` ladder. Treated as a candidate type, schema-light.
@@ -313,7 +313,7 @@ the gap is NAMED, not filled with a new authority:
 - **Product (demand target) has no single backing artifact** — currently implicit
   in reads/memos.
 - **Observation and Call backing depends on the in-flight scan-spec**
-  (`orca_demand_scan_core_spec_v0.md`, not yet on `main`) — design FOR it.
+  (`forseti_demand_scan_core_spec_v0.md`, not yet on `main`) — design FOR it.
 - **Demand-side Call.grade / Outcome calibration** exists only as the judgment-spine
   reveal/calibration gate (JSG-08, not cleared for any case) — a gap for demand-side
   outcome grading.
@@ -335,7 +335,7 @@ why the ID *grammar* and the two links are CORE (not deferred):
   lifts the no-scoring boundary). It names this commission as the carrier of the two
   links. Requirement on the ontology: `Observation` identity + the two links specified
   precisely (§2.3).
-- **Demand scan-core spec** (`orca_demand_scan_core_spec_v0.md`, IN-FLIGHT, not on
+- **Demand scan-core spec** (`forseti_demand_scan_core_spec_v0.md`, IN-FLIGHT, not on
   `main`). A forward consumer whose Observation/Candidate schema should re-express in
   ontology terms (`Observation`, `TrendVector`, `DecisionEvent`, `Call`) with no new vocabulary when it
   lands. Requirement: the §2.1 ID grammar so its rows reference addressable objects, not

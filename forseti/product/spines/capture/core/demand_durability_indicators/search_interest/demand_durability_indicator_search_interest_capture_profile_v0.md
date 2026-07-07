@@ -19,7 +19,7 @@ open_next:
   - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema)
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                        # INV-1, Demand-Substrate Hard Gate, costly-behavior
-  - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
+  - forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
   - forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md  # scanning-side source-class/gate-read delta for search-interest/AEO
 stale_if:
   - The Lane 1 envelope-delta spec (capture_envelope_durability_delta_spec_v0.md) is amended or superseded.
@@ -63,7 +63,7 @@ authoritative sources:
   only capture obligations after sourcing.
 
 **Deconfliction.** Search-interest is classified in
-`forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md`
+`forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md`
 (AR-04) as a **G1 unsourced demand-family gap** — owner-owned, not yet sourced.
 This profile specifies capture obligations CONDITIONAL ON A SOURCE BEING SOURCED
 (see below). It does not constitute sourcing authorization and does not resolve
@@ -76,7 +76,7 @@ extends that scope for the search-interest surface type when a commission exists
 ## Conditional-On-Sourcing Statement
 
 **Search-interest sourcing is an UNSOURCED GAP (AR-04).** Per
-`forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md`,
+`forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md`,
 search-interest is a G1 demand-family card that is currently unsourced — the
 sourcing route, vendor, API, or access method has not been authorized by the
 owner for Orca capture use.
@@ -258,7 +258,7 @@ lifecycle_verification:
     - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema, cited)
     - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract (cited)
     - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                        # INV-1, Hard Gate (consumed)
-    - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
+    - forseti/product/spines/scanning/admissibility_checkability/forseti_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
     - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)
   inv1_preserved: yes — observables only, no scoring, weighting, ranking, or judgment
   conditional_on_sourcing: yes — AR-04 unsourced gap; sourcing not authorized by this profile

@@ -23,7 +23,7 @@ open_next:
   - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md            # capture-seam counterpart (HOW-side)
   - forseti/product/spines/capture/core/source_capture_toolbox/README.md            # Source Capture Armory entrypoint and screening-read service pointer
   - forseti/product/satellites/beauty/beauty_venue_card_set_v0.md                      # promoted beauty card-set (Step 0 reads it FIRST for beauty screens)
-  - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md  # MGT intelligent-walk overlay and capture-request bridge
+  - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md  # MGT intelligent-walk overlay and capture-request bridge
 stale_if:
   - The finder frame is owner-signed (fold this procedure in or re-home it at that sign-off).
   - The promote-on-reuse trigger fires and the owner promotes a vertical's trail into an owned card-set.
@@ -321,7 +321,7 @@ Mints no ladder vocabulary; the Status label is doc-local.
   equipped, not naked.
 - 2026-06-21 (owner-invoked Mini God Tier target, in-thread; intelligent-walk
   overlay): scanning may use the MGT operating model at
-  `forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
+  `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
   when the run is explicitly declared MGT / intelligent-walk. This adds
   frontier selection, branch-aware signal-decay handling, minimum evidence
   promotion, shared scanning vocabulary, and capture-request handoff language.

@@ -1,10 +1,10 @@
-# Orca Demand Scan-Core Spec v0 (PROPOSED)
+# Forseti Demand Scan-Core Spec v0 (PROPOSED)
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product method spec (PROPOSED scan core — pipeline step 2; pending commissioning-lane adjudication and owner word)
 scope: >
-  The method spec for Orca's scanning function: how an authorized scan walks
+  The method spec for Forseti's scanning function: how an authorized scan walks
   a vertical's venues, recognizes decision-shaped demand situations from the
   demand-read taxonomy's demand-state model (durable / transient /
   manufactured), and emits structured candidate observations with provenance —

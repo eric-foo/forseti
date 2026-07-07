@@ -24,7 +24,7 @@ open_next:
   - forseti/product/spines/judgment/conductor/conductor_construction_integrity_probe_addendum_v1.md # current contamination doctrine (JSG-08 tell-audit; active recall dropped)
   - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md      # the FROZEN backtest conductor (core enters through the JSG-06 sealed judgment surface; never edit it)
   - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md           # read grammar consumed by the core
-  - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md                       # scan observation schema feeding allowed demand signals
+  - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md                       # scan observation schema feeding allowed demand signals
 stale_if:
   - The conductor's No-Authority Invariant A or Route-Don't-Restate Invariant B changes.
   - The buyer-proof no-scoring boundary is lifted or the Demand-Substrate Hard Gate is re-derived.

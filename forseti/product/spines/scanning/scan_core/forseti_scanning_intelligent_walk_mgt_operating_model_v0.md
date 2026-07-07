@@ -1,4 +1,4 @@
-# Orca Scanning Intelligent Walk MGT Operating Model v0
+# Forseti Scanning Intelligent Walk MGT Operating Model v0
 
 ```yaml
 retrieval_header_version: 1
@@ -28,8 +28,8 @@ open_next:
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
   - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
   - docs/decisions/orca_venue_registry_rejection_decision_v0.md
-  - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
-  - forseti/product/spines/scanning/admissibility_checkability/orca_demand_scan_gate_adjudication_packet_v0.md
+  - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md
+  - forseti/product/spines/scanning/admissibility_checkability/forseti_demand_scan_gate_adjudication_packet_v0.md
   - docs/decisions/screening_reddit_read_route_decision_v0.md
   - docs/workflows/screening_read_service_build_receipt_v0.md
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
@@ -56,7 +56,7 @@ authorization, gate clearance, or buyer proof.
 
 The product impulse may be described casually as a "smart crawler," but the
 operating vocabulary here is **bounded intelligent walk**. "Crawler" is avoided
-as source vocabulary because Orca's standing crawler / monitor / registry /
+as source vocabulary because Forseti's standing crawler / monitor / registry /
 atlas shapes are explicitly out of bounds unless a later owner decision reopens
 them.
 
