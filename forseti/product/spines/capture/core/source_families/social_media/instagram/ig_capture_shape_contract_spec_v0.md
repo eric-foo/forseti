@@ -12,8 +12,8 @@ use_when:
   - Checking what an IG capture must record per metric (value + typed posture + coverage) and why.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/capture/core/operating_model/orca_capture_projection_storage_spine_architecture_v0.md   # the backbone this instantiates (capture-shape options, rebuild input set)
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md           # the IG monitoring profile values
+  - forseti/product/spines/capture/core/operating_model/forseti_capture_projection_storage_spine_architecture_v0.md   # the backbone this instantiates (capture-shape options, rebuild input set)
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md           # the IG monitoring profile values
   - orca-harness/source_capture/models.py                                                       # the packet model (gated build target; NOT edited by this spec)
   - forseti/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md   # governs the v1→v2 manifest bump
 stale_if:

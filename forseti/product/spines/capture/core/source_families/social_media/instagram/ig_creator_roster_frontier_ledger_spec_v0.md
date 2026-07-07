@@ -14,7 +14,7 @@ use_when:
   - Checking whether a proposed creator roster design preserves privacy and ontology boundaries.
 open_next:
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
   - docs/decisions/wind_caller_calibration_carveout_v0.md
 branch_or_commit: 45c6fac9
@@ -55,7 +55,7 @@ orca_start_preflight:
     - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
     - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
-    - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
     - docs/decisions/wind_caller_calibration_carveout_v0.md
 ```
@@ -78,12 +78,12 @@ Current-main sources read for this spec:
 - `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`
 - `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
 - `forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md`
-- `forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md`
+- `forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md`
 - `docs/decisions/wind_caller_calibration_carveout_v0.md`
 - `forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_discovery_spec_v0.md`
-- `forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_momentum_pipeline_architecture_v0.md`
+- `forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_momentum_pipeline_architecture_v0.md`
 - `forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md`
 
 Old-branch context read:

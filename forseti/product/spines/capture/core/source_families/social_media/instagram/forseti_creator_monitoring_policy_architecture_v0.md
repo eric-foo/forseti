@@ -2,7 +2,7 @@
 retrieval_header_version: 1
 artifact_role: proposed architecture (non-authorizing) — creator monitoring policy (coverage allocator)
 scope: >
-  The monitoring policy for the Orca creator-momentum capture→projection lane: how a bounded capture
+  The monitoring policy for the Forseti creator-momentum capture→projection lane: how a bounded capture
   budget (R safe reads/day, ≤10 attended operating accounts start ≤5) is allocated across an UNCAPPED
   subject roster so the momentum / wind-calling signal gets the most coverage. Defines the
   platform-AGNOSTIC core machinery (tier model, age-bucket scheduler, per-creator cap, virality
@@ -18,10 +18,10 @@ use_when:
   - Checking what monitoring machinery is platform-agnostic core vs per-platform satellite.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/capture/core/operating_model/orca_capture_projection_storage_spine_architecture_v0.md   # the storage/capture-shape backbone (this consumes its projection + records its cadence/fanout parameters)
+  - forseti/product/spines/capture/core/operating_model/forseti_capture_projection_storage_spine_architecture_v0.md   # the storage/capture-shape backbone (this consumes its projection + records its cadence/fanout parameters)
   - docs/decisions/wind_caller_calibration_carveout_v0.md   # capture posture authority (amended 2026-06-15) — the scheduler must conform
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md   # current IG R operating envelope
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_momentum_pipeline_architecture_v0.md   # the IG-first pipeline instance
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_momentum_pipeline_architecture_v0.md   # the IG-first pipeline instance
 stale_if:
   - The owner adopts/adjusts the tier model, the age-bucket scheduler, or the carve-out conformance posture.
   - A fuller R run pins the at-pace daily-volume ceiling, exact pace threshold, or throttle decay time.
@@ -30,7 +30,7 @@ stale_if:
 status: PROPOSED — creator monitoring policy (core machinery + per-platform profile seam); cadences illustrative + R-tunable; IG R first-measured pace-bound, at-pace ceiling still open; AWAITING owner adoption
 ```
 
-# Orca Creator Monitoring Policy — Coverage Allocator (PROPOSED, v0)
+# Forseti Creator Monitoring Policy — Coverage Allocator (PROPOSED, v0)
 
 ## Result
 

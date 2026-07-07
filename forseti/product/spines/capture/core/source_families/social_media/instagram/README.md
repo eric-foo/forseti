@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca Capture source-family README
+artifact_role: Forseti Capture source-family README
 scope: >
   Directory entrypoint for Instagram artifacts under the Capture core
   social_media source-family grouping.
@@ -14,7 +14,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/README.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
   - forseti/product/spines/data_lake/README.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
 ```

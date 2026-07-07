@@ -18,7 +18,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
   - docs/decisions/wind_caller_calibration_carveout_v0.md
   - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
 stale_if:
@@ -46,7 +46,7 @@ inside the owner's accepted source-access boundary and measured-risk posture.
 
 - `data_capture_source_access_method_plan_v0.md` and its controlling standard
   `LOOSEN_SOURCE_ACCESS_TO_DISCOVERABLE_OR_ENTITLED_DISCLOSABLE`.
-- `orca_creator_monitoring_policy_architecture_v0.md` (bounded-budget allocator;
+- `forseti_creator_monitoring_policy_architecture_v0.md` (bounded-budget allocator;
   carve-out conformance).
 - `wind_caller_calibration_carveout_v0.md` (bounded-session / account-cap
   posture).

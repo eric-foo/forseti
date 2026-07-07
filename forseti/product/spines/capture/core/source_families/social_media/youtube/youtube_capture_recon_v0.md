@@ -17,7 +17,7 @@ stale_if:
 open_next:
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
   - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
 ```
 
 ## Placement / path-authority note (AR-02)

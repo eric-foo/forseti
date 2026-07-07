@@ -2,7 +2,7 @@
 retrieval_header_version: 1
 artifact_role: proposed target architecture (non-authorizing) — creator-momentum pipeline
 scope: >
-  Target architecture for the Orca creator-momentum product: a 3-capability pipeline
+  Target architecture for the Forseti creator-momentum product: a 3-capability pipeline
   (discover -> deep-capture -> per-call curves) with a capture-satellite / derivation-core
   split. Defines the core/satellite boundary, the storage doctrine, the capture-shape
   contract (the one accepted lock-in + smallest next object), the ontology coupling, and
@@ -27,7 +27,7 @@ stale_if:
 status: PROPOSED — target architecture; cross-vendor review folded (AR-01..05 CA-adjudicated); capture-shape contract revised; owner adoption + gates pending
 ```
 
-# Orca Creator-Momentum Pipeline — Target Architecture (PROPOSED, v0)
+# Forseti Creator-Momentum Pipeline — Target Architecture (PROPOSED, v0)
 
 ## Result
 

@@ -18,7 +18,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_sustained_cadence_r_probe_design_v0.md   # the method this measures
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md   # Consumer A (cadence sizing)
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md   # Consumer A (cadence sizing)
   - docs/decisions/wind_caller_calibration_carveout_v0.md   # capture posture authority
 stale_if:
   - A fuller run pins the pace threshold, the at-pace daily-volume ceiling, or the throttle decay time.
