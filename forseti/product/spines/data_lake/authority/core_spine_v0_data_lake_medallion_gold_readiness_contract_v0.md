@@ -19,7 +19,7 @@ open_next:
   - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
-  - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+  - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
 downstream_consumers:
   - data lake physicality lane
   - spike alert candidate-record lane
@@ -318,7 +318,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/artifact-folders.md
     - .agents/workflow-overlay/retrieval-metadata.md
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md

@@ -195,7 +195,7 @@ Repo owner and routing sources:
 - `.agents/workflow-overlay/retrieval-metadata.md`
 - `.agents/workflow-overlay/source-loading.md`
 - `.agents/workflow-overlay/source-of-truth.md`
-- `docs/decisions/orca_mini_god_tier_doctrine_v0.md`
+- `docs/decisions/forseti_mini_god_tier_doctrine_v0.md`
 
 Judgment Spine sources:
 

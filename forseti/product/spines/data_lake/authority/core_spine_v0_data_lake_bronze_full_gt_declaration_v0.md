@@ -207,7 +207,7 @@ direction_change_propagation:
     - orca-harness/tests/test_data_lake_catalog.py
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
   intentionally_not_updated:
     - path: orca-harness/data_lake/catalog.py
       reason: >
@@ -226,7 +226,7 @@ direction_change_propagation:
       reason: >
         Backend/engine selection remains reserved exactly as the contract
         states; this declaration's backend exclusion defers to it and Gate 2 T3.
-    - path: docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - path: docs/decisions/forseti_mini_god_tier_doctrine_v0.md
       reason: >
         The MGT doctrine is an owner-invoked design lens, not a claim registry;
         one artifact graduating from an MGT baseline changes no doctrine text.

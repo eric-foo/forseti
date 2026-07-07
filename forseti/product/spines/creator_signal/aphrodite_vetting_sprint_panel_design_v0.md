@@ -34,7 +34,7 @@ ChatGPT Pro, commissioned over a 6-file source pack: charter, two panel
 rehearsals, round-2 share-of-voice record, fragrance reference data, provenance
 contract; delivered in-chat 2026-07-05) adjudicated by the home lane under
 Smallest Complete Intervention and the owner-invoked Mini God Tier lens
-(`docs/decisions/orca_mini_god_tier_doctrine_v0.md`). All proposal elements were
+(`docs/decisions/forseti_mini_god_tier_doctrine_v0.md`). All proposal elements were
 accepted or accepted-with-modification; none rejected structurally; the two
 modifications and all accepted residuals are recorded below. Design record
 only: not validation, not readiness, `product_learning`-capped; authorizes no

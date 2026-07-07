@@ -37,7 +37,7 @@ stale_if:
 
 Owner-adopted target design, v0. The folder tree in **Accepted target tree** is
 the owner-adopted **mini-god-tier target structure** (a capability-target design
-lens per `docs/decisions/orca_mini_god_tier_doctrine_v0.md`), carried into this
+lens per `docs/decisions/forseti_mini_god_tier_doctrine_v0.md`), carried into this
 binding by the controller prompt
 `docs/prompts/product-planning/orca_spine_first_target_structure_controller_prompt_v0.md`.
 

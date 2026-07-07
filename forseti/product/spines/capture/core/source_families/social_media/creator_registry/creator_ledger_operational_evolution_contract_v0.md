@@ -22,7 +22,7 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
-  - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+  - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
 stale_if:
   - The Creator Registry folder no longer owns the social creator-ledger artifacts.
   - A successor creator identity, metric, or profile-current architecture supersedes the sibling-record split.
@@ -79,7 +79,7 @@ forseti_start_preflight:
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
 ```
 
 ## Operational Invariant
@@ -343,7 +343,7 @@ direction_change_propagation:
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     - docs/research/creator_discovery_scan_fragrance_youtube_public_v0.md
   intentionally_not_updated:
     - path: AGENTS.md
@@ -354,7 +354,7 @@ direction_change_propagation:
       reason: >
         Source-loading mechanics are unchanged; the new contract is reached
         through the Creator Registry README and repo map.
-    - path: docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    - path: docs/decisions/forseti_mini_god_tier_doctrine_v0.md
       reason: >
         The global Mini God Tier doctrine remains correct. This contract applies
         its accepted-residuals and non-claim boundaries to the Creator Ledger.
@@ -368,7 +368,7 @@ direction_change_propagation:
     AGENTS.md
     .agents/workflow-overlay
     docs/workflows/forseti_repo_map_v0.md
-    docs/decisions/orca_mini_god_tier_doctrine_v0.md
+    docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     forseti/product/spines/capture/core/source_families/social_media/creator_registry
     forseti/product/spines/creator_signal
   non_claims:

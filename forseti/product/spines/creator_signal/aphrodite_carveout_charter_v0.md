@@ -48,7 +48,7 @@ around them.
 
 Provenance of the synthesis: a cross-vendor (ChatGPT Pro) strategy commission
 over a 13-source pack, adjudicated by the home model under the Mini God Tier
-lens (`docs/decisions/orca_mini_god_tier_doctrine_v0.md`) and Smallest Complete
+lens (`docs/decisions/forseti_mini_god_tier_doctrine_v0.md`) and Smallest Complete
 Intervention, with owner ratification question-by-question in the same thread
 (2026-07-04). Advisory input throughout; the owner ratifications are the only
 decision authority claimed.

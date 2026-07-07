@@ -108,7 +108,7 @@ It is not a Mini God Tier achievement claim. It asserts no validation, readiness
 platform coverage, or implementation completeness.
 
 Accepted residuals in this proposal (per
-`docs/decisions/orca_mini_god_tier_doctrine_v0.md`, each names what is foregone,
+`docs/decisions/forseti_mini_god_tier_doctrine_v0.md`, each names what is foregone,
 why it is acceptable now, the remaining risk, and the upgrade trigger):
 
 - **No universal output/seam rule for non-packet runners.** Foregone: a single
