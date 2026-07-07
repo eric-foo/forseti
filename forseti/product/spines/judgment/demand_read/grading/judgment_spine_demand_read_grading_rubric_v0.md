@@ -24,7 +24,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md  # parent: the contestant-emit contract (durable-projection-basis rule; ceiling vocabulary + cap rule)
-  - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                            # parent: the Calling Sequence (current-window transient unless durability basis -> monitor -> earn/revise durable) this rule is entailed by
+  - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                            # parent: the Calling Sequence (current-window transient unless durability basis -> monitor -> earn/revise durable) this rule is entailed by
   - forseti/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md   # the JSG-08 reveal / tell-audit mechanics the contamination axis uses
   - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md        # the claim-tier boundaries (product_learning vs judgment-quality) a grade may not cross on N=1
   - orca-harness/cases/product_learning/topicals_retail_expansion_2021_v0/first_demand_read_findings_v0.md  # the worked example that surfaced this rule
@@ -168,7 +168,7 @@ commissioned by a prompt artifact, not folded into this lane.
   — parent; the durable-projection-basis rule and the floor/ceiling cap rule
   axis 1–2 grade against. Status `PROPOSED`. Last checked: 2026-06-23. Reuse
   rule: reread before amending the rule.
-- `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md` — parent; the
+- `forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md` — parent; the
   Calling Sequence the standing rule is entailed by. Status
   `PROPOSED_PENDING_OWNER_ADJUDICATION`. Last checked: 2026-06-23. Reuse rule:
   reread; not yet owner-adjudicated as operative.

@@ -23,7 +23,7 @@ open_next:
   - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md             # the C2 step C3 consumes (weighted signals; Rule 3 routes persistence patterns here)
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                              # the action-ceiling cap rule (floor vs ceiling; >=2 converging origins; engagement/resonance-only caps)
   - forseti/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_target_architecture_v0.md      # the sealed_call output surface C3 fills (recommendation / confidence_band / signals_used / reasoning_trace)
-  - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                            # the read grammar (two-axis model + calling sequence + read types) C3 verdicts in
+  - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                            # the read grammar (two-axis model + calling sequence + read types) C3 verdicts in
 stale_if:
   - The core architecture amends C3's step shape, the two-axis verdict, or the calling sequence.
   - The buyer-proof action-ceiling cap rule (floor/ceiling, >=2 converging origins, engagement/resonance-only cap) is re-derived.
@@ -124,7 +124,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md
   downstream_surfaces_checked:
-    - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
+    - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md
     - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
     - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
@@ -236,9 +236,9 @@ direction_change_propagation:
   controlling_sources_updated:
     - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
     - forseti/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md
-    - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
+    - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md
   downstream_surfaces_checked:
-    - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_adjudication_v0.md
+    - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_adjudication_v0.md
     - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
     - forseti/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
     - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
@@ -542,7 +542,7 @@ spec_handoff:
 - `forseti/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_target_architecture_v0.md` —
   the sealed_call output surface (recommendation / confidence_band / signals_used /
   reasoning_trace). On `origin/main`. reread-required.
-- `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md` — the read grammar
+- `forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md` — the read grammar
   (two-axis model + calling sequence + read types) C3 verdicts in. Status
   `PROPOSED_PENDING_OWNER_ADJUDICATION` on `origin/main`. reread-required; the grammar
   is not yet owner-adjudicated as operative.

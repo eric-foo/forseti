@@ -24,7 +24,7 @@ open_next:
   - forseti/product/spines/judgment/demand_read/integrity/judgment_spine_manufactured_demand_detection_design_v0.md  # the CORE design this satellite serves (mechanism classes A–F; evidentiary hierarchy; outburst-gate; INV-1)
   - docs/research/manufactured-demand/orca_manufactured_demand_beauty_external_research_v0.md                      # evidence-only source for the cases/tells/reliabilities below (citations not independently verified)
   - forseti/product/satellites/beauty/beauty_venue_card_set_v0.md                                                     # the capped venue card-set (production hints) — distinct asset; this artifact does NOT add to it
-  - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                            # Integrity layer (Signal Layer 5); wind-caller vs laundering contrast
+  - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                            # Integrity layer (Signal Layer 5); wind-caller vs laundering contrast
 stale_if:
   - The core integrity-axis design amends the mechanism classes (A–F), the evidentiary hierarchy, or the (2)-vs-(3) method.
   - The external research source is corrected/updated, or a beauty case outcome is superseded.

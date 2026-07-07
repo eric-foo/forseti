@@ -23,7 +23,7 @@ use_when:
   - Separating the three buckets — outright fake, amplified-but-hollow, genuine-with-amplification — and especially the (2)-vs-(3) call.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                       # Integrity layer (Signal Layer 5) + "divergence is a technique, not a verdict"
+  - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                       # Integrity layer (Signal Layer 5) + "divergence is a technique, not a verdict"
   - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md     # the C0-C4 core; C1 Allow (gross gate) + C2 Weight; manufactured axis upstream of C3
   - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md        # C2 Rule 3 (R3a-e); R3d discriminator companion this catalogue populates
   - forseti/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md  # C3 consumes "real"; never re-adjudicates the manufactured axis
@@ -556,7 +556,7 @@ Read fresh from the worktree off `origin/main` (capsule: branch `claude/distract
 
 - `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` — integrity axis decision-critical;
   manufactured = forward/live; Central Read #5; "detects and discounts; never produces."
-- `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md` — Integrity
+- `forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md` — Integrity
   layer (Signal Layer 5); manufactured-demand read type; "divergence is a technique, not a verdict";
   manufactured separation is forward/live. `PROPOSED_PENDING_OWNER_ADJUDICATION`.
 - `forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md`

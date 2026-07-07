@@ -23,7 +23,7 @@ open_next:
   - forseti/product/spines/judgment/learning_loops/near_half/near_half_signal_reliability_ledger_v0.md             # the per-source weighting store (firewall-clean K-of-N report-all)
   - forseti/product/spines/judgment/conductor/conductor_construction_integrity_probe_addendum_v1.md # current contamination doctrine (JSG-08 tell-audit; active recall dropped)
   - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md      # the FROZEN backtest conductor (core enters through the JSG-06 sealed judgment surface; never edit it)
-  - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md           # read grammar consumed by the core
+  - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md           # read grammar consumed by the core
   - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md                       # scan observation schema feeding allowed demand signals
 stale_if:
   - The conductor's No-Authority Invariant A or Route-Don't-Restate Invariant B changes.
@@ -360,7 +360,7 @@ lane held no overlapping architecture).
   Backtest/Live split; Decision Frame required.
 - `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` — Demand-Substrate
   Hard Gate; action-ceiling vocab; no-scoring boundary; `product_learning` cap.
-- `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md` — signal layers,
+- `forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md` — signal layers,
   read types, wind-caller calibration; pipeline gap (steps 5–6).
 - **Source gaps (non-blocking for design):** the ontology-backbone commission
   prompt (`derived_from`/`diverges_from`) is branch-only, not on `origin/main` —
@@ -440,7 +440,7 @@ direction_change_propagation:
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
     - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md
   downstream_surfaces_checked:
-    - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md   # already two-axis; "hollow" hits are the retirement explanation, kept
+    - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md   # already two-axis; "hollow" hits are the retirement explanation, kept
   intentionally_not_updated:
     - path: '"C2 admits ... lessons" (DRP-02 line), "admission inputs" (ratified gate), "admissible at C2" (permissible)'
       reason: lesson-admission and gate-admissibility are distinct from the C1 demand-signal step; the rename targets the C1 step verb + its "admitted signal" object only.

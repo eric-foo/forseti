@@ -55,7 +55,7 @@ authoritative sources:
   as stale and open the controlling source.
 - **INV-1 and the Demand-Substrate Hard Gate:** `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`.
   Consumed as-is; not redefined here.
-- **Demand-Read Taxonomy:** `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md`
+- **Demand-Read Taxonomy:** `forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md`
   (PROPOSED, pending adjudication). Consumed as orientation for buy-side signal
   layer positioning; not operative until owner adjudication.
 - **Search-interest / AEO source-class delta:** `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`
@@ -259,7 +259,7 @@ lifecycle_verification:
     - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract (cited)
     - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                        # INV-1, Hard Gate (consumed)
     - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
-    - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)
+    - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)
   inv1_preserved: yes — observables only, no scoring, weighting, ranking, or judgment
   conditional_on_sourcing: yes — AR-04 unsourced gap; sourcing not authorized by this profile
   contract_hardening_authorized: no

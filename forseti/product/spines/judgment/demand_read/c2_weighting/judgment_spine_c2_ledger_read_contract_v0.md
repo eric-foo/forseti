@@ -416,7 +416,7 @@ direction_change_propagation:
     - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
   downstream_surfaces_checked:
-    - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md   # already two-axis + Calling Sequence (C3 transient handling); "hollow" hits are the retirement explanation, kept
+    - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md   # already two-axis + Calling Sequence (C3 transient handling); "hollow" hits are the retirement explanation, kept
   intentionally_not_updated:
     - path: source-family "admission"/"admissibility" + Demand-Substrate Hard Gate vocabulary (this spec's source-family admission lines; read-machinery "admission inputs"/"admissible")
       reason: the rename targets the C1 demand-signal step verb only; the ratified G1/G2 gate concept and the source-family admission state are consumed, not renamed or reopened.

@@ -135,7 +135,7 @@ direction_change_propagation:
     - forseti/product/spines/capture/core/demand_durability_indicators/review_velocity/demand_durability_indicator_review_velocity_corpus_capture_profile_v0.md
     - forseti/product/spines/capture/core/demand_durability_indicators/demand_durability_indicator_capture_deconfliction_note_v0.md
   downstream_surfaces_checked:
-    - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
+    - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md
     - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/orca_repo_map_v0.md
