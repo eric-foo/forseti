@@ -453,6 +453,76 @@ def test_scan_receipt_rejects_candidate_open_follow_and_screenshot() -> None:
         assert exc_info.value.code == code
 
 
+def test_scan_receipt_rejects_wrong_schema_version() -> None:
+    receipt = _scan_receipt(schema_version="wrong")
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "invalid_scan_receipt_schema_version"
+
+
+def test_scan_receipt_rejects_unknown_refresh_outcome() -> None:
+    receipt = _scan_receipt(refresh_outcome="totally_unknown_outcome")
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "invalid_refresh_outcome"
+
+
+def test_scan_receipt_rejects_refresh_outcome_attempt_mismatch() -> None:
+    # One recorded attempt must carry a clicked-once outcome...
+    one_attempt_wrong = _scan_receipt(
+        refresh_attempt_count=1,
+        refresh_outcome=RefreshOutcome.NOT_NEEDED,
+    )
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(one_attempt_wrong)
+    assert exc_info.value.code == "refresh_outcome_attempt_mismatch"
+
+    # ...and a clicked-once outcome must not appear with zero recorded attempts.
+    zero_attempt_wrong = _scan_receipt(
+        refresh_attempt_count=0,
+        refresh_outcome=RefreshOutcome.CLICKED_ONCE_RECOVERED,
+    )
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(zero_attempt_wrong)
+    assert exc_info.value.code == "refresh_outcome_attempt_mismatch"
+
+
+def test_scan_receipt_rejects_negative_pagination_bound() -> None:
+    receipt = _scan_receipt(pagination_bound=-1)
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "invalid_non_negative_int"
+
+
+def test_scan_receipt_requires_every_named_cap() -> None:
+    receipt = _scan_receipt(
+        caps_applied={
+            "root_profiles": 1,
+            "suggested_accounts_observed": 1,
+            "candidate_profiles_opened": 0,
+            # screenshots_emitted_to_chat intentionally omitted
+        }
+    )
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "missing_scan_receipt_cap"
+
+
+def test_scan_receipt_requires_every_exclusion_marker() -> None:
+    receipt = _scan_receipt(
+        exclusions=(
+            "no_candidate_profile_open",
+            "no_follow_unfollow_action",
+            "no_metric_rollup",
+            "no_registry_mutation",
+            # no_screenshot marker intentionally omitted
+        )
+    )
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "missing_scan_receipt_exclusion"
+
+
 def test_register_builder_from_receipt_passes_and_keeps_next_runs_unauthorized() -> None:
     register = build_tiktok_creator_discovery_frontier_register(
         scan_receipt=_scan_receipt(),
