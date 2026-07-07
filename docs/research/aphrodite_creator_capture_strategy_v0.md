@@ -175,16 +175,44 @@ candidate_promotion_signal =
   + source-visible buyer-relevant cue when available
 ```
 
-Promote when the signal crosses one of these gates:
+Use the gates this way:
 
 - `spike_gate`: observed metric delta is unusually high against the creator's
-  compatible recent baseline or the platform/content-kind norm.
+  compatible recent baseline or the platform/content-kind norm. This can promote
+  a post into first deep capture.
 - `fresh_breakout_gate`: a new or recent item is both high-performing and still
-  growing, not merely high in lifetime views.
-- `buyer_relevance_gate`: source-visible text or metadata indicates fragrance,
-  product, category, ad, or comparison relevance worth deeper evidence capture.
+  growing, not merely high in lifetime views. This can promote a post into first
+  deep capture.
+- `buyer_relevance_signal`: source-visible text or metadata indicates fragrance,
+  product, category, ad, or comparison relevance. In v0 this is a prioritization
+  and interpretation label, not a hard pre-capture gate.
 - `active_breakout_gate`: a previously promoted item still has enough measured
-  slope to justify follow-up.
+  slope to justify follow-up metric recheck. It should not trigger repeat deep
+  capture by default.
+
+The v0 entry rule is:
+
+```text
+deep_capture_entry =
+  (spike_gate OR fresh_breakout_gate)
+  AND capture_budget_available
+  AND post_not_already_deep_captured
+```
+
+Buyer relevance is assigned as an evidence label after capture, or as a weak
+pre-label when source-visible caption/title/description/product/ad metadata is
+already available. Do not require buyer relevance before deep capture. A
+creator's top non-fragrance or non-buyer post can still be decision-useful: it
+shows the creator's winning format, hook, audience response, and possible Studio
+or brand-insertion surface.
+
+After capture, classify the post as one of:
+
+- `fragrance_buyer_relevant`;
+- `fragrance_adjacent`;
+- `non_fragrance_winning_format`;
+- `commercial_adaptable_format`;
+- `irrelevant_to_aphrodite`.
 
 Do not offer `recent_velocity` as an observed field until compatible history
 exists. If publication timestamp is missing or unreliable, call the trend
@@ -216,11 +244,12 @@ Otherwise Aphrodite would delete the rare long-tail exceptions that teach the
 system what durable creator demand looks like. The exception must be explicit,
 source-backed, and self-expiring. No hidden forever-watch list.
 
-For promoted breakout items that fall out of grid view, bounded pagination is
-allowed only to re-find that known item. Stop paginating when growth slope falls
-below the accepted threshold for the accepted number of checks, when an age cap
-or read cap is hit, or when the source blocks the path. Do not use breakout
-pagination as a general old-content crawler.
+For promoted breakout items that fall out of grid view, use one or two explicit
+known-item metric rechecks so the item can be retired cleanly. Prefer the
+cheapest direct locator path already captured for that item. Do not use breakout
+follow-up as a general pagination or old-content crawler. Stop rechecking when
+growth slope falls below the accepted threshold for the accepted number of
+checks, when an age cap or read cap is hit, or when the source blocks the path.
 
 ## Roster Composition Before Sizing
 
@@ -271,6 +300,32 @@ Silver can say what was observed. Creator Signal can assemble decision support.
 Gold/Judgment or later accepted product contracts own stronger recommendations,
 durability verdicts, or action meaning.
 
+## Visual And Metadata Boundary
+
+Do not assume the daily grid heartbeat includes thumbnail or picture
+understanding. Current platform surfaces differ:
+
+- IG Reels grid capture can preserve locators, timestamps when joined, metric
+  observations, passive JSON metadata, and caption text when the passive JSON
+  join exposes it. The current IG grid runner has a route-specific option that
+  defaults to blocking image/media/font requests to reduce bandwidth; that is an
+  implementation posture, not a universal product rule.
+- YouTube RSS monitoring exposes title, published/updated time, views, and the
+  feed's star-rating count used as like-count provenance. It does not expose
+  comment count in the current feed schema.
+- YouTube watch-page packets can expose richer metadata and comment surfaces,
+  but that is a deeper read than the cheap RSS heartbeat.
+- TikTok is deferred for Aphrodite's immediate posture, but its recorded spec
+  says item blobs can expose description, hashtags/mentions, play/like/comment
+  counts, share/collect counts, and source-native subtitle metadata when present.
+
+Visual/OCR or thumbnail interpretation is a separate optional evidence lane. It
+may be valuable for posts where text metadata is thin, but it should be measured
+as its own capture mode: normal asset loading may look more human and may reduce
+some fingerprint oddities, while also increasing bandwidth, page weight, storage,
+processing, and exposure to route-specific platform behavior. Do not claim that
+blocking assets or loading assets is categorically safer; measure the route.
+
 ## Silver And Registry Metric Update Rule
 
 Every accepted heartbeat should update the ongoing metric layer before Aphrodite
@@ -301,12 +356,13 @@ current view copies only accepted, lineage-backed fields.
 
 1. Use daily grid heartbeat as the registry currentness layer once budget and
    platform posture are accepted.
-2. Use event-triggered promotion for ongoing deep capture: spike, fresh
-   breakout, source-visible buyer relevance, or active breakout follow-up.
+2. Use event-triggered promotion for ongoing first deep capture: spike or fresh
+   breakout. Buyer relevance is a label/priority, not a hard pre-gate; active
+   breakout is a metric-recheck trigger, not repeat deep capture by default.
 3. Treat views plus engagement as the default selection basis.
 4. Treat fallen-out unpromoted content as cold by default.
-5. Preserve promoted breakout exceptions with explicit pagination, read caps,
-   age caps, and expiry.
+5. Preserve promoted breakout exceptions with one or two explicit metric-only
+   rechecks, read caps, age caps, and expiry.
 6. Keep control/edge creators in the registry at low cadence or test-window
    cadence, not as a daily deep-monitoring burden.
 7. Keep fragrance depth as the wedge, but include fragrance-proven adjacent and
@@ -325,7 +381,10 @@ These must be decided or measured before computing realistic roster size:
 - Expected promotion rate from grid heartbeat into deep capture.
 - Deep-capture cost per promoted item by platform and source surface.
 - Maximum deep captures per creator per day.
-- Breakout recheck schedule, pagination cap, decay threshold, and expiry rule.
+- Breakout recheck schedule, metric-only recheck count, decay threshold, and
+  expiry rule.
+- Whether visual/OCR or thumbnail interpretation deserves a separate measured
+  evidence lane after the cheap heartbeat route is characterized.
 - Which Silver metric recipes should be documented first: moving average, EMA,
   compatible-window velocity, spike score, breakout state, or decay state.
 - Roster composition bands: fragrance-core, fragrance-proven adjacent, and
