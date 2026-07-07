@@ -20,7 +20,7 @@ stale_if:
 ```
 
 ```text
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom PR-review prompt pack
