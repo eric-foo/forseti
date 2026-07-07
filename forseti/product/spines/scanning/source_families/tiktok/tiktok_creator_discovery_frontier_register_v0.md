@@ -95,6 +95,8 @@ tiktok_creator_discovery_frontier_register:
     source_surface:
     source_packet_id_or_none:
     source_packet_path_or_none:
+    parent_grid_packet_id_or_none:
+    parent_grid_packet_path_or_none:
     captured_at_utc:
     method_mode:
     access_mode:
@@ -157,6 +159,7 @@ tiktok_creator_discovery_frontier_register:
       stop_condition:
       execution_authorized: false
       non_claims:
+  accepted_residuals:
   non_claims:
 ```
 

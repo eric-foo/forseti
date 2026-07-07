@@ -201,6 +201,76 @@ def test_edge_to_missing_node_raises() -> None:
     _raises_code(register, "edge_points_to_missing_node")
 
 
+def test_invalid_node_type_raises() -> None:
+    register = _register()
+    register["tiktok_creator_discovery_frontier_register"]["nodes"][2]["node_type"] = "creator_identity"
+    _raises_code(register, "invalid_node_type")
+
+
+def test_frontier_decision_to_missing_node_raises() -> None:
+    register = _register()
+    register["tiktok_creator_discovery_frontier_register"]["frontier_decisions"] = [
+        {
+            "decision_id": "decision_001",
+            "selected_node_id": "missing",
+            "projection_decision": "hold",
+            "frontier_selection_reason": "exercise decision validation",
+            "frontier_selection_actor": "test",
+            "frontier_selection_timestamp": "2026-07-07T18:06:35.790Z",
+            "next_run_id_or_none": None,
+            "non_claims": list(DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS),
+        }
+    ]
+    _raises_code(register, "frontier_decision_points_to_missing_node")
+
+
+def test_invalid_projection_decision_raises() -> None:
+    register = _register()
+    register["tiktok_creator_discovery_frontier_register"]["frontier_decisions"] = [
+        {
+            "decision_id": "decision_001",
+            "selected_node_id": _CANDIDATE_NODE_ID,
+            "projection_decision": "capture_now",
+            "frontier_selection_reason": "exercise decision validation",
+            "frontier_selection_actor": "test",
+            "frontier_selection_timestamp": "2026-07-07T18:06:35.790Z",
+            "next_run_id_or_none": None,
+            "non_claims": list(DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS),
+        }
+    ]
+    _raises_code(register, "invalid_projection_decision")
+
+
+def test_next_run_to_missing_node_raises() -> None:
+    register = _register()
+    register["tiktok_creator_discovery_frontier_register"]["next_run_envelopes"][0][
+        "selected_node_id"
+    ] = "missing"
+    _raises_code(register, "next_run_points_to_missing_node")
+
+
+def test_source_packet_id_requires_path() -> None:
+    register = _register()
+    register["tiktok_creator_discovery_frontier_register"]["provenance"][
+        "source_packet_path_or_none"
+    ] = None
+    _raises_code(register, "missing_packet_path")
+
+
+def test_source_packet_path_requires_id() -> None:
+    register = _register()
+    register["tiktok_creator_discovery_frontier_register"]["provenance"][
+        "source_packet_id_or_none"
+    ] = None
+    _raises_code(register, "missing_packet_id")
+
+
+def test_invalid_root_seed_platform_raises() -> None:
+    register = _register()
+    register["tiktok_creator_discovery_frontier_register"]["root_seed"]["platform"] = "instagram"
+    _raises_code(register, "invalid_root_seed_platform")
+
+
 def test_next_run_execution_authorized_true_raises() -> None:
     with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
         validate_tiktok_creator_discovery_next_run_envelope(
@@ -232,6 +302,22 @@ def test_reversal_non_claims_raise() -> None:
     claims = list(DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS)
     claims[0] = "not only Creator Registry identity proof; it authorizes registry use"
     register = _register(non_claims=claims)
+    _raises_code(register, "incomplete_non_claims")
+
+
+def test_multi_category_smuggle_non_claims_raise() -> None:
+    # A single claim that negates one category but then positively asserts the
+    # rest ("not <A> but it IS <B>, <C> ...") must NOT satisfy the smuggled
+    # categories: each required category needs its own genuine disclaimer. Under
+    # the head-only negation check this one string would otherwise satisfy every
+    # category at once while asserting nine of them positively.
+    smuggle = (
+        "not follower graph but it IS following graph, endorsement proof, "
+        "metric rollup, country/region evidence, capture execution authorization, "
+        "source-access authorization, standing crawler or monitor, "
+        "account completeness proof, creator registry identity proof"
+    )
+    register = _register(non_claims=[smuggle])
     _raises_code(register, "incomplete_non_claims")
 
 

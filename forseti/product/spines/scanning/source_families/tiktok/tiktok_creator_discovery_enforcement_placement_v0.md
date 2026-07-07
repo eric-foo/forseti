@@ -145,17 +145,17 @@ direction_change_propagation:
       reason: >
         The user asked to determine code-vs-doctrine placement before more
         scouting, not to build the validator/hook substrate in this pass.
-    - path: forseti-harness/
+    - path: forseti-harness/runners/
       reason: >
-        No runner or validator implementation is authorized by this classification
-        artifact; future-code gates are named for later bounded build work.
+        No runner implementation is authorized by this classification artifact;
+        the validator substrate exists under capture_spine only.
   non_claims:
     - not validation
     - not readiness
     - not implementation authorization
     - not live TikTok access authorization
     - not Creator Registry insertion authorization
-    - not proof that future validators exist
+    - not proof that hook or runner exists
 ```
 
 ## Non-Claims

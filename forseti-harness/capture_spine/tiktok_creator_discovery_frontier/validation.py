@@ -419,10 +419,32 @@ def _validate_non_claims(value: Any, label: str) -> None:
     missing = [
         category
         for category in _REQUIRED_NON_CLAIM_CATEGORIES
-        if not any(category in claim and _is_negated(claim) for claim in claims)
+        if not any(_claim_disclaims_category(claim, category) for claim in claims)
     ]
     if missing:
         _fail("incomplete_non_claims", f"{label} non_claims missing negated categories: {missing}")
+
+
+def _claim_disclaims_category(claim: str, category: str) -> bool:
+    """Return True only when ``claim`` genuinely negates this one category.
+
+    The category substring must appear in a negated claim (``_is_negated``) AND
+    the claim must not also name another required category. Without the
+    single-category constraint, one string that starts with ``not <A>`` but then
+    positively asserts ``<B>``/``<C>`` ("not follower graph but it IS following
+    graph, endorsement proof, ...") would satisfy every named category at once,
+    because ``_is_negated`` only inspects the head of the string while the
+    category match is substring-anywhere. Requiring exactly one required category
+    per disclaimer closes that positive-smuggle path. No required category is a
+    substring of another, so a real single-category disclaimer such as
+    "not follower graph" still matches.
+    """
+    if not (_is_negated(claim) and category in claim):
+        return False
+    return not any(
+        other != category and other in claim
+        for other in _REQUIRED_NON_CLAIM_CATEGORIES
+    )
 
 
 def _is_negated(claim: str) -> bool:
