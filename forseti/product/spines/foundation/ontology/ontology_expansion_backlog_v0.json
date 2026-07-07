@@ -1,7 +1,7 @@
 {
   "schema": "ontology_expansion_backlog/v0",
   "purpose": "Rung-0 machine-readable deferred-ontology-expansion backlog. Read by .agents/hooks/check_ontology_expansion.py (rung 1), which nudges at session start when a trigger artifact has landed on disk while the owed card(s) are still missing. Pointers only -- the adopted deliverable is the authority for what each type is and why it is deferred. Not doctrine, validation, or readiness.",
-  "authority": "forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md",
+  "authority": "forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md",
   "cards_dir": "forseti/product/spines/foundation/ontology/ontology_cards",
   "auto_nudge_triggers": [],
   "deferred_no_auto_trigger": [

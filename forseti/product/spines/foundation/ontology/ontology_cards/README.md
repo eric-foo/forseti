@@ -5,11 +5,11 @@ retrieval_header_version: 1
 artifact_role: Convention note (ontology object-card folder)
 scope: >
   How object cards in this folder work. The §2.2 roster in
-  orca_ontology_backbone_architecture_v0.md is the naming authority; these cards
+  forseti_ontology_backbone_architecture_v0.md is the naming authority; these cards
   and this note are subordinate to it.
 authority_boundary: retrieval_only
 status: DATED_HINT_2026-06-15
-naming_authority: forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
+naming_authority: forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
 ```
 
 Each file here is one **object card** — a dated *instance* of an adopted §2.2 object type.

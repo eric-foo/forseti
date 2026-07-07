@@ -191,7 +191,7 @@ collapses → **no-go / defer** to the current intent proxies.
   and per-family READMEs (`retail_pdp/`, `social_media/{tiktok,instagram}/`, `social_media/creator_registry/`).
 - Ontology types + `Observation` (deferred, `integrity_flags`) + `TrendVector` links:
   [ontology.yaml](forseti/product/spines/foundation/ontology/ontology.yaml);
-  no global resolver: `orca_ontology_backbone_architecture_v0.md:305–321`.
+  no global resolver: `forseti_ontology_backbone_architecture_v0.md:305–321`.
 - Creator Vault as generated Silver read layer:
   `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md:8–12,62`.
 - Aphrodite A1 carve (sells creator-level + aggregate attributed-commerce; not

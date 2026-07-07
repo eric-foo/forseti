@@ -7,13 +7,13 @@ scope: >
   Object card for the adopted Orca ontology backbone — a dated instance hint for one
   Product, and the exemplar card for the Product type's graduation from the deferred
   card backlog (backing landed 2026-07-04: the Aphrodite fragrance sub-ontology
-  reference data). The §2.2 roster in orca_ontology_backbone_architecture_v0.md is
+  reference data). The §2.2 roster in forseti_ontology_backbone_architecture_v0.md is
   the naming authority; this card is an instance hint, not authority, and restates
   no owner-lane content (it points).
 authority_boundary: retrieval_only
 status: DATED_HINT_2026-07-04
 review_by: 2027-01-05   # R0 card-convention conformance 2026-07-05
-naming_authority: forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md  # §2.2 (type Product) + §2.1 (ID grammar) + §6.1 amendment 2026-07-04
+naming_authority: forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md  # §2.2 (type Product) + §2.1 (ID grammar) + §6.1 amendment 2026-07-04
 ```
 
 > Dated instance hint, fail-soft — **not** a current-state claim, **not** authority.

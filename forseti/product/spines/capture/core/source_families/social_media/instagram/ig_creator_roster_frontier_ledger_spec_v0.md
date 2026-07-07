@@ -81,7 +81,7 @@ Current-main sources read for this spec:
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md`
 - `docs/decisions/wind_caller_calibration_carveout_v0.md`
-- `forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md`
+- `forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_discovery_spec_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_momentum_pipeline_architecture_v0.md`
 - `forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md`

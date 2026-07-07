@@ -16,7 +16,7 @@ use_when:
   - Sequencing ontology-foundation work against the MGT / GT discipline.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
+  - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
   - forseti/product/spines/foundation/ontology/ontology.yaml
   - forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
@@ -126,9 +126,9 @@ direction_change_propagation:
   trigger: architecture_doctrine
   related_triggers: []
   controlling_sources_updated:
-    - docs/decisions/orca_ontology_gt_foundation_ladder_v0.md   # this record (new)
+    - docs/decisions/forseti_ontology_gt_foundation_ladder_v0.md   # this record (new)
   downstream_surfaces_checked:
-    - forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md   # the ladder governs the infra roadmap over the backbone's object model; no backbone change
+    - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md   # the ladder governs the infra roadmap over the backbone's object model; no backbone change
     - forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json           # sibling deferred-TYPE tracker; this ladder tracks infra RUNGS, not types; no overlap edited
     - docs/decisions/orca_mini_god_tier_doctrine_v0.md                                          # MGT lens applied here; not amended
   intentionally_not_updated:
