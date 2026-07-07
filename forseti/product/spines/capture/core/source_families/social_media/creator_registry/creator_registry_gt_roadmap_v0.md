@@ -145,19 +145,106 @@ Use one account as a public-source expansion seed only when the expansion stays
 evidence-bound:
 
 1. Start from an existing or newly scanned public account.
-2. Read only public/no-login profile surfaces and explicitly visible social links.
-3. Convert discovered social links into candidate account rows, not registry
+2. Read only public/no-login profile surfaces, visible bio text, source-visible
+   location/self-description text, and explicitly visible social links.
+3. If the known account profile links to an official public link hub, follow only the
+   source-visible public hub links needed to identify sibling public accounts.
+4. Convert discovered social links into candidate account rows, not registry
    mutations.
-4. Run exact-match preflight per candidate row.
-5. If the candidate is known, attach the discovery as linkage or observation
+5. Run exact-match preflight per candidate row.
+6. If the candidate is known, attach the discovery as linkage or observation
    evidence.
-6. If the candidate is new, emit a handoff row only when the preflight receipt
+7. If the candidate is new, emit a handoff row only when the preflight receipt
    clears `new_capture`.
-7. If the candidate may belong to the same public creator, add candidate-link
+8. If the candidate may belong to the same public creator, add candidate-link
    review evidence; do not collapse accounts.
+
+For creator channel graphing, the default probe sequence is platform-agnostic:
+
+```text
+known public creator account -> public profile bio/about/channel links
+-> official public link hub, if present -> sibling public channel links
+-> candidate account rows -> Creator Registry exact-match preflight
+-> linkage/update/new-capture routing
+```
+
+Low-latency link-hub rule: when a public profile exposes a Linktree or similar
+public link hub, try direct HTTP capture of the hub first and inspect structured
+public page data such as JSON-LD `sameAs` before browser clicking. If direct HTTP
+omits the outbound social graph, attach to one already-open persistent browser
+session and DOM-read scripts/app state/buttons; do not repeatedly close and
+relaunch the browser for each probe. Click-through to IG/YT/TikTok is reserved
+for cases where the hub does not expose enough public account evidence.
+
+If a public bio or official link hub states a region such as `NYC`, record it as
+source-visible region evidence (`US / NYC`) with the source pointer. Do not infer
+private demographics, residence, legal identity, or outreach/contact permission
+from that region text.
 
 This is how a single creator can accelerate registry fill without turning the
 registry into a crawler or person dossier.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Creator graphing now explicitly starts from a known public creator account's
+    source-visible profile bio, profile/about/channel links, and official public
+    link hubs when
+    present: known creator channel -> official link hub or sibling public
+    channel links -> candidate rows -> exact-match preflight ->
+    linkage/update/new-capture routing; source-visible region text such as NYC
+    may be recorded as region evidence with a source pointer, but not as private
+    demographic, residence, identity, contact, or outreach evidence.
+  trigger: workflow_authority
+  related_triggers:
+    - product_doctrine
+  controlling_sources_updated:
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_gt_roadmap_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Root behavior stays unchanged; the concrete creator graphing sequence is
+        source-family behavior owned by the Creator Registry graphing roadmap.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading mechanics are unchanged; this patch only specifies which
+        public source-visible surfaces count inside the creator graphing probe.
+    - path: forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md
+      reason: >
+        The README already routes graphing/scanning to this roadmap and linkage
+        evidence to the linkage spec; no folder-front-door rule changed.
+    - path: forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
+      reason: >
+        Exact-match preflight ordering and receipt semantics are unchanged; the
+        new behavior says how to gather candidate rows before that preflight.
+  stale_language_search: >
+    rg -n "link hub|bio|region|NYC|same-handle|source-visible"
+    forseti/product/spines/capture/core/source_families/social_media/creator_registry
+    AGENTS.md .agents/workflow-overlay
+  stale_language_search_result: >
+    Executed 2026-07-07 after edits. Hits are the new graphing/link-hub rule,
+    the new linkage-spec evidence interpretation, existing compatible graphing
+    language around same-handle candidates, existing compatible source-visible
+    metric/source-loading references, and the linkage spec's existing weak
+    bio_text_overlap evidence type. No checked surface contradicts the new
+    source-visible bio/link-hub graphing behavior.
+  non_claims:
+    - not validation
+    - not readiness
+    - not registry mutation
+    - not live capture authorization
+    - not cross-platform person identity proof
+```
 
 ## GT Road
 

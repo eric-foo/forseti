@@ -208,8 +208,8 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
 
     assert view["schema_version"] == "creator_profile_current_view_v0"
     assert view["counts"] == {
-        "profiles_total": 36,
-        "platform_account_profiles": 36,
+        "profiles_total": 38,
+        "platform_account_profiles": 38,
         "creator_record_profiles": 0,
         "profiles_with_metric_rollups": 33,
         "profiles_with_ideal_audience_profiles": 0,
@@ -229,7 +229,6 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         assert profile["ideal_audience_profile"] is None
         assert profile["wind_calling_summary"] is None
         if not profile["current_metric_rollups"]:
-            assert platform == "tiktok"
             assert profile["freshness"]["metrics_computed_at_or_none"] is None
             assert profile["source_drill_back"]["metric_rollup_pointer"] is None
             assert profile["source_drill_back"]["metric_snapshot_pointer"] is None
@@ -272,13 +271,15 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> No
         for account in account_ledger["platform_accounts"]
     }
 
-    tiktok_identity_only_ids = {
-        account_id
-        for account_id, account in accounts_by_id.items()
-        if account["platform"] == "tiktok"
+    identity_only_ids = {
+        "acct_tiktok_fragrance_001",
+        "acct_tiktok_fragrance_002",
+        "acct_tiktok_fragrance_003",
+        "acct_tiktok_fragrance_004",
+        "acct_ig_fragrance_005",
     }
     assert set(rollups_by_subject).issubset(set(accounts_by_id))
-    assert set(accounts_by_id) - set(rollups_by_subject) == tiktok_identity_only_ids
+    assert set(accounts_by_id) - set(rollups_by_subject) == identity_only_ids
     assert set(accounts_by_id) == {
         profile["profile_subject_id"] for profile in view["profiles"]
     }
@@ -288,7 +289,6 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> No
         account = accounts_by_id[subject_id]
         assert profile["platform_accounts"] == [account]
         if subject_id not in rollups_by_subject:
-            assert account["platform"] == "tiktok"
             assert profile["current_metric_rollups"] == []
             assert profile["freshness"]["metrics_computed_at_or_none"] is None
             assert profile["source_drill_back"]["source_metric_observation_ids"] == []
@@ -404,7 +404,6 @@ def test_creator_profile_current_does_not_smuggle_forbidden_scope() -> None:
         assert "not SQLite or data-lake physicalization" in profile["non_claims"]
         assert any("sample_support" in item for item in profile["limitations"])
         if not profile["current_metric_rollups"]:
-            assert platform == "tiktok"
             assert any("No creator metric rollup is joined yet" in item for item in profile["limitations"])
             continue
         rollup = profile["current_metric_rollups"][0]

@@ -1,0 +1,66 @@
+{
+  "schema_version": "creator_graph_link_hub_evidence_v0",
+  "evidence_id": "fragranceknowledge_linktree_sameas_20260707",
+  "observed_at_utc": "2026-07-07T15:01:16Z",
+  "source_url": "https://linktr.ee/EvanHalI",
+  "source_capture_packet": {
+    "local_packet_path": "forseti-harness/_test_runs/creator_graph_fragranceknowledge_linktree_http_20260707",
+    "packet_id": "01KWYHJ0J4QKGPHHJWG7SY6V3H",
+    "preserved_body_sha256": "e561080e040ef91caf76c992b01a2c150d157e24518b3d4384063feacce98730",
+    "access_posture": "direct_http succeeded with HTTP 200 OK",
+    "receipt_pointer": "forseti-harness/_test_runs/creator_graph_fragranceknowledge_linktree_http_20260707/receipt.md"
+  },
+  "link_hub_profile": {
+    "service": "Linktree",
+    "identifier": "EvanHalI",
+    "display_name": "Evan Hall",
+    "url": "https://linktr.ee/EvanHalI"
+  },
+  "link_hub_same_as": [
+    {
+      "platform": "facebook",
+      "public_profile_url": "https://www.facebook.com/EvanHall09",
+      "public_handle_or_path": "EvanHall09"
+    },
+    {
+      "platform": "instagram",
+      "public_profile_url": "https://instagram.com/Fragranceknowledge",
+      "public_handle_or_path": "Fragranceknowledge"
+    },
+    {
+      "platform": "tiktok",
+      "public_profile_url": "https://tiktok.com/@fragranceknowledge",
+      "public_handle_or_path": "fragranceknowledge"
+    },
+    {
+      "platform": "youtube",
+      "public_profile_url": "https://www.youtube.com/@Fragranceknowledge",
+      "public_handle_or_path": "Fragranceknowledge"
+    },
+    {
+      "platform": "snapchat",
+      "public_profile_url": "https://www.snapchat.com/add/EvanFK9",
+      "public_handle_or_path": "EvanFK9"
+    }
+  ],
+  "source_visible_region_evidence": {
+    "source_surface": "TikTok public profile bio visible text from persistent sessioned browser probe",
+    "region_text": "NYC",
+    "normalized_region_label_or_none": "US / NYC",
+    "source_pointer": "operator_observation:sessioned_tiktok_profile_visible_text_2026-07-07#bio_line_NYC"
+  },
+  "extraction_notes": [
+    "Outbound account URLs were extracted from public Linktree application/ld+json ProfilePage mainEntity.sameAs.",
+    "Social icon DOM buttons had labels but no direct href; clicking was not required.",
+    "Direct HTTP captured the Linktree page and was lower latency than rendered browser inspection for this evidence.",
+    "The registry must not store or use public contact text from the profile as enrichment."
+  ],
+  "non_claims": [
+    "not private identity enrichment",
+    "not contact enrichment",
+    "not outreach authorization",
+    "not metric authority",
+    "not current handle guarantee",
+    "not final cross-platform identity without review promotion"
+  ]
+}
