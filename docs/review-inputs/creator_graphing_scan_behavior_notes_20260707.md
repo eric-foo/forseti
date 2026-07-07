@@ -85,4 +85,6 @@ When a creator profile exposes TikTok Suggested accounts, treat them as target-e
 
 If the Followers or Following modal is open and exposes a Suggested tab, click Suggested only as a bounded scan action in the same intended session, then paginate/scroll with a small explicit bound and record the bound used. Do not repeatedly follow/unfollow to force recommendations. Dedupe exact handles before candidate capture, and keep registry insertion behind exact-match preflight plus owner authorization.
 
-Current Fragranceknowledge target-expansion artifact: docs/review-inputs/fragranceknowledge_tiktok_suggested_target_graph_20260708.json.
+Current Fragranceknowledge target-expansion source artifact: docs/review-inputs/fragranceknowledge_tiktok_suggested_target_graph_20260708.json.
+
+Canonical frontier-register projection for that pass: docs/review-inputs/fragranceknowledge_tiktok_creator_discovery_frontier_register_20260708.json. Future repeated TikTok suggested-account scans should prefer the TikTok Creator Discovery Frontier Register shape from forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_frontier_register_v0.md.
