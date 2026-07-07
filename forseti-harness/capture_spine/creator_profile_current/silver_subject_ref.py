@@ -28,8 +28,19 @@ def platform_account_id_from_subject_ref(
     if not isinstance(subject_ref, Mapping):
         raise TypeError(f"{what} must be a mapping")
     value = subject_ref.get(FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY)
+    legacy_value = subject_ref.get(LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY)
+    if value is not None and legacy_value is not None:
+        account_id = required_subject_native_id(value, what=what)
+        legacy_account_id = required_subject_native_id(legacy_value, what=f"legacy {what}")
+        if account_id != legacy_account_id:
+            raise ValueError(
+                f"{what} has conflicting account ids for "
+                f"{FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY!r} and "
+                f"{LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY!r}"
+            )
+        return account_id
     if value is None:
-        value = subject_ref.get(LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY)
+        value = legacy_value
     if value is None:
         raise KeyError(
             f"{what} lacks {FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY!r} "

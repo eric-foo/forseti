@@ -304,6 +304,22 @@ def test_tampered_rollup_value_fails_formula_check(tmp_path: Path) -> None:
     assert any("average_views" in failure and "recomputed" in failure for failure in finding.failures)
 
 
+def test_malformed_rollup_subject_ref_is_record_failure_not_walk_crash(tmp_path: Path) -> None:
+    data_root, result = _live_lake(tmp_path)
+
+    def _remove_account_ref(record: dict) -> None:
+        record["payload"]["observation"]["subject"]["ref"] = {}
+
+    _rewrite_record(result.rollup_paths[0], _remove_account_ref)
+    report = revalidate_creator_metric_rollups(data_root)
+
+    assert report.rollups_checked == 1
+    finding = report.findings[0]
+    assert finding.account_id == ""
+    assert not finding.ok
+    assert any("account id unresolved" in failure for failure in finding.failures)
+
+
 def test_tampered_observation_fails_integrity_check(tmp_path: Path) -> None:
     data_root, result = _live_lake(tmp_path)
     observation_path = result.observation_paths[0]

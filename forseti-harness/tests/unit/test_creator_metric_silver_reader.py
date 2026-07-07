@@ -164,7 +164,18 @@ def test_reader_round_trips_metric_numbers_and_posture(tmp_path: Path) -> None:
 def test_reader_reads_on_disk_records_not_memory(tmp_path: Path) -> None:
     data_root, result = _run(tmp_path)
     # the records the reader sees are the real on-disk lake files.
+    assert result.observation_paths and all(path.exists() for path in result.observation_paths)
     assert result.rollup_paths and all(path.exists() for path in result.rollup_paths)
+
+    observation_record = json.loads(result.observation_paths[0].read_text(encoding="utf-8"))
+    observation_ref = observation_record["payload"]["observation"]["subject"]["ref"]
+    assert observation_ref[FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY] == "acct_ig_fixture_001"
+    assert LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY not in observation_ref
+
+    rollup_record = json.loads(result.rollup_paths[0].read_text(encoding="utf-8"))
+    rollup_ref = rollup_record["payload"]["observation"]["subject"]["ref"]
+    assert rollup_ref[FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY] == "acct_ig_fixture_001"
+    assert LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY not in rollup_ref
 
     reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[PACKET_ID])
     seed_rollup = _seed_rollups(result)[0]

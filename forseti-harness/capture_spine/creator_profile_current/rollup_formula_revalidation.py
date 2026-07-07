@@ -119,16 +119,22 @@ def revalidate_creator_metric_rollups(
         if platform is not None and observation.get("platform_scope") != platform:
             continue
         failures = _revalidate_one_rollup(rollup, observations_by_record_id)
+        try:
+            account_id = _platform_account_id_from_subject_ref(
+                observation.get("subject", {}).get("ref", {}),
+                what="rollup subject ref",
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            # A malformed/missing subject ref is a per-record FAILURE, not a
+            # walk-ending crash: raising here is reserved for an unreadable
+            # lake, not a failed check (module docstring above).
+            account_id = ""
+            failures = [*failures, f"rollup subject ref account id unresolved: {exc}"]
         findings.append(
             RollupRevalidationFinding(
                 record_id=str(rollup.get("record_id")),
                 raw_anchor=str(rollup.get("raw_anchor")),
-                account_id=str(
-                    _platform_account_id_from_subject_ref(
-                        observation.get("subject", {}).get("ref", {}),
-                        what="rollup subject ref",
-                    )
-                ),
+                account_id=account_id,
                 recipe_version=str(observation.get("calculation_recipe_version")),
                 failures=tuple(failures),
             )
