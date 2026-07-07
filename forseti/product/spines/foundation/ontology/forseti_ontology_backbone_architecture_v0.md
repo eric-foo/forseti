@@ -46,7 +46,7 @@ validation or lifecycle authority. Property lists are deliberately NOT frozen.
   (NOT the retired durable-vs-hollow framing).
 - **Source-read ledger** (read at the frozen base; extraction delegated read-only):
   - Layer-1 grammar: `forseti_product_thesis_consumer_demand_v0.md`,
-    `orca_demand_read_taxonomy_v0.md`, `orca_demand_read_taxonomy_adjudication_v0.md`.
+    `forseti_demand_read_taxonomy_v0.md`, `forseti_demand_read_taxonomy_adjudication_v0.md`.
   - Gates/proof: `orca_demand_gate_definition_closures_proposal_v0.md`,
     `forseti_buyer_proof_packet_v0.md`.
   - Object exemplars/kernel: `beauty_venue_card_set_v0.md`,

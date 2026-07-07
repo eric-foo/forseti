@@ -1,10 +1,10 @@
-# Orca Demand-Read Taxonomy — Adjudication Prep v0
+# Forseti Demand-Read Taxonomy — Adjudication Prep v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact (adjudication-prep companion to the PROPOSED demand-read taxonomy)
 scope: >
-  Brings forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md from a
+  Brings forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md from a
   fleshed sketch to an owner-adjudicable state: operative definitions
   (what-counts / anti-trigger / boundary) for every signal layer and read
   type, the internal tensions named as tensions, and an explicit owner-decision
@@ -17,7 +17,7 @@ use_when:
   - Resolving the pricing-signal refinement, wind-caller primacy, or channel-vs-person boundary.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md          # the PROPOSED grammar this prepares
+  - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md          # the PROPOSED grammar this prepares
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md          # controlling thesis (costly-behavior primitive, action ceilings)
   - docs/decisions/wind_caller_calibration_carveout_v0.md             # the carve-out reconciled in Q3 (incl. 2026-06-14 amendment)
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md           # Demand-Substrate Hard Gate (anti-trigger source)
@@ -29,7 +29,7 @@ stale_if:
 ## Status
 
 `ADJUDICATION_PREP_PENDING_OWNER` — prepared 2026-06-14 by the product-direction
-lane from the PROPOSED taxonomy (`orca_demand_read_taxonomy_v0.md`,
+lane from the PROPOSED taxonomy (`forseti_demand_read_taxonomy_v0.md`,
 `PROPOSED_PENDING_OWNER_ADJUDICATION`) and the controlling thesis, wedge,
 buyer-proof packet, venue card set, and wind-caller carve-out (read off fresh
 `origin/main`). This is a companion, not a replacement: the taxonomy stays the
@@ -45,7 +45,7 @@ It authorizes no scan, capture, monitoring, or outreach.
 calibration boundary, and the Part-5 plan item) — the taxonomy's
 wind-caller-calibration read-type line and Non-Claims line still saying
 "channel-level only" while Signal Layer 2 was already reconciled — **has been
-fixed in the taxonomy** (`orca_demand_read_taxonomy_v0.md`, dated note in its
+fixed in the taxonomy** (`forseti_demand_read_taxonomy_v0.md`, dated note in its
 Status). Those passages are retained below as written, for the audit trail of
 what prep found. With that fix landed, **Q3 now reduces to two open items**: (a)
 your confirmation of the boundary *policy*, and (b) the optional org-motion-≠-
@@ -483,13 +483,13 @@ the act that executes it.** Nothing below is edited by this lane.
 direction_change_propagation_PLAN:   # prepared only — not a completion receipt
   executes_on: owner adoption of the demand-read taxonomy
   doctrine_changed: >
-    The demand-read taxonomy becomes Orca's operative scan→capture→clean→judge
+    The demand-read taxonomy becomes Forseti's operative scan→capture→clean→judge
     read grammar (signal layers, read types, pricing refinement, wind-caller
     boundary), at the adjudicated Q1–Q3 outcomes.
   trigger: product_doctrine
   related_triggers: []   # confirm at execution; add only if a surface-routing dimension is materially touched
   controlling_sources_to_update:
-    - path: forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
+    - path: forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md
       change: fold the adjudicated word in as v1 or a dated amendment; flip status off PROPOSED; fix the Q3 residual lines if Q3 confirmed
     - path: docs/decisions/forseti_product_thesis_consumer_demand_v0.md
       change: add a dated pointer to the adopted taxonomy (the thesis's owed pointer); no thesis rewrite

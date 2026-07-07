@@ -1,10 +1,10 @@
-# Orca Demand-Read Taxonomy v0 (PROPOSED)
+# Forseti Demand-Read Taxonomy v0 (PROPOSED)
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact (PROPOSED read grammar — pending owner adjudication)
 scope: >
-  Fleshes out the owner's 2026-06-12 sketch of Orca's main function: the
+  Fleshes out the owner's 2026-06-12 sketch of Forseti's main function: the
   signal layers, read types, wind-caller machinery, and pricing refinement
   that the scanning lane hunts for, the cleaning layer labels, and judgment
   acts on. Buy-side primary, supply-side supplement (owner word). PROPOSED:
@@ -44,7 +44,7 @@ match Signal Layer 2 and the live carve-out
 carve-out's propagation (its receipt amended Layer 2 but missed these two
 lines). No policy change. The channel-vs-person boundary itself remains an
 owner-confirmation item — see the adjudication-prep companion
-(`orca_demand_read_taxonomy_adjudication_v0.md`, Q3).
+(`forseti_demand_read_taxonomy_adjudication_v0.md`, Q3).
 
 Demand-state model amendment (2026-06-14, owner-authorized in-thread; clarified
 2026-06-23): the central axis changes from **durable vs hollow** to **two

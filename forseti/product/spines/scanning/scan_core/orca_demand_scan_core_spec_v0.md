@@ -19,7 +19,7 @@ use_when:
   - Adjudicating this spec (commissioning ICP / product-direction lane; owner signs adoption).
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md          # the hunting grammar's source (PROPOSED; 3-state model)
+  - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md          # the hunting grammar's source (PROPOSED; 3-state model)
   - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md      # the walk mechanics this spec layers on
   - forseti/product/satellites/beauty/beauty_venue_card_set_v0.md                # the venue layer (beauty)
   - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md  # forward-mode consumer

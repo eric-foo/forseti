@@ -666,11 +666,11 @@ direction_change_propagation:
     - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
     - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md
   downstream_surfaces_checked:
-    - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
+    - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md
     - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
     - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
     - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_consumer_demand_revision_v0.md
-    - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_adjudication_v0.md
+    - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_adjudication_v0.md
     - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_consumer_demand_revision_v0.md
     - docs/prompts/product-planning/demand_substrate_gate_paper_check_commission_prompt_v0.md
   intentionally_not_updated:

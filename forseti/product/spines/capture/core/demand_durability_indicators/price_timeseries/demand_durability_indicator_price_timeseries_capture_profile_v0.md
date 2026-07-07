@@ -46,7 +46,7 @@ downstream_consumers:
   `forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md`,
   `orca-harness/source_capture/price_payload_extraction.py`,
   `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` (INV-1, costly-behavior),
-  `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md`
+  `forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md`
 
 ---
 
@@ -168,7 +168,7 @@ that a price time-series capture records.
 
 This profile is bound by INV-1 (the Demand-Substrate no-scoring invariant, per
 `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` and
-`forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md`).
+`forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md`).
 
 Concretely:
 

@@ -26,7 +26,7 @@ open_next:
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                                            # the live Demand-Substrate Hard Gate (G1 cards, AR-04, floor/ceiling, defeater)
   - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md                                           # candidate-observation schema (venue_family/gate_family/costly_behavior enums)
   - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md                      # AR-04 unsourced-gap classification
-  - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                                          # search-interest read type (read-grammar basis)
+  - forseti/product/spines/foundation/demand_read_taxonomy/forseti_demand_read_taxonomy_v0.md                                          # search-interest read type (read-grammar basis)
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md                 # access/ToS posture (capture-spine-owned)
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md                                          # wedge target (currently "US indie/DTC beauty or personal-care"; fragrance is a narrowing — see §2)
 stale_if:
