@@ -43,7 +43,7 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 | Doctrine | File | Binds |
 | --- | --- | --- |
 | Source hierarchy + DCP | source-of-truth.md | Source precedence; doctrine-change propagation contract; checkpoint rules |
-| Artifact Folders Doctrine | artifact-folders.md | Accepted folders + placement rules. Decision layer (subset): `docs/decisions/orca_repo_structure_binding_v0.md` |
+| Artifact Folders Doctrine | artifact-folders.md | Accepted folders + placement rules. Decision layer (subset): `docs/decisions/forseti_repo_structure_binding_v0.md` |
 | Retrievability Doctrine | retrieval-metadata.md | The `retrieval_header_version: 1` header schema on every durable artifact |
 | Validation gates | validation-gates.md | Required gates before completion claims |
 | Safety + authorization | safety-rules.md | Forbidden drift; implementation boundaries |
@@ -63,7 +63,7 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 | Doctrine | File | Status |
 | --- | --- | --- |
 | Mini God Tier Doctrine (record; kernel trigger above) | forseti_mini_god_tier_doctrine_v0.md | OWNER-ADOPTED 2026-06-11 |
-| Artifact Folders Doctrine — decision layer (subset) | orca_repo_structure_binding_v0.md | OWNER-AUTHORIZED v0 |
+| Artifact Folders Doctrine — decision layer (subset) | forseti_repo_structure_binding_v0.md | OWNER-AUTHORIZED v0 |
 | Distillation Doctrine — adoption index + spine bindings | distillation_doctrine_orca_spine_bindings_v0.md | PREPARE-ONLY |
 | Distillation Doctrine subset — enforcement-placement classification | overlay_enforcement_placement_classification_v0.md | PREPARE-ONLY (EP-01/03/06 substrates built) |
 | Distillation Doctrine subset — overlay-governance binding | distillation_binding_overlay_governance_v0.md | PREPARE-ONLY DRAFT |

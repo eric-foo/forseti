@@ -35,7 +35,7 @@ shared_external_surfaces:
   validator_unit_tests: orca-harness/tests/unit/test_commission_signal_board_output_validator.py
   validator_fixtures: orca-harness/tests/fixtures/commission_signal_board_outputs/
   repo_map: docs/workflows/orca_repo_map_v0.md
-  structure_binding: docs/decisions/orca_repo_structure_binding_v0.md
+  structure_binding: docs/decisions/forseti_repo_structure_binding_v0.md
   artifact_folder_authority: .agents/workflow-overlay/artifact-folders.md
   machine_map: repo-structure.yaml
 

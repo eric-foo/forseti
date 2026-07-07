@@ -12,7 +12,7 @@ use_when:
   - Auditing the binding/checker/runbook patch set of 2026-06-11.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_repo_structure_binding_v0.md
+  - docs/decisions/forseti_repo_structure_binding_v0.md
   - docs/review-inputs/repo_structure_binding_v0_delegated_review_v0/MANIFEST.md
 ```
 
@@ -63,7 +63,7 @@ no-new-seam claim beyond the cross-vendor discovery review.
 
 ## Kept state
 
-Touched delta kept in full: `docs/decisions/orca_repo_structure_binding_v0.md`
+Touched delta kept in full: `docs/decisions/forseti_repo_structure_binding_v0.md`
 (DRB-001 wording), `.agents/hooks/check_placement.py` (DRB-002 lane
 enforcement + nudge restoration + selftest cases), the Phase-2 runbook
 (DRB-003 wording + applied-status note). The review bundle remains the

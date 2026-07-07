@@ -58,7 +58,7 @@ validation or lifecycle authority. Property lists are deliberately NOT frozen.
     `judgment_spine_read_machinery_architecture_handoff_v0.md`,
     `judgment_spine_backtest_batch1_ledger_declaration_v0.md`.
   - Layer-2 owners + binding: `artifact-roles.md`, `artifact-folders.md`,
-    `source-of-truth.md`, `orca_repo_structure_binding_v0.md`, `repo-structure.yaml`.
+    `source-of-truth.md`, `forseti_repo_structure_binding_v0.md`, `repo-structure.yaml`.
 - **Declared source gaps (not blockers; commission anticipated):**
   1. `forseti_demand_scan_core_spec_v0.md` is ABSENT (in-flight, not on `main`) —
      designed FOR as a forward consumer; its Observation/Candidate schema is not pinned.
@@ -354,7 +354,7 @@ for this repo. Route, don't restate.
 
 | Workflow concept | Existing owner (points to; does not restate) |
 | --- | --- |
-| Lanes (product second-level axis) | `docs/decisions/orca_repo_structure_binding_v0.md` + `.agents/workflow-overlay/artifact-folders.md` |
+| Lanes (product second-level axis) | `docs/decisions/forseti_repo_structure_binding_v0.md` + `.agents/workflow-overlay/artifact-folders.md` |
 | Artifact roles (15 bound roles) | `.agents/workflow-overlay/artifact-roles.md` |
 | Claim / evidence tiers (`product_learning`→`buyer_proof`→`judgment_quality`) | `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` (+ per-role "Validation evidence" in `artifact-roles.md`) |
 | Validation gates | `.agents/workflow-overlay/validation-gates.md` |
@@ -367,7 +367,7 @@ for this repo. Route, don't restate.
 | Retrieval headers | `.agents/workflow-overlay/retrieval-metadata.md` |
 | Template registry | `.agents/workflow-overlay/template-registry.md` |
 | Skill adoption | `.agents/workflow-overlay/skill-adoption.md` |
-| Repo router (machine map) | `repo-structure.yaml` (binding `orca_repo_structure_binding_v0.md`) |
+| Repo router (machine map) | `repo-structure.yaml` (binding `forseti_repo_structure_binding_v0.md`) |
 
 **Layer-2 rule:** a Layer-1 action that has a workflow owner (e.g. a `claim_tier`
 or a JSG gate) carries `backed_by: <owner path>` and nothing more. No Layer-2 card
@@ -591,7 +591,7 @@ direction_change_propagation:
   downstream_surfaces_to_check_on_adoption:
     - .agents/workflow-overlay/artifact-folders.md      # add ontology lane
     - repo-structure.yaml                                # add product_lane + docs_role
-    - docs/decisions/orca_repo_structure_binding_v0.md   # record the new lane decision
+    - docs/decisions/forseti_repo_structure_binding_v0.md   # record the new lane decision
     - docs/workflows/orca_repo_map_v0.md                 # add ontology lane row
     - .agents/workflow-overlay/source-of-truth.md        # known-source entry
   intentionally_not_updated_now:

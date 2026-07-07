@@ -17,7 +17,7 @@ authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/data_lake/README.md
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
-  - docs/decisions/orca_repo_structure_binding_v0.md
+  - docs/decisions/forseti_repo_structure_binding_v0.md
   - .agents/workflow-overlay/artifact-folders.md
 supersedes: []
 stale_if:

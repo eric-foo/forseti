@@ -11,7 +11,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/commission_signal_board/README.md
-  - docs/decisions/orca_repo_structure_binding_v0.md
+  - docs/decisions/forseti_repo_structure_binding_v0.md
 stale_if:
   - Another Commission Signal Board artifact moves.
   - Global Orca docs move to orca/docs/.

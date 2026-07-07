@@ -50,7 +50,7 @@ authority_boundary: retrieval_only
 - Do not create implementation folders such as `src`, `app`, `packages`, `tests`, or automation runtimes until explicitly authorized.
 - Forseti-local workflow skills live only under `.agents/skills/` and are governed by `.agents/workflow-overlay/skill-adoption.md`; acceptance there is a local freeze, not deployment, and must not edit plugin, user-level, installed, or external skill source.
 - Do not copy or move material from external reference folders unless a later turn explicitly authorizes the import.
-- Placement is checked at the write boundary by `.agents/hooks/check_placement.py` (EP-04, advisory; `--strict` commit/CI mode available), which reads `repo-structure.yaml` as its only rule source. A passing check is placement shape only - never validation, readiness, or authority. Parameters and invariants: `docs/decisions/orca_repo_structure_binding_v0.md`.
+- Placement is checked at the write boundary by `.agents/hooks/check_placement.py` (EP-04, advisory; `--strict` commit/CI mode available), which reads `repo-structure.yaml` as its only rule source. A passing check is placement shape only - never validation, readiness, or authority. Parameters and invariants: `docs/decisions/forseti_repo_structure_binding_v0.md`.
 
 ## Direction Change Propagation - Orca-Local Skill Folder
 
@@ -99,7 +99,7 @@ direction_change_propagation:
 direction_change_propagation:
   doctrine_changed: >
     Orca adopts the agent-first repo-structure invariant core as Orca-owned
-    doctrine via docs/decisions/orca_repo_structure_binding_v0.md, binds the
+    doctrine via docs/decisions/forseti_repo_structure_binding_v0.md, binds the
     docs/product/ by-lane second axis and root machine map repo-structure.yaml
     (router-only), and authorizes the EP-04 placement substrate
     (.agents/hooks/check_placement.py, advisory write-boundary + --strict
@@ -111,7 +111,7 @@ direction_change_propagation:
     - workflow_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/artifact-folders.md
-    - docs/decisions/orca_repo_structure_binding_v0.md
+    - docs/decisions/forseti_repo_structure_binding_v0.md
     - repo-structure.yaml
   downstream_surfaces_checked:
     - AGENTS.md                                      # no structure facts; defers to overlay; no change
@@ -156,7 +156,7 @@ direction_change_propagation:
     - workflow_authority
   controlling_sources_updated:
     - docs/decisions/orca_search_product_lane_binding_v0.md   # lane binding + inclusion test + precedence rule (expanded to demand-signal method)
-    - docs/decisions/orca_repo_structure_binding_v0.md        # bound-lanes bullet notes search/
+    - docs/decisions/forseti_repo_structure_binding_v0.md        # bound-lanes bullet notes search/
     - repo-structure.yaml                                     # product_lanes += { search } (current once applied)
     - .agents/workflow-overlay/artifact-folders.md            # search accepted-folder entry + lane-subfolder list + this receipt
     - forseti/product/README.md                                  # lane list includes search/
@@ -216,7 +216,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - repo-structure.yaml
     - .agents/workflow-overlay/artifact-folders.md
-    - docs/decisions/orca_repo_structure_binding_v0.md
+    - docs/decisions/forseti_repo_structure_binding_v0.md
     - docs/decisions/orca_search_product_lane_binding_v0.md
   downstream_surfaces_checked:
     - docs/workflows/orca_repo_map_v0.md
@@ -277,7 +277,7 @@ direction_change_propagation:
     - docs/STRUCTURE.md
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
-    - docs/decisions/orca_repo_structure_binding_v0.md
+    - docs/decisions/forseti_repo_structure_binding_v0.md
     - docs/decisions/orca_search_product_lane_binding_v0.md
     - .agents/hooks/check_placement.py
     - .agents/hooks/check_map_links.py

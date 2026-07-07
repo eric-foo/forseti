@@ -407,7 +407,7 @@ binding turn), following the EP-32 house pattern:
   carries the declared pre-move debt (flat `docs/product/*.md`,
   `orca-harness/**`) as WARN-only; a tolerance-breadth sanity guard rejects
   blanket globs so the tolerance cannot quietly become a fake pass;
-- binding + parameters: `docs/decisions/orca_repo_structure_binding_v0.md`
+- binding + parameters: `docs/decisions/forseti_repo_structure_binding_v0.md`
   (invariant core restated as Orca doctrine; product lanes; surface tiering);
   DCP receipt inline in `.agents/workflow-overlay/artifact-folders.md`;
 - the EP-04 PARTIAL judgment edge stays resident: a new folder/lane is allowed
