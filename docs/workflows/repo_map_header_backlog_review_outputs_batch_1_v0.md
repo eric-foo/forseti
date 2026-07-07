@@ -11,7 +11,7 @@ use_when:
 open_next:
   - docs/workflows/repo_map_header_backlog_prompt_batch_v0.md
   - .agents/workflow-overlay/retrieval-metadata.md
-  - docs/decisions/orca_repo_map_architecture_mgt_v0.md
+  - docs/decisions/forseti_repo_map_architecture_mgt_v0.md
 authority_boundary: retrieval_only
 ```
 
