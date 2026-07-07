@@ -1,11 +1,11 @@
-# Orca Product Lead First ICP Wedge Decision v0
+  Forseti Product Lead First ICP Wedge Decision v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: Product Lead decision artifact selecting Orca's first proofable ICP and wedge.
+scope: Product Lead decision artifact selecting Forseti's first proofable ICP and wedge.
 use_when:
-  - Checking the selected first Orca ICP and wedge before product-proof patches.
+  - Checking the selected first Forseti ICP and wedge before product-proof patches.
   - Preparing commercial-frame inputs for the first paid decision-artifact path.
   - Deciding whether later proof work may replace the current first proof lane.
 authority_boundary: retrieval_only
@@ -36,7 +36,7 @@ input_hashes:
 branch_or_commit: main@a873c9c3ed3b289a65f9c472c63e0aadf880a127
 downstream_consumers:
   - Orca product-proof packet patch pass.
-  - Orca commercial-frame Chief Architect pass.
+  - Forseti commercial-frame Chief Architect pass.
   - Future Product Lead candidate-skill extraction review.
 stale_if:
   - The offer hypothesis, buyer-proof packet, proof lead charter, or product-proof overlay changes.
@@ -44,7 +44,7 @@ stale_if:
   - External customer discovery produces contrary qualified buyer evidence.
 ```
 
-## Status And Decision
+   Status And Decision
 
 Status: `PRODUCT_LEAD_FIRST_ICP_WEDGE_DECISION_V0` — **SUPERSEDED 2026-06-08 by
 `docs/decisions/forseti_icp_wedge_pricing_first_v0.md`**. The ICP redo replaced this
@@ -72,7 +72,7 @@ candidate-context ordering context only; it is not a buyer filter, not a wedge
 replacement, not buyer validation, not willingness-to-pay proof, and not
 market-size or capital-density proof.
 
-## Product State Synthesis
+   Product State Synthesis
 
 Current phase:
 
@@ -111,7 +111,7 @@ The first external buyer, commercial frame, price, duration, procurement path,
 and willingness-to-pay remain unknown. Buyer validation, repeatability, and
 commercial readiness are not proven.
 
-## ICP Definition For Orca
+   ICP Definition For Orca
 
 ICP (Buyer) means the specific customer segment most likely to urgently need,
 understand, buy, and successfully use Orca's public-signal decision artifact.
@@ -131,7 +131,7 @@ For Orca, an ICP must bind:
 The ICP should not be "any leader with a strategic decision." That is not a
 wedge; it is an invitation to generic consulting.
 
-## Candidate Wedges Compared
+   Candidate Wedges Compared
 
 | Candidate wedge | Fit to offer and urgency | Owner, budget, and paid-first plausibility | Signal and deck proofability | Repeatability and risk | Decision |
 | --- | --- | --- | --- | --- | --- |
@@ -141,7 +141,7 @@ wedge; it is an invitation to generic consulting.
 | Investor, operator, or portfolio context | Plausible offer fit for allocation and diligence decisions where public evidence can change a decision. | Medium. Sponsor may have budget, but the decision owner and artifact user can split across investor, operator, and company team. | Medium-to-weak from current sources. Visible signals may help, but portfolio decisions often require private diligence, company data, or investment mandate context. | Risk of bespoke advisory work and unclear buyer/user boundary. Source support is not strong enough for first proof. | Defer until a concrete paid portfolio decision and public-signal surface are supplied. |
 | Stop or defer all wedge selection pending external research | Conservative option, but too cautious given current sources. | Not applicable. | Not applicable. | It delays market contact despite an already bounded proof lane and candidate-context scan. | Reject. The current lane is proofable enough for docs-first qualification prep. |
 
-## Selected First ICP / Wedge
+   Selected First ICP / Wedge
 
 Buyer / sponsor type:
 
@@ -239,7 +239,7 @@ cannot replace a named decision owner, live 30-90 day decision, concrete
 consequence, public-signal surface, paid-first condition, trust-refusal test,
 or consulting-risk test.
 
-## Why This Wedge Wins
+   Why This Wedge Wins
 
 This wedge compounds product learning most because it is narrow enough to test
 the manual Core Spine mechanics while still sitting in the provisionally
@@ -287,7 +287,7 @@ What would change the answer:
   decision owner, urgent deadline, clear public-signal surface, and a sharper
   first proof path than this lane.
 
-## Proof-Lane Implications
+   Proof-Lane Implications
 
 The current buyer-proof packet and Product Proof Lead charter should stay as
 the controlling first proof-lane sources for now.
@@ -308,7 +308,7 @@ decision:
 
 No existing product docs are patched by this artifact.
 
-## Commercial Frame Inputs
+   Commercial Frame Inputs
 
 The later Commercial Frame CA should inherit these inputs:
 
@@ -340,7 +340,7 @@ Unknowns that must remain unresolved here:
 - Whether any unpaid qualification or sample step is allowed before paid work.
 - How to handle source-expansion requests inside a paid scope.
 
-## Product Lead Candidate Skill Notes
+   Product Lead Candidate Skill Notes
 
 Repeatable mechanics observed in this CA pass:
 
@@ -370,7 +370,7 @@ A future `orca-product-lead` candidate skill is justified later, not now. The
 mechanics are becoming repeatable, but Orca has no accepted local candidate
 skills and this run is explicitly not a skill-creation lane.
 
-## Non-Claims
+   Non-Claims
 
 This artifact does not claim:
 
@@ -390,7 +390,7 @@ This artifact does not claim:
 - executive deck production authorization;
 - proof-lane graduation.
 
-## Exact Next Authorized Step
+   Exact Next Authorized Step
 
 Immediate next move:
 

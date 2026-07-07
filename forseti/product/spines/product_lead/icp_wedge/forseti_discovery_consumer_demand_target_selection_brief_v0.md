@@ -1,4 +1,4 @@
-# Orca Discovery — Consumer-Demand Target-Selection Brief v0 (PROPOSED)
+  Forseti Discovery — Consumer-Demand Target-Selection Brief v0 (PROPOSED)
 
 ```yaml
 retrieval_header_version: 1
@@ -7,18 +7,18 @@ scope: >
   Target-selection instrument for the consumer-demand/beauty first proof:
   blank target slots, qualification objectives, and stop rules derived from
   the ratified thesis + wedge (2026-06-12). Replaces the pricing-gated
-  orca_discovery_batch_0_target_selection_brief_v0.md, which pricing-first
+  forseti_discovery_batch_0_target_selection_brief_v0.md, which pricing-first
   propagation AR-01 already flagged as a misrouting live instrument. Slots
   are intentionally blank: no candidate scan is authorized yet, and the
   standing no-buyer-contact gate is closed (owner ask 4, 2026-06-12).
 supersedes:
-  - forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_target_selection_brief_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/forseti_discovery_batch_0_target_selection_brief_v0.md
 use_when:
   - Selecting blank consumer-demand discovery target slots after the wedge is ratified and a candidate-scan lane is authorized.
   - Checking first-contact qualification objectives for the beauty operator door before memo production.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md  # owns the live substrate gate + disqualifiers
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md    owns the live substrate gate + disqualifiers
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
   - .agents/workflow-overlay/product-proof.md
 input_hashes:
@@ -31,7 +31,7 @@ stale_if:
   - The no-buyer-contact gate is reopened or changed (re-read before any use).
 ```
 
-## Status
+   Status
 
 `ADOPTED_LIVE_INSTRUMENT` — adopted 2026-06-12 by the ratification cascade
 (owner ratified thesis asks 1-2; runbook step 6). Supersedes the batch-0
@@ -50,7 +50,7 @@ measured ToS risk accepted / absurd-level rejected (the owner's example:
 Bright-Data-style industrial scraping); per-venue route bindings stay
 capture-lane-owned. The stop rules below are stated under that posture.
 
-## Commercial Target Selection Update (2026-06-16)
+   Commercial Target Selection Update (2026-06-16)
 
 Owner direction confirms that blank discovery slots, when a candidate-scan lane
 is separately authorized, should target US-market tractioned indie/DTC beauty
@@ -76,7 +76,7 @@ separately authorized proof or data-spine lane, but this discovery instrument
 selects public-first cases where the manual memo and evidence appendix can be
 credible without that intake.
 
-## Output Boundary (carried unchanged from batch 0)
+   Output Boundary (carried unchanged from batch 0)
 
 Docs-first target-selection instrument only. It does not authorize buyer
 outreach (standing gate: no buyer contact before full-spine MVP —
@@ -87,7 +87,7 @@ implementation, source systems, dashboards, source maps, data-spine design,
 CRM workflows, commits, pushes, or PRs. Filling the blank slots below requires
 a separately authorized candidate-scan lane.
 
-## Target Slots (blank by design)
+   Target Slots (blank by design)
 
 | Slot | Candidate context (brand (Brand) + live decision) | Decision family (DecisionEvent) | Independent demand-venue origins (Venue) visible (laundered / shared-origination copies = one; org-motion / retail excluded — see corroboration column) | Costly-behavior evidence visible | Org-motion route available (capture-lane-bound routes) | Named decision owner | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -120,7 +120,7 @@ hold, and disqualification records from the stop rules go to the proof-batch
 notes home (`docs/product/product_lead/orca_proof_batch_<n>_notes_v0.md`,
 per the charter).
 
-## Qualification Objectives (first contact, when outreach is ever opened)
+   Qualification Objectives (first contact, when outreach is ever opened)
 
 Derived from the wedge and the live buyer-proof packet; the packet's
 Demand-Substrate Hard Gate and disqualifiers control on any conflict.
@@ -146,7 +146,7 @@ Demand-Substrate Hard Gate and disqualifiers control on any conflict.
 6. Record pull versus praise per the packet; praise, curiosity, and generic
    deck interest are not pull.
 
-## Stop Rules (carried unchanged)
+   Stop Rules (carried unchanged)
 
 - Stop at any disqualifier in the buyer-proof packet.
 - Stop if qualification would require outreach while the no-buyer-contact
@@ -159,13 +159,13 @@ Demand-Substrate Hard Gate and disqualifiers control on any conflict.
 - Do not stretch the wedge around a near-miss candidate; record the gap and
   hold or disqualify.
 
-## Claim-Tier Classification
+   Claim-Tier Classification
 
 Design / product-learning-tier instrument; no proof, readiness, validation,
 or judgment-quality claim; closeout state for any such claim:
 `no_durable_evidence`.
 
-## Non-Claims
+   Non-Claims
 
 Live instrument only — not candidate selection, not buyer validation, not
 outreach authority, not a research authorization, not proof of anything.
