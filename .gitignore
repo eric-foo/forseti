@@ -28,6 +28,12 @@ orca-harness/_auth_state/
 orca-harness/_browser_user_data/
 orca-harness/_reddit_credentials/
 orca-harness/_proxy_profiles/
+forseti-harness/_scratch/
+forseti-harness/_test_runs/
+forseti-harness/_auth_state/
+forseti-harness/_browser_user_data/
+forseti-harness/_reddit_credentials/
+forseti-harness/_proxy_profiles/
 orca-harness/pytest_tmp/
 orca-harness/pytest_tmp_*/
 orca-harness/pytest_*_tmp/
