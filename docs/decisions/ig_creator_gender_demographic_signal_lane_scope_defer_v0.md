@@ -278,7 +278,7 @@ direction_change_propagation:
       reason: >
         Known-source registration DEFERRED for the same reason — the lane is deferred and
         unbuilt; it registers when built, not before.
-    - path: docs/decisions/orca_doctrine_index_v0.md
+    - path: docs/decisions/forseti_doctrine_index_v0.md
       reason: >
         Index registration DEFERRED until the lane is authorized/built and this record is
         merged to main; indexing a deferred, branch-only scope record would advertise an

@@ -174,7 +174,7 @@ direction_change_propagation:
     - validation_philosophy
   controlling_sources_updated:
     - docs/decisions/orca_repo_map_architecture_mgt_v0.md
-    - docs/decisions/orca_doctrine_index_v0.md
+    - docs/decisions/forseti_doctrine_index_v0.md
     - docs/workflows/repo_map_retrieval_probe_batch_2_v0.md
     - .agents/hooks/header_index.py
   downstream_surfaces_checked:
