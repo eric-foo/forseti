@@ -18,7 +18,7 @@ open_next:
   - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md  # Lane 1 envelope-delta (temporal regimes, cold-start doctrine, five new elements)
   - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema)
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract §12 (review surfaces rule)
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                        # INV-1, Demand-Substrate Hard Gate, costly-behavior, integrity labels
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                        # INV-1, Demand-Substrate Hard Gate, costly-behavior, integrity labels
   - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
   - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md  # RQ-05 source-language-anchor status
 stale_if:
@@ -71,7 +71,7 @@ authoritative sources:
   This profile **cite-and-extends** RQ-05: review text capture under this profile
   must include source-language anchors from the start per the RQ-05 carry-forward
   classification.
-- **INV-1 and the Demand-Substrate Hard Gate:** `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`.
+- **INV-1 and the Demand-Substrate Hard Gate:** `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`.
   Consumed as-is; not redefined here. Integrity labels (artificial-amplification
   risk, incentive distortion, copied/coordinated) are a pre-requisite for review
   evidence entering a fused read.
@@ -306,7 +306,7 @@ cannot be dated to a specific window.
 ## INV-1 Preservation
 
 This profile is bound by INV-1 (no scoring, weighting, ranking, or judgment),
-per `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` and the
+per `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` and the
 demand-read taxonomy. Concretely in this profile:
 
 - reviewer metadata and corpus-pattern observables are **capture inputs**, not
@@ -378,7 +378,7 @@ lifecycle_verification:
     - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md  # Lane 1 envelope-delta (consumed, not re-derived)
     - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema, cited)
     - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract §12 (cite-and-extend)
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                        # INV-1, Hard Gate, integrity labels (consumed)
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                        # INV-1, Hard Gate, integrity labels (consumed)
     - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
     - docs/decisions/data_capture_spine_source_observability_requirements_boundary_decision_v0.md  # RQ-05 carry_forward (cite-and-extend)
     - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)

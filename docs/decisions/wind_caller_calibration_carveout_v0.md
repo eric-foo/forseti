@@ -15,7 +15,7 @@ authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md   # wind-caller read type
   - orca/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md  # Tier 2 deferred items
-  - orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md  # external boundary unchanged
+  - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md  # external boundary unchanged
 stale_if:
   - The owner amends this record (dated amendments only; no silent rewrites).
   - Commercial scale begins — triggers mandatory licensed/bought-data posture for wind-caller stats.
@@ -338,7 +338,7 @@ direction_change_propagation:
     - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
     - docs/product/source_capture_toolbox/source_capture_playbook_v0.md
     - docs/product/data_capture_spine/data_capture_spine_future_exploration_lanes_v0.md
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md  # pointer only (line present)
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md  # pointer only (line present)
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -349,7 +349,7 @@ direction_change_propagation:
     - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
     - docs/product/source_capture_toolbox/source_capture_playbook_v0.md
     - docs/product/data_capture_spine/data_capture_spine_future_exploration_lanes_v0.md
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   intentionally_not_updated:
     - path: docs/product/product_lead/orca_demand_read_taxonomy_v0.md
       note: "wind-caller section (lines 57-60) amended with pointer; external/product boundary unchanged"
@@ -364,7 +364,7 @@ direction_change_propagation:
         propagation owner; no new overlay section was added.
     - path: docs/decisions/turn_08_product_thesis_v0.md
       reason: >
-        Superseded by docs/decisions/orca_product_thesis_consumer_demand_v0.md;
+        Superseded by docs/decisions/forseti_product_thesis_consumer_demand_v0.md;
         retained as history per existing doctrine. Must not be edited.
     - path: docs/product/product_lead/orca_product_proof_lead_charter_v0.md
       reason_detail: >
@@ -381,7 +381,7 @@ direction_change_propagation:
     docs/product/product_lead/orca_buyer_proof_packet_v0.md
     docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
     docs/product/source_capture_toolbox/source_capture_playbook_v0.md
-    docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   stale_language_search_result: >
     Executed on 2026-06-13 before edits; hits identified in:
     docs/product/product_lead/orca_demand_read_taxonomy_v0.md (lines 57-60 — amended with pointer),
@@ -389,7 +389,7 @@ direction_change_propagation:
     docs/product/product_lead/orca_buyer_proof_packet_v0.md (line 131 — amended with pointer),
     docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md (line 133 — amended with pointer),
     docs/product/source_capture_toolbox/source_capture_playbook_v0.md (line 71 — amended with pointer),
-    docs/decisions/orca_product_thesis_consumer_demand_v0.md (lines 152-153 — person-level language
+    docs/decisions/forseti_product_thesis_consumer_demand_v0.md (lines 152-153 — person-level language
     present; pointer added).
     After edits each retained surface carries a pointer to this carve-out and explicitly preserves the
     external/product boundary. No surface retains an unqualified blanket prohibition that would
@@ -455,7 +455,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - docs/decisions/wind_caller_calibration_carveout_v0.md   # this record (2026-06-15 amendment + Tier-1 pointer)
   downstream_surfaces_checked:
-    - path: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - path: docs/decisions/forseti_product_thesis_consumer_demand_v0.md
       note: Product Boundary wind-caller parenthetical re-framed; external/product boundary preserved verbatim; DCP note added.
     - path: docs/product/product_lead/orca_demand_read_taxonomy_v0.md
       note: Three live sites (Layer-2 boundary, calibration read-type, Non-Claims) re-framed; external boundary preserved verbatim; DCP note added.

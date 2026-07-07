@@ -16,7 +16,7 @@ use_when:
   - Checking what the owner decided about the Forseti name, carve depth, or near-term web posture before a decision record exists.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md
+  - forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md
   - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md
 stale_if:
   - A Forseti brand-architecture decision record lands in docs/decisions/ (it then owns these decisions; this packet becomes history).
@@ -72,8 +72,8 @@ Derived from owner words in the sending thread (2026-07-02); no `workflow-goal-f
 ### Source-loading state to re-establish (follows overlay doctrine)
 
 - overlay source-loading policy: `.agents/workflow-overlay/source-loading.md` (read `AGENTS.md` and `.agents/workflow-overlay/README.md` first, per project rule)
-- targets to enter the ladder: `orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md` (before any copy); `orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md` and `orca/product/spines/creator_signal/creator_signal_market_sizing_v0.md` (context for what the brand will carry)
-- already loaded by sender (weak orientation, 2026-07-02, at base `04106660`; not authority): product thesis (`docs/decisions/orca_product_thesis_consumer_demand_v0.md`), wedge record (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`), the two creator_signal docs above, CSB spine README
+- targets to enter the ladder: `forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md` (before any copy); `orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md` and `orca/product/spines/creator_signal/creator_signal_market_sizing_v0.md` (context for what the brand will carry)
+- already loaded by sender (weak orientation, 2026-07-02, at base `04106660`; not authority): product thesis (`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`), wedge record (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`), the two creator_signal docs above, CSB spine README
 - must load first (before strict or actionable steps): `AGENTS.md`, overlay README; claim-defense doctrine before any outward-facing text
 - load rule: receiver re-runs progressive source loading per overlay; this loaded-set only seeds the ladder
 
@@ -109,7 +109,7 @@ Stop conditions: material trademark collision (stop, route to owner); any step r
 - Overlay or equivalent authority: `.agents/workflow-overlay/artifact-folders.md` (this packet's folder, `docs/workflows/`, is an accepted workflow-records home).
 - User constraints: owner executes all purchases/account creations; holding + waitlist web posture only; no entity split; no sub-brand work.
 - Source-read ledger:
-  - `orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md`
+  - `forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md`
     - Role: wording discipline for ANY outward-facing copy
     - Load-bearing: yes (for step 6 phrasing and any placeholder text)
     - Compare target: reread-required — the SENDER DID NOT READ THIS FILE; it is cited by the thesis as owner-signed. Receiver must read it fresh before writing outward-facing words.
@@ -121,7 +121,7 @@ Stop conditions: material trademark collision (stop, route to owner); any step r
     - Compare target: content at commit `04106660e4b8c6191f39859297eea3798e15b075`
     - Last checked: 2026-07-02
     - Reuse rule: orientation only; reread if the file changed past that commit
-  - `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+  - `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
     - Role: context — product boundary and claim-tier discipline the brand must not contradict
     - Load-bearing: no
     - Compare target: content at commit `04106660e4b8c6191f39859297eea3798e15b075`

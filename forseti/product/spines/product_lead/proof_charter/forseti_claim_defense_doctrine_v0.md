@@ -228,10 +228,10 @@ direction_change_propagation:
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:
-    - forseti/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md
+    - forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md
     - docs/hygiene/queue.md                                  # row ORCA-HYGIENE-014 closed at sign-off
     - docs/workflows/orca_repo_map_v0.md                     # product-anchor row added (committed 9e93538)
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md  # evidence-basis status cell refreshed to the now-true label
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md  # evidence-basis status cell refreshed to the now-true label
   downstream_surfaces_checked:
     - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
     - docs/decisions/judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md

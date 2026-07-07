@@ -10,12 +10,12 @@ scope: >
 use_when:
   - Reading the historical v0 thesis baseline or its carried-forward elements.
 authority_boundary: retrieval_only
-superseded_by: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+superseded_by: docs/decisions/forseti_product_thesis_consumer_demand_v0.md
 ```
 
 > **SUPERSEDED (2026-06-12)**
 > This thesis is superseded as the controlling product thesis by
-> `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+> `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
 > (consumer-demand decision intelligence; beauty first vertical), ratified by
 > the owner 2026-06-12. Retained as history; carried-forward elements are
 > listed in that record's "Carried From Thesis v0 / Changed" section. Do not
@@ -23,7 +23,7 @@ superseded_by: docs/decisions/orca_product_thesis_consumer_demand_v0.md
 
 - Decision ID: T8-ORCA-01
 - Status: PROPOSED_LOCK (historical; superseded 2026-06-12)
-- Superseded by: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+- Superseded by: docs/decisions/forseti_product_thesis_consumer_demand_v0.md
 - Decision date: 2026-05-13
 - Source: explicit owner instruction in Turn 08
 - Implementation authorized this turn: no

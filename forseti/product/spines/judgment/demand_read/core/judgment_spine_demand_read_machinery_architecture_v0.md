@@ -358,7 +358,7 @@ lane held no overlapping architecture).
 - `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`
   — Judgment-Spine ownership; scoring engines deferred; Outcome Memory
   Backtest/Live split; Decision Frame required.
-- `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` — Demand-Substrate
+- `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` — Demand-Substrate
   Hard Gate; action-ceiling vocab; no-scoring boundary; `product_learning` cap.
 - `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md` — signal layers,
   read types, wind-caller calibration; pipeline gap (steps 5–6).

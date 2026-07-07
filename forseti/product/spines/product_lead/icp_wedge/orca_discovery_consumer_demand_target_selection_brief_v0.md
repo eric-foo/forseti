@@ -18,7 +18,7 @@ use_when:
   - Checking first-contact qualification objectives for the beauty operator door before memo production.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md  # owns the live substrate gate + disqualifiers
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md  # owns the live substrate gate + disqualifiers
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
   - .agents/workflow-overlay/product-proof.md
 input_hashes:

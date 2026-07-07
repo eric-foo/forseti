@@ -25,8 +25,8 @@ open_next:
   - .agents/workflow-overlay/product-proof.md
   - docs/decisions/orca_icp_wedge_pricing_first_v0.md  # superseded wedge record (historical)
   - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md # superseded by above; reread-required
-  - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
   - docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md
 input_hashes:
   - path: docs/product/orca_product_lead_first_icp_wedge_decision_v0.md

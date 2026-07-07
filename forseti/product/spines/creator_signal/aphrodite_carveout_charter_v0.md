@@ -22,7 +22,7 @@ open_next:
   - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
   - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md
   - .agents/workflow-overlay/product-proof.md
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
 stale_if:
   - The owner amends or supersedes this charter (dated amendments only; no silent rewrites).
   - A controlling record this charter routes to is superseded.
@@ -213,7 +213,7 @@ no contact info and never leave the report.
 
 Proof semantics are consumed, not redefined, from
 `.agents/workflow-overlay/product-proof.md` and the graduation/kill grammar of
-`forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
+`forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
 (adapted to this product at sprint time — the parent's demand-substrate gate
 does not transfer; the pull/praise, trust-objection/refusal, kill-discipline,
 and graduation grammar do): pull is paid-path behavior, never praise. The
@@ -377,8 +377,8 @@ direction_change_propagation:
     - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md   # ICP framing ("niche/indie/challenger/DTC fragrance brands", lines 26/95-99) is the broader superset the charter narrows within; consistent, not contradicted — charter's own text says the DEFAULT is "sharpened here," so no edit
     - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml   # clone-house / creator-owned-dtc tier vocabulary already exists (lines 96,116,120,129); consistent, confirms the sharpening has a classification substrate
     - forseti/product/spines/creator_signal/README.md   # index rows for the charter and the market-sizing doc still accurately describe each artifact's role after the sizing-note addition; no row text change needed
-    - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md   # describes the separate parent-level indie/DTC beauty/personal-care ICP wedge (a different product lane, not Aphrodite); charter §5 already states proof semantics are "consumed, not redefined" from this lane — consistent, out of scope
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md   # same parent buyer-proof grammar; charter explicitly reuses grammar without transferring the demand-substrate gate — consistent, out of scope per task bound (buyer-proof grammar owned elsewhere)
+    - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md   # describes the separate parent-level indie/DTC beauty/personal-care ICP wedge (a different product lane, not Aphrodite); charter §5 already states proof semantics are "consumed, not redefined" from this lane — consistent, out of scope
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md   # same parent buyer-proof grammar; charter explicitly reuses grammar without transferring the demand-substrate gate — consistent, out of scope per task bound (buyer-proof grammar owned elsewhere)
     - forseti/product/spines/product_lead/icp_wedge/*   # parent ICP-wedge decision chain (pricing-first / consumer-demand-first lineage) is a distinct, superseded-in-place lane unrelated to the Aphrodite carveout lead lane; no lane-naming or vocabulary collision found
     - docs/workflows/orca_repo_map_v0.md   # no Aphrodite/creator_signal lead-lane enumeration to update; existing precedent routes per-spine artifacts via the spine front door (per the charter's own prior receipt)
   intentionally_not_updated:
@@ -498,7 +498,7 @@ direction_change_propagation:
     - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # §3 Honest boundary
   downstream_surfaces_checked:
     - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md   # moat/premium reasoning consumed as-is; sizing not re-derived
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md                    # parent moat language (outcome memory) consistent; not amended
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md                    # parent moat language (outcome memory) consistent; not amended
   non_claims:
     - not validation
     - not readiness

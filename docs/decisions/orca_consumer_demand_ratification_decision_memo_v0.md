@@ -13,7 +13,7 @@ use_when:
   - Checking what each ask does and does not authorize before signing.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_product_thesis_consumer_demand_v0.md       # ask 1 target
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md       # ask 1 target
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md      # ask 2 target
   - orca/product/spines/product_lead/icp_wedge/orca_icp_ratification_readiness_report_v0.md   # the consistency sweep behind this memo
   - orca/product/spines/product_lead/icp_wedge/orca_ratification_day_runbook_v0.md  # what executes after the word
@@ -69,7 +69,7 @@ state for any proof-shaped reading: `no_durable_evidence`.
 Cascade executed 2026-06-12 per
 `docs/product/product_lead/orca_ratification_day_runbook_v0.md`; the
 executed `direction_change_propagation` receipt lives in
-`docs/decisions/orca_product_thesis_consumer_demand_v0.md`.
+`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`.
 
 ## Owner Decision Record — Addendum (2026-06-12, post-cascade corrections)
 

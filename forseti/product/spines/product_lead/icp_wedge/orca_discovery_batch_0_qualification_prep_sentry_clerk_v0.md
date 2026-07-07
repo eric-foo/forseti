@@ -15,8 +15,8 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
   - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
-  - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
   - forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_candidate_context_scan_v0.md
   - forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_target_selection_brief_v0.md
   - docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md

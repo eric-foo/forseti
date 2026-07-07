@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_company_brand_architecture_v0.md
-  - orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md
+  - forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md
 stale_if:
   - The owner amends ADR D8 or the brand-architecture record supersedes it.
   - The holding page ships publicly (this lane's job is then done; later site work needs a new commission).
@@ -60,7 +60,7 @@ Derived from owner words in the sending thread (2026-07-02); no `workflow-goal-f
 
 - **No launch.** Deployed dark (preview URL) only; pointing DNS or otherwise making anything public is owner-executed and out of this lane's authority.
 - **No agent-executed purchases or unattended account creations** (host, form provider, GitHub org/repo creation included — owner executes or attends).
-- **Claim discipline.** Read `orca/product/spines/product_lead/orca_claim_defense_doctrine_v0.md` — path per repo map; see ledger — FRESH before drafting any copy ("built to" vs "proven at"; tier labels). Willingness-to-pay is unvalidated; nothing may imply customers, demand, validation, or readiness. No feed/dashboard vocabulary anywhere on the forsetihq.com property (ADR D2/D8).
+- **Claim discipline.** Read `forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md` — path per repo map; see ledger — FRESH before drafting any copy ("built to" vs "proven at"; tier labels). Willingness-to-pay is unvalidated; nothing may imply customers, demand, validation, or readiness. No feed/dashboard vocabulary anywhere on the forsetihq.com property (ADR D2/D8).
 - **Website code never enters the Orca repository.** The Orca repo takes only reads and the outcomes note (docs-write). No `src/`, `app/`, or site scaffolding here.
 - **No Aphrodite design work.** Its design fires at the Vetting v0 trigger (ADR D8 item 6). The only Aphrodite fact this lane needs: it will later live at aphrodite.forsetihq.com as a separable site project — do not structure the forsetihq site in a way that entangles it.
 - **Identity stays minimal.** Text wordmark, 1–2 colors, 1–2 typefaces. No logo project, no brand book, no design-system buildout (ADR D8 item 4).
@@ -72,7 +72,7 @@ Derived from owner words in the sending thread (2026-07-02); no `workflow-goal-f
 ### Source-loading state to re-establish (follows overlay doctrine)
 
 - overlay source-loading policy: `.agents/workflow-overlay/source-loading.md` (read `AGENTS.md` and `.agents/workflow-overlay/README.md` first, per project rule)
-- targets to enter the ladder: `docs/decisions/forseti_company_brand_architecture_v0.md` (D8 is this lane's contract; D1–D7 are its context); the claim-defense doctrine (before copy); `docs/decisions/orca_product_thesis_consumer_demand_v0.md` (source for positioning language — the value proposition and anti-positioning sections)
+- targets to enter the ladder: `docs/decisions/forseti_company_brand_architecture_v0.md` (D8 is this lane's contract; D1–D7 are its context); the claim-defense doctrine (before copy); `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` (source for positioning language — the value proposition and anti-positioning sections)
 - already loaded by sender (weak orientation, 2026-07-02; not authority): the ADR (authored this session), thesis, wedge record, creator_signal architecture + sizing
 - must load first (before strict or actionable steps): `AGENTS.md`, overlay README, the ADR, claim-defense doctrine
 - load rule: receiver re-runs progressive source loading per overlay; the packet's loaded-set only seeds the ladder
@@ -108,13 +108,13 @@ Design the Forseti minimal identity kit and build the forsetihq.com holding page
     - Compare target: file at receiver HEAD must contain the "## D8 — Web-presence foundation (2026-07-02)" section
     - Last checked: 2026-07-02 (authored this session)
     - Reuse rule: the file at your HEAD governs; if D8 absent → `BLOCKED_DRIFT`
-  - claim-defense doctrine (`orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md`)
+  - claim-defense doctrine (`forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md`)
     - Role: wording discipline for all copy
     - Load-bearing: yes
     - Compare target: reread-required — the SENDER DID NOT READ THIS FILE (cited by the thesis as owner-signed); resolve the exact path via `docs/workflows/orca_repo_map_v0.md` if it moved
     - Last checked: not read by sender (referenced only)
     - Reuse rule: read fresh before any copy; do not act on this packet's summary of it
-  - `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+  - `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
     - Role: source of positioning language (value proposition, anti-positioning)
     - Load-bearing: yes (for copy content)
     - Compare target: reread-required (content at receiver HEAD governs)

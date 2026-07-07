@@ -19,7 +19,7 @@ open_next:
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md   # v0 = commissioned-capture only (the gap)
   - docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md            # the other lane that hit this gap + its light-clarification framing
   - forseti/product/spines/capture/core/demand_durability_indicators/demand_durability_indicator_capture_deconfliction_note_v0.md # the four profiles + this consequence
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                                       # never-a-feed invariant + monitoring-only kill
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                                       # never-a-feed invariant + monitoring-only kill
 stale_if:
   - The owner makes this decision (then this framing is consumed; the chosen contract/amendment supersedes it).
   - The v0 obligation contract is amended to admit a standing-corpus path.

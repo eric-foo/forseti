@@ -37,7 +37,7 @@ direction lock and supersedes
 `docs/decisions/orca_icp_wedge_pricing_first_v0.md` as first-proof wedge
 authority. The executed `direction_change_propagation` receipt for the
 ratification event (one receipt covering thesis + wedge cascades) lives in
-`docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
 ("Doctrine-Change Propagation — Executed"). The owner's ask-1 amendment
 (measured-ToS-risk capture posture) is recorded there and in the decision
 memo; it changes this record's org-motion route citations from hard walls to
@@ -113,10 +113,10 @@ direction_change_propagation:
     - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-loading.md
     - .agents/workflow-overlay/product-proof.md
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
     - docs/product/source_capture_toolbox/ig_creator_roster_frontier_ledger_spec_v0.md @ codex/beauty-creator-roster-ledger:7e19ab42
   intentionally_not_updated:
-    - path: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - path: docs/decisions/forseti_product_thesis_consumer_demand_v0.md
       reason: >
         The thesis owns the broader buyer ladder and already delegates first
         application specifics to this wedge record; this patch sharpens the
@@ -417,7 +417,7 @@ operator-first ordering is void.
 
 Co-ratified with the thesis in one ratification event; the single executed
 `direction_change_propagation` receipt covering both cascades lives in
-`docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
 ("Doctrine-Change Propagation — Executed"). The prepared map below was
 consumed by `docs/product/product_lead/orca_ratification_day_runbook_v0.md`
 and is retained as history:

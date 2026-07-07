@@ -403,7 +403,7 @@ direction_change_propagation:
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
     - docs/decisions/turn_08_product_thesis_v0.md
     - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
     - docs/decisions/orca_icp_wedge_pricing_first_v0.md
@@ -536,7 +536,7 @@ direction_change_propagation:
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md   # Product Boundary bullet
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md   # Product Boundary bullet
   downstream_surfaces_checked:
     - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # carve is bounded by the charter's own forbidden set; consistent, no charter edit needed for A1
     - forseti/product/spines/creator_signal/README.md                          # spine Dashboard Boundary already scopes creator-level display; consistent

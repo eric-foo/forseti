@@ -12,8 +12,8 @@ open_next:
   - .agents/workflow-overlay/product-proof.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
   - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md  # superseded — historical (path updated 2026-06-12; phase-2 migration)
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md  # path updated 2026-06-12 (phase-2 migration); owns the Demand-Substrate Hard Gate
-  - docs/decisions/orca_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md  # path updated 2026-06-12 (phase-2 migration); owns the Demand-Substrate Hard Gate
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
 input_hashes:
   - path: docs/decisions/turn_08_product_thesis_v0.md
     sha256: 822653A241CF84675A3F07F695BA0ED3BFACC230F7F13AA47A4649B5DB2CD7E6
@@ -41,7 +41,7 @@ This artifact is docs-first only. It does not authorize software implementation,
 
 This charter's first-proof framing is RE-TARGETED by the owner-ratified
 consumer-demand direction. Controlling authority:
-`docs/decisions/orca_product_thesis_consumer_demand_v0.md` (thesis,
+`docs/decisions/forseti_product_thesis_consumer_demand_v0.md` (thesis,
 `OWNER_LOCKED` 2026-06-12) and
 `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (wedge,
 `OWNER_LOCKED_DIRECTION` 2026-06-12), which supersede
@@ -52,7 +52,7 @@ consumer-demand direction. Controlling authority:
 The engine is unchanged — outside-in market & competitive intelligence; its
 first application is now beauty consumer-demand allocation. The substrate
 hard gate is the Demand-Substrate Hard Gate in
-`forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` (fusion across
+`forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` (fusion across
 venue families + costly-behavior anchoring + integrity labels; reviews
 admissible as one flagged venue; org-motion corroboration through
 capture-lane-bound routes under the owner's measured-ToS-risk posture, ask-1
@@ -60,7 +60,7 @@ amendment 2026-06-12). Role boundaries, pull standard, kill/graduation
 criteria, and every not-proven boundary are unchanged.
 
 The executed `direction_change_propagation` receipt for this ratification
-event lives in `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+event lives in `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
 ("Doctrine-Change Propagation — Executed"). Applied here by the ratification
 cascade; the live text reflects the applied deviations.
 
@@ -330,7 +330,7 @@ Customer discovery may proceed as docs-first product-fit testing under this char
 First memo production may proceed only for a named qualified buyer with a live
 30-90 day consumer-demand allocation trigger (families per the first proof
 lane), using the manual proof artifact in
-`forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` (path updated
+`forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` (path updated
 2026-06-12). Executive deck production may
 proceed only after the memo and evidence appendix pass the same gates and the
 deck is tied to a qualified live decision use.

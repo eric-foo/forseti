@@ -358,11 +358,11 @@ Start with:
 
 Then open only the targeted sections needed for the CA prompt:
 
-- `docs/decisions/orca_product_thesis_consumer_demand_v0.md`: thesis (the
+- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`: thesis (the
   bet), value proposition, strategic center, and central-read sections.
-- `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`: core offer
+- `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`: core offer
   hypothesis, mechanism, fit diagnostic, and non-claims sections.
-- `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`: proof standard,
+- `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`: proof standard,
   target buyer, signal surface, disqualifiers, and not-build boundaries.
 - `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`:
   purpose, decision, layer rules, and future ECR/Evidence Unit boundaries.
@@ -499,7 +499,7 @@ Then open only the controlling source for the claim being considered:
 - **Running or planning a case through JSG-01→JSG-10**: conductor at
   `forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md`.
 - **Buyer-proof claims**: `.agents/workflow-overlay/product-proof.md` and
-  `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`.
+  `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`.
 - **Judgment-quality, blind-use, fixture-admission, scoring, or calibration
   claims**: `docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md`
   and the specific case/run artifact.

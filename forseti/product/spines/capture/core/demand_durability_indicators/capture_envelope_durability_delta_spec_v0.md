@@ -381,7 +381,7 @@ verdict.
 ## INV-1 Preservation (No Scoring / Weighting / Ranking / Judgment)
 
 This delta is bound by INV-1 (the Demand-Substrate no-scoring invariant, per
-`forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` and the demand-read
+`forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` and the demand-read
 taxonomy). Concretely, in this spec:
 
 - every new element describes **what is captured** (a fact) or **how capture

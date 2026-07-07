@@ -18,7 +18,7 @@ open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - forseti/product/spines/scanning/admissibility_checkability/orca_demand_scan_gate_adjudication_packet_v0.md
   - forseti/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
 stale_if:
   - The owner chooses a different durable name for the commission signal/evidence object.
   - A later Commission Signal Board Prompt Structure supersedes this rules doc.
@@ -107,18 +107,18 @@ and prompt-packaging questions that are not all settled.
 The controlling product thesis says Orca is outside-in consumer-demand decision
 intelligence for distinguishing durable demand from transient or manufactured
 demand; beauty/personal-care is the first vertical (Vertical) and the engine remains
-vertical-portable (`docs/decisions/orca_product_thesis_consumer_demand_v0.md`).
+vertical-portable (`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`).
 
 The offer hypothesis narrows the first proof offer to US-market indie/DTC beauty
 or personal-care operators facing live 30-90 day consumer-demand allocation
 decisions (DecisionEvent), while preserving Orca's broader offer boundary
-(`docs/product/product_lead/orca_offer_hypothesis_v0.md`).
+(`forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`).
 
 The buyer-proof packet binds proof requirements, not commission-board behavior.
 For this commission layer, those requirements are downstream context: they say
 why clean signal provenance matters, but they do not turn commission into a
 proof or demand-decision surface
-(`docs/product/product_lead/orca_buyer_proof_packet_v0.md`).
+(`forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`).
 
 The current gate-run criteria and demand-scan adjudication packet are adjacent
 historical/context artifacts. Under this correction, their gate language should

@@ -52,8 +52,8 @@ orca_start_preflight:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
     - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
-    - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
@@ -75,8 +75,8 @@ relationship graph, person dossier, stale proof-slice sizing, or ontology fork.
 Current-main sources read for this spec:
 
 - `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`
-- `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`
-- `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
+- `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`
+- `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
 - `forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md`

@@ -23,7 +23,7 @@ open_next:
   - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md      # the walk mechanics this spec layers on
   - forseti/product/satellites/beauty/beauty_venue_card_set_v0.md                # the venue layer (beauty)
   - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md  # forward-mode consumer
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md            # the re-derived Demand-Substrate Hard Gate
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md            # the re-derived Demand-Substrate Hard Gate
   - docs/decisions/wind_caller_calibration_carveout_v0.md              # wind-caller naming boundary (owner-signed)
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md  # access-toolkit route for packet-grade capture walls
   - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md      # source-class recon catalog for access-toolkit routing
@@ -62,14 +62,14 @@ input_hashes:
       origins visible" (laundered / shared-origination copies = one; org-motion /
       retail excluded), with verb-tier slot guidance and a reworded
       qualification objective #3. §3/§5 forward reconciliation re-derived.
-  - path: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+  - path: docs/decisions/forseti_product_thesis_consumer_demand_v0.md
     sha256_16_lf: 63BAE324F50016F3
     note: >
       Re-pinned 2026-06-16 (was B119E24691066E47). DRIFT: the 2026-06-14 owner
       amendment carries the same durable / transient / manufactured demand-state
       model, the never-a-feed invariant, and the wind-caller carve-out pointer.
       The costly-behavior primitive and US-first geography are unchanged.
-  - path: forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - path: forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     sha256_16_lf: 05291BB682CF2FAC
     note: >
       Re-pinned 2026-06-16 (was 25EBD39AE95C3A07). DRIFT was substantive: the

@@ -21,7 +21,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md  # the demand-read core whose C3 this specifies (C3 step shape; owner-ADOPTED Decision B)
   - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md             # the C2 step C3 consumes (weighted signals; Rule 3 routes persistence patterns here)
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                              # the action-ceiling cap rule (floor vs ceiling; >=2 converging origins; engagement/resonance-only caps)
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                              # the action-ceiling cap rule (floor vs ceiling; >=2 converging origins; engagement/resonance-only caps)
   - forseti/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_target_architecture_v0.md      # the sealed_call output surface C3 fills (recommendation / confidence_band / signals_used / reasoning_trace)
   - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                            # the read grammar (two-axis model + calling sequence + read types) C3 verdicts in
 stale_if:
@@ -125,13 +125,13 @@ direction_change_propagation:
     - forseti/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
     - forseti/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
     - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
-    - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
-    - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
+    - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
+    - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
     - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
     - docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md
   intentionally_not_updated:
@@ -234,7 +234,7 @@ direction_change_propagation:
   related_triggers:
     - architecture_doctrine
   controlling_sources_updated:
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
     - forseti/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md
     - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
   downstream_surfaces_checked:
@@ -242,7 +242,7 @@ direction_change_propagation:
     - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
     - forseti/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
     - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
     - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_first_demand_read_scope_v0.md
@@ -254,7 +254,7 @@ direction_change_propagation:
   intentionally_not_updated: []
   stale_language_search: >
     rg -n "observed persistence|observed post-trigger|observed via monitoring|not predicted|cannot call durable|never asserted at t=0|durable is earned|persists past|stayed strong|transient-default|earned-durable"
-    docs/decisions/orca_product_thesis_consumer_demand_v0.md forseti/product/spines/foundation/demand_read_taxonomy forseti/product/spines/scanning/scan_core forseti/product/spines/commission_signal_board forseti/product/spines/product_lead/buyer_proof forseti/product/spines/judgment/demand_read forseti/product/spines/capture/core/contracts/obligation_contracts forseti/product/shared/projection_doctrine forseti/product/satellites
+    docs/decisions/forseti_product_thesis_consumer_demand_v0.md forseti/product/spines/foundation/demand_read_taxonomy forseti/product/spines/scanning/scan_core forseti/product/spines/commission_signal_board forseti/product/spines/product_lead/buyer_proof forseti/product/spines/judgment/demand_read forseti/product/spines/capture/core/contracts/obligation_contracts forseti/product/shared/projection_doctrine forseti/product/satellites
   stale_language_search_result: >
     Executed during 2026-06-23 delegated-review adjudication. The confirmed
     active stale hit outside the original spine-scoped search was the fragrance
@@ -535,7 +535,7 @@ spec_handoff:
   step C3 consumes; Rule 3 routes persistence-axis patterns to C3. Compare target:
   `Rule 3 — Risk-State Weighting` present on `origin/main` (#124 squash `3ccc86ef`).
   reread-required.
-- `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` — the action-ceiling cap
+- `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` — the action-ceiling cap
   rule (floor vs ceiling; ≥2 converging origins for material commitment; engagement/resonance-only
   caps the ceiling; defend not auto-low-commitment; Scoring engines on the do-not-build
   list). On `origin/main` (re-grounded #130). reread-required.
