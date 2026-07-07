@@ -795,11 +795,14 @@ capture were daily:
   specific reel until expiry. "Stop capturing a reel after it rotates out" is
   correct — what is left after the curve window is not momentum.
 
-### Still to walk (next, one by one)
+### Walked — decisions recorded
 
-`sub_niche` keyword/cluster thresholds, and the §5.1 format taxonomy source.
-(`breakout_state` / `decay_or_plateau_state` / `active_watch_expiry_state` /
-`momentum_call` decided below.)
+All per-stat decisions are now recorded: temporal + spike (this section);
+`breakout_state` / `decay_or_plateau_state` / `active_watch_expiry_state` /
+`momentum_call` (event-states section); video-format + product-emphasis (§5);
+sub-niche (its own section). **Remaining:** validate the starting numbers on the
+first real captured series, and finalize the §5.1 format taxonomy by harvesting once
+captures exist.
 
 ## Implementation decisions — event states + momentum (2026-07-08)
 
@@ -863,6 +866,66 @@ If a numeric score is later wanted, its weights are hand-set starting values (li
 the audience signal weights), to validate — but the tier is the default so the inputs
 stay visible. **Levels:** per-video (is this reel calling → promotion) and account
 (is this creator on a run → tiering).
+
+## Implementation decisions — sub-niche (2026-07-08)
+
+Interim classifier, forward-named to the ontology `SubNiche`. Architecture decided;
+lexicon + thresholds are **proposed starting values to validate** (uncalibrated, like
+the audience weights). Runs **grid-first** (bio + caption + graph + hashtags — no deep
+capture), so the same classifier is the **discovery gate** *before* a creator is
+rostered; a later **rostered refinement** adds the LLM niche cue. **Code decides in
+both** (LLM reads, code decides). Build deferred.
+
+### Label set — closed-interim, grounded (not harvested, unlike format)
+
+Format needed harvesting (unknown set); sub-niche's set is **domain-defined** by the
+wedge, so seed a **small closed-interim set** from the strategy's roster composition:
+`fragrance_core` + fragrance-adjacent (`grooming`, `grwm`, `beauty`, `skincare`,
+`menswear`, `lifestyle`) + `control_edge` (surface-attractive, fragrance-unproven).
+**Primary label + optional secondary** (a creator can be fragrance + grooming), each
+with a support band. Re-expresses under `SubNiche` on dispatch.
+
+### Fragrance lexicon — grounded in the existing fragrance DB
+
+Seed the fragrance lexicon from the repo's **fragrance-native database vocabulary**
+(house / brand / note terms — Fragrantica / Parfumo), **not** just the literal word
+"fragrance", so it catches "oud", "Baccarat Rouge", "Creed"; extend with terms
+**harvested from captured captions**. Other sub-niche lexicons are seeded + harvested
+the same way.
+
+### Evidence + weights (hand-set, uncalibrated; primary → corroboration)
+
+- **Bio positioning** — highest (explicit self-description).
+- **Recurring caption terms** across posts — high (a pattern, not one post).
+- **Graph cluster membership** (snowball co-occurrence) — medium corroboration;
+  **bridge-prune** high-degree mega-hubs first (they connect every niche and would
+  contaminate the cluster — the momentum pipeline's `bridge-prune`).
+- **Hashtags** — **capped: first ≤5/post, categorize-not-boost, cannot clear the
+  threshold alone** — corroboration only.
+- **LLM niche cue** (consolidated pass, rostered creators only) — one more
+  corroborating item; **code decides**, never the LLM.
+
+### Thresholds (starting values)
+
+- **Emit vs abstain:** require **≥2 independent non-hashtag drivers** agreeing on a
+  sub-niche; below → `unknown` (thin evidence abstains, never a guess). A caption
+  "driver" = **≥3 distinct lexicon terms across ≥2 posts**.
+- **Primary vs multi-label:** if the top two are within a small margin, emit **both**
+  (primary + secondary) rather than force one; if nothing clears a margin over
+  `control_edge`, label `control_edge`.
+- **Confidence:** uncalibrated support band (high / medium / low / abstain), per the
+  audience CE7 rule.
+
+### Raw drivers (forward-compat requirement)
+
+Record, per label, the **exact matched terms (+ which lexicon / sub-niche), the graph
+edges / cluster id, the counted hashtags, and any LLM cue** — so on `SubNiche` dispatch
+the label **re-maps deterministically to the ontology vocabulary, not by re-judgment**.
+
+Main risk: mislabeling adjacent creators — handled by primary+secondary + abstain +
+`control_edge`. The graph signal needs a discovery graph; a cold single creator falls
+back to keyword-only (lower confidence). Numbers are starting values to validate on
+the first real roster.
 
 ## Consolidated LLM extraction — one read, many code-decided fields
 
