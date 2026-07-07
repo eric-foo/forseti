@@ -24,7 +24,7 @@ _CAPTURE_TIME = "2026-06-28T18:57:58Z"
 
 
 def test_projects_committed_fragrantica_raw_into_derived_record(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     projection, derived_path = project_fragrantica_into_lake(data_root=root, packet_id=packet_id)
@@ -40,7 +40,7 @@ def test_projects_committed_fragrantica_raw_into_derived_record(tmp_path: Path) 
 
 
 def test_fragrantica_projection_re_derive_appends_sibling_not_overwrite(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     _, first = project_fragrantica_into_lake(data_root=root, packet_id=packet_id)
@@ -52,7 +52,7 @@ def test_fragrantica_projection_re_derive_appends_sibling_not_overwrite(tmp_path
 
 
 def test_fragrantica_projection_explicit_record_id_is_create_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     project_fragrantica_into_lake(data_root=root, packet_id=packet_id, record_id="rec1")

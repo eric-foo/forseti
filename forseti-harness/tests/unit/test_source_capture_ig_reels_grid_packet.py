@@ -257,7 +257,7 @@ def test_reels_grid_runner_filters_static_post_rows_from_reels_series(tmp_path: 
     assert [row["shortcode"] for row in payload["dom_rows"]] == ["REEL123"]
 
 def test_reels_grid_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
 
     exit_code, message = run_source_capture_ig_reels_grid_packet(
         handle="@hyram",
@@ -358,7 +358,7 @@ def test_reels_grid_runner_missing_capture_timestamp_is_unknown_not_known(tmp_pa
 def test_reels_grid_main_prefers_explicit_output_over_forseti_data_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     output = tmp_path / "scratch-output"
     captured: dict[str, object] = {}
 

@@ -79,8 +79,8 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "After live staging, admit through the network-free TikTok batch gate "
-            "into this explicit Orca data lake root. ORCA_DATA_ROOT is not read "
-            "by this live runner."
+            "into this explicit Forseti data lake root. FORSETI_DATA_ROOT and "
+            "legacy ORCA_DATA_ROOT are not read by this live runner."
         ),
     )
     parser.add_argument("--batch-label", default="tiktok_creator_batch")

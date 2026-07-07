@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Product architecture contract
 scope: >
-  Storage contract for Orca's data lake: dumb record-kind slots, write/read
+  Storage contract for Forseti's Data Lake: dumb record-kind slots, write/read
   disciplines, success signals, physicalization blockers, and the boundary for
   deliberate engine/backend selection.
 use_when:
@@ -333,7 +333,7 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
     - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
       reason: >

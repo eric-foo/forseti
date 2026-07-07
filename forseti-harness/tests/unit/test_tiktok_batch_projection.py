@@ -165,7 +165,7 @@ def test_tiktok_batch_projection_cli_reads_data_lake_packet_id(
     capsys,
     monkeypatch,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _, message = write_tiktok_batch_packet(
         creator_handle="funmimonet",
         creator_profile_url=PROFILE_URL,

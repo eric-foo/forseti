@@ -35,7 +35,7 @@ _CAPTURE_TIME = "2026-06-28T18:57:58Z"
 
 
 def test_derives_fragrantica_cleaning_into_audit_pack_and_silver(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
@@ -108,7 +108,7 @@ def test_derives_fragrantica_cleaning_into_audit_pack_and_silver(tmp_path: Path)
 
 
 def test_fragrantica_cleaning_emits_no_silver_wrapped_full_packet(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
@@ -123,7 +123,7 @@ def test_fragrantica_cleaning_emits_no_silver_wrapped_full_packet(tmp_path: Path
 
 
 def test_fragrantica_cleaning_audit_pack_rejects_unknown_capture_time(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
     loaded = root.load_raw_packet(packet_id)
     packet = SourceCapturePacket.model_validate(loaded.manifest)
@@ -149,7 +149,7 @@ def test_fragrantica_cleaning_audit_pack_rejects_unknown_capture_time(tmp_path: 
 
 
 def test_fragrantica_cleaning_audit_pack_preserves_current_window_residuals(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
@@ -166,7 +166,7 @@ def test_fragrantica_cleaning_audit_pack_preserves_current_window_residuals(tmp_
 
 
 def test_fragrantica_cleaning_re_derive_appends_audit_sibling_not_overwrite(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     first = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
@@ -178,7 +178,7 @@ def test_fragrantica_cleaning_re_derive_appends_audit_sibling_not_overwrite(tmp_
 
 
 def test_fragrantica_cleaning_explicit_audit_record_id_is_create_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     first = derive_fragrantica_cleaning_into_lake(
@@ -196,7 +196,7 @@ def test_fragrantica_cleaning_explicit_audit_record_id_is_create_only(tmp_path: 
 
 
 def test_fragrantica_cleaning_emits_one_silver_per_review_card(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path, html=_html_two_reviews())
 
     result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
@@ -221,7 +221,7 @@ def test_fragrantica_cleaning_emits_one_silver_per_review_card(tmp_path: Path) -
 
 
 def test_fragrantica_cleaning_emits_review_vote_metric_observations(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)

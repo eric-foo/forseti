@@ -158,7 +158,7 @@ def _commit_ig_packet(root: DataLakeRoot, tmp_path: Path):
 
 def test_projects_committed_ig_raw_into_a_derived_record(tmp_path: Path) -> None:
     # capture -> committed raw -> read by key (verified) -> Silver record appended.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_ig_packet(root, tmp_path).packet.packet_id
 
     projection, derived_path = project_ig_creator_momentum_into_lake(data_root=root, packet_id=pid)
@@ -182,7 +182,7 @@ def test_projects_committed_ig_raw_into_a_derived_record(tmp_path: Path) -> None
 
 
 def test_re_derive_appends_a_sibling_not_overwrite(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_ig_packet(root, tmp_path).packet.packet_id
 
     _, first = project_ig_creator_momentum_into_lake(data_root=root, packet_id=pid)
@@ -194,7 +194,7 @@ def test_re_derive_appends_a_sibling_not_overwrite(tmp_path: Path) -> None:
 
 
 def test_explicit_record_id_is_create_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_ig_packet(root, tmp_path).packet.packet_id
 
     project_ig_creator_momentum_into_lake(data_root=root, packet_id=pid, record_id="rec1")

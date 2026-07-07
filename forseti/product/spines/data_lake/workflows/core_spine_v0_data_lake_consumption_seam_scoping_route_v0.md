@@ -78,7 +78,7 @@ The implementer must not reopen these; each is owned by a named contract:
   not an index; `derived_retrieval` views are non-authoritative caches
   (derived-layout contract, Index Rebuild Contract).
 - The rebuild command shape is contract-pinned:
-  `lake indexes rebuild --root <ORCA_DATA_ROOT> --target availability|derived_retrieval|all --prove-rebuildability`.
+  `lake indexes rebuild --root <FORSETI_DATA_ROOT> --target availability|derived_retrieval|all --prove-rebuildability`.
 - The opened `derived_retrieval` scope is exactly `by_creator` (per-platform),
   `by_mention`, and `undone`; other views stay governance-gated; no engine is
   selected; the SQL query-lens stays scan/query-latency-gated (derived-layout
@@ -120,15 +120,15 @@ passes the same conformance suite unchanged.
 
 Source-backed inventory (symbols verified on `be5ffbca`):
 
-- `orca-harness/data_lake/root.py` — consume as-is: `append_record`,
+- `forseti-harness/data_lake/root.py` — consume as-is: `append_record`,
   `append_record_set`, `is_record_set_complete`, `record_path`, `lane_dir`
   (append-only derived/ack primitives, sharded addressing already landed);
   `read_availability`, `list_available`, `rebuild_availability` (by-key
   committed-state reads). No behavior additions to this module.
-- `orca-harness/data_lake/catalog.py` — consume as-is:
+- `forseti-harness/data_lake/catalog.py` — consume as-is:
   `source_surface_catalog_rows` (line 334), `load_attachment_record_body`
   (line 1180). No behavior additions.
-- `orca-harness/data_lake/lane_registry.py` — `LaneRole`,
+- `forseti-harness/data_lake/lane_registry.py` — `LaneRole`,
   `validate_registry`, `role_of`: the natural home for the durable
   ack-namespace registration rule (the derived-layout residual "first lane
   needs a durable namespace-registration rule" fires with this work). Extend,

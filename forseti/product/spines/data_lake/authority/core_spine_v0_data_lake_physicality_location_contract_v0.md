@@ -419,7 +419,7 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
     - forseti/product/spines/data_lake/README.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
     - path: forseti/product/spines/data_lake/README.md
       reason: >
@@ -427,7 +427,7 @@ direction_change_propagation:
         placement-deferred claim.
   stale_language_search: >
     rg -n "placement deferred|physical home unfrozen"
-    forseti/product/spines/data_lake docs/workflows/orca_repo_map_v0.md
+    forseti/product/spines/data_lake docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
     Executed 2026-07-02 after edits. The only remaining hits sit inside the
     Gate 1 ADR's own historical receipt text (its pre-fold-in stale-language

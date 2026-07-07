@@ -33,7 +33,7 @@ def test_basenotes_registry_roles_match_validator_expectations() -> None:
 
 
 def test_real_basenotes_cleaning_audit_and_projection_pass_non_silver_validator(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_packet(root, tmp_path)
 
     result = derive_basenotes_cleaning_into_lake(data_root=root, packet_id=packet_id)

@@ -49,7 +49,7 @@ def test_capture_to_silver_persists_four_distinct_layers(tmp_path: Path) -> None
     Each layer carries the same review content in its own representation and
     declares its own role; none impersonates another.
     """
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     projection, projection_path = project_fragrantica_into_lake(
@@ -114,7 +114,7 @@ def test_capture_to_silver_persists_four_distinct_layers(tmp_path: Path) -> None
 
 def test_capture_to_silver_threads_one_lineage_end_to_end(tmp_path: Path) -> None:
     """One raw anchor threads raw -> projection -> audit -> Silver, no break."""
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     projection, _ = project_fragrantica_into_lake(data_root=root, packet_id=packet_id)

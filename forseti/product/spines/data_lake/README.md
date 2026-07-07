@@ -79,7 +79,7 @@ misuse of the record.
 | `workflows/` | operational / read-flow docs (mechanics maps, route cards) |
 | `migrations/` | lake-specific schema/data migration plans (not repo migration logs) |
 | `harness/` | docs / pointers / specs for harness integration (not runtime code) |
-| `tests/` | test strategy / fixtures / spec docs (actual test code stays in `orca-harness/` for now) |
+| `tests/` | test strategy / fixtures / spec docs (actual test code stays in `forseti-harness/` for now) |
 
 ## Status — populated by R2 (2026-06-18)
 
@@ -110,7 +110,7 @@ metric families owner-named 2026-07-02 (share-of-voice; movement-threshold);
 binds share-of-voice's field-level posture/coverage contract (its view build
 is a separate, now-unblocked work unit; movement-threshold stays
 gate-blocked). The shared helper, rebuild runner, and proving-consumer
-migration live in `orca-harness/` with their tests.
+migration live in `forseti-harness/` with their tests.
 
 Placement closeout (2026-06-20): the 2 repo-structure migration planning docs
 (`data_lake_spine_first_migration_{plan,inventory}_v0.md`) intentionally stay in

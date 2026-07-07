@@ -109,23 +109,23 @@ orca_start_preflight:
 | AR implementation contract (folded, `b0c37bd0`) | Acceptance checks 1-8 the proof gate must exercise; hash-basis rule. |
 | Raw-admission + key grammar contract | Read-by-key must recompute `sha256(packet_id)[:3]` shard; no index/locator dependency. |
 | `next_material_decisions_v0.md` | A1's five required inventory outputs; A2 held for owner. |
-| `orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py` | Existing AST writer-discovery seed (`EXPECTED_BRONZE_WRITER_RUNNERS`, `KNOWN_UNSYNCED`, recursive writer discovery) — A1's starting point. |
-| `orca-harness/data_lake/root.py` | Write-once staging/publish, append-only records, availability rebuild primitives the proofs bind to. |
-| `orca-harness/data_lake/catalog.py` | Public AR surface: `rebuild_catalog`, `source_surface_catalog_rows`, `load_attachment_record_body`. |
-| `orca-harness/data_lake/lane_registry.py` | Non-raw lane roles + front-door state — A1's non-raw touchpoint seed. |
+| `forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py` | Existing AST writer-discovery seed (`EXPECTED_BRONZE_WRITER_RUNNERS`, `KNOWN_UNSYNCED`, recursive writer discovery) — A1's starting point. |
+| `forseti-harness/data_lake/root.py` | Write-once staging/publish, append-only records, availability rebuild primitives the proofs bind to. |
+| `forseti-harness/data_lake/catalog.py` | Public AR surface: `rebuild_catalog`, `source_surface_catalog_rows`, `load_attachment_record_body`. |
+| `forseti-harness/data_lake/lane_registry.py` | Non-raw lane roles + front-door state — A1's non-raw touchpoint seed. |
 | Existing tests: `test_data_lake_root.py`, `test_data_lake_sharding.py`, `test_data_lake_rebuild_proof.py`, `test_data_lake_doctor.py`, `test_data_lake_catalog.py` | Which invariant pieces already have unit proofs; the gap is a named, fail-capable, relationship-bound proof gate, not first coverage. |
-| `orca-harness/runners/run_data_lake_doctor.py` | Existing inspection surface the proof gate may extend (STEP-05). |
+| `forseti-harness/runners/run_data_lake_doctor.py` | Existing inspection surface the proof gate may extend (STEP-05). |
 
 ## Likely Touch Points (when authorized)
 
-- New: `orca-harness/data_lake/inventory.py` (or equivalent module name),
-  `orca-harness/tests/contract/test_data_lake_inventory_gate.py`, a
+- New: `forseti-harness/data_lake/inventory.py` (or equivalent module name),
+  `forseti-harness/tests/contract/test_data_lake_inventory_gate.py`, a
   physicalization proof test (e.g.
-  `orca-harness/tests/test_data_lake_physicalization_proof.py`), optional
-  runner `orca-harness/runners/run_data_lake_inventory_gate.py`.
-- Extended: `orca-harness/runners/run_data_lake_doctor.py` and/or
-  `orca-harness/tests/test_data_lake_doctor.py` (STEP-05 wiring),
-  `orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py`
+  `forseti-harness/tests/test_data_lake_physicalization_proof.py`), optional
+  runner `forseti-harness/runners/run_data_lake_inventory_gate.py`.
+- Extended: `forseti-harness/runners/run_data_lake_doctor.py` and/or
+  `forseti-harness/tests/test_data_lake_doctor.py` (STEP-05 wiring),
+  `forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py`
   (delegation/supersession per the mutable field above).
 - Docs (closeout only): a proof record under
   `forseti/product/spines/data_lake/workflows/`, MGT baseline items 1/4
