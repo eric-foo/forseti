@@ -429,6 +429,33 @@ Interpretation:
   shorter settle window, pin it in the runner or route profile rather than asking
   the operator to change it per capture.
 
+### Headed Browser Probe
+
+A 2026-07-08 headed Playwright Chromium probe tested whether removing the
+headless signal changed the cheap IG grid route. The route used one public
+`/milanscents/reels/` grid page, no item pages, no comments, no transcripts,
+20s between variants, `settle_seconds=4`, and a 3.5s visible post-load wait.
+
+| Variant | Elapsed | Resource posture | Total media anchors | Visible media anchors | Selected JSON responses | Block markers |
+| --- | ---: | --- | ---: | ---: | ---: | --- |
+| headed allow images, block media/font | 9.158s | block font,media | 12 | 12 | 5 | none |
+| headed allow all assets | 8.774s | block none | 12 | 12 | 5 | none |
+
+Interpretation:
+
+- Headed mode removes the obvious headless posture, but it did not change the
+  12-anchor row ceiling on this route.
+- Headed mode should not be treated as stealth by itself. A Playwright-driven
+  browser can still expose automation traits, fresh-profile traits, timing
+  regularity, missing session history, and route-level asset patterns.
+- Resource blocking is potentially observable. `block media+font` is an
+  efficiency posture to measure, not a claim that the platform cannot notice.
+- In this tiny headed sample, allowing all assets was not slower and preserved
+  the same selected JSON response count. Do not promote that to doctrine until
+  true request/transfer counters and a larger headed N are measured.
+- If headed becomes the accepted route, pin it in a route profile or runner
+  default. Do not make the operator manually choose headed per capture.
+
 Do not derive green/yellow/red thresholds from old planning numbers. The next
 Aphrodite scale calculation should treat `2.5k creators over 12h` as a planning
 hypothesis and measure it by route:
