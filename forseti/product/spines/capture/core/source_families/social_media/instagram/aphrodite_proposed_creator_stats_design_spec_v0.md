@@ -112,26 +112,25 @@ Incompatible inputs → abstain-with-reason, never a silent blend.
 
 ### S3.1 — Base-metric source-surface provenance (view counts)
 
-The default base metric `average_views` is only well-defined once its underlying
-`view_count` observations are **source-surface reconciled**, because IG exposes the
-same metric from surfaces that disagree. Every card here **consumes** view counts
-already tagged by `source_surface` and composes a **same-surface** series only; it
-never merges surfaces. The authoritative recording of that rule is the **grid
+The default base metric `average_views` is defined against a **declared
+`source_surface`**, because IG exposes the same `view_count` from surfaces that
+disagree. **Current-view is already settled — not a blocker:** the grid/clip
+**reels-tab pair supersedes** as the authoritative current-view (grid DOM view text
++ `/api/v1/clips/user/` agree and match what IG shows the viewer), so the base-metric
+series **computes on it now**. Every card composes a **same-surface** series on that
+current-view pair and never merges surfaces. The rule is recorded on the **grid
 capture-shape contract** (`ig_capture_shape_contract_spec_v0.md`, "View-count
-source-surface provenance"):
+source-surface provenance").
 
-- **Authoritative current-view** = the reels-tab pair (grid DOM view text +
-  `/api/v1/clips/user/`), which agree and match what IG shows the viewer.
 - **`web_profile_info`** = a separate provenance-tagged candidate **and** the
   deep-history source (the only surface that paginates back years logged-out); it
-  **under-reports current view**, so it is used for old reels only, flagged
+  **under-reports current view**, so it is used for **old reels only**, flagged
   lower-trust / cumulative-at-capture, and **never mixed into current-view**.
 
-A temporal/event series that would have to mix surfaces abstains
-(`incompatible_source_surface`) rather than blend. This is an **activation
-prerequisite**: the base-metric series is trustworthy only after the capture-shape
-contract's reconciliation (and its cheap convergence probe) is recorded and
-applied.
+A series that would have to mix surfaces abstains (`incompatible_source_surface`)
+rather than blend. The one open item — `web_profile_info`'s convergence probe (laggy
+cache vs a different cumulative metric) — gates that **deep-history fallback's
+trust**, **not** the current-view stats, which run on the grid/clip pair today.
 
 ### S4 — Two derivation families (which provenance discipline applies)
 
@@ -241,6 +240,37 @@ history is un-re-capturable       posture + derived_refs       lineage-backed su
   fixed `current_metric_rollups` field set — that expansion is a higher-lock-in
   registry-contract change (S7). Materializing any of them into the profile panel
   is a separately-authorized registry surface extension.
+
+## How (and when) each stat computes
+
+These recipes are formulaic *by design*, but "dump new capture data in and it
+calculates" is only partly true — and differently for the two families (S4):
+
+- **Existing rollups (`average_views`, `engagement_rate`)** already compute that
+  way: a deterministic function over one capture's admitted pool, run by the Silver
+  producer when data lands.
+- **New calculation-derived stats (§1–§3, §5.3)** are also pure formulas/rules —
+  but most are **not** point-in-time over a single capture; they need an accumulated
+  **compatible time-series** (S3). Velocity needs ≥2 compatible rollups; SMA needs
+  *k*; spike needs a baseline. So they **auto-populate only after enough heartbeat
+  cycles have accumulated compatible history** — a single capture cannot produce
+  them (this is why the inventory marks them deferred: the *formula* is ready, the
+  *history* is the gate). They are **not already coded inside**: the current producer
+  computes only `average_*` / `engagement_rate`, and the revalidation module today
+  lists velocity/cadence as `_NEVER_COMPUTED`. Implementing each new recipe (formula
+  + named `calculation_recipe_version`) in the Silver producer is the step this
+  design scopes; then it auto-computes over history.
+- **New extraction-derived stats (§4 sub-niche, §5 video-format + product density /
+  emphasis)** are **not** pure formulas: they need a model/extractor **pass over
+  content** (transcript / caption / bio) to turn text into a label. New data triggers
+  an **extraction run** (with cost, provenance, confidence/abstention), not an
+  arithmetic auto-calc. The *fusion* step (code deciding the label from cached
+  evidence) is formulaic and re-runs free; the *reading* step is a model call that
+  re-runs when the model/rubric version changes.
+
+**Net:** dumping data auto-calculates the existing rollups; the new stats need
+(a) their recipe implemented in the Silver producer, plus (b) enough accumulated
+compatible history (§1–§3, §5.3) or (c) an extraction pass (§4–§5).
 
 ---
 
@@ -691,9 +721,10 @@ cleared; still no ledger home). Referenced, **not designed** here
         └─► §5.3 format x emphasis x observed-success rollup (within-creator, descriptive)
 ```
 
-All view-based cards (§1–§3, §5.3) consume `average_views` only after S3.1
-source-surface reconciliation (grid capture-shape contract); a series that would
-mix `source_surface` values abstains.
+All view-based cards (§1–§3, §5.3) compute on the grid/clip current-view series
+(S3.1; the reels-tab pair supersedes — settled, not a blocker); `web_profile_info`
+is deep-history-only and never mixed in — a series that would mix `source_surface`
+values abstains.
 
 Build order implied: temporal (§1) → spike (§2.1) → states (§2.2–§2.4) →
 momentum (§3). The two classifier lanes (§4, §5) are independent of the temporal
