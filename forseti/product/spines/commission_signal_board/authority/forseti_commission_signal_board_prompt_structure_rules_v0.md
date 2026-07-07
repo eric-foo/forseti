@@ -1,4 +1,4 @@
-# Orca Commission Signal Board Prompt Structure Rules v0
+# Forseti Commission Signal Board Prompt Structure Rules v0
 
 ```yaml
 retrieval_header_version: 1
@@ -13,11 +13,11 @@ use_when:
   - Preparing owner sign-off on commission signal-board naming, source-routing, and classifier handoff.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+  - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
   - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   - .agents/workflow-overlay/prompt-orchestration.md
   - forseti/product/spines/scanning/admissibility_checkability/forseti_demand_scan_gate_adjudication_packet_v0.md
-  - forseti/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
+  - forseti/product/spines/commission_signal_board/dispatch_rules/forseti_demand_gate_run_commission_criteria_v0.md
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
 stale_if:
   - The owner chooses a different durable name for the commission signal/evidence object.
@@ -42,7 +42,7 @@ orca_start_preflight:
 
 Should the temporary file
 `C:/Users/vmon7/AppData/Local/Temp/orca_commission_gate_prompt (1).md`
-become a durable Level 1 commission prompt, be rewritten through Orca prompt
+become a durable Level 1 commission prompt, be rewritten through Forseti prompt
 orchestration, or be deferred?
 
 ## Owner Correction
@@ -104,14 +104,14 @@ and prompt-packaging questions that are not all settled.
 
 ## Current Source State
 
-The controlling product thesis says Orca is outside-in consumer-demand decision
+The controlling product thesis says Forseti is outside-in consumer-demand decision
 intelligence for distinguishing durable demand from transient or manufactured
 demand; beauty/personal-care is the first vertical (Vertical) and the engine remains
 vertical-portable (`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`).
 
 The offer hypothesis narrows the first proof offer to US-market indie/DTC beauty
 or personal-care operators facing live 30-90 day consumer-demand allocation
-decisions (DecisionEvent), while preserving Orca's broader offer boundary
+decisions (DecisionEvent), while preserving Forseti's broader offer boundary
 (`forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`).
 
 The buyer-proof packet binds proof requirements, not commission-board behavior.
@@ -124,7 +124,7 @@ The current gate-run criteria and demand-scan adjudication packet are adjacent
 historical/context artifacts. Under this correction, their gate language should
 not be copied into the commission object. Any future durable prompt should
 separate signal-board generation from demand classification
-(`docs/product/product_lead/orca_demand_gate_run_commission_criteria_v0.md`,
+(`forseti/product/spines/commission_signal_board/dispatch_rules/forseti_demand_gate_run_commission_criteria_v0.md`,
 `forseti/product/spines/scanning/admissibility_checkability/forseti_demand_scan_gate_adjudication_packet_v0.md`).
 
 Data Capture doctrine already treats source-family adaptation as satellite
@@ -150,7 +150,7 @@ LinkedIn is no-live, planning-only under strict privacy rails; it is not news,
 not consumer signal capture, and not live graph capture by default
 (`docs/product/data_capture_spine/data_capture_spine_linkedin_lane_index_v0.md`).
 
-Prompt policy requires any durable Orca prompt to be authored through
+Prompt policy requires any durable Forseti prompt to be authored through
 prompt-orchestration or to apply that contract in full. The temporary prompt is
 not yet a durable prompt artifact.
 
@@ -164,7 +164,7 @@ scoring, but not a commission signal-board schema, runner, or output contract.
 ## Mini God Tier Target
 
 Owner direction sets a **mini god tier** bar for the future commission signal
-board. Under Orca's mini-god-tier doctrine, that is a capability-target lens
+board. Under Forseti's mini-god-tier doctrine, that is a capability-target lens
 with mandatory visible limitations, not a validation, readiness, proof, or scope
 expansion claim (`docs/decisions/orca_mini_god_tier_doctrine_v0.md`).
 
@@ -335,7 +335,7 @@ feeds:
 | 4. Intake schema | Modify | The schema is useful, but it should become a signal-board brief: candidate, decision context, time window, source families/subfamilies, known unknowns, and evidence constraints. It should not decide buyer proof or demand. | Rewrite through prompt-orchestration if owner accepts the direction. |
 | 5. Gate decision / allocation | Reject gate decision; keep allocation as collection guidance | The 70/20/10 allocation is useful search hygiene, not a gate rule. Commission can allocate evidence effort; it cannot pass or fail demand. | Rename this section in any future prompt to signal-collection allocation. |
 | 6. Decision-type playbooks | Adopt as signal-route cards | The playbooks are useful venue-routing cards for fragrance/beauty cases, but they are not proof doctrine or demand-classifier logic. | Keep as route cards that identify likely signal families. |
-| 7. Source registry | Adopt with guardrails | The public/repeatable/provenance admission rule fits Orca's public-first posture and Data Capture source-family discipline. The registry should preserve family/subfamily/surface distinctions and capture posture. | Bind each source family and subfamily to capture/provenance fields before any implementation. |
+| 7. Source registry | Adopt with guardrails | The public/repeatable/provenance admission rule fits Forseti's public-first posture and Data Capture source-family discipline. The registry should preserve family/subfamily/surface distinctions and capture posture. | Bind each source family and subfamily to capture/provenance fields before any implementation. |
 | 8. Creator routing | Adopt with guardrails | Manual creator routing is acceptable for v1 and the non-creator confirmation guardrail is important. Creator evidence should be tagged by platform, origin, graph role, and relation to non-creator signals, not treated as demand proof. | Use as source routing; IG can be first, TikTok/YouTube/Reddit creator profiles stay planned/deferred until their profiles are accepted. |
 | 9. Outcome labels | Defer as downstream vocabulary | The labels are valuable for forecast/evaluation design, but the signal board should prepare evidence for downstream evaluation, not score outcomes. | Owner decides whether these labels become a downstream forecast-target registry. |
 | 10. Graph-family retrieval plan | Adopt as lightweight graph retrieval brief; defer graph construction/scoring | The graph vocabulary is useful and should carry graphing weight: source relationships, duplication, propagation, counterevidence, chronology, and campaign-overlap risks. Graph weight must remain separate from signal weight. | Future prompt should require graph-ready rows and a graph retrieval brief; runtime schema and graph artifact construction require separate authorization. |

@@ -12,12 +12,12 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/commission_signal_board/spine.yaml
   - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
-  - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+  - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
   - forseti/product/spines/commission_signal_board/migrations/moved_paths_index.md
 stale_if:
   - The Commission Signal Board spine is renamed, retired, or merged into another spine.
   - The executable validator moves out of .agents/hooks.
-  - Global Orca docs move to orca/docs/.
+  - Global Forseti docs move into a product-root docs subtree.
 ```
 
 - Status: LIVE_PILOT_SPINE.
@@ -30,8 +30,8 @@ stale_if:
 | Role | Path |
 | --- | --- |
 | Spine manifest | `forseti/product/spines/commission_signal_board/spine.yaml` |
-| Prompt Structure Rules | `forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md` |
-| Prompt Structure | `forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md` |
+| Prompt Structure Rules | `forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md` |
+| Prompt Structure | `forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md` |
 | Playbook | `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md` |
 | Validator pointer | `forseti/product/spines/commission_signal_board/harness/validator.md` |
 | Test pointer | `forseti/product/spines/commission_signal_board/tests/validator_tests.md` |
@@ -43,7 +43,7 @@ Naming note: **Prompt Structure** is the runnable CSB prompt/template. **Prompt 
 
 | Artifact | Status | Current authority |
 | --- | --- | --- |
-| `forseti/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md` | Historical only; not a live CSB dispatch rule | Use the CSB prompt and playbook. CSB is an evidence/signals-only board and must not emit admit/hold/fail gate verdicts. |
+| `forseti/product/spines/commission_signal_board/dispatch_rules/forseti_demand_gate_run_commission_criteria_v0.md` | Historical only; not a live CSB dispatch rule | Use the CSB prompt and playbook. CSB is an evidence/signals-only board and must not emit admit/hold/fail gate verdicts. |
 
 ## Boundaries
 

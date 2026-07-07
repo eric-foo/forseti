@@ -13,7 +13,7 @@ use_when:
   - Diagnosing validator failures on Commission Signal Board outputs.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+  - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
   - .agents/hooks/check_commission_signal_board_output.py
   - orca-harness/tests/fixtures/commission_signal_board_outputs/
 stale_if:
@@ -23,8 +23,8 @@ stale_if:
 ```
 
 - Playbook path: `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`.
-- Prompt Structure path: `forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`.
-- Prompt Structure Rules path: `forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md`.
+- Prompt Structure path: `forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md`.
+- Prompt Structure Rules path: `forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md`.
 - Validator path: `.agents/hooks/check_commission_signal_board_output.py`.
 - Validator fixture path: `orca-harness/tests/fixtures/commission_signal_board_outputs/`.
 - Current enforcement posture: manual/local checker. Not CI, not pre-commit, not a write hook.
@@ -184,8 +184,8 @@ direction_change_propagation:
     - validation_philosophy
   controlling_sources_updated:
     - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
-    - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
-    - forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
     - .agents/hooks/check_commission_signal_board_output.py
     - orca-harness/tests/unit/test_commission_signal_board_output_validator.py
     - orca-harness/tests/fixtures/commission_signal_board_outputs/

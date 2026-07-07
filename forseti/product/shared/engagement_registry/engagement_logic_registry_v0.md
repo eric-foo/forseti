@@ -240,9 +240,9 @@ direction_change_propagation:
     - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
     - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_readme_v0.md
     - forseti/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
-    - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
-    - forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
-    - forseti/product/spines/commission_signal_board/dispatch_rules/orca_demand_gate_run_commission_criteria_v0.md
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/dispatch_rules/forseti_demand_gate_run_commission_criteria_v0.md
     - forseti/product/spines/scanning/README.md
     - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
     - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
@@ -330,8 +330,8 @@ direction_change_propagation:
     - forseti/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
     - docs/decisions/cleaning_spine_data_lake_representation_defer_v0.md
-    - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
-    - forseti/product/spines/commission_signal_board/authority/orca_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
     - forseti/product/spines/scanning/README.md
     - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
   downstream_surfaces_checked:
