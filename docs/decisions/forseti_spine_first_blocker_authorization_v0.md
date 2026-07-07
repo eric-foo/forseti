@@ -1,8 +1,8 @@
-# Orca Spine-First Blocker Authorization v0
+# Forseti Spine-First Blocker Authorization v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca decision record
+artifact_role: Forseti decision record
 scope: >
   Owner authorization and main-CA settlement for the blockers surfaced by the
   spine-first target-structure controller. Authorizes the next migration
@@ -14,7 +14,7 @@ use_when:
   - Checking the owner decisions for search dissolution, CSB placement, IG/source-family status, and docs/doctrine boundaries.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+  - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
   - docs/migration/spine_first_target_move_table_v0.md
   - docs/migration/spine_first_untagged_file_inventory_v0.md
   - docs/decisions/forseti_repo_structure_binding_v0.md
@@ -102,15 +102,15 @@ direction_change_propagation:
     - workflow_authority
     - lifecycle_boundary
   controlling_sources_updated:
-    - docs/decisions/orca_spine_first_blocker_authorization_v0.md
-    - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+    - docs/decisions/forseti_spine_first_blocker_authorization_v0.md
+    - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
     - docs/migration/spine_first_target_move_table_v0.md
     - docs/migration/spine_first_untagged_file_inventory_v0.md
     - docs/decisions/forseti_repo_structure_binding_v0.md
     - docs/decisions/orca_search_product_lane_binding_v0.md
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
-    - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+    - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
     - docs/migration/spine_first_target_move_table_v0.md
     - docs/migration/spine_first_untagged_file_inventory_v0.md
     - docs/decisions/forseti_repo_structure_binding_v0.md

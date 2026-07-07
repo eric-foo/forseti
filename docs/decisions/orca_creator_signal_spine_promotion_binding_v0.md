@@ -16,7 +16,7 @@ authority_boundary: retrieval_only
 open_next:
   - orca/product/spines/creator_signal/README.md
   - orca/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
-  - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+  - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
   - orca/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
   - .agents/workflow-overlay/artifact-folders.md
 supersedes: []
@@ -142,7 +142,7 @@ direction_change_propagation:
     - lifecycle_boundary
   controlling_sources_updated:
     - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
-    - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+    - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
     - .agents/workflow-overlay/artifact-folders.md
     - orca/product/README.md
     - orca/product/spines/creator_signal/README.md

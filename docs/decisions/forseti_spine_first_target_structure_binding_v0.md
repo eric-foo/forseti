@@ -1,12 +1,12 @@
-# Orca Spine-First Target Structure Binding v0
+# Forseti Spine-First Target Structure Binding v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca decision record
+artifact_role: Forseti decision record
 scope: >
-  The single target-structure authority for Orca's spine-first product
+  The single target-structure authority for Forseti's spine-first product
   reorganization. Binds the owner-adopted mini-god-tier target tree (rooted at
-  orca/product/), the five adjudicated conventions, the Source Capture Toolbox
+  forseti/product/), the five adjudicated conventions, the Source Capture Toolbox
   shared-capability rule, the source-family phase convention, the
   product-learning three-home rule, the search-dissolution policy, the
   foregone-limitations ledger, and the later Capture `core/` internal
@@ -18,7 +18,7 @@ use_when:
   - Reconciling the per-lane spine-first migration inventories.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_spine_first_blocker_authorization_v0.md
+  - docs/decisions/forseti_spine_first_blocker_authorization_v0.md
   - docs/migration/spine_first_target_move_table_v0.md
   - docs/migration/spine_first_untagged_file_inventory_v0.md
   - docs/decisions/forseti_repo_structure_binding_v0.md
@@ -26,7 +26,7 @@ open_next:
 supersedes: []
 stale_if:
   - The owner changes the accepted target tree.
-  - A later accepted Orca decision amends a convention, the foregone-limitations
+  - A later accepted Forseti decision amends a convention, the foregone-limitations
     ledger, or the search-dissolution policy bound here.
   - The migration is executed and repo-structure.yaml + artifact-folders.md are
     amended to the new tree (at which point this becomes the historical target
@@ -59,7 +59,7 @@ until a separately authorized execution pass applies the move and amends those
 surfaces.
 
 Post-merge blocker authorization:
-`docs/decisions/orca_spine_first_blocker_authorization_v0.md` settles B1-B7 for
+`docs/decisions/forseti_spine_first_blocker_authorization_v0.md` settles B1-B7 for
 the next execution pass. That record authorizes the execution tranche to create
 `orca/`, dissolve `docs/product/search/`, define `docs/doctrine/`, seed CSB from
 the gate-run commission criteria doc, keep `source_capture_toolbox` as the
@@ -388,7 +388,7 @@ None of these are touched by this binding; they are the execution checklist.
 ## Blockers (load-bearing; do not bury)
 
 Post-merge status: B1-B7 are settled for execution by
-`docs/decisions/orca_spine_first_blocker_authorization_v0.md`. The historical
+`docs/decisions/forseti_spine_first_blocker_authorization_v0.md`. The historical
 blocker text below is retained to show what was blocked at target-binding time;
 execution controllers should apply the authorization record before stopping on
 these items.
@@ -449,7 +449,7 @@ direction_change_propagation:
     - workflow_authority
     - output_authority
   controlling_sources_updated:
-    - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+    - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
     - docs/workflows/orca_repo_map_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - .agents/workflow-overlay/source-loading.md
@@ -513,7 +513,7 @@ direction_change_propagation:
     - output_authority
     - workflow_authority
   controlling_sources_updated:
-    - docs/decisions/orca_spine_first_target_structure_binding_v0.md
+    - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
   downstream_surfaces_checked:
     - docs/decisions/forseti_repo_structure_binding_v0.md
     - docs/decisions/orca_search_product_lane_binding_v0.md
