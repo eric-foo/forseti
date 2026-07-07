@@ -21,18 +21,19 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
 stale_if:
-  - A TikTok creator discovery validator, hook, or runner lands and supersedes the future-code rows here.
+  - A TikTok creator discovery hook or runner lands and supersedes the future-code rows here.
   - Creator Registry adopts a typed weak-edge/discovery frontier intake lane.
   - TikTok capture posture changes source-access or session requirements for suggested-account scans.
 ```
 
 ## Status
 
-Status: `ENFORCEMENT_PLACEMENT_CLASSIFIED_NOT_BUILT`.
+Status: `ENFORCEMENT_PLACEMENT_CLASSIFIED_VALIDATOR_BUILT`.
 
-This artifact classifies enforcement placement only. It does not implement hooks,
-validators, runners, registry writes, capture execution, or live platform access.
-A cold agent must use it to decide what to check mechanically before closeout and
+This artifact classifies enforcement placement and now has a validator substrate
+for the TikTok Creator Discovery Frontier register. It still does not implement
+hooks, runners, registry writes, capture execution, or live platform access. A
+cold agent must use it to decide what to check mechanically before closeout and
 what to preserve as resident doctrine during the scan.
 
 ## Rule Of Thumb
@@ -52,18 +53,18 @@ identity, region, endorsement, account safety, or metric quality.
 | Load AGENTS.md and workflow overlay before repo work | Doctrine plus existing workflow gates | Existing doctrine; partially hook-backed for durable artifacts | Read AGENTS.md and .agents/workflow-overlay/README.md before scan work | Source hierarchy/judgment trigger; not fully inferable from output JSON. |
 | Use intended warmed browser/session; do not close it at lane end | Doctrine/runbook | Doctrine only | State intended surface and leave it open unless owner asks otherwise | Session choice and operator intent are live-context judgment. |
 | Avoid duplicate/wrong ordinary Chrome TikTok tabs | Doctrine/runbook | Doctrine only | Verify active surface; avoid reading from wrong tab | Mechanical detection is environment-specific; current safest form is operator checklist. |
-| Parent platform profile/grid capture when entering seed profile | Code plus doctrine | Future runner/validator needed | Require a parent profile/grid packet pointer or explicit not-captured reason in the register | Presence of packet pointer is mechanical; deciding capture posture is doctrine. |
-| Data-lake placement for packet-grade parent/suggested observations | Code plus doctrine | Existing packet writer; future register validator should require packet pointer when packet-grade | Preserve source packet first, then graph register points to packet | File/packet existence is mechanical; whether an observation is packet-grade is judgment. |
+| Parent platform profile/grid capture when entering seed profile | Code plus doctrine | Register validator built; future runner optional | Require a parent profile/grid packet pointer or explicit not-captured reason in the register | Presence of packet pointer is mechanical; deciding capture posture is doctrine. |
+| Data-lake placement for packet-grade parent/suggested observations | Code plus doctrine | Existing packet writer; register validator checks packet pointers when packet-grade is claimed | Preserve source packet first, then graph register points to packet | File/packet existence is mechanical; whether an observation is packet-grade is judgment. |
 | No screenshots emitted to chat by default | Doctrine; optional code for artifacts | Doctrine now; future checker can reject screenshot paths in chat-facing receipts if formalized | Report compact receipt facts, not screenshot payloads | Chat behavior is resident; artifact byte policy can later be checked. |
-| Suggested-account rows become frontier candidates, not registry identities | Doctrine plus register schema | Spec now; future validator should restrict edge types/non_claims | Use tiktok_creator_discovery_frontier_register_v0 with weak edge types | Claim semantics are doctrine; allowed edge vocabulary is mechanical. |
-| Edge type must not overclaim follower/following/endorsement/same creator | Code plus doctrine | Future validator needed | Require allowed edge_type and required non_claims on every edge | Edge vocabulary/non_claims are mechanically checkable; truth remains doctrine. |
-| Candidate next runs default to execution_authorized=false | Code | Future validator needed | Reject any next_run_envelope where execution_authorized is true | Boolean gate is mechanical and load-bearing. |
+| Suggested-account rows become frontier candidates, not registry identities | Doctrine plus register schema | Register validator built | Use tiktok_creator_discovery_frontier_register_v0 with weak edge types | Claim semantics are doctrine; allowed edge vocabulary is mechanical. |
+| Edge type must not overclaim follower/following/endorsement/same creator | Code plus doctrine | Register validator built | Require allowed edge_type and required non_claims on every edge | Edge vocabulary/non_claims are mechanically checkable; truth remains doctrine. |
+| Candidate next runs default to execution_authorized=false | Code | Register validator built | Reject any next_run_envelope where execution_authorized is true | Boolean gate is mechanical and load-bearing. |
 | Same-run unbounded traversal forbidden | Code plus doctrine | Future runner cap/validator needed | Require caps and stop_condition; no candidate profile opens unless current owner launch authorizes it | Caps are mechanical; live action authorization is doctrine/harness permission. |
 | Bounded Suggested tab pagination only with explicit bound | Code plus doctrine | Future runner/receipt validator needed | Record pagination bound used; if absent, treat as no pagination authorized | Bound presence is mechanical; deciding bound is operator judgment. |
 | Do not follow/unfollow to force recommendations | Doctrine plus future action receipt | Doctrine now; future runner can record/forbid action flag | Do not perform follow/unfollow during discovery scans unless a separate owner action authorizes it | Live UI action semantics are posture/judgment; receipt flags can be checked. |
 | Refresh failure handling: click Refresh once, record outcome | Code plus doctrine | Future runner receipt validator needed | If visible failure occurs, one refresh max; record clicked/outcome | Count/outcome fields are mechanical; identifying visible failure is source judgment. |
 | Link hub proves identity evidence but not metrics | Doctrine plus registry schema | Existing registry/preflight doctrine; future checker can reject metric zero-fill | Use link hub for same-creator evidence only; metrics stay null/not_attempted | Meaning boundary is doctrine; null/no-zero fields can be checked. |
-| No metric zero-fill from scanning/link hubs | Code | Future registry/register validator needed | Reject metric fields set to 0 when status is not_attempted/not_available | Zero-fill is mechanically detectable and should fail closed. |
+| No metric zero-fill from scanning/link hubs | Code | Register validator rejects metric fields in the frontier register | Reject metric fields in scan-frontier output; metric production stays in the metric lanes | Zero-fill is mechanically detectable and should fail closed. |
 | Run Creator Registry exact-match preflight before insertion | Code plus doctrine | Existing preflight runner; insertion remains owner-gated | Run/check preflight and route exact hits as updates | Exact-match check is mechanical; insertion authorization is doctrine/current owner approval. |
 | Region/country evidence must be source-backed or unknown | Doctrine plus future schema | Future validator can require evidence status/source fields | Mark unknown unless source-visible evidence exists | Source interpretation is judgment; evidence field presence is mechanical. |
 | Cross-platform stitching requires link hub/reciprocal/official evidence | Doctrine plus registry linkage schema | Existing registry linkage doctrine; future checker can require match_basis | Do not promote username-similarity-only matches | Evidence sufficiency is judgment; basis field can be checked. |
@@ -73,8 +74,9 @@ identity, region, endorsement, account safety, or metric quality.
 
 ## Minimum Future Code Gates
 
-If this lane repeats, the smallest useful code substrate is a JSON validator for
-`tiktok_creator_discovery_frontier_register_v0`. It should check shape only:
+The smallest useful code substrate is now implemented as a JSON validator under
+`forseti-harness/capture_spine/tiktok_creator_discovery_frontier/`. It checks
+shape only:
 
 1. Required wrapper, schema_version, register_id, provenance, nodes, edges,
    next_run_envelopes, non_claims.
