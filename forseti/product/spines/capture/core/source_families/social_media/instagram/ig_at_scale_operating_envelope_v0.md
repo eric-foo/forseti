@@ -18,7 +18,7 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_r_probe_results_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_rate_findings_report_v0.md
   - docs/decisions/wind_caller_calibration_carveout_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
 stale_if:
   - A fuller R run pins the at-pace daily-volume ceiling, exact pace threshold, or throttle decay time.
   - The carve-out is amended to authorize sessions, auto-sprints, commercial scale, or a different account cap.
@@ -43,7 +43,7 @@ Local sources reread on current `origin/main` (`73b091bc`, 2026-06-16):
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_r_probe_results_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_rate_findings_report_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_sustained_cadence_r_probe_design_v0.md`
-- `forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md`
+- `forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_wind_caller_calls_capture_build_architecture_v0.md`

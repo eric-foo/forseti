@@ -13,7 +13,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_r_probe_results_v0.md   # the evidence record + caveats
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md   # Consumer A
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md   # Consumer A
 stale_if:
   - A later endurance run pins or revises the at-pace daily-volume ceiling.
   - A later results/report version supersedes this.

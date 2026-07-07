@@ -145,7 +145,7 @@ or independent demand-origin surface
 Creator monitoring is designed as core machinery plus per-platform profiles:
 IG fills first, while TikTok, YouTube, and Reddit creator profiles are
 named-deferred seams
-(`docs/product/data_capture_spine/orca_creator_monitoring_policy_architecture_v0.md`).
+(`forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md`).
 LinkedIn is no-live, planning-only under strict privacy rails; it is not news,
 not consumer signal capture, and not live graph capture by default
 (`docs/product/data_capture_spine/data_capture_spine_linkedin_lane_index_v0.md`).

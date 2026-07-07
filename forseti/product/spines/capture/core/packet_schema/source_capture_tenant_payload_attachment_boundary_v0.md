@@ -17,7 +17,7 @@ authority_boundary: retrieval_only
 open_next:
   - orca-harness/source_capture/models.py
   - forseti/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
-  - forseti/product/spines/capture/core/operating_model/orca_capture_projection_storage_spine_architecture_v0.md
+  - forseti/product/spines/capture/core/operating_model/forseti_capture_projection_storage_spine_architecture_v0.md
   - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
 stale_if:
@@ -47,7 +47,7 @@ orca_start_preflight:
   target_scope:
     - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
-    - forseti/product/spines/capture/core/operating_model/orca_capture_projection_storage_spine_architecture_v0.md
+    - forseti/product/spines/capture/core/operating_model/forseti_capture_projection_storage_spine_architecture_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md
   dirty_state_checked: yes
   isolation: clean worktree branch codex/source-capture-tenant-payload-boundary off origin/main @ ada92695
@@ -64,7 +64,7 @@ Loaded source basis:
 
 - `orca-harness/source_capture/models.py`: current `MetricObservation`,
   `MetricPosture`, and `SourceCaptureSlice` fields.
-- `forseti/product/spines/capture/core/operating_model/orca_capture_projection_storage_spine_architecture_v0.md`:
+- `forseti/product/spines/capture/core/operating_model/forseti_capture_projection_storage_spine_architecture_v0.md`:
   proposed storage-spine core/satellite boundary and projection store/cache
   language.
 - `forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md`: Mechanical Source
@@ -253,7 +253,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
-    - forseti/product/spines/capture/core/operating_model/orca_capture_projection_storage_spine_architecture_v0.md
+    - forseti/product/spines/capture/core/operating_model/forseti_capture_projection_storage_spine_architecture_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md
   downstream_surfaces_checked:
     - AGENTS.md

@@ -21,7 +21,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_r_probe_results_v0.md   # landed first measured reading
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md   # the H5 residual + logged-out method map
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md   # where R plugs in (read-budget equation)
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md   # where R plugs in (read-budget equation)
   - docs/decisions/wind_caller_calibration_carveout_v0.md   # capture posture authority (amended 2026-06-15)
 stale_if:
   - A fuller R follow-up run changes the measured pace-bound result, at-pace ceiling, or decay-time posture.
@@ -62,7 +62,7 @@ before **rate-limit onset** — the point at which IG returns a `429`
 a network-security block.
 
 At design time, R was **the one empirically-unmeasured number** in the creator-momentum lane. The
-monitoring policy (`orca_creator_monitoring_policy_architecture_v0.md`) is built around it: its
+monitoring policy (`forseti_creator_monitoring_policy_architecture_v0.md`) is built around it: its
 read-budget bound is `reads/cycle ≤ R × cycle_days`, and R sizes **Tier-A breadth** (how many
 creators get full age-bucket density). The first measured reading now says R is per-IP pace-bound,
 with the at-pace daily ceiling still open.
@@ -222,11 +222,11 @@ consume it directly.
 ## Report structure — two consumers (Delta 2)
 R/volume feeds **two** downstream lanes, so the report is structured to serve both:
 
-- **Consumer A — monitoring policy** (`orca_creator_monitoring_policy_architecture_v0.md`):
+- **Consumer A — monitoring policy** (`forseti_creator_monitoring_policy_architecture_v0.md`):
   needs **steady-state R** to turn its illustrative R-tunable cadences into sized defaults
   (R sizes Tier-A breadth = how many creators get full density).
 - **Consumer B — data-pipeline / projection-store lane**
-  (`orca_capture_projection_storage_spine_architecture_v0.md`): its **engine pick is gated
+  (`forseti_capture_projection_storage_spine_architecture_v0.md`): its **engine pick is gated
   on R + volume** (total rows over the working horizon).
 
 Report these four, in a shape both consume:

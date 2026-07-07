@@ -2,7 +2,7 @@
 retrieval_header_version: 1
 artifact_role: proposed target architecture (non-authorizing) — general capture→projection storage spine
 scope: >
-  Target architecture BACKBONE for a general Orca capture→projection storage / data-pipeline
+  Target architecture BACKBONE for a general Forseti capture→projection storage / data-pipeline
   lane: the platform-agnostic discipline + envelope + rebuildable columnar projection that
   creator-momentum (IG-first) is the FIRST consumer of, and that org-motion/EDGAR and future
   data types may later sit beside as sibling tenants. Defines the capture-vs-projection seam,
@@ -12,13 +12,13 @@ scope: >
   a de-correlated cross-vendor review (F-01..F-07 CA-adjudicated), AWAITING owner adoption.
   Not a build-go, validation, or readiness claim.
 use_when:
-  - Deciding how Orca capture satellites, the rebuildable projection, and the derivation layer compose across data types.
+  - Deciding how Forseti capture satellites, the rebuildable projection, and the derivation layer compose across data types.
   - Scoping the IG capture-shape contract (the next build object) or any future platform/data-type satellite.
   - Checking what is platform-agnostic core vs per-platform/per-consumer satellite, and what is deferred vs build-now.
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md   # later accepted attachment-boundary target for tenant payloads
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_momentum_pipeline_architecture_v0.md   # the IG-first instance (PROPOSED; lives on the ig-cadence-rails lane)
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_momentum_pipeline_architecture_v0.md   # the IG-first instance (PROPOSED; lives on the ig-cadence-rails lane)
   - docs/decisions/wind_caller_calibration_carveout_v0.md   # capture posture / retention authority (amended 2026-06-15)
   - orca-harness/source_capture/models.py   # the packet model with the capture-shape gap
   - orca-harness/capture_spine/   # the existing satellite/projection-transform idiom to extend
@@ -30,7 +30,7 @@ stale_if:
 status: PROPOSED — general capture→projection storage backbone; same-vendor 3-perspective pass + home synthesis + de-correlated cross-vendor review (F-01..F-07 CA-adjudicated) folded; AWAITING owner adoption
 ```
 
-# Orca Capture→Projection Storage Spine — Target Architecture Backbone (PROPOSED, v0)
+# Forseti Capture→Projection Storage Spine — Target Architecture Backbone (PROPOSED, v0)
 
 ## Result
 
@@ -56,7 +56,7 @@ review (see *Cross-vendor review disposition*).
   source-family payloads target packet/slice-keyed logical extension envelopes.
   This note does not change this document's projection store/cache proposal.
 - This **sits beside and generalizes-by-reference** the creator-momentum pipeline architecture
-  (`orca_creator_momentum_pipeline_architecture_v0.md`, PROPOSED on the `ig-cadence-rails` lane). It
+  (`forseti_creator_momentum_pipeline_architecture_v0.md`, PROPOSED on the `ig-cadence-rails` lane). It
   owns the **cross-data-type invariants**; that doc remains the worked IG instance. It does not
   replace it or discard its adjudicated AR-01..05 review state.
 - It **extends, does not invent**, the satellite/projection-transform idiom that already ships in
@@ -341,7 +341,7 @@ owner adoption.** `authored_by: claude-opus-4-8`; `reviewed_by: <cross-vendor mo
   | carve-out 2026-06-15 amendment | `docs/decisions/wind_caller_calibration_carveout_v0.md` (ig-cadence-rails worktree; **working-tree amended**, committed blob `d0334361…`) | ≤10 our operating accounts / start ≤5; uncapped subject roster; active=attended, passive=bounded self-terminating; faster-than-human-not-takedown-risking; 10yr retention UNCHANGED |
   | `capture_spine/` sibling idiom exists | `orca-harness/capture_spine/` (origin/main `e0b939a2`) | `linkedin_lane/`, `linkedin_live_adapter/`, `reddit_candidate_intake/`, `linkedin_graph_frontier/`, `reddit_graph_frontier/` |
   | packet model has no typed metric field | `orca-harness/source_capture/models.py` (ig-cadence-rails `c365dca2`) | `SOURCE_CAPTURE_MANIFEST_VERSION="source_capture_packet_manifest_v1"`; `VisibleFact{known,unknown_with_reason,not_attempted,not_applicable}`; `SourceCaptureSlice` carries no metric field |
-  | creator-momentum arch doc PROPOSED, AR-01..05 folded | `…/orca_creator_momentum_pipeline_architecture_v0.md` (blob `ff24252e…`, ig-cadence-rails `c365dca2`) | status PROPOSED; AR-01..05 adjudicated |
+  | creator-momentum arch doc PROPOSED, AR-01..05 folded | `…/forseti_creator_momentum_pipeline_architecture_v0.md` (blob `ff24252e…`, ig-cadence-rails `c365dca2`) | status PROPOSED; AR-01..05 adjudicated |
   | `data_capture_spine/` holds the LinkedIn analogs | `docs/product/data_capture_spine/` (origin/main `e0b939a2`) | `…linkedin_influence_trajectory_watch_spec_v0.md`, `…linkedin_live_layer_architecture_v0.md` |
 
 - **Proposed (this backbone):** the spine, the two reframes, the capture-shape options, the core/satellite
