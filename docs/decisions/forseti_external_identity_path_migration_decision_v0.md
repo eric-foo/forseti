@@ -60,7 +60,9 @@ migration-unit table is superseded in part. Since this record landed, the
 product root, repo-map path, harness root, harness distribution label, harness
 CI check, and product-lead skill identity have all migrated to Forseti naming.
 Use `docs/workflows/forseti_post_harness_migration_status_v0.md` for the
-current migration status ledger.
+current migration status ledger. Current convergence planning starts from
+`origin/main` after PR #756; PR #753, PR #755, and PR #756 are landed baseline,
+not side work to preserve from stale migration branches.
 
 ## Decision
 
@@ -152,28 +154,30 @@ Grounding case: the repo already has a compatibility policy and audit. The corre
 | Protected-action repo slug | `eric-foo/forseti` | Executed in the external-identity source patch: guard default is now `eric-foo/forseti`; `FORSETI_GITHUB_REPOSITORY` remains an override. | Run selftest and review-routing gate. |
 | Merge script default repo | `eric-foo/forseti` | Executed in the external-identity source patch: merge helper fallback is now `eric-foo/forseti`; `FORSETI_GITHUB_REPOSITORY` remains an override. | Verify PR command behavior and branch-protection assumptions during normal landing checks. |
 | Product tree root | `forseti/product/` or `forseti/product/**` | Executed by `docs/decisions/forseti_product_root_migration_decision_v0.md` on the stacked product-root lane. | Moved-path index, repo-map successor/update, overlay/source-loading/checker updates, deletion-evidence handling. |
-| Harness root | `forseti-harness/` | Deferred. | Package/import install plan, CI working-directory update, check-name migration, review-routing code-root update, full test run. |
-| Package name | `forseti-harness` | Deferred with harness root. | Packaging compatibility plan and downstream install/import check. |
-| CI check name | `forseti-harness-tests` | Deferred with harness root or explicit CI lane. | Auto-merge, branch-protection, PR risk router, and docs update. |
+| Harness root | `forseti-harness/` | Executed by PR #675. | Remaining `orca-harness/` mentions require classification as historical, moved-path, residual-audit text, or a fresh live defect. |
+| Package name | `forseti-harness` | Executed by PR #675 with the harness root. | Python import namespaces remain unchanged; downstream install checks belong to ordinary branch validation. |
+| CI check name | `forseti-harness-tests` | Executed by PR #675 with the harness root. | Do not revive `orca-harness-tests` in live automation or branch-protection docs. |
 | Skill command/path | `forseti-product-lead` | Executed by the skill identity lane: primary skill source/deployment copies moved to `forseti-product-lead`; `/orca-product-lead` remains a compatibility wrapper. | Keep wrapper for one transition window; resolver activation in already-running sessions is not claimed. |
 | Repo map path | `docs/workflows/forseti_repo_map_v0.md` | Executed by `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md`; legacy Orca path retained as a compatibility pointer. | Header index, map freshness checker, source-loading pointers, and live entry references repointed. |
 | Start-preflight alias | retire `orca_start_preflight` | Deferred last. | Historical prompt tolerance and hook compatibility decision. |
 
 ## What Changes Now
 
-This closeout branch updates external identity source defaults and live docs
-only. It does not rename a root, package, check name, skill ID, or start-
-preflight alias.
+This historical closeout branch updated external identity source defaults and
+live docs only. Later lanes have since renamed the product root, repo-map path,
+harness root, harness distribution label, CI check identity, and product-lead
+skill ID. It still did not retire the start-preflight alias.
 
 Compatibility prep addendum (2026-07-04) is now promoted: the protected-action
 guard and human merge helper default to `eric-foo/forseti` while still accepting
 `FORSETI_GITHUB_REPOSITORY` as an override.
 
-The original decision also fixed one live metadata defect:
+The original closeout also fixed one then-live metadata defect, now superseded
+by the harness migration:
 
 | File | Change |
 | --- | --- |
-| `orca-harness/pyproject.toml` | Description now says the deterministic harness is for Forseti, while package name remains `orca-harness`. |
+| `orca-harness/pyproject.toml` | Historical: description was repaired while the package name remained `orca-harness`. Superseded by PR #675; the live root/package label is now `forseti-harness`. |
 
 ## Owner Gate For Repo Rename
 
@@ -187,8 +191,8 @@ Smallest complete owner-gated repo-identity lane status:
 1. Free the occupied `eric-foo/Forseti` slug by renaming the separate web repo to `eric-foo/ForsetiWeb`: executed 2026-07-05.
 2. Rename this repository from `eric-foo/orca` to `eric-foo/forseti`: executed 2026-07-05.
 3. Update local remotes to the renamed repo URL and verify `git remote -v`: executed for this checkout.
-4. Patch hard-coded slug surfaces: `.agents/hooks/guard_protected_actions.py`, `.github/scripts/merge-when-green.ps1`, and live workflow/dev docs that are not historical prompts or review outputs: this source patch.
-5. Verify `gh pr view`, protected-action guard behavior, merge script defaults, and CI: normal landing checks for this source patch.
+4. Patch hard-coded slug surfaces: `.agents/hooks/guard_protected_actions.py`, `.github/scripts/merge-when-green.ps1`, and live workflow/dev docs that are not historical prompts or review outputs: executed by the external-identity source patch.
+5. Verify `gh pr view`, protected-action guard behavior, merge script defaults, and CI: normal landing checks for that source patch.
 
 GitHub usually provides repository redirects after a rename, but this decision does not rely on redirects as the long-term operating state.
 
@@ -196,31 +200,76 @@ GitHub usually provides repository redirects after a rename, but this decision d
 
 1. Landed the initial decision, metadata-label repair, and target-slug blocker update.
 2. Executed the owner-gated external GitHub identity cutover on 2026-07-05: web repo to `eric-foo/ForsetiWeb`, this repo to `eric-foo/forseti`.
-3. Land this source cutover patch for hard-coded slug defaults and live docs.
+3. Landed the source cutover patch for hard-coded slug defaults and live docs.
 4. Fresh local main-repo clone created at `C:\Users\vmon7\Desktop\projects\forseti`; later close or deliberately migrate the legacy active `C:\Users\vmon7\Desktop\projects\orca` workspace when its worktrees/sessions are no longer needed.
-5. After external identity is stable, decide whether internal compatibility paths still cause enough confusion to justify migration.
-6. If yes, migrate `forseti/product/` before `orca-harness/`; the repo-map path successor is handled by `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md`, while the product tree remains the next authority/navigation root.
-7. Migrate `orca-harness/`, package name, and CI check name as one runtime lane only after package/install/test and auto-merge impacts are bound.
-8. Product-lead skill ID migrated to `forseti-product-lead`; retire `orca_start_preflight` only after prompt/history consumers are classified.
+5. Internal compatibility paths that cleared their gates have landed through their owning lanes: product root, repo-map path, harness root, harness distribution label, CI check identity, and product-lead skill ID now use Forseti naming.
+6. Treat current `main` after PR #753, PR #755, and PR #756 as the convergence target; do not merge old migration branch trees over the fresh ontology/A1/A2/R0 and TikTok runner/harness sources.
+7. Remaining migration lanes are legacy active workspace closeout, family-by-family lowercase filename migration with moved-path coverage, `orca_start_preflight` retirement after prompt/history classification, and later compatibility-wrapper retirement after resolver behavior is verified.
 
 ## Rejected Paths
 
 | Path | Reason rejected |
 | --- | --- |
 | Broad word-match rename | Would rewrite historical provenance and compatibility identifiers while leaving path/package behavior uncertain. |
-| Rename `orca-harness/` now because the README says Forseti | The root has 1188 tracked files and CI/package/checker dependencies. The README title is already repaired; the root is a compatibility ID. |
-| Rename `forseti/product/` now as a docs-only move | Product paths are embedded in overlay, hooks, repo map, source-loading, and product artifacts. It needs moved-path and deletion evidence handling. |
+| Rename `orca-harness/` opportunistically because the README says Forseti | Historical rejected path. The harness migration later executed by PR #675 as a bounded runtime/CI lane; do not use this old rationale to revive `orca-harness/` as a live identity. |
+| Rename the product tree as a docs-only move | Historical rejected path. The product-root migration later executed through its owning moved-path lane; future filename work still needs moved-path and deletion evidence handling. |
 | Rename local active workspace in-place during this session | Running agents, worktrees, remotes, and absolute-path references can break mid-operation. Use fresh clone or controlled shutdown/move. |
 
 ## Non-Claims
 
-- This closeout records the observed GitHub repo rename and local `origin` cutover, but is not validation, readiness, implementation authorization, deployment, local folder rename execution, or path/package migration.
+- This closeout records the observed GitHub repo rename and local `origin` cutover, but is not validation, readiness, implementation authorization, deployment, legacy workspace retirement, package publication, or resolver activation proof.
 - This decision does not claim redirects, branch protection, auto-merge, package installs, or skill resolver behavior will work after a repo rename.
 - This decision does not prove every remaining Orca hit is valid.
 
 ## Direction Change Propagation
 
-The 2026-07-04 blocker receipt below is historical and superseded by the 2026-07-05 external identity closeout receipt.
+The first receipt below records the current-main convergence clarification. The older 2026-07-04 blocker receipt after it is historical and superseded by the 2026-07-05 external identity closeout receipt.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Current Forseti migration convergence now starts from `main` after PR #753,
+    PR #755, and PR #756. The fresh `projects/forseti` clone, ontology/A1/A2/R0
+    source updates, and TikTok packet-grade runner posture are landed baseline;
+    older migration branches are reference material, not merge targets.
+  trigger: lifecycle_boundary
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - docs/decisions/forseti_external_identity_path_migration_decision_v0.md
+    - docs/workflows/forseti_post_harness_migration_status_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  downstream_surfaces_checked:
+    - docs/workflows/forseti_post_harness_migration_status_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/decisions/forseti_external_identity_path_migration_decision_v0.md
+  intentionally_not_updated:
+    - path: historical prompts, review outputs, receipts, and snapshots
+      reason: >
+        Historical Orca references remain provenance and are outside this
+        convergence-plan clarification.
+    - path: legacy active workspace path `C:\Users\vmon7\Desktop\projects\orca`
+      reason: >
+        Runtime workspace closeout is a separate operational lane after active
+        sessions/worktrees are closed or deliberately migrated.
+  stale_language_search: >
+    rg -n "Deferred|What Changes Now|Recommended Sequence|#753|#755|#756|orca-harness-tests|orca-harness"
+    docs/decisions/forseti_external_identity_path_migration_decision_v0.md
+    docs/workflows/forseti_post_harness_migration_status_v0.md
+    docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Updated the live status ledger, external-identity migration table, and
+    recommended sequence so PR #753, PR #755, and PR #756 are landed baseline.
+    Remaining `orca-harness` and `orca-harness-tests` mentions in the decision
+    are historical evidence, rejected-path text, or explicit stale-language
+    search terms.
+  non_claims:
+    - not validation
+    - not readiness
+    - not workspace retirement
+    - not resolver activation proof
+```
 
 
 ```yaml
