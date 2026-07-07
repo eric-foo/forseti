@@ -37,7 +37,7 @@ jobs:
       MAX_AUTO_FILES: "8"
       MAX_AUTO_ADDITIONS: "300"
       MAX_AUTO_DELETIONS: "80"
-      COMMENT_MARKER: "<!-- orca-pr-risk-router -->"
+      COMMENT_MARKER: "<!-- forseti-pr-risk-router -->"
     steps:
       - name: Classify PR risk
         shell: bash

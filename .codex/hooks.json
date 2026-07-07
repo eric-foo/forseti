@@ -6,10 +6,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"$(git rev-parse --show-toplevel)/.codex/hooks/orca_guard_codex_adapter.py\"",
-            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.codex/hooks/orca_guard_codex_adapter.py\"",
+            "command": "python \"$(git rev-parse --show-toplevel)/.codex/hooks/forseti_guard_codex_adapter.py\"",
+            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.codex/hooks/forseti_guard_codex_adapter.py\"",
             "timeout": 10,
-            "statusMessage": "Checking Orca protected action policy"
+            "statusMessage": "Checking Forseti protected action policy"
           }
         ]
       }
@@ -23,14 +23,14 @@
             "command": "python \"$(git rev-parse --show-toplevel)/.agents/hooks/check_repo_map_freshness.py\" --hook",
             "commandWindows": "python \"$(git rev-parse --show-toplevel)/.agents/hooks/check_repo_map_freshness.py\" --hook",
             "timeout": 10,
-            "statusMessage": "Checking Orca repo-map commit policy"
+            "statusMessage": "Checking Forseti repo-map commit policy"
           },
           {
             "type": "command",
             "command": "python \"$(git rev-parse --show-toplevel)/.agents/hooks/check_search_surface_google_route.py\" --hook",
             "commandWindows": "python \"$(git rev-parse --show-toplevel)/.agents/hooks/check_search_surface_google_route.py\" --hook",
             "timeout": 10,
-            "statusMessage": "Checking Orca Google search-surface route policy"
+            "statusMessage": "Checking Forseti Google search-surface route policy"
           }
         ]
       }
