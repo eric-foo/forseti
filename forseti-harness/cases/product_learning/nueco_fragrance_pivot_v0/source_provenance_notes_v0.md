@@ -16,7 +16,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/product/core_spine/consumer_demand_candidate_pool_handoff_v0.md   # roster row this case came from (candidate #13)
   - docs/decisions/judgment_spine_backtest_batch2_candidate_routing_v0.md   # batch-2 routing record for this candidate (priority 2 / BORDER)
-  - docs/product/core_spine/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md   # the backtest specimen shape a later fixture would mirror
+  - forseti/product/case_families/product_learning/other_verticals/forseti_backtest_specimen_unity_runtime_fee_source_packet_v0.md   # the backtest specimen shape a later fixture would mirror
 ---
 
 # Source Provenance Notes — nueco_fragrance_pivot_v0 (v0)
