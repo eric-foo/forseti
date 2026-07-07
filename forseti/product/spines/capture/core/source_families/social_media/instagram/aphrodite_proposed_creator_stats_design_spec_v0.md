@@ -48,8 +48,8 @@ readiness, validation, or buyer proof. Implementation of any card here is a
 separate, explicitly authorized step.
 
 This spec is the design-lane discharge of
-`docs/workflows/aphrodite_proposed_creator_stats_design_handoff_v0.md` (an
-external-worktree handoff). It reads its `open_first` sources at their current
+`docs/workflows/aphrodite_proposed_creator_stats_design_handoff_v0.md` (nonresolving: authored in an external worktree, never committed on any branch). It
+reads its `open_first` sources at their current
 `origin/main` state: PR #777 (the Aphrodite inventory + capture strategy) is
 merged into `main` in this worktree, so those sources are read in-tree, not on
 the unmerged branch the handoff assumed.
