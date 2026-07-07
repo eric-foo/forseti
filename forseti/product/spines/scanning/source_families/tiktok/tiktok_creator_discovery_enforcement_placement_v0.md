@@ -58,6 +58,7 @@ identity, region, endorsement, account safety, or metric quality.
 | Data-lake placement for packet-grade parent/suggested observations | Code plus doctrine | Existing packet writer; scan receipt and register validators check packet pointers when packet-grade is claimed | Preserve source packet first, then graph register points to packet | File/packet existence is mechanical; whether an observation is packet-grade is judgment. |
 | No screenshots emitted to chat by default | Code plus doctrine | Scan receipt validator rejects screenshot chat output; doctrine still owns live chat behavior | Report compact receipt facts, not screenshot payloads | Receipt fields are mechanical; chat behavior is resident. |
 | Suggested-account rows become frontier candidates, not registry identities | Doctrine plus register schema | Register validator built | Use tiktok_creator_discovery_frontier_register_v0 with weak edge types | Claim semantics are doctrine; allowed edge vocabulary is mechanical. |
+| Suggested-account observed counts are receipt context, not exhaustive graph proof | Doctrine plus optional future schema | Doctrine now; receipt validator checks presence/non-negative only | If filtered, deduped, or intentionally under-sampled, record an accepted residual and do not claim exhaustive suggestion capture | Exact equality would be wrong for bounded scans; completeness is a semantic claim. |
 | Edge type must not overclaim follower/following/endorsement/same creator | Code plus doctrine | Register validator built | Require allowed edge_type and required non_claims on every edge | Edge vocabulary/non_claims are mechanically checkable; truth remains doctrine. |
 | Candidate next runs default to execution_authorized=false | Code | Register validator built | Reject any next_run_envelope where execution_authorized is true | Boolean gate is mechanical and load-bearing. |
 | Same-run unbounded traversal forbidden | Code plus doctrine | Scan receipt validator requires caps and rejects candidate profile opens; live runner still future | Require caps and stop_condition; no candidate profile opens in the discovery scan | Caps are mechanical; live action authorization is doctrine/harness permission. |
@@ -113,8 +114,11 @@ is worth scanning. Those stay doctrine/resident judgment.
 5. Record suggested accounts as weak discovery frontier nodes/edges only.
 6. Use the receipt-backed register writer, or manually write/update the frontier
    register to the same schema; leave all next-run envelopes unauthorized.
-7. Run/check Creator Registry exact-match preflight before any registry proposal.
-8. Report compact receipt facts, not screenshots, and state non-verified items.
+7. If emitted candidate nodes are filtered, deduped, or otherwise a subset of
+   observed suggestions, record that residual and do not claim exhaustive
+   suggestion capture.
+8. Run/check Creator Registry exact-match preflight before any registry proposal.
+9. Report compact receipt facts, not screenshots, and state non-verified items.
 
 ## Direction Change Propagation
 
@@ -125,8 +129,9 @@ direction_change_propagation:
     placement: shape/output/run-envelope constraints belong in validators, the
     receipt-backed register writer, or existing packet/preflight runners, while
     source-access posture, claim semantics, identity evidence sufficiency, owner
-    authorization, and frontier judgment remain doctrine. Cold agents get a
-    source-loading route plus a concrete code gate list before further scouting.
+    authorization, count/completeness interpretation, and frontier judgment
+    remain doctrine. Cold agents get a source-loading route plus a concrete
+    code gate list before further scouting.
   trigger: validation_philosophy
   related_triggers:
     - workflow_authority

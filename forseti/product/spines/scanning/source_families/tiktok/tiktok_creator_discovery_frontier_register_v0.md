@@ -173,6 +173,24 @@ packet/lake pointers, refresh outcome, pagination bound, browser-close posture,
 and no follow/open/screenshot actions. It still does not launch TikTok, create a
 live runner, prove source truth, authorize next runs, or mutate Creator Registry.
 
+## Count And Completeness Semantics
+
+`suggested_accounts_observed` is receipt/cap context for source-visible suggested
+rows in the scan. The emitted candidate nodes are the rows selected for graphing
+after any operator filtering, deduping, or bounded under-sampling. A count mismatch
+is not itself a validator failure.
+
+Cold agents must not claim the register exhausts all source-visible suggestions
+unless the receipt/register explicitly records that all observed rows were
+included. When rows were filtered, deduped, not paginated, or otherwise
+under-sampled, record an `accepted_residuals` entry such as:
+`Candidate nodes are a filtered/deduped subset of suggested_accounts_observed;
+not exhaustive.`
+
+If exact completeness becomes product-critical, add an explicit future field or
+mode such as `candidate_rows_mode: exhaustive|filtered_subset` before enforcing
+count equality in code.
+
 ## Cross-Platform Linkage
 
 Cross-platform linkage is allowed as a separate strong-edge layer only after a
@@ -195,6 +213,7 @@ must not create them by itself.
 | --- | --- | --- | --- |
 | No standing TikTok crawler | Keeps the lane bounded and avoids crawler/runtime lock-in. | Some adjacent creators will be missed between owner-launched runs. | Repeated missed high-value creators or sustained multi-operator discovery cadence. |
 | No live auto-pagination requirement | Keeps capture posture safe and session-visible. | The register may under-sample a suggested list. | Owner authorizes a bounded pagination probe with explicit caps and source-access posture. |
+| Candidate count may differ from observed suggestion count | Allows bounded filtering/deduping without making false completeness claims. | A cold agent could overstate recall if it ignores accepted_residuals. | Exact completeness becomes product-critical and receives an explicit schema mode. |
 | No ranking model | Repeated coappearance and manual selection carry enough early value. | Frontier ordering may be inconsistent. | Repeated low-yield scans from poor ordering or enough graph receipts to justify a transparent ranker. |
 | No registry mutation | Preserves identity quality and duplicate safety. | Extra preflight step before onboarding. | Registry adopts a typed weak-edge intake lane with deterministic duplicate routing. |
 | No full graph database | JSON registers are enough for current owner-launched scans. | Cross-run querying is manual or script-assisted. | Same vertical reaches repeated weekly scans or multi-root snowball management. |
