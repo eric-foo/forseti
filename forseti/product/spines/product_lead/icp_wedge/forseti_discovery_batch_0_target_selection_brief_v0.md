@@ -1,11 +1,11 @@
-# Orca Discovery Batch 0 Target-Selection Brief v0
+  Forseti Discovery Batch 0 Target-Selection Brief v0
 
 > **SUPERSEDED / OFF-TARGET (2026-06-12)**
 > This brief predates the consumer-demand re-scope and remains hard-gated to
 > the superseded pricing wedge (pricing-first propagation AR-01 had already
 > flagged it as a misrouting live instrument). The live target-selection
 > instrument is now
-> `forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md`.
+> `forseti/product/spines/product_lead/icp_wedge/forseti_discovery_consumer_demand_target_selection_brief_v0.md`.
 > Current wedge authority:
 > `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` (owner
 > co-ratified 2026-06-12). Retained as history; do not use this brief as a
@@ -14,17 +14,17 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact (superseded discovery instrument — historical)
-scope: Discovery Batch 0 target-selection brief for the first Orca Product Proof Lead customer-discovery pass.
+scope: Discovery Batch 0 target-selection brief for the first Forseti Product Proof Lead customer-discovery pass.
 use_when:
   - Selecting blank Discovery Batch 0 target slots before outreach or web research.
   - Checking first-contact qualification objectives before memo production.
   - Preserving Product Proof Lead stop rules and non-claims.
 authority_boundary: retrieval_only
-superseded_by: forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
+superseded_by: forseti/product/spines/product_lead/icp_wedge/forseti_discovery_consumer_demand_target_selection_brief_v0.md
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/decisions/forseti_icp_wedge_pricing_first_v0.md  # superseded wedge record (historical)
-  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md # superseded by above; reread-required
+  - docs/decisions/forseti_icp_wedge_pricing_first_v0.md    superseded wedge record (historical)
+  - forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md   superseded by above; reread-required
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
   - docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md
@@ -41,7 +41,7 @@ input_hashes:
     sha256: 18B623503A03CD6D3820C44EF980FAD465E8C6F6CD3250A832F54C2BEBA79E09
 ```
 
-## Status
+   Status
 
 Discovery Batch: `0`.
 
@@ -49,7 +49,7 @@ Purpose: target selection for the first Product Proof Lead customer-discovery pa
 
 Output boundary: docs-first target-selection brief only. This brief does not authorize buyer outreach, public web research, memo production, executive deck production, product-bet planning, feature planning, implementation planning, commercial-readiness work, source systems, dashboards, source maps, data-spine design, CRM workflows, packages, tests, staging, commits, pushes, or PRs.
 
-## Pricing-First Refinement (2026-06-08)
+   Pricing-First Refinement (2026-06-08)
 
 This brief's first-proof framing is REFINED by the owner-locked pricing-first
 direction. Controlling wedge authority:
@@ -95,7 +95,7 @@ direction_change_propagation:
 The body below is SURGICALLY ALIGNED to this refinement; the stop rules,
 disqualifiers, blank target slots, intake objective, and non-claims are unchanged.
 
-## Current Prep State
+   Current Prep State
 
 The customer-discovery prompt has been refreshed for the sealed Orca ICP and product-proof boundary. It treats the memo (Memo) plus evidence appendix as the minimum artifact and an executive deck as the premium buyer-facing layer derived from that substrate.
 
@@ -112,7 +112,7 @@ Current prompt SHA256:
 Adversarial review report:
 `docs/review-outputs/adversarial-artifact-reviews/orca_product_proof_lead_customer_discovery_prompt_v0_adversarial_review.md`
 
-## Selected First Lane
+   Selected First Lane
 
 First lane: the AI-monetization slice — B2B SaaS making a first-time AI-monetization or competitor-triggered repricing/repackaging decision, where the competitor-pricing substrate is publicly rich and the firm is flying blind. Developer-facing SaaS is a strong sub-instance, not the defining qualifier; the wedge frame is cross-sector-open.
 
@@ -122,7 +122,7 @@ AI exposure may prioritize candidate context only when it creates urgency around
 
 This lane is selected for discovery qualification only. No companies are selected in this brief.
 
-## Target Qualification Filters
+   Target Qualification Filters
 
 A target may proceed beyond first qualification only if all hard gates pass:
 
@@ -139,7 +139,7 @@ Trust rule: `trust_objection` is proof material, not disqualification. Only `tru
 
 Buyer-pull rule: buyer pull means observable decision or budget-adjacent behavior, not approval language, praise, curiosity, or generic research interest.
 
-## Disqualifiers
+   Disqualifiers
 
 Disqualify or hold before memo production if any condition applies:
 
@@ -157,7 +157,7 @@ Disqualify or hold before memo production if any condition applies:
 - Seeks manipulative, deceptive, or person-level dossier work.
 - Declines decision-artifact readback or cannot include the decision owner / budget-accountable decision lead in the memo step.
 
-## Blank Target Slots
+   Blank Target Slots
 
 No public web research or researched company selection has been authorized for this run. Leave companies blank until the owner authorizes public research or supplies candidate names.
 
@@ -172,7 +172,7 @@ No public web research or researched company selection has been authorized for t
 | 7 | TBD | TBD | TBD | TBD | TBD | not_screened | What specific action should the decision artifact help avoid, narrow, reframe, sequence, or defend? |
 | 8 | TBD | TBD | TBD | TBD | TBD | not_screened | What deadline, launch, board, renewal, budget, competitor, or GTM event is driving urgency? |
 
-## Intake Objective
+   Intake Objective
 
 The objective of first contact is to qualify whether a target is eligible for decision artifact production, not to sell or produce the memo, evidence appendix, or executive deck.
 
@@ -185,7 +185,7 @@ First contact should:
 - Secure readback agreement before memo production.
 - Decide whether memo and executive deck production are allowed, blocked, not needed, or still need clarification.
 
-## Stop Rules
+   Stop Rules
 
 Stop before outreach unless outreach is explicitly authorized in a later owner turn.
 
@@ -206,7 +206,7 @@ Stop before executive deck production unless the memo and evidence appendix pass
 
 Stop before product-bet planning, feature planning, implementation planning, source-system design, dashboards, source maps, data-spine design, automation, CRM workflows, commercial-readiness work, or readiness claims.
 
-## Current Blockers
+   Current Blockers
 
 Before outreach:
 
@@ -225,7 +225,7 @@ Before memo production:
 - No decision-artifact readback agreement exists.
 - No executive deck use tied to internal decision circulation has been established.
 
-## Non-Claims
+   Non-Claims
 
 This brief does not prove:
 

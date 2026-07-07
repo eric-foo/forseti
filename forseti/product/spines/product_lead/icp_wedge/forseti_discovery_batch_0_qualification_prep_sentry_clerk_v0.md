@@ -1,7 +1,7 @@
-# Orca Discovery Batch 0 Qualification Prep - Sentry Seer and Clerk v0
+  Forseti Discovery Batch 0 Qualification Prep - Sentry Seer and Clerk v0
 
 > **SUPERSEDED / OFF-TARGET (2026-06-08)**
-> This prep predates the pricing-first re-scope. Sentry/Clerk-style developer-tool discovery prep is no longer the first-proof beachhead. The first-proof beachhead is now the AI-monetization slice (B2B SaaS making a first-time AI-monetization or competitor-triggered repricing/repackaging decision; developer-facing SaaS is a sub-instance, not the defining qualifier). Current authority: `docs/decisions/forseti_icp_wedge_pricing_first_v0.md`. The prior ICP wedge record (`docs/product/orca_product_lead_first_icp_wedge_decision_v0.md`) is superseded by that record. Content below is retained as history; do not use it as a live qualification instrument without re-reading `docs/decisions/forseti_icp_wedge_pricing_first_v0.md` first.
+> This prep predates the pricing-first re-scope. Sentry/Clerk-style developer-tool discovery prep is no longer the first-proof beachhead. The first-proof beachhead is now the AI-monetization slice (B2B SaaS making a first-time AI-monetization or competitor-triggered repricing/repackaging decision; developer-facing SaaS is a sub-instance, not the defining qualifier). Current authority: `docs/decisions/forseti_icp_wedge_pricing_first_v0.md`. The prior ICP wedge record (`forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md`) is superseded by that record. Content below is retained as history; do not use it as a live qualification instrument without re-reading `docs/decisions/forseti_icp_wedge_pricing_first_v0.md` first.
 
 ```yaml
 retrieval_header_version: 1
@@ -14,11 +14,11 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
-  - forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_candidate_context_scan_v0.md
-  - forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_target_selection_brief_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/forseti_discovery_batch_0_candidate_context_scan_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/forseti_discovery_batch_0_target_selection_brief_v0.md
   - docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md
 input_hashes:
   - path: docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
@@ -37,7 +37,7 @@ input_hashes:
     sha256: 0EB8A11DAA2A2BE1FC7F610AAA48004D97200A18D11679F9C8D45731EED61F21
 ```
 
-## Scope
+   Scope
 
 This artifact prepares manual qualification for two owner-selected candidate contexts:
 
@@ -52,9 +52,9 @@ No new public web research was run for this prep artifact. It uses the prior can
 
 The prior candidate-context scan is historical evidence context. Current qualification boundaries come from the sealed ICP decision, proof lead charter, buyer proof packet, customer-discovery prompt, and target-selection brief hashes above.
 
-## Qualification Objective
+   Qualification Objective
 
-The next possible discovery step is not to pitch Orca. It is to determine whether either candidate context contains a real, current decision that is narrow enough for a manual public-signal decision artifact.
+The next possible discovery step is not to pitch Forseti. It is to determine whether either candidate context contains a real, current decision that is narrow enough for a manual public-signal decision artifact.
 
 Qualification must establish:
 
@@ -70,14 +70,14 @@ AI exposure may prioritize context only when it creates urgency around the first
 
 If any of these are missing, memo and deck production remain blocked.
 
-## Source Basis
+   Source Basis
 
 | Candidate context | Sources already used in scan | Source role in this prep |
 | --- | --- | --- |
 | Sentry Seer | `https://sentry.io/pricing/`; `https://docs.sentry.io/pricing/`; `https://sentry.zendesk.com/hc/en-us/articles/45551407771931-What-is-the-pricing-for-Seer-January-21-2026` | Establishes visible pricing, telemetry quota, pay-as-you-go, Seer, active-contributor, and legacy-pricing transition surfaces to verify if intake is later authorized. |
 | Clerk Billing / B2B Authentication | `https://clerk.com/pricing`; `https://clerk.com/docs/guides/billing/overview` | Establishes visible MRU pricing, B2B Authentication add-on, Billing add-on, seats, enterprise tiering, and beta/experimental Billing API surfaces to verify if intake is later authorized. |
 
-## Candidate 1 - Sentry Seer
+   Candidate 1 - Sentry Seer
 
 Qualification status: `qualification_prep_only`.
 
@@ -144,7 +144,7 @@ Hard stop before memo production:
 
 Do not produce a Sentry memo, evidence appendix, or executive deck unless a named qualified buyer confirms the live decision, stakes, timing, memo question, public-signal trust posture, and readback agreement. Do not produce an executive deck unless it is tied to internal decision circulation for that qualified live decision.
 
-## Candidate 2 - Clerk Billing / B2B Authentication
+   Candidate 2 - Clerk Billing / B2B Authentication
 
 Qualification status: `qualification_prep_only`.
 
@@ -212,7 +212,7 @@ Hard stop before memo production:
 
 Do not produce a Clerk memo, evidence appendix, or executive deck unless a named qualified buyer confirms the live decision, stakes, timing, memo question, public-signal trust posture, and readback agreement. Do not produce an executive deck unless it is tied to internal decision circulation for that qualified live decision.
 
-## Context Comparison
+   Context Comparison
 
 | Criterion | Sentry Seer | Clerk Billing / B2B Authentication |
 | --- | --- | --- |
@@ -230,7 +230,7 @@ Recommended first ordering:
 
 This ordering is for qualification prep only. It is not a buyer ranking, sales ranking, client priority, or product-readiness signal.
 
-## Later First-Contact Boundary If Authorized
+   Later First-Contact Boundary If Authorized
 
 If outreach is later authorized, first contact should qualify context, not pitch a product.
 
@@ -244,7 +244,7 @@ Do not use this language for outreach unless the owner separately authorizes out
 
 Do not ask leading commercial-pull questions before a decision artifact exists.
 
-## Decision Artifact Production Gate
+   Decision Artifact Production Gate
 
 Memo production remains blocked for both contexts until all are true:
 
@@ -261,7 +261,7 @@ If the buyer shows `trust_objection`, continue only if they are willing to evalu
 
 Executive deck production remains blocked unless the memo and evidence appendix pass these gates and the deck is tied to internal decision circulation for the qualified live decision.
 
-## Stop Rules
+   Stop Rules
 
 Stop before outreach unless outreach is explicitly authorized in a later owner turn.
 
@@ -275,7 +275,7 @@ Stop if either context requires private data, dashboards, source systems, automa
 
 Stop if either context becomes generic research, broad strategy, or source-volume collection rather than decision-risk reduction.
 
-## Non-Claims
+   Non-Claims
 
 This qualification prep does not claim:
 

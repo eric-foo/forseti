@@ -51,7 +51,7 @@ validation or lifecycle authority. Property lists are deliberately NOT frozen.
     `forseti_buyer_proof_packet_v0.md`.
   - Object exemplars/kernel: `beauty_venue_card_set_v0.md`,
     `consumer_demand_candidate_pool_handoff_v0.md`,
-    `orca_discovery_consumer_demand_target_selection_brief_v0.md`.
+    `forseti_discovery_consumer_demand_target_selection_brief_v0.md`.
   - Survey: `source_capture_packet_schema_evolution_architecture_v0.md`,
     `judgment_spine_evidence_ladder_architecture_v0.md`,
     `judgment_spine_gate_ownership_map_v0.md`,

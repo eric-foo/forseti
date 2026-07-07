@@ -10,11 +10,11 @@ use_when:
   - Preparing commercial-frame or discovery inputs for the first proof.
 authority_boundary: retrieval_only
 supersedes:
-  - docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md
 open_next:
   - docs/research/orca_icp_redo_evidence_targets_v0.md
   - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
-  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md
 stale_if:
   - Owner accepts a different first-proof wedge.
   - The downstream product-doc cascade lands and this record's proposal is consumed.
@@ -186,7 +186,7 @@ direction_change_propagation_blocker:
 
 | Document | Proposed change | Priority | Authority / branch |
 | --- | --- | --- | --- |
-| `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md` → v1 | Flip selected wedge to break-in-first / pricing-expansion; engine + situational buyer; `supersedes` v0; refresh `input_hashes`; carry DCP receipt | P0 (controlling source) | Product lane, main — do not fork on ECR |
+| `forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md` → v1 | Flip selected wedge to break-in-first / pricing-expansion; engine + situational buyer; `supersedes` v0; refresh `input_hashes`; carry DCP receipt | P0 (controlling source) | Product lane, main — do not fork on ECR |
 | `docs/product/orca_offer_hypothesis_v0.md` → v1 | First-proof offer layer flips from dev-facing pricing to break-in / competitor-customer intelligence; pricing → expansion; keep the broad offer boundary; revise buyer/decision-family/qualifying-conditions/pull-signals; carry DCP receipt | P0 | Product lane, main |
 | `docs/product/orca_buyer_proof_packet_v0.md` | Patch first-proof wedge, pull signals, and disqualifiers to break-in | P1 | Product lane, main |
 | `docs/product/orca_product_proof_lead_charter_v0.md` | Patch the first-proof lane to break-in | P1 | Product lane, main |

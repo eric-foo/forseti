@@ -35,7 +35,7 @@ open_next:
   - docs/research/orca_icp_redo_evidence_targets_v0.md
   - docs/research/orca_wedge_alternatives_register_v0.md
   - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
-  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md
 stale_if:
   - Owner accepts a different first-proof wedge.
   - The "decide-vs-confirm" method-validation test flips the call.
@@ -183,7 +183,7 @@ as OPEN, not settled. Accepted major fixes:
 - Propagation-completeness gap recorded (propagation AR-01): two LIVE downstream
   qualification instruments still hard-gate to "developer-facing B2B SaaS" and
   were outside the cascade scope —
-  `docs/product/orca_discovery_batch_0_target_selection_brief_v0.md` and
+  `forseti/product/spines/product_lead/icp_wedge/forseti_discovery_batch_0_target_selection_brief_v0.md` and
   `docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md`.
   Until they are realigned (a discovery-lane patch), propagation is INCOMPLETE and
   those instruments would misroute discovery to the demoted dev-facing default.

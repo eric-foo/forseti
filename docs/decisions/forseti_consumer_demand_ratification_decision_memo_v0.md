@@ -15,8 +15,8 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md       # ask 1 target
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md      # ask 2 target
-  - forseti/product/spines/product_lead/icp_wedge/orca_icp_ratification_readiness_report_v0.md   # the consistency sweep behind this memo
-  - forseti/product/spines/product_lead/icp_wedge/orca_ratification_day_runbook_v0.md  # what executes after the word
+  - forseti/product/spines/product_lead/icp_wedge/forseti_icp_ratification_readiness_report_v0.md   # the consistency sweep behind this memo
+  - forseti/product/spines/product_lead/icp_wedge/forseti_ratification_day_runbook_v0.md  # what executes after the word
 input_hashes:
   docs/decisions/orca_product_thesis_consumer_demand_v0.md: 5FEA48AE8B0C0E22D24CE2194F1F17617C5C94D2C75A204AAD5CD8CC149B2B0E
   docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md: C878ABEBBFFC119A032E0290E093A9EBB973BC15052B4B21FA59D285AB83C07B
@@ -67,7 +67,7 @@ state for any proof-shaped reading: `no_durable_evidence`.
   explicit word.
 
 Cascade executed 2026-06-12 per
-`docs/product/product_lead/orca_ratification_day_runbook_v0.md`; the
+`forseti/product/spines/product_lead/icp_wedge/forseti_ratification_day_runbook_v0.md`; the
 executed `direction_change_propagation` receipt lives in
 `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`.
 

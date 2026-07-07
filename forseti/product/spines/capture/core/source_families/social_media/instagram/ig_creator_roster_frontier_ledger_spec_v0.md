@@ -54,7 +54,7 @@ orca_start_preflight:
     - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
     - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
     - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
-    - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
+    - forseti/product/spines/product_lead/icp_wedge/forseti_discovery_consumer_demand_target_selection_brief_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
     - docs/decisions/wind_caller_calibration_carveout_v0.md
@@ -77,7 +77,7 @@ Current-main sources read for this spec:
 - `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`
 - `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`
 - `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
-- `forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md`
+- `forseti/product/spines/product_lead/icp_wedge/forseti_discovery_consumer_demand_target_selection_brief_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md`
 - `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md`
 - `docs/decisions/wind_caller_calibration_carveout_v0.md`

@@ -47,7 +47,7 @@ have it.
 | Scan-core spec (the hunting method) | **PROPOSED_PENDING_ADJUDICATION** — authored, re-derived against the amended gate, adversarially reviewed (2 open major findings). Authorizes no scan execution. | `forseti_demand_scan_core_spec_v0.md`; PR #168. |
 | Gate-run commission criteria | **PROPOSED** — "owner ratification owed before these criteria govern an actual commission." | `forseti_demand_gate_run_commission_criteria_v0.md`; PR #90. |
 | Demand-venue (Venue) sourcing | **Forums/community is the only sourced G1 demand-family card.** Review-surface + search-interest are unsourced, owner-owned gaps. Retail presence is G4 corroboration, excluded from the G1 origin count. | `forseti_buyer_proof_packet_v0.md` (Two distinct maintained card sets, AR-04). |
-| Actual forward scan run | **None.** The only executed scan (discovery batch 0: Sentry/Clerk/Vercel/dev-tools) is SUPERSEDED / off-target. No candidate pool exists for the beauty beachhead. | `orca_discovery_batch_0_candidate_context_scan_v0.md` (SUPERSEDED banner). |
+| Actual forward scan run | **None.** The only executed scan (discovery batch 0: Sentry/Clerk/Vercel/dev-tools) is SUPERSEDED / off-target. No candidate pool exists for the beauty beachhead. | `forseti_discovery_batch_0_candidate_context_scan_v0.md` (SUPERSEDED banner). |
 
 ## Decision 1 — Adopt the scan-core spec
 

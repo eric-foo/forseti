@@ -387,7 +387,7 @@ weakest-cleared-gate rule caps every claim.
 ## Doctrine-Change Propagation — Executed (2026-06-12)
 
 Ratification executed per
-`docs/product/product_lead/orca_ratification_day_runbook_v0.md` (one pass;
+`forseti/product/spines/product_lead/icp_wedge/forseti_ratification_day_runbook_v0.md` (one pass;
 this receipt also covers the co-ratified wedge record's cascade — one
 ratification event, one receipt, pointed to from the wedge record).
 
