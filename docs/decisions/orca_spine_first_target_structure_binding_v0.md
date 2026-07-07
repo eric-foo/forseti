@@ -404,7 +404,7 @@ these items.
   explicit owner confirmation before execution.
 - **B3 — `docs/doctrine/` boundary undefined.** The target adds `docs/doctrine/`
   while keeping `docs/decisions/` (and the doctrine **index** already lives at
-  `docs/decisions/orca_doctrine_index_v0.md`). No loaded source defines what moves
+  `docs/decisions/forseti_doctrine_index_v0.md`). No loaded source defines what moves
   to `doctrine/` vs stays in `decisions/`. Needs main-CA tagging.
 - **B4 — ontology backlog hook coupling.** `.agents/hooks/check_ontology_expansion.py`
   reads `docs/product/core_spine/ontology_expansion_backlog_v0.json`; moving it to
@@ -520,7 +520,7 @@ direction_change_propagation:
     - repo-structure.yaml
     - .agents/workflow-overlay/artifact-folders.md
     - docs/workflows/orca_repo_map_v0.md
-    - docs/decisions/orca_doctrine_index_v0.md
+    - docs/decisions/forseti_doctrine_index_v0.md
   intentionally_not_updated:
     - path: repo-structure.yaml
       reason: >
@@ -546,7 +546,7 @@ direction_change_propagation:
       reason: >
         Reference rewrites (docs/product -> orca/product) are an execution-time
         bulk edit; the map still routes current homes today.
-    - path: docs/decisions/orca_doctrine_index_v0.md
+    - path: docs/decisions/forseti_doctrine_index_v0.md
       reason: >
         The docs/doctrine/ vs docs/decisions/ boundary is undefined (Blocker B3);
         no index change is made until that boundary is tagged.
