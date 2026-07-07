@@ -1,4 +1,4 @@
-# Orca Audience-Inference Ballot Taxonomy v0
+# Forseti Audience-Inference Ballot Taxonomy v0
 
 ```yaml
 retrieval_header_version: 1
@@ -15,10 +15,10 @@ use_when:
   - Sequencing the Tier-2-A (gender/age) demographics slice.
 authority_boundary: retrieval_only
 open_next:
-  - orca-harness/schemas/audience_label_ontology.py
-  - orca-harness/schemas/audience_inference_models.py
-  - orca-harness/cleaning/audience_extractor.py
-  - orca-harness/scoring/audience_fusion.py
+  - forseti-harness/schemas/audience_label_ontology.py
+  - forseti-harness/schemas/audience_inference_models.py
+  - forseti-harness/cleaning/audience_extractor.py
+  - forseti-harness/scoring/audience_fusion.py
   - docs/decisions/wind_caller_calibration_carveout_v0.md
   - docs/prompts/deep-thinking/orca_audience_ballot_bucket_taxonomy_prompt_v0.md
 stale_if:

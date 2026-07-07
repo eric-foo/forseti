@@ -1,4 +1,4 @@
-# Orca Tier-2-A base-rate prior table v0 (vet-corrected)
+# Forseti Tier-2-A base-rate prior table v0 (vet-corrected)
 
 ```yaml
 retrieval_header_version: 1
@@ -25,7 +25,7 @@ stale_if:
 
 ## Status
 
-`SOURCED_THIN_V0` — **version `orca-tier2a-beauty-prior-us-0.1.0`**, as-of `2026-06-25`.
+`SOURCED_THIN_V0` — **version `forseti-tier2a-beauty-prior-us-0.1.0`**, as-of `2026-06-25`.
 Verified, not calibrated, not production-validated. **Deliberately thin:** it contains
 ONLY figures confirmed against the cited source. It is a defeasible *starting floor* —
 creator-owned public text overrides every row, and **no row may assign gender to an
