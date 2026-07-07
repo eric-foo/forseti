@@ -79,7 +79,7 @@ def _assert_row_is_canonical_plus_catalog_decorations(row: dict, canonical: dict
 
 
 def test_every_entry_carries_the_ratified_version_pins(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
 
     entries = derive_entries_by_key(root, packet_id)
@@ -97,7 +97,7 @@ def test_every_entry_carries_the_ratified_version_pins(tmp_path: Path) -> None:
 
 
 def test_canonical_bytes_are_deterministic_and_newline_terminated(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
 
     first = serialize_entries(derive_entries_by_key(root, packet_id))
@@ -111,7 +111,7 @@ def test_canonical_bytes_are_deterministic_and_newline_terminated(tmp_path: Path
 
 
 def test_by_key_derivation_equals_canonical_part_of_catalog_rows(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
     assert rebuild_catalog(root)["status"] == "rebuilt"
     rows = source_surface_catalog_rows(
@@ -274,7 +274,7 @@ def test_missing_required_preserved_field_is_refused(tmp_path: Path) -> None:
 
 
 def test_serialize_entry_round_trips(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
 
     entry = derive_entries_by_key(root, packet_id)[0]

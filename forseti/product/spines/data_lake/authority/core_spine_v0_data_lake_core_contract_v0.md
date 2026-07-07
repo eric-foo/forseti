@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Product architecture contract
 scope: >
-  Core responsibility contract for Orca's data lake: what the lake owns, what
+  Core responsibility contract for Forseti's Data Lake: what the lake owns, what
   it must not own, how capture material becomes available by key, and how
   downstream derived lanes attach results without replacing raw truth.
 use_when:
@@ -301,13 +301,13 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/ecr_spine_submap_v0.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
     - .agents/workflow-overlay/source-loading.md
     - .agents/workflow-overlay/source-of-truth.md
   intentionally_not_updated:
     - path: AGENTS.md
       reason: >
-        Root instructions already route Orca project facts and doctrine-changing
+        Root instructions already route Forseti project facts and doctrine-changing
         work to the overlay and docs; this contract is product architecture, not
         a new agent-behavior kernel rule.
     - path: .agents/workflow-overlay/README.md
@@ -326,13 +326,13 @@ direction_change_propagation:
         maps rather than being added to the overlay known-source list.
   stale_language_search: >
     rg -n "Data Lake Core Contract|core_spine_v0_data_lake_core_contract_v0|data-lake mechanics|lake-owned|availability signal|physical storage|orchestration"
-    docs/product/core_spine docs/product/data_capture_spine docs/workflows/data_capture_spine_consolidation_map_v0.md docs/workflows/ecr_spine_submap_v0.md docs/workflows/orca_repo_map_v0.md
+    docs/product/core_spine docs/product/data_capture_spine docs/workflows/data_capture_spine_consolidation_map_v0.md docs/workflows/ecr_spine_submap_v0.md docs/workflows/forseti_repo_map_v0.md
     (run 2026-06-17 in worktree codex/data-lake-core-contract)
   stale_language_search_result: >
     Executed 2026-06-17 after delegated-review hardening. Expected hits observed
     in this contract, the data-lake mechanics map pointer,
     data_capture_spine_consolidation_map_v0.md, ecr_spine_submap_v0.md, and
-    orca_repo_map_v0.md. Additional non-contradictory hits are substring hits on
+    forseti_repo_map_v0.md. Additional non-contradictory hits are substring hits on
     prompt-orchestration paths and existing payload, Retail/PDP,
     demand-durability, storage/projection, Cleaning, and ontology artifacts that
     preserve deferred physical-storage or source-family boundaries. No checked

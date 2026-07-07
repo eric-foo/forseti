@@ -20,7 +20,7 @@ open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
   - docs/workflows/capture_spine_runner_data_lake_dump_audit_handoff_v0.md
-  - orca-harness/data_lake/root.py
+  - forseti-harness/data_lake/root.py
 stale_if:
   - The owner rejects the clean v4.1 epoch reset.
   - A later accepted physicality contract changes the canonical folder grammar.
@@ -38,7 +38,7 @@ of the current lake.
 
 Correction recorded 2026-06-28: medallion terms are semantic labels, not generic
 physical storage tiers. The Medallion Gold-Readiness contract explicitly says not
-to collapse Orca into generic bronze/silver/gold storage tiers. v4.1 keeps the
+to collapse Forseti into generic bronze/silver/gold storage tiers. v4.1 keeps the
 canonical physical lake slots.
 
 This is an architecture contract. It is not live-data migration execution,
@@ -303,7 +303,7 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
     - docs/workflows/capture_spine_runner_data_lake_dump_audit_handoff_v0.md
-    - orca-harness/data_lake/root.py
+    - forseti-harness/data_lake/root.py
   downstream_surfaces_checked:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
@@ -313,7 +313,7 @@ direction_change_propagation:
   intentionally_not_updated:
     - path: AGENTS.md
       reason: >
-        AGENTS.md carries project behavior and routes Orca project facts to the
+        AGENTS.md carries project behavior and routes Forseti project facts to the
         overlay/docs; it does not enumerate data-lake folder grammar.
   stale_language_search: >
     rg -n "bronze/|silver/|gold/|Do not rename folders|indexes/derived_retrieval/silver_vault"

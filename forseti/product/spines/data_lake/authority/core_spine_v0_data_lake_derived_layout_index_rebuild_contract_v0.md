@@ -250,7 +250,7 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
   implementation_landed:
-    - orca-harness/data_lake/root.py (append_record / append_record_set / is_record_set_complete / record_path / lane_dir)
+    - forseti-harness/data_lake/root.py (append_record / append_record_set / is_record_set_complete / record_path / lane_dir)
   non_claims:
     - not validation
     - not readiness
@@ -272,13 +272,13 @@ direction_change_propagation:
   related_triggers:
     - lifecycle_boundary
   adopts:
-    - docs/decisions/orca_data_lake_derived_retrieval_activation_proposal_v0.md  # PROPOSED (#372) ratified into the residual above
+    - docs/decisions/forseti_data_lake_derived_retrieval_activation_proposal_v0.md  # PROPOSED (#372) ratified into the residual above
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md            # engine residual unchanged (engine staged, not selected)
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md  # per-platform-only honors the given-up cross-platform identity limitation; object-level, not actor retrieval
-    - docs/decisions/orca_data_lake_derived_retrieval_activation_proposal_v0.md
+    - docs/decisions/forseti_data_lake_derived_retrieval_activation_proposal_v0.md
   build_preconditions_noted:
     - by_mention + undone may build first (transcript silver is already lake-wired)
     - by_creator follows the audience-silver lake wiring (Slice C), which is not yet built

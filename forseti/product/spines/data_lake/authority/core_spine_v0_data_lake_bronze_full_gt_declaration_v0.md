@@ -80,14 +80,14 @@ production lake.
     ratified 2026-07-03.
 - **Proof gates** (CI-owned, fail-capable, fixture tier):
   - A1 deterministic touchpoint inventory gate
-    (`orca-harness/data_lake/inventory.py` +
-    `orca-harness/tests/contract/test_data_lake_inventory_gate.py`).
-  - PROOF-01..07 (`orca-harness/tests/test_data_lake_physicalization_proof.py`):
+    (`forseti-harness/data_lake/inventory.py` +
+    `forseti-harness/tests/contract/test_data_lake_inventory_gate.py`).
+  - PROOF-01..07 (`forseti-harness/tests/test_data_lake_physicalization_proof.py`):
     write-once raw, append-only derived/ack, read-by-key, hash verification,
     public AR body resolution, byte-identical index rebuild, and zero-index
     canonical derivation with fail-closed version dispatch.
   - Pinned serializer contract tests
-    (`orca-harness/tests/test_data_lake_attachment_record_entry.py`), including
+    (`forseti-harness/tests/test_data_lake_attachment_record_entry.py`), including
     the exact catalog-decoration-envelope proof added by the closeout review.
 - **De-correlated reviews** (all cross-vendor: authored_by Anthropic Claude,
   reviewed_by OpenAI GPT-5 Codex; each adjudicated by the commissioning CA
@@ -113,7 +113,7 @@ full GT" list:
 | 2 | Manifest v2 / packet-index serialization selection | **Closed at selection tier and implemented** (A2 ratified; pinned serializer + PROOF-07 landed). Incumbent-field migration mechanics remain excluded below. |
 | 3 | Body layout / backend posture / retention | **Dispositioned by ratified decisions**: Gate 1 selected packet-member; Gate 2 ratified the erasure deferral and claim ceiling; hash verification proven at fixture tier (PROOF-04/05). Backend selection remains excluded below (T3-gated). |
 | 4 | CI-owned rebuild/invariant gate over fixture lakes | **Closed at fixture tier** (PROOF-01..07 CI-owned). Real-lane fixture breadth remains excluded below. |
-| 5 | One Silver producer consumes Bronze via public helpers with verified `raw_refs` | **Closed at fixture-test tier**: the YouTube Silver metric producer consumes `source_surface_catalog_rows` and upgrades `raw_refs` through Bronze AR rows with explicit missing/ambiguous limitation kinds (`orca-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py`). |
+| 5 | One Silver producer consumes Bronze via public helpers with verified `raw_refs` | **Closed at fixture-test tier**: the YouTube Silver metric producer consumes `source_surface_catalog_rows` and upgrades `raw_refs` through Bronze AR rows with explicit missing/ambiguous limitation kinds (`forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py`). |
 | 6 | Repeat consumer proof across enough source families | **Partially closed; remainder excluded from this claim.** Two source-family Silver producers are proven through the public helpers (`docs/workflows/bronze_silver_two_family_consumer_proof_closeout_v0.md`, post-PR #537/#540); whether that breadth is "enough" stays consumer-pressure-driven follow-up work, not a Bronze physicalization gap. |
 | 7 | De-correlated review of the full contract + code path before any full GT claim | **Closed for Bronze** (the three adjudicated cross-vendor reviews above, ending with the assembled-whole closeout pass). The Silver-side contract/code path was not in that review's scope and is excluded below. |
 
@@ -201,15 +201,15 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
     - forseti/product/spines/data_lake/README.md
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_lake_owner_explainer_v0.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
-    - orca-harness/data_lake/catalog.py
-    - orca-harness/tests/test_data_lake_catalog.py
+    - forseti-harness/data_lake/catalog.py
+    - forseti-harness/tests/test_data_lake_catalog.py
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
   intentionally_not_updated:
-    - path: orca-harness/data_lake/catalog.py
+    - path: forseti-harness/data_lake/catalog.py
       reason: >
         The runtime marker BRONZE_BASELINE_STATUS ("bronze_mgt_baseline_recorded_v0",
         semantics "not full God Tier") and its test assertion are runtime code,
@@ -232,8 +232,8 @@ direction_change_propagation:
         one artifact graduating from an MGT baseline changes no doctrine text.
   stale_language_search: >
     git grep -n -i -E "not full God Tier|not declared full|bronze_mgt_baseline_recorded|MGT|full GT|God Tier"
-    forseti/product/spines/data_lake orca-harness/data_lake
-    orca-harness/tests/test_data_lake_catalog.py docs/workflows/orca_repo_map_v0.md
+    forseti/product/spines/data_lake forseti-harness/data_lake
+    forseti-harness/tests/test_data_lake_catalog.py docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
     Executed 2026-07-03 after edits. Remaining hits: the annotated historical
     MGT baseline (its supersession note now governs; body text explicitly

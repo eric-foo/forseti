@@ -20,7 +20,7 @@ from source_capture.ig_reels_deep_capture_lake import (
 
 
 def _root(tmp_path: Path) -> DataLakeRoot:
-    return DataLakeRoot.for_test(tmp_path / "orca-data")
+    return DataLakeRoot.for_test(tmp_path / "forseti-data")
 
 
 def _comment(cid: str = "c1", *, likes: int = 9) -> AudienceComment:

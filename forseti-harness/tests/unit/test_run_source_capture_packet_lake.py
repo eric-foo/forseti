@@ -49,7 +49,7 @@ def _run(root: DataLakeRoot, tmp_path: Path, source_family: str = "reddit"):
 def test_generic_runner_routes_to_lake(tmp_path: Path) -> None:
     # The generic envelope runner, given a data_root, commits into the lake and is
     # retrievable + verified by key -- the same seam the HTTP runner uses.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     out_path = Path(_run(root, tmp_path))
     pid = out_path.name
 

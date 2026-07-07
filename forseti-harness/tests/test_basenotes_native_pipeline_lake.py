@@ -40,7 +40,7 @@ def _fixture_html() -> str:
 
 
 def test_basenotes_projection_and_cleaning_persist_distinct_lake_layers(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_packet(root, tmp_path)
 
     projection, projection_path = project_basenotes_into_lake(data_root=root, packet_id=packet_id)
@@ -111,7 +111,7 @@ def test_basenotes_projection_and_cleaning_persist_distinct_lake_layers(tmp_path
 def test_basenotes_projection_rederive_appends_sibling_and_explicit_id_is_create_only(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_packet(root, tmp_path)
 
     _, first = project_basenotes_into_lake(data_root=root, packet_id=packet_id)
@@ -129,7 +129,7 @@ def test_basenotes_projection_rederive_appends_sibling_and_explicit_id_is_create
 def test_basenotes_cleaning_audit_rederive_appends_sibling_and_explicit_id_is_create_only(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_packet(root, tmp_path)
 
     first = derive_basenotes_cleaning_into_lake(data_root=root, packet_id=packet_id)

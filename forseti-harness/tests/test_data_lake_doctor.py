@@ -27,7 +27,7 @@ def _capture_packet(root: DataLakeRoot, tmp_path: Path, body: str = "thread body
 
 
 def test_inspect_data_lake_reports_clean_root(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture_packet(root, tmp_path)
 
     report = doctor.inspect_data_lake(root)
@@ -45,7 +45,7 @@ def test_inspect_data_lake_reports_clean_root(tmp_path: Path) -> None:
 def test_inspect_data_lake_dry_run_reports_missing_availability_then_rebuilds(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture_packet(root, tmp_path)
     availability_path = root.path / "indexes" / "availability" / f"{pid}.json"
     availability_path.unlink()
@@ -65,7 +65,7 @@ def test_inspect_data_lake_dry_run_reports_missing_availability_then_rebuilds(
 
 
 def test_inspect_data_lake_reports_stale_availability(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture_packet(root, tmp_path)
     availability_path = root.path / "indexes" / "availability" / f"{pid}.json"
     entry = json.loads(availability_path.read_text(encoding="utf-8"))
@@ -79,7 +79,7 @@ def test_inspect_data_lake_reports_stale_availability(tmp_path: Path) -> None:
 
 
 def test_inspect_data_lake_reports_wrong_shard_packet(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture_packet(root, tmp_path)
     committed = root.find_packet(pid)
     assert committed is not None
@@ -94,7 +94,7 @@ def test_inspect_data_lake_reports_wrong_shard_packet(tmp_path: Path) -> None:
 
 
 def test_main_prints_json_packet_lookup(tmp_path: Path, monkeypatch, capsys) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture_packet(root, tmp_path)
 
     def resolve_root(*, explicit=None):
@@ -115,7 +115,7 @@ def test_inspect_data_lake_reports_read_failure_on_corrupt_body(tmp_path: Path) 
     # The most dangerous false-pass: a committed, indexed packet whose preserved
     # body bytes are corrupt. The availability index still matches the untouched
     # manifest, so only the load_raw_packet read-verification pass can catch it.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture_packet(root, tmp_path)
     container = root.find_packet(pid)
     assert container is not None
@@ -138,7 +138,7 @@ def test_inspect_data_lake_reports_read_failure_on_corrupt_body(tmp_path: Path) 
 def test_inspect_data_lake_reports_missing_manifest_container(tmp_path: Path) -> None:
     # A packet-id-named container with no manifest (aborted allocate / half
     # publish / deleted manifest) must not read as a clean lake.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _capture_packet(root, tmp_path)
     orphan_pid = generate_ulid()
     partial = root.path / "raw" / raw_shard(orphan_pid) / orphan_pid
@@ -156,7 +156,7 @@ def test_inspect_data_lake_reports_missing_manifest_container(tmp_path: Path) ->
 
 
 def test_inspect_data_lake_reports_legacy_flat_missing_manifest(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _capture_packet(root, tmp_path)
     legacy_pid = generate_ulid()
     legacy_partial = root.path / "raw" / legacy_pid
@@ -175,7 +175,7 @@ def test_main_packet_lookup_reports_missing_packet_error(
 ) -> None:
     # A --packet-id lookup for an absent packet must surface an error and a
     # non-zero exit, never hide it behind a zero-exit "ok" report.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _capture_packet(root, tmp_path)
     absent_pid = generate_ulid()
 

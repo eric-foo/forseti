@@ -33,7 +33,7 @@ class _PoisonTransport:
 
 
 def _lake_with_corrupt_packet(tmp_path) -> DataLakeRoot:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     corrupt_pid = generate_ulid()
     corrupt_dir = root.path / "raw" / raw_shard(corrupt_pid) / corrupt_pid
     corrupt_dir.mkdir(parents=True)

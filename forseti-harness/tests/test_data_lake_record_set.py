@@ -12,7 +12,7 @@ _RA = "anchor01"  # a valid raw-anchor segment; the set API validates the segmen
 
 
 def _root(tmp_path: Path) -> DataLakeRoot:
-    return DataLakeRoot.for_test(tmp_path / "orca-data")
+    return DataLakeRoot.for_test(tmp_path / "forseti-data")
 
 
 def test_append_record_set_writes_members_and_marker_complete(tmp_path: Path) -> None:

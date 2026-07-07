@@ -51,7 +51,7 @@ orca_start_preflight:
 Recorded (pending ratification): lawful erasure is DEFERRED as an accepted,
 named residual - not solved, not silently ignored. Unavailability is expressed
 by append-only tombstone/supersession records (G2-B) while raw bytes remain.
-A written claim ceiling caps what Orca may say about deletion. Backend classes
+A written claim ceiling caps what Forseti may say about deletion. Backend classes
 and operations that would carry retention policy implicitly, or make a future
 erasure posture irreversible, are forbidden while the deferral stands. Four
 revisit triggers end the deferral and force the full retention/erasure ADR.
@@ -74,7 +74,7 @@ public-web material for evidence; no lane currently admits private, tenant, or
 consent-gated data into the lake. That basis is part of the residual - if it
 stops being true, trigger T2 fires.
 
-**2. Claim ceiling.** While this deferral stands, Orca must not claim: lawful
+**2. Claim ceiling.** While this deferral stands, Forseti must not claim: lawful
 erasure capability, GDPR/right-to-be-forgotten readiness, retention-policy
 compliance, WORM/immutability certification, or Bronze full GT resting on a
 "resolved" Gate 2. Public statements about deletion are capped at: "content

@@ -101,7 +101,7 @@ def _run(root: DataLakeRoot, fn=_fake_ok, policy: dict | None = None) -> list[di
 def test_catchup_discovers_transcribes_and_acks(tmp_path: Path) -> None:
     # S1: a committed, untranscribed audio packet gets its transcript record
     # (record-set complete) plus a lane-owned ack citing it.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(root, tmp_path)
 
     results = _run(root)
@@ -121,7 +121,7 @@ def test_catchup_discovers_transcribes_and_acks(tmp_path: Path) -> None:
 
 
 def test_second_run_is_a_no_op(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(root, tmp_path)
     _run(root)
 
@@ -135,7 +135,7 @@ def test_second_run_is_a_no_op(tmp_path: Path) -> None:
 def test_model_policy_bump_re_surfaces_and_re_derives_under_new_id(tmp_path: Path) -> None:
     # S3 + no-collision: a model change re-fingerprints the obligation AND lands
     # a NEW record id (the id embeds the model), never an append-only refusal.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(root, tmp_path)
     _run(root)
 
@@ -159,7 +159,7 @@ def test_failed_transcription_writes_no_record_and_re_surfaces(tmp_path: Path) -
     # Block-don't-burn: a failed transcription is a loud derive_failed with NO
     # record (the model+audio record id stays unburned) and NO ack; the packet
     # re-surfaces and succeeds once the transcriber recovers.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(root, tmp_path)
 
     first = _run(root, fn=_fake_fail)
@@ -187,7 +187,7 @@ def test_transcriber_policy_model_mismatch_writes_no_record_and_re_surfaces(
     # The obligation is fingerprinted with the CLI policy model. If the injected
     # transcriber reports a different model, the runner must not write a record
     # or ack the packet under the wrong policy.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(
         root, tmp_path, family=family, surface=surface, ident_key=ident_key, ident=ident
     )
@@ -206,7 +206,7 @@ def test_transcriber_policy_model_mismatch_writes_no_record_and_re_surfaces(
 
 
 def test_no_speech_is_an_honest_ack(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(root, tmp_path)
 
     results = _run(root, fn=_fake_silent)
@@ -222,7 +222,7 @@ def test_existing_current_policy_transcript_is_acked_by_citation(tmp_path: Path)
     # the IG committed-packet module path) is cited, not re-derived — and this is
     # NOT an old-policy record satisfying a new fingerprint (the id embeds the
     # policy).
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(
         root,
         tmp_path,
@@ -245,7 +245,7 @@ def test_existing_current_policy_transcript_is_acked_by_citation(tmp_path: Path)
 
 
 def test_ig_audio_packet_derives_and_acks(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(
         root,
         tmp_path,
@@ -267,7 +267,7 @@ def test_ig_audio_packet_derives_and_acks(tmp_path: Path) -> None:
 
 
 def test_known_other_lane_surface_is_acked_out_of_scope(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(root, tmp_path, surface="youtube_captions")
 
     results = _run(root)
@@ -284,7 +284,7 @@ def test_yt_probe_surfaces_are_acked_out_of_scope(tmp_path: Path) -> None:
     # The 2026-07-04 live census found these two probe surfaces pending as
     # unsupported_surface; their manifests declare "media bytes out of scope",
     # so they are gated out like the other known non-audio YT surfaces.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pids = [
         _commit_audio_packet(root, tmp_path, surface=surface)
         for surface in ("yt_shorts_channel_grid_probe_v0", "yt_channel_rss_feed_probe_v0")
@@ -303,7 +303,7 @@ def test_out_of_scope_policy_change_re_surfaces_previous_ack(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # F-IGRC-002 convention: the surface gate is fingerprinted policy.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(root, tmp_path, surface="youtube_captions")
     assert [r["status"] for r in _run(root)] == ["acked_no_transcribable_audio"]
 
@@ -321,7 +321,7 @@ def test_out_of_scope_policy_change_re_surfaces_previous_ack(
 
 
 def test_unsupported_surface_is_visible_and_never_acked(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(root, tmp_path, surface="youtube_mystery_surface")
 
     for results in (_run(root), _run(root)):
@@ -330,7 +330,7 @@ def test_unsupported_surface_is_visible_and_never_acked(tmp_path: Path) -> None:
 
 
 def test_reconcile_failure_is_per_packet_and_healthy_packets_proceed(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     good_pid = _commit_audio_packet(root, tmp_path)
     corrupt_pid = generate_ulid()
     corrupt_dir = root.path / "raw" / raw_shard(corrupt_pid) / corrupt_pid
@@ -345,7 +345,7 @@ def test_reconcile_failure_is_per_packet_and_healthy_packets_proceed(tmp_path: P
 
 
 def test_pending_check_fails_loud_on_reconcile_failure(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     corrupt_pid = generate_ulid()
     corrupt_dir = root.path / "raw" / raw_shard(corrupt_pid) / corrupt_pid
     corrupt_dir.mkdir(parents=True)
@@ -356,7 +356,7 @@ def test_pending_check_fails_loud_on_reconcile_failure(tmp_path: Path) -> None:
 
 
 def test_check_mode_counts_pending_across_both_families(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     yt_pid = _commit_audio_packet(root, tmp_path)
     ig_pid = _commit_audio_packet(
         root,
@@ -375,7 +375,7 @@ def test_check_mode_counts_pending_across_both_families(tmp_path: Path) -> None:
 
 
 def test_ack_evidence_is_dereferenceable(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_audio_packet(root, tmp_path)
     _run(root)
 

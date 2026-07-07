@@ -22,8 +22,8 @@ open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-  - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
-  - orca-harness/data_lake/lane_registry.py
+  - forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+  - forseti-harness/data_lake/lane_registry.py
 branch_or_commit: >
   Authored on codex/bronze-full-gt-next-decisions stacked on
   codex/bronze-full-gt-scoping at 165e5d802d78b1dbbf309b5d2a852dd493dca733.

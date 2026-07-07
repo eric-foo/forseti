@@ -104,7 +104,7 @@ def _capture(root: DataLakeRoot) -> tuple[object, FragranceWidgetResponseCapture
 def test_exact_bytes_hash_equivalence_capture_equals_stored(tmp_path: Path) -> None:
     # (a) The capture-time hash of the widget body equals the hash the lake
     # recomputes from the committed preserved body -- exact bytes, end to end.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     result, response = _capture(root)
     pid = result.packet.packet_id
 
@@ -125,7 +125,7 @@ def test_exact_bytes_hash_equivalence_capture_equals_stored(tmp_path: Path) -> N
 
 def test_re_derive_appends_a_sibling_not_overwrite(tmp_path: Path) -> None:
     # (b) Re-derive = new sibling record (append-only), never an overwrite.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     result, _ = _capture(root)
     pid = result.packet.packet_id
 
@@ -142,7 +142,7 @@ def test_packet_grained_rebuild_is_byte_identical(tmp_path: Path) -> None:
     # (c) The projection is a pure function of the committed bytes (+ pinned
     # as_of_date): a fresh derivation is byte-identical, and packet-grained
     # availability rebuilds from committed raw alone without changing.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     result, _ = _capture(root)
     pid = result.packet.packet_id
 
@@ -170,7 +170,7 @@ def test_packet_grained_rebuild_is_byte_identical(tmp_path: Path) -> None:
 def test_contamination_guard_raw_bodies_carry_only_raw_widget_responses(tmp_path: Path) -> None:
     # (d) Preserved bodies + manifest carry ONLY raw widget responses; all
     # coverage/selection fields live only in the derived projection.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     result, response = _capture(root)
     pid = result.packet.packet_id
 
@@ -203,7 +203,7 @@ def test_capture_witness_mismatch_is_rejected(tmp_path: Path) -> None:
     # with its body_text is refused -- the lake anchors to the capture-time
     # body_sha256/body_byte_count, not to a re-hash of whatever body_text it was
     # handed. This is what makes assertion (a) non-tautological end to end.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     good = _synthetic_widget_response()
 
     tampered_hash = good.model_copy(update={"body_sha256": "0" * 64})
@@ -228,7 +228,7 @@ def test_capture_witness_mismatch_is_rejected(tmp_path: Path) -> None:
 def test_projection_rows_are_unattributed_named_residual(tmp_path: Path) -> None:
     # Named F6 residual made observable: per-response attribution is not
     # preserved in the raw bodies, so the projected rows are unattributed.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     result, _ = _capture(root)
     pid = result.packet.packet_id
 

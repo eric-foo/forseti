@@ -45,7 +45,7 @@ fused_discipline_record:
     touch_points:
       - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md
       - docs/prompts/reviews/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_delegated_adversarial_review_patch_prompt_v0.md
-      - docs/workflows/orca_repo_map_v0.md
+      - docs/workflows/forseti_repo_map_v0.md
   spec_writing:
     status: spec_not_needed_ready_for_scoping
     implicit_contract: >

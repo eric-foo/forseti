@@ -145,7 +145,7 @@ def _attachment_record_rows(root: DataLakeRoot) -> list[dict]:
 
 
 def test_rebuild_catalog_indexes_universal_and_ig_facets(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     reddit = _write_reddit_packet(root, tmp_path, series_id="b2b-series")
     ig = _write_ig_reels_grid_packet(root, tmp_path)
 
@@ -247,7 +247,7 @@ def test_rebuild_catalog_indexes_universal_and_ig_facets(tmp_path: Path) -> None
 
 
 def test_rebuild_catalog_marks_unknown_future_surface_universal_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     src = tmp_path / "future_lane_payload.json"
     src.write_text(json.dumps({"creator": "future"}, sort_keys=True), encoding="utf-8")
     write_local_source_capture_packet(
@@ -286,7 +286,7 @@ def test_rebuild_catalog_marks_unknown_future_surface_universal_only(tmp_path: P
 def test_source_surface_attachment_path_is_surface_bucket_not_family_bucket(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     for source_family in ("future_creator_network", "synthetic_creator_network"):
         src = tmp_path / f"{source_family}.json"
         src.write_text(json.dumps({"source_family": source_family}), encoding="utf-8")
@@ -347,7 +347,7 @@ def test_attachment_record_ids_use_structured_material_not_delimiter_join() -> N
 def test_attachment_records_index_preserved_bodies_and_resolve_bytes(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     reddit = _write_reddit_packet(root, tmp_path, series_id="b2b-series")
     ig = _write_ig_reels_grid_packet(root, tmp_path)
 
@@ -443,7 +443,7 @@ def test_attachment_records_index_preserved_bodies_and_resolve_bytes(
 
 
 def test_bronze_catalog_surfaces_full_gt_ratified_baseline(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
 
     rebuild = rebuild_catalog(root)
@@ -469,7 +469,7 @@ def test_bronze_catalog_surfaces_full_gt_ratified_baseline(tmp_path: Path) -> No
 
 
 def test_inspect_catalog_reports_missing_and_stale_generated_index(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _write_reddit_packet(root, tmp_path).packet.packet_id
 
     missing = inspect_catalog(root)
@@ -491,7 +491,7 @@ def test_inspect_catalog_reports_missing_and_stale_generated_index(tmp_path: Pat
 
 
 def test_inspect_catalog_reports_missing_and_stale_source_surfaces_file(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
 
     assert rebuild_catalog(root)["status"] == "rebuilt"
@@ -517,7 +517,7 @@ def test_inspect_catalog_reports_missing_and_stale_source_surfaces_file(tmp_path
 def test_source_surface_summary_counts_multiple_packets_and_documents_union(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_ig_reels_grid_packet(root, tmp_path, shortcode="REEL123", session_identity="ig-a")
     _write_ig_reels_grid_packet(root, tmp_path, shortcode=None, session_identity="ig-b")
 
@@ -541,7 +541,7 @@ def test_source_surface_summary_counts_multiple_packets_and_documents_union(
 
 
 def test_source_surface_summary_handles_empty_family_and_surface(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     src = tmp_path / "empty_surface_payload.json"
     src.write_text(json.dumps({"body": "empty surface"}, sort_keys=True), encoding="utf-8")
     write_local_source_capture_packet(
@@ -572,7 +572,7 @@ def test_source_surface_summary_handles_empty_family_and_surface(tmp_path: Path)
 def test_inspect_catalog_reports_missing_and_stale_attachment_record_files(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
 
     assert rebuild_catalog(root)["status"] == "rebuilt"
@@ -600,7 +600,7 @@ def test_inspect_catalog_reports_missing_and_stale_attachment_record_files(
     )
 
 def test_rebuild_catalog_replaces_orphaned_generated_files_byte_identically(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path, body="alpha")
     _write_reddit_packet(root, tmp_path, body="beta")
 
@@ -621,7 +621,7 @@ def test_rebuild_catalog_replaces_orphaned_generated_files_byte_identically(tmp_
 
 
 def test_rebuild_catalog_rejects_symlinked_catalog_component(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
 
     bronze_root = root.path / "indexes" / "derived_retrieval" / "bronze_catalog"
@@ -641,7 +641,7 @@ def test_rebuild_catalog_rejects_symlinked_catalog_component(tmp_path: Path) -> 
 def test_inspect_catalog_reports_generated_file_read_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
     assert rebuild_catalog(root)["status"] == "rebuilt"
 
@@ -669,7 +669,7 @@ def test_inspect_catalog_reports_generated_file_read_failure(
 def test_attachment_records_cover_multi_file_packet_without_file_id_as_record_id(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     json_src = tmp_path / "multi_payload.json"
     bin_src = tmp_path / "multi_payload.bin"
     json_src.write_text(json.dumps({"kind": "json"}, sort_keys=True), encoding="utf-8")
@@ -703,7 +703,7 @@ def test_attachment_records_cover_multi_file_packet_without_file_id_as_record_id
     )
 
 def test_catalog_coverage_census_is_observed_only_and_read_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
     _write_ig_reels_grid_packet(root, tmp_path)
 
@@ -760,7 +760,7 @@ def test_catalog_coverage_census_is_observed_only_and_read_only(tmp_path: Path) 
 def test_source_surface_catalog_rows_expose_packet_and_ar_query_rows(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
     ig = _write_ig_reels_grid_packet(root, tmp_path)
 
@@ -787,7 +787,7 @@ def test_source_surface_catalog_rows_expose_packet_and_ar_query_rows(
 def test_source_surface_catalog_rows_require_current_generated_catalog(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_ig_reels_grid_packet(root, tmp_path)
 
     with pytest.raises(DataLakeRootError, match="Bronze catalog is not current"):
@@ -804,7 +804,7 @@ def test_source_surface_catalog_rows_absent_surface_returns_consistent_shape(
     # A current catalog with no matching (family, surface) bucket must return the SAME
     # key set as a populated result, so a downstream consumer that iterates
     # attachment_record_query_rows does not KeyError on the no-match path.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
     assert rebuild_catalog(root)["status"] == "rebuilt"
 
@@ -821,7 +821,7 @@ def test_source_surface_catalog_rows_absent_surface_returns_consistent_shape(
 
 
 def test_catalog_coverage_census_caps_issue_samples(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     for index in range(30):
         _write_reddit_packet(
             root,
@@ -842,7 +842,7 @@ def test_catalog_coverage_census_caps_issue_samples(tmp_path: Path) -> None:
 def test_catalog_coverage_census_summarizes_stale_generated_files(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
     assert rebuild_catalog(root)["status"] == "rebuilt"
 
@@ -864,7 +864,7 @@ def test_catalog_coverage_census_summarizes_stale_generated_files(
 def test_catalog_coverage_census_separates_unknown_source_family_count(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     src = tmp_path / "unknown_family_payload.json"
     src.write_text(json.dumps({"body": "unknown family"}, sort_keys=True), encoding="utf-8")
     write_local_source_capture_packet(
@@ -895,7 +895,7 @@ def test_catalog_coverage_census_separates_unknown_source_family_count(
 def test_catalog_runner_rejects_census_rebuild_combination_without_writing(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
 
     with pytest.raises(SystemExit) as exc:
         catalog_runner.main(["--data-root", str(root.path), "--census", "--rebuild"])
@@ -923,7 +923,7 @@ def test_catalog_runner_reports_root_resolution_error(
 def test_catalog_runner_reports_corrupt_raw_verified_read_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     result = _write_reddit_packet(root, tmp_path)
     packet_dir = Path(result.output_directory)
     manifest = json.loads((packet_dir / "manifest.json").read_text(encoding="utf-8"))
@@ -947,7 +947,7 @@ def test_catalog_runner_reports_corrupt_raw_verified_read_failure(
 def test_catalog_runner_inspects_and_rebuilds(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
 
     def fake_resolve(*, explicit=None, **_kwargs):
@@ -969,7 +969,7 @@ def test_catalog_runner_inspects_and_rebuilds(
 def test_catalog_runner_emits_read_only_coverage_census(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _write_reddit_packet(root, tmp_path)
 
     def fake_resolve(*, explicit=None, **_kwargs):

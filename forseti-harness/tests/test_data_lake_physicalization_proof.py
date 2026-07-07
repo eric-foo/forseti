@@ -115,7 +115,7 @@ def _index_snapshot(root: DataLakeRoot) -> dict[str, bytes]:
 
 
 def test_proof_01_write_once_raw_clean_publish_lands_and_verifies(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
 
     assert _packet_container(root, packet_id).is_dir()
@@ -124,7 +124,7 @@ def test_proof_01_write_once_raw_clean_publish_lands_and_verifies(tmp_path: Path
 
 
 def test_proof_01_violation_second_publish_of_same_packet_id_is_refused(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
 
     # Write-once fires at staging reservation for an occupied packet_id...
@@ -143,7 +143,7 @@ def test_proof_01_violation_second_publish_of_same_packet_id_is_refused(tmp_path
 
 
 def test_proof_02_derived_and_ack_records_are_create_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
 
     for subtree in ("derived", "acknowledgements"):
@@ -158,7 +158,7 @@ def test_proof_02_derived_and_ack_records_are_create_only(tmp_path: Path) -> Non
 
 
 def test_proof_02_violation_rewriting_an_existing_record_is_refused(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
 
     for subtree in ("derived", "acknowledgements"):
@@ -183,7 +183,7 @@ def test_proof_02_violation_rewriting_an_existing_record_is_refused(tmp_path: Pa
 
 
 def test_proof_03_by_key_read_recomputes_shard_and_needs_no_index(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
 
     shutil.rmtree(root.path / "indexes")
@@ -193,7 +193,7 @@ def test_proof_03_by_key_read_recomputes_shard_and_needs_no_index(tmp_path: Path
 
 
 def test_proof_03_violation_missing_packet_fails_closed(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _capture(root, tmp_path, "alpha")
 
     with pytest.raises(DataLakeRootError, match="raw packet not committed"):
@@ -204,7 +204,7 @@ def test_proof_03_violation_missing_packet_fails_closed(tmp_path: Path) -> None:
 
 
 def test_proof_04_verified_read_rehashes_stored_bytes(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     body = "alpha"
     packet_id = _capture(root, tmp_path, body).packet.packet_id
 
@@ -214,7 +214,7 @@ def test_proof_04_verified_read_rehashes_stored_bytes(tmp_path: Path) -> None:
 
 
 def test_proof_04_violation_tampered_body_fails_verified_read(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     body = "alpha"
     packet_id = _capture(root, tmp_path, body).packet.packet_id
 
@@ -230,7 +230,7 @@ def test_proof_04_violation_tampered_body_fails_verified_read(tmp_path: Path) ->
 def test_proof_05_public_ar_surface_resolves_and_verifies_packet_member_body(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     body = "alpha"
     packet_id = _capture(root, tmp_path, body).packet.packet_id
 
@@ -251,7 +251,7 @@ def test_proof_05_public_ar_surface_resolves_and_verifies_packet_member_body(
 
 
 def test_proof_05_violation_tampered_body_fails_public_ar_resolution(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     body = "alpha"
     packet_id = _capture(root, tmp_path, body).packet.packet_id
 
@@ -271,7 +271,7 @@ def test_proof_05_violation_tampered_body_fails_public_ar_resolution(tmp_path: P
 
 
 def test_proof_06_all_indexes_rebuild_byte_identical_including_catalog(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     for body in ("alpha", "beta"):
         _capture(root, tmp_path, body)
     assert rebuild_catalog(root)["status"] == "rebuilt"
@@ -292,7 +292,7 @@ def test_proof_06_all_indexes_rebuild_byte_identical_including_catalog(tmp_path:
 def test_proof_06_violation_reads_survive_index_loss_so_indexes_carry_no_authority(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     body = "alpha"
     packet_id = _capture(root, tmp_path, body).packet.packet_id
     assert rebuild_catalog(root)["status"] == "rebuilt"
@@ -313,7 +313,7 @@ def test_proof_06_violation_reads_survive_index_loss_so_indexes_carry_no_authori
 
 
 def test_proof_07_canonical_entries_derive_by_key_with_zero_indexes(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
     assert rebuild_catalog(root)["status"] == "rebuilt"
     rows = source_surface_catalog_rows(
@@ -346,7 +346,7 @@ def test_proof_07_canonical_entries_derive_by_key_with_zero_indexes(tmp_path: Pa
 def test_proof_07_violation_unknown_manifest_version_is_refused_not_coerced(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _capture(root, tmp_path, "alpha").packet.packet_id
 
     manifest_path = _packet_container(root, packet_id) / "manifest.json"

@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Product architecture map
 scope: >
-  Minimal logical map for how Orca source data moves from raw capture through
+  Minimal logical map for how Forseti source data moves from raw capture through
   projection, ECR/SCR, Cleaning, and Judgment while raw capture remains the
   source of truth.
 use_when:
@@ -57,7 +57,7 @@ orca_start_preflight:
     - docs/workflows/ecr_spine_submap_v0.md
   dirty_state_checked: yes
   isolation: clean worktree branch codex/data-lake-mechanics-map based on codex/source-capture-tenant-payload-boundary @ d5dcf1a4
-external_source_boundary: delegated passes were advisory only; Orca authority remains AGENTS.md, the overlay, and accepted Orca docs.
+external_source_boundary: delegated passes were advisory only; Forseti authority remains AGENTS.md, the overlay, and accepted Forseti docs.
 doctrine_propagation_expected: architecture_doctrine
 ```
 
@@ -164,7 +164,7 @@ Foregone on purpose:
 - no Judgment run authorization;
 - no validation/readiness claim.
 
-The payoff is speed and low lock-in: Orca gets the layer contract now, while the
+The payoff is speed and low lock-in: Forseti gets the layer contract now, while the
 irreversible physical choices wait for the non-IG probe.
 
 ## Known Risks
@@ -199,7 +199,7 @@ semantics.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Orca now has a minimal planning-only data-lake mechanics map: raw
+    Forseti now has a minimal planning-only data-lake mechanics map: raw
     SourceCapturePacket is canonical; packet/slice/file keys and source-family
     Attachment Records feed projection, ECR/SCR, Cleaning, and Judgment by
     reference; derived layers write views, receipts, records, or ledgers only;
@@ -222,21 +222,21 @@ direction_change_propagation:
     - docs/workflows/ecr_spine_submap_v0.md
     - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
     - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
-    - orca-harness/source_capture/models.py
-    - orca-harness/ecr/
-    - orca-harness/signal_content/
+    - forseti-harness/source_capture/models.py
+    - forseti-harness/ecr/
+    - forseti-harness/signal_content/
   intentionally_not_updated:
-    - path: orca-harness/source_capture/models.py
+    - path: forseti-harness/source_capture/models.py
       reason: Docs-only map; no code/schema migration or new slice field.
-    - path: orca-harness/ecr/
+    - path: forseti-harness/ecr/
       reason: Existing derivers already follow by-key pure derivation; no code work.
-    - path: orca-harness/signal_content/
+    - path: forseti-harness/signal_content/
       reason: SCR remains by-key; FamilyDetailBase risk is recorded without code change.
-    - path: docs/workflows/orca_repo_map_v0.md
+    - path: docs/workflows/forseti_repo_map_v0.md
       reason: Existing Data Capture and ECR submaps route to this artifact.
   stale_language_search: >
     rg -n "data-lake mechanics|SourceCaptureSlice|extension envelope|projection cache|ECR|Signal Content|Cleaning|Judgment|FamilyDetailBase|archive-body slice"
-    docs/product docs/workflows orca-harness/source_capture orca-harness/ecr orca-harness/signal_content
+    docs/product docs/workflows forseti-harness/source_capture forseti-harness/ecr forseti-harness/signal_content
   stale_language_search_result: >
     Executed 2026-06-17 on branch codex/data-lake-mechanics-map. Hits were
     expected in this artifact, payload-boundary/explainer docs, projection/ECR/
