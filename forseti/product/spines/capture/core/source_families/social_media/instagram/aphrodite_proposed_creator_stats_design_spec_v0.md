@@ -235,11 +235,16 @@ history is un-re-capturable       posture + derived_refs       lineage-backed su
   engagement rollup; on activation, `recent_velocity` (= §1.3). **Only §1.3 binds
   an existing registry field.**
 - **The new per-creator aggregates** (SMA/EMA series, momentum call, sub-niche
-  label, format×success rollup) have **no registry field**. Default (steerable):
-  they stay **Silver-side, read by Signals directly**, rather than expanding the
-  fixed `current_metric_rollups` field set — that expansion is a higher-lock-in
-  registry-contract change (S7). Materializing any of them into the profile panel
-  is a separately-authorized registry surface extension.
+  label, format×success rollup) have **no registry field yet**. **Owner decision
+  (2026-07-08): some of these *should* be materialized into the creator registry —
+  but not yet.** Interim posture: they stay **Silver-side, read by Signals
+  directly**. Materialization is a **planned, separately-authorized registry surface
+  extension** — a scoped addition to the `current_metric_rollups` field set bound via
+  the profile-current contract's First-Population Rule — deferred until that
+  extension is scoped (which aggregates, and their registry field names, are decided
+  then). Either way **Silver stays the compute owner; the registry only ever copies**
+  an accepted, lineage-backed value (S1). Only §1.3 velocity binds an existing
+  registry field today.
 
 ## How (and when) each stat computes
 
