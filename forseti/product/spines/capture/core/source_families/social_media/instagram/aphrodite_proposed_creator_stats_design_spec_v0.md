@@ -27,6 +27,8 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_momentum_pipeline_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_reels_transcript_product_extraction_spec_v0.md
 stale_if:
   - A proposed stat here lands with a recipe/version/runner (it then graduates out of this design lane).
   - The creator metric Silver record contract changes MetricObservation / MetricRollupObservation posture, derivation, or lineage semantics.
@@ -102,11 +104,34 @@ it abstains with a reason, it does not emit a low/zero value.
 ### S3 — Compatibility gate (what may be composed)
 
 A recipe that composes prior Silver records may only use **compatible** inputs:
-same `platform_scope`, `content_kind_inclusion_rule`, selection policy, and a
-compatible or explicitly-normalized `rollup_window`, with visible sample support
-and no limitation that rules out the composition
+same `platform_scope`, `content_kind_inclusion_rule`, **`source_surface`** (S3.1),
+selection policy, and a compatible or explicitly-normalized `rollup_window`, with
+visible sample support and no limitation that rules out the composition
 (`creator_profile_current_record_contract_v0.md`, "Metric Comparison Rules").
 Incompatible inputs → abstain-with-reason, never a silent blend.
+
+### S3.1 — Base-metric source-surface provenance (view counts)
+
+The default base metric `average_views` is only well-defined once its underlying
+`view_count` observations are **source-surface reconciled**, because IG exposes the
+same metric from surfaces that disagree. Every card here **consumes** view counts
+already tagged by `source_surface` and composes a **same-surface** series only; it
+never merges surfaces. The authoritative recording of that rule is the **grid
+capture-shape contract** (`ig_capture_shape_contract_spec_v0.md`, "View-count
+source-surface provenance"):
+
+- **Authoritative current-view** = the reels-tab pair (grid DOM view text +
+  `/api/v1/clips/user/`), which agree and match what IG shows the viewer.
+- **`web_profile_info`** = a separate provenance-tagged candidate **and** the
+  deep-history source (the only surface that paginates back years logged-out); it
+  **under-reports current view**, so it is used for old reels only, flagged
+  lower-trust / cumulative-at-capture, and **never mixed into current-view**.
+
+A temporal/event series that would have to mix surfaces abstains
+(`incompatible_source_surface`) rather than blend. This is an **activation
+prerequisite**: the base-metric series is trustworthy only after the capture-shape
+contract's reconciliation (and its cheap convergence probe) is recorded and
+applied.
 
 ### S4 — Two derivation families (which provenance discipline applies)
 
@@ -180,6 +205,42 @@ linkage authority
 forbidden set, as cited in the inventory). Momentum and engagement are
 **allocation** signals, not authority
 (`forseti_creator_monitoring_policy_architecture_v0.md`, "Result").
+
+## Data-layer flow — Silver computes, the registry rolls up a summary
+
+This is a **capability / recipe spec, not architecture planning**: it rides the
+data-layer placement already accepted in the capture strategy
+(`aphrodite_creator_capture_strategy_v0.md`, "Data-Layer Placement"), the monitoring
+policy, and the momentum-pipeline architecture. That placement, made explicit for
+these stats:
+
+```text
+raw capture / Bronze packets  →  Silver Vault              →  creator registry            →  Aphrodite Signals
+sole system of record;           ALL recipes compute here     creator_profile_current:       buyer/operator display;
+per-metric typed value+posture;  as MetricObservation /       a CURRENT read model that      reads accepted fields +
+source_surface provenance;       MetricRollupObservation;     COPIES the latest accepted,    limitations/freshness;
+history is un-re-capturable       posture + derived_refs       lineage-backed summary —       never the metric
+                                  lineage; owns the recipes    it never computes              authority
+```
+
+**Where each stat lives (the split):**
+
+- **All 11 recipes compute in Silver.** Nothing computes in the registry read model
+  (S1).
+- **Per-post / per-reel / per-event records stay Silver, keyed to the
+  post/reel/event** — a spike on one reel, a breakout state on one post, a reel's
+  `format_label` / `product_density`. They are **not** collapsed into the creator
+  profile (that would bloat and misrepresent a current-summary panel).
+- **The registry rolls up only the current per-creator SUMMARY** — the fields with
+  a home in `creator_profile_current.current_metric_rollups`. Today: the existing
+  engagement rollup; on activation, `recent_velocity` (= §1.3). **Only §1.3 binds
+  an existing registry field.**
+- **The new per-creator aggregates** (SMA/EMA series, momentum call, sub-niche
+  label, format×success rollup) have **no registry field**. Default (steerable):
+  they stay **Silver-side, read by Signals directly**, rather than expanding the
+  fixed `current_metric_rollups` field set — that expansion is a higher-lock-in
+  registry-contract change (S7). Materializing any of them into the profile panel
+  is a separately-authorized registry surface extension.
 
 ---
 
@@ -512,45 +573,74 @@ sub-parts: taxonomy (§5.1), per-reel classifier (§5.2), success rollup (§5.3)
   **illustrative candidate seed only** — explicitly `REQUIRES_SOURCED_TAXONOMY`
   before any build; it is not asserted as the taxonomy.
 
-### 5.2 Per-reel format classifier
+### 5.2 Per-reel fields — emit SEPARATELY, never collapsed into one
 
-- **Computes:** a format label + confidence/abstention per deep-captured reel.
+Per deep-captured reel, emit these as **separate typed fields** (do **not** fold
+them into a single label or score):
+
+- **`format_label`** — the sourced format/type (§5.1): tutorial / GRWM / review /
+  haul / storytime / talking-head / skit / transition / reaction … + confidence /
+  abstention. Extraction-derived claim.
+- **`product_density`** — the count of product mentions in the reel, consuming the
+  transcript→product extraction lane's `ProductMention` records
+  (`ig_reels_transcript_product_extraction_spec_v0.md`), **not re-extracted here**.
+  A genuine **0 is recorded as an observed `0`** (typed absence: extraction ran and
+  found none) — distinct from `not_attempted` (extraction did not run; no value).
+  This is the S2 "observed zero is valid" case.
+- **per-product `mention_count`** (within the reel) — a creator **emphasis** signal
+  (how hard one product is pushed in one reel).
+
 - **Inputs (in precedence order; text-first, "LLM reads, code decides"):**
   - **transcript (ASR)** — the offline VAD-gated faster-whisper `ig_reels_audio`
     surface (`ig_reels_transcript_product_extraction_spec_v0.md`); the ASR caller
     stays owner-gated/deferred, so transcript is a **named, activation-gated
     signal**, not an assumed-live input;
   - **caption / post-text** — via the separate `audience_extractor` /
-    `instagram_post_text` seam (the audience post-text Cleaning seam);
+    `instagram_post_text` seam;
   - **on-screen text (OCR)** — a later signal;
-  - **VLM / visual** — an explicit **later upgrade, not available today**
-    (mirrors the audience-inference VLM deferral).
-- **Recipe:** a fixed rubric extracts format evidence with source pointers; code
-  decides the label by precedence + caps + abstention (no LLM emits the final
-  label). Output: `{format_label, confidence_or_abstention}` per reel; `unknown`
-  when evidence is thin or contradictory.
+  - **VLM / visual** — an explicit **later upgrade, not available today**.
+- **Recipe:** a fixed rubric extracts format + mention evidence with source
+  pointers; code decides each field by precedence + caps + abstention (no LLM emits
+  a final answer). `format_label = unknown` when evidence is thin/contradictory;
+  `product_density` / `mention_count` come from the product-extraction lane's
+  located mentions.
+- **Guardrails (must hold):**
+  - **Emphasis ≠ demand.** `mention_count` / repetition is a creator *emphasis*
+    signal only; **demand needs OBSERVED audience response** and is never inferred
+    from repetition.
+  - **Emphasis + missing disclosure = a review-candidate flag only.** High emphasis
+    with no source-visible disclosure emits a `possible_undisclosed_push` **review
+    candidate** — **never** a paid/unpaid or stealth-ad **verdict** (forbidden
+    Gold/Judgment). `is_paid_partnership` stays **candidate-only**, and observed
+    `false` ≠ "not an ad".
+  - Every derived field routes through the derived-claim provenance contract (S5):
+    source refs, recipe version, confidence/abstention; **withhold, never
+    zero-fill** (except `product_density`'s genuine observed 0).
 - **Required history / sample support:** at least one usable text signal per reel;
-  caption-light + transcript-gated reels abstain (lower coverage, higher trust —
-  by design).
-- **Posture / provenance:** extraction-derived claim → S5 in full, **per reel**.
-  `source_refs` = the reel's transcript/caption units; `input_content_hash` over
-  the exact classified text; `receipt` = the driving spans;
-  `confidence_or_abstention` = an uncalibrated support band.
-- **Silver routing:** `MetricObservation` (derived-claim) per reel, `metric_name:
-  video_format_label`; `extraction_recipe_version:
-  creator_video_format_class_ig_reels_v0`. Subject is the reel (public content
-  object), not a person.
-- **Build-status:** design-only. Prereqs: §5.1 taxonomy ratified; the ASR caller
-  authorized for the transcript signal (else caption-only, higher abstention).
+  caption-light + transcript-gated reels abstain on `format_label` (lower coverage,
+  higher trust — by design).
+- **Silver routing:** one or more `MetricObservation` records (derived-claim) per
+  reel — `video_format_label`, `product_density`, per-product `mention_count` —
+  each keyed to the reel (public content object, **not** a person);
+  `extraction_recipe_version: creator_video_format_class_ig_reels_v0`. Per reel:
+  `source_refs` = its transcript/caption/mention units; `input_content_hash` over
+  the exact classified text; `receipt` = the driving spans; `confidence_or_abstention`
+  = an uncalibrated support band.
+- **Build-status:** design-only. Prereqs: §5.1 taxonomy ratified; the
+  transcript→product extraction lane for mention counts; the ASR caller authorized
+  for the transcript signal (else caption-only, higher abstention).
 
-### 5.3 Per-creator format x success rollup — descriptive only
+### 5.3 Per-creator format x emphasis x success rollup — descriptive only
 
-- **Computes:** for one creator, which format correlates with higher **observed**
-  success (views/engagement) — e.g. "this creator's tutorials out-view their
-  hauls." **Descriptive only**, per creator; never a performance guarantee or
-  causal claim.
-- **Inputs:** the creator's per-reel `video_format_label` (§5.2) joined to that
-  reel's **observed** view/engagement metrics; grouped into per-format buckets.
+- **Computes:** for one creator, an **emphasis pattern for review** — format ×
+  product-density × per-product emphasis × **observed** success — e.g. "this
+  creator's GRWMs push one hero product 5× and those out-view the rest."
+  **Descriptive only**, per creator; **an emphasis pattern surfaced for review,
+  never a demand, ad, causal, or performance claim** (the §5.2 guardrails travel
+  with the rollup: emphasis ≠ demand; no undisclosed-push verdict).
+- **Inputs:** the creator's per-reel `format_label`, `product_density`, per-product
+  `mention_count` (§5.2), joined to each reel's **observed** view/engagement
+  metrics; grouped into per-format buckets.
 - **Recipe:** per format bucket, summarize the observed success distribution
   (e.g. median views/engagement) with the bucket's sample support; report the
   within-creator format ordering as a descriptive comparison, not a score.
@@ -596,9 +686,14 @@ cleared; still no ledger home). Referenced, **not designed** here
 §1.4 capture_window_delta = §1.3's publication-timing-free fallback
 
 §4 sub_niche_label      ── independent classifier lane (binds to SubNiche on dispatch)
-§5.2 video_format_label ── independent classifier lane (orthogonal to §4)
-        └─► §5.3 format x success rollup (within-creator, descriptive)
+§5.2 format_label + product_density + per-product mention_count (emphasis)
+        ── independent classifier lane (orthogonal to §4); separate fields, not collapsed
+        └─► §5.3 format x emphasis x observed-success rollup (within-creator, descriptive)
 ```
+
+All view-based cards (§1–§3, §5.3) consume `average_views` only after S3.1
+source-surface reconciliation (grid capture-shape contract); a series that would
+mix `source_surface` values abstains.
 
 Build order implied: temporal (§1) → spike (§2.1) → states (§2.2–§2.4) →
 momentum (§3). The two classifier lanes (§4, §5) are independent of the temporal
@@ -627,6 +722,8 @@ chain; §5.3 depends only on §5.2 + observed metrics.
 - not implementation, capture, or lake-write authorization
 - not a scheduler, crawler, or standing-watch authorization
 - not a performance guarantee, causal claim, or cross-creator ranking
+- not a demand claim (creator emphasis ≠ audience demand; demand needs observed response)
+- not a paid/unpaid or stealth-ad verdict (`is_paid_partnership` stays candidate-only; observed `false` ≠ "not an ad")
 - not person-level identity, demographics, or a follower/commenter graph
 - not a calibrated confidence (support bands are uncalibrated until a labeled set exists)
 
