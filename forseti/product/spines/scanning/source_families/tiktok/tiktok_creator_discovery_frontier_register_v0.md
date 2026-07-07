@@ -14,6 +14,7 @@ use_when:
   - Preparing a bounded next creator scan from prior TikTok discovery edges.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_enforcement_placement_v0.md
   - forseti/product/spines/scanning/README.md
   - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
   - forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
@@ -184,6 +185,10 @@ must not create them by itself.
 | No ranking model | Repeated coappearance and manual selection carry enough early value. | Frontier ordering may be inconsistent. | Repeated low-yield scans from poor ordering or enough graph receipts to justify a transparent ranker. |
 | No registry mutation | Preserves identity quality and duplicate safety. | Extra preflight step before onboarding. | Registry adopts a typed weak-edge intake lane with deterministic duplicate routing. |
 | No full graph database | JSON registers are enough for current owner-launched scans. | Cross-run querying is manual or script-assisted. | Same vertical reaches repeated weekly scans or multi-root snowball management. |
+
+## Enforcement Placement
+
+For code-versus-doctrine placement before further scouting, open `forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_enforcement_placement_v0.md`. The frontier spec defines the target shape; the enforcement-placement artifact classifies which behaviors need future validators/hooks/runners and which remain resident doctrine for cold agents.
 
 ## Hard Stops
 

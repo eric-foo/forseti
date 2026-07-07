@@ -88,3 +88,5 @@ If the Followers or Following modal is open and exposes a Suggested tab, click S
 Current Fragranceknowledge target-expansion source artifact: docs/review-inputs/fragranceknowledge_tiktok_suggested_target_graph_20260708.json.
 
 Canonical frontier-register projection for that pass: docs/review-inputs/fragranceknowledge_tiktok_creator_discovery_frontier_register_20260708.json. Future repeated TikTok suggested-account scans should prefer the TikTok Creator Discovery Frontier Register shape from forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_frontier_register_v0.md.
+
+Enforcement-placement classification before further scouting: forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_enforcement_placement_v0.md.
