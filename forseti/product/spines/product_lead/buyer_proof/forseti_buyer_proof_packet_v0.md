@@ -10,7 +10,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
 input_hashes:
@@ -20,8 +20,8 @@ input_hashes:
     sha256: 8CB2D592D49C1C10DD5DD91A070D2800AF61DFDFC67D7C56A404A75F2EEA2161
   - path: docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
     sha256: B570672CD7F31B2D78F9DC5E851C3AEDA7030A56ECF2CDC6733E0191ED3DDC23
-    note: SUPERSEDED as wedge authority by docs/decisions/orca_icp_wedge_pricing_first_v0.md (reread-required)
-  - path: docs/decisions/orca_icp_wedge_pricing_first_v0.md
+    note: SUPERSEDED as wedge authority by docs/decisions/forseti_icp_wedge_pricing_first_v0.md (reread-required)
+  - path: docs/decisions/forseti_icp_wedge_pricing_first_v0.md
     sha256: REREAD_REQUIRED
   - path: docs/review-outputs/adversarial-artifact-reviews/orca_ai_exposed_icp_refinement_adversarial_review_v0.md
     sha256: 648864959A13143F9C0C4DF5A8553D5F4BD0D7608FF09ADE6632938D748CADBA
@@ -43,9 +43,9 @@ This packet's first-proof framing is RE-TARGETED by the owner-ratified
 consumer-demand direction. Controlling authority:
 `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` (thesis,
 `OWNER_LOCKED` 2026-06-12) and
-`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (wedge,
+`docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` (wedge,
 `OWNER_LOCKED_DIRECTION` 2026-06-12), which supersede
-`docs/decisions/orca_icp_wedge_pricing_first_v0.md` as first-proof authority
+`docs/decisions/forseti_icp_wedge_pricing_first_v0.md` as first-proof authority
 (pricing retained as engine application + re-entry candidate). Earlier pinned
 `input_hashes` / wedge references are superseded — reread-required. Deltas:
 

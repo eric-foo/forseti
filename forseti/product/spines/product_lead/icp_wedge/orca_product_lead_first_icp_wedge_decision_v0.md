@@ -47,7 +47,7 @@ stale_if:
 ## Status And Decision
 
 Status: `PRODUCT_LEAD_FIRST_ICP_WEDGE_DECISION_V0` — **SUPERSEDED 2026-06-08 by
-`docs/decisions/orca_icp_wedge_pricing_first_v0.md`**. The ICP redo replaced this
+`docs/decisions/forseti_icp_wedge_pricing_first_v0.md`**. The ICP redo replaced this
 dev-facing-pricing wedge with the pricing-first / AI-monetization-beachhead
 direction on the outside-in competitive-intelligence engine. This record is
 HISTORICAL; read the pricing-first record for the current wedge.

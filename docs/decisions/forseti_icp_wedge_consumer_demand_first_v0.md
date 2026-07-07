@@ -13,14 +13,14 @@ scope: >
   owner-signed beauty backtest batch and the org-motion/demand discovery
   input.
 supersedes:
-  - docs/decisions/orca_icp_wedge_pricing_first_v0.md
+  - docs/decisions/forseti_icp_wedge_pricing_first_v0.md
 use_when:
   - Owner sign-off on the first ICP/wedge for the consumer-demand/beauty direction.
   - Checking how the proposed wedge reconciles with the pricing-first lock.
   - Planning the post-ratification product-doc cascade.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_icp_wedge_pricing_first_v0.md
+  - docs/decisions/forseti_icp_wedge_pricing_first_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
   - docs/research/orgmotion_demand_signal_wedge_discovery_v0.md
 stale_if:
@@ -34,7 +34,7 @@ stale_if:
 `OWNER_LOCKED_DIRECTION` — co-ratified by the owner 2026-06-12, in-thread
 (owner words: "co-ratify ok"; thesis ask 2). This record is now the wedge
 direction lock and supersedes
-`docs/decisions/orca_icp_wedge_pricing_first_v0.md` as first-proof wedge
+`docs/decisions/forseti_icp_wedge_pricing_first_v0.md` as first-proof wedge
 authority. The executed `direction_change_propagation` receipt for the
 ratification event (one receipt covering thesis + wedge cascades) lives in
 `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
@@ -159,9 +159,9 @@ direction_change_propagation:
 ## Reconciliation With The Wedge Chain (not a fresh decision)
 
 The commissioning prompt named
-`docs/decisions/orca_icp_wedge_convergence_break_in_first_v0.md` as the prior
+`docs/decisions/forseti_icp_wedge_convergence_break_in_first_v0.md` as the prior
 convergence decision. **Source-state correction:** that record is itself
-SUPERSEDED (2026-06-08) by `docs/decisions/orca_icp_wedge_pricing_first_v0.md`
+SUPERSEDED (2026-06-08) by `docs/decisions/forseti_icp_wedge_pricing_first_v0.md`
 (the un-flip). The chain this proposal reconciles with is:
 
 dev-facing SaaS pricing (v0) -> break-in-first (superseded) -> **pricing-first
@@ -425,7 +425,7 @@ and is retained as history:
 | Surface | Change on ratification | Priority |
 | --- | --- | --- |
 | This record | Status -> `OWNER_LOCKED_DIRECTION`; `supersedes` pricing-first added | P0 |
-| `docs/decisions/orca_icp_wedge_pricing_first_v0.md` | Supersession banner (mirror of the break-in banner) | P0 |
+| `docs/decisions/forseti_icp_wedge_pricing_first_v0.md` | Supersession banner (mirror of the break-in banner) | P0 |
 | `docs/product/product_lead/orca_offer_hypothesis_v0.md` | First-proof offer layer, ICP status, first-proof fit gates -> consumer-demand/beauty; broad offer unchanged | P0 |
 | `docs/product/product_lead/orca_buyer_proof_packet_v0.md` | Proof standard, target buyer, triggers, disqualifiers -> beauty consumer-demand; the reviews-confirmatory-only hard-gate language must be RE-DERIVED for the demand wedge (largest semantic rewrite) | P1 |
 | `docs/product/product_lead/orca_product_proof_lead_charter_v0.md` | First-proof lane re-target (named by prior cascades; not re-read this turn) | P1 |

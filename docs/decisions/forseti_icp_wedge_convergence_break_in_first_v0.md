@@ -1,4 +1,4 @@
-# Orca ICP Wedge Convergence — Break-In-First Direction Lock v0
+# Forseti ICP Wedge Convergence — Break-In-First Direction Lock v0
 
 ```yaml
 retrieval_header_version: 1
@@ -14,7 +14,7 @@ supersedes:
 open_next:
   - docs/research/orca_icp_redo_evidence_targets_v0.md
   - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
-  - orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
 stale_if:
   - Owner accepts a different first-proof wedge.
   - The downstream product-doc cascade lands and this record's proposal is consumed.
@@ -22,7 +22,7 @@ stale_if:
 
 ## Status
 
-**SUPERSEDED 2026-06-08 → `docs/decisions/orca_icp_wedge_pricing_first_v0.md`** —
+**SUPERSEDED 2026-06-08 → `docs/decisions/forseti_icp_wedge_pricing_first_v0.md`** —
 UN-FLIPPED to pricing-first after two de-correlated verification runs (Opus
 parallel + owner external o3) disconfirmed the break-in flip. The break-in
 direction in this record is HISTORICAL; break-in is retained only as a
@@ -78,7 +78,7 @@ Supersedes the v0 wedge (post-revenue dev-facing SaaS pricing/packaging,
   owned by senior named roles), which is part of why pricing-first is the harder
   cold sale.
 - Caveats held: break-in's adoption/ROI figures are vendor-published (discount);
-  the existing market is interview-based while Orca's method is public-signal (a
+  the existing market is interview-based while Forseti's method is public-signal (a
   different production mode); incumbents are funded (AlphaSense, Klue, Crayon,
   Clozd); still market-context, not validation.
 

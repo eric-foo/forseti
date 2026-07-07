@@ -19,7 +19,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
-  - docs/decisions/orca_venue_registry_rejection_decision_v0.md
+  - docs/decisions/forseti_venue_registry_rejection_decision_v0.md
 stale_if:
   - A backtest batch admits or rejects these candidates (that batch's ledger
     takes over their scope).

@@ -1,7 +1,7 @@
 # Orca Discovery Batch 0 Qualification Prep - Sentry Seer and Clerk v0
 
 > **SUPERSEDED / OFF-TARGET (2026-06-08)**
-> This prep predates the pricing-first re-scope. Sentry/Clerk-style developer-tool discovery prep is no longer the first-proof beachhead. The first-proof beachhead is now the AI-monetization slice (B2B SaaS making a first-time AI-monetization or competitor-triggered repricing/repackaging decision; developer-facing SaaS is a sub-instance, not the defining qualifier). Current authority: `docs/decisions/orca_icp_wedge_pricing_first_v0.md`. The prior ICP wedge record (`docs/product/orca_product_lead_first_icp_wedge_decision_v0.md`) is superseded by that record. Content below is retained as history; do not use it as a live qualification instrument without re-reading `docs/decisions/orca_icp_wedge_pricing_first_v0.md` first.
+> This prep predates the pricing-first re-scope. Sentry/Clerk-style developer-tool discovery prep is no longer the first-proof beachhead. The first-proof beachhead is now the AI-monetization slice (B2B SaaS making a first-time AI-monetization or competitor-triggered repricing/repackaging decision; developer-facing SaaS is a sub-instance, not the defining qualifier). Current authority: `docs/decisions/forseti_icp_wedge_pricing_first_v0.md`. The prior ICP wedge record (`docs/product/orca_product_lead_first_icp_wedge_decision_v0.md`) is superseded by that record. Content below is retained as history; do not use it as a live qualification instrument without re-reading `docs/decisions/forseti_icp_wedge_pricing_first_v0.md` first.
 
 ```yaml
 retrieval_header_version: 1

@@ -1,10 +1,10 @@
-# Orca Moat → Judgment-Quality → ECR Proof-Path Decision Chain v0
+# Forseti Moat → Judgment-Quality → ECR Proof-Path Decision Chain v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Decision record (decision-chain capture)
 scope: >
-  Captures the chain of owner decisions and accepted framings linking Orca's
+  Captures the chain of owner decisions and accepted framings linking Forseti's
   end-state moat ambition (Palantir-style lock / McKinsey-style reputation) to the
   judgment-quality evidence gate, the tooled-contestant harness change, the
   middle-rung evidence path, and ECR as critical-path rung-one. Decision-prep for
@@ -15,9 +15,9 @@ use_when:
   - Preparing the downstream doctrine-change patches this chain implies.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_icp_wedge_pricing_first_v0.md
-  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
-  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
+  - docs/decisions/forseti_icp_wedge_pricing_first_v0.md
+  - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+  - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
   - docs/research/judgment-spine/harness/v0_14/index.md
   - docs/research/judgment-spine/manifest_v0.md
 stale_if:
@@ -45,7 +45,7 @@ step. Strict baseline claims remain not-proven until reconciled.
 ### D1 — Moat ambition is downstream of pricing, not a pivot from it [accepted]
 
 Palantir-style vendor lock and McKinsey-style reputation are not a different road
-from pricing. Both are earned only after one scarce first deposit: Orca makes a
+from pricing. Both are earned only after one scarce first deposit: Forseti makes a
 real high-stakes call, the call is correct, and the outcome is recorded.
 
 - McKinsey vector = judgment authority + reputation = a calibrated track record of
@@ -88,7 +88,7 @@ selected-from; there is no standing finder. Decisions:
 ### D5 — Harness change: test the tooled pipeline, not a no-tools strawman [decided — doctrine change]
 
 - The pipeline is four quarters: capture -> ECR -> cleaning -> (mini-packing) -> judgment.
-- Drop the contestant no-tools execution contract. Test Orca's tooled pipeline,
+- Drop the contestant no-tools execution contract. Test Forseti's tooled pipeline,
   because that is the product. (Doctrine change to JSG-04/05/06 isolation, the
   no-tools contract, and the evidence-ladder judgment-quality definition.)
 - Runtime isolation via fresh thread (clean context), not the heavy isolation
