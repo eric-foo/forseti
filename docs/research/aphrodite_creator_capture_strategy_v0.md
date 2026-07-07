@@ -175,16 +175,44 @@ candidate_promotion_signal =
   + source-visible buyer-relevant cue when available
 ```
 
-Promote when the signal crosses one of these gates:
+Use the gates this way:
 
 - `spike_gate`: observed metric delta is unusually high against the creator's
-  compatible recent baseline or the platform/content-kind norm.
+  compatible recent baseline or the platform/content-kind norm. This can promote
+  a post into first deep capture.
 - `fresh_breakout_gate`: a new or recent item is both high-performing and still
-  growing, not merely high in lifetime views.
-- `buyer_relevance_gate`: source-visible text or metadata indicates fragrance,
-  product, category, ad, or comparison relevance worth deeper evidence capture.
+  growing, not merely high in lifetime views. This can promote a post into first
+  deep capture.
+- `buyer_relevance_signal`: source-visible text or metadata indicates fragrance,
+  product, category, ad, or comparison relevance. In v0 this is a prioritization
+  and interpretation label, not a hard pre-capture gate.
 - `active_breakout_gate`: a previously promoted item still has enough measured
-  slope to justify follow-up.
+  slope to justify follow-up metric recheck. It should not trigger repeat deep
+  capture by default.
+
+The v0 entry rule is:
+
+```text
+deep_capture_entry =
+  (spike_gate OR fresh_breakout_gate)
+  AND capture_budget_available
+  AND post_not_already_deep_captured
+```
+
+Buyer relevance is assigned as an evidence label after capture, or as a weak
+pre-label when source-visible caption/title/description/product/ad metadata is
+already available. Do not require buyer relevance before deep capture. A
+creator's top non-fragrance or non-buyer post can still be decision-useful: it
+shows the creator's winning format, hook, audience response, and possible Studio
+or brand-insertion surface.
+
+After capture, classify the post as one of:
+
+- `fragrance_buyer_relevant`;
+- `fragrance_adjacent`;
+- `non_fragrance_winning_format`;
+- `commercial_adaptable_format`;
+- `irrelevant_to_aphrodite`.
 
 Do not offer `recent_velocity` as an observed field until compatible history
 exists. If publication timestamp is missing or unreliable, call the trend
@@ -216,11 +244,12 @@ Otherwise Aphrodite would delete the rare long-tail exceptions that teach the
 system what durable creator demand looks like. The exception must be explicit,
 source-backed, and self-expiring. No hidden forever-watch list.
 
-For promoted breakout items that fall out of grid view, bounded pagination is
-allowed only to re-find that known item. Stop paginating when growth slope falls
-below the accepted threshold for the accepted number of checks, when an age cap
-or read cap is hit, or when the source blocks the path. Do not use breakout
-pagination as a general old-content crawler.
+For promoted breakout items that fall out of grid view, use one or two explicit
+known-item metric rechecks so the item can be retired cleanly. Prefer the
+cheapest direct locator path already captured for that item. Do not use breakout
+follow-up as a general pagination or old-content crawler. Stop rechecking when
+growth slope falls below the accepted threshold for the accepted number of
+checks, when an age cap or read cap is hit, or when the source blocks the path.
 
 ## Roster Composition Before Sizing
 
@@ -271,6 +300,198 @@ Silver can say what was observed. Creator Signal can assemble decision support.
 Gold/Judgment or later accepted product contracts own stronger recommendations,
 durability verdicts, or action meaning.
 
+## Visual And Metadata Boundary
+
+Do not assume the daily grid heartbeat includes thumbnail or picture
+understanding. Current platform surfaces differ:
+
+- IG Reels grid capture can preserve locators, timestamps when joined, metric
+  observations, passive JSON metadata, and caption text when the passive JSON
+  join exposes it. The current IG grid runner has a route-specific option that
+  defaults to blocking image/media/font requests to reduce bandwidth; that is an
+  implementation posture, not a universal product rule.
+- YouTube RSS monitoring exposes title, published/updated time, views, and the
+  feed's star-rating count used as like-count provenance. It does not expose
+  comment count in the current feed schema.
+- YouTube watch-page packets can expose richer metadata and comment surfaces,
+  but that is a deeper read than the cheap RSS heartbeat.
+- TikTok is deferred for Aphrodite's immediate posture, but its recorded spec
+  says item blobs can expose description, hashtags/mentions, play/like/comment
+  counts, share/collect counts, and source-native subtitle metadata when present.
+
+Visual/OCR or thumbnail interpretation is a separate optional evidence lane. It
+may be valuable for posts where text metadata is thin, but it should be measured
+as its own capture mode: normal asset loading may look more human and may reduce
+some fingerprint oddities, while also increasing bandwidth, page weight, storage,
+processing, and exposure to route-specific platform behavior. Do not claim that
+blocking assets or loading assets is categorically safer; measure the route.
+
+## IG Grid Spot Probe
+
+On 2026-07-07, a bounded live spot probe was run against two existing registry
+Instagram accounts from `creator_registry_index_v0.json`: `jeremyfragrance` and
+`milanscents`. This is a route-cost spot check, not a capacity ceiling,
+at-scale safety proof, or authorization for standing live capture.
+
+Probe command shape:
+
+```text
+run_source_capture_ig_reels_grid_packet.py
+  --handle <registry_handle>
+  --max-rows 12
+  --timeout-seconds 25
+  --settle-seconds 4
+  --output C:\tmp\aphrodite_ig_grid_probe_20260707\<handle>_default
+```
+
+The current runner default was used: one logged-out public `/<handle>/reels/`
+grid load, no hover, no click, no item-page fanout, no comment-thread capture,
+no transcript capture, and image/media/font requests blocked while scripts and
+JSON/XHR remained intact.
+
+| Handle | Elapsed | Grid rows | Passive JSON media candidates | Passive JSON responses | Observed metrics | Raw grid JSON bytes | Warnings |
+| --- | ---: | ---: | ---: | ---: | --- | ---: | --- |
+| `jeremyfragrance` | 8.27s | 12 | 30 | 5 | 12 view_count, 12 like_count, 12 comment_count | 1,016,252 | none |
+| `milanscents` | 5.93s | 12 | 24 | 5 | 12 view_count, 12 like_count, 12 comment_count | 1,071,495 | none |
+
+For Aphrodite, "cheap grid heartbeat" means this kind of route: known registry
+handle, bounded grid rows, no item/media/comment/transcript fanout, and
+source-visible metric extraction from DOM/passive JSON. This spot probe supports
+the claim that the current grid route can be lightweight in wall-clock and output
+size for two registry creators. It does not yet measure true browser request
+count, transfer bytes, block-onset rate, or safe daily volume.
+
+### Follow-up Grid Shape Matrix
+
+A same-handle follow-up matrix on `milanscents` tested six grid-only page loads
+with 15s gaps, no item pages, no comments, no transcripts, and `max_rows=60`.
+All six runs completed without visible block markers.
+
+| Variant | Elapsed | Viewport | Settle | Blocked resource types | CSS zoom | DOM rows | Passive JSON responses |
+| --- | ---: | --- | ---: | --- | ---: | ---: | ---: |
+| default block-heavy | 8.225s | 1080x1920 | 4.0s | font,image,media | n/a | 12 | 2 |
+| large viewport block-heavy | 5.208s | 1920x3000 | 4.0s | font,image,media | n/a | 12 | 5 |
+| CSS zoom block-heavy | 6.154s | 1080x1920 | 4.0s | font,image,media | 0.67 | 12 | 2 |
+| short settle block-heavy | 4.836s | 1080x1920 | 1.0s | font,image,media | n/a | 12 | 5 |
+| allow images, block media/font | 5.540s | 1080x1920 | 4.0s | font,media | n/a | 12 | 5 |
+| allow all heavy assets | 5.858s | 1080x1920 | 4.0s | none | n/a | 12 | 2 |
+
+Interpretation:
+
+- Zoom and viewport changes alter visible geometry, but did not increase the
+  current route beyond 12 DOM rows. The immediate row ceiling is therefore not
+  just `max_rows` or viewport height; the likely next lever is bounded
+  lazy-load scroll before DOM extraction, or direct source pagination where
+  source-legible and stable.
+- `settle_seconds=1` is a candidate speed reduction for the cheap grid route,
+  but this is only one matrix row. Validate it in the N=25 step-up before
+  changing the default because passive JSON response arrival is variable.
+- `block media+font, allow images` is the most interesting asset posture from
+  this matrix: it avoids video/media bloat while looking less aggressively
+  asset-starved than blocking images too. It needs true request and transfer
+  instrumentation before becoming doctrine.
+- `allow all heavy assets` was not slower in this one run, but the runner still
+  does not record total browser request count or transferred bytes, so this
+  should not be treated as cheap-at-scale evidence.
+- The current IG grid runner does not expose granular blocked resource types,
+  bounded lazy-load scroll passes, or browser backend selection. CloakBrowser
+  row-shape testing needs a diagnostic path that exposes those controls.
+
+### Pre-DOM Formatting Matrix
+
+A 2026-07-08 follow-up matrix tested whether pre-DOM scroll/zoom formatting
+could load or expose more IG grid rows. The route still used one public
+`/milanscents/reels/` grid page, no item pages, no comments, no transcripts,
+20s gaps, `settle_seconds=4`, `maxRows=80`, and the candidate asset posture
+`block media+font, allow images`. All five runs completed without visible block
+markers.
+
+| Variant | Elapsed | Post-load formatting | Total media anchors | Visible media anchors | Selected JSON responses |
+| --- | ---: | --- | ---: | ---: | ---: |
+| baseline | 7.885s | none | 12 | 12 | 5 |
+| scroll 900px | 7.007s | `window.scrollTo(0, 900)` + 2s wait | 12 | 12 | 5 |
+| scroll bottom | 7.126s | `window.scrollTo(0, document.body.scrollHeight)` + 2s wait | 12 | 12 | 5 |
+| zoom 0.67 + scroll bottom | 7.562s | CSS zoom then bottom scroll | 12 | 12 | 5 |
+| zoom 0.50 + scroll bottom | 7.533s | CSS zoom then bottom scroll | 12 | 12 | 5 |
+
+Interpretation:
+
+- The 12-row ceiling is now observed as `totalMediaAnchors=12`, not merely a
+  viewport visibility limit.
+- Scroll-only formatting did not move the page because the non-zoomed document
+  height equaled the viewport height. Zoom changed geometry and document height
+  but still did not create additional media anchors.
+- Do not spend more planning confidence on viewport-only tuning. The next row
+  count lever is source-legible pagination/load-more behavior, a stable IG JSON
+  continuation route if available, or a runner change that explicitly performs
+  and measures a load-more path before DOM extraction.
+- Settlement tuning should not become manual operator work. If N=25 validates a
+  shorter settle window, pin it in the runner or route profile rather than asking
+  the operator to change it per capture.
+
+### Headed Browser Probe
+
+A 2026-07-08 headed Playwright Chromium probe tested whether removing the
+headless signal changed the cheap IG grid route. The route used one public
+`/milanscents/reels/` grid page, no item pages, no comments, no transcripts,
+20s between variants, `settle_seconds=4`, and a 3.5s visible post-load wait.
+
+| Variant | Elapsed | Resource posture | Total media anchors | Visible media anchors | Selected JSON responses | Block markers |
+| --- | ---: | --- | ---: | ---: | ---: | --- |
+| headed allow images, block media/font | 9.158s | block font,media | 12 | 12 | 5 | none |
+| headed allow all assets | 8.774s | block none | 12 | 12 | 5 | none |
+
+Interpretation:
+
+- Headed mode removes the obvious headless posture, but it did not change the
+  12-anchor row ceiling on this route.
+- Headed mode should not be treated as stealth by itself. A Playwright-driven
+  browser can still expose automation traits, fresh-profile traits, timing
+  regularity, missing session history, and route-level asset patterns.
+- Resource blocking is potentially observable. `block media+font` is an
+  efficiency posture to measure, not a claim that the platform cannot notice.
+- In this tiny headed sample, allowing all assets was not slower and preserved
+  the same selected JSON response count. Do not promote that to doctrine until
+  true request/transfer counters and a larger headed N are measured.
+- If headed becomes the accepted route, pin it in a route profile or runner
+  default. Do not make the operator manually choose headed per capture.
+
+Do not derive green/yellow/red thresholds from old planning numbers. The next
+Aphrodite scale calculation should treat `2.5k creators over 12h` as a planning
+hypothesis and measure it by route:
+
+```text
+2,500 creators / 12h ~= 208 grid checks/hour
+```
+
+Owner-current planning shape: 2.5k total registry creators, a 12h daily window,
+mixed 2h/3h operating batches rather than one full-roster blast, and an initial
+10-20s per grid-check spacing hypothesis. The spot probe observed 5.93-8.27s
+runner elapsed with no added inter-check delay; that shows the current route can
+fit inside the timing envelope for two clean accounts, not that the timing is a
+safe daily ceiling.
+
+That is only plausible if the measured grid route remains close to this spot
+probe's shape. If the route changes to full media loading, item-page opens,
+comment capture, transcript capture, OCR, or same-handle loops, the cost class
+changes and the roster math must reset.
+
+Initial Aphrodite scale probes should step up from small batches rather than
+asserting a safe ceiling:
+
+```text
+N=2 route spot check
+-> N=25 same-shape grid batch
+-> N=100 same-shape grid batch
+-> N=500 split-window grid batch
+-> daily-roster rehearsal
+```
+
+Each step should record elapsed time, route warnings, block/redirect outcomes,
+raw output size, observed metric coverage, and if possible true request/transfer
+counts. Sub-2s behavior is not an operating band; treat it as prohibited and as
+a stop/failure condition for this posture.
+
 ## Silver And Registry Metric Update Rule
 
 Every accepted heartbeat should update the ongoing metric layer before Aphrodite
@@ -299,14 +520,16 @@ current view copies only accepted, lineage-backed fields.
 
 ## Strategy Calls
 
-1. Use daily grid heartbeat as the registry currentness layer once budget and
-   platform posture are accepted.
-2. Use event-triggered promotion for ongoing deep capture: spike, fresh
-   breakout, source-visible buyer relevance, or active breakout follow-up.
+1. Use daily grid heartbeat as the target registry currentness layer for
+   Aphrodite, but compute the roster size from measured route cost and stop
+   outcomes, not from inherited IG planning anchors.
+2. Use event-triggered promotion for ongoing first deep capture: spike or fresh
+   breakout. Buyer relevance is a label/priority, not a hard pre-gate; active
+   breakout is a metric-recheck trigger, not repeat deep capture by default.
 3. Treat views plus engagement as the default selection basis.
 4. Treat fallen-out unpromoted content as cold by default.
-5. Preserve promoted breakout exceptions with explicit pagination, read caps,
-   age caps, and expiry.
+5. Preserve promoted breakout exceptions with one or two explicit metric-only
+   rechecks, read caps, age caps, and expiry.
 6. Keep control/edge creators in the registry at low cadence or test-window
    cadence, not as a daily deep-monitoring burden.
 7. Keep fragrance depth as the wedge, but include fragrance-proven adjacent and
@@ -318,14 +541,26 @@ current view copies only accepted, lineage-backed fields.
 
 These must be decided or measured before computing realistic roster size:
 
-- Whether Aphrodite accepts daily grid heartbeat as the target posture, replacing
-  the current more conservative IG C-tier heartbeat assumption for this vertical.
-- Measured request cost for one grid heartbeat per platform/account.
+- True request and transfer cost for one grid heartbeat per platform/account.
+  The 2026-07-07 IG spot probe measured elapsed time and output size, but not
+  true browser request count.
+- Whether the IG grid diagnostic runner should expose bounded lazy-load scroll
+  passes, granular blocked resource types, and browser backend selection before
+  roster-size calculation.
+- Whether the speed candidate should move from `settle_seconds=4` to
+  `settle_seconds=1` after N=25 evidence.
+- Step-up grid heartbeat probes for IG using the Aphrodite route shape:
+  N=25, N=100, N=500, then daily-roster rehearsal if clean.
+- Whether the 2.5k over 12h planning hypothesis holds on measured route cost,
+  block outcomes, and operator window shape.
 - Expected daily new-content rate per creator.
 - Expected promotion rate from grid heartbeat into deep capture.
 - Deep-capture cost per promoted item by platform and source surface.
 - Maximum deep captures per creator per day.
-- Breakout recheck schedule, pagination cap, decay threshold, and expiry rule.
+- Breakout recheck schedule, metric-only recheck count, decay threshold, and
+  expiry rule.
+- Whether visual/OCR or thumbnail interpretation deserves a separate measured
+  evidence lane after the cheap heartbeat route is characterized.
 - Which Silver metric recipes should be documented first: moving average, EMA,
   compatible-window velocity, spike score, breakout state, or decay state.
 - Roster composition bands: fragrance-core, fragrance-proven adjacent, and
@@ -347,7 +582,8 @@ rate, and explicit safety stop conditions.
 
 ## Non-Goals
 
-- no live capture authorization;
+- no standing live capture authorization beyond the bounded 2026-07-07 N=2 IG
+  grid spot probe recorded here;
 - no scheduler, daemon, crawler, or standing passive discovery authorization;
 - no proxy, account-rotation, or bot-detection evasion plan;
 - no final 2.5k-3k roster claim;
