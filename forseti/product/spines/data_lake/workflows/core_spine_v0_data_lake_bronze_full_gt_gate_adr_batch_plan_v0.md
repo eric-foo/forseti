@@ -61,7 +61,7 @@ authorization, gate ratification, backend/layout/retention selection,
 validation, readiness, review-lane authority, or a Bronze full-GT claim.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom data_lake physicalization S3 (brief + overlay delegated-review/prompt contracts)

@@ -6,7 +6,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-# Pinned lake identity: v4.1 forward epoch (F:\orca-data-lake re-initialized 2026-06-28);
+# Pinned lake identity: v4.1 forward epoch (primary F:\forseti-data-lake; legacy F:\orca-data-lake remains UUID-gated);
 # the prior v0 root is archived at F:\orca-data-lake-legacy-v0-20260628T174129Z.
 $TargetUuid = "01KW7N6ERSVVANCEZ8SD6YW3EQ"
 $Model = "codex-extraction-v0"

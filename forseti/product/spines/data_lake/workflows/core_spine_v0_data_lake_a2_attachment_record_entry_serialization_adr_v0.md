@@ -39,7 +39,7 @@ claim. On ratification, contract fold-in is a separate step carrying its own
 `direction_change_propagation` receipts, mirroring the Gate 1/Gate 2 pattern.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom A2 pack (AR implementation + storage + raw-admission contracts, Gate 1 ADR, A1 inventory record with fork tags, catalog.py entry mechanics, adjudicated cross-vendor consultation)
@@ -232,6 +232,8 @@ direction_change_propagation:
     - not retention or erasure semantics (Gate 2 claim ceiling governs)
     - not validation, readiness, or Bronze full GT
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-Claims
 
