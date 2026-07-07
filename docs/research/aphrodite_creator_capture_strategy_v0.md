@@ -361,6 +361,42 @@ the claim that the current grid route can be lightweight in wall-clock and outpu
 size for two registry creators. It does not yet measure true browser request
 count, transfer bytes, block-onset rate, or safe daily volume.
 
+### Follow-up Grid Shape Matrix
+
+A same-handle follow-up matrix on `milanscents` tested six grid-only page loads
+with 15s gaps, no item pages, no comments, no transcripts, and `max_rows=60`.
+All six runs completed without visible block markers.
+
+| Variant | Elapsed | Viewport | Settle | Blocked resource types | CSS zoom | DOM rows | Passive JSON responses |
+| --- | ---: | --- | ---: | --- | ---: | ---: | ---: |
+| default block-heavy | 8.225s | 1080x1920 | 4.0s | font,image,media | n/a | 12 | 2 |
+| large viewport block-heavy | 5.208s | 1920x3000 | 4.0s | font,image,media | n/a | 12 | 5 |
+| CSS zoom block-heavy | 6.154s | 1080x1920 | 4.0s | font,image,media | 0.67 | 12 | 2 |
+| short settle block-heavy | 4.836s | 1080x1920 | 1.0s | font,image,media | n/a | 12 | 5 |
+| allow images, block media/font | 5.540s | 1080x1920 | 4.0s | font,media | n/a | 12 | 5 |
+| allow all heavy assets | 5.858s | 1080x1920 | 4.0s | none | n/a | 12 | 2 |
+
+Interpretation:
+
+- Zoom and viewport changes alter visible geometry, but did not increase the
+  current route beyond 12 DOM rows. The immediate row ceiling is therefore not
+  just `max_rows` or viewport height; the likely next lever is bounded
+  lazy-load scroll before DOM extraction, or direct source pagination where
+  source-legible and stable.
+- `settle_seconds=1` is a candidate speed reduction for the cheap grid route,
+  but this is only one matrix row. Validate it in the N=25 step-up before
+  changing the default because passive JSON response arrival is variable.
+- `block media+font, allow images` is the most interesting asset posture from
+  this matrix: it avoids video/media bloat while looking less aggressively
+  asset-starved than blocking images too. It needs true request and transfer
+  instrumentation before becoming doctrine.
+- `allow all heavy assets` was not slower in this one run, but the runner still
+  does not record total browser request count or transferred bytes, so this
+  should not be treated as cheap-at-scale evidence.
+- The current IG grid runner does not expose granular blocked resource types,
+  bounded lazy-load scroll passes, or browser backend selection. CloakBrowser
+  row-shape testing needs a diagnostic path that exposes those controls.
+
 Do not derive green/yellow/red thresholds from old planning numbers. The next
 Aphrodite scale calculation should treat `2.5k creators over 12h` as a planning
 hypothesis and measure it by route:
@@ -449,6 +485,11 @@ These must be decided or measured before computing realistic roster size:
 - True request and transfer cost for one grid heartbeat per platform/account.
   The 2026-07-07 IG spot probe measured elapsed time and output size, but not
   true browser request count.
+- Whether the IG grid diagnostic runner should expose bounded lazy-load scroll
+  passes, granular blocked resource types, and browser backend selection before
+  roster-size calculation.
+- Whether the speed candidate should move from `settle_seconds=4` to
+  `settle_seconds=1` after N=25 evidence.
 - Step-up grid heartbeat probes for IG using the Aphrodite route shape:
   N=25, N=100, N=500, then daily-roster rehearsal if clean.
 - Whether the 2.5k over 12h planning hypothesis holds on measured route cost,
