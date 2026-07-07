@@ -19,7 +19,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/aphrodite_silver_metric_monitoring_inventory_v0.md              # broader capture-surface + metric-family inventory (same lane)
   - docs/research/aphrodite_creator_capture_strategy_v0.md                        # the grid-heartbeat + deep-capture + promotion strategy
-  - docs/workflows/aphrodite_proposed_creator_stats_design_handoff_v0.md          # design lane for the proposed stats below
+  - docs/workflows/aphrodite_proposed_creator_stats_design_handoff_v0.md          # nonresolving: external-worktree packet, never committed; the design lane it opened is discharged by the design spec on PR #787
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
   - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
@@ -113,7 +113,7 @@ attended — no at-scale crawl**.
 | **Share of voice** | brand/line share of **captured mentions** (not market total) | **LIVE** (bounded readout) | `forseti-harness/data_lake/sov_readout.py`; `.../data_lake/authority/core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md` |
 | **Wind-calling / momentum / breakout score** | — | **PROPOSED** (today capture-only; "momentum" code is a raw parser marked `does_not_certify_momentum`) | `.../instagram/ig_wind_caller_calls_capture_build_architecture_v0.md`; `forseti-harness/source_capture/ig_momentum_harvest.py`, `ig_projection.py` |
 | **Sub-niche classifier** | topic label | **PROPOSED** (zero code; intended owner = ontology `SubNiche`, awaiting dispatch) | `.../instagram/ig_creator_discovery_spec_v0.md` |
-| **Video-format stat (two-axis)** | `format_label` + `product_density` + per-product `mention_count` (emphasis) | **PROPOSED** (in the design lane) | handoff: `docs/workflows/aphrodite_proposed_creator_stats_design_handoff_v0.md` |
+| **Video-format stat (two-axis)** | `format_label` + `product_density` + per-product `mention_count` (emphasis) | **PROPOSED** (in the design lane) | handoff: `docs/workflows/aphrodite_proposed_creator_stats_design_handoff_v0.md` (packet never committed; lane discharged by the design spec on PR #787) |
 | **Temporal / event stats** — SMA, EMA, compatible-window velocity, capture-window delta, spike, breakout, decay/plateau, active-watch expiry | — | **PROPOSED** | inventory + handoff (above) |
 
 ### The governing gate for every derived claim
@@ -146,4 +146,4 @@ operator summary over stamped inputs (never buyer proof, outreach, or lead list)
 
 - Broader capture-surface + metric-family inventory (all source families, not just creator): `docs/research/aphrodite_silver_metric_monitoring_inventory_v0.md`.
 - Capture strategy (grid heartbeat, deep-capture promotion, budget): `docs/research/aphrodite_creator_capture_strategy_v0.md`.
-- Proposed-stats design lane (temporal/event stats, wind-calling, sub-niche, video-format): `docs/workflows/aphrodite_proposed_creator_stats_design_handoff_v0.md`.
+- Proposed-stats design lane (temporal/event stats, wind-calling, sub-niche, video-format): `docs/workflows/aphrodite_proposed_creator_stats_design_handoff_v0.md` (packet never committed; lane discharged by the design spec on PR #787).
