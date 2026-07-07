@@ -58,18 +58,18 @@ needs its own explicit owner authorization.
      repo map's "Product Anchor Files" table (route, don't restate — wedge
      facts pinned in this file have rotted before). As of the 2026-06-20
      refresh they are
-     `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+     `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
      (evidence-backed strategic decisions for consumer-market leaders; demand
      integrity and durability as first reads; beauty first vertical; US-first
      geography; OWNER_LOCKED) and
      `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` (beauty
      operator first door; OWNER_LOCKED_DIRECTION) — but the repo-map row and
      the records' own supersession banners govern, not this line.
-   - `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md` — offer
+   - `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md` — offer
      hypothesis (broad offer + first-proof offer layer).
-   - `forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md` —
+   - `forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md` —
      proof-lead ownership and exclusions.
-   - `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` — proof
+   - `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` — proof
      standard, demand-substrate hard gate, qualification, rubric,
      kill / graduation.
    - `.agents/workflow-overlay/product-proof.md` — trust, pull-vs-praise, claim

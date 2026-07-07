@@ -150,10 +150,10 @@ skill-governance action under the Protected Skill Boundary.
   the old command/path remains as a thin compatibility wrapper for one
   transition window.
   - Source path: `.agents/skills/forseti-product-lead/SKILL.md` (Forseti-local).
-  - Source sha256: `367867FBA97232B12E33F68C443430869BB9C0793D6494B67C8FA08232671B39`
-    (observed with Get-FileHash on 2026-07-05; `.agents` source and `.claude`
+  - Source sha256: `332CF034B92DF701DA573FE3C92004F838B47E1C1759C1986AA4E2D944280634`
+    (observed with Get-FileHash on 2026-07-08; `.agents` source and `.claude`
     deployment copy are byte-identical; git content blob
-    `b3a1077f58c1b018d75564405cde4ccccdcbb2c8` on both copies).
+    `b4e05b63c86ca793418409821a94e27519525e28` on both copies).
     Reread-required if the file changes.
   - Compatibility wrapper path: `.agents/skills/orca-product-lead/SKILL.md` with
     deployment copy at `.claude/skills/orca-product-lead/SKILL.md`.
@@ -190,6 +190,10 @@ skill-governance action under the Protected Skill Boundary.
     invocation `/orca-product-lead` remains as a wrapper for one transition
     window. Codex / other-runtime activation is a separate target, not claimed by
     this record.
+  - Retirement readiness (checked 2026-07-08): NOT READY. The `.claude`
+    deployment copy was re-synced to the `.agents` source after current-main
+    filename migrations left it stale; do not delete the `orca-product-lead`
+    wrapper until resolver behavior and transition-window closure are verified.
   - Rollback: delete `.agents/skills/forseti-product-lead/` and
     `.claude/skills/forseti-product-lead/`; restore the full-method
     `orca-product-lead` copies from the previous commit; revert this record, the
