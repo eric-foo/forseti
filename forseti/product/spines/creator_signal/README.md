@@ -55,6 +55,7 @@ Binding authority:
 | `aphrodite_depth_capture_tos_risk_sanity_check_v0.md` | Gate check: depth capture sits inside the accepted source-access boundary/measured-risk posture; discharges charter pre-build gate 2 (commercial-use flag carried to Phase 1). |
 | `creator_signal_product_architecture_v0.md` | Pre-ratification product architecture plan for the Creator Signal carve-out and Vetting v0 first increment. |
 | `creator_signal_market_sizing_v0.md` | Internal rough TAM/SAM/SOM market-sizing estimate for the Creator Signal carve-out (not demand validation or buyer proof). |
+| `aphrodite_growth_strategy_map_v0.md` | EXPLORATORY growth/monetization strategy map + design-lane index (not ratified; the charter is the spine): two-company architecture, buyer ladder, corpus/domination sizing, capture/media scope, no-registry-dump rule. |
 | `creator_signal_multi_creator_library_surface_v0.md` | Product-facing display contract for the multi-creator Creator Signal Library surface. |
 | `creator_signal_multi_creator_library_static_projection_v0.md` | Static, source-backed Markdown projection of the Creator Signal Library over committed creator_profile_current rows. |
 | `creator_signal_multi_creator_library_client_projection_v0.md` | Client-readable static projection of the Creator Signal Library with audit detail one click away. |
