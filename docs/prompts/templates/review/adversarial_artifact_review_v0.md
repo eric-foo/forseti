@@ -17,7 +17,7 @@ rank, or route runtime model choice.
 Output mode: `review-report` or `paste-ready-chat`
 
 Use shared contract:
-`docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md`
+`docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md`
 
 ```text
 You are performing a read-only adversarial artifact review for Forseti.

@@ -84,7 +84,7 @@ forseti_start_preflight:
   blocked_if_missing:
 ```
 
-`orca_start_preflight` is accepted as a legacy alias during the Forseti rename compatibility migration; new live prompts and reports should prefer `forseti_start_preflight`.
+`orca_start_preflight` is accepted only as a legacy compatibility alias for historical, pre-rename, or provenance artifacts during the Forseti rename migration. New or materially touched live prompts and reports must use `forseti_start_preflight`; do not broad-rewrite historical receipt bodies.
 
 Use the smallest source pack that can support the task. `agents_read: yes`
 means `AGENTS.md` was read or supplied in the current task context.
@@ -717,5 +717,4 @@ direction_change_propagation:
     - no token-savings efficacy claim
 ```
 
-Older receipts for this file live verbatim in
-`docs/decisions/dcp_receipts_archive_v0.md`.
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
