@@ -10,13 +10,13 @@ use_when:
   - Comparing future ICP, commercial-frame, or deliverable-shape decisions against this hypothesis.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
   - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
   - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md # superseded — historical
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
-  - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/orca_offer_hypothesis_v0_narrow_adversarial_review.md
   - docs/review-outputs/adversarial-artifact-reviews/orca_ai_exposed_icp_refinement_adversarial_review_v0.md
   - .agents/workflow-overlay/product-proof.md
@@ -56,7 +56,7 @@ readiness, implementation readiness, or commercial readiness.
 
 This artifact's first-proof framing is RE-TARGETED by the owner-ratified
 consumer-demand direction. Controlling authority:
-`docs/decisions/orca_product_thesis_consumer_demand_v0.md` (thesis,
+`docs/decisions/forseti_product_thesis_consumer_demand_v0.md` (thesis,
 `OWNER_LOCKED` 2026-06-12) and
 `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (wedge,
 `OWNER_LOCKED_DIRECTION` 2026-06-12), which supersede
@@ -92,7 +92,7 @@ are superseded — reread-required. Deltas:
   sentence; "built to," never unreceipted "proven at."
 
 The executed `direction_change_propagation` receipt for this ratification
-event lives in `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+event lives in `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
 ("Doctrine-Change Propagation — Executed"). Applied here by the ratification
 cascade; the live text reflects the applied deviations.
 
@@ -136,7 +136,7 @@ integrations, or source-system buildout are considered.
 
 Controlling Forseti sources:
 
-- `docs/decisions/orca_product_thesis_consumer_demand_v0.md` — controlling
+- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` — controlling
   thesis (owner-ratified 2026-06-12; supersedes `turn_08_product_thesis_v0.md`)
 - `docs/product/core_spine_v0_product_contract.md`
 - `docs/product/core_spine_v0_information_production_foundation_v0.md`
@@ -144,8 +144,8 @@ Controlling Forseti sources:
   authority (supersedes pricing-first, 2026-06-12; pricing-first was the
   wedge authority at this artifact's 2026-06-08 refinement)
 - `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md` — superseded; historical
-- `docs/product/orca_buyer_proof_packet_v0.md`
-- `docs/product/orca_product_proof_lead_charter_v0.md`
+- `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
+- `forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md`
 - `.agents/workflow-overlay/product-proof.md`
 
 Reference heuristic:
@@ -649,8 +649,8 @@ first market-facing proof container, chosen because it is specific enough to
 test buyer pull and broad enough to matter if it works.
 
 This recommendation aligns with the current first proof lane in
-`forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`,
-`forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md`, and the
+`forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`,
+`forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md`, and the
 controlling consumer-demand thesis + wedge records (pricing-first is
 superseded as first proof — re-entry disposition in its banner).
 

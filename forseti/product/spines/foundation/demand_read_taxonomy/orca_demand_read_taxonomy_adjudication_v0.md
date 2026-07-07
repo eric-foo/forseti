@@ -18,9 +18,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md          # the PROPOSED grammar this prepares
-  - docs/decisions/orca_product_thesis_consumer_demand_v0.md          # controlling thesis (costly-behavior primitive, action ceilings)
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md          # controlling thesis (costly-behavior primitive, action ceilings)
   - docs/decisions/wind_caller_calibration_carveout_v0.md             # the carve-out reconciled in Q3 (incl. 2026-06-14 amendment)
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md           # Demand-Substrate Hard Gate (anti-trigger source)
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md           # Demand-Substrate Hard Gate (anti-trigger source)
 stale_if:
   - The owner adjudicates (adopt / amend / reject) — fold the decided word into the taxonomy as v1 or a dated amendment, then retire or supersede this prep.
   - The thesis, wedge, buyer-proof packet, or wind-caller carve-out is amended (re-derive against the amended text).
@@ -491,10 +491,10 @@ direction_change_propagation_PLAN:   # prepared only — not a completion receip
   controlling_sources_to_update:
     - path: forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
       change: fold the adjudicated word in as v1 or a dated amendment; flip status off PROPOSED; fix the Q3 residual lines if Q3 confirmed
-    - path: docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - path: docs/decisions/forseti_product_thesis_consumer_demand_v0.md
       change: add a dated pointer to the adopted taxonomy (the thesis's owed pointer); no thesis rewrite
   downstream_surfaces_to_check:
-    - path: forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - path: forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
       why: Demand-Substrate Hard Gate is the anti-trigger source; confirm no drift if Q1 amends pricing handling
     - path: docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
       why: org-motion-vs-wind-caller boundary distinction (Q3) is asserted there; keep consistent

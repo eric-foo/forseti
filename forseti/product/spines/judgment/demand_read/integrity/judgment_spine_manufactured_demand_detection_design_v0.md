@@ -29,7 +29,7 @@ open_next:
   - forseti/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md  # C3 consumes "real"; never re-adjudicates the manufactured axis
   - forseti/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md      # the wedge competency: independent corroboration vs artificial amplification; Signal-Integrity ownership; non-destructive dedup
   - forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md                                   # the seed pattern table (bot-like, copied-phrase, burst-after-prompt, affiliate push) this catalogue organizes by mechanism class
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                                # the >=2-independent-converging-origin bar + the manufactured-defeater the outburst-gate fuses
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                                # the >=2-independent-converging-origin bar + the manufactured-defeater the outburst-gate fuses
   - forseti/product/satellites/beauty/beauty_manufactured_demand_tells_v0.md                                     # the beauty satellite companion: per-venue manufactured-demand tells + documented case exemplars (2026-06-20)
   - forseti/product/satellites/beauty/beauty_venue_card_set_v0.md                                                # the capped beauty venue card-set (production hints; distinct asset — does NOT carry the manufactured-demand tells; card 11 = INCIDecoder wind-caller exemplar)
   - docs/research/manufactured-demand/orca_manufactured_demand_beauty_external_research_v0.md                 # external evidence-only research folded 2026-06-20 (cases, tells, reliability hierarchy, prevalence-unknown)
@@ -77,7 +77,7 @@ expanding it is an owner decision on its promotion record), not minted into this
 
 The thesis names the integrity axis as **decision-critical in its own right** — "identifying
 manufactured demand is the contamination check that protects both real reads, not merely an
-avoid filter" (`orca_product_thesis_consumer_demand_v0.md`, 2026-06-14 amendment). The
+avoid filter" (`forseti_product_thesis_consumer_demand_v0.md`, 2026-06-14 amendment). The
 cleaning↔judgment discipline note names distinguishing **independent corroboration from
 artificial amplification** as a **core competency** that lives in **Judgment-Spine Signal
 Integrity** and is "a judgment competency to be sharpened over cases, not a fixed threshold"
@@ -554,7 +554,7 @@ confirmed qualitative, not numeric.)
 Read fresh from the worktree off `origin/main` (capsule: branch `claude/distracted-ishizaka-01eff5`
 @ `53163b8d`):
 
-- `docs/decisions/orca_product_thesis_consumer_demand_v0.md` — integrity axis decision-critical;
+- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` — integrity axis decision-critical;
   manufactured = forward/live; Central Read #5; "detects and discounts; never produces."
 - `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md` — Integrity
   layer (Signal Layer 5); manufactured-demand read type; "divergence is a technique, not a verdict";
@@ -572,7 +572,7 @@ Read fresh from the worktree off `origin/main` (capsule: branch `claude/distract
 - `forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md` — seed pattern table
   (bot-like, copied-phrase, burst-after-prompt, affiliate push, reward-driven); Engagement Quality
   Ladder (Persistence, Costly behavior); Required Splits (amplification vs useless evidence).
-- `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` — ≥2-independent-
+- `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` — ≥2-independent-
   converging-origin bar (AR-02); the manufactured-defeater; integrity labels before entry;
   ceiling-tiering; do-not-build list (scoring engines).
 - `forseti/product/satellites/beauty/beauty_venue_card_set_v0.md` — satellite tell home; card 11

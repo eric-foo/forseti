@@ -39,7 +39,7 @@ purchase execution.
 
 Relationship to existing records: this ADR adds a company/brand layer above
 the product records; it does not amend the product thesis
-(`docs/decisions/orca_product_thesis_consumer_demand_v0.md`), the wedge record
+(`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`), the wedge record
 (`docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`), or the Creator
 Signal carve-out architecture
 (`forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md`,
@@ -154,7 +154,7 @@ Owner words (2026-07-02): "we probably dont need fully public yet so
 probably 1" (option 1 = holding + waitlist). No public product site, no
 marketing claims. Any copy on any surface obeys the claim-defense doctrine's
 wording discipline
-(`forseti/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md`
+(`forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md`
 — read fresh before authoring any outward-facing text). Build triggers for
 the sub-brand site: it becomes a build task at Vetting v0 (gated
 design-partner demo), itself gated behind foundation-first; a public
@@ -334,7 +334,7 @@ direction_change_propagation:
     - docs/workflows/forseti_brand_asset_acquisition_lane_handoff_v0.md   # its stale_if names this record; supersession fires by design, no edit
     - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md  # build sequencing + product architecture unchanged; brand layer sits above
     - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md          # sizing/wedge-destination reasoning unchanged, consumed as-is
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md            # thesis center untouched; anti-positioning boundary is applied, not amended
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md            # thesis center untouched; anti-positioning boundary is applied, not amended
     - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md           # wedge record untouched
     - AGENTS.md                                                           # no naming/brand content; routes to overlay — unchanged
     - .agents/workflow-overlay/                                           # no overlay rule carries company naming; unchanged

@@ -45,10 +45,10 @@ validation or lifecycle authority. Property lists are deliberately NOT frozen.
   demand-state model + Q0–Q3 adjudication + applied G1/G2/G4 gate-closure model
   (NOT the retired durable-vs-hollow framing).
 - **Source-read ledger** (read at the frozen base; extraction delegated read-only):
-  - Layer-1 grammar: `orca_product_thesis_consumer_demand_v0.md`,
+  - Layer-1 grammar: `forseti_product_thesis_consumer_demand_v0.md`,
     `orca_demand_read_taxonomy_v0.md`, `orca_demand_read_taxonomy_adjudication_v0.md`.
   - Gates/proof: `orca_demand_gate_definition_closures_proposal_v0.md`,
-    `orca_buyer_proof_packet_v0.md`.
+    `forseti_buyer_proof_packet_v0.md`.
   - Object exemplars/kernel: `beauty_venue_card_set_v0.md`,
     `consumer_demand_candidate_pool_handoff_v0.md`,
     `orca_discovery_consumer_demand_target_selection_brief_v0.md`.

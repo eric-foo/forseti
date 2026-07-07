@@ -29,7 +29,7 @@ naming_authority: forseti/product/spines/foundation/ontology/forseti_ontology_ba
   - `brand:beautypie —in→ vertical:beauty`
   - `venue:basenotes —in→ vertical:beauty.fragrance`
 - **backing artifacts** (pointers — NOT restated):
-  - thesis → `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+  - thesis → `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
   - wedge → `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`
 
 ## Non-Claims

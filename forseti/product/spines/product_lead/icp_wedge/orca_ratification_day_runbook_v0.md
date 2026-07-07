@@ -15,7 +15,7 @@ use_when:
   - Verifying post-ratification that no live surface still routes to the superseded thesis or wedge.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
   - forseti/product/spines/product_lead/icp_wedge/orca_icp_ratification_readiness_report_v0.md   # findings F-01..F-09 referenced below
 input_hashes:
@@ -86,7 +86,7 @@ below is retained as prepared (deviations above govern where they differ).
 
 Execute in order. Each step names the file, the edit, and its check.
 
-**Step 1 — Thesis record** (`docs/decisions/orca_product_thesis_consumer_demand_v0.md`)
+**Step 1 — Thesis record** (`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`)
 - Status section: `PROPOSED_PENDING_OWNER_SIGNOFF` → `OWNER_LOCKED`, with the
   sign-off date and the owner's recorded words (dated amendment style, no
   silent rewrite).
@@ -97,17 +97,17 @@ Execute in order. Each step names the file, the edit, and its check.
   pending sign-off" → "claim-defense doctrine, owner-signed 2026-06-11".
   Do NOT touch line ~166 ("finder frame, pending sign-off") — still true
   unless the owner also signs the finder frame today.
-- Check: `rg -n "PROPOSED_PENDING_OWNER_SIGNOFF|pending sign-off" docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+- Check: `rg -n "PROPOSED_PENDING_OWNER_SIGNOFF|pending sign-off" docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
   returns only the finder-frame line and historical Status prose if retained.
 
 **Step 2 — turn_08 supersession banner** (`docs/decisions/turn_08_product_thesis_v0.md`)
-- Add `superseded_by: docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+- Add `superseded_by: docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
   (header or top banner, matching the repo's existing supersession pattern)
   plus this banner directly under the H1:
 
   > **SUPERSEDED (date of ratification)**
   > This thesis is superseded as the controlling product thesis by
-  > `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+  > `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
   > (consumer-demand decision intelligence; beauty first vertical), ratified
   > by the owner. Retained as history; carried-forward elements are listed in
   > that record's "Carried From Thesis v0 / Changed" section. Do not anchor
@@ -147,9 +147,9 @@ Execute in order. Each step names the file, the edit, and its check.
 
 **Step 5 — Adopt the three subordinate revision packages** (full pass only)
 - Completed 2026-06-12. The applied live targets are:
-  - `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`
-  - `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
-  - `forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md`
+  - `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`
+  - `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
+  - `forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md`
 - Applied packages are consumed prep, not live authority; after reverse-ref and
   deletion-evidence checks, they may be deleted.
 - Check: each live doc's banner names the consumer-demand authorities; no
@@ -210,13 +210,13 @@ direction_change_propagation:
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
     - docs/decisions/turn_08_product_thesis_v0.md
     - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
     - docs/decisions/orca_icp_wedge_pricing_first_v0.md
-    - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
-    - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
+    - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
+    - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
     - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
     - forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_target_selection_brief_v0.md
     - .agents/workflow-overlay/source-loading.md
@@ -230,7 +230,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/product-proof.md   # wedge-agnostic semantics — expect no change
     - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md  # senior frozen contract the thesis sits on — no change
     - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md  # senior; subordination one-way — no change
-    - forseti/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md  # owner-signed wording policy — no change
+    - forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md  # owner-signed wording policy — no change
     - docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md  # deferred to prompt lane (step 6)
     - .agents/skills/orca-product-lead/SKILL.md   # deferred to skill-edit lane (step 9)
     - .claude/skills/orca-product-lead/SKILL.md   # deferred to skill-edit lane (step 9)

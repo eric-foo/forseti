@@ -15,7 +15,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md
   - forseti/product/spines/product_lead/icp_wedge/orca_ratification_day_runbook_v0.md
-  - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
 input_hashes:
   docs/decisions/orca_product_thesis_consumer_demand_v0.md: 5FEA48AE8B0C0E22D24CE2194F1F17617C5C94D2C75A204AAD5CD8CC149B2B0E

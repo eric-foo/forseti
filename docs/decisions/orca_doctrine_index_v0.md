@@ -76,7 +76,7 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 
 | Doctrine | File | Status |
 | --- | --- | --- |
-| Claim defense (external claims policy) | product_lead/orca_claim_defense_doctrine_v0.md | OWNER_SIGNED_OPERATIVE 2026-06-11 |
+| Claim defense (external claims policy) | product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md | OWNER_SIGNED_OPERATIVE 2026-06-11 |
 | Judgment-spine evidence ladder | judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md | ACTIVE (claim-tier architecture) |
 | Data-capture obligation contract | data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md | CONTRACT_DRAFT_V0 (doctrine-adjacent) |
 

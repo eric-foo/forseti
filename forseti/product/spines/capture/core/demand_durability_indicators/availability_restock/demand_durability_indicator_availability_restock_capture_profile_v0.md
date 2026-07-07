@@ -44,7 +44,7 @@ downstream_consumers:
 - Source basis: `capture_envelope_durability_delta_spec_v0.md` (Lane 1, PR #93),
   `orca-harness/source_capture/models.py`,
   `forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md`,
-  `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` (INV-1, costly-behavior,
+  `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` (INV-1, costly-behavior,
   Demand-Substrate Hard Gate),
   `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md`
 
@@ -161,7 +161,7 @@ stock-state surface.
 ## INV-1 Preservation
 
 This profile is bound by INV-1 (the Demand-Substrate no-scoring invariant, per
-`forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` and
+`forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` and
 `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md`).
 
 Concretely:
@@ -386,7 +386,7 @@ series to be honest; an undisclosed gap masquerades as "no stock change."
   single origin authorizes only low-commitment, reversible responses; any
   material or irreversible commitment requires ≥2 independent origins that
   converge (a second family is not required at the floor but raises the
-  ceiling). See `orca_buyer_proof_packet_v0.md` (AR-02, AR-06).
+  ceiling). See `forseti_buyer_proof_packet_v0.md` (AR-02, AR-06).
 
 ---
 

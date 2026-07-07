@@ -13,7 +13,7 @@ use_when:
   - Deciding placement or feasibility for TikTok-Shop / affiliate creator-commerce signals.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   - forseti/product/spines/capture/core/source_families/README.md
   - forseti/product/spines/foundation/ontology/ontology.yaml
 stale_if:
@@ -44,8 +44,8 @@ feasibility, with named limits.
 Aphrodite's fit read today rests on intent/engagement proxies. The controlling
 product thesis is emphatic that demand means **costly behavior — payment,
 switching, workarounds, churn — never engagement/resonance volume alone**
-([thesis:139](docs/decisions/orca_product_thesis_consumer_demand_v0.md)), and
-that the moat is **backtestable outcome memory** ([thesis:169](docs/decisions/orca_product_thesis_consumer_demand_v0.md)).
+([thesis:139](docs/decisions/forseti_product_thesis_consumer_demand_v0.md)), and
+that the moat is **backtestable outcome memory** ([thesis:169](docs/decisions/forseti_product_thesis_consumer_demand_v0.md)).
 A creator-attributed purchase signal, if capturable, upgrades the fit panel from
 intent-proxy to costly-behavior grade and creates outcome memory. That upside is
 what justifies a probe — not a build.
@@ -185,7 +185,7 @@ collapses → **no-go / defer** to the current intent proxies.
 ## Source basis
 
 - Product thesis — costly behavior / moat / measured-ToS / entity-spine-not-built /
-  person-level boundary: [orca_product_thesis_consumer_demand_v0.md](docs/decisions/orca_product_thesis_consumer_demand_v0.md) (:139, :169, :189–198, :206–216, :240–242).
+  person-level boundary: [forseti_product_thesis_consumer_demand_v0.md](docs/decisions/forseti_product_thesis_consumer_demand_v0.md) (:139, :169, :189–198, :206–216, :240–242).
 - Source families + `retail_pdp` / `social_media/*` / `creator_registry` shape:
   [source_families/README.md](forseti/product/spines/capture/core/source_families/README.md)
   and per-family READMEs (`retail_pdp/`, `social_media/{tiktok,instagram}/`, `social_media/creator_registry/`).

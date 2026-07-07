@@ -253,10 +253,10 @@ direction_change_propagation:
     - forseti/product/spines/judgment/demand_read/grading/judgment_spine_demand_read_grading_rubric_v0.md
     - forseti/product/spines/judgment/demand_read/integrity/judgment_spine_manufactured_demand_detection_design_v0.md
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_first_demand_read_scope_v0.md
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
-    - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
-    - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
-    - docs/decisions/orca_product_thesis_consumer_demand_v0.md
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
+    - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
+    - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -348,7 +348,7 @@ direction_change_propagation:
         This turn reflects future behavior in durable documents only. Runtime
         enforcement through Cleaning models, projection adapters, and tests is a
         separate explicitly bounded implementation unit.
-    - path: forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - path: forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
       reason: >
         Existing buyer-proof language already rejects engagement volume as a
         proof or Commit-grade floor-clearance shortcut. This patch points the

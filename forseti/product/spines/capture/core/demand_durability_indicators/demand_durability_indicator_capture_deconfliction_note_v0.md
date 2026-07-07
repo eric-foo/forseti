@@ -136,7 +136,7 @@ direction_change_propagation:
     - forseti/product/spines/capture/core/demand_durability_indicators/demand_durability_indicator_capture_deconfliction_note_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     - docs/workflows/data_capture_spine_consolidation_map_v0.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
@@ -145,7 +145,7 @@ direction_change_propagation:
         Its only "proxy" is "paid-proxy spend" (manufactured-demand sense), a
         different meaning; renaming it would be wrong. The taxonomy does not name
         the demand observable "proxy".
-    - path: forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - path: forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
       reason: >
         Zero "proxy" mentions for this concept; nothing to rename.
     - path: docs/workflows/data_capture_spine_consolidation_map_v0.md

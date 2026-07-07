@@ -567,9 +567,11 @@ nickname: "crawling graph." The runner is
 | `docs/decisions/forseti_repo_map_successor_migration_decision_v0.md` | Repo-map successor migration decision: makes `docs/workflows/forseti_repo_map_v0.md` the live map, retains `docs/workflows/orca_repo_map_v0.md` as a compatibility pointer, and records the external repo slug collision discovered before Phase 1. |
 | `docs/decisions/forseti_ontology_filename_migration_decision_v0.md` | Bounded ontology filename migration decision: live ontology GT ladder and ontology backbone filenames use Forseti names; historical old filenames resolve through the ontology filename moved-path index. |
 | `docs/migration/forseti_ontology_filename_migration_v0/moved_paths_index.md` | Retrieval-only moved-path index resolving old ontology GT ladder and ontology backbone filenames to their Forseti successors. |
+| `docs/decisions/forseti_product_lead_authority_filename_migration_decision_v0.md` | Bounded product-lead authority filename migration decision: live product thesis, offer hypothesis, buyer-proof packet, product-proof charter, and claim-defense doctrine filenames use Forseti names; historical old filenames resolve through the product-lead authority filename moved-path index. |
+| `docs/migration/forseti_product_lead_authority_filename_migration_v0/moved_paths_index.md` | Retrieval-only moved-path index resolving old product-lead authority filenames to their Forseti successors. |
 | `docs/workflows/forseti_rename_residual_inventory_v0.md` | Current-main census and sampled classification of residual Orca/ORCA/orca_start_preflight hits after the authority rename; inventory only, not final validation. |
 | `docs/workflows/forseti_rename_stale_reference_audit_v0.md` | Final Step 5 classified stale-reference audit for the Forseti rename continuation; records the bounded runtime/tooling label repair and remaining residual classes without claiming path/package migration. |
-| `docs/workflows/forseti_post_harness_migration_status_v0.md` | Current Forseti migration status ledger: product root, repo-map path, harness root, package label, CI check, GitHub repo slug, product-lead skill ID, fresh local `projects/forseti` clone, PR #753/#755/#756 main convergence, and the ontology filename family are migrated/landed; legacy active `projects/orca` workspace closeout, start-preflight alias, compatibility-wrapper retirement, and other lowercase filename families remain separate migration units. |
+| `docs/workflows/forseti_post_harness_migration_status_v0.md` | Current Forseti migration status ledger: product root, repo-map path, harness root, package label, CI check, GitHub repo slug, product-lead skill ID, fresh local `projects/forseti` clone, PR #753/#755/#756/#758 main convergence, the ontology filename family is landed, and the product-lead authority filename family is covered by this migration lane; legacy active `projects/orca` workspace closeout, start-preflight alias, compatibility-wrapper retirement, and other lowercase filename families remain separate migration units. |
 | `docs/prompts/handoffs/forseti_compatibility_batches_fused_handoff_v0.md` | Fused-ready handoff for Step 4 runtime/tooling bounded repair and Step 5 stale-reference audit under the compatibility boundary; explicitly forbids broad path/package migration and the prior stalled registration-integrity selftest retry. |
 | `repo-structure.yaml` | Machine structure map (router only): homes + scratch/tolerance declarations consumed by `check_placement.py` and agents. Placement authority stays in `.agents/workflow-overlay/artifact-folders.md`; binding/parameters in `docs/decisions/orca_repo_structure_binding_v0.md`. |
 | `.github/` | GitHub Actions workflows and local operational scripts for lane setup, merge-when-green, lane health, and local hook installation. Local automation only; not validation, readiness, or server-side branch protection. |
@@ -744,12 +746,12 @@ Use these before broad product architecture or CA setup:
 
 | Path | Use for |
 | --- | --- |
-| `docs/decisions/orca_product_thesis_consumer_demand_v0.md` | Forseti thesis (consumer-demand decision intelligence, beauty first; owner-ratified 2026-06-12; supersedes `docs/decisions/turn_08_product_thesis_v0.md`), value proposition, strategic center, product boundary. |
-| `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md` | Offer hypothesis, buyer-facing language, first proof offer, ICP boundary. |
-| `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` | First buyer-proof packet, proof gates, pull signals, kill/graduation criteria. |
+| `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` | Forseti thesis (consumer-demand decision intelligence, beauty first; owner-ratified 2026-06-12; supersedes `docs/decisions/turn_08_product_thesis_v0.md`), value proposition, strategic center, product boundary. |
+| `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md` | Offer hypothesis, buyer-facing language, first proof offer, ICP boundary. |
+| `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` | First buyer-proof packet, proof gates, pull signals, kill/graduation criteria. |
 | `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` | Current first-proof ICP wedge (beauty operator door; owner co-ratified 2026-06-12; supersedes pricing-first) and decision-family focus. |
-| `forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md` | Product proof lead role and proof execution boundary. |
-| `forseti/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md` | Operative external-claims policy (owner-signed 2026-06-11): built-to vs proven-at, per-tier wording table, debunking triage. Read before any externally visible sentence about Forseti's judgment evidence. |
+| `forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md` | Product proof lead role and proof execution boundary. |
+| `forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md` | Operative external-claims policy (owner-signed 2026-06-11): built-to vs proven-at, per-tier wording table, debunking triage. Read before any externally visible sentence about Forseti's judgment evidence. |
 
 ## Judgment Spine
 
@@ -990,9 +992,9 @@ map versions unless the task is explicitly reviewing that older state.
 
 Start with:
 
-- `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
-- `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`
-- `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
+- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
+- `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`
+- `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
 - `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`
 - `.agents/workflow-overlay/product-proof.md`
 

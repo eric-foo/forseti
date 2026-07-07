@@ -18,7 +18,7 @@ open_next:
   - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md  # Lane 1 envelope-delta (temporal regimes, cold-start doctrine, five new elements)
   - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema)
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                        # INV-1, Demand-Substrate Hard Gate, costly-behavior
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                        # INV-1, Demand-Substrate Hard Gate, costly-behavior
   - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 sourcing-gap status
   - forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md  # scanning-side source-class/gate-read delta for search-interest/AEO
 stale_if:
@@ -53,7 +53,7 @@ authoritative sources:
   (obligations). These are the controlling envelope authorities. If this profile
   appears to conflict with either, the envelope of record wins; treat this profile
   as stale and open the controlling source.
-- **INV-1 and the Demand-Substrate Hard Gate:** `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`.
+- **INV-1 and the Demand-Substrate Hard Gate:** `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`.
   Consumed as-is; not redefined here.
 - **Demand-Read Taxonomy:** `forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md`
   (PROPOSED, pending adjudication). Consumed as orientation for buy-side signal
@@ -196,7 +196,7 @@ downstream Judgment's.
 ## INV-1 Preservation
 
 This profile is bound by INV-1 (no scoring, weighting, ranking, or judgment),
-per `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` and the
+per `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` and the
 demand-read taxonomy. Concretely:
 
 - every capture fact described here is an **observable**, not a durability score;
@@ -257,7 +257,7 @@ lifecycle_verification:
     - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md  # Lane 1 envelope-delta (consumed, not re-derived)
     - orca-harness/source_capture/models.py                                          # Capture Envelope of record (schema, cited)
     - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md  # Obligation contract (cited)
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                        # INV-1, Hard Gate (consumed)
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                        # INV-1, Hard Gate (consumed)
     - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md  # AR-04 (cited)
     - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                      # Signal layer orientation (consumed)
   inv1_preserved: yes — observables only, no scoring, weighting, ranking, or judgment

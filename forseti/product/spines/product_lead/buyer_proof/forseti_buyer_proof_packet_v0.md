@@ -11,8 +11,8 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
-  - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
-  - docs/decisions/orca_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
+  - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
 input_hashes:
   - path: docs/decisions/turn_08_product_thesis_v0.md
     sha256: 822653A241CF84675A3F07F695BA0ED3BFACC230F7F13AA47A4649B5DB2CD7E6
@@ -41,7 +41,7 @@ Feature planning verdict: not ready. This packet does not route to feature plann
 
 This packet's first-proof framing is RE-TARGETED by the owner-ratified
 consumer-demand direction. Controlling authority:
-`docs/decisions/orca_product_thesis_consumer_demand_v0.md` (thesis,
+`docs/decisions/forseti_product_thesis_consumer_demand_v0.md` (thesis,
 `OWNER_LOCKED` 2026-06-12) and
 `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` (wedge,
 `OWNER_LOCKED_DIRECTION` 2026-06-12), which supersede
@@ -70,7 +70,7 @@ consumer-demand direction. Controlling authority:
   void pending re-derivation.
 
 The executed `direction_change_propagation` receipt for this ratification
-event lives in `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
+event lives in `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
 ("Doctrine-Change Propagation — Executed"). Applied here by the ratification
 cascade; the live text reflects the applied deviations.
 
@@ -662,13 +662,13 @@ direction_change_propagation:
     not re-authored.
   trigger: product_doctrine
   controlling_sources_updated:
-    - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
     - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
     - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md
-    - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
-    - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
+    - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
+    - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
     - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_consumer_demand_revision_v0.md
     - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_adjudication_v0.md
     - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_consumer_demand_revision_v0.md
@@ -679,7 +679,7 @@ direction_change_propagation:
         Already classifies retail placements as supply-side org motion
         (corroboration), consistent with the G4 reclassification (lines 104-106);
         cite, no edit — confirmed against live text.
-    - path: forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
+    - path: forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
       reason: >
         Restates the gate parenthetically as "at least two independent venue
         families" (line 140). Outside this owner-gated apply's authorized scope
@@ -687,7 +687,7 @@ direction_change_propagation:
         repo-wide gate-wording sweep — the packet's "apply ballooning" drift
         cue). FLAGGED residual reconcile target for a separate owner-decided
         pass; recorded here, not silently left consistent.
-    - path: forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
+    - path: forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
       reason: >
         Qualification question restates "at least two independent venue families"
         (line 496); same FLAGGED residual reconcile, outside authorized scope.

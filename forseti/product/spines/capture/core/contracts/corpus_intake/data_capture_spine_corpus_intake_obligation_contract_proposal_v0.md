@@ -26,7 +26,7 @@ open_next:
   - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md                         # the demand-indicator durability elements this governs standing
   - forseti/product/spines/capture/core/demand_durability_indicators/demand_durability_indicator_standing_capture_obligation_home_decision_framing_v0.md   # the owner-decision framing (D1=general, D3=deferred) this answers — landed via merged PR #106 (indicator rename)
   - docs/decisions/pre_capture_discovery_spine_charter_recommendation_v0.md                              # WHERE-side discovery (deconflicted; not this contract)
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                                              # never-a-feed invariant (the structural lock)
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                                              # never-a-feed invariant (the structural lock)
 stale_if:
   - The owner amends, supersedes, or re-scopes this ratified contract.
   - The v0 commissioned obligation contract changes its standing-capture carve-out, its rebind rule, or its obligation set.

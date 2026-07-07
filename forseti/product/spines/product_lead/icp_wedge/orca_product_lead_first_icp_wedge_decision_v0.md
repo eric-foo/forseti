@@ -11,9 +11,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
-  - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
-  - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
+  - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md
 input_hashes:
   - path: docs/product/orca_offer_hypothesis_v0.md
     sha256: AC3943A03864DF79918B9DC12B808E1AF39884F832592F5A71DC62FE03F76F64

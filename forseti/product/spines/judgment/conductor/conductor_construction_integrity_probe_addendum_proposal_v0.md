@@ -14,7 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
-  - forseti/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md
+  - forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md
   - docs/decisions/judgment_spine_backtest_batch1_ledger_declaration_v0.md
 stale_if:
   - The conductor's JSG-02 / JSG-03 / JSG-05 definitions change.

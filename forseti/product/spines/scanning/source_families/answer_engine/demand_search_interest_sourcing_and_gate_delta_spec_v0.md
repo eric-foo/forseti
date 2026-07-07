@@ -23,7 +23,7 @@ open_next:
   - forseti/product/spines/capture/core/demand_durability_indicators/search_interest/demand_durability_indicator_search_interest_capture_profile_v0.md  # CONSUME — search-interest capture obligations/pins/comparability (authority for §6 pins)
   - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md                       # CONSUME — temporal regimes, cold-start, comparability
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md         # CONSUME — capture envelope of record / obligations
-  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md                                            # the live Demand-Substrate Hard Gate (G1 cards, AR-04, floor/ceiling, defeater)
+  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                                            # the live Demand-Substrate Hard Gate (G1 cards, AR-04, floor/ceiling, defeater)
   - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md                                           # candidate-observation schema (venue_family/gate_family/costly_behavior enums)
   - forseti/product/spines/scanning/admissibility_checkability/orca_demand_gate_definition_closures_proposal_v0.md                      # AR-04 unsourced-gap classification
   - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md                                          # search-interest read type (read-grammar basis)
