@@ -17,7 +17,7 @@ open_next:
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
   - docs/migration/spine_first_target_move_table_v0.md
   - docs/migration/spine_first_untagged_file_inventory_v0.md
-  - docs/decisions/orca_repo_structure_binding_v0.md
+  - docs/decisions/forseti_repo_structure_binding_v0.md
   - docs/decisions/orca_search_product_lane_binding_v0.md
 stale_if:
   - The owner changes the accepted target tree.
@@ -41,7 +41,7 @@ or claim readiness.
 
 | ID | Settlement | Execution instruction |
 | --- | --- | --- |
-| B1 `orca/` root | **Authorized.** The `orca/` top-level root and `orca/product/` product-substance tree are approved for the spine-first migration. | During execution, amend `repo-structure.yaml`, `.agents/workflow-overlay/artifact-folders.md`, and `docs/decisions/orca_repo_structure_binding_v0.md` in the same tranche that creates or populates `orca/product/`. Do not add `orca` to the map without creating the tree, because the placement checker treats missing declared roots as stale. |
+| B1 `orca/` root | **Authorized.** The `orca/` top-level root and `orca/product/` product-substance tree are approved for the spine-first migration. | During execution, amend `repo-structure.yaml`, `.agents/workflow-overlay/artifact-folders.md`, and `docs/decisions/forseti_repo_structure_binding_v0.md` in the same tranche that creates or populates `orca/product/`. Do not add `orca` to the map without creating the tree, because the placement checker treats missing declared roots as stale. |
 | B2 search-lane reversal | **Confirmed.** Spine-first placement supersedes the physical `docs/product/search/` lane for future product-substance homes. | Dissolve `docs/product/search/` according to the move table. Preserve the authority and provenance of the demand-signal method docs; only their physical home changes. The search-lane binding becomes historical/superseded for placement after execution. |
 | B3 `docs/doctrine/` boundary | **Defined.** `docs/doctrine/` is an index/router home, not a decision-record home. | Keep ratified decisions and adoption records in `docs/decisions/`. Put doctrine indexes, routers, and non-controlling doctrine-like inventories in `docs/doctrine/`. Do not move decision records into `docs/doctrine/` just because they are doctrine-bearing. |
 | B4 ontology backlog hook coupling | **Authorized as paired execution.** The ontology backlog JSON may move only with its hook/path update. | Do not move `ontology_expansion_backlog_v0.json` alone. In the migration tranche, either update `.agents/hooks/check_ontology_expansion.py` to the new path or make it bridge old/new paths for the transition, then run the hook's relevant check. |
@@ -106,14 +106,14 @@ direction_change_propagation:
     - docs/decisions/orca_spine_first_target_structure_binding_v0.md
     - docs/migration/spine_first_target_move_table_v0.md
     - docs/migration/spine_first_untagged_file_inventory_v0.md
-    - docs/decisions/orca_repo_structure_binding_v0.md
+    - docs/decisions/forseti_repo_structure_binding_v0.md
     - docs/decisions/orca_search_product_lane_binding_v0.md
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
     - docs/decisions/orca_spine_first_target_structure_binding_v0.md
     - docs/migration/spine_first_target_move_table_v0.md
     - docs/migration/spine_first_untagged_file_inventory_v0.md
-    - docs/decisions/orca_repo_structure_binding_v0.md
+    - docs/decisions/forseti_repo_structure_binding_v0.md
     - docs/decisions/orca_search_product_lane_binding_v0.md
     - .agents/workflow-overlay/artifact-folders.md
     - repo-structure.yaml

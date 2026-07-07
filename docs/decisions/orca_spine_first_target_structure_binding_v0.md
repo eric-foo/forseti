@@ -21,7 +21,7 @@ open_next:
   - docs/decisions/orca_spine_first_blocker_authorization_v0.md
   - docs/migration/spine_first_target_move_table_v0.md
   - docs/migration/spine_first_untagged_file_inventory_v0.md
-  - docs/decisions/orca_repo_structure_binding_v0.md
+  - docs/decisions/forseti_repo_structure_binding_v0.md
   - docs/decisions/orca_search_product_lane_binding_v0.md
 supersedes: []
 stale_if:
@@ -53,7 +53,7 @@ authority a later migration-execution controller will consume. It does **not**:
 
 Current placement authority remains
 `.agents/workflow-overlay/artifact-folders.md` +
-`docs/decisions/orca_repo_structure_binding_v0.md` +
+`docs/decisions/forseti_repo_structure_binding_v0.md` +
 `repo-structure.yaml`. Files live where they live today (`docs/product/<lane>/`)
 until a separately authorized execution pass applies the move and amends those
 surfaces.
@@ -374,7 +374,7 @@ When a separately authorized execution pass runs, it must amend:
   and the dropped `docs/product/` role.
 - **`.agents/workflow-overlay/artifact-folders.md`** — replace the `docs/product/`
   lane-axis bullet with the `orca/product/` spine axis; add `docs/doctrine/`.
-- **`docs/decisions/orca_repo_structure_binding_v0.md`** — the `docs/product/`
+- **`docs/decisions/forseti_repo_structure_binding_v0.md`** — the `docs/product/`
   by-lane parameter is superseded by the `orca/product/` spine axis bound here.
 - **`docs/decisions/orca_search_product_lane_binding_v0.md`** — its `search/`
   physical home and topic-primacy precedence are superseded by the
@@ -515,7 +515,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - docs/decisions/orca_spine_first_target_structure_binding_v0.md
   downstream_surfaces_checked:
-    - docs/decisions/orca_repo_structure_binding_v0.md
+    - docs/decisions/forseti_repo_structure_binding_v0.md
     - docs/decisions/orca_search_product_lane_binding_v0.md
     - repo-structure.yaml
     - .agents/workflow-overlay/artifact-folders.md
@@ -533,7 +533,7 @@ direction_change_propagation:
         The docs/product by-lane bullet stays current placement authority until
         execution. Amending it now would fork placement authority from the
         un-applied tree.
-    - path: docs/decisions/orca_repo_structure_binding_v0.md
+    - path: docs/decisions/forseti_repo_structure_binding_v0.md
       reason: >
         Its docs/product by-lane parameter remains the live rule until execution;
         superseded only when the move applies.

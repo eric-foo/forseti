@@ -9,7 +9,7 @@ WHAT THIS ENFORCES
 
   The placement RULES and folder authority are owned by
       .agents/workflow-overlay/artifact-folders.md          (the authority)
-      docs/decisions/orca_repo_structure_binding_v0.md      (the binding)
+      docs/decisions/forseti_repo_structure_binding_v0.md      (the binding)
   This script does not restate them. If the map and the overlay disagree, the
   overlay wins and the map (and this checker) is the stale party.
 
@@ -61,9 +61,9 @@ from pathlib import Path
 
 MAP_PATH = "repo-structure.yaml"
 AUTHORITY = ".agents/workflow-overlay/artifact-folders.md"
-BINDING = "docs/decisions/orca_repo_structure_binding_v0.md"
+BINDING = "docs/decisions/forseti_repo_structure_binding_v0.md"
 
-# Frozen map schema (orca_repo_structure_binding_v0): top-level keys.
+# Frozen map schema (forseti_repo_structure_binding_v0): top-level keys.
 REQUIRED_KEYS = ("version", "known_top_level", "docs_roles", "scratch_rules",
                  "legacy_tolerated", "inbox", "excluded")
 

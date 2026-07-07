@@ -2,14 +2,14 @@
 # Single machine-readable source consumed by .agents/hooks/check_placement.py and
 # by agents for navigation. Placement RULES are owned by
 # .agents/workflow-overlay/artifact-folders.md; the binding and parameters by
-# docs/decisions/orca_repo_structure_binding_v0.md. On conflict the overlay wins
+# docs/decisions/forseti_repo_structure_binding_v0.md. On conflict the overlay wins
 # and this map is the stale party. Schema keys are frozen by the binding.
 version: 1
 status: experimental_bound_v0
 
 authority:
   placement_rules: .agents/workflow-overlay/artifact-folders.md
-  binding: docs/decisions/orca_repo_structure_binding_v0.md
+  binding: docs/decisions/forseti_repo_structure_binding_v0.md
   note: router_only_not_authority_not_validation
 
 entry_points:

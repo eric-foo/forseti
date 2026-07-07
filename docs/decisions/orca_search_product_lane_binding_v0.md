@@ -9,7 +9,7 @@ scope: >
   those surfaces feed. Holds the lane inclusion test + precedence rule and
   references the migration package that physically co-locates the member docs.
   Extends the docs/product/ by-lane parameter bound in
-  docs/decisions/orca_repo_structure_binding_v0.md.
+  docs/decisions/forseti_repo_structure_binding_v0.md.
 use_when:
   - Deciding whether a doc belongs in docs/product/search/ versus a spine lane.
   - Authoring or revising repo-structure.yaml product_lanes or artifact-folders.
@@ -17,7 +17,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_spine_first_blocker_authorization_v0.md
-  - docs/decisions/orca_repo_structure_binding_v0.md
+  - docs/decisions/forseti_repo_structure_binding_v0.md
   - .agents/workflow-overlay/artifact-folders.md
   - repo-structure.yaml
   - docs/migration/repo_structure_search_lane_v0/runbook.md
@@ -64,7 +64,7 @@ carried over. Recorded as a search-dissolution line item; handled in Wave C/E.
 
 `docs/product/search/` is a bound second-level lane under `docs/product/`,
 extending the by-lane axis bound in
-`docs/decisions/orca_repo_structure_binding_v0.md`. It is Orca's **demand-signal
+`docs/decisions/forseti_repo_structure_binding_v0.md`. It is Orca's **demand-signal
 intelligence (search-led)** vertical, holding two coherent things:
 
 1. **Search / answer-engine surfaces** - how Orca captures, reads, and
@@ -173,7 +173,7 @@ spines during the window; `repo-structure.yaml` carries `search` at
 
 - `repo-structure.yaml` - `product_lanes` += `{ name: search }` (current once applied).
 - `.agents/workflow-overlay/artifact-folders.md` - search-lane accepted-folder entry + lane-subfolder list + the direction-change-propagation receipt.
-- `docs/decisions/orca_repo_structure_binding_v0.md` - bound-lanes bullet notes `search/`.
+- `docs/decisions/forseti_repo_structure_binding_v0.md` - bound-lanes bullet notes `search/`.
 - `docs/product/README.md` - lane list includes `search/`.
 - `docs/product/search/README.md` - lane front-door index.
 - `docs/workflows/orca_repo_map_v0.md` - Workstream Status Pointers row.

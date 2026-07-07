@@ -18,7 +18,7 @@ open_next:
 
 ## Baseline Census
 
-Baseline census observed from `origin/main` after PR #675 merged as `c10f1d7f` on 2026-07-05. Later rows below record subsequent executed migration lanes where explicitly cited. Current convergence planning treats `origin/main` after PR #772 (`16ce9026`, including #753, #755, #756, #757, #758, #759, #760, #763, #765, #767, #768, #769, #770, #771, and #772) as the baseline; pre-#753/#755/#756 migration branches are spent unless their remaining value is manually re-derived against current `main`.
+Baseline census observed from `origin/main` after PR #675 merged as `c10f1d7f` on 2026-07-05. Later rows below record subsequent executed migration lanes where explicitly cited. Current convergence planning treats `origin/main` after PR #773 (`99f51e1d`, including #753, #755, #756, #757, #758, #759, #760, #763, #765, #767, #768, #769, #770, #771, #772, and #773) as the baseline; pre-#753/#755/#756 migration branches are spent unless their remaining value is manually re-derived against current `main`.
 
 | Check | Observed result |
 | --- | --- |
@@ -42,7 +42,7 @@ Baseline census observed from `origin/main` after PR #675 merged as `c10f1d7f` o
 | GitHub repository slug | Executed on 2026-07-05: live repo is `eric-foo/forseti`; the former web repo moved from `eric-foo/Forseti` to `eric-foo/ForsetiWeb`. | Local `origin` was updated to `https://github.com/eric-foo/forseti.git`; keep historical repo links as provenance. |
 | Local parent checkout folder | Partially executed on 2026-07-05: a fresh main-repo clone exists at `C:\Users\vmon7\Desktop\projects\forseti` and tracks `eric-foo/forseti`; the local web checkout moved to `C:\Users\vmon7\Desktop\projects\ForsetiWeb`. The legacy active workspace remains under `projects/orca`. | Use `projects/forseti` for new main-repo sessions; do not rename or delete `projects/orca` until its active worktrees/sessions are closed or deliberately migrated. |
 | Skill command/path | Executed by the skill identity lane: `forseti-product-lead` is the primary accepted/deployed product-lead skill ID; `/orca-product-lead` remains a thin compatibility wrapper. | Resolver activation in an already-running thread is not claimed; keep wrapper for one transition window. |
-| Current-main convergence | Executed through PR #772: #753 recorded the local checkout split, #755 landed ontology GT ladder/A1/A2/R0 SSOT fixes, #756 landed the TikTok packet-grade runner posture on `forseti-harness/`, #757 aligned the migration plan to current `main`, #758 migrated the ontology filename family, #759 migrated the product-lead authority filename family, #760 added the missing-work PR fanout handoff prompt, #763 migrated the demand-read taxonomy filename family, #765 migrated the vertical-exploration filename family, #767 migrated the scanning/admissibility filename family, #768 migrated the Commission Signal Board filename family, #769 adjudicated the missing-work inventory report caveat, #770 migrated the Capture-core filename family, #771 migrated the Mini God Tier doctrine filename family, and #772 migrated the Doctrine Index filename family. | Future migration and conflict-resolution lanes start from current `main`; do not replay stale side-branch trees over #755/#756/#758/#759/#760/#763/#765/#767/#768/#769/#770/#771/#772 files. |
+| Current-main convergence | Executed through PR #773: #753 recorded the local checkout split, #755 landed ontology GT ladder/A1/A2/R0 SSOT fixes, #756 landed the TikTok packet-grade runner posture on `forseti-harness/`, #757 aligned the migration plan to current `main`, #758 migrated the ontology filename family, #759 migrated the product-lead authority filename family, #760 added the missing-work PR fanout handoff prompt, #763 migrated the demand-read taxonomy filename family, #765 migrated the vertical-exploration filename family, #767 migrated the scanning/admissibility filename family, #768 migrated the Commission Signal Board filename family, #769 adjudicated the missing-work inventory report caveat, #770 migrated the Capture-core filename family, #771 migrated the Mini God Tier doctrine filename family, #772 migrated the Doctrine Index filename family, and #773 migrated the Repo-Map Architecture MGT filename family. | Future migration and conflict-resolution lanes start from current `main`; do not replay stale side-branch trees over #755/#756/#758/#759/#760/#763/#765/#767/#768/#769/#770/#771/#772/#773 files. |
 | Ontology filename family | Executed by PR #758: the live ontology GT ladder and ontology backbone filenames now use Forseti names. | Historical old filenames resolve through `docs/migration/forseti_ontology_filename_migration_v0/moved_paths_index.md`; remaining lowercase `orca_*` filename families stay separate queued batches. |
 | Product-lead authority filename family | Executed by PR #759: the live product thesis, offer hypothesis, buyer-proof packet, product-proof charter, and claim-defense doctrine filenames now use Forseti names. | Historical old filenames resolve through `docs/migration/forseti_product_lead_authority_filename_migration_v0/moved_paths_index.md`; remaining lowercase `orca_*` filename families stay separate queued batches. |
 | Demand-read taxonomy filename family | Executed by PR #763: the live proposed demand-read grammar and adjudication-prep companion filenames now use Forseti names. | Historical old filenames resolve through `docs/migration/forseti_demand_read_taxonomy_filename_migration_v0/moved_paths_index.md`; remaining lowercase `orca_*` filename families stay separate queued batches. |
@@ -52,9 +52,10 @@ Baseline census observed from `origin/main` after PR #675 merged as `c10f1d7f` o
 | Capture-core filename family | Executed by PR #770: the live Capture projection storage spine, creator-momentum pipeline, and creator monitoring policy filenames now use Forseti names. | Historical old filenames resolve through `docs/migration/forseti_capture_core_filename_migration_v0/moved_paths_index.md`; remaining lowercase `orca_*` filename families stay separate queued batches. |
 | Mini God Tier doctrine filename | Executed by PR #771: the live owner-adopted Mini God Tier doctrine record now uses a Forseti filename. | Historical old filename resolves through `docs/migration/forseti_mini_god_tier_doctrine_filename_migration_v0/moved_paths_index.md`; remaining lowercase `orca_*` filename families stay separate queued batches. |
 | Doctrine Index filename | Executed by PR #772: the live Doctrine Index router now uses a Forseti filename. | Historical old filename resolves through `docs/migration/forseti_doctrine_index_filename_migration_v0/moved_paths_index.md`; remaining lowercase `orca_*` filename families stay separate queued batches. |
-| Repo-Map Architecture MGT filename | Executed by this bounded Repo-Map Architecture MGT filename migration lane: the live repo-map retrieval architecture record now uses a Forseti filename. | Historical old filename resolves through `docs/migration/forseti_repo_map_architecture_mgt_filename_migration_v0/moved_paths_index.md`; remaining lowercase `orca_*` filename families stay separate queued batches. |
+| Repo-Map Architecture MGT filename | Executed by PR #773: the live repo-map retrieval architecture record now uses a Forseti filename. | Historical old filename resolves through `docs/migration/forseti_repo_map_architecture_mgt_filename_migration_v0/moved_paths_index.md`; remaining lowercase `orca_*` filename families stay separate queued batches. |
+| Repo Structure Binding filename | Executed by this bounded Repo Structure Binding filename migration lane: the live placement/structure binding record now uses a Forseti filename. | Historical old filename resolves through `docs/migration/forseti_repo_structure_binding_filename_migration_v0/moved_paths_index.md`; remaining lowercase `orca_*` filename families stay separate queued batches. |
 | Start-preflight alias | Deferred: `orca_start_preflight` remains a legacy alias. | New live prompts and reports prefer `forseti_start_preflight`; alias retirement is last-mile compatibility work. |
-| Lowercase `orca_*` filenames | Partially deferred: the ontology, product-lead authority, demand-read taxonomy, vertical-exploration, scanning/admissibility, Commission Signal Board, Capture-core, Mini God Tier doctrine, Doctrine Index, and Repo-Map Architecture MGT filename families have migrated; other families remain queued by default. | Migrate only by family with moved-path/index coverage; do not word-match historical prompts, reviews, receipts, research snapshots, source-pin rows, or source-hash rows. |
+| Lowercase `orca_*` filenames | Partially deferred: the ontology, product-lead authority, demand-read taxonomy, vertical-exploration, scanning/admissibility, Commission Signal Board, Capture-core, Mini God Tier doctrine, Doctrine Index, Repo-Map Architecture MGT, and Repo Structure Binding filename families have migrated; other families remain queued by default. | Migrate only by family with moved-path/index coverage; do not word-match historical prompts, reviews, receipts, research snapshots, source-pin rows, or source-hash rows. |
 
 ## Supersession Notes
 
@@ -68,10 +69,10 @@ by PR #675 and `docs/decisions/forseti_harness_identity_migration_plan_v0.md`.
 Statements that the external repo slug or product-lead skill identity are still
 deferred are superseded by `docs/decisions/forseti_external_identity_path_migration_decision_v0.md`
 and `docs/decisions/forseti_skill_preflight_identity_migration_plan_v0.md`.
-Migration branches or handoffs authored before PR #753, PR #755, PR #756, PR #758, PR #759, PR #760, PR #763, PR #765, PR #767, PR #768, PR #769, PR #770, PR #771, or PR #772 are
+Migration branches or handoffs authored before PR #753, PR #755, PR #756, PR #758, PR #759, PR #760, PR #763, PR #765, PR #767, PR #768, PR #769, PR #770, PR #771, PR #772, or PR #773 are
 not convergence targets. Their remaining useful changes must be re-applied from
 current `main`, with special care around ontology/A1/A2/R0 sources, product-lead
-authority filenames, demand-read taxonomy files, vertical-exploration files, scanning/admissibility files, Commission Signal Board files, Capture-core files, Mini God Tier doctrine files, Doctrine Index files, Repo-Map Architecture MGT files, and TikTok runner/harness files
+authority filenames, demand-read taxonomy files, vertical-exploration files, scanning/admissibility files, Commission Signal Board files, Capture-core files, Mini God Tier doctrine files, Doctrine Index files, Repo-Map Architecture MGT files, Repo Structure Binding files, and TikTok runner/harness files
 that changed in those PRs.
 
 ## Next Material Lane
@@ -80,7 +81,7 @@ The next high-leverage migration is not another word-match cleanup. After the
 external repo identity, product-lead skill identity, checkout split, #755
 ontology/source fixes, #756 TikTok runner posture, #757 current-main plan
 alignment, #758 ontology filename migration, #759 product-lead authority filename
-migration, #760 missing-work PR fanout prompt, #763 demand-read taxonomy filename migration, #765 vertical-exploration filename migration, #767 scanning/admissibility filename migration, #768 Commission Signal Board filename migration, #769 missing-work caveat adjudication, #770 Capture-core filename migration, #771 Mini God Tier doctrine filename migration, and #772 Doctrine Index filename migration have landed, the remaining
+migration, #760 missing-work PR fanout prompt, #763 demand-read taxonomy filename migration, #765 vertical-exploration filename migration, #767 scanning/admissibility filename migration, #768 Commission Signal Board filename migration, #769 missing-work caveat adjudication, #770 Capture-core filename migration, #771 Mini God Tier doctrine filename migration, #772 Doctrine Index filename migration, and #773 Repo-Map Architecture MGT filename migration have landed, the remaining
 material lanes are:
 
 1. Converge from current `main`; treat old stacked migration PRs/worktrees as
@@ -92,10 +93,10 @@ material lanes are:
    whose `orca_*` filenames are still operator-facing; the ontology,
    product-lead authority, demand-read taxonomy, vertical-exploration,
    scanning/admissibility, Commission Signal Board, Capture-core, Mini God
-   Tier doctrine, and Doctrine Index filename families have landed, this lane
-   handles the Repo-Map Architecture MGT filename,
+   Tier doctrine, Doctrine Index, and Repo-Map Architecture MGT filename families have landed, this lane
+   handles the Repo Structure Binding filename,
    and remaining families still need moved-path coverage plus a fresh read of any
-   #755/#756/#758/#759/#760/#763/#765/#767/#768/#769/#770/#771/#772-touched source before editing.
+   #755/#756/#758/#759/#760/#763/#765/#767/#768/#769/#770/#771/#772/#773-touched source before editing.
 4. Retire `orca_start_preflight` only after durable prompt/history consumers are
    classified; keep `forseti_start_preflight` primary now.
 5. Retire compatibility wrappers such as `/orca-product-lead` only after one
