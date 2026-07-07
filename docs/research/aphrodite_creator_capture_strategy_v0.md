@@ -14,19 +14,25 @@ use_when:
   - Checking how fragrance depth can compound without turning Aphrodite into manual agency work.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/creator_signal/creator_signal_product_architecture_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-source_context_gaps:
-  - Current origin/main does not contain the newer creator_registry/profile-current contract folder read from the creator-signal branch during this strategy pass.
-  - The branch-era creator_registry/profile-current contracts support metric rollups, source drill-back, posture/value coupling, and no-identity-overclaim boundaries, but require promotion/reconciliation before becoming current-main authority.
-  - Root-local Aphrodite D-1 rehearsal files were observed as untracked research context in the dirty main workspace; this artifact does not treat them as ratified current-main sources.
+  - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+source_context_notes:
+  - Current origin/main in this worktree uses the renamed `forseti/` product root.
+  - The creator_registry/profile-current contracts are present under the Forseti path and are treated as current source context for this strategy.
+  - Root-local Aphrodite D-1 v1 rehearsal files observed in the dirty main workspace were not used as ratified current-main authority.
 stale_if:
-  - Creator registry/profile-current contracts land on current main with different metric, freshness, or identity boundaries.
+  - Creator registry/profile-current contracts move again or change metric, freshness, or identity boundaries.
   - IG monitoring policy changes the serious-v0 roster gates, A/B/C allocation, hot-list promotion, or capture-once/recheck posture.
   - A later accepted Aphrodite product contract supersedes this capture strategy.
   - Platform access constraints or measured request costs change materially.
@@ -85,12 +91,20 @@ read models separate. Missing, hidden, blocked, not-attempted, and not-applicabl
 facts must carry posture and reason, never fake zeroes. Aphrodite's selection
 logic must inherit that rule.
 
+The Creator Ledger operational contract makes exact known-account lookup and
+scan/capture preflight the first routing layer. Aphrodite should not start by
+treating a handle as new and then checking the registry later; that reverses the
+ledger's main operational value.
+
 ## Onboarding Flow
 
 For a new creator:
 
-1. Run registry/preflight identity checks against known public account rows where
-   available.
+1. Run the Creator Registry exact-match/preflight check first. If the public
+   platform account is already known, attach the observation and future capture
+   work to the existing account row. If it is a possible match, route it as a
+   candidate review item. Only truly unknown accounts should proceed as new
+   candidate stubs.
 2. Capture the current grid surface, with bounded pagination only if the run
    budget and capture policy allow it.
 3. Build an onboarding fingerprint from source-visible metrics: views,
@@ -116,32 +130,61 @@ For a registry creator:
 
 1. Run the daily grid heartbeat as the default refresh.
 2. Compare the current grid to the prior known snapshot: new content, retained
-   content, metric deltas, items entering the creator's top band, and items
-   falling out of the visible grid.
-3. Promote a post to deep capture when it crosses a source-backed threshold:
-   unusually strong view growth, unusually strong engagement growth, entering
-   the creator's top 20-25 percent band by a compatible composite, or matching a
-   buyer-relevant fragrance/category trigger.
-4. Keep the high-alert watch list dynamic. It should be post-led and metric-led,
+   content, metric deltas, newly eligible items, and items falling out of the
+   visible grid.
+3. Update Silver/Creator Registry metric records from the heartbeat before the
+   product surface uses the snapshot. Grid heartbeat is not just UI refresh; it
+   is the source-backed metric observation and rollup feed.
+4. Promote a post to deep capture only when an event trigger fires: an unusual
+   view or engagement delta, a fresh breakout state, a source-visible buyer-
+   relevant cue, or a previously promoted breakout that is still inside its
+   explicit recheck window.
+5. Keep the high-alert watch list dynamic. It should be post-led and metric-led,
    not a static vanity list of favorite creators.
-5. Recheck promoted breakout posts while they remain active, then demote them
+6. Recheck promoted breakout posts while they remain active, then demote them
    when their growth decays or their evidence has been captured sufficiently.
 
 The daily heartbeat is the registry's currentness layer. The deep queue is the
 explanation layer. They should be budgeted separately.
 
-## Selection Key
+## Promotion Rule
 
-The selection key should be composite and posture-aware:
+The phrase "top 20-25 percent" should mean two different things in two
+different contexts:
+
+- **Onboarding:** a first-pass deep-capture budget cap over the visible current
+  grid. It is a diagnostic sample, not a claim that the selected posts are the
+  creator's durable best work.
+- **Ongoing monitoring:** not the primary trigger. Ongoing deep capture should
+  be event-triggered, with the top-band calculation used only as a supporting
+  clue or capacity cap.
+
+This prevents a bad local baseline from wasting budget. A weak creator can
+always have a "top 25 percent" of their own posts; that does not mean those posts
+deserve deep capture.
+
+The promotion key should be composite and posture-aware:
 
 ```text
-eligible_current_grid_item =
+candidate_promotion_signal =
   observed view_count
   + observed like/comment counts where exposed
   + engagement_rate only when numerator and denominator are observed
   + delta since prior grid heartbeat where the prior observation exists
   + age/window normalization only when publication timing is source-backed
+  + source-visible buyer-relevant cue when available
 ```
+
+Promote when the signal crosses one of these gates:
+
+- `spike_gate`: observed metric delta is unusually high against the creator's
+  compatible recent baseline or the platform/content-kind norm.
+- `fresh_breakout_gate`: a new or recent item is both high-performing and still
+  growing, not merely high in lifetime views.
+- `buyer_relevance_gate`: source-visible text or metadata indicates fragrance,
+  product, category, ad, or comparison relevance worth deeper evidence capture.
+- `active_breakout_gate`: a previously promoted item still has enough measured
+  slope to justify follow-up.
 
 Do not offer `recent_velocity` as an observed field until compatible history
 exists. If publication timestamp is missing or unreliable, call the trend
@@ -173,6 +216,12 @@ Otherwise Aphrodite would delete the rare long-tail exceptions that teach the
 system what durable creator demand looks like. The exception must be explicit,
 source-backed, and self-expiring. No hidden forever-watch list.
 
+For promoted breakout items that fall out of grid view, bounded pagination is
+allowed only to re-find that known item. Stop paginating when growth slope falls
+below the accepted threshold for the accepted number of checks, when an age cap
+or read cap is hit, or when the source blocks the path. Do not use breakout
+pagination as a general old-content crawler.
+
 ## Roster Composition Before Sizing
 
 Do not make the whole roster pure fragrance reviewers if the product goal is
@@ -185,9 +234,17 @@ but Aphrodite also needs controlled adjacent surfaces:
 - a small control/edge set that looks attractive by surface metrics but may not
   move fragrance.
 
-The control/edge set is not worthless. It is how Aphrodite learns when to say no.
-Without it, the system only learns what obvious fragrance creators look like and
-will overfit to the niche's loudest surface signals.
+The control/edge set is not the bottom 10 percent of the registry. Bottom
+performers mostly teach that weak accounts are weak. The useful control set is
+surface-attractive but fragrance-weak: creators with strong-looking reach or
+engagement whose source-backed fragrance relevance is unproven, thin, or
+negative.
+
+Keep the control/edge set in the registry, but default it to low-cadence
+monitoring or bounded test windows, not daily deep monitoring. Promote a control
+creator into normal monitoring only if source-backed fragrance relevance or
+fragrance-specific response appears. Otherwise it stays as false-positive
+training data and cost control.
 
 Exact percentages are deferred until the capture budget is calculated. The
 strategic constraint is that adjacent creators must be fragrance-proven or
@@ -214,18 +271,47 @@ Silver can say what was observed. Creator Signal can assemble decision support.
 Gold/Judgment or later accepted product contracts own stronger recommendations,
 durability verdicts, or action meaning.
 
+## Silver And Registry Metric Update Rule
+
+Every accepted heartbeat should update the ongoing metric layer before Aphrodite
+Signals relies on it. The current Creator Profile contract already exposes
+average views, median views, average like count, average comment count,
+engagement rate, posting cadence, and recent velocity fields, while
+`posting_cadence` and `recent_velocity` remain declared-deferred until compatible
+Silver history exists.
+
+Aphrodite should route future monitoring stats through Silver
+`MetricObservation` and `MetricRollupObservation` records with explicit recipe
+versions, source observation ids, posture/value coupling, sample support,
+freshness, and limitations. That includes any future:
+
+- moving average;
+- exponential moving average (EMA);
+- compatible-window velocity;
+- spike score;
+- breakout state;
+- decay or plateau state;
+- active-watch expiry state.
+
+Do not compute those inside `creator_profile_current` as hidden product logic.
+Silver owns the recipe-backed observations and rollups; the registry/profile
+current view copies only accepted, lineage-backed fields.
+
 ## Strategy Calls
 
 1. Use daily grid heartbeat as the registry currentness layer once budget and
    platform posture are accepted.
-2. Use top-band and spike promotion for deep capture, not raw-view selection and
-   not full deep capture of the roster.
+2. Use event-triggered promotion for ongoing deep capture: spike, fresh
+   breakout, source-visible buyer relevance, or active breakout follow-up.
 3. Treat views plus engagement as the default selection basis.
 4. Treat fallen-out unpromoted content as cold by default.
-5. Preserve promoted breakout exceptions with explicit expiry.
-6. Keep fragrance depth as the wedge, but include fragrance-proven adjacent and
+5. Preserve promoted breakout exceptions with explicit pagination, read caps,
+   age caps, and expiry.
+6. Keep control/edge creators in the registry at low cadence or test-window
+   cadence, not as a daily deep-monitoring burden.
+7. Keep fragrance depth as the wedge, but include fragrance-proven adjacent and
    control creators so the signal learns both yes and no.
-7. Keep Studio/activation downstream of Signals. The capture strategy exists to
+8. Keep Studio/activation downstream of Signals. The capture strategy exists to
    sharpen Signals first.
 
 ## Open Decisions Before Calculation
@@ -239,11 +325,12 @@ These must be decided or measured before computing realistic roster size:
 - Expected promotion rate from grid heartbeat into deep capture.
 - Deep-capture cost per promoted item by platform and source surface.
 - Maximum deep captures per creator per day.
-- Breakout recheck schedule and expiry rule.
+- Breakout recheck schedule, pagination cap, decay threshold, and expiry rule.
+- Which Silver metric recipes should be documented first: moving average, EMA,
+  compatible-window velocity, spike score, breakout state, or decay state.
 - Roster composition bands: fragrance-core, fragrance-proven adjacent, and
   control/edge.
-- Whether the branch-era creator_registry/profile-current contracts should be
-  promoted/reconciled into current main before Aphrodite depends on them.
+- Control/edge cadence and promotion rule.
 
 The later calculation should use:
 
