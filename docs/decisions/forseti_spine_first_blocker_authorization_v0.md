@@ -18,7 +18,7 @@ open_next:
   - docs/migration/spine_first_target_move_table_v0.md
   - docs/migration/spine_first_untagged_file_inventory_v0.md
   - docs/decisions/forseti_repo_structure_binding_v0.md
-  - docs/decisions/orca_search_product_lane_binding_v0.md
+  - docs/decisions/forseti_search_product_lane_binding_v0.md
 stale_if:
   - The owner changes the accepted target tree.
   - The spine-first migration executes and the current placement surfaces are amended.
@@ -107,14 +107,14 @@ direction_change_propagation:
     - docs/migration/spine_first_target_move_table_v0.md
     - docs/migration/spine_first_untagged_file_inventory_v0.md
     - docs/decisions/forseti_repo_structure_binding_v0.md
-    - docs/decisions/orca_search_product_lane_binding_v0.md
+    - docs/decisions/forseti_search_product_lane_binding_v0.md
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
     - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
     - docs/migration/spine_first_target_move_table_v0.md
     - docs/migration/spine_first_untagged_file_inventory_v0.md
     - docs/decisions/forseti_repo_structure_binding_v0.md
-    - docs/decisions/orca_search_product_lane_binding_v0.md
+    - docs/decisions/forseti_search_product_lane_binding_v0.md
     - .agents/workflow-overlay/artifact-folders.md
     - repo-structure.yaml
     - docs/workflows/orca_repo_map_v0.md

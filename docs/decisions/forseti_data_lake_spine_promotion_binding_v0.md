@@ -1,10 +1,10 @@
-# Orca Data Lake Spine Promotion Binding v0
+# Forseti Data Lake Spine Promotion Binding v0
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca decision record
+artifact_role: Forseti decision record
 scope: >
-  Binds orca/product/spines/data_lake/ as an accepted shared_foundation spine.
+  Binds forseti/product/spines/data_lake/ as an accepted shared_foundation spine.
   This is a spine PROMOTION binding, not a move pass: it pins the spine identity,
   the bound subfolder grammar, and the producer/consumer/ownership boundary,
   extending the spine-first target structure. No file moves; the content
@@ -15,7 +15,7 @@ use_when:
   - Authoring the data_lake spine README, future spine.yaml, or move manifest.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/data_lake/README.md
+  - forseti/product/spines/data_lake/README.md
   - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
   - docs/decisions/forseti_repo_structure_binding_v0.md
   - .agents/workflow-overlay/artifact-folders.md
@@ -23,13 +23,13 @@ supersedes: []
 stale_if:
   - The owner amends the data_lake spine shape or its shared_foundation kind.
   - The R2 move pass executes and relocates the lake content + amends the surfaces.
-  - A later accepted Orca decision supersedes the spine identity or ownership boundary bound here.
+  - A later accepted Forseti decision supersedes the spine identity or ownership boundary bound here.
 ```
 
 ## Status
 
 Owner-accepted **spine-promotion binding**, v0 (2026-06-18). The owner accepted
-`orca/product/spines/data_lake/` as a shared-foundation spine in the current turn
+`forseti/product/spines/data_lake/` as a shared-foundation spine in the current turn
 and bounded this pass to "accept the binding only." This binds the spine **shape
 and identity** as live structure; it does **not** move, rename, or create any
 content file, does not re-create `docs/product/`, does not re-organize
@@ -42,12 +42,12 @@ analysis lived in the in-flight `codex/commission-spine-structure` lane at
 and the lake contract files lived in the in-flight `codex/data-lake-core-contract`
 lane. Post-R2, the #239 plan/inventory records intentionally stay in
 `docs/migration/` as repo-structure migration records, and the lake contracts
-live under `orca/product/spines/data_lake/authority/`. These records are
+live under `forseti/product/spines/data_lake/authority/`. These records are
 provenance/input, not current binding by themselves.
 
 ## Decision
 
-`orca/product/spines/data_lake/` is an accepted **shared-foundation spine** — the
+`forseti/product/spines/data_lake/` is an accepted **shared-foundation spine** — the
 ninth spine under `orca/product/spines/`. It earns its own home (rather than a
 folder under `orca/product/shared/`) because it **owns hard, cross-layer storage
 contracts** that other spines depend on; folding it into `shared/data_lake_mechanics/`
@@ -58,7 +58,7 @@ would hide the actual owner.
 ```yaml
 name: data_lake
 spine_kind: shared_foundation
-root: orca/product/spines/data_lake/
+root: forseti/product/spines/data_lake/
 producers:
   - capture
 consumers:
@@ -92,7 +92,7 @@ root, not buried in subfolders). Other folders (`decisions/`, `prompts/`,
 the spine — process history stays in `docs/`; runtime stays in `orca-harness/`.
 
 ```
-orca/product/spines/data_lake/
+forseti/product/spines/data_lake/
   README.md       # spine front-door + this identity
   authority/      # lake contracts / invariants / source-truth rules
   workflows/      # operational / read-flow docs (mechanics maps, route cards)
@@ -142,7 +142,7 @@ Deferred at binding time to the R2 move pass:
 R2 preconditions (load-bearing; do not bury):
 
 1. this binding accepted (done) and the live placement/map surfaces updated (this pass);
-2. the `codex/data-lake-core-contract` lane landed or re-based onto `orca/product/spines/data_lake/authority/` (not merged at old `docs/product/` paths);
+2. the `codex/data-lake-core-contract` lane landed or re-based onto `forseti/product/spines/data_lake/authority/` (not merged at old `docs/product/` paths);
 3. the move set re-based onto current `main` (mechanics map from `shared/`);
 4. reuse the forward-only `open_next` repoint convention (move-engine rewrites retrieval metadata across all files via the moved-paths index; historical body prose excepted) so the move does not re-introduce link rot.
 

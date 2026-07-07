@@ -19,7 +19,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_company_brand_architecture_v0.md
   - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
-  - docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md
+  - docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md
   - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md
   - .agents/workflow-overlay/product-proof.md
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
@@ -63,7 +63,7 @@ names by design:
   `aphrodite.forsetihq.com` until the public-launch gate (D8).
 - **`creator_signal`** — the internal, brand-independent spine name and repo
   home (`forseti/product/spines/creator_signal/`, bound by
-  `docs/decisions/orca_creator_signal_spine_promotion_binding_v0.md`).
+  `docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md`).
 
 Naming boundary: Forseti is the canonical project name at the authority layer
 (rename policy, PR #646), while `orca/` roots and lowercase `orca_*`
