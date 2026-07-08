@@ -11,8 +11,8 @@ use_when:
 open_next:
   - docs/research/search_surface_mgt_pilot_p0_receipts_v0/search_surface_mgt_pilot_p0_capture_receipt_v0.md
   - docs/research/search_surface_mgt_pilot_p0_receipts_v0/capture_manifest.json
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
-  - orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
+  - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
 stale_if:
   - The P0 Google SERP captures are recaptured under a different route or judged from a different session state.
   - A P1 direct-source capture pass supersedes this routing review.

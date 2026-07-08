@@ -14,6 +14,7 @@ scope: >
   First target sub-niche = US indie/DTC fragrance (owner-set in-thread, pending
   durable pin). Docs-first; no scrape execution; sourcing owner-gated.
 use_when:
+  - Routing current answer-engine/search-interest/AEO work after opening the scanning README.
   - Settling search-interest / AEO source classes + gate placement before any capture is authorized.
   - Checking the Core/Satellite wall and the query-set taint rule (which seed may feed the blind gate).
 authority_boundary: retrieval_only
@@ -45,6 +46,21 @@ stale_if:
   `forseti/product/spines/capture/core/demand_durability_indicators/search_interest/demand_durability_indicator_search_interest_capture_profile_v0.md`,
   and demand-state interpretation routes through the taxonomy and judgment
   demand-read core.
+
+## Current Route And Legacy Alias Handling
+
+Current answer-engine/search-interest/AEO work routes through:
+
+1. `forseti/product/spines/scanning/README.md` - scanning front door.
+2. This file - proposed source-family spec and gate-read placement delta.
+3. `docs/research/answer_engine/` - research/probe evidence only.
+
+Legacy `docs/product/search/` and search-lane binding references are
+historical/governance or migration context, not the current execution route. The
+AEO Phase-0 report remains research/proposed evidence; it is not product
+authority, not a gate-recordable method, not validation/readiness/product proof,
+and not authorization for source capture, scraping, scaling, schema hardening,
+or implementation.
 
 ## Scanning Vocabulary Alignment
 
