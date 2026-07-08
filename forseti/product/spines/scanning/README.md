@@ -39,8 +39,8 @@ stale_if:
 3. Open the Demand Scan-Core Spec only when the work needs rich promoted
    observation schema, gate preparation, or backward/forward scan-mode detail.
 4. Open source-family adapters only for local restrictions: Reddit, LinkedIn,
-   answer-engine/search, or future families. For answer-engine/search-interest,
-   AEO, or research-engine work, continue from this README to
+   answer-engine/search, or future families. For answer-engine/search-interest or
+   AEO work, continue from this README to
    `source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`,
    then to research evidence under `docs/research/answer_engine/`.
 5. Open Capture sources only when a `capture_request` or source-access wall is
@@ -58,7 +58,7 @@ stale_if:
 
 ## Answer-Engine / Search Current Route
 
-For answer-engine, AEO, search-interest, or research-engine work, use this
+For answer-engine, AEO, or search-interest work, use this
 current route:
 
 1. Start here, at the scanning spine front door.

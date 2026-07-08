@@ -16,7 +16,7 @@ open_next:
 stale_if:
   - The P0 Google SERP captures are recaptured under a different route or judged from a different session state.
   - A P1 direct-source capture pass supersedes this routing review.
-  - Orca changes the scanning, capture, search-interest, or answer-engine surface boundaries.
+  - Forseti changes the scanning, capture, search-interest, or answer-engine surface boundaries.
 authority_boundary: retrieval_only
 ```
 
@@ -41,7 +41,7 @@ It is not complete enough for Judgment, Product Lead, buyer proof, willingness-t
 
 ## Comparison To Existing Inputs
 
-The ChatGPT Pro beauty sub-niche intake was useful for choosing the first test area: founder-led indie/DTC fragrance, scent layering, body mist, discovery/travel formats, inventory, and retail-depth decisions. It was directional, not a verified Orca scan.
+The ChatGPT Pro beauty sub-niche intake was useful for choosing the first test area: founder-led indie/DTC fragrance, scent layering, body mist, discovery/travel formats, inventory, and retail-depth decisions. It was directional, not a verified Forseti scan.
 
 The Imaginary Authors MGT scan was useful at brand-level current state. It found official PDPs, retailer collections, sold-out/restock UI, editorial/trend surfaces, and capture requests. But within its cap it did not find independent buyer-origin evidence, and exact product/community searches were dry.
 

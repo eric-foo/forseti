@@ -113,7 +113,7 @@ sourcing" would overstate AR-04 closure — it does not.
 
 ## 3. Two decision products, one wall
 
-Orca sells *decisions*, not only demand-existence verdicts. Two distinct decisions
+Forseti sells *decisions*, not only demand-existence verdicts. Two distinct decisions
 ride these signals; their **inputs** are walled, not their value:
 
 - **Decision A — demand existence** (gate): *does independent demand exist, and how

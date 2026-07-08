@@ -39,7 +39,7 @@ then directed completing the migration to the demand-signal discovery method
 expanding the move by +6 demand-scan/read/gate docs and excluding 3 non-search
 docs. Reached through deep-think -> assumption-gate -> re-scope ->
 implementation-scoping -> micro-decision-lock, each step owner-confirmed. This
-bound the lane as then-current Orca/Forseti governance; it is not validation,
+bound the lane as then-current governance; it is not validation,
 readiness, product proof, or the current execution route.
 
 Current-route supersession (2026-07-08): for answer-engine/search-interest/AEO
@@ -74,13 +74,13 @@ carried over. Recorded as a search-dissolution line item; handled in Wave C/E.
 This section records the historical v0 search-lane decision. Read it as
 lineage/governance, not as the current execution route for answer-engine work.
 
-`docs/product/search/` is a bound second-level lane under `docs/product/`,
+Within that historical record, `docs/product/search/` was a bound second-level lane under `docs/product/`,
 extending the by-lane axis bound in
-`docs/decisions/forseti_repo_structure_binding_v0.md`. It is Orca's **demand-signal
+`docs/decisions/forseti_repo_structure_binding_v0.md`. It was the then-current **demand-signal
 intelligence (search-led)** vertical, holding two coherent things:
 
-1. **Search / answer-engine surfaces** - how Orca captures, reads, and
-   source-classes search-surface and answer-engine signal (web search / SERP,
+1. **Search / answer-engine surfaces** - how the historical lane captured, read, and
+   source-classed search-surface and answer-engine signal (web search / SERP,
    Google AI Overviews and other answer engines, zero-click, AEO/GEO,
    search-interest / "trends").
 2. **The demand-signal discovery method** those surfaces feed - the scan method,
@@ -98,8 +98,8 @@ search-only; their cross-spine references resolve into `docs/product/search/`.
 
 A doc belongs in `docs/product/search/` when its reason-to-exist is either:
 
-- (a) the **search / answer-engine surface** itself - how Orca captures it, what
-  it exposes, or its source-class; OR
+- (a) the **search / answer-engine surface** itself - how the historical lane captured it, what
+  it exposed, or its source-class; OR
 - (b) the **demand-signal discovery method** that drives those reads - the scan
   method, the demand-read grammar/taxonomy, or the demand gates that adjudicate
   discovered signal.
