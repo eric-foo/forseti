@@ -17,10 +17,10 @@ use_when:
   - Checking what a panel may show, downgrade, or must withhold.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md            # §4 panels, §5 buyer lanes (owns strategy; this record elaborates display)
-  - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md  # the claim-object discipline every row obeys
-  - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml            # the ontology substrate fit resolves against
-  - docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v0.md                   # the build this record gives a display target to
+  - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
+  - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml
+  - docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v0.md
 stale_if:
   - Charter §4/§5 or the provenance contract is amended in a way that changes a panel's obligations.
   - The D-1 gate decision adopts different rehearsal criteria than this design assumes.

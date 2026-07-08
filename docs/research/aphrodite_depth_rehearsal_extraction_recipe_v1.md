@@ -14,6 +14,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/aphrodite_recipe_v1_second_opinion_adjudication_v0.md
   - docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md
+  - docs/research/aphrodite_depth_rehearsal_d1_gentsscents_claims_v0.json
   - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml
 stale_if:
   - A later Aphrodite extraction recipe supersedes v1.
@@ -129,6 +130,14 @@ Fit claims that render product-coordinate conclusions also carry `reference_coor
 ## Forbidden Moves
 
 No scores; no unstamped claims; no API calls; no durable data-lake mutation; no roster-scale expansion; no buyer outreach; no new dupe graph; no FLAG-1 or commercial-use resolution; no demographic or person-level inference; no substituting same-vendor review for the D-1 cross-vendor adversarial review criterion.
+
+## Cold-Lane Runbook / Closeout Checklist
+
+1. Start from `docs/research/README.md`, then open this recipe, the D-1 corpus, and the D-1 claims JSON without broad repository search.
+2. `Test-Path` every `open_next` target in this recipe, the D-1 corpus, and the recipe-v1 adjudication record from the repository root.
+3. Confirm the claims JSON `extraction_pass.extraction_recipe_version` is `aphrodite-rehearsal-extraction-v1`.
+4. Confirm the claims JSON `extraction_pass.input_content_hash` equals the corpus `corpus_input_hash`.
+5. Preserve the non-claims below and the grade record's D-1 boundary: this bundle remains evidence-lane material, not validation, readiness, buyer proof, commercial-use clearance, or D-1 passage.
 
 ## Non-Claims
 
