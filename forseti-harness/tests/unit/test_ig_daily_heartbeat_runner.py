@@ -309,3 +309,47 @@ def test_heartbeat_runner_has_no_direct_browser_network_or_platform_write_import
             if node.module.split(".", 1)[0] in forbidden_roots:
                 offenders.add(node.module)
     assert offenders == set()
+
+
+def test_succeeded_receipt_never_carries_access_gap_reason_from_path_substring(tmp_path: Path) -> None:
+    # On success the grid runner's message is the packet directory path. A handle or
+    # output-root path that happens to contain an access-gap trigger substring
+    # ("blocked", "login", "challenge", "captcha", "rate_limited") must NOT fabricate an
+    # access_gap_reason on a succeeded run -- that would corrupt access-gap telemetry.
+    roster_path = _write_json(
+        tmp_path / "roster.json",
+        {
+            "roster_snapshot_id": "ig_roster_snapshot_substring",
+            "creators": [
+                {
+                    "platform": "instagram",
+                    "handle": "unblocked_beauty",
+                    "platform_account_id": "acct_unblocked",
+                    "status": "active",
+                }
+            ],
+        },
+    )
+
+    def fake_grid_runner(**kwargs: object) -> tuple[int, str]:
+        packet_dir = Path(kwargs["output_directory"])
+        _write_manifest(packet_dir)
+        return 0, str(packet_dir)
+
+    result = heartbeat.run_ig_daily_heartbeat(
+        roster_path=roster_path,
+        receipt_jsonl=tmp_path / "receipts.jsonl",
+        lane_id="lane_1",
+        lane_count=1,
+        output_root=tmp_path / "packets",
+        grid_runner=fake_grid_runner,
+    )
+
+    receipts = _read_jsonl(Path(result.message()))
+    assert len(receipts) == 1
+    receipt = receipts[0]
+    assert receipt["status"] == "succeeded"
+    # The trigger substring really is present in the success path, so this asserts the
+    # guard (not the absence of the substring) is what keeps the field clean.
+    assert "blocked" in str(receipt["packet_pointer"]).lower()
+    assert receipt["access_gap_reason"] is None

@@ -384,7 +384,15 @@ def _run_one_creator(
     finished_at = now_func()
     normal_e2e_ms = int(round((monotonic_func() - started_monotonic) * 1000))
     status = _receipt_status(exit_code=exit_code, message=message, error_class=error_class)
-    access_gap_reason = _access_gap_reason(exit_code=exit_code, message=message, error_class=error_class)
+    # access_gap_reason explains an access gap only. On a succeeded or failed run it must
+    # stay None; otherwise a trigger substring in the success message (the packet path or
+    # handle can contain "blocked"/"login"/etc.) would fabricate a gap signal and corrupt
+    # access-gap telemetry.
+    access_gap_reason = (
+        _access_gap_reason(exit_code=exit_code, message=message, error_class=error_class)
+        if status == "access_gap"
+        else None
+    )
     candidates = [candidate.to_receipt_dict() for candidate in breakout_candidates]
 
     receipt: dict[str, Any] = {
