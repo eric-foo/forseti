@@ -1,0 +1,923 @@
+{
+  "artifact": "aphrodite_depth_rehearsal_d1_gentsscents_claims_v0",
+  "artifact_role": "Research record (D-1 GentsScents rehearsal claim set; evidence lane; product_learning-capped; not validation, not readiness, not D-1 passage)",
+  "schema_version": "aphrodite_rehearsal_claim_record_v1",
+  "binds_to": [
+    "docs/research/aphrodite_depth_rehearsal_extraction_recipe_v1.md",
+    "docs/research/aphrodite_recipe_v1_second_opinion_adjudication_v0.md",
+    "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml"
+  ],
+  "creator": {
+    "name": "GentsScents",
+    "platform": "YouTube",
+    "channel_id": "UC9IImcLkUdmURWtQhxu8VwQ",
+    "registry_match": "acct_yt_fragrance_010",
+    "round2_status": "allowed"
+  },
+  "buyer_profile": {
+    "profile_type": "synthetic_skeptical_dupe_first",
+    "locked_by": "owner choice during fused run",
+    "structured_candidate_set_intake": {
+      "buyer_segment": "synthetic skeptical dupe-first or clone-house operator",
+      "buyer_house_tier": "clone-house",
+      "dupe_target_originals": [
+        {
+          "product_id": "product:dior.sauvage",
+          "target_role": "original_reference",
+          "intake_source_state": "owner_locked_synthetic_coordinate; resolved against fragrance_reference_v0.yaml"
+        },
+        {
+          "product_id": "product:creed.aventus",
+          "target_role": "original_reference",
+          "intake_source_state": "owner_locked_synthetic_coordinate; resolved against fragrance_reference_v0.yaml"
+        }
+      ],
+      "note_family_targets": {
+        "families": ["fresh", "spicy", "amber", "citrus", "aromatic", "musk", "woody", "fruity", "sweet", "leather"],
+        "intake_source_state": "derived from the two resolved target originals in fragrance_reference_v0.yaml"
+      },
+      "occasion_targets": {
+        "values": [],
+        "intake_source_state": "not specified in the owner-locked synthetic profile; withheld, not inferred"
+      },
+      "target_tier_position": {
+        "value": "clone-house buyer evaluating niche/designer original-reference demand",
+        "intake_source_state": "owner_locked_synthetic_coordinate; clone-house demand is not graph-derived in this rehearsal"
+      }
+    },
+    "coordinates": [
+      "clone-house or dupe-first operator",
+      "cares about Dior Sauvage demand adjacency",
+      "cares about Creed Aventus demand adjacency",
+      "requires proof beyond direct-original mentions before spend"
+    ]
+  },
+  "extraction_pass": {
+    "extraction_model": "gpt-5-codex operator-run in-session",
+    "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+    "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+    "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+    "note": "Single hand-run pass over existing packet and research records; no runner, API call, new capture, or lake mutation."
+  },
+  "claim_count_audit": {
+    "adjudication_prose_claim_count": 29,
+    "appendix_claim_types_emitted": 30,
+    "handling": "The discrepancy is preserved visibly; all appendix rows are emitted, including fit.unresolved_product_mentions."
+  },
+  "post_review_patch_response": {
+    "review_report": "docs/review-outputs/adversarial-artifact-reviews/aphrodite_depth_rehearsal_d1_gentsscents_adversarial_artifact_review_v0.md",
+    "review_verdict": "NOT_BLOCKER_MAJOR_FREE",
+    "patch_response_scope": "Accepted AR-01 through AR-06 for home-lane patching. Fit claims that rely on the round-2 SoV aggregate table remain rehearsal-grade and disclose aggregate-only drill-back until per-mention transcript receipts are recovered or re-derived. D-1 criterion 5 remains unobserved pending recheck or explicit home-lane adjudication."
+  },
+  "claims": [
+    {
+      "claim_id": "fit.video_segment_share.v0",
+      "panel": "fit",
+      "claim_type": "fit.video_segment_share",
+      "provenance_state": "show",
+      "value": {
+        "selected_videos": 15,
+        "fragrance_topical_videos": 15,
+        "creator_attention_window": "2026-06-19 to 2026-07-02 published videos, existing packets selected newest per video"
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#selected-corpus",
+        "docs/research/aphrodite_depth_rehearsal_round2_gentsscents_grade_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "15 selected GentsScents YouTube videos; parsed current pass totals 55,572 caption/transcript words and 552,859 total views.",
+        "Round-2 grade records 15/15 videos captured from caption + watch/comment packets."
+      ],
+      "confidence_or_abstention": "high for corpus membership; single-window limitation remains",
+      "reference_coords": [],
+      "limitations": "This is topical segment share for the selected corpus only, not roster-scale prevalence."
+    },
+    {
+      "claim_id": "fit.product_segment_presence.v0",
+      "panel": "fit",
+      "claim_type": "fit.product_segment_presence",
+      "provenance_state": "downgrade",
+      "value": {
+        "raw_product_mentions": 417,
+        "deduped_product_mentions": 415,
+        "distinct_products": 340,
+        "low_confidence_mentions": 55,
+        "top_resolved_products": [
+          {"product_id": "product:ysl.y-eau-de-parfum", "videos": 5, "attention_views": 199244, "share": "1.3%"},
+          {"product_id": "product:creed.aventus", "videos": 5, "attention_views": 183116, "share": "1.2%"},
+          {"product_id": "product:chanel.bleu-de-chanel", "videos": 5, "attention_views": 167049, "share": "1.1%"},
+          {"product_id": "product:dior.sauvage", "videos": 5, "attention_views": 167049, "share": "1.1%"},
+          {"product_id": "product:coach.coach-for-men", "videos": 3, "attention_views": 149248, "share": "0.9%"},
+          {"product_id": "product:jean-paul-gaultier.ultra-male", "videos": 4, "attention_views": 141980, "share": "0.9%"},
+          {"product_id": "product:paco-rabanne.invictus-parfum", "videos": 3, "attention_views": 141852, "share": "0.9%"},
+          {"product_id": "product:versace.pour-homme", "videos": 3, "attention_views": 130085, "share": "0.8%"}
+        ]
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md",
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#supporting-reads"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Round-2 SoV: 417 raw product mentions, 415 after intra-video dedupe, 340 distinct products, 55/417 low confidence.",
+        "Top rows copied from the round-2 SoV table; current raw keyword pass used only as cross-check."
+      ],
+      "confidence_or_abstention": "medium; downgrade because product extraction is a rehearsal research record, not a durable silver lane output",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml products.product:ysl.y-eau-de-parfum",
+        "fragrance_reference_v0.yaml products.product:creed.aventus",
+        "fragrance_reference_v0.yaml products.product:chanel.bleu-de-chanel",
+        "fragrance_reference_v0.yaml products.product:dior.sauvage",
+        "fragrance_reference_v0.yaml products.product:coach.coach-for-men",
+        "fragrance_reference_v0.yaml products.product:jean-paul-gaultier.ultra-male",
+        "fragrance_reference_v0.yaml products.product:paco-rabanne.invictus-parfum",
+        "fragrance_reference_v0.yaml products.product:versace.pour-homme"
+      ],
+      "limitations": "Low-confidence clone/niche tail is disclosed and excluded from stronger product-coordinate rollups. The round-2 SoV aggregate table is the deepest committed drill-back for these product counts; per-mention transcript receipts are not committed in this branch."
+    },
+    {
+      "claim_id": "fit.presence_attention_stance.v0",
+      "panel": "fit",
+      "claim_type": "fit.presence_attention_stance",
+      "provenance_state": "downgrade",
+      "value": {
+        "stance_mix": {"positive": 211, "neutral": 138, "negative": 20, "unclear": 48},
+        "buyer_originals": [
+          {"product_id": "product:creed.aventus", "videos": 5, "attention_views": 183116, "share": "1.2%"},
+          {"product_id": "product:dior.sauvage", "videos": 5, "attention_views": 167049, "share": "1.1%"}
+        ],
+        "interpretation": "Direct-original presence is real; stance resolution remains rehearsal-grade and diffuse."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Round-2 SoV stance mix: 211 positive / 138 neutral / 20 negative / 48 unclear.",
+        "Creed Aventus and Dior Sauvage each appear in 5-video official SoV aggregates."
+      ],
+      "confidence_or_abstention": "medium-low; stance is operator-coded rehearsal evidence",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml products.product:creed.aventus",
+        "fragrance_reference_v0.yaml products.product:dior.sauvage"
+      ],
+      "limitations": "Presence and attention are more reliable than stance; no score is emitted. Product attention and stance drill back to the committed round-2 SoV aggregate table, not to committed per-mention transcript receipts."
+    },
+    {
+      "claim_id": "fit.note_family_overlap.v0",
+      "panel": "fit",
+      "claim_type": "fit.note_family_overlap",
+      "provenance_state": "downgrade",
+      "value": {
+        "buyer_originals": {
+          "product:dior.sauvage": ["fresh", "spicy", "amber", "citrus", "aromatic", "musk", "woody"],
+          "product:creed.aventus": ["fruity", "sweet", "woody", "leather", "citrus"]
+        },
+        "note_family_chips": [
+          {"family": "fresh", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:versace.pour-homme"]},
+          {"family": "spicy", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:versace.pour-homme", "product:jean-paul-gaultier.ultra-male"]},
+          {"family": "amber", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men"]},
+          {"family": "citrus", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:creed.aventus", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:versace.pour-homme"]},
+          {"family": "aromatic", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:paco-rabanne.invictus-parfum", "product:versace.pour-homme", "product:jean-paul-gaultier.ultra-male"]},
+          {"family": "musk", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:paco-rabanne.invictus-parfum"]},
+          {"family": "woody", "state": "observed_with_aggregate_receipt_only", "basis": ["product:dior.sauvage", "product:creed.aventus", "product:ysl.y-eau-de-parfum", "product:chanel.bleu-de-chanel", "product:coach.coach-for-men", "product:paco-rabanne.invictus-parfum"]},
+          {"family": "fruity", "state": "observed_with_aggregate_receipt_only", "basis": ["product:creed.aventus", "product:ysl.y-eau-de-parfum", "product:coach.coach-for-men", "product:jean-paul-gaultier.ultra-male"]},
+          {"family": "sweet", "state": "observed_with_aggregate_receipt_only", "basis": ["product:creed.aventus", "product:jean-paul-gaultier.ultra-male"]},
+          {"family": "leather", "state": "observed_with_aggregate_receipt_only", "basis": ["product:creed.aventus"]}
+        ],
+        "withheld_families": [],
+        "interpretation": "Each buyer target note family is rendered explicitly. None are silently dropped; all are downgraded because the product-attention substrate drills back only to the round-2 SoV aggregate table in this branch."
+      },
+      "source_refs": [
+        "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Ontology: product:dior.sauvage note_families [fresh, spicy, amber, citrus, aromatic, musk, woody].",
+        "Ontology: product:creed.aventus note_families [fruity, sweet, woody, leather, citrus].",
+        "Top observed products include YSL Y EDP, Bleu de Chanel, Coach for Men, Invictus Parfum, Versace Pour Homme, and Ultra Male, all with ontology note_family rows."
+      ],
+      "confidence_or_abstention": "medium; all note facts are ontology-derived, but corpus product extraction is not durable runner output",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml vocabulary.note_families",
+        "fragrance_reference_v0.yaml products.product:dior.sauvage.note_families",
+        "fragrance_reference_v0.yaml products.product:creed.aventus.note_families",
+        "fragrance_reference_v0.yaml products.product:ysl.y-eau-de-parfum.note_families",
+        "fragrance_reference_v0.yaml products.product:chanel.bleu-de-chanel.note_families",
+        "fragrance_reference_v0.yaml products.product:coach.coach-for-men.note_families",
+        "fragrance_reference_v0.yaml products.product:paco-rabanne.invictus-parfum.note_families",
+        "fragrance_reference_v0.yaml products.product:versace.pour-homme.note_families",
+        "fragrance_reference_v0.yaml products.product:jean-paul-gaultier.ultra-male.note_families"
+      ],
+      "limitations": "This is coordinate overlap, not buyer conversion proof. Review AR-02 is closed by explicit chips; AR-01 remains a named aggregate-only provenance limitation until per-mention transcript receipts are committed."
+    },
+    {
+      "claim_id": "fit.tier_alignment.v0",
+      "panel": "fit",
+      "claim_type": "fit.tier_alignment",
+      "provenance_state": "downgrade",
+      "value": {
+        "scope": "top-8 resolved-product tier view and buyer-anchor tier comparison only; not the full attention-weighted/editorial six-tier distribution across all 340 distinct products",
+        "buyer_profile_tier": "clone-house or dupe-first buyer profile; buyer original anchors are niche and designer",
+        "direct_original_tiers": {"product:creed.aventus": "niche", "product:dior.sauvage": "designer"},
+        "top8_attention_weighted_tier_view": {
+          "designer": {"attention_views": 1096507, "top8_attention_share": "85.7%", "products": 7},
+          "niche": {"attention_views": 183116, "top8_attention_share": "14.3%", "products": 1},
+          "luxury": {"attention_views": 0, "top8_attention_share": "0.0%", "products": 0},
+          "creator-owned-dtc": {"attention_views": 0, "top8_attention_share": "0.0%", "products": 0},
+          "clone-house": {"attention_views": 0, "top8_attention_share": "0.0%", "products": 0},
+          "adjacent": {"attention_views": 0, "top8_attention_share": "0.0%", "products": 0}
+        },
+        "interpretation": "The creator has aggregate-table attention to the buyer's niche/designer originals and top-8 attention is mostly designer. This is not the ratified full-vocabulary tier distribution."
+      },
+      "source_refs": [
+        "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
+        "docs/research/aphrodite_recipe_v1_second_opinion_adjudication_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "M1 adjudication: tier facts under the adopted rubric may render show, but review AR-03 found this row narrower than the ratified full-vocabulary distribution.",
+        "Top-8 tier view from round-2 SoV aggregate rows: seven designer products sum to 1,096,507 attention views; Creed Aventus is one niche product with 183,116 attention views.",
+        "Ontology tier rows: product:creed.aventus tier niche; product:dior.sauvage tier designer."
+      ],
+      "confidence_or_abstention": "medium for top-8 tier view; downgraded because it is not the full 340-product six-tier distribution and drills back to aggregate SoV rows",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml vocabulary.tiers",
+        "fragrance_reference_v0.yaml products.product:creed.aventus.tier",
+        "fragrance_reference_v0.yaml products.product:dior.sauvage.tier",
+        "fragrance_reference_v0.yaml products.product:ysl.y-eau-de-parfum.tier",
+        "fragrance_reference_v0.yaml products.product:chanel.bleu-de-chanel.tier",
+        "fragrance_reference_v0.yaml products.product:coach.coach-for-men.tier",
+        "fragrance_reference_v0.yaml products.product:jean-paul-gaultier.ultra-male.tier",
+        "fragrance_reference_v0.yaml products.product:paco-rabanne.invictus-parfum.tier",
+        "fragrance_reference_v0.yaml products.product:versace.pour-homme.tier"
+      ],
+      "limitations": "Tier alignment is not a dupe-tail or purchase-intent claim. This patch closes AR-03 by narrowing the scope and downgrading the row; it does not create the full ratified tier distribution."
+    },
+    {
+      "claim_id": "fit.dupe_direct_original_attention.v0",
+      "panel": "fit",
+      "claim_type": "fit.dupe_direct_original_attention",
+      "provenance_state": "downgrade",
+      "value": {
+        "direct_originals": [
+          {"product_id": "product:creed.aventus", "videos": 5, "attention_views": 183116, "share": "1.2%"},
+          {"product_id": "product:dior.sauvage", "videos": 5, "attention_views": 167049, "share": "1.1%"}
+        ],
+        "interpretation": "The corpus supports aggregate-table direct-original attention to both buyer anchors."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md",
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#supporting-reads"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Official SoV aggregate: Creed Aventus 5 videos, 183,116 attention views, 1.2%.",
+        "Official SoV aggregate: Dior Sauvage 5 videos, 167,049 attention views, 1.1%."
+      ],
+      "confidence_or_abstention": "medium; downgraded because committed drill-back stops at aggregate SoV rows rather than per-mention transcript receipts",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml products.product:creed.aventus",
+        "fragrance_reference_v0.yaml products.product:dior.sauvage"
+      ],
+      "limitations": "Direct-original attention is not evidence of clone demand by itself. Per review AR-01, this row is aggregate-table supported until per-mention transcript receipts are recovered or re-derived."
+    },
+    {
+      "claim_id": "fit.dupe_clone_tail_attention.v0",
+      "panel": "fit",
+      "claim_type": "fit.dupe_clone_tail_attention",
+      "provenance_state": "withhold",
+      "value": null,
+      "source_refs": [
+        "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#supporting-reads"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Ontology row: dupe_relationships: []",
+        "Comment pass still sees 42 dupe request or clone comments with sum like_count 211, but the dupe graph is empty."
+      ],
+      "confidence_or_abstention": "insufficient_reference_graph",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml dupe_relationships"
+      ],
+      "limitations": "Dupe-space roll-up withheld: the ontology contains no citable dupe relationships for this capture/version. Direct original mentions are shown where available. This is not evidence of zero clone demand."
+    },
+    {
+      "claim_id": "fit.comparable_brand_baseline.v0",
+      "panel": "fit",
+      "claim_type": "fit.comparable_brand_baseline",
+      "provenance_state": "downgrade",
+      "value": {
+        "baseline_scope": "within selected corpus only",
+        "comparable_products": [
+          "product:ysl.y-eau-de-parfum",
+          "product:chanel.bleu-de-chanel",
+          "product:coach.coach-for-men",
+          "product:paco-rabanne.invictus-parfum",
+          "product:versace.pour-homme"
+        ],
+        "interpretation": "Comparable mainstream-designer attention exists in the window, but it is not an organic or historical baseline."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Round-2 SoV top comparable rows include YSL Y EDP, Bleu de Chanel, Coach for Men, Invictus Parfum, and Versace Pour Homme.",
+        "Within-corpus baselines are accepted by M4 when denominator and allocation are disclosed."
+      ],
+      "confidence_or_abstention": "medium-low; baseline is within-corpus and affiliate-heavy",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml products.product:ysl.y-eau-de-parfum",
+        "fragrance_reference_v0.yaml products.product:chanel.bleu-de-chanel",
+        "fragrance_reference_v0.yaml products.product:coach.coach-for-men",
+        "fragrance_reference_v0.yaml products.product:paco-rabanne.invictus-parfum",
+        "fragrance_reference_v0.yaml products.product:versace.pour-homme"
+      ],
+      "limitations": "No cross-cycle creator baseline and no clean unpaid comparator. Comparable-product rows drill back to the committed round-2 SoV aggregate table, not to committed per-mention transcript receipts."
+    },
+    {
+      "claim_id": "fit.attention_concentration.v0",
+      "panel": "fit",
+      "claim_type": "fit.attention_concentration",
+      "provenance_state": "downgrade",
+      "value": {
+        "distinct_products": 340,
+        "long_tail_share": "85% of distinct products appear in only one video",
+        "top_attention_share": "Top single product YSL Y EDP is 1.3% attention share",
+        "interpretation": "Attention is diffuse, not concentrated around a small buyer-tail set."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Round-2 SoV: 340 distinct products; 85% only one video; top product YSL Y EDP 1.3%."
+      ],
+      "confidence_or_abstention": "medium-low; denominator disclosed but committed drill-back stops at aggregate SoV rows",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml products.product:ysl.y-eau-de-parfum"
+      ],
+      "limitations": "Concentration is within-window only and aggregate-table supported. It should not be read as per-mention drill-back until SoV receipts are committed."
+    },
+    {
+      "claim_id": "fit.niche_share_trajectory.v0",
+      "panel": "fit",
+      "claim_type": "fit.niche_share_trajectory",
+      "provenance_state": "withhold",
+      "value": null,
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "The corpus is a single capture cycle; trajectory needs at least two cycles."
+      ],
+      "confidence_or_abstention": "insufficient_time_axis",
+      "reference_coords": [],
+      "limitations": "No trend is inferred."
+    },
+    {
+      "claim_id": "fit.unresolved_product_mentions.v0",
+      "panel": "fit",
+      "claim_type": "fit.unresolved_product_mentions",
+      "provenance_state": "downgrade",
+      "value": {
+        "low_confidence_mentions": 55,
+        "raw_product_mentions": 417,
+        "low_confidence_share": "about 13%",
+        "tail_description": "mostly clone/niche tail"
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Round-2 SoV: 55/417 low-confidence mentions, mostly clone/niche tail."
+      ],
+      "confidence_or_abstention": "medium for count; product-coordinate claims based on this tail are downgraded or withheld",
+      "reference_coords": [],
+      "limitations": "The unresolved tail is disclosed because it matters to a clone-house buyer. The count drills back to the committed SoV aggregate record, not a committed per-mention appendix."
+    },
+    {
+      "claim_id": "ad.video_disclosure_class.v0",
+      "panel": "ad_reception",
+      "claim_type": "ad.video_disclosure_class",
+      "provenance_state": "show",
+      "value": {
+        "affiliate_or_link_bearing_videos": 15,
+        "paid_content_overlay_count": 0,
+        "organic_proof": "not established"
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_gentsscents_grade_v0.md",
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Round-2 grade: 85 affiliate links across 15 videos.",
+        "Current raw parse confirms 15/15 videos contain links; paid overlay count not observed."
+      ],
+      "confidence_or_abstention": "medium-high for link-bearing class",
+      "reference_coords": [],
+      "limitations": "Link-bearing does not prove paid sponsorship or absence of sponsorship."
+    },
+    {
+      "claim_id": "ad.affiliate_link_inventory.v0",
+      "panel": "ad_reception",
+      "claim_type": "ad.affiliate_link_inventory",
+      "provenance_state": "show",
+      "value": {
+        "affiliate_links_round2_exact": 85,
+        "link_bearing_videos": 15,
+        "selected_videos": 15
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_gentsscents_grade_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Round-2 grade records 85 affiliate links.",
+        "Current pass treats the crude URL regex as non-binding because it over-counted malformed snippets."
+      ],
+      "confidence_or_abstention": "medium-high for round-2 exact inventory",
+      "reference_coords": [],
+      "limitations": "No domain-level commercial classification is attempted in this record."
+    },
+    {
+      "claim_id": "ad.load_mix.v0",
+      "panel": "ad_reception",
+      "claim_type": "ad.load_mix",
+      "provenance_state": "show",
+      "value": {
+        "commercial_density": "15/15 selected videos are link-bearing",
+        "class_mix": "affiliate-heavy; no clean all-organic comparator inside the selected set",
+        "interpretation": "The window is commercially dense enough that ad reception must be read as affiliate-context reception, not organic baseline."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_gentsscents_grade_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Round-2 grade records 15/15 videos and 85 affiliate links."
+      ],
+      "confidence_or_abstention": "medium",
+      "reference_coords": [],
+      "limitations": "Commercial density is not sponsorship detection."
+    },
+    {
+      "claim_id": "ad.matched_reception_pair.v0",
+      "panel": "ad_reception",
+      "claim_type": "ad.matched_reception_pair",
+      "provenance_state": "withhold",
+      "value": null,
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "All 15 selected videos are link-bearing; no matched non-link organic pair is available in the bounded corpus."
+      ],
+      "confidence_or_abstention": "insufficient_comparator",
+      "reference_coords": [],
+      "limitations": "No matched-pair delta is fabricated."
+    },
+    {
+      "claim_id": "ad.reception_delta.v0",
+      "panel": "ad_reception",
+      "claim_type": "ad.reception_delta",
+      "provenance_state": "downgrade",
+      "value": {
+        "view_range": "20,653 to 64,827",
+        "total_views": 552859,
+        "total_likes": 26305,
+        "interpretation": "Engagement exists across affiliate-heavy videos, but commercial-class reception delta is confounded without an organic comparator."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Corpus read summary: 552,859 total views, 26,305 total likes.",
+        "Selected video views range from 20,653 to 64,827."
+      ],
+      "confidence_or_abstention": "low for delta; medium for observed engagement totals",
+      "reference_coords": [],
+      "limitations": "No sponsored-vs-organic or affiliate-vs-organic delta is claimed."
+    },
+    {
+      "claim_id": "ad.comment_texture_by_class.v0",
+      "panel": "ad_reception",
+      "claim_type": "ad.comment_texture_by_class",
+      "provenance_state": "downgrade",
+      "value": {
+        "commercial_class": "affiliate-heavy selected corpus",
+        "purchase_or_bought_comments": 36,
+        "dupe_request_or_clone_comments": 42,
+        "price_objection_comments": 9,
+        "interpretation": "Audience comments include buying, dupe, and price texture under link-bearing videos, but class-specific comparison is unavailable."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#supporting-reads"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Comment keyword pass: bought/bought-because 36 comments, sum like_count 264; dupe request or clone 42, sum like_count 211; price objection 9, sum like_count 61."
+      ],
+      "confidence_or_abstention": "medium for texture; low for class comparison",
+      "reference_coords": [],
+      "limitations": "Visible/top-sort comments only; not full-audience prevalence."
+    },
+    {
+      "claim_id": "intent.product_resolved_counts.v0",
+      "panel": "purchase_intent",
+      "claim_type": "intent.product_resolved_counts",
+      "provenance_state": "downgrade",
+      "value": {
+        "product_binding_status": "sample-limited and not durable-lane",
+        "examples": [
+          "Reflection Man future-buy comment",
+          "Raees Luxury Edition bought comment",
+          "Acqua Di Gio Profondo EDP clone request"
+        ]
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#supporting-reads"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "eH93HPAWucE comment 9: \"Reflection man is on my list to eventually get. One day!\"",
+        "q0oiKqeghks comment 4: \"I purchased Raees Luxury edition the day I saw this video and it was in stock and shipped already.\"",
+        "m-cJ9GVzzbc comment 4: \"Rasasi should make a solid Acqua Di Gio Profondo EDP clone Hawas version\""
+      ],
+      "confidence_or_abstention": "low-medium; product binding examples are real but not exhaustive",
+      "reference_coords": [],
+      "limitations": "No product-resolved intent table is claimed for all comments."
+    },
+    {
+      "claim_id": "intent.engagement_weighted_support.v0",
+      "panel": "purchase_intent",
+      "claim_type": "intent.engagement_weighted_support",
+      "provenance_state": "show",
+      "value": {
+        "future_buy_watchlist": {"raw_comments": 23, "sum_like_count": 130},
+        "bought_or_bought_because": {"raw_comments": 36, "sum_like_count": 264},
+        "dupe_request_or_clone": {"raw_comments": 42, "sum_like_count": 211},
+        "comparison_shopping": {"raw_comments": 15, "sum_like_count": 104},
+        "price_objection": {"raw_comments": 9, "sum_like_count": 61},
+        "where_to_buy": {"raw_comments": 3, "sum_like_count": 8},
+        "blended_scalar": null
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#supporting-reads",
+        "docs/research/aphrodite_recipe_v1_second_opinion_adjudication_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "M2 adjudication forbids blended liked_support; raw count and sum(like_count) stay separate.",
+        "Corpus comment keyword pass supplies raw counts and sum_like_count by texture bucket."
+      ],
+      "confidence_or_abstention": "medium for bucket counts; no blended score emitted",
+      "reference_coords": [],
+      "limitations": "Keyword buckets may include false positives and are visible-comment limited."
+    },
+    {
+      "claim_id": "intent.aggregate_texture_unresolved.v0",
+      "panel": "purchase_intent",
+      "claim_type": "intent.aggregate_texture_unresolved",
+      "provenance_state": "show",
+      "value": {
+        "texture": "Visible comments contain future-buy, bought, dupe/clone, comparison-shopping, and price-objection language even when not safely product-resolved.",
+        "buyer_relevance": "This is materially relevant to a skeptical dupe-first buyer, but not enough for product-specific conversion claims."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#supporting-reads"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Comment pass buckets: future-buy 23, bought 36, dupe/clone 42, comparison 15, price objection 9."
+      ],
+      "confidence_or_abstention": "medium",
+      "reference_coords": [],
+      "limitations": "Aggregate texture is not product-resolved purchase intent."
+    },
+    {
+      "claim_id": "intent.sample_limitation.v0",
+      "panel": "purchase_intent",
+      "claim_type": "intent.sample_limitation",
+      "provenance_state": "show",
+      "value": {
+        "visible_comments_current_parse": 600,
+        "round2_comment_count": 591,
+        "limitation": "Visible/top-sort comment sample only; moderation and full-thread depth are not observed."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#corpus-hash-and-read-summary"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Current pass parsed 600 visible comments; round-2 record counted 591 comments."
+      ],
+      "confidence_or_abstention": "high for limitation",
+      "reference_coords": [],
+      "limitations": "The mismatch is disclosed and travels with intent claims."
+    },
+    {
+      "claim_id": "adj.organic_brand_product_presence.v0",
+      "panel": "brand_adjacency",
+      "claim_type": "adj.organic_brand_product_presence",
+      "provenance_state": "downgrade",
+      "value": {
+        "adjacent_products_present": [
+          "product:creed.aventus",
+          "product:dior.sauvage",
+          "product:chanel.bleu-de-chanel",
+          "product:ysl.y-eau-de-parfum"
+        ],
+        "organic_status": "not proven because all selected videos are link-bearing"
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md",
+        "docs/research/aphrodite_depth_rehearsal_round2_gentsscents_grade_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Top SoV rows include Aventus, Sauvage, Bleu de Chanel, and YSL Y EDP.",
+        "Round-2 grade: 85 affiliate links across 15 videos."
+      ],
+      "confidence_or_abstention": "medium for presence; low for organic posture",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml products.product:creed.aventus",
+        "fragrance_reference_v0.yaml products.product:dior.sauvage",
+        "fragrance_reference_v0.yaml products.product:chanel.bleu-de-chanel",
+        "fragrance_reference_v0.yaml products.product:ysl.y-eau-de-parfum"
+      ],
+      "limitations": "Presence is not organic proof."
+    },
+    {
+      "claim_id": "adj.similarity_to_buyer_coordinates.v0",
+      "panel": "brand_adjacency",
+      "claim_type": "adj.similarity_to_buyer_coordinates",
+      "provenance_state": "downgrade",
+      "value": {
+        "similarity_basis": ["tier", "note_family", "direct-original attention"],
+        "interpretation": "GentsScents is adjacent to the buyer's original-reference space, but not yet to citable clone-house demand."
+      },
+      "source_refs": [
+        "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Ontology tiers and note families exist for Aventus, Sauvage, YSL Y EDP, Bleu de Chanel, Coach for Men, Invictus Parfum, Versace Pour Homme, and Ultra Male.",
+        "Dupe relationships are empty, so clone-house similarity cannot be graph-derived."
+      ],
+      "confidence_or_abstention": "medium-low",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml vocabulary.tiers",
+        "fragrance_reference_v0.yaml vocabulary.note_families",
+        "fragrance_reference_v0.yaml dupe_relationships"
+      ],
+      "limitations": "Coordinates are reference-derived; commercial fit is still unproven."
+    },
+    {
+      "claim_id": "adj.organic_attention_stance.v0",
+      "panel": "brand_adjacency",
+      "claim_type": "adj.organic_attention_stance",
+      "provenance_state": "withhold",
+      "value": null,
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_gentsscents_grade_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "All selected videos are link-bearing; no clean unpaid subset is established."
+      ],
+      "confidence_or_abstention": "insufficient_organic_classification",
+      "reference_coords": [],
+      "limitations": "Organic attention/stance is not inferred from affiliate-heavy content."
+    },
+    {
+      "claim_id": "adj.comparable_brand_baseline.v0",
+      "panel": "brand_adjacency",
+      "claim_type": "adj.comparable_brand_baseline",
+      "provenance_state": "downgrade",
+      "value": {
+        "within_window_comparables": [
+          "product:ysl.y-eau-de-parfum",
+          "product:chanel.bleu-de-chanel",
+          "product:coach.coach-for-men",
+          "product:paco-rabanne.invictus-parfum",
+          "product:versace.pour-homme"
+        ],
+        "interpretation": "Comparable product attention can be projected, but the baseline is same-window and affiliate-heavy."
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Top comparable rows from round-2 SoV: YSL Y EDP, Bleu de Chanel, Coach for Men, Invictus Parfum, Versace Pour Homme."
+      ],
+      "confidence_or_abstention": "medium-low",
+      "reference_coords": [
+        "fragrance_reference_v0.yaml products.product:ysl.y-eau-de-parfum",
+        "fragrance_reference_v0.yaml products.product:chanel.bleu-de-chanel",
+        "fragrance_reference_v0.yaml products.product:coach.coach-for-men",
+        "fragrance_reference_v0.yaml products.product:paco-rabanne.invictus-parfum",
+        "fragrance_reference_v0.yaml products.product:versace.pour-homme"
+      ],
+      "limitations": "No historical creator baseline and no organic-only baseline."
+    },
+    {
+      "claim_id": "momentum.capture_window_state.v0",
+      "panel": "momentum",
+      "claim_type": "momentum.capture_window_state",
+      "provenance_state": "show",
+      "value": {
+        "video_count": 15,
+        "publish_window": "2026-06-19 to 2026-07-02",
+        "capture_posture": "existing packet read; newest packet pair per video",
+        "cycle_count": 1
+      },
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#selected-corpus"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Corpus selected 15 videos with existing watch/caption packets; round-2 grade describes capture through early July 2026."
+      ],
+      "confidence_or_abstention": "high for window state",
+      "reference_coords": [],
+      "limitations": "Window state is not momentum."
+    },
+    {
+      "claim_id": "momentum.view_engagement_moving_average.v0",
+      "panel": "momentum",
+      "claim_type": "momentum.view_engagement_moving_average",
+      "provenance_state": "withhold",
+      "value": null,
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Only one capture cycle is available."
+      ],
+      "confidence_or_abstention": "insufficient_time_axis",
+      "reference_coords": [],
+      "limitations": "Moving average requires at least two cycles."
+    },
+    {
+      "claim_id": "momentum.follower_delta.v0",
+      "panel": "momentum",
+      "claim_type": "momentum.follower_delta",
+      "provenance_state": "withhold",
+      "value": null,
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "This rehearsal did not run a follower registry/current-view projection and has one observation window."
+      ],
+      "confidence_or_abstention": "insufficient_observations",
+      "reference_coords": [],
+      "limitations": "No follower delta is inferred."
+    },
+    {
+      "claim_id": "momentum.breakout_frequency.v0",
+      "panel": "momentum",
+      "claim_type": "momentum.breakout_frequency",
+      "provenance_state": "withhold",
+      "value": null,
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "No historical baseline or multi-cycle breakout denominator was assembled."
+      ],
+      "confidence_or_abstention": "insufficient_baseline",
+      "reference_coords": [],
+      "limitations": "No breakout frequency is inferred."
+    },
+    {
+      "claim_id": "momentum.fit_relevant_participation.v0",
+      "panel": "momentum",
+      "claim_type": "momentum.fit_relevant_participation",
+      "provenance_state": "withhold",
+      "value": null,
+      "source_refs": [
+        "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md",
+        "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
+      ],
+      "extraction_model": "gpt-5-codex operator-run in-session",
+      "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1",
+      "input_content_hash": "6fce3584d0bf057d306861c85ea90d0d02d13d0e0517c07d1937322871755f2f",
+      "extraction_timestamp": "2026-07-05T03:10:10.7702653+08:00",
+      "receipt": [
+        "Fit-relevant product and intent signals exist in the selected window, but repeated participation over time needs another cycle."
+      ],
+      "confidence_or_abstention": "insufficient_time_axis",
+      "reference_coords": [],
+      "limitations": "No repeated-participation trend is inferred."
+    }
+  ],
+  "non_claims": [
+    "not validation, readiness, D-1 passage, buyer proof, or commercial-use clearance",
+    "not a durable extractor, API run, silver-lane mutation, standing crawler, or data-lake schema",
+    "no score is emitted; panels must be read as evidence posture, not numeric ranking",
+    "same-vendor review cannot satisfy D-1 criterion 5"
+  ]
+}

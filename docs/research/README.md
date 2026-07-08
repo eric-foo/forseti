@@ -22,4 +22,5 @@ Do not use this folder for implementation, automation, scraping tools, datasets,
 - `docs/research/judgment-spine/`: Judgment Spine parent contract, harness specs, case indexes, and case-learning artifacts.
 - `docs/research/packing-phase/`: initial boundary note for turning cleaned evidence into judgment-ready packet artifacts without absorbing Cleaning or Judgment Harness responsibilities.
 - `docs/research/daimler_advisory_001/` (plus the loose `daimler_advisory_001_*.md` files): Daimler advisory-run 001 source-capture research — source registry, official/legal provenance core, source-fanout consolidation, and source-body capture receipts.
+- Aphrodite D-1 depth rehearsal bundle: start at `docs/research/aphrodite_depth_rehearsal_extraction_recipe_v1.md`, then open `docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md` and `docs/research/aphrodite_depth_rehearsal_d1_gentsscents_claims_v0.json`; evidence lane only, not validation/readiness/buyer proof.
 - Loose `data_capture_spine_pressure_test_batch_synthesis_n2of3_v0.md` and `..._n3of3_v0.md`: Data Capture Spine pressure-test batch-synthesis outputs (loose files pending folder triage).

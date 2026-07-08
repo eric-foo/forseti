@@ -1,0 +1,1372 @@
+{
+  "access_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+  },
+  "actor_audience_context": {
+    "reason": null,
+    "status": "known",
+    "value": "public creator profile; logged-out capture; internal creator-monitoring calibration"
+  },
+  "archive_history_posture": {
+    "reason": "IG reels-grid runner does not query archive or history services",
+    "status": "not_attempted",
+    "value": null
+  },
+  "capture_context": {
+    "reason": null,
+    "status": "known",
+    "value": "logged-out IG public /reels/ grid capture; one page load; no hover/click/item-page fan-out; passive page-load JSON preserved when observed"
+  },
+  "capture_mode": "automated extraction",
+  "cold_start_at": null,
+  "intended_cadence": null,
+  "limitations": [
+    "heavy_asset_blocking_enabled: image/media/font requests aborted to reduce bandwidth; scripts and JSON/XHR left intact; content sufficiency not asserted"
+  ],
+  "manifest_version": "source_capture_packet_manifest_v1",
+  "media_modality_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+  },
+  "obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
+  "operator_category": "ig_reels_grid_cli_operator",
+  "packet_id": "01KVZGJWQN8YGZQGAGA2S2CQPV",
+  "pre_coverage_history_posture": null,
+  "preserved_files": [
+    {
+      "file_id": "file_01",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\_scratch\\ig_reels_grid_capture.json",
+      "relative_packet_path": "raw/01_ig_reels_grid_capture.json",
+      "sha256": "1d782de486a63d41bf4dc4f5143cc1269f0ce04dba669f0bc6156566fe27f700",
+      "size_bytes": 974652
+    }
+  ],
+  "re_capture_relationship": {
+    "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+    "status": "not_applicable",
+    "value": null
+  },
+  "receipt_metadata": {
+    "generated_at": "2026-06-25T13:47:49Z",
+    "non_claims": [
+      "not content sufficiency proof",
+      "not login or session capture",
+      "not stored profile or cookie use",
+      "not anti-detect behavior",
+      "not proxy endpoint or credential disclosure",
+      "not proxy exit IP disclosure",
+      "not CAPTCHA solving",
+      "not crawler or scheduled monitoring",
+      "not item-page fan-out",
+      "not comment text capture",
+      "not full-history backfill",
+      "not static/main-grid comparison capture",
+      "not full momentum curve",
+      "not projection fold",
+      "not media byte preservation",
+      "not API SDK use",
+      "not ECR design",
+      "not Cleaning implementation",
+      "not Judgment scoring",
+      "not buyer proof",
+      "not commercial-readiness logic"
+    ],
+    "summary": "IG reels-grid packet for https://www.instagram.com/jeremyfragrance/reels/: 12 DOM row(s), 30 passive JSON media candidate(s), 12 observed view_count metric(s); no item pages visited.",
+    "title": "Source Capture Packet Receipt"
+  },
+  "requested_decision_context": {
+    "reason": null,
+    "status": "known",
+    "value": "reels-tab pin positive validation (clips_tab_pinned + grid recency inversion) 2026-06-25"
+  },
+  "series_id": null,
+  "session_identity": "01KVZGJWQNQKP9F7X2FKJBG9DA",
+  "source_family": "instagram_creator",
+  "source_locator": {
+    "reason": null,
+    "status": "known",
+    "value": "https://www.instagram.com/jeremyfragrance/reels/"
+  },
+  "source_slices": [
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reels/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "follower_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 3098999
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_profile_00",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": "profile grid slice is the enumeration source, not a dated post",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DaAeRVdsQlf/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 6957
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 30
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 8
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_01",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T11:37:29Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DaAeNnDsNPq/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 6164
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 24
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 6
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_02",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T11:36:54Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DaAdoXnsBMC/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 12131
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 132
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 22
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_03",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T11:31:26Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DaAdlpksq-Q/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 6971
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 63
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 6
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_04",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T11:30:46Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DaALKgOsWn0/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 39819
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 691
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 42
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_05",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T08:50:16Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DaAK1n4Mr6j/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 12329
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 72
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 4
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_06",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T08:49:34Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DaAKzI9s8mV/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 8050
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 50
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 6
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_07",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T08:48:35Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DaAKEe9sN58/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 6017
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 37
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 1
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_08",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T08:43:49Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DaAJ301shXX/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 6116
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 46
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 3
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_09",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T08:38:07Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DZ-iopXM56S/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 203844
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 2205
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 239
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_10",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-24T17:36:41Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DZ9-OODsknC/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 45494
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 2452
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 70
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_11",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-24T12:18:46Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/jeremyfragrance/reel/DZ99DF1sB1T/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 775551
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 8735
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:47:49Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 258
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_12",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:47:49Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-24T12:07:49Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    }
+  ],
+  "source_surface": "ig_reels_grid_dom_passive_json",
+  "timing": {
+    "archive_snapshot_time": null,
+    "capture_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2026-06-25T13:47:49Z"
+    },
+    "cutoff_posture": {
+      "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+      "status": "unknown_with_reason",
+      "value": null
+    },
+    "recapture_time": {
+      "reason": "IG reels-grid packet does not model an earlier capture by default",
+      "status": "not_applicable",
+      "value": null
+    },
+    "source_edit_or_version": {
+      "reason": "IG reels-grid runner did not infer source edit/version timing",
+      "status": "unknown_with_reason",
+      "value": null
+    },
+    "source_publication_or_event": {
+      "reason": "profile grid slice is the enumeration source, not a dated post",
+      "status": "unknown_with_reason",
+      "value": null
+    }
+  },
+  "visible_mode_changes": [
+    "ig_reels_grid_no_item_fanout:rows=12:json_candidates=30:passive_json=5",
+    "ig_reels_grid_metrics:views=12:likes=12:comments=12",
+    "ig_reels_grid_bandwidth_mode:block_heavy_assets"
+  ],
+  "warnings": []
+}

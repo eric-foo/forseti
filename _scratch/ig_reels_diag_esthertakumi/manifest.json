@@ -1,0 +1,1372 @@
+{
+  "access_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+  },
+  "actor_audience_context": {
+    "reason": null,
+    "status": "known",
+    "value": "public creator profile; logged-out capture; internal creator-monitoring calibration"
+  },
+  "archive_history_posture": {
+    "reason": "IG reels-grid runner does not query archive or history services",
+    "status": "not_attempted",
+    "value": null
+  },
+  "capture_context": {
+    "reason": null,
+    "status": "known",
+    "value": "logged-out IG public /reels/ grid capture; one page load; no hover/click/item-page fan-out; passive page-load JSON preserved when observed"
+  },
+  "capture_mode": "automated extraction",
+  "cold_start_at": null,
+  "intended_cadence": null,
+  "limitations": [
+    "heavy_asset_blocking_enabled: image/media/font requests aborted to reduce bandwidth; scripts and JSON/XHR left intact; content sufficiency not asserted"
+  ],
+  "manifest_version": "source_capture_packet_manifest_v1",
+  "media_modality_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+  },
+  "obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
+  "operator_category": "ig_reels_grid_cli_operator",
+  "packet_id": "01KVZF02BWJEFC3CH1JH97CPKQ",
+  "pre_coverage_history_posture": null,
+  "preserved_files": [
+    {
+      "file_id": "file_01",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\_scratch\\ig_reels_grid_capture.json",
+      "relative_packet_path": "raw/01_ig_reels_grid_capture.json",
+      "sha256": "38805ac55b9f9790f7791b07c3efde31810bb91ae06b6a79a273dd66bf408e83",
+      "size_bytes": 1049671
+    }
+  ],
+  "re_capture_relationship": {
+    "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+    "status": "not_applicable",
+    "value": null
+  },
+  "receipt_metadata": {
+    "generated_at": "2026-06-25T13:20:04Z",
+    "non_claims": [
+      "not content sufficiency proof",
+      "not login or session capture",
+      "not stored profile or cookie use",
+      "not anti-detect behavior",
+      "not proxy endpoint or credential disclosure",
+      "not proxy exit IP disclosure",
+      "not CAPTCHA solving",
+      "not crawler or scheduled monitoring",
+      "not item-page fan-out",
+      "not comment text capture",
+      "not full-history backfill",
+      "not static/main-grid comparison capture",
+      "not full momentum curve",
+      "not projection fold",
+      "not media byte preservation",
+      "not API SDK use",
+      "not ECR design",
+      "not Cleaning implementation",
+      "not Judgment scoring",
+      "not buyer proof",
+      "not commercial-readiness logic"
+    ],
+    "summary": "IG reels-grid packet for https://www.instagram.com/esthertakumi/reels/: 12 DOM row(s), 36 passive JSON media candidate(s), 12 observed view_count metric(s); no item pages visited.",
+    "title": "Source Capture Packet Receipt"
+  },
+  "requested_decision_context": {
+    "reason": null,
+    "status": "known",
+    "value": "diagnostic: join-yield cause + pinned recency-inversion validation (2026-06-25)"
+  },
+  "series_id": null,
+  "session_identity": "01KVZF02BW7H0KFHMZWWXQ8J98",
+  "source_family": "instagram_creator",
+  "source_locator": {
+    "reason": null,
+    "status": "known",
+    "value": "https://www.instagram.com/esthertakumi/reels/"
+  },
+  "source_slices": [
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reels/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "follower_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 91397
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_profile_00",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": "profile grid slice is the enumeration source, not a dated post",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZ7g5BeT55U/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 26951
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 3004
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 20
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_01",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-23T13:23:58Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZ43grOzi5c/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 49235
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 5231
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 34
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_02",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-22T12:43:11Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZzrgBuTXnt/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 13658
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 1598
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 27
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_03",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-20T12:22:18Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZsAW5pzVOz/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 48449
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 5175
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 24
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_04",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-17T12:49:50Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZmzUDrzqSq/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 9962
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 1170
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 13
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_05",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-15T12:20:25Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZkX188z5Cp/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 11611
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 1326
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 17
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_06",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-14T13:42:07Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZhvq3yT3ed/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 37604
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 3689
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 19
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_07",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-13T13:11:41Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZfJC50zDXB/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 9639
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 1053
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 9
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_08",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-12T12:56:35Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZcmh0tzgMM/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 13797
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 1421
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 10
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_09",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-11T13:17:05Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZaFioWzj9K/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 10340
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 1291
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 17
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_10",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-10T13:49:40Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZU34MZToDI/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 16424
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 1846
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 12
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_11",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-08T13:13:23Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "ig_logged_out_reels_grid_browser_capture; public DOM and passive page-load JSON"
+      },
+      "archive_history_posture": {
+        "reason": "IG reels-grid runner does not query archive or history services",
+        "status": "not_attempted",
+        "value": null
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://www.instagram.com/esthertakumi/reel/DZNBWwOyR_x/"
+      },
+      "media_modality_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "DOM media-anchor text and passive JSON metadata preserved; raw media bytes are out of scope"
+      },
+      "metric_observations": [
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "view_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 12688
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "like_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 1628
+        },
+        {
+          "coverage_window": {
+            "end": "2026-06-25T13:20:04Z",
+            "start": null
+          },
+          "metric": "comment_count",
+          "posture": "observed",
+          "reason": null,
+          "value": 13
+        }
+      ],
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this IG reels-grid capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "ig_reels_grid_12",
+      "timing": {
+        "archive_snapshot_time": null,
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-25T13:20:04Z"
+        },
+        "cutoff_posture": {
+          "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "recapture_time": {
+          "reason": "IG reels-grid packet does not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": "IG reels-grid runner did not infer source edit/version timing",
+          "status": "unknown_with_reason",
+          "value": null
+        },
+        "source_publication_or_event": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-05T12:01:03Z"
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    }
+  ],
+  "source_surface": "ig_reels_grid_dom_passive_json",
+  "timing": {
+    "archive_snapshot_time": null,
+    "capture_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2026-06-25T13:20:04Z"
+    },
+    "cutoff_posture": {
+      "reason": "IG reels-grid runner did not receive cutoff posture metadata",
+      "status": "unknown_with_reason",
+      "value": null
+    },
+    "recapture_time": {
+      "reason": "IG reels-grid packet does not model an earlier capture by default",
+      "status": "not_applicable",
+      "value": null
+    },
+    "source_edit_or_version": {
+      "reason": "IG reels-grid runner did not infer source edit/version timing",
+      "status": "unknown_with_reason",
+      "value": null
+    },
+    "source_publication_or_event": {
+      "reason": "profile grid slice is the enumeration source, not a dated post",
+      "status": "unknown_with_reason",
+      "value": null
+    }
+  },
+  "visible_mode_changes": [
+    "ig_reels_grid_no_item_fanout:rows=12:json_candidates=36:passive_json=5",
+    "ig_reels_grid_metrics:views=12:likes=12:comments=12",
+    "ig_reels_grid_bandwidth_mode:block_heavy_assets"
+  ],
+  "warnings": []
+}
