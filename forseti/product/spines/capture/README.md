@@ -11,7 +11,7 @@ scope: >
 use_when:
   - Starting any Capture-lane task cold.
   - Finding which Capture layer or owner doc owns a capture question before source-access, packet, armory, source-family, or demand-durability work.
-  - Deciding whether a task is acquisition (Capture) or downstream provenance/cleaning/judgment (ECR / Cleaning / Judgment).
+  - Deciding whether a task is acquisition (Capture-side) or downstream provenance/cleaning/judgment (ECR / Cleaning / Judgment).
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
