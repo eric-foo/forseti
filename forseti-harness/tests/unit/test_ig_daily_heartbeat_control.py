@@ -216,6 +216,69 @@ def test_run_session_writes_roster_skips_terminal_attempts_and_appends_outcomes(
     assert summary["duplicate_prevented_count"] == 1
     assert summary["succeeded_count"] == 1
 
+
+def test_run_session_matches_receipt_by_partition_key_when_handle_differs(tmp_path: Path) -> None:
+    day_dir = control.day_directory(tmp_path / "lake", "2026-07-09")
+    _write_json(
+        day_dir / "daily_plan.json",
+        {
+            "schema_version": control.PLAN_SCHEMA_VERSION,
+            "run_control_version": control.RUN_CONTROL_VERSION,
+            "plan_id": "plan_key_match",
+            "plan_date": "2026-07-09",
+            "bucket_count": 4,
+            "creators": [
+                {
+                    "platform": "instagram",
+                    "platform_account_id": "acct_one",
+                    "creator_record_id": "creator_one",
+                    "handle": "one",
+                    "monitoring_status_at_plan": "active",
+                    "cadence_at_plan": "daily",
+                    "stable_partition_key": "platform_account_id:acct_one",
+                    "partition_key_source": "platform_account_id",
+                    "bucket": 1,
+                }
+            ],
+        },
+    )
+
+    def fake_heartbeat_runner(**kwargs: object) -> _FakeHeartbeatResult:
+        receipt_path = Path(kwargs["receipt_jsonl"])
+        receipt_path.write_text(
+            json.dumps(
+                {
+                    "run_id": "run_key",
+                    "status": "succeeded",
+                    "partition_key": "platform_account_id:acct_one",
+                    "creator": {"handle": "@ONE"},
+                    "packet_pointer": "packet_one",
+                },
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        return _FakeHeartbeatResult()
+
+    result = control.run_session(
+        run_control_root=tmp_path / "lake",
+        plan_date="2026-07-09",
+        bucket=1,
+        lane_id="lane_1",
+        lane_count=1,
+        output_root=tmp_path / "packets",
+        heartbeat_runner=fake_heartbeat_runner,
+        session_id="session_key",
+        now_func=lambda: "2026-07-09T02:00:00Z",
+    )
+
+    attempts = _read_jsonl(result.attempts_path)
+    assert [row["attempt_status"] for row in attempts] == ["leased", "started", "succeeded"]
+    assert attempts[-1]["stable_partition_key"] == "platform_account_id:acct_one"
+    summary = _read_json(result.session_summary_path)
+    assert summary["succeeded_count"] == 1
+
 def test_run_session_leases_only_requested_lane_within_bucket(tmp_path: Path) -> None:
     lane_one = _planned_row_for_lane("lane_1", "lane_one")
     lane_two = _planned_row_for_lane("lane_2", "lane_two")

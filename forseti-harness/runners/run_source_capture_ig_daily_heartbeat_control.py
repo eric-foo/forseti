@@ -330,13 +330,20 @@ def run_session(
             block_heavy_assets=not allow_heavy_assets,
         )
         receipts = read_jsonl(receipt_jsonl)
+        plan_by_key = {str(row["stable_partition_key"]): row for row in selected_rows}
         plan_by_handle = {str(row["handle"]).lower(): row for row in selected_rows}
         for receipt in receipts:
-            creator = receipt.get("creator") if isinstance(receipt, dict) else None
-            handle = _optional_string(creator.get("handle") if isinstance(creator, dict) else None)
-            if handle is None:
-                continue
-            row = plan_by_handle.get(handle.lower())
+            # Prefer the immutable stable partition key the receipt carries. Handles are
+            # mutable and may be normalized/cased differently than the plan row, which
+            # would drop or misattribute a terminal receipt and leave a captured creator
+            # counted as missed.
+            partition_key = _optional_string(receipt.get("partition_key"))
+            if partition_key is not None:
+                row = plan_by_key.get(partition_key)
+            else:
+                creator = receipt.get("creator")
+                handle = _optional_string(creator.get("handle") if isinstance(creator, dict) else None)
+                row = plan_by_handle.get(handle.lower()) if handle is not None else None
             if row is None:
                 continue
             append_attempt(
