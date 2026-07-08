@@ -81,6 +81,7 @@ Selling the raw registry (Excel/SQL) would convert the position-rent into a one-
 
 | Lane | Status | Scaffold (ephemeral scratch) |
 | --- | --- | --- |
+| B2B outreach motion (first Vetting Sprints) | active | `docs/_inbox/aphrodite_b2b_outreach_lane_handoff_v0.md` |
 | Aphrodite Studio design | exploratory | `docs/_inbox/aphrodite_studio_design_lane_handoff_v0.md` |
 | Rising-creators / breakout (× ad-load) | exploratory; MGT/SCI-adjudicated input | `forseti/product/spines/creator_signal/aphrodite_breakout_acceleration_mgt_sci_adjudication_v0.md` (scratch scaffold: `docs/_inbox/aphrodite_rising_creators_breakout_lane_handoff_v0.md`) |
 | Capture byte-measurement probe | active | `docs/_inbox/aphrodite_capture_lane_hooks_and_probe_handoff_v0.md` |
