@@ -136,10 +136,11 @@ This README is a `retrieval_only` front door. Its retrieval-header shape is
 `.agents/hooks/check_retrieval_header.py` deliberately skips `README.md` front
 doors (it targets non-README durable artifacts), exactly as it does for the CSB
 and Scanning spine READMEs. Its placement and reachability are covered by
-`check_placement.py` and the repo-map link / freshness checks.
+`check_placement.py`, `check_map_links.py`, and
+`check_repo_map_freshness.py`.
 
-**No separate Capture front-door validator is built or warranted here.** The
-CSB and Scanning spine validators
+**No separate Capture output-artifact validator is built or warranted by this
+front-door work.** The CSB and Scanning spine validators
 (`.agents/hooks/check_commission_signal_board_output.py`,
 `.agents/hooks/check_csb_scanning_artifact.py`) each check a single
 prompt-shaped **output artifact** that carries overclaim risk — a CSB board
@@ -148,9 +149,10 @@ equivalent single text-output format: its outputs are **Source Capture Packets**
 (multi-file directories) and typed source-family artifacts, already guarded by
 the `forseti-harness/tests/` contract and unit suite (packet core, no-network /
 no-deferred-adapter guards, per-adapter and per-source-family contract tests).
-A bespoke front-door validator would therefore have no single target to validate
-that the harness suite does not already cover. This mirrors the source-families
-catalog's own "Enforcement Candidate (Evaluated, Not Built)" decision. Building
+A bespoke Capture output-artifact validator would therefore have no single
+target to validate that the harness suite does not already cover. This mirrors
+the source-families catalog's own "Enforcement Candidate (Evaluated, Not Built)"
+decision. Building
 or wiring any code-root check (script, tests, CI) requires separate explicit
 bounded implementation authorization; none is granted by this front-door work.
 
