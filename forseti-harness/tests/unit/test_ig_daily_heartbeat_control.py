@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from runners import run_source_capture_ig_daily_heartbeat_control as control
+from runners import run_source_capture_ig_daily_heartbeat_operator as operator_runner
 
 
 def _write_json(path: Path, payload: object) -> Path:
@@ -396,3 +397,99 @@ def test_summarize_day_counts_terminal_attempts(tmp_path: Path) -> None:
     assert summary["access_gap_count"] == 1
     assert summary["missed_count"] == 1
     assert summary["non_claims"] == ["operational coverage summary only", "not Silver", "not Gold"]
+
+def test_operator_session_plans_runs_one_bucket_and_summarizes(tmp_path: Path) -> None:
+    registry = _write_json(
+        tmp_path / "registry.json",
+        {
+            "creator_registry_index": {
+                "platform_accounts": [
+                    {
+                        "platform": "instagram",
+                        "platform_account_id": "acct_operator_one",
+                        "normalized_public_handle": "operator_one",
+                        "creator_record_id_or_none": "creator_operator_one",
+                    }
+                ]
+            }
+        },
+    )
+    sidecar = _write_json(
+        tmp_path / "sidecar.json",
+        {
+            "ig_daily_monitoring_sidecar": {
+                "accounts": [
+                    {
+                        "platform_account_id": "acct_operator_one",
+                        "monitoring_status": "active",
+                        "cadence": "daily",
+                    }
+                ]
+            }
+        },
+    )
+
+    def fake_heartbeat_runner(**kwargs: object) -> _FakeHeartbeatResult:
+        assert Path(kwargs["output_root"]) == tmp_path / "packets"
+        assert kwargs["data_root"] is None
+        receipt_path = Path(kwargs["receipt_jsonl"])
+        receipt_path.write_text(
+            json.dumps(
+                {
+                    "run_id": "run_operator",
+                    "status": "succeeded",
+                    "partition_key": "platform_account_id:acct_operator_one",
+                    "creator": {"handle": "operator_one"},
+                    "packet_pointer": "packet_operator_one",
+                },
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        return _FakeHeartbeatResult()
+
+    result = operator_runner.run_operator_session(
+        registry_index_path=registry,
+        monitoring_sidecar_path=sidecar,
+        run_control_root=tmp_path / "lake",
+        plan_date="2026-07-09",
+        bucket=1,
+        lane_id="lane_1",
+        lane_count=1,
+        output_root=tmp_path / "packets",
+        plan_if_missing=True,
+        bucket_count=1,
+        heartbeat_runner=fake_heartbeat_runner,
+        session_id="session_operator",
+        now_func=lambda: "2026-07-09T02:00:00Z",
+    )
+
+    assert result.plan_created is True
+    assert result.planned_count == 1
+    assert result.selected_count == 1
+    assert result.heartbeat_exit_code == 0
+    assert result.message() == str(result.daily_summary_path)
+    assert result.plan_path.name == "daily_plan.json"
+    attempts = _read_jsonl(result.attempts_path)
+    assert [row["attempt_status"] for row in attempts] == ["leased", "started", "succeeded"]
+    daily_summary = _read_json(result.daily_summary_path)
+    assert daily_summary["planned_count"] == 1
+    assert daily_summary["succeeded_count"] == 1
+    assert daily_summary["missed_count"] == 0
+
+
+def test_operator_session_requires_existing_plan_when_plan_if_missing_disabled(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="daily plan missing"):
+        operator_runner.run_operator_session(
+            registry_index_path=tmp_path / "missing_registry.json",
+            monitoring_sidecar_path=tmp_path / "missing_sidecar.json",
+            run_control_root=tmp_path / "lake",
+            plan_date="2026-07-09",
+            bucket=1,
+            lane_id="lane_1",
+            lane_count=1,
+            output_root=tmp_path / "packets",
+            plan_if_missing=False,
+            heartbeat_runner=lambda **_: _FakeHeartbeatResult(),
+        )
