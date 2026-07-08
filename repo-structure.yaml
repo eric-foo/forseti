@@ -1,4 +1,4 @@
-# repo-structure.yaml - Orca machine structure map (the router, not the authority).
+# repo-structure.yaml - Forseti machine structure map (the router, not the authority).
 # Single machine-readable source consumed by .agents/hooks/check_placement.py and
 # by agents for navigation. Placement RULES are owned by
 # .agents/workflow-overlay/artifact-folders.md; the binding and parameters by
@@ -16,8 +16,11 @@ entry_points:
   start_here: AGENTS.md
   docs_readme: docs/README.md
   docs_guide: docs/STRUCTURE.md
-  route_card: docs/workflows/orca_repo_map_v0.md
-  product: orca/product/README.md
+  route_card: docs/workflows/forseti_repo_map_v0.md
+  legacy_route_card: docs/workflows/orca_repo_map_v0.md
+  product: forseti/product/README.md
+  legacy_product: orca/product/README.md
+  harness_compat: orca-harness/README.md
 
 # Exhaustive allowed top-level entries. Anything else at repo root is unplaced.
 known_top_level:
@@ -27,8 +30,9 @@ known_top_level:
     - .codex
     - .git
     - docs
-    - orca               # spine-first product tree root (orca/product/); created + declared Wave B 2026-06-18. Files populate in Wave C; per-spine structure owned by the spine-first binding, not this map (check_placement treats orca/ as a declared top-level area).
-    - orca-harness
+    - forseti            # canonical Forseti identity/product root; new product entrypoints route through forseti/product/.
+    - orca               # legacy compatibility product root; most pre-Forseti product files still physically live under orca/product/ until a separate migration moves them.
+    - orca-harness       # legacy compatibility runtime harness root; no forseti-harness/ exists yet.
   files:
     - .gitignore
     - AGENTS.md
@@ -43,13 +47,14 @@ docs_roles:
   - { home: docs/research, entry: docs/research/README.md }
   - { home: docs/review-inputs, entry: docs/review-inputs }
   - { home: docs/review-outputs, entry: docs/review-outputs }
-  - { home: docs/workflows, entry: docs/workflows/orca_repo_map_v0.md }
+  - { home: docs/workflows, entry: docs/workflows/forseti_repo_map_v0.md }
   - { home: docs/migration, entry: docs/migration }
   - { home: docs/hygiene, entry: docs/hygiene/queue.md }
   - { home: docs/_inbox, entry: docs/_inbox/README.md }
 
 # docs/product/ second-level lanes retired by spine-first migration Wave E.
-# Keep the schema key present; the current product tree is orca/product/.
+# Keep the schema key present; the canonical product front door is now
+# forseti/product/, with the larger legacy corpus still under orca/product/.
 product_lanes: []
 
 # Runtime/scratch: excluded from placement evaluation wherever they sit.

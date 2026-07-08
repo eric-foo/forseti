@@ -21,7 +21,9 @@ open_next:
   - docs/research/aphrodite_depth_rehearsal_extraction_recipe_v1.md
   - docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md
   - docs/research/aphrodite_depth_rehearsal_d1_gentsscents_claims_v0.json
-  - orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml
+  - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_vetting_sprint_panel_design_v0.md
+  - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml
 stale_if:
   - Recipe v1 is authored (it then supersedes this record as the operative recipe source).
   - The panel design, provenance contract, or ratified D-1 criteria are amended.

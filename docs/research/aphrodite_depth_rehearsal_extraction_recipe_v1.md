@@ -18,7 +18,9 @@ open_next:
   - docs/research/aphrodite_recipe_v1_second_opinion_adjudication_v0.md
   - docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md
   - docs/research/aphrodite_depth_rehearsal_d1_gentsscents_claims_v0.json
-  - orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml
+  - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_vetting_sprint_panel_design_v0.md
+  - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml
 stale_if:
   - A later recipe version supersedes this D-1 rehearsal recipe.
   - The derived-claim provenance contract, panel design, or fragrance reference file is amended.
@@ -59,9 +61,9 @@ dropping a required honest-absence surface.
 | --- | --- |
 | D-1 claims JSON | Restored at `docs/research/aphrodite_depth_rehearsal_d1_gentsscents_claims_v0.json`; binds through `extraction_pass.input_content_hash` equal to the corpus hash and `extraction_recipe_version` equal to this recipe version. |
 | V1 adjudication record | Restored at `docs/research/aphrodite_recipe_v1_second_opinion_adjudication_v0.md`; retrieval `open_next` repointed to live D-1 files. |
-| Derived-claim provenance contract | Verified in `.codex/worktrees/aphrodite-d1-depth-rehearsal/forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md`; not restored because live Orca has no accepted `orca/product/spines/creator_signal` destination. |
-| Vetting sprint panel design | Verified in `.codex/worktrees/aphrodite-d1-depth-rehearsal/forseti/product/spines/creator_signal/aphrodite_vetting_sprint_panel_design_v0.md`; not restored because live Orca has no accepted `orca/product/spines/creator_signal` destination. |
-| Fragrance reference | Restored at `orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml`; this is dated reference data, not validation or fact-truth proof. |
+| Derived-claim provenance contract | Restored at `forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md`; live Forseti path exists. |
+| Vetting sprint panel design | Restored at `forseti/product/spines/creator_signal/aphrodite_vetting_sprint_panel_design_v0.md`; live Forseti path exists. |
+| Fragrance reference | Restored at `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml`; this is dated reference data, not validation or fact-truth proof. |
 
 ## Input Unit Rule
 

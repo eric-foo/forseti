@@ -2,17 +2,17 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca overlay authority
-scope: Source-loading budgets, read packs, and context-bloat controls for Orca prompts and workflow artifacts.
+artifact_role: Forseti overlay authority
+scope: Source-loading budgets, read packs, and context-bloat controls for Forseti prompts and workflow artifacts.
 use_when:
-  - Preparing Chief Architect prompts, review prompts, product prompts, or handoffs that cite Orca source.
-  - Deciding which files to read before producing an Orca artifact.
+  - Preparing Chief Architect prompts, review prompts, product prompts, or handoffs that cite Forseti source.
+  - Deciding which files to read before producing a Forseti artifact.
   - Preventing context blow-up before a first artifact or first CA output.
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/source-of-truth.md
   - .agents/workflow-overlay/retrieval-metadata.md
-  - docs/workflows/orca_repo_map_v0.md
+  - docs/workflows/forseti_repo_map_v0.md
   - docs/workflows/artifact_retrievability_guide.md
 ```
 
@@ -24,12 +24,13 @@ Do not convert the source hierarchy into a read-all list. Load the smallest
 source pack that can answer the current question, then expand only when a
 missing source could materially change the output.
 
-Use Orca-owned source-loading mechanics: claim-level source loading, narrow
+Use Forseti-owned source-loading mechanics: claim-level source loading, narrow
 reads, source-read ledgers, evidence labels, strict/not-proven boundaries,
-targeted excerpts, and context-budget discipline. Orca overlay and repo map
-choose Orca source files and source precedence.
+targeted excerpts, and context-budget discipline. The Forseti overlay and repo map
+choose Forseti source files and source precedence. Legacy Orca-named paths remain
+valid only as compatibility routes until migrated.
 
-This file is the canonical Orca owner for source-loading budgets, source-pack
+This file is the canonical Forseti owner for source-loading budgets, source-pack
 tiers, source-capsule rules, and Data Capture Spine CA read-pack limits. Repo maps,
 prompt artifacts, wrappers, and review requests may point here or summarize the
 current rule for convenience, but they must not fork the rule. If another
@@ -39,7 +40,7 @@ claiming readiness.
 
 ## Current Operating Boundary
 
-Orca is no longer globally docs-first by default. Documentation remains the
+Forseti is no longer globally docs-first by default. Documentation remains the
 authority layer for project facts, decisions, prompts, reviews, migration notes,
 and overlay maintenance, but implementation is permitted when a current turn or
 accepted handoff explicitly authorizes a bounded implementation scope.
@@ -51,9 +52,9 @@ They must not authorize building, deploying, testing, or operating those
 systems unless the current turn or accepted handoff explicitly grants bounded
 implementation authority.
 
-## Orca Start Preflight
+## Forseti Start Preflight
 
-Before repo-aware Orca prompt authoring, review setup, handoff creation,
+Before repo-aware Forseti prompt authoring, review setup, handoff creation,
 docs-write or overlay maintenance, source-changing work, or completion claims,
 record a compact start-preflight receipt. The receipt proves only that the
 entrypoint and source-loading route were declared; it does not prove cognition,
@@ -88,7 +89,7 @@ Use the smallest source pack that can support the task. `agents_read: yes`
 means `AGENTS.md` was read or supplied in the current task context.
 `overlay_read: yes` means `.agents/workflow-overlay/README.md` was read or
 supplied in the current task context. If either field is `no` for a task that
-requires Orca project authority, stop and load the missing source before
+requires Forseti project authority, stop and load the missing source before
 continuing.
 
 Do not require the receipt for tiny chat-only answers that do not create or
@@ -98,7 +99,7 @@ turns into one of those tasks, record the receipt before continuing.
 
 ### Ordinary-Start Quick Path
 
-For tiny, non-doctrine Orca work, use the direct path:
+For tiny, non-doctrine Forseti work, use the direct path:
 
 1. Read the current user instruction.
 2. Use `AGENTS.md` and `.agents/workflow-overlay/README.md` only when project
@@ -125,7 +126,7 @@ Use this order unless the user gives a narrower source pack:
 3. `.agents/workflow-overlay/README.md`.
 4. `.agents/workflow-overlay/source-of-truth.md`.
 5. This file, when source budgeting or prompt setup matters.
-6. `docs/workflows/orca_repo_map_v0.md`, when choosing among many docs.
+6. `docs/workflows/forseti_repo_map_v0.md`, when choosing among many docs.
 7. The one to four target artifacts named by the request, repo map, retrieval
    headers, or nearest accepted product artifact.
 
@@ -141,8 +142,8 @@ Use source packs instead of whole-folder reads.
 
 | Tier | Use when | Default contents |
 | --- | --- | --- |
-| `S0 overlay` | Any Orca project work. | Current instruction, `AGENTS.md`, overlay README, source-of-truth, and source-loading when relevant. |
-| `S1 map` | Choosing files or preventing context bloat. | `S0` plus `docs/workflows/orca_repo_map_v0.md`. |
+| `S0 overlay` | Any Forseti project work. | Current instruction, `AGENTS.md`, overlay README, source-of-truth, and source-loading when relevant. |
+| `S1 map` | Choosing files or preventing context bloat. | `S0` plus `docs/workflows/forseti_repo_map_v0.md`. |
 | `S2 product anchor` | Product architecture, value proposition, offer, or CA setup. | `S1` plus product thesis, offer hypothesis, buyer proof packet, Core Spine product contract, and the nearest boundary note. |
 | `S3 target deepening` | A specific artifact family needs details. | `S2` plus only the named target artifact, its `open_next` files, and targeted sections from adjacent artifacts. |
 | `S4 historical/review` | Reviewing prior outcomes, adversarial reports, replays, or method-validation history. | Explicitly named review, replay, research, or historical files only. Never default. |

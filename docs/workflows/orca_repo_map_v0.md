@@ -1,17 +1,18 @@
-# Orca Repo Map v0
+# Legacy Orca Repo Map v0
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Repository map
-scope: Compact navigation map for Orca source loading and prompt setup.
+scope: Detailed legacy compatibility map for pre-Forseti physical roots and historical Orca routes.
 use_when:
   - Choosing a bounded source pack before a CA prompt, review prompt, or product artifact.
-  - Orienting a new thread without bulk-loading the repository.
+  - Opening detailed legacy routes after starting from docs/workflows/forseti_repo_map_v0.md.
   - Deciding which product, prompt, review, research, or workflow files are adjacent to a task.
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/source-loading.md
   - .agents/workflow-overlay/source-of-truth.md
+superseded_by: docs/workflows/forseti_repo_map_v0.md for cold starts
 stale_if:
   - New top-level folders (under the repo root or docs/) are added.
   - orca-harness/ packages, adapters, runners, fixtures, or its build authorizations are added or reorganized.
@@ -21,15 +22,14 @@ stale_if:
   - A later repo-map artifact supersedes this file.
 ```
 
-- Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
+- Status: LEGACY_DETAIL_MAP (retrieval-only; cold starts use `docs/workflows/forseti_repo_map_v0.md`; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
-- Scope: Repo navigation and source-pack selection
+- Scope: Legacy route detail and compatibility navigation for old Orca physical roots
 - Refreshed: 2026-06-29 (IG reels-grid projection runner added: `run_ig_reels_grid_projection.py` projects existing `/reels/` grid packets locally or appends by-key derived records under the data lake; no capture, Cleaning, ECR, or Judgment). Prior: 2026-06-22 (IG optimized reels-grid Source Capture runner added: `run_source_capture_ig_reels_grid_packet.py` supersedes `run_source_capture_ig_calls_packet.py` for default public creator monitoring; calls runner remains legacy item-page fallback). Prior: 2026-06-21 (scanning spine front-door + precursor vocabulary alignment: added `orca/product/spines/scanning/README.md`, routes cold scanning starts through the MGT intelligent-walk model, and rehomes AEO Phase-0 probe evidence to `docs/research/answer_engine/`). Prior: 2026-06-21 (scanning MGT intelligent-walk operating model: added the scan-core bridge and vertical-guide routing for frontier selection, branch pivoting, minimum evidence, and capture requests). Prior: 2026-06-21 (bounded screening-read service propagation: added the build receipt, maps to `screening_read` / `screening_browser_read`, and de-staled the old Reddit screening route). Prior: 2026-06-21 (Capture internal core migration: current Capture docs moved under `orca/product/spines/capture/core/`, with IG under `core/source_families/social_media/instagram/`; repo map and Data Capture submap route to the new paths). Prior: 2026-06-20 (accuracy reconciliation pass — corrected the SCI-reminder hook matcher and the git-commit permission tier, documented the SessionStart capsule and the second Stop hook, added the built `orca-harness/evidence_binding/` and `cleaning/` packages, and de-staled `docs/prompts/patches/`). Prior: 2026-06-18 (spine-first migration Wave E retired the live product-docs navigation and routes product artifacts to `orca/product/`; earlier the same day added spine-first target-structure binding and blocker-authorization routes after the owner authorized B1-B7 for the execution pass). Prior: 2026-06-17 promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic. Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
-
-Use this map to choose files. Do not treat it as product authority.
+Use this map only as second-hop detail for legacy `orca/product/` or `orca-harness/` routes after starting from `docs/workflows/forseti_repo_map_v0.md`. Do not treat it as product authority.
 
 For source precedence, open `.agents/workflow-overlay/source-of-truth.md`.
 For source-loading budgets, open `.agents/workflow-overlay/source-loading.md`.

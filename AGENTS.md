@@ -74,21 +74,21 @@ This economy is itself bound by Smallest Complete Intervention: right-size, neve
 gut a gate that has caught a real defect, and do not over-build the economy
 itself.
 
-## Orca Project Instructions
+## Forseti Project Instructions
 
-`AGENTS.md` is the canonical shared project instruction source for Orca. `CLAUDE.md` is a Claude Code shim that imports this file and must not duplicate, fork, weaken, or override Orca project rules.
+`AGENTS.md` is the canonical shared project instruction source for Forseti. `CLAUDE.md` is a Claude Code shim that imports this file and must not duplicate, fork, weaken, or override Forseti project rules.
 
-Before project work, read `.agents/workflow-overlay/README.md` and follow the Orca overlay. Treat `AGENTS.md` as triggers and global behavior, not as the full workflow manual.
+Before project work, read `.agents/workflow-overlay/README.md` and follow the Forseti overlay. The overlay still contains some legacy Orca labels and paths; treat those as compatibility naming unless a current Forseti source says otherwise. Treat `AGENTS.md` as triggers and global behavior, not as the full workflow manual.
 
-Keep Orca project facts, source hierarchy, source-loading rules, artifact folders, review lanes, validation gates, safety rules, prompt rules, and lifecycle boundaries in `.agents/workflow-overlay/` or another Orca-owned source named there.
+Keep Forseti project facts, source hierarchy, source-loading rules, artifact folders, review lanes, validation gates, safety rules, prompt rules, and lifecycle boundaries in `.agents/workflow-overlay/` or another Forseti-owned source named there.
 
-For substantial, ambiguous, cross-thread, delegated, doctrine-changing, review/patch-affecting, infrastructure-building, or messy-worktree work, run the Orca Cynefin Routing Layer before planning or delegation; the owning rule is `.agents/workflow-overlay/decision-routing.md`.
+For substantial, ambiguous, cross-thread, delegated, doctrine-changing, review/patch-affecting, infrastructure-building, or messy-worktree work, run the Forseti Cynefin Routing Layer before planning or delegation; the owning rule is `.agents/workflow-overlay/decision-routing.md`.
 
-Every durable prompt, handoff, wrapper, rerun, or patch prompt applies the prompt contract; do not author one that skips it. Routine prompts apply the **Orca Prompt Preflight** core inline (the ~12-line core in `.agents/workflow-overlay/prompt-orchestration.md`) -- no skill reload; fused, delegated-review-patch, and novel or cross-lane prompts author through the full `workflow-prompt-orchestrator` skill, which owns prompt source-loading and the full preflight/routing contract. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain governed by this contract. The owning rule is `.agents/workflow-overlay/prompt-orchestration.md`.
+Every durable prompt, handoff, wrapper, rerun, or patch prompt applies the prompt contract; do not author one that skips it. Routine prompts apply the legacy-named **Orca Prompt Preflight** core inline (the ~12-line core in `.agents/workflow-overlay/prompt-orchestration.md`) -- no skill reload; fused, delegated-review-patch, and novel or cross-lane prompts author through the full `workflow-prompt-orchestrator` skill, which owns prompt source-loading and the full preflight/routing contract. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain governed by this contract. The owning rule is `.agents/workflow-overlay/prompt-orchestration.md`.
 
 When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`. When a repo-changing work unit completes verified on its own lane branch or worktree, proceed to commit, push, and PR preparation without waiting for a typed instruction; the `settings.json` permission prompts on push and PR actions are the owner gate. Landing to `main` stays human-gated, except an agent may self-merge its **own** PR under the protected-action guard's verified exception (else it fails closed to a human merge). See `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
 
-Do not treat `jb` rules, paths, handoffs, lifecycle mechanics, product policy, validation habits, or external workflow source as Orca authority. Explicitly invoked or resolver-loaded skills may provide task-local mechanics only.
+Do not treat `jb` rules, paths, handoffs, lifecycle mechanics, product policy, validation habits, or external workflow source as Forseti authority. Explicitly invoked or resolver-loaded skills may provide task-local mechanics only.
 
 For doctrine-changing work, implementation boundaries, skill adoption, review lanes, validation, prompt orchestration, source loading, and delegated review-and-patch, load the owning overlay file instead of duplicating the rule here.
 

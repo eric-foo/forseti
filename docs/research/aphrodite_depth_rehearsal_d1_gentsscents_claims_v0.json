@@ -5,7 +5,7 @@
   "binds_to": [
     "docs/research/aphrodite_depth_rehearsal_extraction_recipe_v1.md",
     "docs/research/aphrodite_recipe_v1_second_opinion_adjudication_v0.md",
-    "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml"
+    "forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml"
   ],
   "creator": {
     "name": "GentsScents",
@@ -199,7 +199,7 @@
         "interpretation": "Each buyer target note family is rendered explicitly. None are silently dropped; all are downgraded because the product-attention substrate drills back only to the round-2 SoV aggregate table in this branch."
       },
       "source_refs": [
-        "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
+        "forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
         "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
       ],
       "extraction_model": "gpt-5-codex operator-run in-session",
@@ -245,7 +245,7 @@
         "interpretation": "The creator has aggregate-table attention to the buyer's niche/designer originals and top-8 attention is mostly designer. This is not the ratified full-vocabulary tier distribution."
       },
       "source_refs": [
-        "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
+        "forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
         "docs/research/aphrodite_recipe_v1_second_opinion_adjudication_v0.md"
       ],
       "extraction_model": "gpt-5-codex operator-run in-session",
@@ -309,7 +309,7 @@
       "provenance_state": "withhold",
       "value": null,
       "source_refs": [
-        "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
+        "forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
         "docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md#supporting-reads"
       ],
       "extraction_model": "gpt-5-codex operator-run in-session",
@@ -733,7 +733,7 @@
         "interpretation": "GentsScents is adjacent to the buyer's original-reference space, but not yet to citable clone-house demand."
       },
       "source_refs": [
-        "orca/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
+        "forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml",
         "docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md"
       ],
       "extraction_model": "gpt-5-codex operator-run in-session",
