@@ -201,9 +201,9 @@ prompt-artifact write under `docs/prompts/**`, injects the **Forseti Prompt
 Preflight** (output mode · template kind · edit-permission+targets+branch ·
 reviews findings-first + no runtime-model routing · doctrine-change ->
 propagation receipt · destinations) so a routine prompt applies the contract
-inline with no skill reload; fused / delegated-review-patch / novel or
-cross-lane prompts still author through `workflow-prompt-orchestrator` (rule
-owned by `.agents/workflow-overlay/prompt-orchestration.md`). Prompt filing is
+inline with no skill reload; the full non-routine trigger list for
+`workflow-prompt-orchestrator` is owned by
+`.agents/workflow-overlay/prompt-orchestration.md`. Prompt filing is
 source-role classified: canonical, reusable, doctrine-bearing, first-of-kind, or
 standard prompt artifacts file under the accepted `docs/prompts/**` families;
 lane-scoped execution prompts may instead travel in the lane PR/comment or
