@@ -19,9 +19,9 @@ open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
   - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
-  - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
-  - docs/decisions/orca_mini_god_tier_doctrine_v0.md
-  - docs/decisions/orca_venue_registry_rejection_decision_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
+  - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+  - docs/decisions/forseti_venue_registry_rejection_decision_v0.md
   - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md
 input_hashes_sha256_worktree:
   scanning_intelligent_walk_mgt_operating_model: 35E57952D9092F5B91E67BDB43FDD4EA5FAE6006D07CF47D3F0B54A41374BA74
@@ -37,7 +37,7 @@ branch_or_commit:
   prompt_created_from_head: 60a69ddfd0d3a5a13edefa3e3f6556195f0311db
 stale_if:
   - The target operating-model file hash differs from the value above before review starts.
-  - The Vertical Exploration Guide, Mini God Tier doctrine, venue-registry rejection decision, Demand Scan-Core Spec, or Orca review/prompt overlay files change materially before review starts.
+  - The Vertical Exploration Guide, Mini God Tier doctrine, venue-registry rejection decision, Demand Scan-Core Spec, or Forseti review/prompt overlay files change materially before review starts.
   - The reviewer cannot access the target file and no no-repo package is supplied.
   - The operator cannot supply a de-correlated controller family or chooses a same-family/self reviewer while expecting cross-vendor discovery claims.
 ```
@@ -164,9 +164,9 @@ Read and follow:
 - `.agents/workflow-overlay/prompt-orchestration.md`
 - `.agents/workflow-overlay/validation-gates.md`
 - `.agents/workflow-overlay/safety-rules.md`
-- `docs/decisions/orca_mini_god_tier_doctrine_v0.md`
-- `docs/decisions/orca_venue_registry_rejection_decision_v0.md`
-- `orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md`
+- `docs/decisions/forseti_mini_god_tier_doctrine_v0.md`
+- `docs/decisions/forseti_venue_registry_rejection_decision_v0.md`
+- `forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md`
 - `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
 - `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md`
 - `forseti/product/spines/scanning/admissibility_checkability/forseti_demand_scan_gate_adjudication_packet_v0.md`
@@ -257,7 +257,7 @@ Prioritize material failures over prose polish:
     otherwise invent, especially frontier expected-value reasons, branch close
     evidence, route-binding state, and capture-request fields?
 12. Are any decisive claims unsupported by the target's `open_next` sources or
-    by loaded Orca authority?
+    by loaded Forseti authority?
 
 ## Patch Authority
 
@@ -374,10 +374,10 @@ prompt_orchestrator_receipt:
   patch_authority: single submitted target file only
   target_file: forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
   read_only_context:
-    - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+    - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
     - docs/workflows/orca_repo_map_v0.md
-    - docs/decisions/orca_mini_god_tier_doctrine_v0.md
-    - docs/decisions/orca_venue_registry_rejection_decision_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+    - docs/decisions/forseti_venue_registry_rejection_decision_v0.md
     - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md
   ca_adjudication_required_before_keep: true
   needs_architecture_pass_valve: true

@@ -89,7 +89,7 @@ The goal and signal are review axes to attack, not a pass-if-matches bar.
 ````markdown
 # Adversarial Review Prompt: Scanning Spine Bloat Cut + Precursor Vocab
 
-You are performing a read-only adversarial artifact review for Orca.
+You are performing a read-only adversarial artifact review for Forseti.
 
 Do not patch files. Do not commit, stage, push, merge, or open a PR. If the right
 fix requires patching, report the finding and the minimum closure condition only.
