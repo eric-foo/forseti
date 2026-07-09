@@ -433,4 +433,103 @@ is made anywhere in this design.
 - **Relationship to the outreach motion:** Play A references and depends on the
   motion design (PR #802, off-main at authoring); it designs the engine feed, not
   the motion.
-```
+
+## 9. Amendment 2026-07-10 — Cross-vendor adjudication (ChatGPT Pro return, MGT/SCI) + owner refinements
+
+Provenance: a de-correlated ChatGPT Pro GTM return (commissioned generatively, blind
+to this design) was adjudicated by the home model under the Mini God Tier + Smallest
+Complete Intervention lenses, and the owner ruled on each point (2026-07-09/10). The
+return independently reproduced this design's spine (engine-as-instrument, the AEO
+channel-vs-demand-evidence seam, authority-via-method-not-directory, no-registry-dump,
+phase/gate discipline, inbound loop, the owner-gated flags). The kept deltas +
+owner rulings below refine the plays above. Still Phase-0, `product_learning`-capped,
+public-info-only, earn-don't-fabricate; the charter §5 wedge sharpening is *applied*
+as a first-batch selector, not self-ratified.
+
+### Play A — outreach
+
+- **Sharper first cohort:** within the ratified lead lane, approach FIRST the
+  dupe / clone / affordable / creator-commerce fragrance brands that are *visibly
+  commercially creator-exposed* — TikTok Shop presence, affiliate codes, scent-
+  comparison content, fast saturation. Discriminator: creator spend is close enough
+  to revenue that a wrong pick hurts, AND the decision leaves public traces. (Applied
+  as the first-batch selector; folding it into charter §5 is owner-gated.) Affiliate-
+  code *conversion rate* is **not** publicly measurable (private backend) — show it as
+  named missingness; TikTok Shop public "units sold" belongs to the TT-Shop lane.
+- **"Buyer Signal Board" is core:** a CSB pointed at a brand *account* (not creators)
+  to qualify a live creator-spend decision. Core job includes mapping **everything a
+  brand is publicly sponsoring in-niche right now** (disclosed #ad / gifted-PR /
+  affiliate codes) — delivered as a read/pattern (footprint, saturation), never a
+  contactable roster; doubles as competitive intel ("your rival already locked these
+  creators in your lane").
+- **Contradiction-first first-touch:** lead with ONE receipt-stamped contradiction the
+  founder can act on + one decision question that forces pull-vs-praise. **Hold the
+  counter-case** — do not proactively surface counterevidence; if the buyer raises the
+  objection, that is a qualifier and tells us what to counter. Honesty stays on the
+  claims we *do* make (real, receipt-backed, missingness shown); we just don't volunteer
+  the rebuttal in a teaser.
+- **Sell to the growth / ecommerce owner, not the influencer-marketing seat.** The
+  execution seat wants lists/workflow (and may see us as a rival or a list to extract);
+  the growth/ecommerce owner owns the spend-risk — the decision-read fits their job.
+  Real qualifier = who owns the spend outcome (a small-brand founder may wear both hats).
+- **Batch, not blast:** a bounded first batch (~10–20 to test the wedge; hand-build
+  ~3–5 first-touches), not 30–50; single-operator posture, no CRM/list-upload.
+
+### Play D — competitive positioning
+
+- **Complement, not attack:** position as the narrower / deeper / decision-specific
+  *preflight before you brief or pay creators* — "they run broad creator programs; we
+  do fragrance-specific creator-spend judgment." Never "CreatorIQ/Traackr are shallow"
+  (indefensible + overclaim). Displacement is on the niche-depth *decision*; complement
+  to their workflow system-of-record.
+- **No standing CI board:** competitive CI here is a one-time positioning input +
+  refresh-on-trigger, not a standing monthly board. A standing competitive-intelligence
+  board is a *separate lane with its own revenue* (see CI-as-a-service, owner-gated) —
+  out of this GTM lane.
+- **External competitor/market stats are advisory until verified:** do not build
+  positioning on a competitor's self-reported numbers unchecked; verify at source before
+  any becomes load-bearing. TikTok-Shop-specific facts come from the TT-Shop lane.
+
+### Play E — inbound → gate
+
+- **Waitlist = decision-intake:** collect role / company-type / decision-type / timing /
+  channel / readback-willingness. A qualified inbound (named owner + live dated decision
+  + readback-willing) can pull the charter §7 foundation gate forward; a signup alone is
+  a pull *candidate*, not pull.
+
+### Cross-cutting owner rulings
+
+- **Activation economics (optional intake):** a correct public read can still be
+  commercially miscalibrated without a few private constraints (margin, inventory, creator
+  rate card, TT-Shop fees, launch timing, goal). At sprint time an **optional** ~6-field
+  intake (goal / channel / SKU / budget-band / inventory / brand-safety) sharpens it.
+  **Boundary:** the public read must stand alone — never *require* private data before it
+  is useful (that is a buyer-proof disqualifier). **Roadmap (owner north-star):**
+  integrating the buyer's internal data to reach highest-EV decisions is the *goal* once
+  they are a paying customer; the public read wins the door first, and the integration
+  *build* stays gated.
+- **Sell derived value, never the dump:** the high-revenue product is the *derived read /
+  ranking* ("name the creators that matter for segment X") and controlled query access —
+  allowed and on-moat. Selling the *raw registry file* stays the forbidden slice (one-time
+  cash-out + arms the buyer to leave; niche-domination protects against competitors, not
+  against a buyer who owns the snapshot). Selling the actual dump would be a deliberate
+  charter §3/§E override (owner-gated DCP), not taken here.
+- **Segment rankings yes, vanity score no:** "best creators for [segment/decision]" as a
+  receipt-backed, missingness-honest decision read (the fit matrix) is the product. The
+  forbidden things are the single context-free vanity score (Traackr-style VIT) and a
+  public standing creator directory — keep rankings as buyer decision reads, not a
+  published "Aphrodite Top 50."
+- **Bounded depth beats scale:** buyers need bounded, in-depth information, not scale of
+  data — this *is* the moat (depth over breadth) and why cheap-capture-at-scale is
+  unnecessary.
+- **SEO/AEO build order:** build the topic-selection *engine* + 1–2 exemplar page specs
+  now; do not pre-draft a large authority backlog ahead of the (gated) publishing
+  authorization.
+
+### Owner-gated / deferred (flagged, not decided here)
+
+- **Aphrodite Studio** (the creator-agency execution side): separate company, later —
+  tied to *repeatable* pull (the charter's ≥2 qualified buyers + paid-pull bar), not the
+  literal first sale; its own owner-gated lane with a neutrality firewall.
+- **CI-as-a-service / research-for-hire:** a separate Forseti branch, after CI + Aphrodite
+  prove out; owner-gated.
