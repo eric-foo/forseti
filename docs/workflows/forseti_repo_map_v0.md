@@ -198,17 +198,21 @@ to the PostToolUse array, then restart the session (hooks load at session start)
 **Prompt-preflight reminder (advisory).** A PostToolUse hook (matcher
 `Write|Edit|MultiEdit` in `.claude/settings.json`,
 `python .agents/hooks/check_prompt_provenance.py --hook`): after a canonical
-prompt write under `docs/prompts/**`, injects the **Forseti Prompt Preflight**
-(output mode · template kind · edit-permission+targets+branch · reviews
-findings-first + no runtime-model routing · doctrine-change -> propagation
-receipt · destinations) so a routine prompt applies the contract inline with no
-skill reload; fused / delegated-review-patch / novel prompts still author
-through `workflow-prompt-orchestrator` (rule owned by
-`.agents/workflow-overlay/prompt-orchestration.md`). Remind only, never blocks,
-exit 0; it cannot verify the contract was applied. It does not fire for
-lane-scoped prompts attached to a lane PR body/comment or kept in ignored
-`docs/_inbox/` scratch; those are accepted only under prompt-orchestration.md
-classification and must carry preflight manually.
+prompt-artifact write under `docs/prompts/**`, injects the **Forseti Prompt
+Preflight** (output mode · template kind · edit-permission+targets+branch ·
+reviews findings-first + no runtime-model routing · doctrine-change ->
+propagation receipt · destinations) so a routine prompt applies the contract
+inline with no skill reload; the full non-routine trigger list for
+`workflow-prompt-orchestrator` is owned by
+`.agents/workflow-overlay/prompt-orchestration.md`. Prompt filing is
+source-role classified: canonical, reusable, doctrine-bearing, first-of-kind, or
+standard prompt artifacts file under the accepted `docs/prompts/**` families;
+lane-scoped execution prompts may instead travel in the lane PR/comment or
+ignored `docs/_inbox/` scratch when prompt-orchestration.md classifies them that
+way. For canonical prompts, `paste-ready-chat` is a paste copy of the filed
+artifact; for lane-scoped execution prompts it may be the lane-carried body. The
+hook reminds only, never blocks, exit 0, and cannot verify the contract was
+applied; no new checker/hook is authorized by this navigation note.
 `python .agents/hooks/check_prompt_provenance.py --selftest` checks the decision
 logic.
 
@@ -930,13 +934,19 @@ Unity runtime-fee specimen:
 | `docs/prompts/templates/` | Local prompt templates. |
 | `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` | Live shared repo-constant prompt preflight defaults for new or materially touched Forseti prompts; old `orca_preflight_defaults_v0.md` is a compatibility pointer. |
 | `docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md` | Live shared behavior contract included by Forseti prompt templates; old `orca_prompt_behavior_contract_v0.md` is a compatibility pointer. |
-| `docs/prompts/architecture/` | Architecture prompt family. |
-| `docs/prompts/advisory/` | Advisory prompt family. |
-| `docs/prompts/hygiene-queue/` | Drift/parking area (created on first artifact; does not exist yet); not listed as an accepted prompt-family folder in the overlay. |
 
-A few Data Capture pressure-test prompts currently sit unfiled at the
-`docs/prompts/` root rather than in a typed family folder; treat them as drift
-pending hygiene triage.
+Retained prompt exceptions below are navigation labels, not accepted prompt
+families and not new write destinations. Use the accepted folders above for new
+prompt artifacts unless the owning overlay or a later owner decision says
+otherwise.
+
+| Retained location | Navigation rule |
+| --- | --- |
+| `docs/prompts/architecture/` | Retained nonstandard architecture-prompt bucket with live references and review provenance; not an accepted prompt family in `.agents/workflow-overlay/artifact-folders.md` or prompt-orchestration.md. Do not move or promote without reverse-ref proof and owner decision. |
+| `docs/prompts/advisory/` | Retained Daimler advisory prompt exception; path/hash-pinned per `docs/hygiene/queue.md` ORCA-HYGIENE-005. Not an accepted prompt family and not a default destination. |
+| `docs/prompts/` root prompt files | Retained Data Capture / Judgment prompt exceptions and pinned checker prompts. New prompts should go to a typed accepted family; moving retained root files requires a reference-aware pass. |
+| `docs/research/judgment-spine/harness/v0_14/review_prompts/` | Spec-bundled v0.14 review prompts retained with the harness spec; not a `docs/prompts/` family and not moved in this navigation pass. |
+| `docs/prompts/hygiene-queue/` | Dead resolved path; does not exist yet after ORCA-HYGIENE-001 consolidated it to `docs/hygiene/` and removed the directory. Do not recreate as a prompt family. |
 
 ## Research And Review Areas
 
@@ -954,7 +964,7 @@ pending hygiene triage.
 | `docs/research/daimler_advisory_001_source_registry_v0.md` | Manual Daimler source-unit registry separating participant-safe candidates, date ambiguity, missing evidence, and reveal-only material before any packet rebuild or judgment-quality claim. |
 | `docs/research/packing-phase/` | Boundary note for decision-packet construction between cleaned evidence and Judgment Harness inputs. |
 | `docs/decisions/judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md` | Decision record on pre-sale Judgment Spine model-execution evidence tiers (subscription/manual/chat default; raw API/harness as optional gate-bearing plumbing) and how to read no-case smoke-test / raw-API runner artifacts relative to buyer proof. |
-| `docs/review-outputs/` (root) | Flat collection of harness implementation/code-review outputs (source-capture adapters, source-observability helper, no-tools probe and execution-foundation); advisory findings only, co-located at the folder root rather than a typed subfolder. |
+| `docs/review-outputs/` (root) | Retained flat collection of harness implementation/code-review outputs (source-capture adapters, source-observability helper, no-tools probe and execution-foundation); advisory findings only, retained in place by ORCA-HYGIENE-004 because path/hash pins make relocation provenance-risky. New adversarial reports default to the typed child folder. |
 | `docs/review-outputs/adversarial-artifact-reviews/` | Adversarial artifact review reports, including the Daimler advisory and Canoo/Walmart Judgment Spine fixture-review families. |
 | `docs/review-outputs/method-validation/` | Method-validation review outputs. |
 | `docs/review-outputs/proof/` | Proof review outputs (currently a README placeholder). |
