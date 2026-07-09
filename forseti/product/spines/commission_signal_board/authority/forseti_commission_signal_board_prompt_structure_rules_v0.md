@@ -132,7 +132,7 @@ work: source-family feasibility, blind spots, capture-fidelity heuristics,
 threaded-community conventions, review-platform conventions, and
 human-assisted-capture requirements stay source-family-specific until they
 survive comparison across non-overlapping families or the owner accepts an
-exception (`docs/product/data_capture_spine/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md`).
+exception (`forseti/product/spines/capture/core/operating_model/core_spine_v0_data_capture_spine_architecture_blueprint_v0.md`).
 
 Adjacent source-family records support subfamily separation. Reddit Graph
 Frontier separates Reddit-native discovery surfaces from external web/SERP
@@ -148,7 +148,7 @@ named-deferred seams
 (`forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md`).
 LinkedIn is no-live, planning-only under strict privacy rails; it is not news,
 not consumer signal capture, and not live graph capture by default
-(`docs/product/data_capture_spine/data_capture_spine_linkedin_lane_index_v0.md`).
+(`forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md`).
 
 Prompt policy requires any durable Forseti prompt to be authored through
 prompt-orchestration or to apply that contract in full. The temporary prompt is

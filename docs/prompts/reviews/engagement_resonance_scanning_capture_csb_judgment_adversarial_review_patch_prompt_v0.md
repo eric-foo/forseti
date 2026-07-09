@@ -15,7 +15,7 @@ open_next:
   - .agents/workflow-overlay/delegated-review-patch.md
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/review-lanes.md
-  - orca/product/shared/engagement_registry/engagement_logic_registry_v0.md
+  - forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md
 ```
 
 ## Operator Paste Instruction
@@ -24,7 +24,7 @@ Paste this prompt into an independent receiving lane whose controller is a diffe
 
 If the receiving actor is not a de-correlated controller, or cannot access the worktree named below, return the nearest blocker instead of reviewing a summary.
 
-## Orca Start Preflight
+## Forseti Start Preflight
 
 ```yaml
 forseti_start_preflight:
@@ -89,12 +89,12 @@ If the worktree path, branch, HEAD, or dirty-state allowance does not match, sto
 
 Patch authority, if repo-mode is operator-confirmed, is limited to wording inside these files only. Everything else is read-only / flag-only.
 
-- `[capture-runbook]` `orca-harness/docs/source_capture_agent_runbook.md` - source-visible engagement facts and must-not-overclaim boundaries only.
-- `[capture-toolbox-index]` `orca/product/spines/capture/core/source_capture_toolbox/README.md` - playbook index row only.
-- `[capture-playbook]` `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` - Recency / Current-State Preservation Priority section only.
-- `[instagram-policy]` `orca/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md` - momentum/allocation boundary only.
+- `[capture-runbook]` `forseti-harness/docs/source_capture_agent_runbook.md` - source-visible engagement facts and must-not-overclaim boundaries only.
+- `[capture-toolbox-index]` `forseti/product/spines/capture/core/source_capture_toolbox/README.md` - playbook index row only.
+- `[capture-playbook]` `forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` - Recency / Current-State Preservation Priority section only.
+- `[instagram-policy]` `forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md` - momentum/allocation boundary only.
 - `[csb-readme]` `forseti/product/spines/commission_signal_board/README.md` - boundaries paragraph only.
-- `[judgment-first-read]` `orca/product/spines/judgment/demand_read/core/judgment_spine_first_demand_read_scope_v0.md` - C3 Verdict / Action step only.
+- `[judgment-first-read]` `forseti/product/spines/judgment/demand_read/core/judgment_spine_first_demand_read_scope_v0.md` - C3 Verdict / Action step only.
 - `[scanning-readme]` `forseti/product/spines/scanning/README.md` - Public-Reaction Engagement Boundary only.
 - `[scan-core]` `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md` - No Weak Reads By Accident bullet only.
 - `[mgt-walk]` `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md` - public-reaction engagement boundary only.
@@ -110,7 +110,7 @@ Do not edit code, hooks, schemas, checkers, source-access rules, claim-ladder ru
 1. Read `AGENTS.md` and `.agents/workflow-overlay/README.md`.
 2. Read these overlay authorities: `.agents/workflow-overlay/source-of-truth.md`, `.agents/workflow-overlay/source-loading.md`, `.agents/workflow-overlay/validation-gates.md`, `.agents/workflow-overlay/review-lanes.md`, `.agents/workflow-overlay/delegated-review-patch.md`, `.agents/workflow-overlay/prompt-orchestration.md`, `.agents/workflow-overlay/safety-rules.md`.
 3. REFERENCE-LOAD `workflow-deep-thinking` and `workflow-adversarial-artifact-review`. Do not APPLY either yet.
-4. SOURCE-LOAD `orca/product/shared/engagement_registry/engagement_logic_registry_v0.md` and the 13 target files from the worktree.
+4. SOURCE-LOAD `forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md` and the 13 target files from the worktree.
 5. Inspect `git diff -- <13 target files>` directly.
 6. Declare `SOURCE_CONTEXT_READY` or `SOURCE_CONTEXT_INCOMPLETE` with missing sources and conflicts.
 7. Only after source readiness, APPLY `workflow-deep-thinking`, then APPLY `workflow-adversarial-artifact-review` to the loaded target diff.
