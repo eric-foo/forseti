@@ -32,6 +32,27 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 Each has a `--selftest`. Each script names its own rule authority in its module
 header and references that source instead of restating it.
 
+## Run the full CI doc-gate set locally (before pushing)
+
+CI's `forseti-harness-tests` job runs the strict doc-gate hooks (the
+`check_*.py` / `header_index.py` steps in `.github/workflows/ci.yml`). The local
+pre-push guard (`pre_push_guard.py`) mirrors only a 3-gate subset
+(`check_map_links`, `header_index`, `check_review_routing`), so a change that
+trips any other gate — e.g. an ontology-tag false positive on a prose
+parenthetical — passes pre-push and fails in CI a few minutes later. To catch
+the whole set before you push:
+
+```powershell
+pwsh .github/scripts/run-doc-gates.ps1          # run every CI doc-gate; exit 1 on any failure
+pwsh .github/scripts/run-doc-gates.ps1 -List    # just list the gates it derives from ci.yml
+```
+
+The runner parses the gate list straight from `.github/workflows/ci.yml`, so it
+stays in sync when the workflow changes. It does not run `python -m pytest` (the
+code-test job) — run that separately if you touched harness code. It is local
+convenience tooling, not validation or readiness; CI remains the authoritative
+gate.
+
 ## The contract (harness-agnostic)
 
 - **Input:** the harness passes the tool event as **JSON on stdin** — at minimum
