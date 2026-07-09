@@ -470,7 +470,6 @@ class _CloakBrowserSnapshotEngine:
                 timezone=proxy_profile.timezone if proxy_profile is not None else None,
                 locale=proxy_profile.locale if proxy_profile is not None else None,
                 geoip=proxy_profile.geoip_enabled if proxy_profile is not None else False,
-                backend=CLOAKBROWSER_BACKEND,
                 humanize=humanize,
                 extension_paths=None,
             )

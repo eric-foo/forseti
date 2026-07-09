@@ -243,7 +243,6 @@ def test_live_engine_uses_anonymous_non_persistent_launch(monkeypatch: pytest.Mo
         "timezone": None,
         "locale": None,
         "geoip": False,
-        "backend": "playwright",
         "humanize": False,
         "extension_paths": None,
         "closed": True,
