@@ -104,7 +104,28 @@ def repo_root() -> Path:
 
 
 def _to_posix(path: str) -> str:
-    return path.replace("\\", "/").lstrip("./")
+    # Strip only a LITERAL leading "./" prefix. NOT lstrip("./"), which is a
+    # character-set strip that would also eat the leading dot of ".agents/..."
+    # paths (silently dropping overlay files out of scope).
+    s = path.replace("\\", "/")
+    return s[2:] if s.startswith("./") else s
+
+
+def to_relposix(target: str, root: Path) -> str | None:
+    """Repo-relative POSIX path for a target, or None if outside the repo.
+
+    Handles the ABSOLUTE file_path that Claude Code passes in the PostToolUse
+    payload. Without this, in_scope() never matched an in-scope prefix, so the
+    --hook advisory silently no-opped on every edit (CI --changed still worked
+    because git yields repo-relative paths).
+    """
+    p = Path(target)
+    if p.is_absolute():
+        try:
+            return p.resolve().relative_to(root).as_posix()
+        except (ValueError, OSError):
+            return None
+    return _to_posix(target)
 
 
 def in_scope(relpath: str) -> bool:
@@ -260,7 +281,8 @@ def resolve_base(cli_base: str | None) -> str:
 
 def analyze_paths(root: Path, paths: list[str]) -> list[Finding]:
     findings: list[Finding] = []
-    for relpath in sorted(set(_to_posix(path) for path in paths)):
+    relpaths = {rel for path in paths if (rel := to_relposix(path, root)) is not None}
+    for relpath in sorted(relpaths):
         findings.extend(analyze_file(root, relpath))
     return findings
 
@@ -365,6 +387,17 @@ def selftest() -> int:
         if not passed:
             ok = False
         print(f"{'PASS' if passed else 'FAIL'}  {label}  expect={expected!r} got={got!r}")
+
+    _root = repo_root()
+    check("absolute payload path -> repo-relative (was the --hook no-op bug)",
+          to_relposix(str(_root / "docs" / "decisions" / "x.md"), _root),
+          "docs/decisions/x.md")
+    check("to_posix keeps a leading dot (no lstrip corruption)",
+          _to_posix(".agents/workflow-overlay/x.md"),
+          ".agents/workflow-overlay/x.md")
+    check("outside-repo absolute path -> None",
+          to_relposix(str(_root.parent / "definitely_outside_x.md"), _root),
+          None)
 
     good = (
         "Google Search capture URL: "

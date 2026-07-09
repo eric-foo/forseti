@@ -204,20 +204,77 @@ def scan_whole_files(root: Path, paths: list[str]) -> list[str]:
     return findings
 
 
+def _hook_relposix(target: str, root: Path) -> str | None:
+    p = Path(target)
+    if p.is_absolute():
+        try:
+            return p.resolve().relative_to(root).as_posix()
+        except (ValueError, OSError):
+            return None
+    s = p.as_posix()
+    return s[2:] if s.startswith("./") else s
+
+
+def _uncommitted_added_lines(root: Path, relposix: str) -> list[tuple[int, str]]:
+    """Added lines of the just-edited (uncommitted) file vs HEAD; new/untracked file -> all lines.
+
+    The PostToolUse hook fires on an UNCOMMITTED edit, so scan_changed's committed
+    base...HEAD diff would miss it -- and scanning the WHOLE file re-flags pre-existing
+    (grandfathered) lines on every edit. This scopes to the lines the edit actually added.
+    """
+    rc, out = _git(root, ["diff", "--unified=0", "HEAD", "--", relposix])
+    if rc == 0 and out.strip():
+        added: list[tuple[int, str]] = []
+        new_lineno = 0
+        for raw in out.splitlines():
+            if raw.startswith("@@"):
+                match = re.search(r"\+(\d+)", raw)
+                new_lineno = int(match.group(1)) if match else 0
+            elif raw.startswith("+") and not raw.startswith("+++"):
+                added.append((new_lineno, raw[1:]))
+                new_lineno += 1
+        return added
+    try:
+        text = (root / relposix).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    return list(enumerate(text.splitlines(), start=1))
+
+
 def run_hook() -> int:
     try:
         payload = json.load(sys.stdin)
     except (json.JSONDecodeError, OSError):
         return 0
     file_path = (payload.get("tool_input") or {}).get("file_path", "")
-    if not file_path:
+    # .md only -- code (.py) surfaces are out of scope (see CHANGED-FILE SCOPE).
+    if not isinstance(file_path, str) or not file_path.endswith(".md"):
         return 0
     root = repo_root()
-    findings = scan_whole_files(root, [file_path])
+    relposix = _hook_relposix(file_path, root)
+    if relposix is None:
+        return 0
+    findings = [
+        f"{relposix}:{lineno}: {message}"
+        for lineno, line in _uncommitted_added_lines(root, relposix)
+        if (message := classify_added_line(relposix, line))
+    ]
     if findings:
+        msg = (
+            "full-gt-claims (advisory): "
+            + " | ".join(findings[:5])
+            + "\nPlacement/shape only; not claim-truth, validation, or readiness "
+            "(each finding above cites its rule authority)."
+        )
         print(
-            "full-gt-claims (advisory): " + " | ".join(findings[:5]),
-            file=sys.stderr,
+            json.dumps(
+                {
+                    "hookSpecificOutput": {
+                        "hookEventName": "PostToolUse",
+                        "additionalContext": msg,
+                    }
+                }
+            )
         )
     return 0
 
