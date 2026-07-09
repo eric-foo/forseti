@@ -21,6 +21,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/judgment/learning_loops/near_half/near_half_signal_reliability_ledger_v0.md             # the ledger this consumes (producer-side schema + discipline; #54)
   - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md # the demand-read core whose C2(c) this specifies (commit e794b8f, branch-only)
+  - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md # the in-case merits half — the basis this contract's absence rule and per-case justification fall back to
 stale_if:
   - The ledger schema changes (e.g., PR #64 lands — adds a per-row pre-specified resolution criterion + full denominator); re-reconcile the consumed-fields list.
   - The owner lifts the no-scoring boundary (INV-1); numeric weighting becomes admissible and the INV-1 disqualifiers below relax.

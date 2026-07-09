@@ -434,15 +434,21 @@ direction_change_propagation:
     an owning doctrine (decision-relative fitness principle, merits axes,
     per-item trace obligations, load-bearing partition, model-facing
     Instruction Core, named failure modes). The current-state/decomposition
-    map's Weighting row and open_next are refreshed to route to it. PROPOSED
-    only — owner adjudication pending; adoption owes a dated pointer per the
-    Doctrine-Change Propagation Contract.
+    map's Weighting row and open_next are refreshed to route to it. Owner-directed
+    cold-start findability follow-up (2026-07-10, same lane): the Judgment
+    consolidation map gains a Fast Route row for evidence weighting, and the
+    sibling ledger read contract gains one retrieval-header open_next line to
+    this doctrine (header-only; headers are retrieval_only and carry no
+    authority). PROPOSED only — owner adjudication pending; adoption owes a
+    dated pointer per the Doctrine-Change Propagation Contract.
   trigger: product_doctrine
   related_triggers:
     - architecture_doctrine
   controlling_sources_updated:
     - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md
     - forseti/product/spines/judgment/judgment_current_state_and_decomposition_v0.md
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md   # Fast Route row only (findability follow-up)
+    - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md   # retrieval-header open_next line only (findability follow-up); doctrine body untouched
   downstream_surfaces_checked:
     - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md   # consumed by pointer; its absence rule now has an owning specification; not edited (consume, don't reopen)
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md # C2 step shape unchanged; merits basis sits inside existing C2 "qualitative, LLM-in-session, explained"
@@ -452,10 +458,10 @@ direction_change_propagation:
     - forseti/product/spines/judgment/demand_read/grading/judgment_spine_demand_read_grading_rubric_v0.md # no weighting/credibility language; no conflict
     - forseti/product/spines/judgment/demand_read/core/judgment_spine_first_demand_read_scope_v0.md # its C2 step says "weight on in-case merits" per the C2 contract — a consumer of the seam this doctrine specifies; consistent, not edited
   intentionally_not_updated:
-    - path: forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md
-      reason: settled reviewed spec; its "in-case merits" line is a seam this doctrine fills by pointer, not a defect to edit.
-    - path: docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
-      reason: map lists areas, not per-artifact rows; the decomposition map is its routing hop for demand-read surfaces and is updated in this change.
+    - path: forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md (doctrine body)
+      reason: settled reviewed spec; its "in-case merits" line is a seam this doctrine fills by pointer, not a defect to edit. The findability follow-up added one retrieval-header open_next line only; no Required Behavior, rule, or non-goal text changed.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: stays thin by convention (the current-state map's own rule); it already routes Judgment work to the consolidation map and names demand_read/c2_weighting at directory level.
   stale_language_search: >
     rg -in "in-case merits|in_case_evidence|static source ladder|source-quality ladder"
     forseti/product/spines/judgment docs/research/judgment-spine
