@@ -52,8 +52,7 @@ forseti_start_preflight:
 ```
 
 Provenance: continuation of the handoff packet
-`docs/workflows/forseti_data_lake_rename_and_creator_scanner_handoff_v0.md`
-(branch-pinned: `origin/codex/forseti-data-lake-rename-handoff-v2` @ `7b2adfb9`),
+`docs/workflows/forseti_data_lake_rename_and_creator_scanner_handoff_v0.md` (branch-pinned: `origin/codex/forseti-data-lake-rename-handoff-v2` @ `7b2adfb9`),
 loaded 2026-07-10 with all compare targets re-verified (`REUSE`, zero drift).
 
 ## Decision: Rename Shape
