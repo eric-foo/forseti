@@ -28,6 +28,14 @@ from dataclasses import dataclass, field
 
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 
+# Liveness backstop: a hung `yt-dlp` subprocess would otherwise block the caption capture
+# forever. Generous bound (json3 caption files are tiny); subprocess.run kills the child on timeout.
+_YTDLP_CAPTION_TIMEOUT_SECONDS = 120
+# Per-socket-op bound (yt-dlp native knob) for the IN-PROCESS extract_info() metadata call below, so
+# a stalled connection cannot hang the caption path indefinitely before the bounded subprocess
+# download. (A hard total-wall-time bound would need a subprocess/thread wrap -- deferred residual.)
+_YTDLP_METADATA_SOCKET_TIMEOUT_SECONDS = 30
+
 
 def _ytdlp_version() -> str:
     import yt_dlp  # lazy: only needed at real runtime, not at import/test-collection time
@@ -40,7 +48,10 @@ def _extract_info(url: str) -> dict:
     tests don't require yt-dlp; install the `transcribe` extra for real runtime. (Test seam.)"""
     import yt_dlp
 
-    with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True, "no_warnings": True}) as ydl:
+    with yt_dlp.YoutubeDL(
+        {"quiet": True, "skip_download": True, "no_warnings": True,
+         "socket_timeout": _YTDLP_METADATA_SOCKET_TIMEOUT_SECONDS}
+    ) as ydl:
         return ydl.extract_info(url, download=False)
 
 
@@ -154,11 +165,15 @@ def fetch_youtube_caption_artifacts(video_id: str) -> CaptionFetch:
     write_flag = "--write-subs" if kind == "manual" else "--write-auto-subs"
     with tempfile.TemporaryDirectory(prefix="orca_cap_") as tmp:
         out_tmpl = os.path.join(tmp, "%(id)s.%(ext)s")
-        proc = subprocess.run(
-            [sys.executable, "-m", "yt_dlp", "--skip-download", write_flag,
-             "--sub-langs", lang, "--sub-format", "json3", "-o", out_tmpl, url],
-            capture_output=True, text=True,
-        )
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "yt_dlp", "--skip-download", write_flag,
+                 "--sub-langs", lang, "--sub-format", "json3", "-o", out_tmpl, url],
+                capture_output=True, text=True, timeout=_YTDLP_CAPTION_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            return CaptionFetch(found=False, lang=lang, caption_kind=kind,
+                                note=f"download_timeout: yt-dlp exceeded {_YTDLP_CAPTION_TIMEOUT_SECONDS}s", **base)
         if proc.returncode != 0:
             return CaptionFetch(found=False, lang=lang, caption_kind=kind,
                                 note=f"download_failed (rc={proc.returncode}): {(proc.stderr or '')[:160]}", **base)

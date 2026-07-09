@@ -475,6 +475,21 @@ class _RedditOAuthClient:
                 "reddit api request failed before an HTTP response was available",
                 failure_kind=_transport_failure_kind(exc),
             ) from None
+        except TimeoutError:
+            # Read-phase timeout during _read_with_cap()/response.read() after urlopen returned:
+            # not a URLError, previously uncaught -> escaped get() and violated the transport
+            # contract (get must raise RedditApiTransportError, never a raw socket error).
+            raise RedditApiTransportError(
+                "reddit api response read timed out before completion",
+                failure_kind=RedditApiCaptureFailureKind.TIMEOUT,
+            ) from None
+        except OSError:
+            # Other read-phase socket errors (connection reset, etc.) likewise fire after urlopen
+            # and are not URLError; surface as the transport error callers rely on, not a crash.
+            raise RedditApiTransportError(
+                "reddit api response read failed before completion",
+                failure_kind=RedditApiCaptureFailureKind.NETWORK_ERROR,
+            ) from None
 
     def _ensure_token(self) -> str:
         now = time.monotonic()
@@ -521,6 +536,16 @@ class _RedditOAuthClient:
             raise RedditApiTransportError(
                 "reddit token request failed before a token response was available",
                 failure_kind=_transport_failure_kind(exc),
+            ) from None
+        except TimeoutError:
+            raise RedditApiTransportError(
+                "reddit token response read timed out before completion",
+                failure_kind=RedditApiCaptureFailureKind.TIMEOUT,
+            ) from None
+        except OSError:
+            raise RedditApiTransportError(
+                "reddit token response read failed before completion",
+                failure_kind=RedditApiCaptureFailureKind.NETWORK_ERROR,
             ) from None
 
         access_token = payload.get("access_token") if isinstance(payload, dict) else None
