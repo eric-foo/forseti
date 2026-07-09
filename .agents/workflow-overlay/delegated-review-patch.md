@@ -163,12 +163,17 @@ convention creates none of them.
 the commission is missing operator-owned fields (for example delegate vendor,
 controller identity, access mode, report destination, or provenance values),
 do not end on an inert blocker if the target and review purpose are inferable.
-Route the request through `workflow-prompt-orchestrator` and return a
-`paste-ready-chat` route-out prompt with the missing operator fields clearly
-marked `operator_to_fill`. Block instead only when the target or review purpose
-cannot be inferred, when prompt-orchestrator cannot be applied under
-`.agents/workflow-overlay/prompt-orchestration.md`, or when the user asks for
-strict execution or patching without a bound commission. If the inferred target
+Route the request through `workflow-prompt-orchestrator` under
+`.agents/workflow-overlay/prompt-orchestration.md`'s source-role filing
+classification: a canonical/reusable route-out is filed under `docs/prompts/**`
+with `paste-ready-chat` only as a copy, while a lane-scoped route-out is carried
+in the lane PR/comment or ignored scratch with the same preflight fields. In both
+cases, the missing operator fields are clearly marked `operator_to_fill`. Block
+instead only when the target or review purpose cannot be inferred, when
+prompt-orchestrator cannot be applied under
+`.agents/workflow-overlay/prompt-orchestration.md`,
+or when the user asks for strict execution or patching without a bound
+commission. If the inferred target
 is a multi-file implementation/code diff rather than a single authored artifact,
 do not force it into the default authored-artifact mode: route it to the
 **`delegated_code_review_and_patch`** sibling mode below, which keeps the code
@@ -191,8 +196,9 @@ changes repository access and patch authorship.
 
 1. **The review method is the code review lane, not artifact review.** The
    delegate's review portion is `workflow-code-review` run under the Review
-   Prompt Defaults (`workflow-deep-thinking` first, then the Source-Gated Method
-   Contract in `.agents/workflow-overlay/prompt-orchestration.md`) — not the
+   Prompt Defaults. Because this sibling mode is commissioned, adversarial, and
+   patch-authorized, it includes `workflow-deep-thinking` before the Source-Gated
+   Method Contract in `.agents/workflow-overlay/prompt-orchestration.md` — not the
    `portable-adversarial-artifact-review-method`. The code review lane stays the
    review method for code; this convention only adds commissioned bounded patch
    authorship plus CA adjudication on top of it, and never replaces, weakens, or
@@ -344,7 +350,10 @@ delegated_review_patch_overlay_interface:
       plus an adjudicator next-moves tail that points the commissioning Chief
       Architect to communication-style.md -> Review Adjudication Next Step
       (paste-ready courier; delegate does not decide what is kept)
-    prompt_orchestrator_route_out: paste-ready-chat route-out prompt with operator_to_fill fields when target/purpose are inferable but commission fields are unbound
+    prompt_orchestrator_route_out: >
+      filed canonical prompt artifact or lane-scoped prompt carriage, with
+      paste-ready copy when needed and operator_to_fill fields when
+      target/purpose are inferable but commission fields are unbound
     durable_review_report: docs/review-outputs/ or docs/review-outputs/adversarial-artifact-reviews/ when a durable report is commissioned
     patch_application: the CA-named target in-repo — single authored file, or the named multi-file set in delegated_code_review_and_patch — under the commission (patch / integration execution authority per .agents/workflow-overlay/review-lanes.md)
 ```
