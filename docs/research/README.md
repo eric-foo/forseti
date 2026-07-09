@@ -19,6 +19,7 @@ Do not use this folder for implementation, automation, scraping tools, datasets,
 ## Research Areas
 
 - `docs/research/consulting-judgment-corpus/`: consulting-judgment corpus material.
+- `docs/research/answer_engine/`: answer-engine/AEO probe evidence, including the Phase-0 feasibility report and JSON sidecar. Research/proposed evidence only; the current route is scanning README -> answer-engine source-family spec -> this folder, with no product authority, gate-recordable method, validation/readiness/proof claim, capture authorization, scraping authorization, or implementation authorization.
 - `docs/research/judgment-spine/`: Judgment Spine parent contract, harness specs, case indexes, and case-learning artifacts.
 - `docs/research/packing-phase/`: initial boundary note for turning cleaned evidence into judgment-ready packet artifacts without absorbing Cleaning or Judgment Harness responsibilities.
 - `docs/research/daimler_advisory_001/` (plus the loose `daimler_advisory_001_*.md` files): Daimler advisory-run 001 source-capture research — source registry, official/legal provenance core, source-fanout consolidation, and source-body capture receipts.

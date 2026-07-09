@@ -130,7 +130,7 @@ repo, continue from the supplied prompt and mark repo authority as
 Use this receipt:
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes | no | not_accessible
   overlay_read: yes | no | not_accessible
   source_pack: commission_signal_board_custom
@@ -290,11 +290,19 @@ requires them.
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | Instagram has current adjacent capture/discovery work. TikTok, YouTube, and Reddit creator profiles are planned/deferred seams unless separately authorized. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
-| Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with owning search-interest/AEO specs, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
+| Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with the answer-engine/search-interest source-family spec, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
 | AEO / answer engines | Google AI Overviews, Gemini, ChatGPT, other answer-engine surfaces | answer visibility, cited-source ecosystem, entity association, visibility gaps | Visibility annotation only; never an independent demand-origin surface. Any change to this posture requires a Forseti owner decision, not a per-run dispatcher override. |
 | News / editorial / trade | trade publications, editorial, newsletters, specialist blogs, press | launch chronology, industry framing, awareness, third-party narrative | News is a distinct family; LinkedIn reposts of news point back to the actual source. |
 | Professional / org-motion | ATS/careers pages, hiring pages, founder/executive public posts, partnership announcements, LinkedIn when explicitly routed | hiring/movement, organizational intent, operator-side propagation | ATS/careers pages are better movement sources than LinkedIn. LinkedIn remains no-live/planning-only unless separately authorized. |
 | Owned channels | brand site, brand socials, email archive, product pages, press releases | official chronology, brand claims, launch framing | High chronology value, low independence. |
+
+Answer-engine/search-interest/AEO route note: for source-class or routing questions,
+open `forseti/product/spines/scanning/README.md`, then
+`forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`,
+then `docs/research/answer_engine/` as research/probe evidence only. Do not route
+through legacy search-lane history, and do not treat AEO as product authority,
+gate-recordable, validation/readiness/proof, capture authorization, scraping,
+scaling, or implementation authorization.
 
 ### Search-Surface MGT Standing Route Card
 

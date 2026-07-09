@@ -12,7 +12,7 @@ open_next:
   - docs/research/search_surface_mgt_pilot_p0_receipts_v0/search_surface_mgt_pilot_p0_capture_receipt_v0.md
   - docs/research/search_surface_mgt_pilot_p0_receipts_v0/search_surface_mgt_pilot_p0_capture_efficacy_review_v0.md
   - docs/research/search_surface_mgt_pilot_p0_receipts_v0/capture_manifest.json
-  - orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
+  - forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
 stale_if:
   - Any Trends panel is re-run with a different query set, topic/entity selection, geography, category, property, or time window.
   - Google Trends changes its normalization, sampling, privacy thresholding, or Explore rendering.

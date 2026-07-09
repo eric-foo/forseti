@@ -11,12 +11,12 @@ use_when:
 open_next:
   - docs/research/search_surface_mgt_pilot_p0_receipts_v0/search_surface_mgt_pilot_p0_capture_receipt_v0.md
   - docs/research/search_surface_mgt_pilot_p0_receipts_v0/capture_manifest.json
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
-  - orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
+  - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
 stale_if:
   - The P0 Google SERP captures are recaptured under a different route or judged from a different session state.
   - A P1 direct-source capture pass supersedes this routing review.
-  - Orca changes the scanning, capture, search-interest, or answer-engine surface boundaries.
+  - Forseti changes the scanning, capture, search-interest, or answer-engine surface boundaries.
 authority_boundary: retrieval_only
 ```
 
@@ -41,7 +41,7 @@ It is not complete enough for Judgment, Product Lead, buyer proof, willingness-t
 
 ## Comparison To Existing Inputs
 
-The ChatGPT Pro beauty sub-niche intake was useful for choosing the first test area: founder-led indie/DTC fragrance, scent layering, body mist, discovery/travel formats, inventory, and retail-depth decisions. It was directional, not a verified Orca scan.
+The ChatGPT Pro beauty sub-niche intake was useful for choosing the first test area: founder-led indie/DTC fragrance, scent layering, body mist, discovery/travel formats, inventory, and retail-depth decisions. It was directional, not a verified Forseti scan.
 
 The Imaginary Authors MGT scan was useful at brand-level current state. It found official PDPs, retailer collections, sold-out/restock UI, editorial/trend surfaces, and capture requests. But within its cap it did not find independent buyer-origin evidence, and exact product/community searches were dry.
 

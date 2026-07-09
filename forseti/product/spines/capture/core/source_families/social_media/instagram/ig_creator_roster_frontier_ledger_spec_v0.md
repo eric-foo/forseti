@@ -16,11 +16,12 @@ open_next:
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_daily_heartbeat_operating_policy_v0.md
   - docs/decisions/wind_caller_calibration_carveout_v0.md
 branch_or_commit: 45c6fac9
 stale_if:
   - The first commercial beauty target, proof decision family, or buyer-proof boundary changes.
-  - The IG monitoring policy changes the roster gates, serious-v0 planning target, or A/B/C allocation.
+  - The IG monitoring policy or daily-heartbeat policy changes the roster gates, daily heartbeat override, serious-v0 planning target, or A/B/C allocation.
   - Wind-caller calibration doctrine changes public-name, subject-roster, passive-monitoring, or exclusion boundaries.
   - The adopted ontology changes the status of WindCaller, SubNiche, Observation, CapturePacket, TrendVector, or DecisionEvent.
   - A runtime implementation schema is adopted that supersedes this proposed docs-only contract.
@@ -104,12 +105,14 @@ Current controlling facts for this spec:
   demand-allocation decision.
 - First decision-family bias: retail/channel expansion, launch/reposition, and
   inventory or purchase-depth commitment.
-- Current beauty-first IG roster gates: `250 -> 500 -> 1,000`.
-- Current serious-v0 planning target: 1,000 creators with 10/30/60 A/B/C
-  allocation.
-- The 1,000-creator path is a non-authorizing operating envelope. It is not
-  live capture, proxy purchase, session/cookie wiring, scheduler/runtime work,
-  network configuration, or commercial-scale collection.
+- Current beauty-first IG roster gates remain `250 -> 500 -> 1,000` for
+  ledger/provenance shakeout.
+- Current steady-state daily-heartbeat policy targets approximately 2.5k active
+  registered creators/day across two egress lanes. The 1,000 gate is no longer
+  the daily-monitoring cap.
+- The gate path and the 2.5k registered-creators/day posture are non-authorizing operating
+  envelopes. They are not live capture, proxy purchase, session/cookie wiring,
+  scheduler/runtime work, network configuration, or commercial-scale collection.
 
 Retailer/category teams are not the first buyer door. Agencies and incubators
 may later help route to accountable brand decision owners, but their interest
@@ -157,17 +160,22 @@ Use the current main gates:
 | --- | ---: | ---: | ---: | --- |
 | 250 | 25 | 75 | 150 | Ledger/provenance shakeout on one commercially coherent slice. |
 | 500 | 50 | 150 | 300 | Second gate after name, frontier, lifecycle, and privacy behavior survive operator use. |
-| 1,000 | 100 | 300 | 600 | Current serious-v0 planning target for the beauty-first IG path. |
+| 1,000 | 100 | 300 | 600 | Ledger/provenance serious-v0 gate for the beauty-first IG path; no longer the current daily-heartbeat cap. |
 
-The gate counts use the current 10/30/60 A/B/C allocation. They are planning
-defaults, not validation proof and not capture authorization.
+The gate counts use the inherited 10/30/60 A/B/C allocation. They are planning
+defaults, not validation proof, not capture authorization, and not the current
+steady-state monitoring cadence. Under `ig_daily_heartbeat_operating_policy_v0`,
+active registered creators receive the daily first-visible-grid heartbeat for
+now; A/B/C tiering is priority/attention metadata unless a later owner decision
+reintroduces sparse cadence.
 
 Tier meaning:
 
-- Tier A: dense monitoring for rising/high-signal creators and current
+- Tier A: highest priority for rising/high-signal creators and current
   breakouts.
-- Tier B: sampled monitoring for established or slower creators.
-- Tier C: cheap heartbeat so the known vertical stays on the radar.
+- Tier B: normal roster priority for established or slower creators.
+- Tier C: low-priority roster coverage; still receives the daily
+  first-visible-grid heartbeat under the current steady-state policy.
 - Hot-list: floating temporary attention while a spike persists.
 
 Do not read the 500 gate as the final target, and do not jump to 1,000 before
@@ -269,7 +277,7 @@ Mapping rules:
 
 `creator_roster_entry` is the current operational roster row. It exists to let
 operators and later tooling decide who belongs in the monitoring roster, what
-sub-niche they represent, and what review cadence is appropriate.
+sub-niche they represent, and what priority/attention label applies.
 
 Suggested fields:
 
@@ -307,7 +315,9 @@ Field invariants:
 - `current_public_display_name` is a cache, not the source of truth.
 - `primary_sub_niche` must be ontology-compatible, but this ledger does not own
   the sub-niche taxonomy.
-- `roster_tier` is monitoring priority, not importance, truth, or quality.
+- `roster_tier` is monitoring priority, not importance, truth, quality, or
+  current cadence; under the current daily-heartbeat policy it must not reduce
+  the daily first-visible-grid heartbeat for active registered creators.
 - `signal_state` is operational status. It does not override the ontology.
 - `next_due_at` is advisory only. It must not imply an autonomous scheduler.
 

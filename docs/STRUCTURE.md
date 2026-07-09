@@ -55,10 +55,12 @@ Template child folders such as `_generic/`, `research/`, `review/`, `shared/`,
 and `wrappers/` are navigation aids under `docs/prompts/templates/`; check the
 template registry before relying on a template.
 
-`docs/prompts/hygiene-queue/` exists in the current working tree, but it is not
-listed as an accepted prompt-family folder in the overlay. Treat it as drift or
-parked material until a hygiene entry or overlay-maintenance decision resolves
-it.
+Retained nonstandard prompt locations (`docs/prompts/architecture/`,
+`docs/prompts/advisory/`, root prompt files, and harness-local
+`docs/research/judgment-spine/harness/v0_14/review_prompts/`) are documented
+in `docs/prompts/README.md` and the repo map. They are navigation exceptions,
+not accepted prompt families. `docs/prompts/hygiene-queue/` was resolved by
+ORCA-HYGIENE-001; do not recreate it as a prompt family.
 
 ## Review Output Folders
 

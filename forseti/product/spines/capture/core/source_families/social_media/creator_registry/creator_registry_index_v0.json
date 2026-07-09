@@ -14,7 +14,7 @@
     "source_inputs": [
       {
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "073a534d79c95db92a317a29e90f50d20c33366ededa252fe73dd2a727878dd8",
+        "sha256": "e4dd8e773c3d0ed94a73b1d378ee92bfeb79d7ea9c3e2cf5d4f4512a6c1af0c9",
         "role": "source-backed known public platform accounts and linkage state"
       }
     ],
@@ -29,13 +29,13 @@
       "capture_preflight_rule": "Capture should use registry freshness/routing state to avoid duplicate work, then rely on Capture/Silver records for facts and metrics."
     },
     "counts": {
-      "platform_accounts_total": 38,
-      "creator_records_total": 1,
-      "known_account_rows_total": 38,
+      "platform_accounts_total": 40,
+      "creator_records_total": 2,
+      "known_account_rows_total": 40,
       "platform_accounts_by_platform": {
         "youtube": 30,
-        "instagram": 4,
-        "tiktok": 4
+        "instagram": 5,
+        "tiktok": 5
       }
     },
     "platform_accounts": [
@@ -1398,6 +1398,79 @@
           "not audience authority",
           "not contact or outreach authorization"
         ]
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_005",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "normalized_public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.tiktok.com/@noeldeyzel_fragrance",
+        "creator_record_id_or_none": "creator_noeldeyzel_fragrance_001",
+        "identity_state": "candidate_public_account_link",
+        "discovery_state": "known_account",
+        "capture_state": "identity_observed_profile_packet_available",
+        "linkage_state": "candidate_needs_review",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "freshness": {
+          "identity_observed_at": "2026-07-08T15:01:18Z",
+          "last_discovery_observed_at_or_none": "2026-07-08T15:01:18Z",
+          "last_capture_observed_at_or_none": "2026-07-08T15:01:18Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_005",
+          "platform:tiktok:handle:noeldeyzel_fragrance",
+          "platform:tiktok:url:https://www.tiktok.com/@noeldeyzel_fragrance"
+        ],
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/38",
+          "docs/review-inputs/noeldeyzel_fragrance_tiktok_creator_discovery_frontier_register_20260708.json",
+          "F:\\orca-data-lake\\raw\\8cc\\01KX13YSB6V0Y49D1H7Z3EAZ1K"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ]
+      },
+      {
+        "platform_account_id": "acct_ig_fragrance_006",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "normalized_public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.instagram.com/noeldeyzel_fragrance/",
+        "creator_record_id_or_none": "creator_noeldeyzel_fragrance_001",
+        "identity_state": "candidate_public_account_link",
+        "discovery_state": "known_account",
+        "capture_state": "identity_observed_profile_packet_available",
+        "linkage_state": "candidate_needs_review",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "freshness": {
+          "identity_observed_at": "2026-07-08T15:11:47Z",
+          "last_discovery_observed_at_or_none": null,
+          "last_capture_observed_at_or_none": "2026-07-08T15:11:47Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "lookup_keys": [
+          "platform_account_id:acct_ig_fragrance_006",
+          "platform:instagram:handle:noeldeyzel_fragrance",
+          "platform:instagram:url:https://www.instagram.com/noeldeyzel_fragrance/"
+        ],
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/39",
+          "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ]
       }
     ],
     "creator_records": [
@@ -1417,6 +1490,35 @@
         "routing_decision": "route_to_linkage_review_before_cross_platform_rollup_or_final_identity_use",
         "source_pointers": [
           "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/creator_records/0"
+        ],
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not cross-platform metric rollup",
+          "not current handle guarantee"
+        ]
+      },
+      {
+        "creator_record_id": "creator_noeldeyzel_fragrance_001",
+        "link_state": "candidate_public_account_link",
+        "review_state": "candidate_needs_review",
+        "platform_account_ids": [
+          "acct_tiktok_fragrance_005",
+          "acct_ig_fragrance_006"
+        ],
+        "evidence_ids": [
+          "ev_candidate_noeldeyzel_fragrance_20260708_001"
+        ],
+        "discovery_state": "known_candidate_linkage",
+        "routing_decision": "route_to_linkage_review_before_cross_platform_rollup_or_final_identity_use",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/creator_records/1",
+          "docs/review-inputs/noeldeyzel_registry_match_preflight_receipt_20260708.json"
         ],
         "non_claims": [
           "not real-world identity proof",

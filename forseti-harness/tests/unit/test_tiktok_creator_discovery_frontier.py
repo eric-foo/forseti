@@ -13,6 +13,7 @@ from capture_spine.tiktok_creator_discovery_frontier import (
     FrontierNode,
     FrontierNodeType,
     RefreshOutcome,
+    SUGGESTED_ACCOUNT_FRONTIER_SCOPE_LIMIT_RESIDUAL,
     ScanReceipt,
     SuggestedAccountObservation,
     NextRunEnvelope,
@@ -424,6 +425,33 @@ def test_scan_receipt_suggested_packet_available_requires_source_pointer() -> No
     assert exc_info.value.code == "missing_source_packet_pointer"
 
 
+def test_cloakbrowser_parent_packet_requires_suggested_attempt_status() -> None:
+    receipt = _scan_receipt(
+        suggested_accounts_capture_status="tiktok_suggested_accounts_not_started",
+        source_packet_id_or_none=None,
+        source_packet_path_or_none=None,
+    )
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "suggested_accounts_required_after_cloakbrowser_parent_grid"
+
+
+def test_cloakbrowser_parent_packet_allows_suggested_blocked_or_empty_status() -> None:
+    receipt = _scan_receipt(
+        suggested_accounts_capture_status="tiktok_suggested_accounts_blocked_or_empty_visible_outcome",
+        source_packet_id_or_none=None,
+        source_packet_path_or_none=None,
+        suggested_accounts_observed=0,
+        caps_applied={
+            "root_profiles": 1,
+            "suggested_accounts_observed": 0,
+            "candidate_profiles_opened": 0,
+            "screenshots_emitted_to_chat": 0,
+        },
+    )
+    validate_tiktok_creator_discovery_scan_receipt(receipt)
+
+
 def test_scan_receipt_rejects_browser_close() -> None:
     receipt = _scan_receipt(browser_closed_by_runner=True)
     with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
@@ -441,16 +469,23 @@ def test_scan_receipt_rejects_second_refresh() -> None:
     assert exc_info.value.code == "refresh_attempt_limit_exceeded"
 
 
-def test_scan_receipt_rejects_candidate_open_follow_and_screenshot() -> None:
+def test_scan_receipt_rejects_candidate_open_and_screenshot() -> None:
     for field_name, code in (
         ("candidate_profiles_opened", "candidate_profile_open_forbidden"),
-        ("follow_unfollow_actions_taken", "follow_unfollow_forbidden"),
         ("screenshots_emitted_to_chat", "screenshot_chat_output_forbidden"),
     ):
         receipt = _scan_receipt(**{field_name: 1})
         with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
             validate_tiktok_creator_discovery_scan_receipt(receipt)
         assert exc_info.value.code == code
+
+
+def test_scan_receipt_allows_one_root_follow_but_rejects_more() -> None:
+    validate_tiktok_creator_discovery_scan_receipt(_scan_receipt(follow_unfollow_actions_taken=1))
+    receipt = _scan_receipt(follow_unfollow_actions_taken=2)
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == "follow_unfollow_limit_exceeded"
 
 
 def test_scan_receipt_rejects_wrong_schema_version() -> None:
@@ -522,6 +557,18 @@ def test_scan_receipt_requires_every_exclusion_marker() -> None:
         validate_tiktok_creator_discovery_scan_receipt(receipt)
     assert exc_info.value.code == "missing_scan_receipt_exclusion"
 
+
+def test_register_builder_adds_scope_limit_residual_without_dropping_user_residuals() -> None:
+    register = build_tiktok_creator_discovery_frontier_register(
+        scan_receipt=_scan_receipt(),
+        suggested_accounts=({"handle": "3whiffs"},),
+        prior_register_pointer="docs/review-inputs/example.json#/tiktok_creator_discovery_frontier_register",
+        accepted_residuals=("No graph database; JSON registers remain sufficient.",),
+    )
+
+    residuals = register["tiktok_creator_discovery_frontier_register"]["accepted_residuals"]
+    assert residuals[0] == SUGGESTED_ACCOUNT_FRONTIER_SCOPE_LIMIT_RESIDUAL
+    assert "No graph database; JSON registers remain sufficient." in residuals
 
 def test_register_builder_from_receipt_passes_and_keeps_next_runs_unauthorized() -> None:
     register = build_tiktok_creator_discovery_frontier_register(

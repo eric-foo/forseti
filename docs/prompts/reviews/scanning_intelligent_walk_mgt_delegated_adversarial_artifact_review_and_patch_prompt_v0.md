@@ -18,11 +18,11 @@ open_next:
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
   - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
   - docs/decisions/orca_venue_registry_rejection_decision_v0.md
-  - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+  - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md
 input_hashes_sha256_worktree:
   scanning_intelligent_walk_mgt_operating_model: 35E57952D9092F5B91E67BDB43FDD4EA5FAE6006D07CF47D3F0B54A41374BA74
   vertical_exploration_guide: A7E7983A939687A2AA5C2A391ED6FCFF0A945BF0675EE6C11A43071D7C4AF0C3
@@ -71,7 +71,7 @@ bounded post-patch recheck before keep.
 ## Launch Prompt
 
 ````text
-You are the controller for an Orca delegated adversarial artifact review-and-patch commission.
+You are the controller for a Forseti delegated adversarial artifact review-and-patch commission.
 
 This is a `workflow-delegated-review-patch` commission in `base-subagent` mode.
 De-correlation is a who-constraint, not a model recommendation. Do not add a
@@ -109,7 +109,7 @@ not spawn recursive or unrelated subagents.
 Submitted target label: `[scan-mgt-model]`
 
 Submitted target file:
-- `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
+- `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
 
 Bounded patch scope:
 - Patch only the submitted target file.
@@ -167,16 +167,16 @@ Read and follow:
 - `docs/decisions/orca_mini_god_tier_doctrine_v0.md`
 - `docs/decisions/orca_venue_registry_rejection_decision_v0.md`
 - `orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md`
-- `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
-- `orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md`
-- `orca/product/spines/scanning/admissibility_checkability/orca_demand_scan_gate_adjudication_packet_v0.md`
+- `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
+- `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md`
+- `forseti/product/spines/scanning/admissibility_checkability/forseti_demand_scan_gate_adjudication_packet_v0.md`
 - `docs/decisions/screening_reddit_read_route_decision_v0.md`
 - `docs/workflows/screening_read_service_build_receipt_v0.md`
 
 Read source-family docs only if a target claim depends on a specific family:
-- `orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md`
-- `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md`
-- `orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`
+- `forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md`
+- `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md`
+- `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`
 
 Do not bulk-load unrelated Capture, ECR, Cleaning, Judgment, historical review
 outputs, method-validation replays, research corpus, `_inbox`, or prompt
@@ -360,7 +360,7 @@ prompt_orchestrator_receipt:
   requested_template_kind: review
   template_source_used:
     - docs/prompts/templates/review/adversarial_artifact_review_v0.md
-    - docs/prompts/templates/shared/orca_preflight_defaults_v0.md
+    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
   delegated_review_patch_overlay_status: provisional_opt_in
   operating_contract_pointer: .agents/workflow-overlay/delegated-review-patch.md
   selected_review_lane: workflow-adversarial-artifact-review
@@ -372,13 +372,13 @@ prompt_orchestrator_receipt:
   actor_model_family_receipt_required: true
   actor_model_family_receipt_status: operator_to_fill_at_courier_runtime
   patch_authority: single submitted target file only
-  target_file: orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  target_file: forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
   read_only_context:
     - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
     - docs/workflows/orca_repo_map_v0.md
     - docs/decisions/orca_mini_god_tier_doctrine_v0.md
     - docs/decisions/orca_venue_registry_rejection_decision_v0.md
-    - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+    - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md
   ca_adjudication_required_before_keep: true
   needs_architecture_pass_valve: true
   source_context_status: prompt_author_sources_loaded_for_prompt_creation

@@ -65,6 +65,7 @@ hierarchy.
 | Fragrance facts: resolve a fragrance/house to canonical ids, note families, tier, dupes, per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` | Self-describing DATA SSOT: facts, per-fact provenance, and the extension pattern live in-file; the backbone doc and object cards are authority/rationale surfaces, not the fact source. |
 | Ontology type roster, namespaces, typed links, dimensions, deferred set | `forseti/product/spines/foundation/ontology/ontology.yaml` | Machine-readable SSOT of the adopted backbone; open the backbone doc only for rationale or conflict adjudication. |
 | Any LinkedIn task | `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` | The lane's canonical cold-start index (its own row says "open first"). |
+| Answer-engine/search-interest/AEO work | `forseti/product/spines/scanning/README.md` | Current route starts at the scanning front door, then the answer-engine source-family spec, then research evidence under `docs/research/answer_engine/`; legacy search-lane records are historical/governance only. |
 | ECR spine orientation | `docs/workflows/ecr_spine_submap_v0.md` | Delegated submap for the ECR spine. |
 | Data Capture spine orientation | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Delegated Data Capture submap. |
 | "Research engine" grouping: what CSB + Scanning + Capture are as one data-extraction group | `docs/workflows/forseti_research_engine_map_v0.md` | Colloquial cross-spine grouping map over the three extraction spines; states the Capture->ECR boundary. Label + navigation only, not a spine or authority. |
@@ -198,17 +199,21 @@ to the PostToolUse array, then restart the session (hooks load at session start)
 **Prompt-preflight reminder (advisory).** A PostToolUse hook (matcher
 `Write|Edit|MultiEdit` in `.claude/settings.json`,
 `python .agents/hooks/check_prompt_provenance.py --hook`): after a canonical
-prompt write under `docs/prompts/**`, injects the **Forseti Prompt Preflight**
-(output mode · template kind · edit-permission+targets+branch · reviews
-findings-first + no runtime-model routing · doctrine-change -> propagation
-receipt · destinations) so a routine prompt applies the contract inline with no
-skill reload; fused / delegated-review-patch / novel prompts still author
-through `workflow-prompt-orchestrator` (rule owned by
-`.agents/workflow-overlay/prompt-orchestration.md`). Remind only, never blocks,
-exit 0; it cannot verify the contract was applied. It does not fire for
-lane-scoped prompts attached to a lane PR body/comment or kept in ignored
-`docs/_inbox/` scratch; those are accepted only under prompt-orchestration.md
-classification and must carry preflight manually.
+prompt-artifact write under `docs/prompts/**`, injects the **Forseti Prompt
+Preflight** (output mode · template kind · edit-permission+targets+branch ·
+reviews findings-first + no runtime-model routing · doctrine-change ->
+propagation receipt · destinations) so a routine prompt applies the contract
+inline with no skill reload; the full non-routine trigger list for
+`workflow-prompt-orchestrator` is owned by
+`.agents/workflow-overlay/prompt-orchestration.md`. Prompt filing is
+source-role classified: canonical, reusable, doctrine-bearing, first-of-kind, or
+standard prompt artifacts file under the accepted `docs/prompts/**` families;
+lane-scoped execution prompts may instead travel in the lane PR/comment or
+ignored `docs/_inbox/` scratch when prompt-orchestration.md classifies them that
+way. For canonical prompts, `paste-ready-chat` is a paste copy of the filed
+artifact; for lane-scoped execution prompts it may be the lane-carried body. The
+hook reminds only, never blocks, exit 0, and cannot verify the contract was
+applied; no new checker/hook is authorized by this navigation note.
 `python .agents/hooks/check_prompt_provenance.py --selftest` checks the decision
 logic.
 
@@ -621,13 +626,13 @@ nickname: "crawling graph." The runner is
 | `forseti/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + SSOT + cards + fragrance reference data), demand-read taxonomy, vertical-exploration. For fragrance FACT lookup go straight to `ontology/fragrance_reference_v0.yaml` (self-describing: facts + per-fact provenance + extension pattern in-file; see the Decisive-File Quick Index). |
 | `forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md` | Adopted ontology backbone prose/rationale authority: type roster rationale, ID grammar, links, dimensions, action gates, and dated amendments. For machine-readable SSOT open `ontology.yaml`; for old filename resolution use `docs/migration/forseti_ontology_filename_migration_v0/moved_paths_index.md`. |
 | `docs/decisions/forseti_ontology_gt_foundation_ladder_v0.md` | Ontology foundation GT ladder and trigger-gated infrastructure roadmap; records R0 done and R1-R7 triggers/non-claims. Old filename resolves through `docs/migration/forseti_ontology_filename_migration_v0/moved_paths_index.md`. |
-| `forseti/product/spines/scanning/` | Scanning (discovery-side) spine: open `forseti/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, default CSB broad-scout phase, recency/current-state frontier priority, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. |
+| `forseti/product/spines/scanning/` | Scanning (discovery-side) spine: open `forseti/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, default CSB broad-scout phase, recency/current-state frontier priority, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. For answer-engine/search-interest/AEO work, continue from the README to `source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`, then to `docs/research/answer_engine/` evidence. |
 | `forseti/product/spines/capture/` | Capture (acquisition-side) spine: open `forseti/product/spines/capture/README.md` first. It orients across the `core/` acquisition layer (source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families) and routes to the Data Capture submap for deep routing. For known source-family capture-to-lake route homes (`fragrance_native_database`, `retail_pdp`, `social_media/{instagram,tiktok,youtube,reddit}`, creator_registry, and cross-archive pointers) open `forseti/product/spines/capture/core/source_families/README.md`. |
 | `forseti/product/spines/creator_signal/` | Creator Signal product/signal spine (promotion-bound 2026-06-28). Owns product-facing creator intelligence surfaces: profile IA, aggregate influence display, ideal/content-fit audience display, freshness, limitations, and source drill-back over Capture-owned creator records. Binding: `docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md`. |
 | `forseti/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver, now deprecated/dormant as default pre-Judgment layer). |
 | `forseti/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
 | `forseti/product/spines/judgment/` | Judgment spine: conductor, claim_ladder, demand_read (core/c2_weighting/c3_verdict_action/grading), learning_loops (near_half/far_half), source_side_receipts, toolkit_gaps. Demand-read C2 treats recency/currentness as qualitative attention/relevance, not proof or scoring. Dense — submap candidate. |
-| `forseti/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge. |
+| `forseti/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge, growth (Sleipnir research/CI-decisions-as-a-service direction exploration, EXPLORATORY / owner-gated). |
 | `forseti/product/spines/commission_signal_board/` | Commission Signal Board pilot spine: authority, dispatch_rules, harness + tests + migrations + prompts + workflows (#261); prompt rows carry recency/currentness as attention metadata, not proof. |
 | `forseti/product/satellites/beauty/` | Beauty satellite: domain venue/card assets. |
 | `forseti/product/satellites/fragrance/` | Fragrance satellite: Level-1 judgment organizers (casebook_admission, named_case_screens, reconciliation, satellite_skeleton). |
@@ -930,20 +935,26 @@ Unity runtime-fee specimen:
 | `docs/prompts/templates/` | Local prompt templates. |
 | `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` | Live shared repo-constant prompt preflight defaults for new or materially touched Forseti prompts; old `orca_preflight_defaults_v0.md` is a compatibility pointer. |
 | `docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md` | Live shared behavior contract included by Forseti prompt templates; old `orca_prompt_behavior_contract_v0.md` is a compatibility pointer. |
-| `docs/prompts/architecture/` | Architecture prompt family. |
-| `docs/prompts/advisory/` | Advisory prompt family. |
-| `docs/prompts/hygiene-queue/` | Drift/parking area (created on first artifact; does not exist yet); not listed as an accepted prompt-family folder in the overlay. |
 
-A few Data Capture pressure-test prompts currently sit unfiled at the
-`docs/prompts/` root rather than in a typed family folder; treat them as drift
-pending hygiene triage.
+Retained prompt exceptions below are navigation labels, not accepted prompt
+families and not new write destinations. Use the accepted folders above for new
+prompt artifacts unless the owning overlay or a later owner decision says
+otherwise.
+
+| Retained location | Navigation rule |
+| --- | --- |
+| `docs/prompts/architecture/` | Retained nonstandard architecture-prompt bucket with live references and review provenance; not an accepted prompt family in `.agents/workflow-overlay/artifact-folders.md` or prompt-orchestration.md. Do not move or promote without reverse-ref proof and owner decision. |
+| `docs/prompts/advisory/` | Retained Daimler advisory prompt exception; path/hash-pinned per `docs/hygiene/queue.md` ORCA-HYGIENE-005. Not an accepted prompt family and not a default destination. |
+| `docs/prompts/` root prompt files | Retained Data Capture / Judgment prompt exceptions and pinned checker prompts. New prompts should go to a typed accepted family; moving retained root files requires a reference-aware pass. |
+| `docs/research/judgment-spine/harness/v0_14/review_prompts/` | Spec-bundled v0.14 review prompts retained with the harness spec; not a `docs/prompts/` family and not moved in this navigation pass. |
+| `docs/prompts/hygiene-queue/` | Dead resolved path; does not exist yet after ORCA-HYGIENE-001 consolidated it to `docs/hygiene/` and removed the directory. Do not recreate as a prompt family. |
 
 ## Research And Review Areas
 
 | Path | Use for |
 | --- | --- |
 | `docs/research/consulting-judgment-corpus/` | Consulting-judgment corpus, prompts, lane outputs, synthesis, candidate screens, backtestability, and reject patterns. |
-| `docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md` | AEO Phase-0 feasibility probe evidence rehomed from the scanning product spine; use as research evidence for the answer-engine source-class spec, not as product-spine authority. |
+| `docs/research/answer_engine/` | Answer-engine/AEO research evidence, including `aeo_capture_feasibility_probe_phase0_v0.md` and its JSON sidecar. Use as research evidence for the answer-engine source-class spec, not as product-spine authority, gate-recordable method, validation, readiness, product proof, or capture authorization. |
 | `docs/research/orca_discovery_candidate_scan_imaginary_authors_demand_origin_discovery_v0.md` | Fresh CSB-first Imaginary Authors discovery follow-up focused on public buyer-origin venue value, exact-query negatives, capture-preservation triage, and no-candidate closeout. |
 | `docs/research/orca_discovery_candidate_scan_imaginary_authors_buyer_language_rerun_v0.md` | Bounded buyer-language rerun for the Imaginary Authors CSB-first scan; records Parfumo as a high-value public community/review venue, two low-commitment candidate entries, and a preservation-only capture_request. |
 | `docs/research/orca_discovery_candidate_scan_imaginary_authors_broad_scout_deep_scan_v0.md` | Fresh CSB broad-scout plus main deep-scan artifact for Imaginary Authors; confirms Parfumo as the high-value public buyer-language venue, carries two hold-low-commitment candidate entries, and records preservation-only capture requests. |
@@ -954,7 +965,7 @@ pending hygiene triage.
 | `docs/research/daimler_advisory_001_source_registry_v0.md` | Manual Daimler source-unit registry separating participant-safe candidates, date ambiguity, missing evidence, and reveal-only material before any packet rebuild or judgment-quality claim. |
 | `docs/research/packing-phase/` | Boundary note for decision-packet construction between cleaned evidence and Judgment Harness inputs. |
 | `docs/decisions/judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md` | Decision record on pre-sale Judgment Spine model-execution evidence tiers (subscription/manual/chat default; raw API/harness as optional gate-bearing plumbing) and how to read no-case smoke-test / raw-API runner artifacts relative to buyer proof. |
-| `docs/review-outputs/` (root) | Flat collection of harness implementation/code-review outputs (source-capture adapters, source-observability helper, no-tools probe and execution-foundation); advisory findings only, co-located at the folder root rather than a typed subfolder. |
+| `docs/review-outputs/` (root) | Retained flat collection of harness implementation/code-review outputs (source-capture adapters, source-observability helper, no-tools probe and execution-foundation); advisory findings only, retained in place by ORCA-HYGIENE-004 because path/hash pins make relocation provenance-risky. New adversarial reports default to the typed child folder. |
 | `docs/review-outputs/adversarial-artifact-reviews/` | Adversarial artifact review reports, including the Daimler advisory and Canoo/Walmart Judgment Spine fixture-review families. |
 | `docs/review-outputs/method-validation/` | Method-validation review outputs. |
 | `docs/review-outputs/proof/` | Proof review outputs (currently a README placeholder). |
@@ -1170,7 +1181,7 @@ status field. Open the owning doc for authority; this table is navigation only.
 | Signal content | `forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION`; `DEPRECATED_AS_STANDALONE_PRE_JUDGMENT_LAYER` |
 | Source capture toolbox | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
 | Core spine | `forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
-| Search lane | `docs/decisions/forseti_search_product_lane_binding_v0.md` | owner-authorized v0; demand-signal intelligence (search-led): search/answer-engine surfaces + demand-scan/read/gate method |
+| Search lane | `docs/decisions/forseti_search_product_lane_binding_v0.md` | historical/governance record for the superseded search lane; current answer-engine/search execution routes through `forseti/product/spines/scanning/README.md` -> `source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md` -> `docs/research/answer_engine/` |
 | Spine-first target structure | `docs/decisions/forseti_spine_first_target_structure_binding_v0.md` | executed by spine-first migration; current product tree routes through `forseti/product/` |
 | Spine-first blocker authorization | `docs/decisions/forseti_spine_first_blocker_authorization_v0.md` | B1-B7 execution settlement consumed by the spine-first migration |
 | Aphrodite fragrance sub-ontology | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` | `DATED_DATA_2026-07-04` |
