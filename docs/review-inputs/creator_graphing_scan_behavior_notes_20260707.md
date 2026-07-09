@@ -29,6 +29,12 @@ Operational behavior note for the creator graphing / creator scanning lane after
 
 6. **Registry/UI capture status.** The registry index already exposes capture_state. UI should display per-channel capture badges derived from capture_state plus current_metric_rollups: e.g. metric seed available, profile packet only, capture not started, blocked/stale when future freshness producers exist. The identity ledger should not absorb metric or capture-run state beyond source-backed account linkage.
 
+7. **Seed-handle disambiguation before registry use.** Screenshot OCR, search rows, and shorthand operator labels can point to the wrong public account when used as a literal handle. Before graphing or registry mutation, open/check the literal handle and compare source-visible account facts against the seed intent: display name, follower/like scale, bio topic, content presence, and any existing frontier/registry evidence. If the literal handle is wrong or low-confidence, record the rejected literal handle and the source-backed corrected handle. Do not merge those accounts unless source-visible evidence supports it.
+
+8. **Ordinary Chrome is a fallback, not the TikTok/Instagram scouting norm.** For TikTok/Instagram creator graphing, a warmed CloakBrowser or equivalent intended browser surface is the default because platform state, login state, and fingerprint posture can materially change what appears. If ordinary Chrome is used because the operator left a specific tab open, record it as a fallback/owner-supplied surface and preserve capture limitations such as logged-out prompts, generic suggested accounts, missing platform state, or lower grid/social-link visibility.
+
+9. **Same-surface suggested graphing follows parent TikTok capture.** When a scan enters a TikTok creator page on the intended CloakBrowser/equivalent surface and captures the parent profile/grid, the next action is to perform at most one owner-authorized root Follow click if source-visible, verify the resulting state, and capture source-visible suggested-account rows. If profile Suggested shows `View all`, click it once and capture the expanded rows. If the profile carousel is absent, open `Following` or `Followers`, switch to `Suggested`, and record suggested-account rows or a blocked/empty outcome before moving to link hubs, sibling channels, or registry work. This keeps the platform recommendation context fresh and prevents the parent-grid packet from closing out without frontier expansion.
+
 ## Fragranceknowledge Probe Result To Carry Forward
 
 - Intended TikTok surface: existing CloakBrowser CDP 9223.
@@ -42,11 +48,15 @@ Operational behavior note for the creator graphing / creator scanning lane after
 1. Verify only the intended platform surface is active.
 2. Navigate the intended browser/session to the seed platform profile.
 3. Capture parent profile/grid receipt immediately.
-4. Extract public bio link hub and source-visible region text.
-5. Direct-HTTP capture the link hub first; browser fallback only if needed.
-6. Record sibling IG/YT/TikTok handles with evidence basis.
-7. Run registry preflight before inserting/updating accounts.
-8. Present per-channel capture status as captured/profile-only/not-started without metric zero-fill.
+4. If source-visible and owner-authorized, click the seed creator Follow button once and verify the resulting state.
+5. On the same CloakBrowser/equivalent surface, record profile suggested rows; if `View all` is present, click it once and capture the expanded rows; if profile suggestions are absent, open `Following` or `Followers`, switch to `Suggested`, and record suggested rows or a blocked/empty outcome.
+6. Extract public bio link hub and source-visible region text.
+7. Direct-HTTP capture the link hub first; browser fallback only if needed.
+8. Record sibling IG/YT/TikTok handles with evidence basis.
+9. Run registry preflight before inserting/updating accounts.
+10. Present per-channel capture status as captured/profile-only/not-started without metric zero-fill.
+11. When a literal seed handle resolves to a low-confidence or wrong account, preserve the disambiguation in the scan receipt/register and route the corrected handle through Creator Registry preflight before insertion/update.
+12. If the scan used ordinary Chrome instead of the intended CloakBrowser/equivalent surface, diagnose whether missing links, missing suggestions, login prompts, or generic recommendations are browser-surface limitations before treating them as account facts.
 
 ## Registry Capture Coverage Correction
 
