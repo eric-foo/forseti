@@ -36,6 +36,10 @@ include = [
   "source_capture.*",
   "source_observability",
 ]
+exclude = [
+  "reports.product_learning",
+  "reports.product_learning.*",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

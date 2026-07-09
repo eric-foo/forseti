@@ -59,6 +59,7 @@ migration completion evidence. For precedence, open
 | `orca/product/` | Legacy compatibility product corpus. Most pre-Forseti product files still physically live here; update existing owners in place until a separate migration moves them. |
 | `orca-harness/` | Legacy compatibility runtime harness root. Use it for live harness files until a separate migration creates or populates `forseti-harness/`. |
 | `forseti-harness/` | Not present in this workspace as of this map. Do not cite it as a live path. |
+
 ## High-Traffic Front Doors
 
 | Path | Start here for |
@@ -145,6 +146,7 @@ direction_change_propagation:
     - not build or runtime authorization
     - not physical-root migration completion
 ```
+
 ## Direction Change Propagation - Efficiency Front Doors
 
 ```yaml
@@ -154,7 +156,9 @@ direction_change_propagation:
     Foundation ontology, Judgment, Capture, and Answer Engine research so cold
     agents can route one hop before opening the legacy detailed map. Orca-named
     physical roots remain legacy compatibility roots; this change does not move
-    product or harness files.
+    product or harness files. The harness package guard checks live top-level
+    package discovery and keeps the report-data tree excluded from package
+    discovery.
   trigger: workflow_authority
   related_triggers:
     - source_loading
@@ -171,7 +175,7 @@ direction_change_propagation:
     - path: orca/product/
       reason: Legacy physical product corpus remains in place until a separate migration moves it.
     - path: orca-harness/
-      reason: Harness root remains the live legacy runtime path; item 3 only fixes package discovery.
+      reason: Harness root remains the live legacy runtime path; the package-guard change only fixes package discovery.
     - path: docs/prompts/** and docs/review-outputs/**
       reason: Historical prompt/review cleanup is intentionally deferred to a later retention/deletion gate.
   non_claims:
