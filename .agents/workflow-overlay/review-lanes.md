@@ -196,9 +196,12 @@ handoffs remain prompt-orchestration work.
 ## Rules
 
 - Reviewer threads are source-read-only unless explicitly assigned patch execution.
-- Review prompts must explicitly trigger `workflow-deep-thinking` before the
-  relevant review skill so the reviewer frames failure modes before listing
-  findings. This does not expand review scope or authorize patching.
+- Review prompts trigger `workflow-deep-thinking` before the relevant review
+  skill when the review is adversarial, formal-verdict, doctrine- or
+  authority-changing, delegated, patch-authorized, source-heavy, high-ambiguity,
+  or high-stakes. Routine single-target read-only reviews may omit it when the
+  commission is already scoped, non-doctrine, and technical-consistency judged.
+  This does not expand review scope or authorize patching.
 - Adversarial artifact review prompts must explicitly invoke
   `workflow-adversarial-artifact-review` after source readiness. If the skill is
   unavailable or not invoked, the prompt must block strict review claims or

@@ -225,9 +225,12 @@ surface. The contract is applied at two depths:
 - **Fused, delegated-review-patch, and novel or cross-lane prompts** author through
   the full **`workflow-prompt-orchestrator`** skill, which owns prompt
   source-loading and the full preflight/routing contract. **A prompt is never
-  routine — always use the full skill — when it is doctrine-changing, a review or
-  patch prompt, a cross-recipient or durable handoff/commission, or first-of-kind
-  for its task.** These are the cases where the skill's depth earns its cost.
+  routine — always use the full skill — when it is doctrine-changing,
+  delegated-review-patch, patch-queue or executor-ready, source-heavy,
+  multi-target, cross-lane, reusable/canonical, or first-of-kind for its task.**
+  Ordinary single-target read-only review prompts may use the routine path when
+  they satisfy the Forseti Prompt Preflight core and Review Prompt Defaults and
+  none of those escalation triggers apply.
 
 **Prompt filing is classified by source role, not by recipient count.** A
 prompt, handoff, wrapper, rerun, review request, or patch prompt must still apply
@@ -367,20 +370,24 @@ no`, and not the alignment-axis-not-pass-bar guardrail.
 
 ## Review Prompt Defaults
 
-All Forseti review prompts must include `workflow-deep-thinking` before the
-relevant review skill, such as `workflow-adversarial-artifact-review` or
-`workflow-code-review`, under the Source-Gated Method Contract. The reviewer
-may `REFERENCE-LOAD` the methods before source loading, but must not `APPLY`
-deep-thinking or the review method until the required source context is ready.
+Forseti review prompts must include `workflow-deep-thinking` before the
+relevant review skill when the review is adversarial, formal-verdict,
+doctrine- or authority-changing, delegated, patch-authorized, source-heavy,
+high-ambiguity, high-stakes, or otherwise likely to fail from weak failure-mode
+framing. Routine single-target read-only reviews may omit deep-thinking when the
+commission is already scoped, non-doctrine, and technical-consistency judged.
 
-The deep-thinking step should frame the boundary problem, failure modes, and
-decision criteria before findings are listed. It does not widen the review
-scope, authorize patching, or turn a narrow review into product planning.
+When deep-thinking is invoked, the reviewer may `REFERENCE-LOAD` the methods
+before source loading, but must not `APPLY` deep-thinking or the review method
+until the required source context is ready. The step frames the boundary problem,
+failure modes, and decision criteria before findings are listed. It does not
+widen review scope, authorize patching, or turn a narrow review into product
+planning.
 
-Review prompts should still return the requested review output shape. Deep
-thinking improves the reviewer's risk framing; the final answer remains a
-review report with findings, non-findings, not-proven boundaries, and next
-authorized step.
+Review prompts should still return the requested review output shape. The final
+answer remains a review report with findings, non-findings, not-proven
+boundaries, and next authorized step whether deep-thinking was triggered or
+explicitly omitted.
 
 Every Forseti review prompt and any review-return or courier prompt must also
 instruct the *adjudicator* -- the reviewer in a self-review, the commissioning
@@ -689,6 +696,36 @@ Before using a generated Forseti prompt, apply these gates:
 - Generic layout ideas may be reused only after binding to Forseti paths, artifact roles, output modes, and validation gates.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Review-prompt economy: ordinary single-target read-only reviews may use the
+    routine preflight path when no escalation trigger applies; deep-thinking is
+    required by trigger rather than for every review prompt; delegated route-out
+    delivery follows source-role filing classification, where paste-ready chat is
+    a copy/surface rather than a substitute for required filed or lane-scoped
+    prompt carriage.
+  trigger: workflow_authority
+  related_triggers: [review_authority, output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-loading.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: Operating Economy already says deep-thinking is triggered-only; this patch reconciles subordinate review/prompt doctrine to that kernel.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: Source-Gated Method Contract and source readiness are unchanged.
+  non_claims:
+    - not validation
+    - not readiness
+    - not runtime model routing
+    - not patch authorization
+```
 
 ```yaml
 direction_change_propagation:
