@@ -66,6 +66,7 @@ or broad scraping authorization.
   - `title: Search`
 - Limitations in receipt: none
 - Packet non-claims include: not raw cookie, storage-state, or profile path disclosure; not CAPTCHA solving; not session effectiveness proof.
+- Sufficiency requirement actually enforced (receipt `capture_context`): command succeeds only when target Quora B2B result details and stable question-title markers are visible in the captured artifacts; this is what the `source_detail_sufficiency_passed` mode change and the Gate Ledger's "Detail sufficiency: Pass" row are grounded in. The receipt/manifest posture text ("content sufficiency is not asserted") is the packet writer's standing generic disclaimer, not a contradiction of this mechanical gate result.
 
 ## Candidate Extraction
 
@@ -94,7 +95,7 @@ for exact wording when needed.
 | 185 | Startup-entrepreneur questions for B2B meetings with established entrepreneurs, including investor expectations. | Founder/advisory angle; no answer in visible packet. |
 | 192, 199 | B2B SaaS brand-name evaluation. | Naming/positioning angle; answer snippet discusses memorability and B2B brand experience. |
 | 203 | Common outside B2B sales-position questions. | Sales-career demand signal; no answer in visible packet. |
-| 210 | Market-research question for validating a B2B marketplace idea. | Marketplace-validation demand signal; answer not visible in the extracted range. |
+| 210, 215 | Market-research question for validating a B2B marketplace idea. | Marketplace-validation demand signal; answer snippet recommends gathering feedback from existing customers, including those with negative experiences, to surface product/service gaps. |
 
 ## Enforcement Placement
 
@@ -106,8 +107,29 @@ for exact wording when needed.
 | Profile-backed capture must disclose session posture without exposing raw secrets. | Required. Label indirection, visible mode changes, non-claims, and no raw path/cookie disclosure belong in code. | Required for operator handling: do not paste raw cookies or profile paths into artifacts. | Code primary, doctrine handling. |
 | Persistent profile plus proxy profile can create false provenance. | Required. Reject the combination at CLI/runner/adapter boundaries. | Doctrine can explain why, but should not be the only guard. | Code primary. |
 | Worktree-local profile roots can block fresh-worktree reruns. | Optional future code if repeated: a safe root override or importless profile-root binding that never records raw paths in packets. | Required now: do not copy session directories by default; prefer the profile-holding worktree or an explicit owner-authorized profile setup. | Doctrine now; code only if repeated friction. |
-| Quora has unusually strong bot-detection pressure for this target. | No global code rule from one source. | Record as a source-specific operational finding; do not generalize to every site. | Playbook note only. |
+| Quora has unusually strong bot-detection pressure for this target.[^1] | No global code rule from one source. | Record as a source-specific operational finding; do not generalize to every site. | Playbook note only. |
 | Candidate extraction from failed packets creates fake progress. | Required where extraction is automated: extractor must require sufficiency-pass markers or explicit override. | Required when extraction is manual: do not extract from failed packets except as failure analysis. | Code if automated; doctrine for manual runs. |
+
+[^1]: Not evidenced by this run, which recorded no block (`access_blocked: false`,
+`rendered_access_classification: no_block_marker`). The bot-detection-pressure
+finding is carried from a separate lower-rung probe in the same PR #816
+evidence set: `_test_runs/source_capture_quora_b2b_search_auth_browser_sufficiency_fail_probe_20260709`
+recorded `source_detail_sufficiency_failed: access blocked: cloudflare_interstitial`
+(see `docs/review-outputs/quora_cloakbrowser_pr816_delegated_adversarial_code_review_patch_v0.md`).
+That packet is not part of this calibration run and is not promoted as a durable
+artifact by this record.
+
+Implementation status note: the "Required" code controls in rows 1, 2, 4, and 5
+above already exist in the merged codebase at this record's run-point commit
+(`9039903b8176cc019d1e4447d2159d02079d3156`) — the sufficiency fail-closed exit
+code and CLI detail-requirement flag surface in
+`forseti-harness/source_capture/source_detail_sufficiency.py`, the session-posture
+label indirection in packet receipts/metadata, and the `user_data_dir` +
+`proxy_profile` rejection in
+`forseti-harness/source_capture/adapters/cloakbrowser_snapshot.py`. They are
+listed here as controls this run's evidence depends on, not as open code work;
+this is consistent with the Residuals note below that no new code change is
+justified by this run alone.
 
 ## Residuals
 
