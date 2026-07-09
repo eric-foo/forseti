@@ -27,7 +27,7 @@ If the receiving actor is not a de-correlated controller, or cannot access the w
 ## Orca Start Preflight
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom
@@ -93,15 +93,15 @@ Patch authority, if repo-mode is operator-confirmed, is limited to wording insid
 - `[capture-toolbox-index]` `orca/product/spines/capture/core/source_capture_toolbox/README.md` - playbook index row only.
 - `[capture-playbook]` `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` - Recency / Current-State Preservation Priority section only.
 - `[instagram-policy]` `orca/product/spines/capture/core/source_families/social_media/instagram/orca_creator_monitoring_policy_architecture_v0.md` - momentum/allocation boundary only.
-- `[csb-readme]` `orca/product/spines/commission_signal_board/README.md` - boundaries paragraph only.
+- `[csb-readme]` `forseti/product/spines/commission_signal_board/README.md` - boundaries paragraph only.
 - `[judgment-first-read]` `orca/product/spines/judgment/demand_read/core/judgment_spine_first_demand_read_scope_v0.md` - C3 Verdict / Action step only.
-- `[scanning-readme]` `orca/product/spines/scanning/README.md` - Public-Reaction Engagement Boundary only.
-- `[scan-core]` `orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md` - No Weak Reads By Accident bullet only.
-- `[mgt-walk]` `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md` - public-reaction engagement boundary only.
-- `[aeo-search]` `orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md` - Decision B visibility/interest gate boundary only.
-- `[linkedin-discovery]` `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md` - trajectory / candidate schema engagement-count boundary only.
-- `[linkedin-watch]` `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_influence_trajectory_watch_spec_v0.md` - watch-ordering / visible-counts boundary only.
-- `[linkedin-index]` `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` - bounded-watch index pointer only.
+- `[scanning-readme]` `forseti/product/spines/scanning/README.md` - Public-Reaction Engagement Boundary only.
+- `[scan-core]` `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md` - No Weak Reads By Accident bullet only.
+- `[mgt-walk]` `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md` - public-reaction engagement boundary only.
+- `[aeo-search]` `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md` - Decision B visibility/interest gate boundary only.
+- `[linkedin-discovery]` `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md` - trajectory / candidate schema engagement-count boundary only.
+- `[linkedin-watch]` `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_influence_trajectory_watch_spec_v0.md` - watch-ordering / visible-counts boundary only.
+- `[linkedin-index]` `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` - bounded-watch index pointer only.
 
 Do not edit code, hooks, schemas, checkers, source-access rules, claim-ladder rules, scoring logic, runtime behavior, CI, or any file outside the listed target files. If you find an off-scope defect, flag it for CA adjudication.
 

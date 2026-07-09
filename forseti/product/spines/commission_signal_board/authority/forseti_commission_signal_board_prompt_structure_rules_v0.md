@@ -28,7 +28,7 @@ stale_if:
 ## Start Preflight
 
 ```text
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom S2 product anchor plus target prompt, adjacent classifier/proof context, and historical gate-named artifacts
@@ -141,7 +141,7 @@ laundering them into Reddit-source intake
 (`docs/workflows/reddit_graph_frontier_b2b_marketing_traversal_record_v0.md`).
 AEO is currently non-origin visibility corroboration only, not a gate-recordable
 or independent demand-origin surface
-(`docs/product/data_capture_spine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`).
+(`forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`).
 Creator monitoring is designed as core machinery plus per-platform profiles:
 IG fills first, while TikTok, YouTube, and Reddit creator profiles are
 named-deferred seams
@@ -217,11 +217,19 @@ noise, provenance, independence, and graph behavior.
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
-| Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with owning search-interest/AEO specs, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
+| Search / discovery | Google Trends, search-volume provider, SERP, preserved SERP packets, marketplace search, on-site search | interest traces, query language, discovery routes, hidden-venue pointers, counterevidence queries | Search-interest can carry attention/interest signal. Search-Surface MGT is a source-route scout only; methodology and pins stay with the answer-engine/search-interest source-family spec, while execution routes to Scanning frontier/exact-query work or Capture direct-source requests. |
 | AEO / answer engines | Google AI Overviews, Gemini, ChatGPT, other answer-engine surfaces | answer visibility, cited-source ecosystem, entity association, visibility gaps | Visibility annotation only unless a later owner-approved schema amendment changes this; never an independent demand-origin surface today. |
 | News / editorial / trade | trade publications, editorial, newsletters, specialist blogs, press | launch chronology, industry framing, awareness, third-party narrative | News is a distinct family; LinkedIn reposts of news point back to the actual source. |
 | Professional / org-motion | ATS/careers pages, hiring pages, founder/executive public posts, partnership announcements, LinkedIn when explicitly routed | hiring/movement, organizational intent, operator-side propagation | ATS/careers pages are better movement sources than LinkedIn. LinkedIn remains no-live/planning-only unless separately authorized. |
 | Owned channels | brand site, brand socials, email archive, product pages, press releases | official chronology, brand claims, launch framing | High chronology value, low independence. |
+
+Answer-engine/search-interest/AEO route note: for source-class or routing questions,
+open `forseti/product/spines/scanning/README.md`, then
+`forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`,
+then `docs/research/answer_engine/` as research/probe evidence only. Do not route
+through legacy search-lane history, and do not treat AEO as product authority,
+gate-recordable, validation/readiness/proof, capture authorization, scraping,
+scaling, or implementation authorization.
 
 ### Search-Surface MGT Standing Route Card
 
@@ -315,7 +323,7 @@ feeds:
   movement, with retail presence filed separately under Retail / PDP — it is
   **not** the existing G4 demand-classifier label, where "org-motion
   corroboration" refers to retail presence
-  (`docs/product/data_capture_spine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`).
+  (`forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`).
   The demand classifier owns the board-`signal_role` -> classifier-family mapping; the
   board only labels and routes, consistent with the owner correction that the
   classifier owns the demand check.

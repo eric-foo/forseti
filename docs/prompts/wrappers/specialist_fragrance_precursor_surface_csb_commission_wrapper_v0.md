@@ -9,19 +9,19 @@ use_when:
   - Reconstructing why this lane starts from CSB instead of a retailer PDP implementation or routine lake check.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
-  - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
-  - orca/product/spines/scanning/README.md
+  - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+  - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+  - forseti/product/spines/scanning/README.md
 stale_if:
   - The Commission Signal Board prompt output contract changes.
   - The Scanning README changes the CSB-first handoff or broad-scout rule.
   - A later decision authorizes direct Capture/Data Lake expansion for this exact surface set.
 ```
 
-## Orca Prompt Preflight
+## Forseti Prompt Preflight
 
 ```yaml
-preflight_defaults: docs/prompts/templates/shared/orca_preflight_defaults_v0.md v0 - constants bound; deltas stated below.
+preflight_defaults: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md v0 - constants bound; deltas stated below.
 authorization_basis: Owner accepted CSB-first route for retail/PDP reviews plus specialist fragrance precursor surfaces in the current thread on 2026-06-29.
 objective_intended_decision: >
   Produce a Commission Signal Board output that structures which specialist-fragrance
@@ -29,7 +29,7 @@ objective_intended_decision: >
   Capture or Data Lake expansion.
 output_mode: file-write
 template_kind: thin-wrapper
-referenced_full_prompt: orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md
+referenced_full_prompt: forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
 referenced_full_prompt_revision: main@190e1ef2
 prompt_artifact_path: docs/prompts/wrappers/specialist_fragrance_precursor_surface_csb_commission_wrapper_v0.md
 downstream_output_artifact_path: docs/research/orca_specialist_fragrance_precursor_surface_csb_board_v0.md
@@ -71,7 +71,7 @@ thread_operating_target_continuity: >
 
 ## Fitness Reference
 
-Goal handoff: Orca identifies early fragrance demand before mainstream retail or press while preserving source-backed decision discipline. The current anchor is to establish a CSB-first specialist-fragrance precursor-surface qualification lane before Capture or Data Lake expansion.
+Goal handoff: Forseti identifies early fragrance demand before mainstream retail or press while preserving source-backed decision discipline. The current anchor is to establish a CSB-first specialist-fragrance precursor-surface qualification lane before Capture or Data Lake expansion.
 
 This wrapper is fit when it lets a downstream actor produce one validator-checkable CSB board that:
 
@@ -86,12 +86,12 @@ Read these before producing the CSB board:
 
 1. `AGENTS.md`
 2. `.agents/workflow-overlay/README.md`
-3. `orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`
-4. `orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_structure_v0.md`
-5. `orca/product/spines/scanning/README.md`
-6. `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
-7. `orca/product/satellites/beauty/beauty_venue_card_set_v0.md`
-8. `orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`
+3. `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`
+4. `forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md`
+5. `forseti/product/spines/scanning/README.md`
+6. `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
+7. `forseti/product/satellites/beauty/beauty_venue_card_set_v0.md`
+8. `forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`
 
 ## Dispatch Instructions
 
@@ -195,4 +195,4 @@ Capture work remains blocked until Scanning emits a bounded `capture_request`. D
 
 ## Non-Claims
 
-This wrapper does not prove precursor value, rank specialist stores, authorize retrieval, authorize scraping, authorize Capture, authorize Data Lake work, validate demand, create buyer proof, or change Orca doctrine.
+This wrapper does not prove precursor value, rank specialist stores, authorize retrieval, authorize scraping, authorize Capture, authorize Data Lake work, validate demand, create buyer proof, or change Forseti doctrine.
