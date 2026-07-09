@@ -1,0 +1,47 @@
+# Report Zero — synthetic buyer intake object (candidate-set assembly input, D-1 criterion 4)
+#
+# SYNTHETIC buyer profile per the v1 handoff's owner call (option b): no
+# waitlist-inbound buyer existed at dispatch, so the rehearsal exercises the
+# buyer-side product-coordinate intake with the adjudicated synthetic example
+# (fabrication-checked against fragrance_reference_v0.yaml in
+# aphrodite_recipe_v1_second_opinion_adjudication_v0.md — every product id,
+# tier, note_family, and occasion verified verbatim against the reference).
+# The sprint report states this buyer is synthetic. Not a real buyer, not
+# buyer contact, not outreach; product_learning-capped.
+#
+# Hashing: buyer_intake_sha256 = sha256 of this file's canonical UTF-8 bytes
+# (computed at corpus-freeze time and recorded in the corpus record + run log;
+# intake-dependent claims cite it in source_refs).
+
+buyer_profile_id: synthetic_dupe_first_clone_house_v1
+buyer_segment: dupe_first_clone_house
+buyer_house_tier:
+  value: clone-house
+  intake_source_state: buyer_supplied
+dupe_target_originals:
+  - product_id: product:creed.aventus
+    name: Aventus
+    original_tier: niche
+    note_families: [fruity, sweet, woody, leather, citrus]
+    occasions: [versatile]
+    intake_source_state: buyer_supplied
+  - product_id: product:dior.sauvage
+    name: Sauvage
+    original_tier: designer
+    note_families: [fresh, spicy, amber, citrus, aromatic, musk, woody]
+    occasions: [versatile, daily]
+    intake_source_state: buyer_supplied
+note_family_targets:
+  required: [citrus, woody, fresh, spicy]
+  acceptable: [fruity, sweet, amber, aromatic]
+  intake_source_state: derived_from_target_originals_plus_buyer_selection
+target_tier_position:
+  buyer_tier: clone-house
+  original_target_tiers: [niche, designer]
+  intake_source_state: derived_from_target_originals
+occasion_targets:
+  values: [versatile, daily, office]
+  intake_source_state: buyer_supplied
+dupe_graph_state:
+  value: no_citable_dupe_edges_in_reference_v0
+  rendered_effect: clone_tail_rollup_withheld_direct_original_mentions_still_allowed
