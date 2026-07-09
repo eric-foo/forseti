@@ -20,7 +20,7 @@ open_next:
   - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
   - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - docs/hygiene/precompact_linkedin_lane_signal_pivot_v0.md
+  - docs/hygiene/precompact_linkedin_lane_signal_pivot_v0.md # nonresolving: checkpoint consumed or absent from live tree; handoff keeps provenance only
 stale_if:
   - The Commission Signal Board source-family map changes.
   - The Capture Spine retail/PDP or fragrance purchase-review branches land, move, or are superseded.
