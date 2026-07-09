@@ -24,7 +24,7 @@ stale_if:
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Forseti navigation and source-pack selection
-- Refreshed: 2026-07-09 (Forseti identity convergence front door; legacy Orca physical roots made explicit)
+- Refreshed: 2026-07-09 (harness packaging smoke plus high-traffic front doors for Creator Signal, Foundation ontology, Judgment, Capture, and Answer Engine). Prior: 2026-07-09 (Forseti identity convergence front door; legacy Orca physical roots made explicit)
 - Implementation authorized: no
 
 ## How To Use This Map
@@ -47,6 +47,7 @@ migration completion evidence. For precedence, open
 | `.agents/workflow-overlay/README.md` | Project authority overlay. Some files retain legacy Orca labels during migration. |
 | `repo-structure.yaml` | Machine-readable router; points cold starts to this map and `forseti/product/README.md`. |
 | `forseti/product/README.md` | Canonical Forseti product front door. |
+| `docs/research/README.md` | Research front door; routes answer-engine/AEO, Aphrodite, Judgment Spine research, and other research lanes. |
 
 ## Product And Harness Roots
 
@@ -58,6 +59,16 @@ migration completion evidence. For precedence, open
 | `orca/product/` | Legacy compatibility product corpus. Most pre-Forseti product files still physically live here; update existing owners in place until a separate migration moves them. |
 | `orca-harness/` | Legacy compatibility runtime harness root. Use it for live harness files until a separate migration creates or populates `forseti-harness/`. |
 | `forseti-harness/` | Not present in this workspace as of this map. Do not cite it as a live path. |
+
+## High-Traffic Front Doors
+
+| Path | Start here for |
+| --- | --- |
+| `forseti/product/spines/creator_signal/README.md` | Creator Signal and Aphrodite product-record routing. |
+| `forseti/product/spines/foundation/ontology/README.md` | Fragrance reference, foundation ontology, and legacy foundation-owner routing. |
+| `orca/product/spines/judgment/README.md` | Legacy Judgment spine product owners and judgment-quality routing. |
+| `orca/product/spines/capture/README.md` | Legacy Capture spine, Source Capture Armory, and harness-adjacent routing. |
+| `docs/research/answer_engine/README.md` | Answer-engine / AEO research and scanning-source-family bridge. |
 
 ## Aphrodite D-1 Bundle Route
 
@@ -134,4 +145,43 @@ direction_change_propagation:
     - not source promotion
     - not build or runtime authorization
     - not physical-root migration completion
+```
+
+## Direction Change Propagation - Efficiency Front Doors
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Forseti adds retrieval-only high-traffic front doors for Creator Signal,
+    Foundation ontology, Judgment, Capture, and Answer Engine research so cold
+    agents can route one hop before opening the legacy detailed map. Orca-named
+    physical roots remain legacy compatibility roots; this change does not move
+    product or harness files. The harness package guard checks live top-level
+    package discovery and keeps the report-data tree excluded from package
+    discovery.
+  trigger: workflow_authority
+  related_triggers:
+    - source_loading
+  controlling_sources_updated:
+    - docs/workflows/forseti_repo_map_v0.md
+    - forseti/product/README.md
+    - forseti/product/spines/creator_signal/README.md
+    - forseti/product/spines/foundation/ontology/README.md
+    - orca/product/spines/judgment/README.md
+    - orca/product/spines/capture/README.md
+    - docs/research/README.md
+    - docs/research/answer_engine/README.md
+  intentionally_not_updated:
+    - path: orca/product/
+      reason: Legacy physical product corpus remains in place until a separate migration moves it.
+    - path: orca-harness/
+      reason: Harness root remains the live legacy runtime path; the package-guard change only fixes package discovery.
+    - path: docs/prompts/** and docs/review-outputs/**
+      reason: Historical prompt/review cleanup is intentionally deferred to a later retention/deletion gate.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not physical-root migration completion
+    - not prompt or review retention cleanup
 ```

@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product architecture direction brief
-scope: Owner-decided DIRECTION for the wedge-agnostic Signal Content Record — the structured "what a signal says" layer atop the existing provenance (SourceCapturePacket) and integrity (ECR postures) layers. Locks direction + invariants + shape, not the field-by-field schema.
+scope: Owner-decided DIRECTION for the wedge-agnostic Signal Content Record — the structured "what a signal says" layer atop the existing `SourceCapturePacket` provenance and integrity (ECR postures) layers. Locks direction + invariants + shape, not the field-by-field schema.
 use_when:
   - Scoping or reviewing the signal-content layer of the Data/Cleaning/ECR spine.
   - Checking what the bounded content-field ratification does and does not authorize.

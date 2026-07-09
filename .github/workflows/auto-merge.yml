@@ -17,7 +17,7 @@ name: auto-merge
 #   2. no conflict — mergeable == MERGEABLE (GitHub recomputes this vs CURRENT main,
 #                    so it self-corrects across serial merges; this is the class the
 #                    #83/#87 stacked-squash conflict fell into).
-#   3. green     — the `orca-harness-tests` CI check is SUCCESS and nothing is
+#   3. green     — the `forseti-harness-tests` CI check is SUCCESS and nothing is
 #                  failing or still pending.
 #   4. up-to-date — behind_by == 0 vs main, so two independently-green branches
 #                   cannot break main when combined. (This guard is stricter than
@@ -71,7 +71,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
-      CI_CHECK: orca-harness-tests
+      CI_CHECK: forseti-harness-tests
       AUTOMERGE_LABEL: agent-automerge
       RISK_OK_LABEL: risk/auto-merge-eligible
       RISK_MANUAL_LABEL: risk/manual-review-required
