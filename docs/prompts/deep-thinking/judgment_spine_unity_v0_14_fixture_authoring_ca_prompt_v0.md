@@ -13,7 +13,7 @@ open_next:
   - docs/research/judgment-spine/harness/v0_14/unity_v0_14_fixture_extraction_plan_v0.md
   - docs/research/judgment-spine/harness/v0_14/pydantic_schema_reference.md
   - docs/research/judgment-spine/harness/v0_14/judgement_case_construction_protocol.md
-  - orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md
+  - forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md
 input_hashes:
   docs/research/judgment-spine/harness/v0_14/unity_v0_14_fixture_extraction_plan_v0.md: DC0C9D64312E7A2BC49FA4EE227DD581E43919FBDD93F25AF83E6DFAB9677CE7
   docs/review-outputs/adversarial-artifact-reviews/unity_v0_14_fixture_extraction_plan_adversarial_review_v0.md: 730A707674756E9EB9B7CE9678EBB1C02A3A1D9A2CD5EF3F1B5BB0746DCC569E

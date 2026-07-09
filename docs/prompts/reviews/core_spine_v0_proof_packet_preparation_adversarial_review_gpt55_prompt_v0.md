@@ -11,7 +11,7 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/review-lanes.md
-  - orca/product/spines/foundation/product_contract/core_spine_v0_proof_packet_preflight_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_proof_packet_preflight_v0.md
 input_hashes:
   docs/product/core_spine_v0_proof_packet_preflight_v0.md: 557CF083E1341AADF7840F36CB95EC6C0D75A6CF0933377437F8BF61CFA514F7
   docs/product/core_spine_v0_first_proof_packet_preparation_v0.md: 318621B3D32A1086AC21F006F6F030E13D12D7D34D098F09ADE795D2908E314C

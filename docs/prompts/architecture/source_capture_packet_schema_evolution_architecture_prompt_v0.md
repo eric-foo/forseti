@@ -15,9 +15,9 @@ use_when:
   - Running or dispatching the Source Capture packet schema-evolution architecture decision.
 authority_boundary: retrieval_only
 open_next:
-  - orca-harness/source_capture/models.py
-  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - forseti-harness/source_capture/models.py
+  - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 input_hashes:
   orca-harness/source_capture/models.py: 3B89A19BAEAB90762C34FE0C95517A005D383933E48057C1ADD12E004A3A7245
 branch_or_commit: main @ d69aeee (worktree dirty; controlling sources uncommitted/untracked)

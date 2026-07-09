@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/delegated-review-patch.md
-  - orca/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_target_architecture_v0.md
+  - forseti/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_target_architecture_v0.md
 input_hashes:
   docs/product/judgment_spine/prospective_decision_loop_target_architecture_v0.md: 64A4274EBA1950264629940C5B06B3749FFF0B1CA12B71E8CE1CE1D2D3FE17CD
 branch_or_commit: prospective-decision-loop-architecture-v0; target-bearing commit 9de7561 (PR #34)

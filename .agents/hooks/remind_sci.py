@@ -29,9 +29,9 @@ BOUNDARY
 
 SCOPE (in: durable artifacts; out: code/scratch/config)
   In  : docs/{decisions,product,prompts,workflows,migration,hygiene,review-inputs,
-        review-outputs}/, .agents/workflow-overlay/, orca/product/
+        review-outputs}/, .agents/workflow-overlay/, forseti/product/
   Out : anything containing _scratch; docs/_inbox/; .agents/skills/; .claude/;
-        orca-harness/ (and any path not under an in-scope prefix, e.g. .agents/hooks/).
+        forseti-harness/ (and any path not under an in-scope prefix, e.g. .agents/hooks/).
   Pending changes are read from `git status --porcelain` (staged, unstaged, or
   untracked), so the nudge fires whether files were staged in a separate step or in
   the same `git add -A && git commit` one-liner.
@@ -60,7 +60,7 @@ IN_SCOPE_PREFIXES = (
     "docs/review-inputs/",
     "docs/review-outputs/",
     ".agents/workflow-overlay/",
-    "orca/product/",
+    "forseti/product/",
 )
 
 # Subtrees excluded even under an in-scope prefix (scratch, skill copies, config, code).
@@ -68,7 +68,7 @@ EXCLUDED_PREFIXES = (
     "docs/_inbox/",
     ".agents/skills/",
     ".claude/",
-    "orca-harness/",
+    "forseti-harness/",
 )
 
 # VERBATIM mirror of the "Smallest Complete Intervention" section of AGENTS.md,
@@ -226,10 +226,10 @@ def selftest() -> int:
 
     scope_cases = [
         ("decision doc in scope", "docs/decisions/foo_v0.md", True),
-        ("product artifact in scope", "orca/product/spines/x/y_v0.md", True),
+        ("product artifact in scope", "forseti/product/spines/x/y_v0.md", True),
         ("overlay in scope", ".agents/workflow-overlay/x.md", True),
         ("migration doc in scope", "docs/migration/plan_v0.md", True),
-        ("harness code out of scope", "orca-harness/schemas/case_models.py", False),
+        ("harness code out of scope", "forseti-harness/schemas/case_models.py", False),
         ("hook code out of scope", ".agents/hooks/remind_sci.py", False),
         ("scratch excluded", "docs/decisions/_scratch/tmp.md", False),
         ("inbox excluded", "docs/_inbox/note.md", False),
@@ -263,7 +263,7 @@ def selftest() -> int:
 
     porcelain = (
         " M docs/decisions/foo_v0.md\n"
-        "?? orca/product/spines/x/y_v0.md\n"
+        "?? forseti/product/spines/x/y_v0.md\n"
         "A  .agents/hooks/remind_sci.py\n"
         "R  docs/decisions/old.md -> docs/decisions/new_v0.md\n"
         " M README.md\n"
@@ -272,7 +272,7 @@ def selftest() -> int:
     expect = [
         "docs/decisions/foo_v0.md",
         "docs/decisions/new_v0.md",
-        "orca/product/spines/x/y_v0.md",
+        "forseti/product/spines/x/y_v0.md",
     ]
     got_paths = sorted(_durable_from_porcelain(porcelain, root))
     p_ok = got_paths == sorted(expect)

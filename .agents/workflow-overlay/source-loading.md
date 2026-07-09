@@ -297,15 +297,15 @@ Then open only the targeted sections needed for the CA prompt:
 
 - `docs/decisions/orca_product_thesis_consumer_demand_v0.md`: thesis (the
   bet), value proposition, strategic center, and central-read sections.
-- `orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`: core offer
+- `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`: core offer
   hypothesis, mechanism, fit diagnostic, and non-claims sections.
-- `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`: proof standard,
+- `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`: proof standard,
   target buyer, signal surface, disqualifiers, and not-build boundaries.
-- `orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`:
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`:
   purpose, decision, layer rules, and future ECR/Evidence Unit boundaries.
-- `orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`: product bet,
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`: product bet,
   core rule, frozen primitives, and explicit non-goals only.
-- `orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md`:
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md`:
   Evidence Unit standard and boundary rules only.
 
 Do not read these files in full by default. Use the targeted sections above,
@@ -340,13 +340,13 @@ Start with:
 
 Then open the intake surface consolidation as the pressure-test anchor:
 
-- `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_intake_surface_consolidation_v0.md`
+- `forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_intake_surface_consolidation_v0.md`
 
 Then open only the controlling source for the current claim. Key owners:
 
 - **Pressure-test closeout state and authorization-chain walk** (slot status,
   RQ status, CloakBrowser selection, Reddit ordering, tranche build authority):
-  `orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md`
+  `forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md`
   — the "Intake Surface / MSP Pressure-Test State" section carries the verbatim
   authorization-chain narrative relocated from this pack on 2026-06-13.
 - **Source-observability scoping / RQ boundary**: open the requirements-boundary
@@ -355,12 +355,12 @@ Then open only the controlling source for the current claim. Key owners:
   open the post-batch patch plan, patch proposal, owner decision, and review
   output named by the consolidation map.
 - **Slot 3 WSO continuation or cross-venue synthesis**: open
-  `orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`
+  `forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_slot3_reddit_subbatch_control_note_v0.md`
   before treating Reddit capture as complete venue coverage.
 - **Source Capture Packet lifecycle / fixture admission**:
   `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md`
 - **Source Quality State Assembler boundary**:
-  `orca/product/spines/capture/core/source_capture_toolbox/source_quality_state_assembler_v0.md`
+  `forseti/product/spines/capture/core/source_capture_toolbox/source_quality_state_assembler_v0.md`
 
 Capsule note: embedded state narrative (slot-by-slot history, authorization
 boundaries, CloakBrowser selection, Reddit ordering) now lives in the closeout
@@ -372,17 +372,17 @@ or Judgment behavior.
 Any capture-spine activity — onboarding a source, running or commissioning a capture probe,
 choosing or judging a capture route, or checking a "blocked" / NO-GO call — starts with the
 **canonical capture-method playbook**
-`orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` and its `open_next`
-`orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md`. It is the canonical method (the
+`forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` and its `open_next`
+`forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md`. It is the canonical method (the
 retired `capture_investigation_playbook_v0.md` is its pre-rename name); load it before picking a
 route, and do not re-derive the access-control gate (Step 0) or the route catalog from scratch.
 
 Scanning / screening activity reads the screening-side distillation of this method — the **Walker
-Equipment Kit** in `orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md` (public pages,
+Equipment Kit** in `forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md` (public pages,
 no logins, URLs + short quotes) — and escalates to the full playbook only for packet-grade capture.
 
 For raw-to-Judgment projection views, also open
-`orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md`; it constrains projection
+`forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md`; it constrains projection
 as a view over raw, not Cleaning, Judgment, or a new spine layer.
 
 ## ECR Source-Side Spine Read Pack
@@ -397,7 +397,7 @@ Start with:
   `retrieval_only` front door: it states the cross-kind invariants and routes one
   hop to every owner (the SCR direction + deriver plan, the ECR frame + SP-1/2/3
   and SP-6 slices, the receipt-translator origin, the schema-evolution doctrine,
-  and the built `orca-harness/ecr/` + `orca-harness/signal_content/` code).
+  and the built `forseti-harness/ecr/` + `forseti-harness/signal_content/` code).
 
 Then open only the controlling owner doc named by the submap for the current
 claim. Do not bulk-load every ECR/SCR plan or all derived-record code from this
@@ -424,16 +424,16 @@ Start with:
 Then open only the controlling source for the claim being considered:
 
 - **Claim-tier classification or overclaim check**: evidence ladder at
-  `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`.
+  `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`.
 - **Gate ownership (source identity, packet freeze, no-tools, scoring, reveal,
   closeout, or promotion blockers)**: gate ownership map at
-  `orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md`.
+  `forseti/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md`.
 - **JSG-08 reveal/calibration receipt**: owner contract at
-  `orca/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md`.
+  `forseti/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md`.
 - **Running or planning a case through JSG-01→JSG-10**: conductor at
-  `orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md`.
+  `forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md`.
 - **Buyer-proof claims**: `.agents/workflow-overlay/product-proof.md` and
-  `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`.
+  `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`.
 - **Judgment-quality, blind-use, fixture-admission, scoring, or calibration
   claims**: `docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md`
   and the specific case/run artifact.
@@ -541,7 +541,7 @@ direction_change_propagation:
     - lifecycle_boundary
   controlling_sources_updated:
     - .agents/workflow-overlay/source-loading.md
-    - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md
+    - forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_closeout_synthesis_v0.md
   downstream_surfaces_checked:
     - .agents/workflow-overlay/prompt-orchestration.md
     - .agents/workflow-overlay/README.md
@@ -610,12 +610,12 @@ direction_change_propagation:
   controlling_sources_updated:
     - .agents/workflow-overlay/source-loading.md
   downstream_surfaces_checked:
-    - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-    - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-    - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
-    - path: orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - path: forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
       reason: >
         It is the target being bound and is already canonical; no content change is needed to make
         it a start-read.

@@ -266,7 +266,7 @@ direction_change_propagation:
         two-bar rule is consistent (it already names cross_vendor_discovery as the discovery bar); a one-line
         cross-ref that the bar can be DELIVERED via the repo-mode delegated loop is recommended and deferred to
         a low-risk follow-up, not required (no stale routing without it).
-    - path: orca/product/spines/judgment/conductor/conductor_construction_integrity_probe_addendum_v1.md
+    - path: forseti/product/spines/judgment/conductor/conductor_construction_integrity_probe_addendum_v1.md
       note: >
         the R6 pre-freeze leakage gate is the consuming gate; conductor v1 is PROPOSED/pending ratification, so
         not edited mid-flight -- reconcile (R6 independent leakage review is satisfiable via the delegated loop)

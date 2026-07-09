@@ -25,10 +25,10 @@
     Pull request number.
 
 .PARAMETER Repo
-    owner/repo (default: eric-foo/orca).
+    owner/repo (default: eric-foo/forseti).
 
 .PARAMETER Check
-    Name of the required check that must be green (default: orca-harness-tests).
+    Name of the required check that must be green (default: forseti-harness-tests).
 
 .PARAMETER Method
     Merge method: squash (default), merge, or rebase.
@@ -45,8 +45,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][int]$Pr,
-    [string]$Repo = 'eric-foo/orca',
-    [string]$Check = 'orca-harness-tests',
+    [string]$Repo = 'eric-foo/forseti',
+    [string]$Check = 'forseti-harness-tests',
     [ValidateSet('squash', 'merge', 'rebase')][string]$Method = 'squash',
     [switch]$DryRun
 )

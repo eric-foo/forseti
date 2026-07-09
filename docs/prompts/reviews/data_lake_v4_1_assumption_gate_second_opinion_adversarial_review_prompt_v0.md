@@ -14,11 +14,11 @@ use_when:
 open_next:
   - docs/review-outputs/adversarial-artifact-reviews/capture_runner_v4_1_blocker_adversarial_review_v0.md
   - docs/review-outputs/capture_spine_runner_data_lake_v4_1_addendum_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-  - orca-harness/data_lake/root.py
-  - orca-harness/source_capture/writer.py
-  - orca-harness/source_capture/packet_assembly.py
-  - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+  - forseti-harness/data_lake/root.py
+  - forseti-harness/source_capture/writer.py
+  - forseti-harness/source_capture/packet_assembly.py
+  - forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
 branch_or_commit: codex/ig-reels-capture-spine @ b82551f5
 stale_if:
   - The v4.1 forward-epoch contract lands on origin/main, is rejected, or materially changes.

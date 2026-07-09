@@ -13,9 +13,9 @@ use_when:
   - Deciding how Orca may associate public creator accounts without claiming real-world identity.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
   - docs/decisions/wind_caller_calibration_carveout_v0.md
-  - orca/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
+  - forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md
 stale_if:
   - The creator roster/frontier ledger spec is superseded or moved.
   - Orca adopts a runtime schema or storage design for the creator ledger.

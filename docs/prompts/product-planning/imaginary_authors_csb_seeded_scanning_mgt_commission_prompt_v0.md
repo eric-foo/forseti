@@ -15,14 +15,14 @@ use_when:
   - Opening a capture_request handoff only after fresh scan observations justify it.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/scanning/README.md
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
-  - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
-  - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
-  - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+  - forseti/product/spines/scanning/README.md
+  - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+  - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   - docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md
   - docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0_evidence.json
-  - orca/product/case_families/product_learning/fragrance/consumer_demand_candidate_pool_handoff_v0.md
+  - forseti/product/case_families/product_learning/fragrance/consumer_demand_candidate_pool_handoff_v0.md
 stale_if:
   - The MGT intelligent-walk model changes its explicit-declaration, run-cap, or capture_request rules.
   - The scan-core targeted-forward mode is owner-adjudicated, superseded, or rejected.

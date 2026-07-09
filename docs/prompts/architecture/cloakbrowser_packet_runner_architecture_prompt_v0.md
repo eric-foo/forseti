@@ -21,8 +21,8 @@ open_next:
   - docs/product/source_capture_toolbox/README.md
   - docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md
   - docs/product/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md
-  - orca-harness/docs/source_capture_agent_runbook.md
-  - orca-harness/docs/adapter_author_contract.md
+  - forseti-harness/docs/source_capture_agent_runbook.md
+  - forseti-harness/docs/adapter_author_contract.md
 stale_if:
   - CloakBrowser selection, availability, API shape, or source-access authority changes.
   - Reddit pre-commercial method order changes.

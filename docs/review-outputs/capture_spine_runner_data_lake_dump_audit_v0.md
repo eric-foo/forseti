@@ -13,11 +13,11 @@ use_when:
   - Reconciling current runner/code tests with live data-lake raw path evidence.
 open_next:
   - docs/workflows/capture_spine_runner_data_lake_dump_audit_handoff_v0.md
-  - orca-harness/runners/
-  - orca-harness/source_capture/writer.py
-  - orca-harness/source_capture/packet_assembly.py
-  - orca-harness/data_lake/root.py
-  - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+  - forseti-harness/runners/
+  - forseti-harness/source_capture/writer.py
+  - forseti-harness/source_capture/packet_assembly.py
+  - forseti-harness/data_lake/root.py
+  - forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
 branch_or_commit: codex/ig-reels-capture-spine @ 20e0f42855579ab499c8793e49dfadb61e363eea
 stale_if:
   - Any runner in orca-harness/runners/ gains or loses --data-root / ORCA_DATA_ROOT support.

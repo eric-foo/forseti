@@ -12,10 +12,10 @@ use_when:
 open_next:
   - docs/review-outputs/capture_spine_runner_data_lake_v4_1_addendum_v0.md
   - docs/review-outputs/capture_spine_runner_data_lake_dump_audit_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-  - orca-harness/data_lake/root.py
-  - orca-harness/runners/
-  - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+  - forseti-harness/data_lake/root.py
+  - forseti-harness/runners/
+  - forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
 branch_or_commit: codex/ig-reels-capture-spine @ f95c33ae4162464354a33cd07be557d2eedc6c89
 stale_if:
   - The v4.1 addendum, v4.1 contract, DataLakeRoot, runner CLIs, or seam tests change.

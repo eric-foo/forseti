@@ -16,9 +16,9 @@ use_when:
   - Reviewing or extending the archive packet timing contract.
 authority_boundary: retrieval_only
 open_next:
-  - orca-harness/source_capture/models.py
-  - orca-harness/runners/run_source_capture_archive_packet.py
-  - orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
+  - forseti-harness/source_capture/models.py
+  - forseti-harness/runners/run_source_capture_archive_packet.py
+  - forseti/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md
 branch_or_commit: capture-archive-snapshot-timing (base main @ f15de945); no merge (owner-gated)
 input_hashes:
   commission_handoff_sha256: 69E370A3C39D5206030DFBA3E16F06D037C2467F5129608CBA2C9F6936C2EC04

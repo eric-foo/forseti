@@ -14,8 +14,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/cases/canoo-walmart/jsg_09_10_claim_classification_closeout_v0.md
-  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
-  - orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md
+  - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+  - forseti/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md
 input_hashes:
   docs/research/judgment-spine/cases/canoo-walmart/jsg_09_10_claim_classification_closeout_v0.md: 396BD52365007A845D0C37CBA28476121E8D79E4837E1B5E78A24028C02A95A4
   docs/research/judgment-spine/cases/canoo-walmart/jsg_08_reveal_calibration_receipt_v0.md: 6DA7BBF5CF62BD3DE919E429E9F3C9C642FFDAD4B4B44F2F38F0E9CBBFFBB546

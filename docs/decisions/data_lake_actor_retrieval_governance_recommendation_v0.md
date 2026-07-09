@@ -13,8 +13,8 @@ use_when:
   - Owner adjudication of actor-retrieval guardrails before any derived_retrieval build.
   - Checking whether a proposed retrieval surface stays non-dossier.
 open_next:
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
 stale_if:
   - The owner adopts, amends, or rejects this recommendation.
   - The medallion gold-readiness contract changes the actor-timing-retrieval boundary.

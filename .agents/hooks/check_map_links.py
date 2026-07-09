@@ -77,7 +77,7 @@ def repo_root() -> Path:
 # Token pattern: starts with one of the known prefixes, contains no spaces,
 # optionally backtick-quoted or bare.  We also strip trailing punctuation.
 _PATH_PREFIXES = (
-    "docs/", ".agents/", ".github/", "orca-harness/",
+    "docs/", ".agents/", ".github/", "forseti-harness/",
     "AGENTS.md", "CLAUDE.md",
 )
 
@@ -217,9 +217,9 @@ def parse_open_next(header_text: str) -> tuple[list[str], int]:
 # confer coverage on their own (anti-vacuity). Coverage requires a NON-root
 # ancestor area to be declared. See docs/decisions/orca_repo_map_architecture_mgt_v0.md.
 _COVERAGE_ROOT_PREFIXES = frozenset({
-    "orca", "orca/product", "orca/product/spines",
-    "orca/product/satellites", "orca/product/case_families", "orca/product/shared",
-    "docs", ".agents", "orca-harness",
+    "orca", "forseti/product", "forseti/product/spines",
+    "forseti/product/satellites", "forseti/product/case_families", "forseti/product/shared",
+    "docs", ".agents", "forseti-harness",
 })
 # NOTE: .agents/workflow-overlay is a *declared area* that holds docs directly
 # (map row exists), so it confers coverage and is NOT a structural root.
@@ -246,7 +246,7 @@ def dir_is_covered(rel_dir: str, map_text: str) -> bool:
 
     Reachability semantics (docs/decisions/orca_repo_map_architecture_mgt_v0.md):
     a folder is covered iff it or an ancestor *area* is declared. Structural roots
-    (orca/product, docs, ...) never confer coverage (else the gate is vacuous); a
+    (forseti/product, docs, ...) never confer coverage (else the gate is vacuous); a
     sibling, a child (child-covers-parent), prose, an answer-cell path, or a debt
     note never confer it either.
 
@@ -509,7 +509,7 @@ def run_c3(root: Path, map_text: str, scan_root: Path | None = None,
     """C3: every docs/ subdir with >=3 .md files directly must appear in the map.
 
     scan_root defaults to docs/ and min_md to 3 -- the live strict predicate,
-    left unchanged. The orca/ report mode passes scan_root=orca/product and
+    left unchanged. The orca/ report mode passes scan_root=forseti/product and
     min_md=1 (the HARDER-than-C3 coverage rule from W0: every product folder
     that CONTAINS a .md must be map-covered). Empty structure-ahead-of-content
     slots hold 0 .md and are skipped by the min_md floor, so they never
@@ -529,7 +529,7 @@ def run_c3(root: Path, map_text: str, scan_root: Path | None = None,
         rel_dir = current.relative_to(root).as_posix()
 
         # The scanned root itself is not a coverable sub-folder (no ancestor
-        # area can declare it); skip it so the orca/product README root is not
+        # area can declare it); skip it so the forseti/product README root is not
         # spuriously flagged.
         if current == scan_root:
             continue
@@ -657,26 +657,26 @@ def run_strict_inline(root: Path) -> int:
 
 
 def run_report_orca(root: Path) -> int:
-    """--report-orca: REPORT MODE over the orca/ product corpus. ALWAYS exits 0.
+    """--report-orca: REPORT MODE over the Forseti product corpus. ALWAYS exits 0.
 
     Frozen predicate (strict-minus-exit-0): computes EXACTLY the findings a
     future orca/ strict gate will enforce -- C2 open_next resolution, C4 inline
-    link resolution, and the harder-than-C3 folder coverage (every orca/product/
+    link resolution, and the harder-than-C3 folder coverage (every forseti/product/
     folder with >=1 .md must be map-covered) -- but never gates. The live
     docs/+.agents/ --strict scope and exit behavior are untouched; the Phase-3
-    ratchet flips the exit only. Header/orphan debt over orca/product/spines/**
+    ratchet flips the exit only. Header/orphan debt over forseti/product/spines/**
     is reported by header_index, not here.
     """
-    orca_root = root / "orca"
-    if not orca_root.is_dir():
-        print("check_map_links --report-orca: no orca/ tree present; nothing to report")
+    product_root = root / "forseti" / "product"
+    if not product_root.is_dir():
+        print("check_map_links --report-orca: no forseti/product/ tree present; nothing to report")
         return 0
 
-    roots = [orca_root]
+    roots = [product_root]
     map_text = load_map_text(collect_map_files(root))
     c2_findings, c2_nr = run_c2(root, search_roots=roots)
     c4_findings, c4_nr = run_c4(root, search_roots=roots)
-    cov_findings = run_c3(root, map_text, scan_root=root / "orca" / "product",
+    cov_findings = run_c3(root, map_text, scan_root=product_root,
                           min_md=1, check_label="COV")
     findings = c2_findings + c4_findings + cov_findings
     nonresolving = c2_nr + c4_nr
@@ -686,7 +686,7 @@ def run_report_orca(root: Path) -> int:
         by_check[f.check] = by_check.get(f.check, 0) + 1
 
     print("check_map_links --report-orca (REPORT MODE, exit 0; not a gate):")
-    print("  scope: orca/  |  predicate = strict-minus-exit-0 (Phase-3 flips exit only)")
+    print("  scope: forseti/product/  |  predicate = strict-minus-exit-0 (Phase-3 flips exit only)")
     print("  open_next unresolved (C2):                         %d" % by_check.get("C2", 0))
     print("  inline links unresolved (C4):                      %d" % by_check.get("C4", 0))
     print("  folders w/ >=1 .md not map-covered (COV>C3):       %d" % by_check.get("COV", 0))
@@ -769,9 +769,9 @@ def selftest() -> int:
         ("CLAUDE.md bare",
          "see CLAUDE.md for shim notes",
          ["CLAUDE.md"]),
-        ("orca-harness path",
-         "`orca-harness/ecr/__init__.py` is the entry",
-         ["orca-harness/ecr/__init__.py"]),
+        ("forseti-harness path",
+         "`forseti-harness/ecr/__init__.py` is the entry",
+         ["forseti-harness/ecr/__init__.py"]),
         (".agents path",
          "open `.agents/workflow-overlay/source-of-truth.md`",
          [".agents/workflow-overlay/source-of-truth.md"]),
@@ -788,7 +788,7 @@ def selftest() -> int:
          "see `docs/decisions/*` for all decisions",
          []),
         ("glob pattern bare skipped",
-         "orca-harness/tests/unit/test_ecr_*",
+         "forseti-harness/tests/unit/test_ecr_*",
          []),
         ("anchor stripped to base file",
          ".agents/workflow-overlay/source-loading.md#data-capture-spine-ca-read-pack",
@@ -897,8 +897,8 @@ def selftest() -> int:
          "docs/prompts/reviews/sub",
          "| `docs/prompts/reviews/` | Review prompts. |", True),
         ("non-root spine ancestor covers",
-         "orca/product/spines/capture/core/operating_model",
-         "| `orca/product/spines/capture/` | Capture spine. |", True),
+         "forseti/product/spines/capture/core/operating_model",
+         "| `forseti/product/spines/capture/` | Capture spine. |", True),
         ("sibling-prefix does NOT cover",
          "docs/foo",
          "| `docs/foobar/` | Unrelated. |", False),
@@ -912,8 +912,8 @@ def selftest() -> int:
          "docs/x/y",
          "| Question? | `docs/x/y/foo.md` |", False),
         ("structural root does NOT confer coverage",
-         "orca/product/spines/judgment/demand_read/c2_weighting",
-         "| `orca/product/` | Product tree. |", False),
+         "forseti/product/spines/judgment/demand_read/c2_weighting",
+         "| `forseti/product/` | Product tree. |", False),
         ("not-retrieval-indexed line no longer auto-covers",
          "docs/some/random/dir",
          "| `docs/hygiene/` | Queues, not retrieval-indexed. |", False),

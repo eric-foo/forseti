@@ -10,9 +10,9 @@ use_when:
   - Checking current Reddit pre-commercial capture routing without bulk-loading every capture artifact.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_capture_toolbox/README.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/README.md
   - docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md
-  - orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
+  - forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md
 stale_if:
   - The source-access tooling authorization changes build tranches, selected backend, or Reddit ordering.
   - The Source Capture Armory README changes component status, runner set, or gap list.
@@ -38,48 +38,48 @@ stale_if:
 
 | I need to... | Open |
 | --- | --- |
-| Understand current Source Capture Armory components and gaps | `orca/product/spines/capture/core/source_capture_toolbox/README.md` |
+| Understand current Source Capture Armory components and gaps | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` |
 | Check whether a source-access build or backend is authorized | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` |
-| Check source-access boundary / hard stops | `orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md` |
-| Compare source-access methods and Reddit ordering | `orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md` |
-| Check operating-model / commissioning-plan authority | `orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md`, then `orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md` or `orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md` as needed |
-| Check generic Candidate URL Intake boundaries | `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md` |
-| Check standing-capture / Corpus Intake obligations (recurring capture before a Decision Frame) | `orca/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md` |
-| Check bounded Reddit candidate URL intake / crawler boundaries | `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md` |
-| Check accepted Reddit graph/frontier scouting boundaries | `orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` |
+| Check source-access boundary / hard stops | `forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md` |
+| Compare source-access methods and Reddit ordering | `forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md` |
+| Check operating-model / commissioning-plan authority | `forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md`, then `forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md` or `forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md` as needed |
+| Check generic Candidate URL Intake boundaries | `forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md` |
+| Check standing-capture / Corpus Intake obligations (recurring capture before a Decision Frame) | `forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md` |
+| Check bounded Reddit candidate URL intake / crawler boundaries | `forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md` |
+| Check accepted Reddit graph/frontier scouting boundaries | `forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` |
 | Check bounded Reddit candidate URL intake default policy | `docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md` |
-| Use bounded screening-read service / browser-rung screening read | `docs/workflows/screening_read_service_build_receipt_v0.md`, `docs/workflows/screening_read_reusable_findings_v0.md`, `orca-harness/source_capture/screening_read.py`, and `orca-harness/source_capture/screening_browser_read.py` |
-| Check LinkedIn Lane discovery, bounded watch, people/business candidate boundaries, and optional POC-risk mode | `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md` |
+| Use bounded screening-read service / browser-rung screening read | `docs/workflows/screening_read_service_build_receipt_v0.md`, `docs/workflows/screening_read_reusable_findings_v0.md`, `forseti-harness/source_capture/screening_read.py`, and `forseti-harness/source_capture/screening_browser_read.py` |
+| Check LinkedIn Lane discovery, bounded watch, people/business candidate boundaries, and optional POC-risk mode | `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md` |
 | Handle old Reddit search/listing HTML for Candidate URL Intake pilots | `docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md` |
-| Plan bounded pre-commercial Reddit capture/consolidation | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` |
-| Check Reddit capture/consolidation success-signal hardening rationale | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` |
-| Check Capture obligations / forbidden outputs | `orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md` |
-| Check tenant/source-family payload attachment boundary | `orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md` |
-| Explain the core-facts vs typed-attachment split in plain language | `orca/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md` |
-| Check logical data-lake mechanics from capture through projection, ECR/SCR, Cleaning, and Judgment | `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md` |
-| Check Retail/PDP as the first non-IG typed-envelope probe | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md` |
-| Check raw-to-Judgment projection view doctrine | `orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md` |
-| Check Retail/PDP projection contract for Amazon, Sephora, and Ulta | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md` (target DOM price/SKU binding posture, residual vocabulary, and no-ECR/Cleaning/Judgment boundary) |
-| Check current Retail/PDP projection playbook for Amazon, Sephora, and Ulta | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` |
-| Project an existing Retail/PDP packet directory into local projection JSON | `orca-harness/runners/run_retail_pdp_projection.py`, `orca-harness/source_capture/retail_pdp_projection.py`, and `orca-harness/tests/unit/test_retail_pdp_projection.py` |
-| Capture one Retail/PDP CloakBrowser packet and opt into local projection sidecar | `orca-harness/runners/run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` and `orca-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py` |
-| Run or hand off the three-retailer Retail/PDP sidecar smoke | `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` (canonical Amazon/Sephora/Ulta URLs, flags, output inspection, failure taxonomy, and code-enforceable follow-up flags) |
-| Project an existing IG creator-momentum packet directory into local projection JSON | `orca-harness/runners/run_ig_creator_momentum_projection.py`, `orca-harness/source_capture/ig_projection.py`, and `orca-harness/tests/unit/test_source_capture_ig_projection.py` (offline, view-only, no live IG capture, scheduler, production store, or momentum score) |
+| Plan bounded pre-commercial Reddit capture/consolidation | `forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md` |
+| Check Reddit capture/consolidation success-signal hardening rationale | `forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` |
+| Check Capture obligations / forbidden outputs | `forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md` |
+| Check tenant/source-family payload attachment boundary | `forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md` |
+| Explain the core-facts vs typed-attachment split in plain language | `forseti/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md` |
+| Check logical data-lake mechanics from capture through projection, ECR/SCR, Cleaning, and Judgment | `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md` |
+| Check Retail/PDP as the first non-IG typed-envelope probe | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md` |
+| Check raw-to-Judgment projection view doctrine | `forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md` |
+| Check Retail/PDP projection contract for Amazon, Sephora, and Ulta | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md` (target DOM price/SKU binding posture, residual vocabulary, and no-ECR/Cleaning/Judgment boundary) |
+| Check current Retail/PDP projection playbook for Amazon, Sephora, and Ulta | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md` |
+| Project an existing Retail/PDP packet directory into local projection JSON | `forseti-harness/runners/run_retail_pdp_projection.py`, `forseti-harness/source_capture/retail_pdp_projection.py`, and `forseti-harness/tests/unit/test_retail_pdp_projection.py` |
+| Capture one Retail/PDP CloakBrowser packet and opt into local projection sidecar | `forseti-harness/runners/run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>` and `forseti-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py` |
+| Run or hand off the three-retailer Retail/PDP sidecar smoke | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` (canonical Amazon/Sephora/Ulta URLs, flags, output inspection, failure taxonomy, and code-enforceable follow-up flags) |
+| Project an existing IG creator-momentum packet directory into local projection JSON | `forseti-harness/runners/run_ig_creator_momentum_projection.py`, `forseti-harness/source_capture/ig_projection.py`, and `forseti-harness/tests/unit/test_source_capture_ig_projection.py` (offline, view-only, no live IG capture, scheduler, production store, or momentum score) |
 | Check whether Reddit capture output lands usefully in ECR (real-data probe; resolved by-design) | `docs/workflows/reddit_capture_to_ecr_consumption_probe_finding_v0.md` |
 | Check packet lifecycle, retention, sensitivity, or fixture movement | `docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md` |
-| Run existing capture tools safely | `orca-harness/docs/source_capture_agent_runbook.md` |
-| Author a new adapter against existing conventions | `orca-harness/docs/adapter_author_contract.md` |
-| Inspect actual implemented adapters/runners/projection helpers | `orca-harness/source_capture/` and `orca-harness/runners/` |
-| Inspect bounded live Reddit Candidate URL Intake runner | `orca-harness/runners/run_reddit_candidate_intake_live.py` and `orca-harness/tests/unit/test_reddit_candidate_intake_live_runner.py` |
-| Inspect Reddit Graph Frontier / crawling graph local support | `orca-harness/capture_spine/reddit_graph_frontier/`, `orca-harness/runners/run_reddit_graph_frontier_register.py`, `orca-harness/tests/unit/test_reddit_graph_frontier.py`, `orca-harness/tests/unit/test_reddit_graph_frontier_runner.py`, and `orca-harness/tests/contract/test_reddit_graph_frontier_contract.py` |
-| Inspect CloakBrowser anonymous v0 adapter/runner | `orca-harness/source_capture/adapters/cloakbrowser_snapshot.py`, `orca-harness/runners/run_source_capture_cloakbrowser_packet.py`, and `orca-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py` |
-| Choose or escalate an anti-block rung against a 403 bot-block (honestly) | `orca/product/spines/capture/core/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md` |
-| Check source-quality pass/report conventions | `orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md` and `orca/product/spines/capture/core/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md` |
-| Assemble existing source-quality rows and packet state | `orca/product/spines/capture/core/source_capture_toolbox/source_quality_state_assembler_v0.md` |
+| Run existing capture tools safely | `forseti-harness/docs/source_capture_agent_runbook.md` |
+| Author a new adapter against existing conventions | `forseti-harness/docs/adapter_author_contract.md` |
+| Inspect actual implemented adapters/runners/projection helpers | `forseti-harness/source_capture/` and `forseti-harness/runners/` |
+| Inspect bounded live Reddit Candidate URL Intake runner | `forseti-harness/runners/run_reddit_candidate_intake_live.py` and `forseti-harness/tests/unit/test_reddit_candidate_intake_live_runner.py` |
+| Inspect Reddit Graph Frontier / crawling graph local support | `forseti-harness/capture_spine/reddit_graph_frontier/`, `forseti-harness/runners/run_reddit_graph_frontier_register.py`, `forseti-harness/tests/unit/test_reddit_graph_frontier.py`, `forseti-harness/tests/unit/test_reddit_graph_frontier_runner.py`, and `forseti-harness/tests/contract/test_reddit_graph_frontier_contract.py` |
+| Inspect CloakBrowser anonymous v0 adapter/runner | `forseti-harness/source_capture/adapters/cloakbrowser_snapshot.py`, `forseti-harness/runners/run_source_capture_cloakbrowser_packet.py`, and `forseti-harness/tests/unit/test_source_capture_cloakbrowser_snapshot.py` |
+| Choose or escalate an anti-block rung against a 403 bot-block (honestly) | `forseti/product/spines/capture/core/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md` |
+| Check source-quality pass/report conventions | `forseti/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md` and `forseti/product/spines/capture/core/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md` |
+| Assemble existing source-quality rows and packet state | `forseti/product/spines/capture/core/source_capture_toolbox/source_quality_state_assembler_v0.md` |
 
 ## Current Reality Snapshot
 
-- **Armory is the entrypoint.** `orca/product/spines/capture/core/source_capture_toolbox/README.md`
+- **Armory is the entrypoint.** `forseti/product/spines/capture/core/source_capture_toolbox/README.md`
   indexes components, build order, current gaps, and non-claims.
 - **Anti-block HTTP ladder has a rung-1 arm + usage guide.** A header-complete
   stdlib anti-blocking HTTP fetch (`anti_blocking_http`, rung-1) plus a
@@ -107,14 +107,14 @@ stale_if:
   bounded, then use archive capture where live capture is unnecessary or fails
   visibly.
 - **CloakBrowser anonymous v0 is implemented.**
-  `orca-harness/source_capture/adapters/cloakbrowser_snapshot.py` and
-  `orca-harness/runners/run_source_capture_cloakbrowser_packet.py` preserve
+  `forseti-harness/source_capture/adapters/cloakbrowser_snapshot.py` and
+  `forseti-harness/runners/run_source_capture_cloakbrowser_packet.py` preserve
   rendered DOM, visible text, a viewport screenshot, and method-provenance
   metadata for one supplied URL. This is not Reddit discovery/consolidation,
   parser execution, proxy/session behavior, storage, production runtime, or
   commercial use.
 - **Reddit consolidation now has a planning thread.**
-  `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md`
+  `forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md`
   is the durable architectural planning artifact for packet-before-parser
   handoff, BeautifulSoup parser role, provenance-first consolidation shape, and
   implementation stop lines. It now carries Decision-Frame-or-candidate
@@ -122,14 +122,14 @@ stale_if:
   packet-contamination stops, no source-discovery expansion, and the current
   candidate-intake destination gap.
 - **Reddit Candidate URL Intake is separate from Armory capture.**
-  `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md`
+  `forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md`
   specializes the parent Candidate URL Intake contract for the operator-facing
   Reddit "crawler" under Capture Spine. It emits candidate
   subreddit/thread/outbound URL rows with provenance only. It does not capture
   bodies/comments/profiles, emit Source Capture Packets, invoke Armory by
   default, auto-promote URLs into capture units, or authorize broad crawling.
   The bounded live first-contact runner
-  `orca-harness/runners/run_reddit_candidate_intake_live.py` may fetch one
+  `forseti-harness/runners/run_reddit_candidate_intake_live.py` may fetch one
   declared source URL under a run envelope and live-access authorization, then
   persist only candidate rows, provenance, and a live-run receipt. For promoted
   Reddit capture, the lane records the existing
@@ -138,7 +138,7 @@ stale_if:
   conditions in the pre-commercial/free anti-blocking posture. That is
   downstream access context, not Armory execution in intake.
 - **Reddit Graph Frontier Lane is accepted as a separate bounded planning lane.**
-  `orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md`
+  `forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md`
   owns the Graph Frontier Register shape. It may use a semantic/frontier agent
   to choose the next candidate seed and prepare the next bounded run, but every
   hop needs a new `run_id`, caps, exclusions, access mode, source-policy
@@ -146,16 +146,16 @@ stale_if:
   Graph Frontier-owned live Reddit fetch, automatic capture, broad crawling,
   Source Capture, Data Capture, storage, scheduler, dashboard, or production
   runtime. Local register support exists under
-  `orca-harness/capture_spine/reddit_graph_frontier/` for building a register
+  `forseti-harness/capture_spine/reddit_graph_frontier/` for building a register
   from existing candidate output and preparing a next-run envelope with
   `execution_authorized: false`. Live first-contact fetch belongs to the
   Candidate URL Intake runner, not to the register. The operator-facing
   "crawling graph" runner
-  `orca-harness/runners/run_reddit_graph_frontier_register.py` writes the
+  `forseti-harness/runners/run_reddit_graph_frontier_register.py` writes the
   register and optional non-executing next-run envelope from an existing
   Candidate URL Intake artifact.
 - **LinkedIn Lane discovery planning is accepted as a bounded planning lane.**
-  `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md`
+  `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md`
   owns the LinkedIn Lane boundary for candidate businesses, organizations,
   senior decision makers, public professional actors, creators, and influential
   people. It treats supervised browser-assist as green for Orca personal /
@@ -172,7 +172,7 @@ stale_if:
   scheduler, dashboard, production runtime, commercial use, or Outreach Lane
   execution.
 - **Reddit success-signal routing is preserved.**
-  `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md`
+  `forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md`
   records the advisory architecture rationale for the success-signal patch and
   is not itself validation, readiness, capture authorization, storage
   authorization, source-quality scoring, ECR, Cleaning, Judgment, or commercial
@@ -196,15 +196,15 @@ stale_if:
 ### Capture obligations
 
 - summary: What a Data Capture packet must preserve and what it must not decide.
-- owner: `orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md`
+- owner: `forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md`
 
 ### Tenant payload attachment boundary
 
 - summary: Accepted target boundary for tenant/source-family typed payloads:
   current `SourceCaptureSlice` payload fields are transitional/incumbent; new
   payload families target packet/slice-keyed logical extension envelopes.
-- owner: `orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md`
-- plain-language companion: `orca/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md`
+- owner: `forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md`
+- plain-language companion: `forseti/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md`
 
 ### Data-lake mechanics map
 
@@ -212,7 +212,7 @@ stale_if:
   `SourceCapturePacket` truth, stable core facts, typed payload envelopes,
   projection, ECR/SCR, Cleaning, and Judgment flow by key without selecting
   physical storage, schema migration, or projection cache.
-- owner: `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md`
+- owner: `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md`
 
 ### Retail/PDP typed-envelope probe
 
@@ -220,13 +220,13 @@ stale_if:
   envelope boundary. Retail/PDP source-family payload can live outside direct
   `SourceCaptureSlice` fields while raw packet truth stays canonical and
   projection stays derived. It does not select storage or authorize runtime.
-- owner: `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md`
+- owner: `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md`
 
 ### Source-access boundary
 
 - summary: Discoverable-or-entitled + disclosable standard, owner-accepted
   anti-blocking risk posture, and hard stops.
-- owner: `orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md`
+- owner: `forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md`
 
 ### Source-access build authority
 
@@ -238,7 +238,7 @@ stale_if:
 
 - summary: Candidate methods, source-family recommendations, Reddit `.json`
   posture, old Reddit HTML preference, BeautifulSoup parser position.
-- owner: `orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md`
+- owner: `forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md`
 
 ### Operating model / commissioning
 
@@ -246,12 +246,12 @@ stale_if:
   obligation baseline, lane thesis, and bounded pressure-test commissioning
   plan. These are pressure-test planning authorities, not validation,
   hardening, product readiness, runtime, ECR, Cleaning, or Judgment design.
-- owners: `orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md`,
-  `orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md`,
-  `orca/product/spines/capture/core/operating_model/data_capture_harness_product_goal_direction_signal_decision_v0.md`,
-  `orca/product/spines/capture/core/operating_model/data_capture_obligation_baseline_decision_v0.md`,
-  `orca/product/spines/capture/core/operating_model/data_capture_spine_lane_product_thesis_v0.md`,
-  `orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md`
+- owners: `forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2_acceptance_decision_v0.md`,
+  `forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md`,
+  `forseti/product/spines/capture/core/operating_model/data_capture_harness_product_goal_direction_signal_decision_v0.md`,
+  `forseti/product/spines/capture/core/operating_model/data_capture_obligation_baseline_decision_v0.md`,
+  `forseti/product/spines/capture/core/operating_model/data_capture_spine_lane_product_thesis_v0.md`,
+  `forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md`
 
 ### Candidate URL Intake
 
@@ -262,7 +262,7 @@ stale_if:
   It is not Source Capture Armory, Data Capture handoff, ECR, Cleaning,
   Judgment, fixture admission, source-quality scoring, or implementation
   authorization.
-- owner: `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md`
+- owner: `forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md`
 
 ### Corpus Intake (standing-capture)
 
@@ -273,7 +273,7 @@ stale_if:
   S4 append-only integrity, S5 rebind gate, S6 manipulability flags ride forward,
   S7 never-a-feed lock). Inherits the v0 obligations (Ob.2-16) unchanged. Ratified,
   not pressure-tested; authorizes no build, scheduler, runtime, or source access.
-- owner: `orca/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md`
+- owner: `forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md`
 
 ### Reddit pre-commercial planning thread
 
@@ -284,7 +284,7 @@ stale_if:
   handoff, provenance-first consolidation fields, Decision-Frame-or-candidate
   classification, non-promoting success tiers, Armory vocabulary reuse, archive
   fallback, `.json` fallback posture, and implementation stop lines.
-- owner: `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md`
+- owner: `forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md`
 
 ### Reddit Candidate URL Intake
 
@@ -296,7 +296,7 @@ stale_if:
   capture, bounded live first-contact intake under a run envelope, no
   body/comment/profile capture, no Source Capture Packet
   output, and no automatic Data Capture handoff.
-- owner: `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md`
+- owner: `forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md`
 
 ### Reddit Graph Frontier Lane
 
@@ -309,7 +309,7 @@ stale_if:
   Capture handoff, broad crawling, storage, scheduler, dashboard, production
   runtime, source-quality scoring, ECR, Cleaning, Judgment, fixture admission, or
   commercial use. Operator-facing nickname: "crawling graph."
-- owner: `orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md`
+- owner: `forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md`
 
 ### LinkedIn Lane Discovery Planning
 
@@ -324,7 +324,7 @@ stale_if:
   body harvesting, Source Capture Packets, Data Capture handoff, Outreach Lane
   execution, storage, scheduler, dashboard, production runtime, or commercial
   use.
-- owner: `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md`
+- owner: `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md`
 
 ### Reddit Candidate URL Intake Defaults
 
@@ -354,13 +354,13 @@ stale_if:
   hardening structure, including the candidate/scouting handoff gap and the
   reason the planning thread reuses existing Armory vocabulary instead of
   creating a Reddit-local ladder.
-- owner: `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md`
+- owner: `forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md`
 
 ### Source Capture Armory
 
 - summary: Product-facing component index, build order, current gaps, non-claims,
   and source-quality entrypoints.
-- owner: `orca/product/spines/capture/core/source_capture_toolbox/README.md`
+- owner: `forseti/product/spines/capture/core/source_capture_toolbox/README.md`
 
 ### IG creator-momentum projection helper
 
@@ -368,8 +368,8 @@ stale_if:
   Packets. Materializes the view-only `metric_observations` row index from a
   packet directory or `manifest.json`; not live IG capture, scheduler, production
   store, momentum score, ECR, Cleaning, Judgment, or at-scale readiness.
-- owners: `orca/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md`,
-  `orca-harness/source_capture/ig_projection.py`, `orca-harness/runners/run_ig_creator_momentum_projection.py`
+- owners: `forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md`,
+  `forseti-harness/source_capture/ig_projection.py`, `forseti-harness/runners/run_ig_creator_momentum_projection.py`
 
 ### Retail/PDP Projection Playbook
 
@@ -377,7 +377,7 @@ stale_if:
   Ulta: raw inputs, allowed projected rows, binding map requirements, residual
   meanings, retailer-specific target-binding limits, and the playbook-first
   boundary before auto-project wiring or ECR sequencing.
-- owner: `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md`
+- owner: `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_playbook_v0.md`
 
 ### Anti-block capture ladder
 
@@ -388,8 +388,8 @@ stale_if:
   the live Daimler/Akamai rung-1 result. Cost-ordered, not capability-ordered;
   browser rungs do not capture file bytes; one data point, not a settled
   capability.
-- owners: `orca/product/spines/capture/core/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md`,
-  `orca/product/spines/capture/core/source_capture_toolbox/source_capture_anti_blocking_http_ladder_daimler_rung_resolution_closeout_v0.md`
+- owners: `forseti/product/spines/capture/core/source_capture_toolbox/source_capture_anti_block_ladder_usage_guide_v0.md`,
+  `forseti/product/spines/capture/core/source_capture_toolbox/source_capture_anti_blocking_http_ladder_daimler_rung_resolution_closeout_v0.md`
 
 ### Packet lifecycle / retention
 
@@ -402,29 +402,29 @@ stale_if:
 - summary: Current runnable packet writers, adapters, runner docs, and tests.
   Implementation reality must be checked in code; docs may be ahead of runners.
   Capture Spine local support includes Reddit Candidate URL Intake and Reddit
-  Graph Frontier register/receipt helpers under `orca-harness/capture_spine/`,
+  Graph Frontier register/receipt helpers under `forseti-harness/capture_spine/`,
   plus the bounded live Candidate URL Intake runner under
-  `orca-harness/runners/run_reddit_candidate_intake_live.py` and the Graph
+  `forseti-harness/runners/run_reddit_candidate_intake_live.py` and the Graph
   Frontier register runner under
-  `orca-harness/runners/run_reddit_graph_frontier_register.py`; these are not
+  `forseti-harness/runners/run_reddit_graph_frontier_register.py`; these are not
   source-capture packet runners, Source Capture Armory execution, storage,
   scheduler, dashboard, or production runtime.
   CloakBrowser anonymous non-persistent v0 has a live engine and packet runner
   for one explicitly supplied URL; proxy/session behavior, Reddit
   discovery/consolidation, storage, production runtime, and commercial use are
   not implemented by that runner.
-- owners: `orca-harness/docs/source_capture_agent_runbook.md`,
-  `orca-harness/docs/adapter_author_contract.md`, `orca-harness/source_capture/`,
-  `orca-harness/runners/`
+- owners: `forseti-harness/docs/source_capture_agent_runbook.md`,
+  `forseti-harness/docs/adapter_author_contract.md`, `forseti-harness/source_capture/`,
+  `forseti-harness/runners/`
 
 ### Source-quality support
 
 - summary: Mini God-Tier source-quality posture, queue/report template,
   state assembler, and operational closeouts. These do not validate sources or
   admit fixtures.
-- owners: `orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`,
-  `orca/product/spines/capture/core/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md`,
-  `orca/product/spines/capture/core/source_capture_toolbox/source_quality_state_assembler_v0.md`
+- owners: `forseti/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`,
+  `forseti/product/spines/capture/core/source_capture_toolbox/source_quality_source_unit_queue_template_v0.md`,
+  `forseti/product/spines/capture/core/source_capture_toolbox/source_quality_state_assembler_v0.md`
 
 ## Non-Claims
 
@@ -450,30 +450,30 @@ direction_change_propagation:
     - ".agents/workflow-overlay/source-loading.md"
     - ".agents/workflow-overlay/source-of-truth.md"
     - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
-    - "orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md"
-    - "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+    - "forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md"
+    - "forseti/product/spines/capture/core/source_capture_toolbox/README.md"
   downstream_surfaces_checked:
     - "AGENTS.md"
     - ".agents/workflow-overlay/README.md"
     - ".agents/workflow-overlay/artifact-folders.md"
-    - "orca-harness/docs/source_capture_agent_runbook.md"
-    - "orca-harness/docs/adapter_author_contract.md"
-    - "orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md"
-    - "orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - "forseti-harness/docs/source_capture_agent_runbook.md"
+    - "forseti-harness/docs/adapter_author_contract.md"
+    - "forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md"
+    - "forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
   intentionally_not_updated:
     - path: "AGENTS.md"
       reason: "Top-level project instructions do not enumerate per-spine repo maps or Reddit source-access method ordering."
     - path: ".agents/workflow-overlay/artifact-folders.md"
       reason: "docs/workflows already owns repo maps and workflow navigation artifacts; no new folder convention was introduced."
-    - path: "orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md"
+    - path: "forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md"
       reason: "Boundary permission and hard stops already permit disclosable anti-blocking; this patch changes route/order and navigation, not the boundary."
-    - path: "orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - path: "forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
       reason: "Capture obligations and forbidden outputs did not change."
-    - path: "orca-harness/docs/source_capture_agent_runbook.md"
+    - path: "forseti-harness/docs/source_capture_agent_runbook.md"
       reason: "Historical note from the prior map patch; superseded by the later anonymous CloakBrowser v0 implementation and runbook update."
-    - path: "orca-harness/docs/adapter_author_contract.md"
+    - path: "forseti-harness/docs/adapter_author_contract.md"
       reason: "Adapter author conventions already mention the selected CloakBrowser route; this map does not change adapter implementation conventions."
-  stale_language_search: "rg -n \"Judgment Spine entry map|Data Capture Spine entry map|data_capture_spine_consolidation_map|Reddit official API.*cleanest|human-led/browser-visible capture by default pre-sale|anonymous `.json`.*primary|BeautifulSoup.*access method|old Reddit\" docs/workflows/orca_repo_map_v0.md .agents/workflow-overlay/source-loading.md .agents/workflow-overlay/source-of-truth.md docs/workflows/data_capture_spine_consolidation_map_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md orca/product/spines/capture/core/source_capture_toolbox/README.md"
+  stale_language_search: "rg -n \"Judgment Spine entry map|Data Capture Spine entry map|data_capture_spine_consolidation_map|Reddit official API.*cleanest|human-led/browser-visible capture by default pre-sale|anonymous `.json`.*primary|BeautifulSoup.*access method|old Reddit\" docs/workflows/orca_repo_map_v0.md .agents/workflow-overlay/source-loading.md .agents/workflow-overlay/source-of-truth.md docs/workflows/data_capture_spine_consolidation_map_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md forseti/product/spines/capture/core/source_capture_toolbox/README.md"
   stale_language_search_result: "Executed 2026-06-05 after this patch. Remaining hits are this map, the main repo-map pointer, source-loading pointer, source-of-truth known-document entry, current old Reddit / `.json` / BeautifulSoup posture text, and historical receipt text. No live route makes anonymous `.json` primary or BeautifulSoup an access method."
   non_claims:
     - "not validation"
@@ -497,21 +497,21 @@ direction_change_propagation:
     - output_authority
   controlling_sources_updated:
     - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
-    - "orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md"
-    - "orca/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md"
+    - "forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md"
+    - "forseti/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md"
   downstream_surfaces_checked:
     - "AGENTS.md"
     - ".agents/workflow-overlay/README.md"
     - ".agents/workflow-overlay/source-of-truth.md"
     - ".agents/workflow-overlay/artifact-folders.md"
-    - "orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md"
-    - "orca/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md"
+    - "forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md"
+    - "forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md"
   intentionally_not_updated:
     - path: "docs/workflows/orca_repo_map_v0.md"
       reason: "The top-level repo map already routes Data Capture detail through this submap; adding LinkedIn Lane details there would duplicate the submap."
-    - path: "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+    - path: "forseti/product/spines/capture/core/source_capture_toolbox/README.md"
       reason: "LinkedIn Lane discovery is upstream of Source Capture Armory and does not emit Source Capture Packets."
-  stale_language_search: "rg -n \"LinkedIn Lane|optional_poc_risk_mode|POC-risk|browser-assist|lead-list|contact harvesting|follower/connection\" docs/workflows/data_capture_spine_consolidation_map_v0.md orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md orca/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md"
+  stale_language_search: "rg -n \"LinkedIn Lane|optional_poc_risk_mode|POC-risk|browser-assist|lead-list|contact harvesting|follower/connection\" docs/workflows/data_capture_spine_consolidation_map_v0.md forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md forseti/product/spines/capture/core/source_capture_toolbox/linkedin_reddit_source_capture_armory_concurrent_structure_architecture_v0.md"
   non_claims:
     - "not validation"
     - "not readiness"
@@ -533,10 +533,10 @@ direction_change_propagation:
     - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
     - "docs/workflows/orca_repo_map_v0.md"
   downstream_surfaces_checked:
-    - "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+    - "forseti/product/spines/capture/core/source_capture_toolbox/README.md"
     - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
   intentionally_not_updated:
-    - path: "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+    - path: "forseti/product/spines/capture/core/source_capture_toolbox/README.md"
       reason: "The README reflects committed-main armory state; the rung-1 arm is on feat/anti-block-http-ladder and not yet merged. Index it from the README in a separate pass when the arm lands on main."
     - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
       reason: "Build authority is unchanged; the header-complete stdlib rung is within the authorized bounded anti-blocking scope and adds no new gated surface."
@@ -559,10 +559,10 @@ direction_change_propagation:
     - product_doctrine
     - lifecycle_boundary
   controlling_sources_updated:
-    - "orca/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md"
-    - "orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
+    - "forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md"
+    - "forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
     - "docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md"
-    - "orca/product/spines/capture/core/operating_model/data_capture_spine_lane_product_thesis_v0.md"
+    - "forseti/product/spines/capture/core/operating_model/data_capture_spine_lane_product_thesis_v0.md"
     - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
     - "docs/workflows/orca_repo_map_v0.md"
   non_claims:

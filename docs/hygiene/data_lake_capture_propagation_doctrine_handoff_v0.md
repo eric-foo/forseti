@@ -16,11 +16,11 @@ open_next:
   - .agents/workflow-overlay/source-of-truth.md
   - .agents/workflow-overlay/source-loading.md
   - .agents/workflow-overlay/validation-gates.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-  - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
-  - orca-harness/youtube_capture/behavioral_projection.py # nonresolving: retired or branch-only YouTube projection source; handoff keeps provenance only
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+  - forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+  - forseti-harness/youtube_capture/behavioral_projection.py # nonresolving: retired or branch-only YouTube projection source; handoff keeps provenance only
 stale_if:
   - Data Lake Bronze/Silver/Gold semantics change.
   - SourceCapturePacket runner lake-seam enforcement changes.

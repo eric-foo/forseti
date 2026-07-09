@@ -3,7 +3,7 @@
 
 WHAT THIS DOES
   Reads the demand-ontology SSOT (`ontology.yaml`) and reports how the migrated
-  product corpus (`orca/product/`) uses ontology TYPE vocabulary:
+  product corpus (`forseti/product/`) uses ontology TYPE vocabulary:
 
     KNOWN references  -- distinctive ontology-type tokens that ARE in the SSOT
                          (canonical type names + runtime/storage aliases): a
@@ -36,7 +36,7 @@ HARD BOUNDARY
   _scratch/_inbox.
 
 MODES
-  check_doc_terms.py --report-orca   REPORT MODE over orca/product/; always exit 0
+  check_doc_terms.py --report-orca   REPORT MODE over forseti/product/; always exit 0
   check_doc_terms.py --check         verbose human-readable report; always exit 0
   check_doc_terms.py --selftest      pure-function cases (+ live SSOT vocab); exit 0/1
 """
@@ -48,9 +48,9 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
-YAML_REL = "orca/product/spines/foundation/ontology/ontology.yaml"
-CORPUS_REL = "orca/product"
-ONTOLOGY_HOME_REL = "orca/product/spines/foundation/ontology"  # the term home (excluded)
+YAML_REL = "forseti/product/spines/foundation/ontology/ontology.yaml"
+CORPUS_REL = "forseti/product"
+ONTOLOGY_HOME_REL = "forseti/product/spines/foundation/ontology"  # the term home (excluded)
 
 # A distinctive ontology-shaped token: >=2 CamelCase humps (Upper followed by
 # lower, repeated). Matches TrendVector / SourceCapturePacket; NOT single words
@@ -357,7 +357,7 @@ def main(argv: list[str]) -> int:
     if "--report-orca" in argv:
         return run_report_orca(root)
     print("Usage: check_doc_terms.py --report-orca | --check | --selftest")
-    print("  --report-orca  REPORT MODE over orca/product/: usage map + new-term-candidates, exit 0")
+    print("  --report-orca  REPORT MODE over forseti/product/: usage map + new-term-candidates, exit 0")
     print("  --check        verbose report (lists candidate files), exit 0")
     print("  --selftest     pure-function self-check")
     return 1

@@ -14,10 +14,10 @@ use_when:
 open_next:
   - docs/review-outputs/capture_spine_runner_data_lake_dump_audit_v0.md
   - docs/workflows/capture_spine_runner_data_lake_dump_audit_handoff_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-  - orca-harness/data_lake/root.py
-  - orca-harness/runners/
-  - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+  - forseti-harness/data_lake/root.py
+  - forseti-harness/runners/
+  - forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
 branch_or_commit: codex/ig-reels-capture-spine @ 13680dddf6b7e3ab044fa4091a6e00373b055031
 stale_if:
   - DataLakeRoot root marker, raw sharding, availability, or epoch behavior changes.

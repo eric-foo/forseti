@@ -12,7 +12,7 @@ use_when:
   - Checking the review commission, target, decision criteria, and output contract.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md
+  - forseti/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md
 input_hashes:

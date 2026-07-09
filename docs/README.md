@@ -1,6 +1,6 @@
-﻿# Orca Docs
+﻿# Forseti Docs
 
-This folder holds Orca-owned durable artifacts. It does not contain software
+This folder holds Forseti-owned durable artifacts. It does not contain software
 implementation. The detailed navigation map is `STRUCTURE.md`; the Orca overlay
 in `.agents/workflow-overlay/` remains authoritative when there is a conflict.
 

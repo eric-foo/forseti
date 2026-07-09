@@ -10,7 +10,7 @@ use_when:
   - Comparing current case-frame lock risks against prior v0 and v1 review reports.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_frame_locks_v0.md
+  - forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_frame_locks_v0.md
   - docs/prompts/reviews/core_spine_v0_method_validation_case_frame_locks_adversarial_review_gpt54_prompt_v0.md
 input_hashes:
   docs/product/core_spine_v0_method_validation_case_frame_locks_v0.md: B4018996BECC8F79B254BF5A113265B873DCB9C1AE35746DABADAA4D99D4A537

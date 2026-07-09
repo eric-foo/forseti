@@ -37,7 +37,7 @@ jobs:
       MAX_AUTO_FILES: "8"
       MAX_AUTO_ADDITIONS: "300"
       MAX_AUTO_DELETIONS: "80"
-      COMMENT_MARKER: "<!-- orca-pr-risk-router -->"
+      COMMENT_MARKER: "<!-- forseti-pr-risk-router -->"
     steps:
       - name: Classify PR risk
         shell: bash
@@ -90,7 +90,7 @@ jobs:
               startswith("docs/workflows/") or
               startswith("docs/product/") or
               startswith("docs/research/judgment-spine/") or
-              startswith("orca-harness/")
+              startswith("forseti-harness/")
             )' <<<"$files_json")
           outside_low_risk=$(jq -r '
             .[].filename |
@@ -170,7 +170,7 @@ jobs:
           }
 
           body="$COMMENT_MARKER
-          ## Orca PR Risk Router
+          ## Forseti PR Risk Router
 
           **Decision:** \`$decision\`
 

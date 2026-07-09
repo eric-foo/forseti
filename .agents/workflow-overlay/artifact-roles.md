@@ -10,7 +10,7 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-This file binds reusable artifact-role mechanics to Orca-owned paths. Generic workflow methods may request these roles, but Orca owns the concrete permissions, destinations, freshness checks, and validation evidence.
+This file binds reusable artifact-role mechanics to Forseti-owned paths. Generic workflow methods may request these roles, but Orca owns the concrete permissions, destinations, freshness checks, and validation evidence.
 
 ## Role Bindings
 
@@ -19,7 +19,7 @@ This file binds reusable artifact-role mechanics to Orca-owned paths. Generic wo
 | Orca overlay authority | `.agents/workflow-overlay/` | Read for all Orca work; write only for explicit overlay maintenance | File contents plus git status | `AGENTS.md` | Source list and changed overlay files |
 | Product thesis authority | `docs/decisions/orca_product_thesis_consumer_demand_v0.md` (supersedes `turn_08_product_thesis_v0.md`, 2026-06-12) | Read for planning; write only when explicitly updating the thesis | Decision ID, status, date, and hash when pinned | Product and feature planning prompts | Source list and decision status |
 | Full prompt artifact | `docs/prompts/` or a typed child folder under it | Read/write docs-only prompt drafts | File path, version suffix, source list, and optional hash | Thin wrapper, review input, rerun prompt | Prompt validation gate result |
-| Prompt template | `docs/prompts/templates/` | Read/write docs-only Orca-local prompt templates | Template ID, version suffix, template target if applicable, and registry entry | Template registry, full prompt artifact, thin wrapper | Registry lookup and leakage check |
+| Prompt template | `docs/prompts/templates/` | Read/write docs-only Forseti-local prompt templates | Template ID, version suffix, template target if applicable, and registry entry | Template registry, full prompt artifact, thin wrapper | Registry lookup and leakage check |
 | Thin wrapper prompt | `docs/prompts/wrappers/` | Read/write docs-only wrapper drafts | Referenced full prompt path and hash or revision | Full prompt artifact | Wrapper-delta check |
 | Planning handoff prompt | `docs/prompts/handoffs/` | Read/write docs-only handoff prompts | Work unit ID, target source revision, and output mode | Feature plan, implementation handoff, review input | Preflight check and validation plan |
 | Review prompt | `docs/prompts/reviews/` or `docs/review-inputs/` | Read/write review requests; reviewers are read-only unless explicitly assigned patch execution | Source paths, hashes or revisions, and review lane | Review report | Review-lane and source-hash check |
@@ -37,7 +37,7 @@ This file binds reusable artifact-role mechanics to Orca-owned paths. Generic wo
 - External workflow source outside this workspace is read-only from Orca work unless a later turn explicitly authorizes external source changes.
 - Installed global, user-level, plugin, and project-local skills are deployment copies or tools, not Orca project authority.
 - `jb` project rules, paths, handoffs, GAP/CV Engine policy, lifecycle mechanics, and repo-local skills are not Orca artifact roles.
-- Material in `docs/_inbox/` is not Orca authority until promoted into an accepted docs folder or overlay file.
+- Material in `docs/_inbox/` is not Forseti authority until promoted into an accepted docs folder or overlay file.
 
 ## Retrieval Metadata
 

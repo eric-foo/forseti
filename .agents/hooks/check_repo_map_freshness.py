@@ -101,8 +101,8 @@ SOURCE_OF_TRUTH = ".agents/workflow-overlay/source-of-truth.md"
 # Harness subtrees whose new units (runners/adapters) the map names explicitly, so
 # a new basename absent from the map text is a high-precision staleness signal.
 HARNESS_UNIT_GLOBS = (
-    "orca-harness/runners/*.py",
-    "orca-harness/adapters/*.py",
+    "forseti-harness/runners/*.py",
+    "forseti-harness/adapters/*.py",
 )
 
 # Always-excluded noise (scratch, skill copies, project config, VCS). The map's
@@ -112,8 +112,8 @@ DEFAULT_EXCLUDES = (
     ".claude/",
     ".agents/skills/",
     "docs/_inbox/",
-    "orca-harness/_test_runs/",
-    "orca-harness/_auth_state/",
+    "forseti-harness/_test_runs/",
+    "forseti-harness/_auth_state/",
     "memory/logs/",
 )
 # Substrings that mark a path as generated/scratch regardless of where they sit.
@@ -267,7 +267,7 @@ def structural_trigger(relposix: str, map_text: str,
     unit = new_harness_unit(relposix, map_text)
     if unit is not None:
         return ("new harness unit `%s` is not named in the repo map's "
-                "Orca Harness section (stale_if #2)" % unit)
+                "Forseti Harness section (stale_if #2)" % unit)
     return None
 
 
@@ -525,27 +525,27 @@ def main(argv: list[str]) -> int:
 def selftest() -> int:
     """Pure-decision cases against a tiny synthetic map text."""
     map_text = (
-        "| `orca-harness/runners/` | CLI entrypoints ... "
+        "| `forseti-harness/runners/` | CLI entrypoints ... "
         "run_reddit_candidate_intake_live.py ... |\n"
         "| `.agents/workflow-overlay/` | overlay |\n"
         "| `docs/decisions/` | Decision records. |\n"
         "Active Hooks ... `.agents/hooks/check_retrieval_header.py` ...\n"
         "Generated/gitignored scratch - do not enumerate or treat as authoritative:\n"
-        "`orca-harness/_test_runs/`, `cases/*/*/scores/`, and `memory/logs/`.\n\n"
+        "`forseti-harness/_test_runs/`, `cases/*/*/scores/`, and `memory/logs/`.\n\n"
     )
     extra = map_excludes(map_text)
     cases = [
         # (path, expect_structural_trigger?)
         ("docs/playbooks/x.md", True),                 # new top-level area
         ("tooling/x.py", True),                        # new repo-root area
-        ("orca-harness/runners/run_new_thing.py", True),   # new runner
-        ("orca-harness/adapters/new_adapter.py", True),    # new adapter
+        ("forseti-harness/runners/run_new_thing.py", True),   # new runner
+        ("forseti-harness/adapters/new_adapter.py", True),    # new adapter
         ("docs/decisions/new_decision_v0.md", False),  # mapped folder convention
         (".agents/hooks/sibling.py", False),           # area already in map text
-        ("orca-harness/runners/run_reddit_candidate_intake_live.py", False),  # named
-        ("orca-harness/runners/__init__.py", False),   # package init, ignored
-        ("orca-harness/_test_runs/out.json", False),   # default scratch exclude
-        ("orca-harness/cases/tr/v0/scores/s.json", False),  # map-listed scratch
+        ("forseti-harness/runners/run_reddit_candidate_intake_live.py", False),  # named
+        ("forseti-harness/runners/__init__.py", False),   # package init, ignored
+        ("forseti-harness/_test_runs/out.json", False),   # default scratch exclude
+        ("forseti-harness/cases/tr/v0/scores/s.json", False),  # map-listed scratch
         ("README.md", False),                          # bare root file, not a folder
         ("docs/workflows/orca_repo_map_v0.md", False), # editing the map itself
     ]

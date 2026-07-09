@@ -15,9 +15,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/screening_read_service_build_receipt_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-  - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
   - docs/decisions/ingestible_beauty_screen1_ledger_v0.md
 stale_if:
   - The screening-read service API, route set, or no-packet/no-ECR boundary changes.

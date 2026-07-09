@@ -18,13 +18,13 @@ open_next:
   - .agents/workflow-overlay/source-of-truth.md
   - .agents/workflow-overlay/safety-rules.md
   - .agents/workflow-overlay/prompt-orchestration.md
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_reel_viewcount_capture_feasibility_recon_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_wind_caller_capture_feasibility_recon_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_reel_viewcount_capture_feasibility_recon_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_wind_caller_capture_feasibility_recon_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
 stale_if:
   - A newer IG creator-grid/profile metadata probe supersedes the listed scratch/test-run evidence.
   - The current user redirects from architecture planning into implementation, live capture, or ad classification.

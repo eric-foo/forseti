@@ -14,9 +14,9 @@ use_when:
   - Authorizing or preparing a run that would evaluate JSG-01 over a case packet (runs stay separately gated).
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md  # the conductor; JSG-01 row amended by this act
+  - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md  # the conductor; JSG-01 row amended by this act
   - docs/decisions/jsg01_unfreeze_decision_memo_v0.md                             # the slice-D memo this act consumed
-  - orca-harness/cases/product_learning/jsg01_binding_assembly_proof_v0/README.md # the first carrying packet
+  - forseti-harness/cases/product_learning/jsg01_binding_assembly_proof_v0/README.md # the first carrying packet
 stale_if:
   - D2 is built (the corroborated SP-6 tier activates; revisit the option-b record).
   - The conductor's JSG-01 row is restructured beyond this amendment.

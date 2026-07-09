@@ -1,0 +1,277 @@
+{
+  "access_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "archive_org availability metadata and selected snapshot body preserved"
+  },
+  "actor_audience_context": {
+    "reason": "actor or audience context was not supplied to the archive runner",
+    "status": "unknown_with_reason",
+    "value": null
+  },
+  "archive_history_posture": {
+    "reason": null,
+    "status": "known",
+    "value": "archived"
+  },
+  "capture_context": {
+    "reason": null,
+    "status": "known",
+    "value": "Pre-cutoff backtest evidence capture (capture-spine deliverable; INV-1 facts+limits only; feeds a future judgment-spine fixture)"
+  },
+  "capture_mode": "archive/history",
+  "cold_start_at": null,
+  "intended_cadence": null,
+  "limitations": [],
+  "manifest_version": "source_capture_packet_manifest_v1",
+  "media_modality_posture": {
+    "reason": "archive runner does not retrieve linked media assets",
+    "status": "not_applicable",
+    "value": null
+  },
+  "obligation_contract_version": "core_spine_v0_data_capture_spine_obligation_contract_v0",
+  "operator_category": "archive_org_cli_operator",
+  "packet_id": "01KV5R6FE4E5W93EYV8X72TDSH",
+  "pre_coverage_history_posture": null,
+  "preserved_files": [
+    {
+      "file_id": "file_01",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\.claude\\worktrees\\joahbeauty-capture\\forseti-harness\\cases\\product_learning\\joahbeauty_cvs_kill_2024_v0\\source_captures\\archive_availability_metadata.json",
+      "relative_packet_path": "raw/01_archive_availability_metadata.json",
+      "sha256": "0863e29ac2afd83e27108b3729b693b58c7b2405404dfb2a179f13b31186f208",
+      "size_bytes": 4509
+    },
+    {
+      "file_id": "file_02",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\.claude\\worktrees\\joahbeauty-capture\\forseti-harness\\cases\\product_learning\\joahbeauty_cvs_kill_2024_v0\\source_captures\\archive_snapshot_body.bin",
+      "relative_packet_path": "raw/02_archive_snapshot_body.bin",
+      "sha256": "ae32bab28a9af24c7eeea4f79df49465a91b167b6224877d2f6917d0118954f6",
+      "size_bytes": 421060
+    },
+    {
+      "file_id": "file_03",
+      "hash_basis": "raw_stored_bytes",
+      "original_path": "C:\\Users\\vmon7\\Desktop\\projects\\orca\\.claude\\worktrees\\joahbeauty-capture\\forseti-harness\\cases\\product_learning\\joahbeauty_cvs_kill_2024_v0\\source_captures\\archive_snapshot_body_metadata.json",
+      "relative_packet_path": "raw/03_archive_snapshot_body_metadata.json",
+      "sha256": "140ac68dbd744c2fe1d759d60cee4c5951da566c1a74e7764c9a2718fb05e58d",
+      "size_bytes": 901
+    }
+  ],
+  "re_capture_relationship": {
+    "reason": "no prior source capture packet was supplied for this archive capture",
+    "status": "not_applicable",
+    "value": null
+  },
+  "receipt_metadata": {
+    "generated_at": "2026-06-15T13:40:36Z",
+    "non_claims": [
+      "not archive completeness proof",
+      "not source-state truth proof",
+      "not browser automation",
+      "not API SDK use",
+      "not Archive.org package use",
+      "not HTML meaning extraction",
+      "not OCR or image analysis",
+      "not scraper framework use",
+      "not proxy or session injection",
+      "not ECR design",
+      "not Cleaning implementation",
+      "not Judgment scoring",
+      "not buyer proof",
+      "not commercial-readiness logic"
+    ],
+    "summary": "Archive.org packet with availability metadata and snapshot body preserved for 20240520112307.",
+    "title": "Source Capture Packet Receipt"
+  },
+  "requested_decision_context": {
+    "reason": null,
+    "status": "known",
+    "value": "Backtest: just before Joah Beauty's mid-2024 line-kill (CVS-exclusive K-beauty line wound down; socials wiped after June 2024), did its pre-cutoff public site signal the wind-down trajectory? (known later outcome: April 2025 closure + liquidation)"
+  },
+  "series_id": null,
+  "session_identity": "01KV5R6FE4YXR04F2D6981P8PW",
+  "source_family": "archive_org",
+  "source_locator": {
+    "reason": null,
+    "status": "known",
+    "value": "https://www.joahbeauty.com/"
+  },
+  "source_slices": [
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archive_org availability direct_http succeeded with HTTP 200 OK"
+      },
+      "archive_history_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archived"
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://web.archive.org/cdx/search/cdx?url=https%3A%2F%2Fwww.joahbeauty.com%2F&output=json&fl=timestamp%2Coriginal%2Cstatuscode%2Cmimetype%2Cdigest&collapse=digest&to=20240601000000&limit=-10"
+      },
+      "media_modality_posture": {
+        "reason": "archive availability metadata is not a media asset",
+        "status": "not_applicable",
+        "value": null
+      },
+      "preserved_file_ids": [
+        "file_01"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this archive capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "archive_availability",
+      "timing": {
+        "archive_snapshot_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2024-05-20T11:23:07Z"
+        },
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-15T13:40:34Z"
+        },
+        "cutoff_posture": {
+          "reason": null,
+          "status": "known",
+          "value": "pre_cutoff"
+        },
+        "recapture_time": {
+          "reason": "archive packet did not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": null,
+          "status": "known",
+          "value": "Archive.org availability metadata for the requested original URL; selected snapshot timestamp is recorded separately"
+        },
+        "source_publication_or_event": {
+          "reason": "Archive.org adapter did not infer original source publication or event timing",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    },
+    {
+      "access_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archive_org snapshot body direct_http succeeded with HTTP 200 OK"
+      },
+      "archive_history_posture": {
+        "reason": null,
+        "status": "known",
+        "value": "archived"
+      },
+      "currency_pin": null,
+      "limitations": [],
+      "locale_pin": null,
+      "locator": {
+        "reason": null,
+        "status": "known",
+        "value": "https://web.archive.org/web/20240520112307/https://www.joahbeauty.com/"
+      },
+      "media_modality_posture": {
+        "reason": "archive snapshot body is preserved as raw response body",
+        "status": "not_applicable",
+        "value": null
+      },
+      "preserved_file_ids": [
+        "file_02",
+        "file_03"
+      ],
+      "re_capture_relationship": {
+        "reason": "no prior source capture packet was supplied for this archive capture",
+        "status": "not_applicable",
+        "value": null
+      },
+      "session_visibility_pin": null,
+      "slice_id": "archive_snapshot_body",
+      "timing": {
+        "archive_snapshot_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2024-05-20T11:23:07Z"
+        },
+        "capture_time": {
+          "reason": null,
+          "status": "known",
+          "value": "2026-06-15T13:40:36Z"
+        },
+        "cutoff_posture": {
+          "reason": null,
+          "status": "known",
+          "value": "pre_cutoff"
+        },
+        "recapture_time": {
+          "reason": "archive packet did not model an earlier capture by default",
+          "status": "not_applicable",
+          "value": null
+        },
+        "source_edit_or_version": {
+          "reason": null,
+          "status": "known",
+          "value": "Archive.org snapshot timestamp 20240520112307"
+        },
+        "source_publication_or_event": {
+          "reason": "Archive.org adapter did not infer original source publication or event timing",
+          "status": "unknown_with_reason",
+          "value": null
+        }
+      },
+      "variant_pin": null,
+      "warning_notes": []
+    }
+  ],
+  "source_surface": "archive_org_wayback",
+  "timing": {
+    "archive_snapshot_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2024-05-20T11:23:07Z"
+    },
+    "capture_time": {
+      "reason": null,
+      "status": "known",
+      "value": "2026-06-15T13:40:36Z"
+    },
+    "cutoff_posture": {
+      "reason": null,
+      "status": "known",
+      "value": "pre_cutoff"
+    },
+    "recapture_time": {
+      "reason": "archive packet did not model an earlier capture by default",
+      "status": "not_applicable",
+      "value": null
+    },
+    "source_edit_or_version": {
+      "reason": null,
+      "status": "known",
+      "value": "Archive.org snapshot timestamp 20240520112307"
+    },
+    "source_publication_or_event": {
+      "reason": "Archive.org adapter did not infer original source publication or event timing",
+      "status": "unknown_with_reason",
+      "value": null
+    }
+  },
+  "visible_mode_changes": [],
+  "warnings": []
+}

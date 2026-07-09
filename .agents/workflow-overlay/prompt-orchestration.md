@@ -10,7 +10,7 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-This file defines Orca's lightweight prompt-orchestration layer: Orca-owned prompt mechanics, output modes, preflight, and validation gates, without importing `jb` project policy and preserving Orca's explicit-authorization boundary for implementation and runtime work.
+This file defines Orca's lightweight prompt-orchestration layer: Forseti-owned prompt mechanics, output modes, preflight, and validation gates, without importing `jb` project policy and preserving Orca's explicit-authorization boundary for implementation and runtime work.
 
 ## Orca Prompt Preflight
 
@@ -175,7 +175,7 @@ thread_operating_target_continuity:
 
 ## Project Template Registry
 
-Orca-local prompt templates live under `docs/prompts/templates/`.
+Forseti-local prompt templates live under `docs/prompts/templates/`.
 The active Orca template registry is
 `.agents/workflow-overlay/template-registry.md`.
 
@@ -493,7 +493,7 @@ Every repo-aware Orca prompt must state:
 - output mode: `chat-only`, `file-write`, `review-report`,
   `paste-ready-chat`, or `patch-queue`;
 - required validation gates and where evidence is recorded;
-- external source boundary, including the rule that external workflow source is read-only from Orca work and `jb` is not Orca authority.
+- external source boundary, including the rule that external workflow source is read-only from Orca work and `jb` is not Forseti authority.
 
 Rerun and patch prompts must also name the prior artifact, prior hash or revision, frozen decisions, mutable fields, and unresolved finding being retried.
 
@@ -573,7 +573,7 @@ Before using a generated Orca prompt, apply these gates:
    acceptance, validation, proof, `PASS`, or `ADEQUATE_NOW` claims unless owner
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
-3. Source resolution clean: external workflow sources do not provide Orca authority; installed skills are deployment copies; `jb` project policy is not imported.
+3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
 4. Worktree preflight present: workspace, revision, dirty-state allowance, target scope, and edit permission are explicit when repository state matters.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
@@ -733,7 +733,7 @@ direction_change_propagation:
     incomplete commission -- one of the "use the full skill" cases, consistent with
     the narrowing (not stale). No in-scope surface retains an unqualified "author
     every prompt through the orchestrator" mandate. A whole-repo sweep additionally
-    finds restatements under orca/product/** (fragrance satellite, capture and
+    finds restatements under forseti/product/** (fragrance satellite, capture and
     commission-board artifacts) saying "author through the orchestrator"; these are
     product-lane artifacts, not doctrine-routing surfaces, and stay valid (the
     full-skill path is never wrong, only sometimes more than a routine prompt needs)

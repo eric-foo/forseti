@@ -16,7 +16,7 @@ use_when:
   - Auditing why no venue atlas exists despite the research pass.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md   # the operative method
+  - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md   # the operative method
   - docs/research/source_registry_practices_deep_research_report_v0.md   # evidence base
   - docs/decisions/pre_capture_discovery_spine_charter_recommendation_v0.md   # DO_NOT_BUILD spine outcome
 stale_if:

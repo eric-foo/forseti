@@ -13,16 +13,16 @@ authority_boundary: retrieval_only
 
 ## Current Lanes
 
-- Artifact review: read-only review of docs, decisions, prompts, and migration artifacts. Reviewers may write reports only under `docs/review-outputs/` unless a prompt authorizes a different Orca-owned report path.
+- Artifact review: read-only review of docs, decisions, prompts, and migration artifacts. Reviewers may write reports only under `docs/review-outputs/` unless a prompt authorizes a different Forseti-owned report path.
 - Adversarial artifact review: read-only adversarial review of docs, decisions,
   prompts, product-proof artifacts, and migration artifacts. Reports should go
   under `docs/review-outputs/adversarial-artifact-reviews/` unless a prompt
-  names another Orca-owned report path. Formal adversarial artifact review must
+  names another Forseti-owned report path. Formal adversarial artifact review must
   invoke `workflow-adversarial-artifact-review` after source context is ready.
   If that skill is unavailable, unresolved, or not applied, the run may return
   only a blocked or advisory-only result and must not emit strict review
   claims.
-- Prompt review: read-only review of prompt artifacts, thin wrappers, source maps, output modes, and validation gates. Reports go under `docs/review-outputs/` unless the prompt names another Orca-owned report path.
+- Prompt review: read-only review of prompt artifacts, thin wrappers, source maps, output modes, and validation gates. Reports go under `docs/review-outputs/` unless the prompt names another Forseti-owned report path.
 - Patch-queue review: read-only review that produces ordered patch units. Applying those patches requires a separate patch or integration execution assignment.
 - Patch or integration execution: applies accepted documentation patches inside Orca and reports changed files plus validation.
 - Skill adoption review: deferred until a later turn authorizes adoption or shadow validation.
@@ -30,9 +30,9 @@ authority_boundary: retrieval_only
 
 ## Review Doctrine
 
-Orca review mechanics are Orca-owned here: findings-first review output,
+Orca review mechanics are Forseti-owned here: findings-first review output,
 advisory critique from visible evidence, and strict authority boundaries for
-formal review claims. Orca-local overlay files own concrete lane names,
+formal review claims. Forseti-local overlay files own concrete lane names,
 destinations, result vocabulary, severity labels, validation gates, patch
 routing, and Chief Architect consumption rules.
 

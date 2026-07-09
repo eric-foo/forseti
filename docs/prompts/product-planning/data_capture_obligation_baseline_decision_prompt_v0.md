@@ -12,8 +12,8 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
-  - orca/product/spines/capture/core/operating_model/data_capture_harness_product_goal_direction_signal_decision_v0.md
-  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - forseti/product/spines/capture/core/operating_model/data_capture_harness_product_goal_direction_signal_decision_v0.md
+  - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - The Data Capture obligation contract is materially revised, superseded, accepted, or rejected by owner decision.
   - The Data Capture Harness Direction Signal decision is superseded.
