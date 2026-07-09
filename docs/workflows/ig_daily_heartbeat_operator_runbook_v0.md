@@ -51,9 +51,9 @@ All run-control records stay under the run-control root:
 run_control/ig_daily_heartbeat/<YYYY-MM-DD>/
   daily_plan.json
   attempts.jsonl
-  session_<bucket>_roster.json
-  heartbeat_receipts_session_<bucket>.jsonl
-  session_<bucket>_summary.json
+  session_<bucket>_<lane_id>_roster.json
+  heartbeat_receipts_session_<bucket>_<lane_id>.jsonl
+  session_<bucket>_<lane_id>_summary.json
   daily_summary.json
 ```
 
