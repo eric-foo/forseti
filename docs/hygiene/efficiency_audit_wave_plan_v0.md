@@ -65,13 +65,13 @@ Destination for all: `docs/decisions/dcp_receipts_archive_v0.md` (verbatim move,
 - [ ] **NAV-6** (W1) — 2 large inline receipts on repo map; archive — `docs/workflows/forseti_repo_map_v0.md:1068-1156`
 
 ### T3 · Code bugs — S-effort subset  `[bug]`
-- [ ] **RE-HARN-2** (W1) — wheel omits runner-imported `youtube_capture` + `reports` → `ModuleNotFoundError` on install — `forseti-harness/pyproject.toml:38-51`
-- [ ] **RE-HARN-1** (W1) — read-phase `TimeoutError`/`ConnectionResetError` aborts capture; copy sibling clauses — `forseti-harness/source_capture/adapters/anti_blocking_http.py:119-142`
-- [ ] **RE-HARN-3** (W1) — reddit OAuth breaks transport Protocol on read timeout → runner crash — `forseti-harness/source_capture/adapters/reddit_api.py:461-477,498-524`
-- [ ] **RE-HARN-4** (W1) — `yt-dlp`/ASR `subprocess.run` has no `timeout=` → can hang forever — `forseti-harness/source_capture/transcript/youtube_captions.py:157-161`, `audio_asr.py:35-39`
-- [ ] **RE-HARN-6** (W1) — sha committed over non-`sort_keys` JSON → idempotency drift — `forseti-harness/source_capture/transcript/asr_packet.py:127`, `ig_reels_audio_packet.py:203`
-- [ ] **RE-HARN-8** (W1) — fragrantica metric not float-coerced vs parfumo sibling — `forseti-harness/cleaning/fragrantica_lake.py:321`
-- [ ] **RE-HARN-9** (W1) — structurally unreachable comment-reconciliation guard (false assurance) — `forseti-harness/source_capture/reddit_consolidation/parser.py:71-78`
+- [x] **RE-HARN-2** (W1·landed) — wheel omitted runner-imported `youtube_capture` (a bare namespace dir) + `reports`; added `youtube_capture/__init__.py` and listed both in `packages.find` — `forseti-harness/pyproject.toml`, `forseti-harness/youtube_capture/__init__.py`
+- [x] **RE-HARN-1** (W1·landed) — added read-phase `except TimeoutError`/`except OSError` clauses (mirrors `direct_http` sibling) + 2 regression tests — `forseti-harness/source_capture/adapters/anti_blocking_http.py`
+- [x] **RE-HARN-3** (W1·landed) — read-phase timeout/OSError now raise `RedditApiTransportError` in `get()` AND `_ensure_token()` — `forseti-harness/source_capture/adapters/reddit_api.py`
+- [x] **RE-HARN-4** (W1·landed) — bounded `timeout=` + `TimeoutExpired` handling on ALL THREE yt-dlp sites (3rd site `ig_reels_audio_packet.py:328` found on read); policy pins bumped (decision: not output-shaping) — `youtube_captions.py`, `audio_asr.py`, `ig_reels_audio_packet.py`
+- [-] **RE-HARN-6** (deferred → owner slice) — `sort_keys` changes a committed content-sha canonical form → re-derives every committed ASR record (migration/lock-in); may not be a live bug — `asr_packet.py:127`, `ig_reels_audio_packet.py:203`
+- [-] **RE-HARN-8** (deferred → owner slice) — `cleaning/fragrantica_lake.py` is a pinned derivation policy; `float(value)` is OUTPUT-SHAPING (int→`X.0`) → forces a `FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION` bump that re-derives committed packets — `cleaning/fragrantica_lake.py:321`
+- [-] **RE-HARN-9** (deferred → owner slice) — dead guard confirmed unreachable, but remove-vs-make-reconciliation-real is an integrity-posture design fork — `reddit_consolidation/parser.py:71-78`
 - [ ] **APH-IMPL-3** (W1) — attempt rows always `receipt_pointer=null` (reads absent key) — IG heartbeat `control.py:497`
 - [ ] **APH-IMPL-1** (W1) — session artifacts keyed by `bucket` not `(bucket,lane)` → roster/summary clobber + inflated telemetry — IG heartbeat `control.py:264,292-294,332,536`
 - [ ] **HOOK-1** (W1) — Google-route hook no-ops on every real edit (absolute path never normalized) — `.agents/hooks/check_search_surface_google_route.py:106-117,206-209,298-303`

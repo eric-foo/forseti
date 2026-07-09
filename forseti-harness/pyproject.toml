@@ -42,12 +42,14 @@ include = [
   "ecr",
   "capture_spine",
   "capture_spine.*",
+  "reports",
   "runners",
   "schemas",
   "scoring",
   "source_capture",
   "source_capture.*",
   "source_observability",
+  "youtube_capture",
 ]
 
 [tool.pytest.ini_options]
