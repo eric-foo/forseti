@@ -11,8 +11,10 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/forseti_repo_map_v0.md
+  - forseti/product/spines/creator_signal/README.md
   - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
   - forseti/product/spines/creator_signal/aphrodite_vetting_sprint_panel_design_v0.md
+  - forseti/product/spines/foundation/ontology/README.md
   - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml
 stale_if:
   - The physical product corpus under orca/product/ is migrated into forseti/product/.
@@ -29,9 +31,11 @@ under `orca/product/`.
 ## Current Live Forseti Product Areas
 
 - `forseti/product/spines/creator_signal/`: Creator Signal / Aphrodite product
-  records restored for the D-1 bundle.
+  records restored for the D-1 bundle. Start at
+  `forseti/product/spines/creator_signal/README.md`.
 - `forseti/product/spines/foundation/ontology/`: Forseti ontology reference data
-  needed by the Aphrodite D-1 rehearsal.
+  needed by the Aphrodite D-1 rehearsal. Start at
+  `forseti/product/spines/foundation/ontology/README.md`.
 
 ## Legacy Compatibility Roots
 

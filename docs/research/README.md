@@ -1,8 +1,8 @@
-# Orca Research
+# Forseti Research
 
-This folder holds docs-first public and source-backed research artifacts that support Orca product, proof, and decision work.
+This folder holds docs-first public and source-backed research artifacts that support Forseti product, proof, and decision work.
 
-Research artifacts are not product authority by default. They may gather evidence, preserve raw lane outputs, screen candidates, map rejected sources, or synthesize source-backed findings. Product claims, accepted decisions, and proof locks belong in `docs/product/` or `docs/decisions/` after a later explicit promotion step.
+Research artifacts are not product authority by default. They may gather evidence, preserve raw lane outputs, screen candidates, map rejected sources, or synthesize source-backed findings. Product claims, accepted decisions, and proof locks belong in `forseti/product/`, a still-legacy owner under `orca/product/`, or `docs/decisions/` after a later explicit promotion step.
 
 Use this folder when the main artifact is:
 
@@ -18,6 +18,7 @@ Do not use this folder for implementation, automation, scraping tools, datasets,
 
 ## Research Areas
 
+- `docs/research/answer_engine/`: answer-engine / AEO research front door, Phase-0 probe report, and evidence bundle.
 - `docs/research/consulting-judgment-corpus/`: consulting-judgment corpus material.
 - `docs/research/judgment-spine/`: Judgment Spine parent contract, harness specs, case indexes, and case-learning artifacts.
 - `docs/research/packing-phase/`: initial boundary note for turning cleaned evidence into judgment-ready packet artifacts without absorbing Cleaning or Judgment Harness responsibilities.
