@@ -398,9 +398,13 @@ def test_run_session_isolates_session_artifacts_per_lane_within_bucket(tmp_path:
     assert result_one.session_roster_path.exists()
     assert result_two.session_roster_path.exists()
 
-    # Each lane's roster survived intact (no clobber).
-    assert [row["handle"] for row in _read_json(result_one.session_roster_path)["creators"]] == ["lane_one"]
-    assert [row["handle"] for row in _read_json(result_two.session_roster_path)["creators"]] == ["lane_two"]
+    # Each lane's roster survived intact (no clobber), including its receipt-carried snapshot id.
+    roster_one = _read_json(result_one.session_roster_path)
+    roster_two = _read_json(result_two.session_roster_path)
+    assert [row["handle"] for row in roster_one["creators"]] == ["lane_one"]
+    assert [row["handle"] for row in roster_two["creators"]] == ["lane_two"]
+    assert roster_one["roster_snapshot_id"] == "plan_lanes_bucket_1_lane_1"
+    assert roster_two["roster_snapshot_id"] == "plan_lanes_bucket_1_lane_2"
 
     # receipt_pointer is populated (APH-IMPL-3): points at a lane's receipt file, never null.
     succeeded_pointers = [

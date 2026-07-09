@@ -296,7 +296,7 @@ def run_session(
         session_roster_path = day_dir / f"session_{bucket}_{lane_id}_roster.json"
         receipt_jsonl = day_dir / f"heartbeat_receipts_session_{bucket}_{lane_id}.jsonl"
         summary_path = day_dir / f"session_{bucket}_{lane_id}_summary.json"
-        _write_session_roster(session_roster_path, plan=plan, bucket=bucket, rows=selected_rows)
+        _write_session_roster(session_roster_path, plan=plan, bucket=bucket, lane_id=lane_id, rows=selected_rows)
         for row in selected_rows:
             append_attempt(
                 attempts_path,
@@ -551,7 +551,14 @@ def _session_summary(
     }
 
 
-def _write_session_roster(path: Path, *, plan: Mapping[str, Any], bucket: int, rows: Sequence[Mapping[str, Any]]) -> None:
+def _write_session_roster(
+    path: Path,
+    *,
+    plan: Mapping[str, Any],
+    bucket: int,
+    lane_id: str,
+    rows: Sequence[Mapping[str, Any]],
+) -> None:
     roster_rows = []
     for row in rows:
         roster_rows.append(
@@ -568,7 +575,7 @@ def _write_session_roster(path: Path, *, plan: Mapping[str, Any], bucket: int, r
     _write_json(
         path,
         {
-            "roster_snapshot_id": f"{plan['plan_id']}_bucket_{bucket}",
+            "roster_snapshot_id": f"{plan['plan_id']}_bucket_{bucket}_{lane_id}",
             "plan_id": plan["plan_id"],
             "plan_date": plan["plan_date"],
             "bucket": bucket,
