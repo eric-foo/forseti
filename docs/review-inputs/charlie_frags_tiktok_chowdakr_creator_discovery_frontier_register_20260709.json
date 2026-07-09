@@ -1,0 +1,3777 @@
+{
+  "tiktok_creator_discovery_frontier_register": {
+    "schema_version": "tiktok_creator_discovery_frontier_register_v0",
+    "register_id": "tiktok_creator_discovery_frontier_charlie_frags_chowdakr_20260709",
+    "source_run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+    "root_seed": {
+      "platform": "tiktok",
+      "handle": "charlie.frags",
+      "url": "https://www.tiktok.com/@charlie.frags"
+    },
+    "provenance": {
+      "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+      "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+      "source_packet_path_or_none": "F:/orca-data-lake/raw/4d7/01KX3YWZTDEE59G1HJ4FYNBHF1",
+      "parent_grid_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+      "parent_grid_packet_path_or_none": "F:/orca-data-lake/raw/4d7/01KX3YWZTDEE59G1HJ4FYNBHF1",
+      "captured_at_utc": "2026-07-09T17:25:12.313Z",
+      "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+      "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+      "caps_applied": {
+        "root_profiles": 1,
+        "suggested_accounts_observed": 30,
+        "candidate_profiles_opened": 0,
+        "screenshots_emitted_to_chat": 0,
+        "follow_actions": 0,
+        "view_all_expansion_clicks": 1
+      },
+      "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete"
+    },
+    "nodes": [
+      {
+        "node_id": "run_tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "node_type": "run",
+        "platform": "tiktok",
+        "handle_or_none": null,
+        "display_name_or_none": null,
+        "source_url_or_locator": "https://www.tiktok.com/@charlie.frags",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_parent_profile_grid_packet_available",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "seed_tiktok_charlie_frags",
+        "node_type": "tiktok_creator_seed",
+        "platform": "tiktok",
+        "handle_or_none": "charlie.frags",
+        "display_name_or_none": null,
+        "source_url_or_locator": "https://www.tiktok.com/@charlie.frags",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "seed_profile_observed_and_suggested_accounts_extracted",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_parent_profile_grid_packet_available",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_ajrfragrances",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "ajrfragrances",
+        "display_name_or_none": "ajr",
+        "source_url_or_locator": "https://www.tiktok.com/@ajrfragrances",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_scentedbyryan",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "scentedbyryan",
+        "display_name_or_none": "ScentedByRyan",
+        "source_url_or_locator": "https://www.tiktok.com/@scentedbyryan",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_chubby_minion",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "chubby_minion",
+        "display_name_or_none": "Chubby Minion Fragrances",
+        "source_url_or_locator": "https://www.tiktok.com/@chubby_minion",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_ka_fragrances",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "ka.fragrances",
+        "display_name_or_none": "K&A Fragrances",
+        "source_url_or_locator": "https://www.tiktok.com/@ka.fragrances",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_fbfragrances",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "fbfragrances",
+        "display_name_or_none": "FBFragrances",
+        "source_url_or_locator": "https://www.tiktok.com/@fbfragrances",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_ak_fragrances1",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "ak.fragrances1",
+        "display_name_or_none": "AKFragrances",
+        "source_url_or_locator": "https://www.tiktok.com/@ak.fragrances1",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_jaysmellys",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "jaysmellys",
+        "display_name_or_none": "Jay",
+        "source_url_or_locator": "https://www.tiktok.com/@jaysmellys",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_thenoelthomas",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "thenoelthomas",
+        "display_name_or_none": "Noel Thomas",
+        "source_url_or_locator": "https://www.tiktok.com/@thenoelthomas",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_thejayscents",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "thejayscents",
+        "display_name_or_none": "Jay Scents",
+        "source_url_or_locator": "https://www.tiktok.com/@thejayscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_moggys_fragrance",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "moggys.fragrance",
+        "display_name_or_none": "Moggys Fragrance",
+        "source_url_or_locator": "https://www.tiktok.com/@moggys.fragrance",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_eccolognes0",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "eccolognes0",
+        "display_name_or_none": "ECcolognes",
+        "source_url_or_locator": "https://www.tiktok.com/@eccolognes0",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_noeldeyzel_fragrance",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "noeldeyzel_fragrance",
+        "display_name_or_none": "Noel Smells",
+        "source_url_or_locator": "https://www.tiktok.com/@noeldeyzel_fragrance",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_rkfragrances0",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "rkfragrances0",
+        "display_name_or_none": "RKFragrances",
+        "source_url_or_locator": "https://www.tiktok.com/@rkfragrances0",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_thebenscents",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "thebenscents",
+        "display_name_or_none": "Ben Scents",
+        "source_url_or_locator": "https://www.tiktok.com/@thebenscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_fragswithnick",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "fragswithnick",
+        "display_name_or_none": "FragsWithNick",
+        "source_url_or_locator": "https://www.tiktok.com/@fragswithnick",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_ranenthepro",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "ranenthepro",
+        "display_name_or_none": "fragrances with ranen",
+        "source_url_or_locator": "https://www.tiktok.com/@ranenthepro",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_fbunfiltered",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "fbunfiltered",
+        "display_name_or_none": "NotFBFragrances",
+        "source_url_or_locator": "https://www.tiktok.com/@fbunfiltered",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_derekscents",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "derekscents",
+        "display_name_or_none": "derekscents",
+        "source_url_or_locator": "https://www.tiktok.com/@derekscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_kafragrancesbackup",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "kafragrancesbackup",
+        "display_name_or_none": "ka",
+        "source_url_or_locator": "https://www.tiktok.com/@kafragrancesbackup",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_voigt_parfums",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "voigt_parfums",
+        "display_name_or_none": "voigt_parfums",
+        "source_url_or_locator": "https://www.tiktok.com/@voigt_parfums",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_topfrag_official",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "topfrag.official",
+        "display_name_or_none": "Top Frag",
+        "source_url_or_locator": "https://www.tiktok.com/@topfrag.official",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_fragrance_tok84",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "fragrance.tok84",
+        "display_name_or_none": "Fragrance.Tok",
+        "source_url_or_locator": "https://www.tiktok.com/@fragrance.tok84",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_fragrance_district",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "fragrance.district",
+        "display_name_or_none": "Fragrance District",
+        "source_url_or_locator": "https://www.tiktok.com/@fragrance.district",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_twfragrances",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "twfragrances",
+        "display_name_or_none": "T.W.Fragrances",
+        "source_url_or_locator": "https://www.tiktok.com/@twfragrances",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_tcdailyy",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "tcdailyy",
+        "display_name_or_none": "tcdailyy",
+        "source_url_or_locator": "https://www.tiktok.com/@tcdailyy",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_tmfragrances8",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "tmfragrances8",
+        "display_name_or_none": "Tm_frags",
+        "source_url_or_locator": "https://www.tiktok.com/@tmfragrances8",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_giraldoscents",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "giraldoscents",
+        "display_name_or_none": "Lucas",
+        "source_url_or_locator": "https://www.tiktok.com/@giraldoscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_thecologneboy",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "thecologneboy",
+        "display_name_or_none": "TheCologneBoy",
+        "source_url_or_locator": "https://www.tiktok.com/@thecologneboy",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_lmfragrances",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "lmfragrances_",
+        "display_name_or_none": "LMFragrances",
+        "source_url_or_locator": "https://www.tiktok.com/@lmfragrances_",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "node_id": "candidate_tiktok_tjtalksscents",
+        "node_type": "tiktok_creator_candidate",
+        "platform": "tiktok",
+        "handle_or_none": "tjtalksscents",
+        "display_name_or_none": "TJTalksScents",
+        "source_url_or_locator": "https://www.tiktok.com/@tjtalksscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+        "caps_applied": {
+          "root_profiles": 1,
+          "suggested_accounts_observed": 30,
+          "candidate_profiles_opened": 0,
+          "screenshots_emitted_to_chat": 0,
+          "follow_actions": 0,
+          "view_all_expansion_clicks": 1
+        },
+        "exclusions": [
+          "no_candidate_profile_open",
+          "no_follow_unfollow",
+          "no_unfollow_action",
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_screenshot_chat_output",
+          "no_contact_enrichment",
+          "no_private_identity_inference"
+        ],
+        "stop_reason": "candidate_profile_not_opened_target_only",
+        "registry_preflight_status_or_none": null,
+        "platform_capture_status": "tiktok_suggested_account_target_only_not_profile_captured",
+        "cross_platform_graph_status": "not_started",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "edge_id": "edge_run_to_seed_run_tiktok_creator_discovery_charlie_frags_chowdakr_20260709_seed_tiktok_charlie_frags",
+        "edge_type": "discovered_from_run",
+        "from_node_id": "run_tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "to_node_id": "seed_tiktok_charlie_frags",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "seed_profile"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "seed_profile_observed",
+        "confidence": "seed_surface_observed",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_ajrfragrances",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_ajrfragrances",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_scentedbyryan",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_scentedbyryan",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_chubby_minion",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_chubby_minion",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_ka_fragrances",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_ka_fragrances",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_fbfragrances",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_fbfragrances",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_ak_fragrances1",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_ak_fragrances1",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_jaysmellys",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_jaysmellys",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_thenoelthomas",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_thenoelthomas",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_thejayscents",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_thejayscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_moggys_fragrance",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_moggys_fragrance",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_eccolognes0",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_eccolognes0",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_noeldeyzel_fragrance",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_noeldeyzel_fragrance",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_rkfragrances0",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_rkfragrances0",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_thebenscents",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_thebenscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_fragswithnick",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_fragswithnick",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_ranenthepro",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_ranenthepro",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_fbunfiltered",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_fbunfiltered",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_derekscents",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_derekscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_kafragrancesbackup",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_kafragrancesbackup",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_voigt_parfums",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_voigt_parfums",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_topfrag_official",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_topfrag_official",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_fragrance_tok84",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_fragrance_tok84",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_fragrance_district",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_fragrance_district",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_twfragrances",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_twfragrances",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_tcdailyy",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_tcdailyy",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_tmfragrances8",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_tmfragrances8",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_giraldoscents",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_giraldoscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_thecologneboy",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_thecologneboy",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_lmfragrances",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_lmfragrances",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "edge_id": "edge_seed_to_candidate_seed_tiktok_charlie_frags_candidate_tiktok_tjtalksscents",
+        "edge_type": "platform_suggested_account_relation",
+        "from_node_id": "seed_tiktok_charlie_frags",
+        "to_node_id": "candidate_tiktok_tjtalksscents",
+        "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+        "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+        "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+        "observed_sections": [
+          "profile_suggested_view_all",
+          "suggested_accounts"
+        ],
+        "timestamp": "2026-07-09T17:25:12.313Z",
+        "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+        "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+        "confidence": "weak_platform_suggestion_only",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      }
+    ],
+    "frontier_decisions": [],
+    "next_run_envelopes": [
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_ajrfragrances_next_01",
+        "selected_node_id": "candidate_tiktok_ajrfragrances",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@ajrfragrances",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_scentedbyryan_next_01",
+        "selected_node_id": "candidate_tiktok_scentedbyryan",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@scentedbyryan",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_chubby_minion_next_01",
+        "selected_node_id": "candidate_tiktok_chubby_minion",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@chubby_minion",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_ka_fragrances_next_01",
+        "selected_node_id": "candidate_tiktok_ka_fragrances",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@ka.fragrances",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_fbfragrances_next_01",
+        "selected_node_id": "candidate_tiktok_fbfragrances",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@fbfragrances",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_ak_fragrances1_next_01",
+        "selected_node_id": "candidate_tiktok_ak_fragrances1",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@ak.fragrances1",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_jaysmellys_next_01",
+        "selected_node_id": "candidate_tiktok_jaysmellys",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@jaysmellys",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_thenoelthomas_next_01",
+        "selected_node_id": "candidate_tiktok_thenoelthomas",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@thenoelthomas",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_thejayscents_next_01",
+        "selected_node_id": "candidate_tiktok_thejayscents",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@thejayscents",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_moggys_fragrance_next_01",
+        "selected_node_id": "candidate_tiktok_moggys_fragrance",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@moggys.fragrance",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_eccolognes0_next_01",
+        "selected_node_id": "candidate_tiktok_eccolognes0",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@eccolognes0",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_noeldeyzel_fragrance_next_01",
+        "selected_node_id": "candidate_tiktok_noeldeyzel_fragrance",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@noeldeyzel_fragrance",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_rkfragrances0_next_01",
+        "selected_node_id": "candidate_tiktok_rkfragrances0",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@rkfragrances0",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_thebenscents_next_01",
+        "selected_node_id": "candidate_tiktok_thebenscents",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@thebenscents",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_fragswithnick_next_01",
+        "selected_node_id": "candidate_tiktok_fragswithnick",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@fragswithnick",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_ranenthepro_next_01",
+        "selected_node_id": "candidate_tiktok_ranenthepro",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@ranenthepro",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_fbunfiltered_next_01",
+        "selected_node_id": "candidate_tiktok_fbunfiltered",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@fbunfiltered",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_derekscents_next_01",
+        "selected_node_id": "candidate_tiktok_derekscents",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@derekscents",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_kafragrancesbackup_next_01",
+        "selected_node_id": "candidate_tiktok_kafragrancesbackup",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@kafragrancesbackup",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_voigt_parfums_next_01",
+        "selected_node_id": "candidate_tiktok_voigt_parfums",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@voigt_parfums",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_topfrag_official_next_01",
+        "selected_node_id": "candidate_tiktok_topfrag_official",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@topfrag.official",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_fragrance_tok84_next_01",
+        "selected_node_id": "candidate_tiktok_fragrance_tok84",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@fragrance.tok84",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_fragrance_district_next_01",
+        "selected_node_id": "candidate_tiktok_fragrance_district",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@fragrance.district",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_twfragrances_next_01",
+        "selected_node_id": "candidate_tiktok_twfragrances",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@twfragrances",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_tcdailyy_next_01",
+        "selected_node_id": "candidate_tiktok_tcdailyy",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@tcdailyy",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_tmfragrances8_next_01",
+        "selected_node_id": "candidate_tiktok_tmfragrances8",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@tmfragrances8",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_giraldoscents_next_01",
+        "selected_node_id": "candidate_tiktok_giraldoscents",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@giraldoscents",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_thecologneboy_next_01",
+        "selected_node_id": "candidate_tiktok_thecologneboy",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@thecologneboy",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_lmfragrances_next_01",
+        "selected_node_id": "candidate_tiktok_lmfragrances",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@lmfragrances_",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      },
+      {
+        "schema_version": "tiktok_creator_discovery_next_run_envelope_v0",
+        "next_run_id": "tiktok_creator_scan_tjtalksscents_next_01",
+        "selected_node_id": "candidate_tiktok_tjtalksscents",
+        "prior_register_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register",
+        "declared_seed_or_surface": "https://www.tiktok.com/@tjtalksscents",
+        "candidate_surface_allowlist": [
+          "tiktok_creator_profile",
+          "tiktok_creator_profile_grid",
+          "source_visible_bio_link_hub"
+        ],
+        "caps": {
+          "profiles": 1,
+          "profile_grid_observations": 1,
+          "link_hubs": 1,
+          "suggested_accounts_expansion_depth": 0,
+          "screenshots_emitted_to_chat": 0
+        },
+        "exclusions": [
+          "no_same_run_snowball",
+          "no_follow_unfollow",
+          "no_contact_enrichment",
+          "no_private_identity_inference",
+          "no_metric_rollup",
+          "no_registry_mutation_without_preflight"
+        ],
+        "method_mode": "owner_launched_existing_session_or_capture_lane_route_required",
+        "access_mode": "not_started",
+        "source_policy_posture": "requires_current_tiktok_capture_lane_posture_check_before_execution",
+        "stop_condition": "stop_after_parent_profile_grid_and_source_visible_link_hub_or_on_access_friction",
+        "execution_authorized": false,
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ]
+      }
+    ],
+    "accepted_residuals": [
+      "Suggested-account frontier registers capture source-visible recommendation targets only; candidate account sizes, regions, sibling channels, and quality are not established unless a later authorized candidate-profile run captures them.",
+      "Candidate nodes include all 30 parsed source-visible expanded suggested rows from this bounded observation; not a complete TikTok recommendation graph.",
+      "Rank 1 selector candidate beurtafragrance7 was unavailable after one refresh and is recorded in the raw packet selection_context, not promoted as a captured root."
+    ],
+    "non_claims": [
+      "not Creator Registry identity proof",
+      "not follower graph",
+      "not following graph",
+      "not endorsement proof",
+      "not country/region evidence",
+      "not metric rollup",
+      "not capture execution authorization",
+      "not source-access authorization",
+      "not standing crawler or monitor",
+      "not account completeness proof"
+    ]
+  }
+}
