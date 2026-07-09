@@ -31,6 +31,10 @@ _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 # Liveness backstop: a hung `yt-dlp` subprocess would otherwise block the caption capture
 # forever. Generous bound (json3 caption files are tiny); subprocess.run kills the child on timeout.
 _YTDLP_CAPTION_TIMEOUT_SECONDS = 120
+# Per-socket-op bound (yt-dlp native knob) for the IN-PROCESS extract_info() metadata call below, so
+# a stalled connection cannot hang the caption path indefinitely before the bounded subprocess
+# download. (A hard total-wall-time bound would need a subprocess/thread wrap -- deferred residual.)
+_YTDLP_METADATA_SOCKET_TIMEOUT_SECONDS = 30
 
 
 def _ytdlp_version() -> str:
@@ -44,7 +48,10 @@ def _extract_info(url: str) -> dict:
     tests don't require yt-dlp; install the `transcribe` extra for real runtime. (Test seam.)"""
     import yt_dlp
 
-    with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True, "no_warnings": True}) as ydl:
+    with yt_dlp.YoutubeDL(
+        {"quiet": True, "skip_download": True, "no_warnings": True,
+         "socket_timeout": _YTDLP_METADATA_SOCKET_TIMEOUT_SECONDS}
+    ) as ydl:
         return ydl.extract_info(url, download=False)
 
 
