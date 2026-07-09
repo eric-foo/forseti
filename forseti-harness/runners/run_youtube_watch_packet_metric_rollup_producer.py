@@ -41,6 +41,9 @@ from typing import Any, Mapping, Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_id_from_subject_ref as _platform_account_id_from_subject_ref,
+)
 from capture_spine.creator_profile_current.youtube_metric_seed import ledger_video_retirements
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
     YoutubeCreatorMetricSilverResult,
@@ -54,7 +57,7 @@ from data_lake.root import DataLakeRoot, DataLakeRootError
 
 ROOT = Path(__file__).resolve().parents[2]
 _SOCIAL_MEDIA = (
-    ROOT / "orca" / "product" / "spines" / "capture" / "core" / "source_families" / "social_media"
+    ROOT / "forseti" / "product" / "spines" / "capture" / "core" / "source_families" / "social_media"
 )
 DEFAULT_ACCOUNT_LEDGER = (
     _SOCIAL_MEDIA / "creator_registry" / "creator_public_handle_linkage_ledger_v0.json"
@@ -125,7 +128,9 @@ def resolve_effective_exclusions(
 
 def _account_of(record: Mapping[str, Any]) -> str | None:
     try:
-        return record["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+        return _platform_account_id_from_subject_ref(
+            record["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+        )
     except (KeyError, TypeError):
         return None
 

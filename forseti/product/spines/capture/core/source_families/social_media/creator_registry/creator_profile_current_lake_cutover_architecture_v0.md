@@ -238,7 +238,8 @@ API, no producer change):
   fail-closed key.
 - **Instagram** (packet-anchored): `list_available(source_family="instagram_creator")`
   → packet ids → `lane_dir(subtree="derived", raw_anchor=<packet_id>, lane="creator_metric_rollup_silver")`;
-  map each rollup to its account via `subject.ref.orca_platform_account_id`. (Mirrors
+  map each rollup to its account via `subject.ref.forseti_platform_account_id`
+  with legacy `subject.ref.orca_platform_account_id` read fallback. (Mirrors
   the `ig_reels_behavioral_lake.py:123` precedent.)
 - **YouTube** (account-anchored): for each expected YT account id,
   `lane_dir(subtree="derived", raw_anchor=<platform_account_id>, lane="creator_metric_rollup_silver")`.

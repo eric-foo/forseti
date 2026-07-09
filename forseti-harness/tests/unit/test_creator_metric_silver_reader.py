@@ -24,6 +24,10 @@ from capture_spine.creator_profile_current.silver_metric_reader import (
     read_creator_metric_rollups_from_lake,
     select_latest_rollup_per_account,
 )
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY,
+    LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY,
+)
 from data_lake.root import DataLakeRoot
 
 PACKET_ID = "packet_fixture"
@@ -160,12 +164,38 @@ def test_reader_round_trips_metric_numbers_and_posture(tmp_path: Path) -> None:
 def test_reader_reads_on_disk_records_not_memory(tmp_path: Path) -> None:
     data_root, result = _run(tmp_path)
     # the records the reader sees are the real on-disk lake files.
+    assert result.observation_paths and all(path.exists() for path in result.observation_paths)
     assert result.rollup_paths and all(path.exists() for path in result.rollup_paths)
+
+    observation_record = json.loads(result.observation_paths[0].read_text(encoding="utf-8"))
+    observation_ref = observation_record["payload"]["observation"]["subject"]["ref"]
+    assert observation_ref[FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY] == "acct_ig_fixture_001"
+    assert LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY not in observation_ref
+
+    rollup_record = json.loads(result.rollup_paths[0].read_text(encoding="utf-8"))
+    rollup_ref = rollup_record["payload"]["observation"]["subject"]["ref"]
+    assert rollup_ref[FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY] == "acct_ig_fixture_001"
+    assert LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY not in rollup_ref
 
     reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[PACKET_ID])
     seed_rollup = _seed_rollups(result)[0]
     assert reconstructed[0]["metric_rollup_id"] == seed_rollup["metric_rollup_id"]
     assert reconstructed[0]["source_metric_observation_ids"] == seed_rollup["source_metric_observation_ids"]
+
+
+def test_reader_accepts_legacy_orca_subject_ref_key(tmp_path: Path) -> None:
+    data_root, result = _run(tmp_path)
+    record_path = result.rollup_paths[0]
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    subject_ref = record["payload"]["observation"]["subject"]["ref"]
+    subject_ref[LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY] = subject_ref.pop(
+        FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY
+    )
+    record_path.write_text(json.dumps(record), encoding="utf-8")
+
+    reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[PACKET_ID])
+
+    assert reconstructed[0]["profile_subject_id"] == "acct_ig_fixture_001"
 
 
 def test_reader_skips_unknown_anchor(tmp_path: Path) -> None:

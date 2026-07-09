@@ -20,6 +20,10 @@ from pathlib import Path
 
 import pytest
 
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY,
+    LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY,
+)
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
     DEFAULT_YOUTUBE_SEED_PATH,
     METRIC_OBSERVATION_LANE,
@@ -230,7 +234,8 @@ def test_producer_emits_conformant_metric_observation_records(tmp_path: Path) ->
         assert subject_ref["kind"] == "public_content_object"
         assert subject_ref["native_id"] == seed_obs["content_id_or_none"]
         assert subject_ref["published_by_account_native_id"] == seed_obs["platform_subject_key"]
-        assert subject_ref["orca_platform_account_id"] == seed_obs["platform_account_id"]
+        assert subject_ref[FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY] == seed_obs["platform_account_id"]
+        assert LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY not in subject_ref
 
         posture = observation["metric_posture"]
         if posture["kind"] == "observed":

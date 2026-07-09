@@ -31,6 +31,9 @@ from capture_spine.creator_profile_current.silver_metric_reader import (
     LatestRollupSelectionError,
     read_creator_metric_rollups_from_lake,
 )
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_id_from_subject_ref,
+)
 from capture_spine.creator_profile_current.silver_metric_snapshot import (
     MANIFEST_WRAPPER_KEY,
     SNAPSHOT_WRAPPER_KEY,
@@ -87,7 +90,9 @@ def test_live_lake_test_root_env_prefers_forseti(monkeypatch) -> None:
 
 
 def _account_of(record: dict) -> str:
-    return record["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+    return platform_account_id_from_subject_ref(
+        record["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+    )
 
 
 def _ig_discovery_ledger(*account_ids: str) -> dict:
