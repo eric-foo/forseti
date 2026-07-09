@@ -128,6 +128,14 @@ def run_source_capture_cloakbrowser_packet(
 ) -> tuple[int, str]:
     if (output_directory is None) == (data_root is None):
         raise ValueError("exactly one of output_directory or data_root is required")
+    if browser_user_data_dir is not None and (
+        browser_user_data_label is None or browser_user_data_session_mode is None
+    ):
+        raise ValueError(
+            "browser_user_data_dir requires browser_user_data_label and browser_user_data_session_mode "
+            "so the packet's visible-mode-change and non-claims provenance reflects the persistent "
+            "profile load; a caller must not load a stored profile without disclosing it in the packet"
+        )
 
     # The US-storefront pin is an Amazon-specific pre-capture plugin (FIX #6): the generic
     # adapter knows nothing about Amazon or its delivery-location widget. The plugin carries
@@ -627,6 +635,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "browser user-data directory does not exist for label: "
                     f"{args.browser_user_data_label}"
                 )
+        if browser_user_data_dir is not None and proxy_profile is not None:
+            raise ValueError(
+                "--browser-user-data-label cannot be combined with --proxy-profile-label/"
+                "--proxy-profile-category because CloakBrowser persistent-context capture "
+                "does not apply proxy profiles"
+            )
         old_reddit_only = args.old_reddit_only or args.guarded_reddit_launch
         block_heavy_assets = args.block_heavy_assets or args.guarded_reddit_launch
         if old_reddit_only:

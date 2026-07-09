@@ -219,6 +219,13 @@ def fetch_cloakbrowser_snapshot_capture(
         raise ValueError("load_more_clicks must be zero or greater")
     if load_more_clicks > 0 and not load_more_selector:
         raise ValueError("load_more_selector is required when load_more_clicks is greater than zero")
+    if user_data_dir is not None and proxy_profile is not None:
+        raise ValueError(
+            "CloakBrowser persistent-context capture (user_data_dir) does not apply proxy_profile; "
+            "the persistent-context launch path never receives the proxy, so combining them would "
+            "record proxy_used/proxy_category in packet metadata while no proxy was actually used. "
+            "Supply only one of user_data_dir or proxy_profile."
+        )
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
         raise ValueError(f"wait_until must be one of: {allowed}")

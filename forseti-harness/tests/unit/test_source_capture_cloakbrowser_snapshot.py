@@ -2316,6 +2316,68 @@ def test_cloakbrowser_snapshot_cli_preflight_validates_without_capture(
     assert not (scratch_dir / "packet").exists()
 
 
+def test_cloakbrowser_snapshot_cli_preflight_rejects_proxy_with_browser_profile(
+    scratch_dir: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile_root = scratch_dir / "_proxy_profiles"
+    profile_root.mkdir(parents=True)
+    (profile_root / "quora-res.json").write_text(
+        json.dumps({"server": "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"}),
+        encoding="utf-8",
+    )
+    (profile_root / "quora-res.meta.json").write_text(
+        json.dumps(
+            {
+                "profile_file": "quora-res.json",
+                "proxy_category": "residential_rotating",
+                "geoip_enabled": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    browser_profile = scratch_dir / "browser-profile"
+    browser_profile.mkdir()
+    monkeypatch.setattr(
+        cloakbrowser_runner,
+        "browser_user_data_path_for_label",
+        lambda label: browser_profile,
+    )
+
+    with pytest.raises(SystemExit) as excinfo:
+        cloakbrowser_runner.main(
+            [
+                "--url",
+                "https://www.quora.com/search?q=B2B%20questions",
+                "--decision-question",
+                "Can profile-backed preflight validate locally?",
+                "--output",
+                str(scratch_dir / "packet"),
+                "--proxy-profile-label",
+                "quora-res",
+                "--proxy-profile-category",
+                "residential_rotating",
+                "--proxy-profile-root",
+                str(profile_root),
+                "--browser-user-data-label",
+                "quora-client",
+                "--browser-user-data-session-mode",
+                "client_provided_session",
+                "--preflight-only",
+            ]
+        )
+
+    captured = capsys.readouterr()
+    assert excinfo.value.code == 2
+    assert "--browser-user-data-label cannot be combined" in captured.err
+    assert "does not apply proxy profiles" in captured.err
+    assert "preflight passed" not in captured.out
+    assert "SUPER_SECRET_PROXY_VALUE" not in captured.err
+    assert "proxy.example" not in captured.err
+    assert not (scratch_dir / "packet").exists()
+
+
 def test_cloakbrowser_snapshot_cli_guarded_reddit_rejects_non_old_reddit_url(
     scratch_dir: Path,
     capsys: pytest.CaptureFixture[str],
@@ -2591,3 +2653,60 @@ def test_cloakbrowser_snapshot_runner_fail_closes_source_detail_sufficiency_afte
     assert "source_detail_sufficiency_failed" in manifest["visible_mode_changes"]
     assert any("source_detail_sufficiency_failed" in item for item in manifest["limitations"])
     assert any("not source-content capture" in item for item in manifest["receipt_metadata"]["non_claims"])
+
+
+def test_fetch_cloakbrowser_snapshot_capture_rejects_combining_user_data_dir_and_proxy_profile(
+    scratch_dir: Path,
+) -> None:
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=False,
+    )
+
+    with pytest.raises(ValueError, match="does not apply proxy_profile"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://example.com/source",
+            proxy_profile=profile,
+            user_data_dir=scratch_dir,
+        )
+
+
+def test_cloakbrowser_runner_rejects_user_data_dir_without_label_and_session_mode(
+    scratch_dir: Path,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    with pytest.raises(
+        ValueError, match="browser_user_data_dir requires browser_user_data_label"
+    ):
+        cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+            url="https://www.quora.com/search?q=B2B%20questions",
+            source_family="web_page",
+            source_surface="cloakbrowser_snapshot",
+            decision_question="Can Quora search provide B2B question candidates?",
+            output_directory=output_dir,
+            capture_context="test provenance guard",
+            operator_category="cloakbrowser_snapshot_cli_operator",
+            capture_mode=CaptureModeCategory.MULTIMODAL,
+            session_id=None,
+            proxy_profile=None,
+            browser_user_data_label=None,
+            browser_user_data_session_mode=None,
+            browser_user_data_dir=scratch_dir,
+            actor_audience_context=None,
+            visible_mode_changes=[],
+            source_publication_or_event=None,
+            source_edit_or_version=None,
+            cutoff_posture=None,
+            recapture_time=None,
+            re_capture_relationship=None,
+            warnings=[],
+            limitations=[],
+            timeout_seconds=20,
+            wait_until="load",
+            viewport_width=1280,
+            viewport_height=720,
+            max_artifact_bytes=50_000,
+            block_heavy_assets=False,
+        )
