@@ -68,14 +68,12 @@ def parse_old_reddit_html(html: str) -> ParsedThread:
         parsed = _parse_comment(node, row_index=len(comments) + 1)
         comments.append(parsed)
 
-    if len(comments) < len(comment_nodes):
-        raise RedditParseFailure(
-            "comment_reconciliation_mismatch",
-            (
-                f"parsed {len(comments)} comment(s), but {len(comment_nodes)} old-Reddit-like "
-                "comment node(s) were observable in the preserved DOM"
-            ),
-        )
+    # Reconciliation holds by construction: the loop above appends exactly one ParsedComment per
+    # observed node (malformed/bodyless nodes become postures + warnings, never silent drops), so
+    # len(comments) == len(comment_nodes) here. The former `len(comments) < len(comment_nodes)`
+    # hard-raise guard was structurally unreachable (dead) and gave false assurance; the real,
+    # reachable reconciliation check is the batch quality flag `comment_reconciliation_mismatch`
+    # in run_reddit_batch_quality_summary.py (comments_parsed != observable_comment_nodes). (RE-HARN-9)
 
     return ParsedThread(
         thread_id=_normalize_reddit_id(post_node.attrs.get("data-fullname") or post_node.attrs.get("id")),
