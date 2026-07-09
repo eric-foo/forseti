@@ -81,6 +81,14 @@ Validation reports must preserve failure visibility by bucket:
   `.agents/workflow-overlay/prompt-orchestration.md`. Enforced diff-scoped
   and forward-only by `.agents/hooks/check_handoff_pointers.py` (CI
   `--strict`; whole-corpus backlog via `--audit`, never gated).
+- Source-input hash freshness gate: changed repo-local JSON `source_inputs[]`
+  records that carry `source_pointer` + `sha256` must match current file bytes
+  when the JSON artifact or referenced source changed. This is provenance
+  freshness only: it is not semantic validation, generated-artifact
+  completeness, readiness, source quality, capture freshness, or metric
+  validity. Enforced diff-scoped and forward-only by
+  `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local pre-push
+  mirror; whole-repo advisory via `--audit`, never gated).
 - Receipt-field provenance gate (non-self-certification): a gate, predicate,
   acceptance check, or completion claim must not clear on a self-asserted field
   value. A field clears only when it is owner-produced and provenance-bound or
@@ -348,22 +356,34 @@ have been recommended (resident judgment; cf. the receipt-field provenance
 gate). Registered in `.github/workflows/ci.yml` and `.githooks/commit-msg`;
 `--selftest` present.
 
-**Local pre-push doc-gate mirror** (`.agents/hooks/pre_push_guard.py`, the
+**Local pre-push selected-gate mirror** (`.agents/hooks/pre_push_guard.py`, the
 policy behind the `.githooks/pre-push` adapter). For a push whose update lines
-pass the guard's safety checks, the guard also runs the strict doc gates CI
-runs — `check_map_links.py --strict`, `header_index.py --strict`,
-`check_review_routing.py --strict` (diff-scoped checkers default to base
-`origin/main`, the same base CI resolves for a PR) — so a forward-only gate
-miss, e.g. a reviewer-authored `docs/review-outputs/**` report missing its
-retrieval header (the PR #613 red round), fails at the push boundary instead
-of costing a CI round. Same checkers, same rule owners; the mirror adds no
-rule. A nonzero or unlaunchable gate blocks the push (the GATE FAIL bucket
-above); the checkers' own infra-gap fail-opens are unchanged. Write-time note:
-the EP-06 retrieval-header advisory already covers `docs/review-outputs/**`
-writes at the Claude Code write boundary; this mirror is the harness-agnostic
-catch for writes that advisory cannot see or that ignored it. Local Git hook
-only: bypassable with `--no-verify`; CI remains the authoritative boundary; a
-green pre-push is not validation, readiness, or approval.
+pass the guard's safety checks, the guard also runs selected strict CI gates —
+`check_map_links.py --strict`, `header_index.py --strict`,
+`check_review_routing.py --strict`, `check_source_input_hashes.py --strict`
+(diff-scoped checkers default to base `origin/main`, the same base CI resolves
+for a PR) — so a forward-only durable-doc or source-input hash gate miss fails
+at the push boundary instead of costing a CI round. Same checkers, same rule
+owners; the mirror adds no rule. A nonzero or unlaunchable gate blocks the
+push (the GATE FAIL bucket above); the checkers' own infra-gap fail-opens are
+unchanged. Write-time note: the EP-06 retrieval-header advisory already covers
+`docs/review-outputs/**` writes at the Claude Code write boundary; this mirror
+is the harness-agnostic catch for writes that advisory cannot see or that
+ignored it. Local Git hook only: bypassable with `--no-verify`; CI remains the
+authoritative boundary; a green pre-push is not validation, readiness, or
+approval.
+
+**Source-input hash freshness gate** (`.agents/hooks/check_source_input_hashes.py`,
+EP-37). Diff-scoped, forward-only CI gate plus local pre-push mirror for the
+Current Gates bullet above: list-style JSON `source_inputs[]` records with
+repo-local `source_pointer` + `sha256` must match current file bytes when the
+JSON artifact or referenced source changed. Born from PR #817: a Creator
+Registry ledger merge changed the ledger hash while the YouTube metric seed's
+source-input hash stayed stale, and full pytest caught it late. Registered in
+`.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`; `--audit`
+and `--selftest` present. Provenance shape/freshness only — a green run never
+proves semantic validity, completeness, readiness, source quality, capture
+freshness, or metric validity.
 
 **Handoff-pointer resolution gate** (`.agents/hooks/check_handoff_pointers.py`,
 EP-36). Diff-scoped, forward-only CI gate for the Current Gates bullet above:
@@ -392,75 +412,6 @@ green run never proves packet content, freshness, or pin truth.
 - Runtime or integration validation: UNKNOWN - requires owner input.
 
 ## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Orca validation doctrine adds a review-routing disposition gate: a change
-    touching code roots (forseti-harness/, .agents/hooks/) must carry its review
-    disposition -- a review artifact added under docs/prompts/reviews/ or
-    docs/review-outputs/ in the same change, or a shape-valid
-    review_routing_status line (routed <existing path> | blocked -- <reason> |
-    not_needed -- <reason>) in the change's commit messages -- enforced
-    diff-scoped and forward-only by .agents/hooks/check_review_routing.py
-    (EP-35) as a CI --strict gate plus a local commit-msg advisory. Born from
-    the 2026-07-02 fused-lane audit: fused implementation lanes carried a
-    delegated-review obligation whose disposition lived only in chat, so most
-    lanes closed without filing it and nothing durable could check the miss.
-  trigger: validation_philosophy
-  related_triggers:
-    - review_authority
-    - workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_review_routing.py
-    - .github/workflows/ci.yml
-    - .githooks/commit-msg
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-    - .agents/hooks/README.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .claude/settings.json
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Already routes validation and enforcement-placement changes to this
-        overlay file; a kernel restatement would fork the owner.
-    - path: .agents/workflow-overlay/review-lanes.md
-      reason: >
-        The gate binds no review lane and creates no verdict or severity
-        authority; a pointer would dual-home the disposition rule.
-    - path: .agents/workflow-overlay/delegated-review-patch.md
-      reason: >
-        The convention stays provisional and opt-in; the gate enforces
-        disposition visibility on code lanes generally, not this convention.
-    - path: .claude/settings.json
-      reason: >
-        No PostToolUse wiring; the disposition is a commit-message property,
-        not a file-write property. The local boundary is .githooks/commit-msg.
-    - path: user-level fused skill source (~/.claude/skills/fused/SKILL.md)
-      reason: >
-        Outside Orca authority (installed/user-level skill source is
-        protected); the owner applies the companion skill edit separately.
-  stale_language_search: >
-    rg -n "review_routing_status" .agents docs AGENTS.md
-  stale_language_search_result: >
-    Executed 2026-07-02 before this change: the token appeared only in one
-    workflow handoff note (flagged there as an unowned one-off field) and one
-    data-lake scoping record; no live overlay surface owned it. This change
-    makes validation-gates.md the owning surface; the checker references it
-    and does not restate it.
-  non_claims:
-    - not validation
-    - not readiness
-    - not review quality, severity, or verdict authority
-    - not a bound or mandatory review lane
-    - a green run is disposition shape only, never proof a review happened or was sufficient
-```
 
 ```yaml
 direction_change_propagation:
@@ -532,6 +483,77 @@ direction_change_propagation:
     - not packet content freshness, pin truth, or source-choice correctness
     - not a courier-delivery guarantee for prompts that never land in the repo
     - a green run is pointer shape only, never proof the right packet was cited
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Forseti validation doctrine adds a source-input hash freshness gate:
+    repo-local JSON list-style source_inputs[] records with source_pointer +
+    sha256 must match current file bytes when the artifact or referenced
+    source changed, enforced by .agents/hooks/check_source_input_hashes.py
+    (EP-37) as a diff-scoped CI --strict gate plus a local pre-push mirror.
+    Born from PR #817, where a Creator Registry ledger merge changed the
+    ledger hash while the YouTube metric seed still carried the old
+    source-input hash and full pytest caught it late.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_source_input_hashes.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/pre_push_guard.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md routes validation and enforcement-placement doctrine to the
+        overlay; restating this narrow gate there would fork the owner.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Its DCP storage rule governs receipt rotation; the gate changes
+        validation placement, not source hierarchy or receipt mechanics.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading budgets and source packs are unchanged; this is
+        post-change provenance freshness, not source-loading procedure.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        This path is a compatibility pointer whose open_next is the live
+        Forseti repo map; duplicating active hook content there would fork the
+        current retrieval surface.
+    - path: forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+      reason: >
+        The existing semantic/generated-artifact test remains; the new hook
+        catches the broader hash-drift class earlier without weakening that
+        test.
+  stale_language_search: >
+    rg -in "source-input hash|source_inputs.*sha256|check_source_input_hashes|strict CI doc gates"
+    .agents docs .github forseti-harness
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits: intended hits are this gate's owner text,
+    checker, CI/pre-push wiring, hook README, live Forseti repo-map note,
+    enforcement-placement classification, and historical/source-input ledger
+    references; the stale phrase "strict CI doc gates" appears only in this
+    receipt's search query/result provenance text, and no conflicting
+    source-input hash rule remains.
+  non_claims:
+    - not validation
+    - not readiness
+    - not semantic generated-artifact completeness
+    - not source quality, capture freshness, or metric validity
+    - a green run is provenance hash freshness only
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

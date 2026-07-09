@@ -3500,3 +3500,74 @@ direction_change_propagation:
     - not path/package migration
     - not GitHub repo rename execution
 ```
+
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-10)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca validation doctrine adds a review-routing disposition gate: a change
+    touching code roots (forseti-harness/, .agents/hooks/) must carry its review
+    disposition -- a review artifact added under docs/prompts/reviews/ or
+    docs/review-outputs/ in the same change, or a shape-valid
+    review_routing_status line (routed <existing path> | blocked -- <reason> |
+    not_needed -- <reason>) in the change's commit messages -- enforced
+    diff-scoped and forward-only by .agents/hooks/check_review_routing.py
+    (EP-35) as a CI --strict gate plus a local commit-msg advisory. Born from
+    the 2026-07-02 fused-lane audit: fused implementation lanes carried a
+    delegated-review obligation whose disposition lived only in chat, so most
+    lanes closed without filing it and nothing durable could check the miss.
+  trigger: validation_philosophy
+  related_triggers:
+    - review_authority
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_review_routing.py
+    - .github/workflows/ci.yml
+    - .githooks/commit-msg
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .claude/settings.json
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already routes validation and enforcement-placement changes to this
+        overlay file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        The gate binds no review lane and creates no verdict or severity
+        authority; a pointer would dual-home the disposition rule.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        The convention stays provisional and opt-in; the gate enforces
+        disposition visibility on code lanes generally, not this convention.
+    - path: .claude/settings.json
+      reason: >
+        No PostToolUse wiring; the disposition is a commit-message property,
+        not a file-write property. The local boundary is .githooks/commit-msg.
+    - path: user-level fused skill source (~/.claude/skills/fused/SKILL.md)
+      reason: >
+        Outside Orca authority (installed/user-level skill source is
+        protected); the owner applies the companion skill edit separately.
+  stale_language_search: >
+    rg -n "review_routing_status" .agents docs AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-07-02 before this change: the token appeared only in one
+    workflow handoff note (flagged there as an unowned one-off field) and one
+    data-lake scoping record; no live overlay surface owned it. This change
+    makes validation-gates.md the owning surface; the checker references it
+    and does not restate it.
+  non_claims:
+    - not validation
+    - not readiness
+    - not review quality, severity, or verdict authority
+    - not a bound or mandatory review lane
+    - a green run is disposition shape only, never proof a review happened or was sufficient
+```

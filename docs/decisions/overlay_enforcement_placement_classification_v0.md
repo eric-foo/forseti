@@ -29,6 +29,38 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-10: EP-37 (source-input hash freshness gate) built and wired
+
+A new Enforcement Placement handle — **EP-37, beyond the EP-01..EP-36 set** —
+built and wired under explicit current-turn owner authorization to reduce the
+chance that future agents repeat PR #817's stale source-input hash miss.
+
+- **What it enforces:** repo-local JSON list-style `source_inputs[]` records
+  that carry `source_pointer` + `sha256` must match current file bytes when the
+  artifact or referenced source changed. Rule owner:
+  `.agents/workflow-overlay/validation-gates.md` (Source-input hash freshness
+  gate, with inline DCP receipt); the checker references it.
+- **Provenance:** in PR #817, a Creator Registry ledger merge changed the
+  source ledger hash while the YouTube metric seed still carried the old
+  `source_inputs[].sha256`; full pytest caught it late. The defect class is
+  deterministic hash drift, not agent judgment.
+- **Classification: PARTIAL/SUBSTRATE shell.** JSON discovery, repo-local
+  pointer filtering, diff scoping, file existence, and CRLF-normalized SHA-256
+  comparison are SUBSTRATE (diff-scoped, forward-only). The over-edges stay
+  resident: whether the generated artifact is semantically current or complete,
+  whether the cited source is high quality, whether capture is fresh, and
+  whether any metric is valid. PLACEMENT IS NOT AUTHORITY: a green run is
+  provenance freshness, never validation or readiness.
+- **Built:** `.agents/hooks/check_source_input_hashes.py` (`--strict` CI gate,
+  `--check`, `--audit`, `--selftest`, `--force-internal-error`; infra-gap
+  fail-open, GATE FAIL on internal error in gating modes). Wired:
+  `.github/workflows/ci.yml` step, `.agents/hooks/pre_push_guard.py` local
+  mirror, and `test_hook_internal_error_gating.py` CASES row.
+
+This trips `stale_if` (a further substrate built). The DCP receipt lives in
+`validation-gates.md`. Not validation, readiness, source quality, capture
+freshness, metric validity, or approval.
+
 ## Update — 2026-07-03: EP-36 (handoff-pointer resolution gate) built and wired
 
 A new Enforcement Placement handle — **EP-36, beyond the EP-01..EP-35 set** —
