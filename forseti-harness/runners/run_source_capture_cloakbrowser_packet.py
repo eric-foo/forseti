@@ -47,6 +47,16 @@ from source_capture.cli_support import (
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile, load_proxy_profile
 from source_capture.retail_pdp_projection import write_retail_pdp_projection
+from source_capture.source_detail_sufficiency import (
+    SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+    SourceDetailSufficiencyRequirements,
+    add_source_detail_sufficiency_arguments,
+    build_source_detail_sufficiency_requirements,
+    evaluate_source_detail_sufficiency,
+    source_detail_sufficiency_failure_message,
+    source_detail_sufficiency_limitation,
+    source_detail_sufficiency_mode_change,
+)
 
 
 CLOAKBROWSER_SNAPSHOT_NON_CLAIMS = [
@@ -93,6 +103,7 @@ def run_source_capture_cloakbrowser_packet(
     re_capture_relationship,
     warnings: Sequence[str],
     limitations: Sequence[str],
+    source_detail_sufficiency_requirements: SourceDetailSufficiencyRequirements | None = None,
     timeout_seconds: float,
     wait_until: str,
     viewport_width: int,
@@ -156,6 +167,19 @@ def run_source_capture_cloakbrowser_packet(
             "CloakBrowser snapshot blocked image, media, and font network resources to bound "
             "proxy bandwidth; rendered content sufficiency is not asserted"
         )
+    sufficiency_result = evaluate_source_detail_sufficiency(
+        requirements=source_detail_sufficiency_requirements,
+        access_block_reason=capture_result.access_block_reason,
+        visible_text=capture_result.visible_text,
+        rendered_dom=capture_result.rendered_dom,
+    )
+    sufficiency_limitation = source_detail_sufficiency_limitation(sufficiency_result)
+    if sufficiency_limitation is not None:
+        packet_limitations.append(sufficiency_limitation)
+    packet_visible_mode_changes = list(visible_mode_changes)
+    sufficiency_mode_change = source_detail_sufficiency_mode_change(sufficiency_result)
+    if sufficiency_mode_change is not None:
+        packet_visible_mode_changes.append(sufficiency_mode_change)
     staging_root: Path | None = None
     if data_root is not None:
         staging_parent = data_root.stage_raw_packet(generate_ulid())
@@ -227,7 +251,7 @@ def run_source_capture_cloakbrowser_packet(
             operator_category=operator_category,
             session_identity=session_id,
             visible_mode_changes=_visible_mode_changes(
-                visible_mode_changes=visible_mode_changes,
+                visible_mode_changes=packet_visible_mode_changes,
                 browser_user_data_label=browser_user_data_label,
                 browser_user_data_session_mode=browser_user_data_session_mode,
             ),
@@ -285,6 +309,11 @@ def run_source_capture_cloakbrowser_packet(
                 pass
         if staging_root is not None:
             shutil.rmtree(staging_root, ignore_errors=True)
+    if sufficiency_result.enabled and not sufficiency_result.passed:
+        return SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE, source_detail_sufficiency_failure_message(
+            output_directory=result.output_directory,
+            result=sufficiency_result,
+        )
     return 0, result.output_directory
 
 
@@ -565,6 +594,7 @@ def _build_parser() -> argparse.ArgumentParser:
     # The SAME demand-durability flag surface the direct_http writer exposes, so the cadence
     # runner's injectable writer_main seam can invoke either writer per slot interchangeably.
     add_durability_arguments(parser)
+    add_source_detail_sufficiency_arguments(parser)
     return parser
 
 
@@ -677,6 +707,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             warnings=args.warning,
             limitations=args.limitation,
+            source_detail_sufficiency_requirements=build_source_detail_sufficiency_requirements(args),
             timeout_seconds=args.timeout_seconds,
             wait_until=args.wait_until,
             viewport_width=args.viewport_width,

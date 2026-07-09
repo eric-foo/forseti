@@ -21,6 +21,10 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     fetch_cloakbrowser_snapshot_capture,
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
+from source_capture.source_detail_sufficiency import (
+    SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+    SourceDetailSufficiencyRequirements,
+)
 
 
 @pytest.fixture
@@ -2497,3 +2501,93 @@ def test_cloakbrowser_snapshot_runner_cleans_staged_files_when_metadata_write_fa
     assert not (output_dir.parent / "cloakbrowser_visible_text.txt").exists()
     assert not (output_dir.parent / "cloakbrowser_viewport_screenshot.png").exists()
     assert not (output_dir.parent / "cloakbrowser_snapshot_metadata.json").exists()
+
+
+def test_cloakbrowser_snapshot_runner_fail_closes_source_detail_sufficiency_after_packet_write(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotSuccess:
+        return CloakBrowserSnapshotSuccess(
+            requested_url="https://www.quora.com/search?q=B2B%20questions",
+            final_url="https://www.quora.com/search?q=B2B%20questions",
+            title="Just a moment...",
+            rendered_dom="<html><script>window.__cf_chl_tk = 'token'</script></html>",
+            visible_text="",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            metadata={
+                "requested_url": "https://www.quora.com/search?q=B2B%20questions",
+                "final_url": "https://www.quora.com/search?q=B2B%20questions",
+                "title": "Just a moment...",
+                "capture_timestamp": "2026-07-09T01:02:03Z",
+                "timeout_seconds": kwargs["timeout_seconds"],
+                "wait_until": kwargs["wait_until"],
+                "viewport_width": kwargs["viewport_width"],
+                "viewport_height": kwargs["viewport_height"],
+                "screenshot_mode": "viewport",
+                "method_category": "anti_blocking_browser",
+                "browser_engine": "cloakbrowser",
+                "cloakbrowser_backend": "playwright",
+                "profile_persistence": "local_ignored_profile",
+                "persistent_profile_loaded": True,
+                "storage_state_loaded": False,
+                "access_blocked": True,
+                "access_block_reason": "cloudflare_interstitial",
+                "rendered_dom_byte_count": 64,
+                "visible_text_byte_count": 0,
+                "screenshot_byte_count": 20,
+            },
+            warning_notes=[],
+            limitation_notes=[
+                "access_failed: CloakBrowser rendered an access-block/interstitial page instead of source content: cloudflare_interstitial; block artifacts preserved"
+            ],
+            access_block_reason="cloudflare_interstitial",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, message = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://www.quora.com/search?q=B2B%20questions",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="Can Quora search provide B2B question candidates?",
+        output_directory=output_dir,
+        capture_context="test CloakBrowser sufficiency gate",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        browser_user_data_label="quora-client",
+        browser_user_data_session_mode=None,
+        browser_user_data_dir=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        source_detail_sufficiency_requirements=SourceDetailSufficiencyRequirements(
+            require_not_access_blocked=True,
+            min_visible_text_bytes=100,
+            visible_text_contains=("Results for B2B questions",),
+        ),
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+    )
+
+    assert exit_code == SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
+    assert str(output_dir.resolve()) in message
+    assert output_dir.exists()
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert "source_detail_sufficiency_failed" in manifest["visible_mode_changes"]
+    assert any("source_detail_sufficiency_failed" in item for item in manifest["limitations"])
+    assert any("not source-content capture" in item for item in manifest["receipt_metadata"]["non_claims"])
