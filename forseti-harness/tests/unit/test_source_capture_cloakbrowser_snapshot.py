@@ -87,6 +87,7 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
     assert result.metadata["browser_engine"] == "cloakbrowser"
     assert result.metadata["cloakbrowser_backend"] == "playwright"
     assert result.metadata["profile_persistence"] == "none"
+    assert result.metadata["persistent_profile_loaded"] is False
     assert result.metadata["storage_state_loaded"] is False
     assert result.metadata["proxy_used"] is False
     assert result.metadata["proxy_category"] is None
@@ -120,6 +121,7 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
         "load_more_clicks": 0,
         "scroll_step_px": 0,
         "pre_capture": None,
+        "user_data_dir": None,
     }
 
 
@@ -260,6 +262,86 @@ def test_live_engine_uses_anonymous_non_persistent_launch(monkeypatch: pytest.Mo
         "timeout": 5000,
     }
 
+
+def test_live_engine_uses_persistent_profile_context_when_user_data_dir_is_supplied(
+    monkeypatch: pytest.MonkeyPatch, scratch_dir: Path
+) -> None:
+    launch_called = False
+    persistent_context_kwargs: dict[str, object] = {}
+    viewport_size: dict[str, int] = {}
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "Visible profile-backed source text"
+
+    class FakePage:
+        url = "https://example.com/profile-rendered"
+
+        def set_viewport_size(self, viewport: dict[str, int]) -> None:
+            viewport_size.update(viewport)
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            return None
+
+        def content(self) -> str:
+            return "<html><body>Visible profile-backed source text</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Profile Rendered Source"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            persistent_context_kwargs["closed"] = True
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> object:
+            nonlocal launch_called
+            launch_called = True
+            raise AssertionError("anonymous launch should not be used")
+
+        def launch_persistent_context(self, user_data_dir: Path, **kwargs: object) -> FakeContext:
+            persistent_context_kwargs["user_data_dir"] = user_data_dir
+            persistent_context_kwargs.update(kwargs)
+            return FakeContext()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    result = _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/source",
+        timeout_seconds=5,
+        wait_until="domcontentloaded",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=None,
+        block_heavy_assets=False,
+        user_data_dir=scratch_dir,
+    )
+
+    assert result.final_url == "https://example.com/profile-rendered"
+    assert result.title == "Profile Rendered Source"
+    assert result.visible_text == "Visible profile-backed source text"
+    assert launch_called is False
+    assert persistent_context_kwargs == {
+        "user_data_dir": scratch_dir,
+        "headless": True,
+        "stealth_args": True,
+        "humanize": False,
+        "closed": True,
+    }
+    assert viewport_size == {"width": 1024, "height": 768}
 
 def test_live_engine_passes_proxy_profile_only_to_cloakbrowser_launch(
     monkeypatch: pytest.MonkeyPatch,

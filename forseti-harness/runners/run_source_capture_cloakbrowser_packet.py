@@ -37,6 +37,8 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     DEFAULT_VIEWPORT_WIDTH,
     CloakBrowserSnapshotFailureKind,
 )
+from source_capture.auth_state import AuthenticatedSessionMode
+from source_capture.browser_user_data import browser_user_data_path_for_label
 from source_capture.cli_support import (
     add_durability_arguments,
     build_intended_cadence,
@@ -79,6 +81,9 @@ def run_source_capture_cloakbrowser_packet(
     capture_mode: CaptureModeCategory,
     session_id: str | None,
     proxy_profile: ProxyProfile | None,
+    browser_user_data_label: str | None = None,
+    browser_user_data_session_mode: AuthenticatedSessionMode | None = None,
+    browser_user_data_dir: Path | None = None,
     actor_audience_context,
     visible_mode_changes: Sequence[str],
     source_publication_or_event,
@@ -139,6 +144,7 @@ def run_source_capture_cloakbrowser_packet(
         load_more_clicks=load_more_clicks,
         scroll_step_px=scroll_step_px,
         pre_capture=pre_capture,
+        user_data_dir=browser_user_data_dir,
     )
     if isinstance(capture_result, CloakBrowserSnapshotFailure):
         return 3, f"{_failure_report_token(capture_result.failure_kind)}: {capture_result.message}"
@@ -199,6 +205,7 @@ def run_source_capture_cloakbrowser_packet(
             _access_posture_value(
                 proxy_profile=proxy_profile,
                 access_block_reason=capture_result.access_block_reason,
+                browser_user_data_session_mode=browser_user_data_session_mode,
             )
         )
         recapture_posture = re_capture_relationship or not_applicable(
@@ -219,7 +226,11 @@ def run_source_capture_cloakbrowser_packet(
             capture_mode=capture_mode,
             operator_category=operator_category,
             session_identity=session_id,
-            visible_mode_changes=visible_mode_changes,
+            visible_mode_changes=_visible_mode_changes(
+                visible_mode_changes=visible_mode_changes,
+                browser_user_data_label=browser_user_data_label,
+                browser_user_data_session_mode=browser_user_data_session_mode,
+            ),
             source_publication_or_event=timing.source_publication_or_event,
             source_edit_or_version=timing.source_edit_or_version,
             cutoff_posture=timing.cutoff_posture,
@@ -263,6 +274,7 @@ def run_source_capture_cloakbrowser_packet(
             receipt_non_claims=_cloakbrowser_snapshot_non_claims(
                 proxy_profile=proxy_profile,
                 access_block_reason=capture_result.access_block_reason,
+                browser_user_data_session_mode=browser_user_data_session_mode,
             ),
         )
     finally:
@@ -292,12 +304,19 @@ def _access_posture_value(
     *,
     proxy_profile: ProxyProfile | None,
     access_block_reason: str | None,
+    browser_user_data_session_mode: AuthenticatedSessionMode | None = None,
 ) -> str:
+    profile_clause = (
+        f" using label-indirected local browser profile with {browser_user_data_session_mode.value}"
+        if browser_user_data_session_mode is not None
+        else ""
+    )
+    anonymous_clause = "" if browser_user_data_session_mode is not None else " anonymous"
     if access_block_reason is not None:
         base = (
             "cloakbrowser_snapshot access_failed with access block "
-            f"{access_block_reason}; rendered block artifacts preserved through anonymous "
-            "anti-blocking browser capture"
+            f"{access_block_reason}; rendered block artifacts preserved through{anonymous_clause} "
+            f"anti-blocking browser capture{profile_clause}"
         )
         if proxy_profile is None:
             return f"{base}; content sufficiency is not asserted"
@@ -307,12 +326,13 @@ def _access_posture_value(
         )
     if proxy_profile is None:
         return (
-            "cloakbrowser_snapshot preserved rendered browser artifacts through anonymous anti-blocking browser capture; "
+            "cloakbrowser_snapshot preserved rendered browser artifacts through"
+            f"{anonymous_clause} anti-blocking browser capture{profile_clause}; "
             "content sufficiency is not asserted"
         )
     return (
-        "cloakbrowser_snapshot preserved rendered browser artifacts through anonymous anti-blocking browser capture "
-        f"with label-indirected proxy category {proxy_profile.proxy_category.value}; endpoint, credentials, "
+        "cloakbrowser_snapshot preserved rendered browser artifacts through"
+        f"{anonymous_clause} anti-blocking browser capture{profile_clause} with label-indirected proxy category {proxy_profile.proxy_category.value}; endpoint, credentials, "
         "and exit IP were not recorded; content sufficiency is not asserted"
     )
 
@@ -330,7 +350,10 @@ def _receipt_summary(*, source_family: str, access_block_reason: str | None) -> 
 
 
 def _cloakbrowser_snapshot_non_claims(
-    *, proxy_profile: ProxyProfile | None, access_block_reason: str | None
+    *,
+    proxy_profile: ProxyProfile | None,
+    access_block_reason: str | None,
+    browser_user_data_session_mode: AuthenticatedSessionMode | None = None,
 ) -> list[str]:
     if proxy_profile is None:
         base: list[str] = list(CLOAKBROWSER_SNAPSHOT_NON_CLAIMS)
@@ -343,9 +366,34 @@ def _cloakbrowser_snapshot_non_claims(
             "not proxy endpoint or credential disclosure",
             "not proxy success or block-evasion proof",
         ]
+    if browser_user_data_session_mode is not None:
+        base = [
+            item
+            for item in base
+            if item not in {"not login or session capture", "not stored profile or cookie use"}
+        ] + [
+            "not password-driven login automation",
+            "not raw cookie, storage-state, or profile path disclosure",
+            "not session effectiveness proof",
+        ]
     if access_block_reason is not None:
         return ["not source-content capture; access-block page artifacts only"] + base
     return base
+
+
+def _visible_mode_changes(
+    *,
+    visible_mode_changes: Sequence[str],
+    browser_user_data_label: str | None = None,
+    browser_user_data_session_mode: AuthenticatedSessionMode | None = None,
+) -> list[str]:
+    values = list(visible_mode_changes)
+    if browser_user_data_label is not None and browser_user_data_session_mode is not None:
+        values.append(
+            "cloakbrowser_persistent_profile_loaded:"
+            f"{browser_user_data_session_mode.value}:{browser_user_data_label}"
+        )
+    return values
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -485,6 +533,20 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument("--proxy-profile-root", type=Path, default=None)
+    parser.add_argument(
+        "--browser-user-data-label",
+        default=None,
+        help=(
+            "Optional ignored local CloakBrowser user-data label to reuse for this capture; "
+            "never pass raw profile paths, cookies, or credentials. Requires --browser-user-data-session-mode."
+        ),
+    )
+    parser.add_argument(
+        "--browser-user-data-session-mode",
+        choices=[item.value for item in AuthenticatedSessionMode],
+        default=None,
+        help="Declared session mode for --browser-user-data-label.",
+    )
     parser.add_argument("--actor-audience-context", default=None)
     parser.add_argument("--actor-audience-context-unknown-reason", default=None)
     parser.add_argument("--visible-mode-change", action="append", default=[])
@@ -518,6 +580,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             category=args.proxy_profile_category,
             profile_root=args.proxy_profile_root,
         )
+        browser_user_data_session_mode = (
+            AuthenticatedSessionMode(args.browser_user_data_session_mode)
+            if args.browser_user_data_session_mode is not None
+            else None
+        )
+        if (args.browser_user_data_label is None) != (browser_user_data_session_mode is None):
+            raise ValueError(
+                "--browser-user-data-label and --browser-user-data-session-mode must be supplied together"
+            )
+        browser_user_data_dir = None
+        if args.browser_user_data_label is not None:
+            browser_user_data_dir = browser_user_data_path_for_label(args.browser_user_data_label)
+            if not browser_user_data_dir.is_dir():
+                raise ValueError(
+                    "browser user-data directory does not exist for label: "
+                    f"{args.browser_user_data_label}"
+                )
         old_reddit_only = args.old_reddit_only or args.guarded_reddit_launch
         block_heavy_assets = args.block_heavy_assets or args.guarded_reddit_launch
         if old_reddit_only:
@@ -538,6 +617,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(
                 "source capture CloakBrowser preflight passed; no network capture attempted; "
                 f"proxy_profile={'present' if proxy_profile is not None else 'absent'}; "
+                f"browser_user_data_profile={'present' if browser_user_data_dir is not None else 'absent'}; "
                 f"old_reddit_only={old_reddit_only}; block_heavy_assets={block_heavy_assets}"
             )
             return 0
@@ -546,7 +626,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             data_root = DataLakeRoot.resolve(explicit=args.data_root)
         capture_context = args.capture_context or _default_capture_context(
-            proxy_profile=proxy_profile
+            proxy_profile=proxy_profile,
+            browser_user_data_session_mode=browser_user_data_session_mode,
         )
         exit_code, message = run_source_capture_cloakbrowser_packet(
             url=args.url,
@@ -560,6 +641,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             capture_mode=CaptureModeCategory(args.capture_mode),
             session_id=args.session_id,
             proxy_profile=proxy_profile,
+            browser_user_data_label=args.browser_user_data_label,
+            browser_user_data_session_mode=browser_user_data_session_mode,
+            browser_user_data_dir=browser_user_data_dir,
             actor_audience_context=build_optional_fact(
                 label="actor/audience context",
                 value=args.actor_audience_context,
@@ -700,16 +784,25 @@ def _validate_old_reddit_url(url: str) -> None:
         )
 
 
-def _default_capture_context(*, proxy_profile: ProxyProfile | None) -> str:
+def _default_capture_context(
+    *,
+    proxy_profile: ProxyProfile | None,
+    browser_user_data_session_mode: AuthenticatedSessionMode | None = None,
+) -> str:
+    profile_clause = (
+        f" using label-indirected local browser profile with {browser_user_data_session_mode.value}"
+        if browser_user_data_session_mode is not None
+        else " without stored session or browser profile"
+    )
     if proxy_profile is None:
         return (
-            "anonymous CloakBrowser anti-blocking browser source capture without stored session, "
-            "proxy, profile, or credential injection"
+            "CloakBrowser anti-blocking browser source capture"
+            f"{profile_clause}; no proxy, raw cookie export, or credential injection"
         )
     return (
-        "anonymous CloakBrowser anti-blocking browser source capture using a label-indirected "
-        f"{proxy_profile.proxy_category.value} proxy profile; no stored session, browser profile, "
-        "or credential injection into packet artifacts"
+        "CloakBrowser anti-blocking browser source capture"
+        f"{profile_clause} and label-indirected {proxy_profile.proxy_category.value} proxy profile; "
+        "endpoint, credentials, raw cookies, and profile path are not recorded"
     )
 
 
