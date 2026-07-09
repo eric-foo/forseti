@@ -41,6 +41,8 @@ What that does, in order:
 
 If the plan already exists, it is reused. The wrapper does not overwrite the plan or erase `attempts.jsonl`.
 
+Coverage note: for `--lane-count 2`, run each bucket for each approved lane ID (`lane_1` and `lane_2`) when the goal is full roster coverage. Running only `lane_1` intentionally covers only that lane partition; egress/lane binding remains a separate decision.
+
 ## Runtime Layout
 
 All run-control records stay under the run-control root:

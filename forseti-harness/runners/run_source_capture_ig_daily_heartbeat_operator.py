@@ -88,20 +88,29 @@ def run_operator_session(
     else:
         if not plan_if_missing:
             raise ValueError(f"daily plan missing and plan_if_missing is false: {plan_path}")
-        plan_result = control.plan_day(
-            registry_index_path=registry_index_path,
-            monitoring_sidecar_path=monitoring_sidecar_path,
-            run_control_root=run_control_root,
-            plan_date=plan_date,
-            bucket_count=bucket_count,
-            seed_salt_id=seed_salt_id,
-            overwrite=False,
-            now_func=now_func,
-        )
-        plan_created = True
-        planned_count = plan_result.planned_count
-        plan_path = plan_result.plan_path
-        attempts_path = plan_result.attempts_path
+        try:
+            plan_result = control.plan_day(
+                registry_index_path=registry_index_path,
+                monitoring_sidecar_path=monitoring_sidecar_path,
+                run_control_root=run_control_root,
+                plan_date=plan_date,
+                bucket_count=bucket_count,
+                seed_salt_id=seed_salt_id,
+                overwrite=False,
+                now_func=now_func,
+            )
+        except ValueError:
+            # Another operator session can create the plan between our existence
+            # check and plan_day's exclusive write. Reuse that winner; planning
+            # errors that leave no plan still fail visibly.
+            if not plan_path.exists():
+                raise
+            planned_count = _planned_count(plan_path)
+        else:
+            plan_created = True
+            planned_count = plan_result.planned_count
+            plan_path = plan_result.plan_path
+            attempts_path = plan_result.attempts_path
 
     session_result = control.run_session(
         run_control_root=run_control_root,
