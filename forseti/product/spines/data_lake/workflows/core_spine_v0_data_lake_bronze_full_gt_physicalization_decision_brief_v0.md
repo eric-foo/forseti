@@ -42,7 +42,7 @@ retention/lawful-erasure policy, migration authority, third-proof authority, or
 a Bronze full-GT declaration.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom data_lake physicalization S3

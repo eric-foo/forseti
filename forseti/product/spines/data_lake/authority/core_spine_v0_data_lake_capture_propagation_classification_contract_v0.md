@@ -23,10 +23,10 @@ open_next:
   - docs/workflows/ecr_spine_submap_v0.md
   - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
-  - orca-harness/youtube_capture/behavioral_projection.py
-  - orca-harness/source_capture/ig_reels_behavioral_projection.py
-  - orca-harness/source_capture/ig_reels_grid_projection.py
+  - forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+  - forseti-harness/youtube_capture/behavioral_projection.py
+  - forseti-harness/source_capture/ig_reels_behavioral_projection.py
+  - forseti-harness/source_capture/ig_reels_grid_projection.py
 downstream_consumers:
   - Data Lake storage, raw admission, write-boundary, derived-layout, and Silver Vault lanes
   - Data Capture source-family capture/projection lanes
@@ -78,7 +78,7 @@ This structure is doctrine-led and code-backed where the invariant is concrete.
 2. **Code-backed layer.** Existing packet-runner lake-seam enforcement remains
    scoped to raw `SourceCapturePacket` producers and explicit raw-packet
    orchestrators via
-   `orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py`.
+   `forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py`.
    That test checks the concrete runner seam: `--data-root`, `FORSETI_DATA_ROOT`
    primary / legacy `ORCA_DATA_ROOT` fallback only when local output is omitted, `DataLakeRoot.resolve`,
    exclusive local/lake output modes, and `data_root=` forwarding into packet
@@ -114,7 +114,7 @@ Before patching a Data Lake / Capture propagation-relevant source:
 | Change class | Propagation class | Required same-class check | Explicit non-propagation |
 | --- | --- | --- | --- |
 | Data Lake raw, by-key, derived, or medallion semantics | Generic Data Lake / downstream boundary propagation | Check Data Lake core, medallion, Silver Vault, projection doctrine, ECR submap, and Data/Cleaning boundary for raw preservation, append-only derived records, residual visibility, and Gold leakage. | Do not infer platform capture routes, Cleaning transforms, Judgment outputs, or runtime readiness from lake storage semantics. |
-| Raw `SourceCapturePacket` runner output seam | Generic packet-runner lake-seam propagation | Check raw packet-producing capture runners, explicit raw-packet orchestrators, and `orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py` for the current Bronze-writer surface, behavior-discovered source-capture packet writers, `--data-root`, `FORSETI_DATA_ROOT` primary / legacy `ORCA_DATA_ROOT` fallback only when output is omitted, `DataLakeRoot.resolve`, exclusive local/lake output modes, and `data_root=` forwarding into packet writers/sub-runners. | Do not apply this to every runner. Offline projections, materializers, smoke/audit runners, report builders, derived-only Silver writers, and other non-packet entrypoints are not covered by this seam merely because they live in `orca-harness/runners/` or touch `--data-root`. |
+| Raw `SourceCapturePacket` runner output seam | Generic packet-runner lake-seam propagation | Check raw packet-producing capture runners, explicit raw-packet orchestrators, and `forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py` for the current Bronze-writer surface, behavior-discovered source-capture packet writers, `--data-root`, `FORSETI_DATA_ROOT` primary / legacy `ORCA_DATA_ROOT` fallback only when output is omitted, `DataLakeRoot.resolve`, exclusive local/lake output modes, and `data_root=` forwarding into packet writers/sub-runners. | Do not apply this to every runner. Offline projections, materializers, smoke/audit runners, report builders, derived-only Silver writers, and other non-packet entrypoints are not covered by this seam merely because they live in `forseti-harness/runners/` or touch `--data-root`. |
 | Platform behavioral projection shape | Platform behavioral parity check | Check source-family behavioral projections for projection-only/no-acquisition boundary, platform object key, canonical source selection, transcript source rollup, extraction/completeness status, residual naming, persistence/correlation anchors, and metric posture/count-candidate visibility where applicable. | Do not copy YouTube caption/watch/youtubei/ASR route mechanics into Instagram/TikTok, or copy Instagram grid/audio/deep-capture mechanics into YouTube/TikTok. |
 | Platform acquisition route or source-surface discovery | Source-family-local | Keep the route in the owning source-family Capture lane and its runner/source docs. Promote only if two non-overlapping source families prove the same platform-independent primitive and the owner accepts promotion. | Do not generalize YouTube watch metadata, captions, `youtubei`, or ASR fallback into IG/TikTok. Do not generalize Instagram reels grid DOM/passive JSON, standalone audio, deep-capture render, source-surface disagreement, or static-post view-count handling into YouTube/TikTok. |
 | Downstream consumer residual/completeness semantics | Downstream boundary propagation | Check projection doctrine, ECR, Cleaning boundary, Data Lake medallion, and any consumer read model for named residuals, missingness/posture visibility, raw-pull flags, raw/derived refs, and Gold/Judgment containment. | Do not convert residuals into prose-only warnings, success booleans, priority signals, hidden filters, or Judgment-like labels outside Judgment. |
@@ -242,7 +242,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -261,10 +261,10 @@ direction_change_propagation:
     - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
     - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
-    - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
-    - orca-harness/youtube_capture/behavioral_projection.py
-    - orca-harness/source_capture/ig_reels_behavioral_projection.py
-    - orca-harness/source_capture/ig_reels_grid_projection.py
+    - forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+    - forseti-harness/youtube_capture/behavioral_projection.py
+    - forseti-harness/source_capture/ig_reels_behavioral_projection.py
+    - forseti-harness/source_capture/ig_reels_grid_projection.py
   intentionally_not_updated:
     - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
       reason: >
@@ -287,7 +287,7 @@ direction_change_propagation:
         The medallion contract already keeps Gold/Judgment interpretation out of
         non-Judgment layers; this contract routes downstream residual/gold-boundary
         checks to it.
-    - path: orca-harness/
+    - path: forseti-harness/
       reason: >
         Existing packet-runner lake-seam tests are the only concrete code-backed
         enforcement needed for v0. Behavioral parity and residual semantics stay
@@ -325,19 +325,19 @@ direction_change_propagation:
     - architecture_doctrine
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
-    - orca-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
+    - forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py
   downstream_surfaces_checked:
-    - orca-harness/runners/run_fragrantica_mgt_capture.py
-    - orca-harness/runners/run_ig_reels_lane_orchestrator.py
-    - orca-harness/runners/run_source_capture_ig_reels_grid_packet.py
-    - orca-harness/runners/run_source_capture_ig_reels_audio_packet.py
-    - orca-harness/runners/run_source_capture_youtube_asr_packet.py
-    - orca-harness/source_capture/transcript/asr_packet.py
-    - orca-harness/source_capture/transcript/ig_reels_audio_packet.py
-    - orca-harness/source_capture/transcript/caption_packet.py
-    - orca-harness/source_capture/youtube_watch_packet.py
+    - forseti-harness/runners/run_fragrantica_mgt_capture.py
+    - forseti-harness/runners/run_ig_reels_lane_orchestrator.py
+    - forseti-harness/runners/run_source_capture_ig_reels_grid_packet.py
+    - forseti-harness/runners/run_source_capture_ig_reels_audio_packet.py
+    - forseti-harness/runners/run_source_capture_youtube_asr_packet.py
+    - forseti-harness/source_capture/transcript/asr_packet.py
+    - forseti-harness/source_capture/transcript/ig_reels_audio_packet.py
+    - forseti-harness/source_capture/transcript/caption_packet.py
+    - forseti-harness/source_capture/youtube_watch_packet.py
   intentionally_not_updated:
-    - path: docs/workflows/orca_repo_map_v0.md
+    - path: docs/workflows/forseti_repo_map_v0.md
       reason: >
         The map already routes packet-runner lake-seam questions through this contract and the
         test path; no new source family, top-level route, or artifact home is introduced.
@@ -346,7 +346,7 @@ direction_change_propagation:
         Raw preservation and by-key findability are unchanged. This patch tightens runner-seam
         coverage only.
   verification: >
-    `python -m pytest -q orca-harness\tests\contract\test_capture_runner_lake_seam_coverage.py`
+    `python -m pytest -q forseti-harness\tests\contract\test_capture_runner_lake_seam_coverage.py`
     passed with 9 tests after the enforcement change.
   non_claims:
     - not validation of live source access

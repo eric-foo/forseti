@@ -257,7 +257,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    with tempfile.TemporaryDirectory(prefix="orca_deepcap_") as scratch:
+    with tempfile.TemporaryDirectory(prefix="forseti_deepcap_") as scratch:
         result = run_reel_deep_capture(
             args.shortcode,
             render_fn=_render,

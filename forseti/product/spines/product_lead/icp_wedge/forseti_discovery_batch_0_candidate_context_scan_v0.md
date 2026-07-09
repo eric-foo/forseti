@@ -1,4 +1,4 @@
-# Orca Discovery Batch 0 Candidate-Context Scan v0
+  Forseti Discovery Batch 0 Candidate-Context Scan v0
 
 > **SUPERSEDED / OFF-TARGET (2026-06-08)**
 > This scan was conducted against developer-tool / developer-platform candidates
@@ -18,7 +18,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: Discovery Batch 0 candidate-context scan for possible later Orca Product Proof Lead qualification.
+scope: Discovery Batch 0 candidate-context scan for possible later Forseti Product Proof Lead qualification.
 use_when:
   - Reviewing lightweight public candidate-context evidence before manual qualification prep.
   - Selecting 2-3 candidate contexts for a later owner-authorized qualification step.
@@ -27,10 +27,10 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
   - .agents/workflow-overlay/validation-gates.md
-  - forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_target_selection_brief_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/forseti_discovery_batch_0_target_selection_brief_v0.md
 ```
 
-## Scope
+   Scope
 
 This artifact is a narrow candidate-context scan only.
 
@@ -51,7 +51,7 @@ Scan counters:
 | Candidate contexts identified | 8 |
 | No-go / deferred candidates | 4 |
 
-## Source Ledger
+   Source Ledger
 
 | Source URL | Source type | Why opened | Candidate/context supported |
 | --- | --- | --- | --- |
@@ -79,7 +79,7 @@ Opened but not used as evidence:
 | https://posthog.com/docs/billing/pricing-and-billing | Internal error in page open |
 | https://posthog.com/docs/billing | Internal error in page open |
 
-## Candidate Context Table
+   Candidate Context Table
 
 | Company | Category | Suspected decision family (DecisionEvent) | Visible signal | Suspected trigger | Likely decision-owner role type | Public-signal surface to verify | Trust posture | Qualification status | Why it may be worth later intake | Why it may fail qualification |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -92,7 +92,7 @@ Opened but not used as evidence:
 | Pinecone | API, data-product | API, pricing, packaging | Pricing and docs show serverless read units, write units, storage, plan tiers, and Dedicated Read Nodes for certain workloads. | AI/vector workload monetization, read/write unit packaging, Standard versus Enterprise boundaries, cost predictability. | Vector database product owner, API monetization owner, pricing owner, AI infrastructure GM. | Pricing/docs, developer feedback on read/write unit bills, workload sizing, cloud marketplace, and vector database alternatives. | unknown | candidate_context_only | AI retrieval workloads have visible public cost mechanics where public developer evidence might matter. | May require private workload telemetry, benchmark data, or enterprise capacity planning rather than public-signal evidence. |
 | Algolia | API, data-product | pricing, API, monetization | Pricing shows requests/records overages, Grow Plus AI features, Elevate annual AI Search, and docs expose many plan and API limits. | AI Search tiering, record/request overage design, annual-contract thresholds, connector and generative-experience limits. | Search product owner, AI Search GM, pricing owner, platform API owner. | Pricing/docs, developer docs, public reaction to AI Search limits, overages, and connector/API constraints. | unknown | candidate_context_only | Rich pricing and limit surfaces could support a focused later intake around AI Search packaging. | May be too enterprise-contract-heavy or too dependent on private renewal and usage data for first intake. |
 
-## Ranking
+   Ranking
 
 Top 2-3 for first manual qualification prep:
 
@@ -111,7 +111,7 @@ Weak / defer:
 - Pinecone read/write/storage unit monetization.
 - Algolia AI Search requests/records overage and enterprise-tier packaging.
 
-## No-Go Notes
+   No-Go Notes
 
 | Candidate considered | Status | Reason |
 | --- | --- | --- |
@@ -122,7 +122,7 @@ Weak / defer:
 
 Excluded / deferred count: 4.
 
-## Recommended Next Step
+   Recommended Next Step
 
 Owner selects 2-3 contexts for manual qualification prep. Recommended selection:
 
@@ -132,7 +132,7 @@ Owner selects 2-3 contexts for manual qualification prep. Recommended selection:
 
 Selection should only prepare manual qualification questions. It should not perform outreach, collect person-level details, produce a memo, produce an executive deck, or imply Orca readiness.
 
-## Blockers
+   Blockers
 
 Before outreach:
 
@@ -153,7 +153,7 @@ Before decision artifact production:
 - No decision-artifact readback agreement exists.
 - No executive deck use tied to internal decision circulation has been established.
 
-## Non-Claims
+   Non-Claims
 
 This scan does not claim:
 

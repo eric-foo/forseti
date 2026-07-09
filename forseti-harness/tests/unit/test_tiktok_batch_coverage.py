@@ -64,7 +64,7 @@ def test_tiktok_batch_coverage_from_packet_directory_excludes_raw_text(tmp_path:
 
 
 def test_tiktok_batch_coverage_cli_reads_data_lake_packet_id(tmp_path: Path, capsys, monkeypatch) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _, message = write_tiktok_batch_packet(
         creator_handle="funmimonet",
         creator_profile_url=PROFILE_URL,

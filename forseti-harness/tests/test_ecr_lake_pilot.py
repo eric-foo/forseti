@@ -107,7 +107,7 @@ _POSTURE_MODEL_BY_LANE = {
 
 def test_derives_four_sibling_ecr_records(tmp_path: Path) -> None:
     # capture -> committed raw -> read by key (verified) -> 4 sibling Silver records.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
 
     paths = derive_ecr_into_lake(data_root=root, packet_id=pid)
@@ -136,7 +136,7 @@ def test_derives_four_sibling_ecr_records(tmp_path: Path) -> None:
 
 
 def test_re_derive_appends_new_siblings(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
 
     first = derive_ecr_into_lake(data_root=root, packet_id=pid)
@@ -148,7 +148,7 @@ def test_re_derive_appends_new_siblings(tmp_path: Path) -> None:
 
 
 def test_explicit_record_id_is_create_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
 
     derive_ecr_into_lake(data_root=root, packet_id=pid, record_id="rec1")
@@ -157,7 +157,7 @@ def test_explicit_record_id_is_create_only(tmp_path: Path) -> None:
 
 
 def test_preflights_sibling_collision_before_any_ecr_write(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
     existing = root.append_record(
         subtree="derived",
@@ -177,7 +177,7 @@ def test_preflights_sibling_collision_before_any_ecr_write(tmp_path: Path) -> No
 
 
 def test_serialized_ecr_records_round_trip_through_posture_models(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
 
     paths = derive_ecr_into_lake(data_root=root, packet_id=pid)
@@ -191,7 +191,7 @@ def test_serialized_ecr_records_round_trip_through_posture_models(tmp_path: Path
 
 
 def test_multi_slice_packet_preserves_slice_grain_for_per_slice_rows(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _multi_slice_capture(root, tmp_path).packet.packet_id
 
     paths = derive_ecr_into_lake(data_root=root, packet_id=pid)
@@ -210,7 +210,7 @@ def test_multi_slice_packet_preserves_slice_grain_for_per_slice_rows(tmp_path: P
 
 
 def test_ecr_derivation_writes_a_completion_marker_and_is_complete(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
 
     paths = derive_ecr_into_lake(data_root=root, packet_id=pid)
@@ -239,7 +239,7 @@ def test_ecr_derivation_writes_a_completion_marker_and_is_complete(tmp_path: Pat
 
 def test_ecr_set_missing_marker_reads_incomplete(tmp_path: Path) -> None:
     # A crash before the marker leaves members but no marker -> detectable incomplete.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
     paths = derive_ecr_into_lake(data_root=root, packet_id=pid)
     record_name = next(iter(paths.values())).name

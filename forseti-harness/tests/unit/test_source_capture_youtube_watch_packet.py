@@ -291,7 +291,7 @@ class _Fetched:
 
 
 def test_youtube_watch_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
 
     def fake_fetcher(video_id: str, *, comment_pages: int) -> _Fetched:
         assert video_id == _VIDEO_ID

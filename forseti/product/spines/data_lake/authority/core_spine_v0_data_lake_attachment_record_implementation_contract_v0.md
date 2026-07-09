@@ -141,8 +141,8 @@ Future storage implementation must not:
 - `forseti/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md`
   preserves write-once/hash-pin discipline: future currentness is replay into
   new packet material, not in-place packet mutation.
-- `orca-harness/source_capture/models.py` and
-  `orca-harness/source_capture/writer.py` show the current preserved-file
+- `forseti-harness/source_capture/models.py` and
+  `forseti-harness/source_capture/writer.py` show the current preserved-file
   ref/hash/hash-basis pattern: packet-relative paths, `sha256`, and
   `hash_basis="raw_stored_bytes"` for copied raw files.
 
@@ -249,7 +249,7 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
     - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
       reason: >
@@ -258,7 +258,7 @@ direction_change_propagation:
         A2 ADR is the entry-side owner and this contract now points there.
         Checked: no contradiction (its Accepted Residuals name storage-code
         scoping as the serialization trigger, which is this lane).
-    - path: docs/workflows/orca_repo_map_v0.md
+    - path: docs/workflows/forseti_repo_map_v0.md
       reason: >
         The A2 ADR row already reads ratified with fold-in as named follow-on;
         the row updates once at lane closeout with the implementation
@@ -296,7 +296,7 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate2_retention_lawful_erasure_posture_adr_v0.md
@@ -324,7 +324,7 @@ direction_change_propagation:
     rg -n "placement deferred|physical home unfrozen|does not choose among
     those layouts|exact layout remains open|sidecar/member layout|
     member-vs-sidecar|member vs sidecar" forseti/product/spines/data_lake
-    docs/workflows/orca_repo_map_v0.md
+    docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
     Executed 2026-07-02 after edits. Remaining hits: this contract's stale_if
     (a supersession condition, not an open-layout claim), the ratification

@@ -14,7 +14,7 @@ open_next:
   - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
-  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md # superseded — historical
+  - forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md # superseded — historical
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/orca_offer_hypothesis_v0_narrow_adversarial_review.md

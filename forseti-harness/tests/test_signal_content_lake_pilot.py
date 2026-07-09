@@ -34,7 +34,7 @@ def _bodies(root: DataLakeRoot, packet_id: str) -> dict[str, str]:
 
 def test_derives_signal_content_record_into_lake(tmp_path: Path) -> None:
     # capture -> committed raw -> read by key (verified) -> SCR Silver record.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
 
     derived_path = derive_signal_content_into_lake(data_root=root, packet_id=pid)
@@ -58,7 +58,7 @@ def test_derives_signal_content_record_into_lake(tmp_path: Path) -> None:
 
 
 def test_re_derive_appends_a_sibling_not_overwrite(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
 
     _first = derive_signal_content_into_lake(data_root=root, packet_id=pid)
@@ -70,7 +70,7 @@ def test_re_derive_appends_a_sibling_not_overwrite(tmp_path: Path) -> None:
 
 
 def test_explicit_record_id_is_create_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path).packet.packet_id
 
     derive_signal_content_into_lake(data_root=root, packet_id=pid, record_id="rec1")

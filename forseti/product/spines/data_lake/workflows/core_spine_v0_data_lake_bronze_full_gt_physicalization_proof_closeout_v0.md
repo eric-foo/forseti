@@ -31,7 +31,7 @@ delegated review pending. Not validation of a production lake, not all-source
 coverage, not A2/backend selection, not readiness, not a Bronze full-GT claim.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: proof-scope pack (scoping route + both gate ADRs + folded contracts + harness surfaces; spec + micro-decision lock in-lane)
@@ -44,22 +44,22 @@ orca_start_preflight:
 ## What Landed
 
 - **A1 deterministic inventory gate** (STEP-02/03):
-  `orca-harness/data_lake/inventory.py` single-sources the AST discovery the
+  `forseti-harness/data_lake/inventory.py` single-sources the AST discovery the
   seam-coverage test seeds (writers, orchestrators, recursive writer-function
   closure, non-raw touchpoints) and builds the checked-in record
-  `orca-harness/data_lake/lake_touchpoint_inventory_v0.json` — five families:
+  `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json` — five families:
   runner seams (22), writer functions (10), non-raw touchpoints (45 call
   sites), reasoned exclusions, owner-dispositioned unknowns (0 on the current
   tree), plus a deterministic `a2_fork_impact` routing tag per entry
   (`manifest_shape` / `packet_index` / `none`; metadata for the deferred A2
   decision, not a selection). The gate
-  `orca-harness/tests/contract/test_data_lake_inventory_gate.py` fails on
+  `forseti-harness/tests/contract/test_data_lake_inventory_gate.py` fails on
   undeclared or stale entries in either direction, reasonless exclusions, and
   unknowns without a resolved owner disposition (owner attribution = the
   human-gated PR merge; never self-certified). The seam-coverage test now
   imports discovery from the module with its assertion baselines unchanged.
 - **Six-invariant proof gate** (STEP-04):
-  `orca-harness/tests/test_data_lake_physicalization_proof.py`, PROOF-01..06
+  `forseti-harness/tests/test_data_lake_physicalization_proof.py`, PROOF-01..06
   under the ratified packet-member relationship, each proof in a clean half
   plus a seeded-violation half exercised through the same public API:
   - PROOF-01 write-once raw (second stage AND bypass publish both refused);
@@ -75,14 +75,14 @@ orca_start_preflight:
     byte-identical from committed packet material; reads survive index loss —
     indexes carry no authority).
 - **CI ownership** (STEP-05): `.github/workflows/ci.yml` runs `python -m
-  pytest` with default collection from `orca-harness/`, so both gates run on
+  pytest` with default collection from `forseti-harness/`, so both gates run on
   every PR and main push. `run_data_lake_doctor.py` was deliberately not
   extended (micro-lock: the doctor inspects real lakes; fixture proofs are CI
   tests; the route's "and/or" permits CI-only).
 
 ## Validation Evidence
 
-- Full suite: `python -m pytest` from `orca-harness/` exits 0 with
+- Full suite: `python -m pytest` from `forseti-harness/` exits 0 with
   `ORCA_DATA_ROOT` unset (CI-equivalent), 2026-07-02.
 - Fail-capability is itself tested: seeded undeclared writer, stale declared
   entry, reasonless exclusion, and undispositioned unknown each trip the
@@ -133,7 +133,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_proof_closeout_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_physicalization_proof_scoping_route_v0.md
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
@@ -158,7 +158,7 @@ direction_change_propagation:
         PROOF-01..06, not amended.
   stale_language_search: >
     rg -n "deterministic discovery gate|manual runner|not yet a fail-capable|inventory gate"
-    forseti/product/spines/data_lake docs/workflows/orca_repo_map_v0.md
+    forseti/product/spines/data_lake docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
     Executed 2026-07-02 after edits. Remaining hits are the annotated MGT
     baseline items themselves, this closeout, the repo-map rows updated in
@@ -173,6 +173,8 @@ direction_change_propagation:
     - not A2, backend, or serialization selection
     - not readiness or a Bronze full-GT claim
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-Claims
 

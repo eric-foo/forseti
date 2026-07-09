@@ -31,7 +31,7 @@ pending. Not production-lake validation, backend selection (Gate 2 T3),
 retention semantics, readiness, or a Bronze full-GT claim.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: Lane A pack (ratified A2 ADR + folded contracts + catalog.py internals + proof gate)
@@ -47,7 +47,7 @@ orca_start_preflight:
   implementation, storage, and physicality contracts state the ratified A2
   selection; MGT baseline item 2 closed at selection tier; oldest inline
   receipts archived per the two-inline cap.
-- **Pinned serializer** `orca-harness/data_lake/attachment_record_entry.py` —
+- **Pinned serializer** `forseti-harness/data_lake/attachment_record_entry.py` —
   the ADR's canonical object as code: the versioned `AttachmentRecordEntry`
   schema and deterministic derivation rule, with
   `entry_serialization_version: attachment_record_entry_serialization_v1` and
@@ -77,7 +77,7 @@ orca_start_preflight:
 
 ## Validation Evidence
 
-- Full suite: `python -m pytest` from `orca-harness/` exits 0 with
+- Full suite: `python -m pytest` from `forseti-harness/` exits 0 with
   `ORCA_DATA_ROOT` unset (CI-equivalent), 2026-07-03.
 - Two Silver-producer tests that hardcoded the old schema literal were
   single-sourced onto `ATTACHMENT_RECORD_SCHEMA_VERSION` (no production code

@@ -46,7 +46,7 @@ def _write_manifest(root: DataLakeRoot, packet_id: str, manifest: dict) -> None:
 
 def test_load_raw_packet_returns_verified_bodies(tmp_path: Path) -> None:
     # The read half: find raw by key, verify the seal, hand back bytes by file_id.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     body = b"AAAAAAAAAAAAAAAA"
     pid = _capture(root, tmp_path, body).packet.packet_id
 
@@ -61,7 +61,7 @@ def test_load_raw_packet_returns_verified_bodies(tmp_path: Path) -> None:
 
 def test_load_raw_packet_detects_sha256_tampering(tmp_path: Path) -> None:
     # Same length, different content -> size check passes, sha256 check catches it.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path, b"AAAAAAAAAAAAAAAA").packet.packet_id
 
     container = root.find_packet(pid)
@@ -73,7 +73,7 @@ def test_load_raw_packet_detects_sha256_tampering(tmp_path: Path) -> None:
 
 
 def test_load_raw_packet_detects_missing_file(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path, b"some bytes").packet.packet_id
 
     container = root.find_packet(pid)
@@ -85,13 +85,13 @@ def test_load_raw_packet_detects_missing_file(tmp_path: Path) -> None:
 
 
 def test_load_raw_packet_unknown_key_fails_closed(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     with pytest.raises(DataLakeRootError):
         root.load_raw_packet(generate_ulid())
 
 
 def test_load_raw_packet_rejects_manifest_without_preserved_files(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path, b"some bytes").packet.packet_id
     manifest = _read_manifest(root, pid)
     del manifest["preserved_files"]
@@ -103,7 +103,7 @@ def test_load_raw_packet_rejects_manifest_without_preserved_files(tmp_path: Path
 
 @pytest.mark.parametrize("field", ["sha256", "size_bytes"])
 def test_load_raw_packet_rejects_missing_integrity_fields(tmp_path: Path, field: str) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path, b"some bytes").packet.packet_id
     manifest = _read_manifest(root, pid)
     del manifest["preserved_files"][0][field]
@@ -121,7 +121,7 @@ def test_load_raw_packet_rejects_unsafe_preserved_paths(
     tmp_path: Path,
     unsafe_path: str,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path, b"some bytes").packet.packet_id
     manifest = _read_manifest(root, pid)
     manifest["preserved_files"][0]["relative_packet_path"] = unsafe_path
@@ -132,7 +132,7 @@ def test_load_raw_packet_rejects_unsafe_preserved_paths(
 
 
 def test_load_raw_packet_blocks_preserved_path_escape_to_another_packet(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     first_pid = _capture(root, tmp_path, b"first body").packet.packet_id
     second_pid = _capture(root, tmp_path, b"second body").packet.packet_id
     first_manifest = _read_manifest(root, first_pid)
@@ -150,7 +150,7 @@ def test_load_raw_packet_blocks_preserved_path_escape_to_another_packet(tmp_path
 
 
 def test_load_raw_packet_corrupted_manifest_json_fails_closed(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _capture(root, tmp_path, b"some bytes").packet.packet_id
     _manifest_path(root, pid).write_text("{", encoding="utf-8")
 

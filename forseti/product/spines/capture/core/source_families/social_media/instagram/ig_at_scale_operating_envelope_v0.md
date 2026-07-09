@@ -7,14 +7,16 @@ scope: >
   Sizes the beauty-vertical IG capture operating envelope from the current per-IP, pace-bound R
   evidence: proxy cost/benefit as a fallback, human-like cadence/scroll posture beyond bounded_jitter,
   the ideal operating-account/IP count, and the owner-selected two-lane serious-v0 path for
-  1,000 beauty creators. Does not authorize live capture, proxy purchase, session/cookie wiring,
-  scheduler/runtime work, network configuration, or commercial-scale collection.
+  the earlier 1,000 beauty creator model. Current steady daily-heartbeat posture is recorded in
+  `ig_daily_heartbeat_operating_policy_v0.md`. Does not authorize live capture, proxy purchase,
+  session/cookie wiring, scheduler/runtime work, network configuration, or commercial-scale collection.
 use_when:
   - Deciding whether the current beauty-vertical IG capture lane needs proxies, more operating accounts, or only pace discipline.
   - Translating the IG R-probe result into bounded monitoring-session defaults.
   - Checking the fallback trigger for adding egress IPs if persistent blocks appear.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_daily_heartbeat_operating_policy_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_r_probe_results_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_rate_findings_report_v0.md
   - docs/decisions/wind_caller_calibration_carveout_v0.md
@@ -80,6 +82,11 @@ External pricing spot-check (current enough for a v0 estimate; verify before spe
 
 Do **not** pre-buy proxies or add IG accounts as the default architecture for the current
 beauty-vertical IG monitoring posture.
+
+Current owner update (2026-07-08): for the current 2.5k/day steady daily-heartbeat target,
+plan on two distinct egress lanes rather than one lane, proxy infrastructure, or platform
+account/action expansion. This doc's 1,000-creator working envelope remains preliminary
+operating evidence and should not be read as the current roster cap.
 
 The durable live constraint remains per-egress-IP **pace**, not account count and not ordinary
 session volume. The 2026-06-17 successor probes add a route-selection caution: the current local
@@ -231,7 +238,7 @@ The account count question should be answered as egress math, not social-account
 | Scenario | Ideal count | Reason |
 | --- | --- | --- |
 | Exploratory/default logged-out monitoring | 1 egress path; no session account | R is per IP; extra accounts on one IP add zero throughput. |
-| Current 1,000 creator serious-v0 path | 2 distinct egress paths; no session accounts | Keeps the daily monitoring window operationally comfortable without accounts, proxies, or VM complexity. |
+| Earlier 1,000 creator serious-v0 path | 2 distinct egress paths; no session accounts | Kept the historical daily monitoring window operationally comfortable without accounts, proxies, or VM complexity. |
 | First fallback after two-lane measured compliant-pace blocks | 3 distinct egress paths | Tests whether capacity is additive without burning the <=5 starting envelope. |
 | Larger fallback if one-IP session windows cannot fit roster demand | `ceil(demand / observed_per_ip_R)` distinct egress paths, capped by owner posture | Add IPs only from measured demand; do not pre-buy capacity. |
 | Session/account runtime | 0 by default; separately authorized fallback/probe only | Own-session current egress worked for `web_profile_info`, but sustained cadence/account risk is unmeasured and should not replace clean logged-out egress by default. |

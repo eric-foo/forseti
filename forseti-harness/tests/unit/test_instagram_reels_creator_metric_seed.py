@@ -379,7 +379,7 @@ def test_instagram_reels_metric_seed_dedupe_keeps_catchup_rank_for_identical_con
     # Discovery's content dedupe must keep the CATCH-UP path as the representative
     # of the identical pair -- else its supersession rank is lost before selection
     # and the three ULIDs tie ambiguous instead of being superseded.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = "01KWBMNTESWZVSVD3YASDAXK0A"
     newest_body = json.dumps(
         _projection(
@@ -437,7 +437,7 @@ def test_instagram_reels_metric_seed_dedupe_keeps_catchup_rank_for_identical_con
 def test_instagram_reels_metric_seed_discovers_lake_projections_and_dedupes_exact_duplicates(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = "01KWBMNTESWZVSVD3YASDAXK0A"
     strong_packet_id = "01KWBMNTESWZVSVD3YASDAXK0B"
     account_ledger = {

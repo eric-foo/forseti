@@ -29,7 +29,7 @@ in `forseti/product/spines/data_lake/authority/`, the contract wins.
 
 ## What the Bronze lake is
 
-The Bronze lake is Orca's permanent raw-evidence vault. Every time Orca
+The Bronze lake is Forseti's permanent raw-evidence vault. Every time Forseti
 captures something from the outside world - a page, a post, a video's
 transcript, a review - the capture lands here first as a **packet**: a sealed,
 write-once bundle of exactly what was collected, with a manifest and
@@ -39,7 +39,7 @@ grows.
 
 ## Why it exists
 
-Every product claim Orca ever makes downstream - a signal, a judgment, a memo -
+Every product claim Forseti ever makes downstream - a signal, a judgment, a memo -
 must be traceable to raw truth. If the raw layer could be silently edited,
 lossy, or unverifiable, nothing built on top of it would be provable. Bronze is
 the layer that makes "show me the original evidence" always answerable.

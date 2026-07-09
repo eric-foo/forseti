@@ -35,7 +35,7 @@ _STATEMENT_TEXT = "Airy amber trail."
 
 
 def test_parfumo_projection_and_cleaning_persist_distinct_lake_layers(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_packet(root, tmp_path)
 
     projection, projection_path = project_parfumo_into_lake(data_root=root, packet_id=packet_id)
@@ -114,7 +114,7 @@ def test_parfumo_projection_and_cleaning_persist_distinct_lake_layers(tmp_path: 
 def test_parfumo_targeted_rendered_packet_flows_to_projection_cleaning_and_metric_silver(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_targeted_packet(root, tmp_path)
 
     projection, _ = project_parfumo_into_lake(data_root=root, packet_id=packet_id)
@@ -156,7 +156,7 @@ def test_parfumo_targeted_rendered_packet_flows_to_projection_cleaning_and_metri
 def test_parfumo_targeted_rendered_overlap_emits_one_metric_per_source_review(
     tmp_path: Path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_targeted_packet(root, tmp_path, html=_TARGETED_HTML_OVERLAP_AND_MID_BUCKET)
 
     projection, _ = project_parfumo_into_lake(data_root=root, packet_id=packet_id)
@@ -188,7 +188,7 @@ def test_parfumo_targeted_rendered_overlap_emits_one_metric_per_source_review(
 
 
 def test_parfumo_projection_rederive_appends_sibling_and_explicit_id_is_create_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_packet(root, tmp_path)
 
     _, first = project_parfumo_into_lake(data_root=root, packet_id=packet_id)
@@ -204,7 +204,7 @@ def test_parfumo_projection_rederive_appends_sibling_and_explicit_id_is_create_o
 
 
 def test_parfumo_cleaning_audit_rederive_appends_sibling_and_explicit_id_is_create_only(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_packet(root, tmp_path)
 
     first = derive_parfumo_cleaning_into_lake(data_root=root, packet_id=packet_id)

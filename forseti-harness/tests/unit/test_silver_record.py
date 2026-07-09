@@ -158,7 +158,7 @@ def test_validate_rejects_observed_metric_with_reason_detail() -> None:
 
 
 def test_append_silver_record_writes_a_valid_record(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     record = _text_record()
     path = append_silver_record(
         root,
@@ -174,7 +174,7 @@ def test_append_silver_record_writes_a_valid_record(tmp_path: Path) -> None:
 
 
 def test_append_silver_record_refuses_to_persist_a_blurred_record(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     record = _text_record()
     record["payload"]["cleaning_packet"] = {"handles": []}  # a ledger inside a fact
     with pytest.raises(SilverRecordError):

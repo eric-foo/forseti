@@ -67,6 +67,7 @@ hierarchy.
 | Any LinkedIn task | `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` | The lane's canonical cold-start index (its own row says "open first"). |
 | ECR spine orientation | `docs/workflows/ecr_spine_submap_v0.md` | Delegated submap for the ECR spine. |
 | Data Capture spine orientation | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Delegated Data Capture submap. |
+| "Research engine" grouping: what CSB + Scanning + Capture are as one data-extraction group | `docs/workflows/forseti_research_engine_map_v0.md` | Colloquial cross-spine grouping map over the three extraction spines; states the Capture->ECR boundary. Label + navigation only, not a spine or authority. |
 | Source-capture access routes / anti-blocking playbook | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | Armory index over the tested per-source capture routes. |
 | Known source capture-to-lake route (TikTok, YouTube, Instagram, Reddit, fragrance-native database, Retail/PDP, vendor pricing page) | `forseti/product/spines/capture/core/source_families/README.md` | Source-family lane catalog routes from the generic playbook/Armory into the owning family index and onward to runners/projection/lake/cleaning seams without duplicating lake doctrine. |
 
@@ -597,9 +598,13 @@ nickname: "crawling graph." The runner is
 | `docs/migration/forseti_data_lake_derived_retrieval_filename_migration_v0/moved_paths_index.md` | Retrieval-only moved-path index resolving the old Data Lake derived-retrieval filename to its Forseti successor. |
 | `docs/decisions/forseti_product_strategy_filename_migration_decision_v0.md` | Bounded Product-strategy filename migration decision: the remaining live consumer-demand, ICP/wedge, moat proof-path, and venue-registry decision records under `docs/decisions/orca_*_v0.md` use Forseti filenames; historical old filenames resolve through the Product-strategy filename moved-path index. |
 | `docs/migration/forseti_product_strategy_filename_migration_v0/moved_paths_index.md` | Retrieval-only moved-path index resolving old Product-strategy decision filenames to their Forseti successors. |
+| `docs/decisions/forseti_product_lead_icp_wedge_filename_migration_decision_v0.md` | Bounded Product-lead ICP/wedge filename migration decision: the live product-lead ICP/wedge artifacts under `forseti/product/spines/product_lead/icp_wedge/orca_*_v0.md` use Forseti filenames; historical old filenames resolve through the Product-lead ICP/wedge filename moved-path index. |
+| `docs/migration/forseti_product_lead_icp_wedge_filename_migration_v0/moved_paths_index.md` | Retrieval-only moved-path index resolving old Product-lead ICP/wedge filenames to their Forseti successors. |
+| `docs/decisions/forseti_backtest_specimen_filename_migration_decision_v0.md` | Bounded Backtest specimen filename migration decision: the retained Unity runtime-fee backtest specimen files use Forseti filenames while sealed body content and hash-pinned source rows remain provenance. |
+| `docs/migration/forseti_backtest_specimen_filename_migration_v0/moved_paths_index.md` | Retrieval-only moved-path index resolving old Unity backtest specimen filenames to their Forseti successors. |
 | `docs/workflows/forseti_rename_residual_inventory_v0.md` | Current-main census and sampled classification of residual Orca/ORCA/orca_start_preflight hits after the authority rename; inventory only, not final validation. |
 | `docs/workflows/forseti_rename_stale_reference_audit_v0.md` | Final Step 5 classified stale-reference audit for the Forseti rename continuation; records the bounded runtime/tooling label repair and remaining residual classes without claiming path/package migration. |
-| `docs/workflows/forseti_post_harness_migration_status_v0.md` | Current Forseti migration status ledger: product root, repo-map path, harness root, package label, CI check, GitHub repo slug, product-lead skill ID, fresh local `projects/forseti` clone, PR #753/#755/#756/#758/#759/#760/#763/#765/#767/#768/#769/#770/#771/#772/#773/#774/#775/#776/#778/#779 main convergence, the ontology, product-lead authority, demand-read taxonomy, vertical-exploration, scanning/admissibility, Commission Signal Board, Capture-core, Mini God Tier doctrine, Doctrine Index, Repo-Map Architecture MGT, Repo Structure Binding, Spine-first structure, Product/spine binding, Audience taxonomy/prior, and Data Lake derived-retrieval filename families are landed, and the Product-strategy decision filename family is covered by this migration lane; legacy active `projects/orca` workspace closeout, start-preflight alias, compatibility-wrapper retirement, and other lowercase filename families remain separate migration units. |
+| `docs/workflows/forseti_post_harness_migration_status_v0.md` | Current Forseti migration status ledger: product root, repo-map path, harness root, package label, CI check, GitHub repo slug, product-lead skill ID, fresh local `projects/forseti` clone, PR #753/#755/#756/#758/#759/#760/#763/#765/#767/#768/#769/#770/#771/#772/#773/#774/#775/#776/#778/#779/#780/#781/#782/#783 main convergence, shared prompt-template identity migration, all current product-source lowercase `orca_*_v0.md` filename families cleared under `orca` and `forseti/product`, and remaining compatibility units narrowed to legacy active `projects/orca` workspace closeout, `orca_start_preflight`, compatibility-wrapper retirement, plus prompt/review/research/migration/hygiene or legacy workflow provenance surfaces. |
 | `docs/prompts/handoffs/forseti_compatibility_batches_fused_handoff_v0.md` | Fused-ready handoff for Step 4 runtime/tooling bounded repair and Step 5 stale-reference audit under the compatibility boundary; explicitly forbids broad path/package migration and the prior stalled registration-integrity selftest retry. |
 | `repo-structure.yaml` | Machine structure map (router only): homes + scratch/tolerance declarations consumed by `check_placement.py` and agents. Placement authority stays in `.agents/workflow-overlay/artifact-folders.md`; binding/parameters in `docs/decisions/forseti_repo_structure_binding_v0.md`. |
 | `.github/` | GitHub Actions workflows and local operational scripts for lane setup, merge-when-green, lane health, and local hook installation. Local automation only; not validation, readiness, or server-side branch protection. |
@@ -622,7 +627,7 @@ nickname: "crawling graph." The runner is
 | `forseti/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver, now deprecated/dormant as default pre-Judgment layer). |
 | `forseti/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
 | `forseti/product/spines/judgment/` | Judgment spine: conductor, claim_ladder, demand_read (core/c2_weighting/c3_verdict_action/grading), learning_loops (near_half/far_half), source_side_receipts, toolkit_gaps. Demand-read C2 treats recency/currentness as qualitative attention/relevance, not proof or scoring. Dense — submap candidate. |
-| `forseti/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge. |
+| `forseti/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge, growth (Sleipnir research/CI-decisions-as-a-service direction exploration, EXPLORATORY / owner-gated). |
 | `forseti/product/spines/commission_signal_board/` | Commission Signal Board pilot spine: authority, dispatch_rules, harness + tests + migrations + prompts + workflows (#261); prompt rows carry recency/currentness as attention metadata, not proof. |
 | `forseti/product/satellites/beauty/` | Beauty satellite: domain venue/card assets. |
 | `forseti/product/satellites/fragrance/` | Fragrance satellite: Level-1 judgment organizers (casebook_admission, named_case_screens, reconciliation, satellite_skeleton). |
@@ -672,6 +677,7 @@ nickname: "crawling graph." The runner is
 | `docs/workflows/orca_repo_map_v0.md` | Legacy compatibility pointer to the live Forseti repo map; kept so older links resolve. |
 | `docs/workflows/creator_registry_cold_agent_preflight_rehearsal_v0.md` | Cold-agent rehearsal of Creator Registry match preflight behavior: known account blocks duplicate `new_capture`, exact-unmatched row clears via `can_start_new_capture`, mixed batches exit nonzero when any requested action is blocked. |
 | `docs/workflows/creator_registry_operational_next_steps_handoff_v0.md` | Cold-reader handoff for continuing the Creator Registry operational lane after PR #669 merged: use the cold creator discovery scan handoff prompt on a real target, keep scan/capture/registry boundaries intact, and route the receipt-provenance checker gap to an explicit decision. |
+| `docs/workflows/aphrodite_silver_metric_monitoring_docs_handoff_v0.md` | Fresh-lane handoff for documenting Aphrodite-linked Silver/Vault and Creator Registry metric monitoring: inventory current emitted observations, rollups, freshness checks, and runner touchpoints; separate proposed recipes such as moving average, EMA, velocity, spike, and breakout state from implemented fields; and forbid runtime or lake mutation in the docs lane. |
 | `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md` | Creator Ledger operational evolution contract: migration-stable additive upgrade rule, capability routing matrix, and upgrade-intake shape for registry/linkage/observation/metric/profile-current layers, with efficacy-first God Tier criteria and Mini God Tier accepted residuals. |
 | `docs/workflows/creator_ledger_first_operational_proof_checkpoint_v0.md` | First operational proof-loop checkpoint for the Creator Ledger: applies the efficacy-first, migration-stable proof loop to the first public YouTube fragrance creator scan, preserved preflight receipt, and current receipt-content checker state. |
 | `docs/workflows/creator_ledger_known_account_preflight_checkpoint_v0.md` | Second operational proof-loop checkpoint for the Creator Ledger: known-account preflight proof that allows update-existing routing, blocks duplicate new capture, preserves a receipt, and avoids registry/capture/Silver mutation. |
@@ -707,6 +713,7 @@ nickname: "crawling graph." The runner is
 | `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md` | Accepted Data Lake / Capture propagation classification contract: classifies lake semantics, raw packet-runner seams, behavioral projection shape, source-family-local acquisition routes, and downstream residual/completeness semantics into same-class checks. |
 | `docs/decisions/data_lake_capture_propagation_classification_contract_proposal_v0.md` | Prepare-only proposal for narrow Data Lake / Capture propagation classification: generic lake/storage and packet-runner checks, platform behavioral parity checks, source-family-local acquisition routes, and downstream residual/Gold-boundary propagation. Proposal only; not accepted doctrine. |
 | `docs/workflows/ecr_spine_submap_v0.md` | ECR source-side spine repo submap (integrity postures SP-1/2/3/6 + deprecated/dormant Signal Content Record contract). Open before enumerating ECR/SCR owner docs. |
+| `docs/workflows/forseti_research_engine_map_v0.md` | "Research engine" cross-spine grouping map: names CSB + Scanning + Capture as the data-extraction group, routes to each front door, and marks the Capture->ECR boundary to downstream provenance/cleaning/judgment. Colloquial label + navigation only; not a spine, rename, or authority. |
 | `docs/workflows/cleaning_contract_to_code_reconciliation_checklist_v0.md` | Contract-to-code checklist for the bounded Cleaning substrate in `forseti-harness/cleaning/` against the Cleaning README/foundation/boundary/projection sources. Retrieval-only; not validation, readiness, or production Cleaning authorization. |
 | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | Judgment Spine submap. Open before enumerating Judgment owners across `docs/research/judgment-spine/` and `forseti/product/spines/judgment/`. |
 | `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator playbook for the bounded Amazon/Sephora/Ulta Retail/PDP CloakBrowser sidecar smoke: canonical URLs, flags, scratch outputs, expected residuals, failure taxonomy, and code-enforceable follow-up flags. |
@@ -891,9 +898,9 @@ proof rebuilds on the discovery candidates below.)
 
 Key files:
 
-- `forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_target_selection_brief_v0.md`
-- `forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md`
-- `forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_candidate_context_scan_v0.md`
+- `forseti/product/spines/product_lead/icp_wedge/forseti_discovery_batch_0_target_selection_brief_v0.md`
+- `forseti/product/spines/product_lead/icp_wedge/forseti_discovery_batch_0_qualification_prep_sentry_clerk_v0.md`
+- `forseti/product/spines/product_lead/icp_wedge/forseti_discovery_batch_0_candidate_context_scan_v0.md`
 - `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md` (discovery-scope charter), `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md` (READY_FOR_OWNER_CASE_SELECTION), and `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md` (backtest candidates; proposes BT2-01 Chegg/ChatGPT) — the heavyweight proof-case discovery pass that produced the candidates the older case-selection brief was blocked on.
 
 ## Backtest Specimens
@@ -901,9 +908,9 @@ Key files:
 Use when the task is specifically about historical cutoff discipline or the
 Unity runtime-fee specimen:
 
-- `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md`
-- `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md`
-- `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/forseti_backtest_specimen_unity_runtime_fee_source_packet_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/forseti_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/forseti_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`
 
 ## Prompt Families
 
@@ -921,6 +928,8 @@ Unity runtime-fee specimen:
 | `docs/prompts/patches/` | Patch prompts (accepted family). |
 | `docs/prompts/wrappers/` | Thin wrapper prompts. |
 | `docs/prompts/templates/` | Local prompt templates. |
+| `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` | Live shared repo-constant prompt preflight defaults for new or materially touched Forseti prompts; old `orca_preflight_defaults_v0.md` is a compatibility pointer. |
+| `docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md` | Live shared behavior contract included by Forseti prompt templates; old `orca_prompt_behavior_contract_v0.md` is a compatibility pointer. |
 | `docs/prompts/architecture/` | Architecture prompt family. |
 | `docs/prompts/advisory/` | Advisory prompt family. |
 | `docs/prompts/hygiene-queue/` | Drift/parking area (created on first artifact; does not exist yet); not listed as an accepted prompt-family folder in the overlay. |

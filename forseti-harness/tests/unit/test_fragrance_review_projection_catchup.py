@@ -95,7 +95,7 @@ def _acks(root: DataLakeRoot, packet_id: str) -> list[dict]:
 def test_catchup_discovers_derives_and_acks(tmp_path: Path) -> None:
     # S1: the lane finds its own backlog — a committed packet nobody pointed at
     # gets its derived coverage record plus a lane-owned ack citing it.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_packet(root)
 
     results = catchup.run_catchup(data_root=root)
@@ -111,7 +111,7 @@ def test_catchup_discovers_derives_and_acks(tmp_path: Path) -> None:
 
 def test_second_run_is_a_no_op(tmp_path: Path) -> None:
     # S2: acked-and-unchanged packets emit no statuses and gain no new siblings.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_packet(root)
     catchup.run_catchup(data_root=root)
 
@@ -125,7 +125,7 @@ def test_second_run_is_a_no_op(tmp_path: Path) -> None:
 def test_policy_bump_re_surfaces_and_re_derives(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     # S3: changing an enumerated policy constant changes the obligation
     # fingerprint, so an already-acked packet re-surfaces and re-derives.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_packet(root)
     catchup.run_catchup(data_root=root)
 
@@ -138,7 +138,7 @@ def test_policy_bump_re_surfaces_and_re_derives(tmp_path: Path, monkeypatch: pyt
 
 
 def test_check_mode_counts_pending_without_writing(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_packet(root)
 
     assert catchup.pending_packets(data_root=root) == [pid]
@@ -152,7 +152,7 @@ def test_derive_failure_is_loud_isolated_and_never_acked(tmp_path: Path) -> None
     # S4+S5: a packet whose preserved body no longer matches its manifest hash
     # fails its verified read; the failure is a visible status, the packet stays
     # unacknowledged (re-surfaces), and a healthy packet still derives.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     bad_pid = _commit_packet(root)
     good_pid = _commit_packet(root)
     container = _manifest_path(root, bad_pid).parent
@@ -174,7 +174,7 @@ def test_derive_failure_is_loud_isolated_and_never_acked(tmp_path: Path) -> None
 def test_unsupported_surface_is_visible_and_never_acked(tmp_path: Path) -> None:
     # F-FRAG-002 shape for a single-surface family: any unknown surface is a
     # visible unsupported_surface status every run — no open-world ack.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_packet(root, source_surface="mystery_future_surface")
 
     first = catchup.run_catchup(data_root=root)
@@ -190,7 +190,7 @@ def test_unsupported_surface_is_visible_and_never_acked(tmp_path: Path) -> None:
 def test_reconcile_failure_is_per_packet_and_healthy_packets_proceed(tmp_path: Path) -> None:
     # F-ECR-001 shape: one corrupt manifest is a visible per-packet
     # availability_reconcile_failed status; healthy packets still index+derive.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     good_pid = _commit_packet(root)
     corrupt_pid = generate_ulid()
     corrupt_dir = root.path / "raw" / raw_shard(corrupt_pid) / corrupt_pid
@@ -205,7 +205,7 @@ def test_reconcile_failure_is_per_packet_and_healthy_packets_proceed(tmp_path: P
 
 
 def test_pending_check_fails_loud_on_reconcile_failure(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     corrupt_pid = generate_ulid()
     corrupt_dir = root.path / "raw" / raw_shard(corrupt_pid) / corrupt_pid
     corrupt_dir.mkdir(parents=True)
@@ -221,7 +221,7 @@ def test_as_of_is_pinned_to_capture_date_and_recorded_in_evidence(
     # The lane's determinism rule: as_of = the packet's own capture date,
     # resolved from the committed manifest and recorded in the ack evidence
     # (the coverage receipt does not carry it).
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_packet(root)
     manifest_path = _manifest_path(root, pid)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -263,7 +263,7 @@ def test_capture_pinned_derivation_is_byte_deterministic(tmp_path: Path) -> None
     # Two derivations under the pinned as_of produce byte-identical derived
     # records (fresh sibling ids, same content) — the catch-up's output is a
     # pure function of (immutable raw, policy).
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_packet(root)
     catchup.run_catchup(data_root=root)
     (first_file,) = _derived_lane_dir(root, pid).iterdir()
@@ -280,7 +280,7 @@ def test_capture_pinned_derivation_is_byte_deterministic(tmp_path: Path) -> None
 def test_missing_capture_time_is_a_loud_derive_failure(tmp_path: Path) -> None:
     # Block-don't-fake: a family packet whose capture_time is not a known fact
     # must fail loudly per-packet — never silently fall back to date.today().
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_packet(root)
     manifest_path = _manifest_path(root, pid)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -305,7 +305,7 @@ def test_surface_gate_policy_change_re_surfaces_previous_ack(
     # F-IGRC-002 convention: the surface gate is fingerprinted policy — moving the
     # in-scope surface must re-surface previously derived-and-acked packets as
     # visible unsupported_surface instead of leaving the old ack trusted.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     pid = _commit_packet(root)
     assert [r["status"] for r in catchup.run_catchup(data_root=root)] == ["derived"]
 

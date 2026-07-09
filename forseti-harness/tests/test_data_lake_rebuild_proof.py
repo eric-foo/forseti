@@ -41,7 +41,7 @@ def test_indexes_rebuild_byte_identical_from_authoritative_truth(tmp_path: Path)
     # are rebuilt under a fixed generation stamp — the runner's
     # --prove-rebuildability does the same with the stamp recorded in the
     # stored manifest, so determinism here is the same claim it checks.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_ids = [_capture(root, tmp_path, body).packet.packet_id for body in ("alpha", "beta", "gamma")]
 
     indexes = root.path / "indexes"

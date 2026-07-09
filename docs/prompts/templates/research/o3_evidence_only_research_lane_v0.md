@@ -17,7 +17,7 @@ rank, or route runtime model choice.
 Output mode: `paste-ready-chat`
 
 Use shared contract:
-`docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md`
+`docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md`
 
 ```text
 You are running an evidence-gathering-only public research lane for Forseti.

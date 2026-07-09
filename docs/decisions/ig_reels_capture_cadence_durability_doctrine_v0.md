@@ -13,12 +13,13 @@ use_when:
   - Deciding retry/backoff and degradation behavior around the per-invocation runner.
   - Checking what produces the timepoints the downstream momentum/Spike-Alert lane consumes.
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_daily_heartbeat_operating_policy_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
   - docs/workflows/ig_reels_capture_to_projection_ecr_cleaning_handoff_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
 authority_boundary: retrieval_only
-status: PROPOSAL_RECORDED_V0
+status: PROPOSAL_RECORDED_V0 - superseded for current IG steady daily-heartbeat posture by ig_daily_heartbeat_operating_policy_v0.md
 stale_if:
   - The per-invocation runner stops returning typed block/transient exit codes.
   - An owner decision selects a scheduler/runtime, which this note does not.
@@ -30,6 +31,12 @@ stale_if:
 `PROPOSAL_RECORDED_V0`. This is a design note, not implementation authority, validation,
 readiness, scheduler/runtime selection, or a platform-stability claim. It records the "how"
 asked for during the 2026-06-25 IG reels capture lane work; it does not build the scheduler.
+
+Current owner update (2026-07-08): use
+`forseti/product/spines/capture/core/source_families/social_media/instagram/ig_daily_heartbeat_operating_policy_v0.md`
+for current steady IG daily-heartbeat posture. The cadence budget below remains
+historical/proposal context and must not be treated as the active default for
+registered IG creators.
 
 ## Problem
 
@@ -98,7 +105,7 @@ mechanism, never an evasion trigger.
      lock-in. Until then, the budget doctrine + the runner's existing fail-closed behavior are
      enough for ad-hoc monitoring.
 
-## v0 Cadence Budget (owner-set 2026-06-26)
+## Historical v0 Cadence Budget (owner-set 2026-06-26)
 
 Concrete v0 values for Design rule 1, set by the owner. They supersede "cadence numbers
 deferred" for the cadence knobs only; scheduler/runtime selection and the gap-record storage
@@ -121,7 +128,7 @@ rate, not a platform guarantee or a final lock.
 - **Capacity vs. panel size:**
   - A 1x/day baseline fits comfortably up to ~**1,150 creators** in the 12h / 30s-average
     budget (~20% headroom for Tier-2 escalation).
-  - The **1,000-creator target fits** the v0 budget: 1,000 baseline = `1000 x 30s` = 8.3h
+  - The earlier **1,000-creator target fit** this historical v0 budget: 1,000 baseline = `1000 x 30s` = 8.3h
     active (~69% of the 12h), leaving ~**440 captures/day** of headroom for Tier-2 escalation.
     Beyond ~1,150 creators, relieve by **adding session time** or **splitting the panel** --
     NOT by dropping the average spacing.

@@ -89,7 +89,7 @@ Metrics  = computed on demand by default; precomputed only as rebuildable
   records) changes the fingerprint and re-surfaces the anchor automatically.
 - Pickup must never read `indexes/derived_retrieval/` (view-independence):
   results are identical whether views exist, are stale, or are absent.
-- Shared implementation: `orca-harness/data_lake/consumption.py`
+- Shared implementation: `forseti-harness/data_lake/consumption.py`
   (`pickup`, `append_ack`, `retract_ack`, `is_acknowledged`, `find_acks`).
   A lane may reimplement pickup only if it passes the same conformance
   obligations below, unchanged.
@@ -170,14 +170,14 @@ proving:
    the anchor in pickup; a truthful re-acknowledgement is representable
    without overwrite; all facts remain as append-only history.
 
-The shared suite lives at `orca-harness/tests/test_data_lake_consumption.py`.
+The shared suite lives at `forseti-harness/tests/test_data_lake_consumption.py`.
 
 ## Rebuild Command Binding
 
 The command shape is pinned by the derived-layout contract
 (`lake indexes rebuild --root <FORSETI_DATA_ROOT> --target
 availability|derived_retrieval|all --prove-rebuildability`). The v0 entry
-point is `orca-harness/runners/run_data_lake_indexes_rebuild.py` (argparse,
+point is `forseti-harness/runners/run_data_lake_indexes_rebuild.py` (argparse,
 runner convention); the semantics, not the binary packaging, are the
 contract.
 
@@ -307,7 +307,7 @@ direction_change_propagation:
       reason: >
         By-key authority and the Acknowledgement Log slot are affirmed
         unchanged; the seam is the first production consumer of that slot.
-    - path: orca-harness/data_lake/lane_registry.py
+    - path: forseti-harness/data_lake/lane_registry.py
       reason: >
         The namespace rule reuses the existing CI-guarded lane map by
         reference; no registry edit is needed or made.
@@ -345,10 +345,10 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
   downstream_surfaces_checked:
-    - orca-harness/data_lake/consumption.py
-    - orca-harness/data_lake/derived_retrieval_views.py
-    - orca-harness/tests/test_data_lake_consumption.py
-    - docs/workflows/orca_repo_map_v0.md
+    - forseti-harness/data_lake/consumption.py
+    - forseti-harness/data_lake/derived_retrieval_views.py
+    - forseti-harness/tests/test_data_lake_consumption.py
+    - docs/workflows/forseti_repo_map_v0.md
   adjudication_provenance: >
     Findings from the commissioned no_repo cross-vendor discovery review
     (reviewed_by: OpenAI GPT-5.5 Pro; authored_by: Anthropic claude-fable-5;

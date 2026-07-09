@@ -480,7 +480,7 @@ def test_tiktok_batch_rejects_owner_attention_clean_capture_claim(tmp_path: Path
         )
 
 def test_tiktok_batch_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     grid_path = tmp_path / "grid.json"
     cadence_path = tmp_path / "cadence.json"
     grid_path.write_bytes(_grid_payload())

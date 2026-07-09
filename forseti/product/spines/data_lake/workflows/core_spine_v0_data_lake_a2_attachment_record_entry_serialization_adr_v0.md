@@ -19,7 +19,7 @@ open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
   - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_gate1_attachment_record_body_layout_adr_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_raw_admission_key_grammar_contract_v0.md
-  - orca-harness/data_lake/lake_touchpoint_inventory_v0.json
+  - forseti-harness/data_lake/lake_touchpoint_inventory_v0.json
 stale_if:
   - The owner ratifies, modifies, or rejects this ADR (the ratification block below then governs).
   - Any revisit trigger below fires.
@@ -39,7 +39,7 @@ claim. On ratification, contract fold-in is a separate step carrying its own
 `direction_change_propagation` receipts, mirroring the Gate 1/Gate 2 pattern.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom A2 pack (AR implementation + storage + raw-admission contracts, Gate 1 ADR, A1 inventory record with fork tags, catalog.py entry mechanics, adjudicated cross-vendor consultation)
@@ -196,7 +196,7 @@ direction_change_propagation:
     - lifecycle_boundary
   controlling_sources_updated:
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_a2_attachment_record_entry_serialization_adr_v0.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
@@ -218,7 +218,7 @@ direction_change_propagation:
   stale_language_search: >
     rg -n "A2 stays|A2 remains|gated on the A1|gated on A1|serialization.*remain
     deferred|remains open and stays gated|A2 owner decision|Manifest v2 or an
-    equivalent" forseti/product/spines/data_lake docs/workflows/orca_repo_map_v0.md
+    equivalent" forseti/product/spines/data_lake docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
     Executed 2026-07-03 after recording ratification. Hits: AR implementation
     contract (3 live A2-deferral lines), storage contract slot row, physicality
@@ -232,6 +232,8 @@ direction_change_propagation:
     - not retention or erasure semantics (Gate 2 claim ceiling governs)
     - not validation, readiness, or Bronze full GT
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-Claims
 

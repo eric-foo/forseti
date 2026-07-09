@@ -37,7 +37,7 @@ contracts is a separate step carrying its own `direction_change_propagation`
 receipt.
 
 ```yaml
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom gate1 pack (brief + AR implementation + storage + physicality contracts, read in full)
@@ -194,6 +194,8 @@ direction_change_propagation:
     - not Manifest v2 or serialization selection (A2 stays gated on A1)
     - not validation, readiness, or Bronze full GT
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-Claims
 

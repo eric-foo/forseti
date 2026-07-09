@@ -46,7 +46,7 @@ def real_records(tmp_path: Path) -> dict[str, object]:
     """The REAL current Fragrantica non-silver records: the cleaning-audit pack and
     the mechanical projection, both built by the live producers from a committed
     fixture packet."""
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_fragrantica_packet(root, tmp_path)
 
     result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)

@@ -1,4 +1,4 @@
-# Consumer-Demand Ratification-Day Runbook v0 (PROPOSED)
+  Consumer-Demand Ratification-Day Runbook v0 (PROPOSED)
 
 ```yaml
 retrieval_header_version: 1
@@ -17,12 +17,12 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
-  - forseti/product/spines/product_lead/icp_wedge/orca_icp_ratification_readiness_report_v0.md   # findings F-01..F-09 referenced below
+  - forseti/product/spines/product_lead/icp_wedge/forseti_icp_ratification_readiness_report_v0.md     findings F-01..F-09 referenced below
 input_hashes:
-  # Anchors (must match before executing; on mismatch STOP and re-anchor)
+    Anchors (must match before executing; on mismatch STOP and re-anchor)
   docs/decisions/orca_product_thesis_consumer_demand_v0.md: 5FEA48AE8B0C0E22D24CE2194F1F17617C5C94D2C75A204AAD5CD8CC149B2B0E
   docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md: C878ABEBBFFC119A032E0290E093A9EBB973BC15052B4B21FA59D285AB83C07B
-  # Cascade targets as pinned at prep (2026-06-11); on mismatch reread the target, then adapt the step
+    Cascade targets as pinned at prep (2026-06-11); on mismatch reread the target, then adapt the step
   docs/decisions/turn_08_product_thesis_v0.md: 822653A241CF84675A3F07F695BA0ED3BFACC230F7F13AA47A4649B5DB2CD7E6
   docs/decisions/orca_icp_wedge_pricing_first_v0.md: F4E678315C7EB2EF1E7F823699251F358F4920CE2FE3B36C3C8F1B9C43CF7B0B
   forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md: 74E7868365F73AD95FE2119C2EBFD71ED3C7BBB78996DC34058E67B951FBFF6A
@@ -35,7 +35,7 @@ stale_if:
   - Any pinned target drifts and the drift is more than additive (reread, re-derive the affected step).
 ```
 
-## Status
+   Status
 
 `EXECUTED_2026-06-12` — the owner ratified asks 1-4 in-thread 2026-06-12
 (verbatim words: Owner Decision Record in
@@ -57,7 +57,7 @@ the cascade ran the same turn. Execution deviations from the prepared text
   superseded-bannered as prepared; the customer-discovery prompt was queued
   as ORCA-HYGIENE-018.
 - Step 7 also included the repo map's stale fourth product-anchor row (the
-  twice-superseded `orca_product_lead_first_icp_wedge_decision_v0.md` row)
+  twice-superseded `forseti_product_lead_first_icp_wedge_decision_v0.md` row)
   and the "Offer Or Buyer Proof Work" list — re-pointed to the ratified
   records.
 - Step 8: the repo map was clean at execution; per the repo's write-boundary
@@ -69,7 +69,7 @@ the cascade ran the same turn. Execution deviations from the prepared text
 Prepared 2026-06-11 as `PROPOSED_PENDING_OWNER_RATIFICATION`; the checklist
 below is retained as prepared (deviations above govern where they differ).
 
-## Preconditions (all required before step 1)
+   Preconditions (all required before step 1)
 
 1. Owner's recorded word ratifying thesis ask 1 (and ask 2 for the full
    pass), in-thread, quotable. Asks 3 (probe gate) and 4 (outreach posture)
@@ -82,7 +82,7 @@ below is retained as prepared (deviations above govern where they differ).
 4. Repo state: note which cascade targets are dirty/untracked from other
    lanes; coordinate, do not clobber (especially `docs/workflows/orca_repo_map_v0.md`).
 
-## One-Pass Checklist
+   One-Pass Checklist
 
 Execute in order. Each step names the file, the edit, and its check.
 
@@ -225,15 +225,15 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - docs/workflows/orca_repo_map_v0.md
   downstream_surfaces_checked:
-    - AGENTS.md                                   # no wedge/thesis content; routes to overlay — expect no change
-    - CLAUDE.md                                   # shim — expect no change
-    - .agents/workflow-overlay/product-proof.md   # wedge-agnostic semantics — expect no change
-    - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md  # senior frozen contract the thesis sits on — no change
-    - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md  # senior; subordination one-way — no change
-    - forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md  # owner-signed wording policy — no change
-    - docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md  # deferred to prompt lane (step 6)
-    - .agents/skills/orca-product-lead/SKILL.md   # deferred to skill-edit lane (step 9)
-    - .claude/skills/orca-product-lead/SKILL.md   # deferred to skill-edit lane (step 9)
+    - AGENTS.md                                     no wedge/thesis content; routes to overlay — expect no change
+    - CLAUDE.md                                     shim — expect no change
+    - .agents/workflow-overlay/product-proof.md     wedge-agnostic semantics — expect no change
+    - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md    senior frozen contract the thesis sits on — no change
+    - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md    senior; subordination one-way — no change
+    - forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md    owner-signed wording policy — no change
+    - docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md    deferred to prompt lane (step 6)
+    - .agents/skills/orca-product-lead/SKILL.md     deferred to skill-edit lane (step 9)
+    - .claude/skills/orca-product-lead/SKILL.md     deferred to skill-edit lane (step 9)
   intentionally_not_updated:
     - path: forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md
       reason: already SUPERSEDED-bannered; pointer resolves via pricing-first's new banner chain (report F-05).
@@ -261,7 +261,7 @@ direction_change_propagation:
 - Commit only with the owner's explicit word, and never sweep other lanes'
   files (worktree is shared).
 
-## Branches
+   Branches
 
 - **Owner ratifies ask 1 only (thesis, not wedge):** run steps 1, 2, 7, 8,
   10 (receipt names only the thesis subtree), 11. The wedge stays PROPOSED;
@@ -281,14 +281,14 @@ direction_change_propagation:
   `docs/decisions/advisory_proof_slice_definition_v0.md`'s owning gate in its
   own decision record — not silently inside this cascade.
 
-## Claim-Tier Classification
+   Claim-Tier Classification
 
 Runbook artifacts are design / product-learning-tier inputs (evidence
 ladder); executing this runbook produces propagation evidence only — no step
 creates validation, readiness, buyer proof, or judgment-quality evidence.
 Closeout state for any such claim: `no_durable_evidence`.
 
-## Non-Claims
+   Non-Claims
 
 Prepared checklist only. Not ratification, not owner consent, not validation,
 not readiness, not probe-execution or outreach authority, not a commit/push

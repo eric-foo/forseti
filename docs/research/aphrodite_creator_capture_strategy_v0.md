@@ -1,0 +1,594 @@
+# Aphrodite Creator Capture Strategy v0
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Research strategy record (Aphrodite creator capture posture; not capture authorization)
+scope: >
+  Source-backed strategy for Aphrodite Signals creator capture before roster-size
+  calculation: onboarding fingerprint, registry grid heartbeat, selective deep
+  capture, stale-content handling, and the boundaries between Capture/Silver,
+  Creator Signal, and any later activation arm.
+use_when:
+  - Deciding whether Aphrodite should prioritize daily grid refresh, deep reel/video capture, or both.
+  - Preparing the later roster-size and request-budget calculation.
+  - Checking how fragrance depth can compound without turning Aphrodite into manual agency work.
+authority_boundary: retrieval_only
+open_next:
+  - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
+  - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+source_context_notes:
+  - Current origin/main in this worktree uses the renamed `forseti/` product root.
+  - The creator_registry/profile-current contracts are present under the Forseti path and are treated as current source context for this strategy.
+  - Root-local Aphrodite D-1 v1 rehearsal files observed in the dirty main workspace were not used as ratified current-main authority.
+stale_if:
+  - Creator registry/profile-current contracts move again or change metric, freshness, or identity boundaries.
+  - IG monitoring policy changes the serious-v0 roster gates, A/B/C allocation, hot-list promotion, or capture-once/recheck posture.
+  - A later accepted Aphrodite product contract supersedes this capture strategy.
+  - Platform access constraints or measured request costs change materially.
+```
+
+## Status
+
+`PROPOSED_RESEARCH_STRATEGY_V0`.
+
+This is a strategy record, not implementation authority, capture authorization,
+bot-detection guidance, live monitoring approval, data-lake write approval,
+buyer proof, product readiness, or a final roster-size calculation.
+
+## Core Strategy
+
+Aphrodite should use a two-layer capture posture:
+
+```text
+daily grid heartbeat -> selective deep capture -> source-backed Creator Signal projection
+```
+
+The grid heartbeat is the cheap, broad, current layer. It answers: what changed,
+which posts are moving, what entered the visible current surface, and what
+deserves attention now.
+
+Deep capture is the earned depth layer. It answers: why did this specific piece
+work, what did it sell, which product/category/brand claims are source-backed,
+what did comments/transcripts/captions show, and what limitations travel with
+the evidence.
+
+Do not deep-capture every video for every registry creator every day. That is the
+budget trap. The correct compounding move is daily grid refresh for the registry,
+then promote only the posts that earn deeper treatment.
+
+## Why This Fits The Source Contracts
+
+Creator Signal's ratified direction is foundation-first: build the live,
+longitudinal, vertical evidence graph before overcommitting to a customer product.
+Fragrance is the wedge and beauty/skincare is the destination. The strategy here
+serves that by starting the time-series clock without prematurely freezing a
+buyer-facing claim schema.
+
+The IG monitoring policy already separates low-cost monitoring from hot-list
+promotion. It warns that full curves on everything are the budget trap, and it
+uses momentum as an allocator. This strategy makes that allocator explicit for
+Aphrodite: grid first, deep only when the post becomes decision-useful.
+
+The IG grid spec says grid capture is the primary v0 source for views, likes, and
+comment counts. Per-reel capture is detail evidence for captions, transcripts,
+audio/detail, and comments. Therefore deep capture can enrich the signal, but it
+must not silently replace the grid-primary metric snapshot unless a later
+selection-policy version says so.
+
+The Silver Vault contract keeps raw truth, derived observations, and generated
+read models separate. Missing, hidden, blocked, not-attempted, and not-applicable
+facts must carry posture and reason, never fake zeroes. Aphrodite's selection
+logic must inherit that rule.
+
+The Creator Ledger operational contract makes exact known-account lookup and
+scan/capture preflight the first routing layer. Aphrodite should not start by
+treating a handle as new and then checking the registry later; that reverses the
+ledger's main operational value.
+
+## Onboarding Flow
+
+For a new creator:
+
+1. Run the Creator Registry exact-match/preflight check first. If the public
+   platform account is already known, attach the observation and future capture
+   work to the existing account row. If it is a possible match, route it as a
+   candidate review item. Only truly unknown accounts should proceed as new
+   candidate stubs.
+2. Capture the current grid surface, with bounded pagination only if the run
+   budget and capture policy allow it.
+3. Build an onboarding fingerprint from source-visible metrics: views,
+   likes/comments where available, engagement rate where numerator and
+   denominator are observed, sample support, freshness, and source limitations.
+4. Select the top diagnostic slice of visible content for deep capture. The
+   target slice is roughly the top 20-25 percent of eligible current-grid items,
+   selected by views plus engagement, not raw views alone.
+5. Deep-capture that selected slice for detail evidence: transcript/caption,
+   comments when available, product/category/brand mentions, disclosure fields
+   only when source-exposed, and content-format clues. Store these as evidence
+   with source pointers, not as unstamped conclusions.
+6. Admit the creator into the registry/roster only with the allowed public
+   account fields, operational tier/state, sub-niche label or pointer, source
+   evidence, limitations, and freshness posture.
+
+The onboarding fingerprint is an admitted-pool view, not a channel-wide creator
+average. It should say what it covered and what it did not cover.
+
+## Registry Monitoring Flow
+
+For a registry creator:
+
+1. Run the daily grid heartbeat as the default refresh.
+2. Compare the current grid to the prior known snapshot: new content, retained
+   content, metric deltas, newly eligible items, and items falling out of the
+   visible grid.
+3. Update Silver/Creator Registry metric records from the heartbeat before the
+   product surface uses the snapshot. Grid heartbeat is not just UI refresh; it
+   is the source-backed metric observation and rollup feed.
+4. Promote a post to deep capture only when an event trigger fires: an unusual
+   view or engagement delta, a fresh breakout state, a source-visible buyer-
+   relevant cue, or a previously promoted breakout that is still inside its
+   explicit recheck window.
+5. Keep the high-alert watch list dynamic. It should be post-led and metric-led,
+   not a static vanity list of favorite creators.
+6. Recheck promoted breakout posts while they remain active, then demote them
+   when their growth decays or their evidence has been captured sufficiently.
+
+The daily heartbeat is the registry's currentness layer. The deep queue is the
+explanation layer. They should be budgeted separately.
+
+## Promotion Rule
+
+The phrase "top 20-25 percent" should mean two different things in two
+different contexts:
+
+- **Onboarding:** a first-pass deep-capture budget cap over the visible current
+  grid. It is a diagnostic sample, not a claim that the selected posts are the
+  creator's durable best work.
+- **Ongoing monitoring:** not the primary trigger. Ongoing deep capture should
+  be event-triggered, with the top-band calculation used only as a supporting
+  clue or capacity cap.
+
+This prevents a bad local baseline from wasting budget. A weak creator can
+always have a "top 25 percent" of their own posts; that does not mean those posts
+deserve deep capture.
+
+The promotion key should be composite and posture-aware:
+
+```text
+candidate_promotion_signal =
+  observed view_count
+  + observed like/comment counts where exposed
+  + engagement_rate only when numerator and denominator are observed
+  + delta since prior grid heartbeat where the prior observation exists
+  + age/window normalization only when publication timing is source-backed
+  + source-visible buyer-relevant cue when available
+```
+
+Use the gates this way:
+
+- `spike_gate`: observed metric delta is unusually high against the creator's
+  compatible recent baseline or the platform/content-kind norm. This can promote
+  a post into first deep capture.
+- `fresh_breakout_gate`: a new or recent item is both high-performing and still
+  growing, not merely high in lifetime views. This can promote a post into first
+  deep capture.
+- `buyer_relevance_signal`: source-visible text or metadata indicates fragrance,
+  product, category, ad, or comparison relevance. In v0 this is a prioritization
+  and interpretation label, not a hard pre-capture gate.
+- `active_breakout_gate`: a previously promoted item still has enough measured
+  slope to justify follow-up metric recheck. It should not trigger repeat deep
+  capture by default.
+
+The v0 entry rule is:
+
+```text
+deep_capture_entry =
+  (spike_gate OR fresh_breakout_gate)
+  AND capture_budget_available
+  AND post_not_already_deep_captured
+```
+
+Buyer relevance is assigned as an evidence label after capture, or as a weak
+pre-label when source-visible caption/title/description/product/ad metadata is
+already available. Do not require buyer relevance before deep capture. A
+creator's top non-fragrance or non-buyer post can still be decision-useful: it
+shows the creator's winning format, hook, audience response, and possible Studio
+or brand-insertion surface.
+
+After capture, classify the post as one of:
+
+- `fragrance_buyer_relevant`;
+- `fragrance_adjacent`;
+- `non_fragrance_winning_format`;
+- `commercial_adaptable_format`;
+- `irrelevant_to_aphrodite`.
+
+Do not offer `recent_velocity` as an observed field until compatible history
+exists. If publication timestamp is missing or unreliable, call the trend
+`capture-window delta`, not posting cadence or content age velocity.
+
+Nulls and unavailable metrics are not zeros. A post with hidden or missing inputs
+can still be retained for qualitative review, but it must not be ranked as if the
+missing value were poor performance.
+
+## Falling Out Of Grid
+
+The default rule is:
+
+```text
+falls out of visible grid -> cold by default
+```
+
+That matches short-form reality: if a reel/short no longer appears in the
+current grid and was never promoted, it usually no longer carries live momentum
+worth spending daily capture budget on.
+
+But the rule cannot be absolute. The exception is:
+
+```text
+previously promoted breakout/durable-watch item -> keep explicit recheck state until expiry
+```
+
+Otherwise Aphrodite would delete the rare long-tail exceptions that teach the
+system what durable creator demand looks like. The exception must be explicit,
+source-backed, and self-expiring. No hidden forever-watch list.
+
+For promoted breakout items that fall out of grid view, use one or two explicit
+known-item metric rechecks so the item can be retired cleanly. Prefer the
+cheapest direct locator path already captured for that item. Do not use breakout
+follow-up as a general pagination or old-content crawler. Stop rechecking when
+growth slope falls below the accepted threshold for the accepted number of
+checks, when an age cap or read cap is hit, or when the source blocks the path.
+
+## Roster Composition Before Sizing
+
+Do not make the whole roster pure fragrance reviewers if the product goal is
+creator decision intelligence for fragrance brands. Pure reviewers are the core,
+but Aphrodite also needs controlled adjacent surfaces:
+
+- fragrance-native reviewers and collectors;
+- fragrance-heavy lifestyle, GRWM, grooming, beauty, and menswear creators;
+- creators with source-backed prior fragrance ads or repeated fragrance content;
+- a small control/edge set that looks attractive by surface metrics but may not
+  move fragrance.
+
+The control/edge set is not the bottom 10 percent of the registry. Bottom
+performers mostly teach that weak accounts are weak. The useful control set is
+surface-attractive but fragrance-weak: creators with strong-looking reach or
+engagement whose source-backed fragrance relevance is unproven, thin, or
+negative.
+
+Keep the control/edge set in the registry, but default it to low-cadence
+monitoring or bounded test windows, not daily deep monitoring. Promote a control
+creator into normal monitoring only if source-backed fragrance relevance or
+fragrance-specific response appears. Otherwise it stays as false-positive
+training data and cost control.
+
+Exact percentages are deferred until the capture budget is calculated. The
+strategic constraint is that adjacent creators must be fragrance-proven or
+explicitly labeled as controls. Do not branch into broad GRWM/lifestyle just
+because it is adjacent to beauty.
+
+## Data-Layer Placement
+
+Use the layers this way:
+
+- Raw capture/lake: source material, packet ids, hashes, manifests, access and
+  availability facts.
+- Silver: source-backed observations, relationships, text observations, metric
+  observations, metric rollups, posture/value coupling, and lineage.
+- Creator registry/profile-current: current public account profile, latest
+  allowed rollups, source drill-back, freshness, limitations, and identity
+  boundaries.
+- Aphrodite Signals: buyer-facing or operator-facing decision surface over
+  stamped fields and visible limitations.
+- Aphrodite Studio/Activation: optional downstream service consumer after
+  Signals can identify the decision. It must not become the data authority.
+
+Silver can say what was observed. Creator Signal can assemble decision support.
+Gold/Judgment or later accepted product contracts own stronger recommendations,
+durability verdicts, or action meaning.
+
+## Visual And Metadata Boundary
+
+Do not assume the daily grid heartbeat includes thumbnail or picture
+understanding. Current platform surfaces differ:
+
+- IG Reels grid capture can preserve locators, timestamps when joined, metric
+  observations, passive JSON metadata, and caption text when the passive JSON
+  join exposes it. The current IG grid runner has a route-specific option that
+  defaults to blocking image/media/font requests to reduce bandwidth; that is an
+  implementation posture, not a universal product rule.
+- YouTube RSS monitoring exposes title, published/updated time, views, and the
+  feed's star-rating count used as like-count provenance. It does not expose
+  comment count in the current feed schema.
+- YouTube watch-page packets can expose richer metadata and comment surfaces,
+  but that is a deeper read than the cheap RSS heartbeat.
+- TikTok is deferred for Aphrodite's immediate posture, but its recorded spec
+  says item blobs can expose description, hashtags/mentions, play/like/comment
+  counts, share/collect counts, and source-native subtitle metadata when present.
+
+Visual/OCR or thumbnail interpretation is a separate optional evidence lane. It
+may be valuable for posts where text metadata is thin, but it should be measured
+as its own capture mode: normal asset loading may look more human and may reduce
+some fingerprint oddities, while also increasing bandwidth, page weight, storage,
+processing, and exposure to route-specific platform behavior. Do not claim that
+blocking assets or loading assets is categorically safer; measure the route.
+
+## IG Grid Spot Probe
+
+On 2026-07-07, a bounded live spot probe was run against two existing registry
+Instagram accounts from `creator_registry_index_v0.json`: `jeremyfragrance` and
+`milanscents`. This is a route-cost spot check, not a capacity ceiling,
+at-scale safety proof, or authorization for standing live capture.
+
+Probe command shape:
+
+```text
+run_source_capture_ig_reels_grid_packet.py
+  --handle <registry_handle>
+  --max-rows 12
+  --timeout-seconds 25
+  --settle-seconds 4
+  --output C:\tmp\aphrodite_ig_grid_probe_20260707\<handle>_default
+```
+
+The current runner default was used: one logged-out public `/<handle>/reels/`
+grid load, no hover, no click, no item-page fanout, no comment-thread capture,
+no transcript capture, and image/media/font requests blocked while scripts and
+JSON/XHR remained intact.
+
+| Handle | Elapsed | Grid rows | Passive JSON media candidates | Passive JSON responses | Observed metrics | Raw grid JSON bytes | Warnings |
+| --- | ---: | ---: | ---: | ---: | --- | ---: | --- |
+| `jeremyfragrance` | 8.27s | 12 | 30 | 5 | 12 view_count, 12 like_count, 12 comment_count | 1,016,252 | none |
+| `milanscents` | 5.93s | 12 | 24 | 5 | 12 view_count, 12 like_count, 12 comment_count | 1,071,495 | none |
+
+For Aphrodite, "cheap grid heartbeat" means this kind of route: known registry
+handle, bounded grid rows, no item/media/comment/transcript fanout, and
+source-visible metric extraction from DOM/passive JSON. This spot probe supports
+the claim that the current grid route can be lightweight in wall-clock and output
+size for two registry creators. It does not yet measure true browser request
+count, transfer bytes, block-onset rate, or safe daily volume.
+
+### Follow-up Grid Shape Matrix
+
+A same-handle follow-up matrix on `milanscents` tested six grid-only page loads
+with 15s gaps, no item pages, no comments, no transcripts, and `max_rows=60`.
+All six runs completed without visible block markers.
+
+| Variant | Elapsed | Viewport | Settle | Blocked resource types | CSS zoom | DOM rows | Passive JSON responses |
+| --- | ---: | --- | ---: | --- | ---: | ---: | ---: |
+| default block-heavy | 8.225s | 1080x1920 | 4.0s | font,image,media | n/a | 12 | 2 |
+| large viewport block-heavy | 5.208s | 1920x3000 | 4.0s | font,image,media | n/a | 12 | 5 |
+| CSS zoom block-heavy | 6.154s | 1080x1920 | 4.0s | font,image,media | 0.67 | 12 | 2 |
+| short settle block-heavy | 4.836s | 1080x1920 | 1.0s | font,image,media | n/a | 12 | 5 |
+| allow images, block media/font | 5.540s | 1080x1920 | 4.0s | font,media | n/a | 12 | 5 |
+| allow all heavy assets | 5.858s | 1080x1920 | 4.0s | none | n/a | 12 | 2 |
+
+Interpretation:
+
+- Zoom and viewport changes alter visible geometry, but did not increase the
+  current route beyond 12 DOM rows. The immediate row ceiling is therefore not
+  just `max_rows` or viewport height; the likely next lever is bounded
+  lazy-load scroll before DOM extraction, or direct source pagination where
+  source-legible and stable.
+- `settle_seconds=1` is a candidate speed reduction for the cheap grid route,
+  but this is only one matrix row. Validate it in the N=25 step-up before
+  changing the default because passive JSON response arrival is variable.
+- `block media+font, allow images` is the most interesting asset posture from
+  this matrix: it avoids video/media bloat while looking less aggressively
+  asset-starved than blocking images too. It needs true request and transfer
+  instrumentation before becoming doctrine.
+- `allow all heavy assets` was not slower in this one run, but the runner still
+  does not record total browser request count or transferred bytes, so this
+  should not be treated as cheap-at-scale evidence.
+- The current IG grid runner does not expose granular blocked resource types,
+  bounded lazy-load scroll passes, or browser backend selection. CloakBrowser
+  row-shape testing needs a diagnostic path that exposes those controls.
+
+### Pre-DOM Formatting Matrix
+
+A 2026-07-08 follow-up matrix tested whether pre-DOM scroll/zoom formatting
+could load or expose more IG grid rows. The route still used one public
+`/milanscents/reels/` grid page, no item pages, no comments, no transcripts,
+20s gaps, `settle_seconds=4`, `maxRows=80`, and the candidate asset posture
+`block media+font, allow images`. All five runs completed without visible block
+markers.
+
+| Variant | Elapsed | Post-load formatting | Total media anchors | Visible media anchors | Selected JSON responses |
+| --- | ---: | --- | ---: | ---: | ---: |
+| baseline | 7.885s | none | 12 | 12 | 5 |
+| scroll 900px | 7.007s | `window.scrollTo(0, 900)` + 2s wait | 12 | 12 | 5 |
+| scroll bottom | 7.126s | `window.scrollTo(0, document.body.scrollHeight)` + 2s wait | 12 | 12 | 5 |
+| zoom 0.67 + scroll bottom | 7.562s | CSS zoom then bottom scroll | 12 | 12 | 5 |
+| zoom 0.50 + scroll bottom | 7.533s | CSS zoom then bottom scroll | 12 | 12 | 5 |
+
+Interpretation:
+
+- The 12-row ceiling is now observed as `totalMediaAnchors=12`, not merely a
+  viewport visibility limit.
+- Scroll-only formatting did not move the page because the non-zoomed document
+  height equaled the viewport height. Zoom changed geometry and document height
+  but still did not create additional media anchors.
+- Do not spend more planning confidence on viewport-only tuning. The next row
+  count lever is source-legible pagination/load-more behavior, a stable IG JSON
+  continuation route if available, or a runner change that explicitly performs
+  and measures a load-more path before DOM extraction.
+- Settlement tuning should not become manual operator work. If N=25 validates a
+  shorter settle window, pin it in the runner or route profile rather than asking
+  the operator to change it per capture.
+
+### Headed Browser Probe
+
+A 2026-07-08 headed Playwright Chromium probe tested whether removing the
+headless signal changed the cheap IG grid route. The route used one public
+`/milanscents/reels/` grid page, no item pages, no comments, no transcripts,
+20s between variants, `settle_seconds=4`, and a 3.5s visible post-load wait.
+
+| Variant | Elapsed | Resource posture | Total media anchors | Visible media anchors | Selected JSON responses | Block markers |
+| --- | ---: | --- | ---: | ---: | ---: | --- |
+| headed allow images, block media/font | 9.158s | block font,media | 12 | 12 | 5 | none |
+| headed allow all assets | 8.774s | block none | 12 | 12 | 5 | none |
+
+Interpretation:
+
+- Headed mode removes the obvious headless posture, but it did not change the
+  12-anchor row ceiling on this route.
+- Headed mode should not be treated as stealth by itself. A Playwright-driven
+  browser can still expose automation traits, fresh-profile traits, timing
+  regularity, missing session history, and route-level asset patterns.
+- Resource blocking is potentially observable. `block media+font` is an
+  efficiency posture to measure, not a claim that the platform cannot notice.
+- In this tiny headed sample, allowing all assets was not slower and preserved
+  the same selected JSON response count. Do not promote that to doctrine until
+  true request/transfer counters and a larger headed N are measured.
+- If headed becomes the accepted route, pin it in a route profile or runner
+  default. Do not make the operator manually choose headed per capture.
+
+Do not derive green/yellow/red thresholds from old planning numbers. The next
+Aphrodite scale calculation should treat `2.5k creators over 12h` as a planning
+hypothesis and measure it by route:
+
+```text
+2,500 creators / 12h ~= 208 grid checks/hour
+```
+
+Owner-current planning shape: 2.5k total registry creators, a 12h daily window,
+mixed 2h/3h operating batches rather than one full-roster blast, and an initial
+10-20s per grid-check spacing hypothesis. The spot probe observed 5.93-8.27s
+runner elapsed with no added inter-check delay; that shows the current route can
+fit inside the timing envelope for two clean accounts, not that the timing is a
+safe daily ceiling.
+
+That is only plausible if the measured grid route remains close to this spot
+probe's shape. If the route changes to full media loading, item-page opens,
+comment capture, transcript capture, OCR, or same-handle loops, the cost class
+changes and the roster math must reset.
+
+Initial Aphrodite scale probes should step up from small batches rather than
+asserting a safe ceiling:
+
+```text
+N=2 route spot check
+-> N=25 same-shape grid batch
+-> N=100 same-shape grid batch
+-> N=500 split-window grid batch
+-> daily-roster rehearsal
+```
+
+Each step should record elapsed time, route warnings, block/redirect outcomes,
+raw output size, observed metric coverage, and if possible true request/transfer
+counts. Sub-2s behavior is not an operating band; treat it as prohibited and as
+a stop/failure condition for this posture.
+
+## Silver And Registry Metric Update Rule
+
+Every accepted heartbeat should update the ongoing metric layer before Aphrodite
+Signals relies on it. The current Creator Profile contract already exposes
+average views, median views, average like count, average comment count,
+engagement rate, posting cadence, and recent velocity fields, while
+`posting_cadence` and `recent_velocity` remain declared-deferred until compatible
+Silver history exists.
+
+Aphrodite should route future monitoring stats through Silver
+`MetricObservation` and `MetricRollupObservation` records with explicit recipe
+versions, source observation ids, posture/value coupling, sample support,
+freshness, and limitations. That includes any future:
+
+- moving average;
+- exponential moving average (EMA);
+- compatible-window velocity;
+- spike score;
+- breakout state;
+- decay or plateau state;
+- active-watch expiry state.
+
+Do not compute those inside `creator_profile_current` as hidden product logic.
+Silver owns the recipe-backed observations and rollups; the registry/profile
+current view copies only accepted, lineage-backed fields.
+
+## Strategy Calls
+
+1. Use daily grid heartbeat as the target registry currentness layer for
+   Aphrodite, but compute the roster size from measured route cost and stop
+   outcomes, not from inherited IG planning anchors.
+2. Use event-triggered promotion for ongoing first deep capture: spike or fresh
+   breakout. Buyer relevance is a label/priority, not a hard pre-gate; active
+   breakout is a metric-recheck trigger, not repeat deep capture by default.
+3. Treat views plus engagement as the default selection basis.
+4. Treat fallen-out unpromoted content as cold by default.
+5. Preserve promoted breakout exceptions with one or two explicit metric-only
+   rechecks, read caps, age caps, and expiry.
+6. Keep control/edge creators in the registry at low cadence or test-window
+   cadence, not as a daily deep-monitoring burden.
+7. Keep fragrance depth as the wedge, but include fragrance-proven adjacent and
+   control creators so the signal learns both yes and no.
+8. Keep Studio/activation downstream of Signals. The capture strategy exists to
+   sharpen Signals first.
+
+## Open Decisions Before Calculation
+
+These must be decided or measured before computing realistic roster size:
+
+- True request and transfer cost for one grid heartbeat per platform/account.
+  The 2026-07-07 IG spot probe measured elapsed time and output size, but not
+  true browser request count.
+- Whether the IG grid diagnostic runner should expose bounded lazy-load scroll
+  passes, granular blocked resource types, and browser backend selection before
+  roster-size calculation.
+- Whether the speed candidate should move from `settle_seconds=4` to
+  `settle_seconds=1` after N=25 evidence.
+- Step-up grid heartbeat probes for IG using the Aphrodite route shape:
+  N=25, N=100, N=500, then daily-roster rehearsal if clean.
+- Whether the 2.5k over 12h planning hypothesis holds on measured route cost,
+  block outcomes, and operator window shape.
+- Expected daily new-content rate per creator.
+- Expected promotion rate from grid heartbeat into deep capture.
+- Deep-capture cost per promoted item by platform and source surface.
+- Maximum deep captures per creator per day.
+- Breakout recheck schedule, metric-only recheck count, decay threshold, and
+  expiry rule.
+- Whether visual/OCR or thumbnail interpretation deserves a separate measured
+  evidence lane after the cheap heartbeat route is characterized.
+- Which Silver metric recipes should be documented first: moving average, EMA,
+  compatible-window velocity, spike score, breakout state, or decay state.
+- Roster composition bands: fragrance-core, fragrance-proven adjacent, and
+  control/edge.
+- Control/edge cadence and promotion rule.
+
+The later calculation should use:
+
+```text
+daily_cost =
+  registry_creator_count * grid_heartbeat_cost
+  + onboarding_creator_count * onboarding_grid_and_deep_cost
+  + promoted_content_count * deep_capture_cost
+  + active_breakout_count * breakout_recheck_cost
+```
+
+Do not calculate from vibes. Use measured request counts, observed promotion
+rate, and explicit safety stop conditions.
+
+## Non-Goals
+
+- no standing live capture authorization beyond the bounded 2026-07-07 N=2 IG
+  grid spot probe recorded here;
+- no scheduler, daemon, crawler, or standing passive discovery authorization;
+- no proxy, account-rotation, or bot-detection evasion plan;
+- no final 2.5k-3k roster claim;
+- no buyer proof or product readiness claim;
+- no outreach, lead-list, contact, or creator-representation workflow;
+- no public person identity, demographic, follower graph, or contact enrichment;
+- no claim that deep capture creates performance guarantees;
+- no action recommendation from Silver alone.

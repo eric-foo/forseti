@@ -28,7 +28,7 @@ def _reddit_capture(root: DataLakeRoot, tmp_path: Path, body: str = "thread body
 def test_reddit_capture_round_trip_by_key(tmp_path: Path) -> None:
     # The anchor capability: capture -> committed raw -> derived (availability)
     # -> retrieve both by key.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     result = _reddit_capture(root, tmp_path)
     pid = result.packet.packet_id
 
@@ -52,7 +52,7 @@ def test_reddit_capture_round_trip_by_key(tmp_path: Path) -> None:
 
 def test_availability_rebuilds_from_raw(tmp_path: Path) -> None:
     # Re-derivability: wipe the index, rebuild from raw, get an identical entry.
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     result = _reddit_capture(root, tmp_path)
     pid = result.packet.packet_id
     before = root.read_availability(pid)
@@ -72,7 +72,7 @@ def test_record_availability_requires_committed_raw(tmp_path: Path) -> None:
     from data_lake.root import DataLakeRootError
     import pytest
 
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     from harness_utils import generate_ulid
 
     with pytest.raises(DataLakeRootError):
@@ -117,7 +117,7 @@ def test_stage_and_write_packet_routes_to_lake(tmp_path: Path) -> None:
     from source_capture.models import known_fact
     from source_capture.packet_assembly import stage_and_write_packet
 
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     result = stage_and_write_packet(
         data_root=root,
         staged_artifacts=[("http_response_body.bin", b"<reddit thread bytes>")],
@@ -144,7 +144,7 @@ def test_stage_and_write_packet_requires_exactly_one_target(tmp_path: Path) -> N
     import pytest
     from source_capture.packet_assembly import stage_and_write_packet
 
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     artifacts = [("body.bin", b"x")]
     with pytest.raises(ValueError):
         stage_and_write_packet(staged_artifacts=artifacts, source_slices=[_reddit_slice()])  # neither

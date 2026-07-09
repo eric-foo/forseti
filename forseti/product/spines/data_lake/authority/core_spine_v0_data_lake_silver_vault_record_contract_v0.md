@@ -20,8 +20,8 @@ open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
-  - orca-harness/source_capture/models.py
-  - orca-harness/source_capture/ig_reels_grid_projection.py
+  - forseti-harness/source_capture/models.py
+  - forseti-harness/source_capture/ig_reels_grid_projection.py
 downstream_consumers:
   - Silver Vault record producer scoping
   - Creator Vault read-model/envelope builder scoping
@@ -159,7 +159,7 @@ Header invariants:
 | `producer_row_kind` | Carries source-family subtype when present, such as IG projection `row_kind`. |
 | `content_hash` | Required durable integrity hash for the canonical record content; hash basis must be explicit and must not include the `content_hash` field itself. |
 | `observed_at` | Time the fact was observed at or about the source. Nullable only for internal relationship records with no source observation time. |
-| `captured_at` | Time Orca captured the source material or producer input. |
+| `captured_at` | Time Forseti captured the source material or producer input. |
 | `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file and carry `sha256` plus `hash_basis` where the source material is hash-checkable. Source-family payload refs must honor the Bronze intake boundary below. |
 | `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. |
 
@@ -487,7 +487,7 @@ Placement rules:
 - A client carveout is a filtered Creator Vault replica or export generated from
   the same Silver records and read-model manifests. It must preserve manifest
   ids, source high-watermarks, raw refs, derived refs, and selection-policy
-  versions so Orca full can consume the same evidence without a special request
+  versions so Forseti full can consume the same evidence without a special request
   path. The replica is not a duplicate capture source by default; duplicate
   capture is only needed when the carveout has independent freshness, SLA, or
   source-access constraints.
@@ -739,8 +739,8 @@ direction_change_propagation:
   downstream_surfaces_checked:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    - orca-harness/cleaning/fragrantica_lake.py
-    - orca-harness/tests/test_fragrantica_cleaning_lake_pilot.py
+    - forseti-harness/cleaning/fragrantica_lake.py
+    - forseti-harness/tests/test_fragrantica_cleaning_lake_pilot.py
     - docs/review-outputs/fragrantica_cleaning_adversarial_code_review_v0.md
   intentionally_not_updated:
     - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
@@ -754,10 +754,10 @@ direction_change_propagation:
         Derived Result Store slot already lists "Cleaning ledgers" as a derived
         sibling; the audit pack is that sibling and needs no new slot.
   stale_language_search: >
-    rg -n "FragranticaCleaningPacket|silver_vault_record_v0" orca-harness/cleaning orca-harness/tests
+    rg -n "FragranticaCleaningPacket|silver_vault_record_v0" forseti-harness/cleaning forseti-harness/tests
   stale_language_search_result: >
     Executed 2026-06-29 in worktree codex/fragrantica-cleaning after the writer
-    and test edits (rg over orca-harness *.py). FragranticaCleaningPacket now
+    and test edits (rg over forseti-harness *.py). FragranticaCleaningPacket now
     appears only in the test's negative absence assertion
     (test_fragrantica_cleaning_lake_pilot.py:112); the FCR-04 mis-fit wrapper is
     gone from the writer. silver_vault_record_v0 now appears only as the
@@ -789,7 +789,7 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
     - forseti/product/spines/data_lake/README.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -797,7 +797,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-    - orca-harness/data_lake/catalog.py
+    - forseti-harness/data_lake/catalog.py
   intentionally_not_updated:
     - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
       reason: >
@@ -809,13 +809,13 @@ direction_change_propagation:
         Medallion semantics are unchanged: Bronze remains raw evidence and Silver
         remains source-backed semantic records. This patch only names the public
         Bronze surfaces Silver must use.
-    - path: orca-harness/data_lake/catalog.py
+    - path: forseti-harness/data_lake/catalog.py
       reason: >
         The required public Bronze helpers and AR body loader already exist in
         the post-PR-525 baseline; this patch does not authorize new runtime code.
   stale_language_search: >
     rg -n "Silver.*Bronze|raw_refs|Attachment Record|full God Tier|bronze_mgt"
-    forseti/product/spines/data_lake docs/workflows/orca_repo_map_v0.md orca-harness/data_lake/catalog.py
+    forseti/product/spines/data_lake docs/workflows/forseti_repo_map_v0.md forseti-harness/data_lake/catalog.py
   non_claims:
     - not validation
     - not readiness

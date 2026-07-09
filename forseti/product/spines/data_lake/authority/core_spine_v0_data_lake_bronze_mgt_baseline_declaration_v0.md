@@ -18,7 +18,7 @@ open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-  - orca-harness/data_lake/catalog.py
+  - forseti-harness/data_lake/catalog.py
 stale_if:
   - Bronze catalog schema or Attachment Record physicalization changes.
   - Manifest v2, sidecar/member body layout, backend/engine selection, or migration/replay mechanics are accepted.
@@ -106,8 +106,8 @@ To upgrade Bronze from MGT to full GT, the remaining material work is:
 1. Replace manual runner/orchestrator enumeration with a deterministic discovery
    gate for all raw-packet writers and all explicitly non-raw-packet lake
    touchpoints. (Closed at source-inventory tier 2026-07-02:
-   `orca-harness/data_lake/inventory.py` plus the A1 gate
-   `orca-harness/tests/contract/test_data_lake_inventory_gate.py` —
+   `forseti-harness/data_lake/inventory.py` plus the A1 gate
+   `forseti-harness/tests/contract/test_data_lake_inventory_gate.py` —
    deterministic, fail-capable discovery diffed against the checked-in
    `lake_touchpoint_inventory_v0.json`, with reasoned exclusions and
    owner-dispositioned unknowns; see the physicalization proof closeout
@@ -129,7 +129,7 @@ To upgrade Bronze from MGT to full GT, the remaining material work is:
 4. Promote the catalog/availability/index rebuild checks into a lake-doctor or
    CI-owned gate over representative fixture lakes and real lane fixtures.
    (Partially closed 2026-07-02: PROOF-01..06 in
-   `orca-harness/tests/test_data_lake_physicalization_proof.py` are CI-owned
+   `forseti-harness/tests/test_data_lake_physicalization_proof.py` are CI-owned
    deterministic fixture-lake proofs — write-once, append-only, read-by-key,
    hash verification, public AR resolution, byte-identical
    availability+catalog rebuild — each fail-capable via a seeded violation;
@@ -206,9 +206,9 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
     - forseti/product/spines/data_lake/README.md
-    - docs/workflows/orca_repo_map_v0.md
-    - orca-harness/data_lake/catalog.py
-    - orca-harness/tests/test_data_lake_catalog.py
+    - docs/workflows/forseti_repo_map_v0.md
+    - forseti-harness/data_lake/catalog.py
+    - forseti-harness/tests/test_data_lake_catalog.py
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -224,7 +224,7 @@ direction_change_propagation:
     - path: AGENTS.md
       reason: >
         The root kernel already binds Mini God Tier vocabulary to the MGT
-        doctrine and routes Orca project facts to the overlay; this is a
+        doctrine and routes Forseti project facts to the overlay; this is a
         data_lake-spine baseline, not a new global agent trigger.
     - path: .agents/workflow-overlay/README.md
       reason: >
@@ -246,8 +246,8 @@ direction_change_propagation:
         This declaration names those residuals without settling them.
   stale_language_search: >
     rg -n "Bronze.*God Tier|full God Tier|BRONZE_MGT_BASELINE|bronze_mgt_baseline|AR-MGT-90"
-    AGENTS.md .agents docs/workflows/orca_repo_map_v0.md docs/decisions/forseti_mini_god_tier_doctrine_v0.md
-    forseti/product/spines/data_lake orca-harness/data_lake orca-harness/tests/test_data_lake_catalog.py
+    AGENTS.md .agents docs/workflows/forseti_repo_map_v0.md docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+    forseti/product/spines/data_lake forseti-harness/data_lake forseti-harness/tests/test_data_lake_catalog.py
   non_claims:
     - not validation
     - not readiness

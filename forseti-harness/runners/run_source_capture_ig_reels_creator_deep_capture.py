@@ -380,7 +380,7 @@ def run_creator_deep_capture(
             persist_fn=resolved_persist_fn,
         )
 
-    with tempfile.TemporaryDirectory(prefix="orca_creator_deepcap_") as scratch:
+    with tempfile.TemporaryDirectory(prefix="forseti_creator_deepcap_") as scratch:
         captured = select_and_capture_top_reels(
             ranked,
             top_n=top_n,
@@ -424,7 +424,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.data_root is not None or (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")):
         persist_fn = lambda result, _ranked: _persist_deep_capture(result, data_root_arg=args.data_root)
 
-    with tempfile.TemporaryDirectory(prefix="orca_creator_deepcap_") as scratch:
+    with tempfile.TemporaryDirectory(prefix="forseti_creator_deepcap_") as scratch:
         captured = select_and_capture_top_reels(
             ranked,
             top_n=args.top_n,

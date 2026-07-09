@@ -181,7 +181,7 @@ def test_projection_from_directory_certifies_view_only(tmp_path) -> None:
 
 
 def test_project_reels_grid_into_lake_appends_verified_projection(tmp_path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_reels_packet(root, tmp_path)
 
     projection, derived_path = project_ig_reels_grid_into_lake(
@@ -211,7 +211,7 @@ def test_project_reels_grid_into_lake_appends_verified_projection(tmp_path) -> N
 
 
 def test_project_reels_grid_rederive_appends_sibling_not_overwrite(tmp_path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_reels_packet(root, tmp_path)
 
     _, first = project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id)
@@ -227,7 +227,7 @@ def test_project_reels_grid_rederive_appends_sibling_not_overwrite(tmp_path) -> 
 
 
 def test_project_reels_grid_explicit_record_id_is_create_only(tmp_path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_reels_packet(root, tmp_path)
 
     project_ig_reels_grid_into_lake(data_root=root, packet_id=packet_id, record_id="rec1")
@@ -238,7 +238,7 @@ def test_project_reels_grid_explicit_record_id_is_create_only(tmp_path) -> None:
 def test_project_reels_grid_from_bronze_catalog_uses_source_surface_and_ar_rows(
     tmp_path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_reels_packet(root, tmp_path)
     assert rebuild_catalog(root)["status"] == "rebuilt"
 
@@ -260,7 +260,7 @@ def test_project_reels_grid_from_bronze_catalog_uses_source_surface_and_ar_rows(
 def test_project_reels_grid_from_bronze_catalog_defaults_to_stable_non_duplicate_record_id(
     tmp_path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_reels_packet(root, tmp_path)
     assert rebuild_catalog(root)["status"] == "rebuilt"
 
@@ -287,7 +287,7 @@ def test_project_reels_grid_from_bronze_catalog_defaults_to_stable_non_duplicate
 def test_project_reels_grid_from_bronze_catalog_skip_existing_converges_grown_catalog(
     tmp_path,
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     first_packet_id = _commit_reels_packet(root, tmp_path)
     assert rebuild_catalog(root)["status"] == "rebuilt"
     first_projected = project_ig_reels_grid_from_bronze_catalog(
@@ -334,7 +334,7 @@ def test_project_reels_grid_from_bronze_catalog_skip_existing_converges_grown_ca
 
 
 def test_project_reels_grid_from_bronze_catalog_requires_current_catalog(tmp_path) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _commit_reels_packet(root, tmp_path)
 
     with pytest.raises(DataLakeRootError, match="Bronze catalog is not current"):
@@ -344,7 +344,7 @@ def test_project_reels_grid_from_bronze_catalog_requires_current_catalog(tmp_pat
 def test_runner_projects_reels_grid_from_bronze_source_surface(
     tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     packet_id = _commit_reels_packet(root, tmp_path)
     assert rebuild_catalog(root)["status"] == "rebuilt"
 

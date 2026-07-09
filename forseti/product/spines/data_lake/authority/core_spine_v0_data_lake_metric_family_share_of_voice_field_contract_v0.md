@@ -180,13 +180,13 @@ direction_change_propagation:
   downstream_surfaces_checked:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-    - orca-harness/data_lake/derived_retrieval_views.py
+    - forseti-harness/data_lake/derived_retrieval_views.py
   intentionally_not_updated:
     - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
       reason: >
         Its MetricObservation posture vocabulary and read-model manifest rules
         are consumed as-is; this family contract binds to them by reference.
-    - path: orca-harness/data_lake/derived_retrieval_views.py
+    - path: forseti-harness/data_lake/derived_retrieval_views.py
       reason: >
         No SoV view exists yet; the view build is a separate bounded work unit
         now unblocked by this gate disposition.

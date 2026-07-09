@@ -396,7 +396,7 @@ def test_scan_then_select_end_to_end_offline() -> None:
 def test_creator_main_persists_when_forseti_data_root_env_set(
     tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    root = DataLakeRoot.for_test(tmp_path / "orca-data")
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     scratch = tmp_path / "scratch"
     scratch.mkdir()
     seen: dict[str, object] = {}

@@ -70,7 +70,7 @@ Only Judgment writes gold interpretation.
 
 ## Medallion Map
 
-| Layer | Orca meaning | Owned by | Must not become |
+| Layer | Forseti meaning | Owned by | Must not become |
 | --- | --- | --- | --- |
 | Bronze | Raw `SourceCapturePacket` bundles, preserved files, packet/slice/file handles, hashes, and source-visible attachment material. | Source Capture and Data Lake. | Cleaned truth, entity identity, salience, or Judgment input by shortcut. |
 | Silver | Projection rows/receipts, ECR integrity records, SCR content records, Cleaning ledgers/views, and mechanical derived features over raw. | Projection, ECR/SCR, Cleaning, or a future mechanical derivation owner. | Credibility, bot/fake/paid labels, source value, Signal Integrity, or action meaning. |
@@ -78,7 +78,7 @@ Only Judgment writes gold interpretation.
 | Gold-ready | Decision-bounded evidence assemblies and receipts that gather raw/silver/pre-gold evidence for a specific question. | Future assembly owner; Judgment consumes by reference. | Final verdict, credibility call, exclusion, Signal Use, Decision Strength, or Action Ceiling. |
 | Gold | Judgment-owned interpretation and decision-use output. | Judgment. | Data Lake, Cleaning, ECR/SCR, or precompute output. |
 
-Do not collapse these into generic bronze/silver/gold storage tiers. In Orca,
+Do not collapse these into generic bronze/silver/gold storage tiers. In Forseti,
 the layer name is an epistemic boundary first and a storage convenience second.
 
 ## Public-Reaction Engagement Placement
@@ -289,7 +289,7 @@ This mini-god-tier shape intentionally gives up:
 - storage/backend/queue/runtime selection;
 - validation/readiness/production-fitness claims.
 
-The payoff is high-value decision-integrity retrieval with low lock-in: Orca
+The payoff is high-value decision-integrity retrieval with low lock-in: Forseti
 can flag source-object movement and assemble bounded evidence without turning
 the lake into Judgment or a dossier system.
 
@@ -311,7 +311,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
     - forseti/product/spines/data_lake/README.md
-    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -349,7 +349,7 @@ direction_change_propagation:
         This contract consumes that boundary for the Data Lake medallion lane.
   stale_language_search: >
     rg -n "Spike Alert|Movement Alert|GoldReady|gold-ready|pre-gold|usual-range|person dossier|dossier|bot-like|fake review|paid activity|coordination|virality"
-    forseti/product/spines/data_lake docs/workflows/orca_repo_map_v0.md
+    forseti/product/spines/data_lake docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
     Executed 2026-06-21 after edits. Hits were confined to this contract and
     the Data Lake README pointer text. No searched live data-lake source uses
