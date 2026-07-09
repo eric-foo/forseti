@@ -77,6 +77,12 @@ _REQUIRED_SCAN_RECEIPT_EXCLUSION_MARKERS = (
     "no_follow_unfollow",
     "no_screenshot",
 )
+_SUGGESTED_ACCOUNTS_NOT_ATTEMPTED_MARKERS = (
+    "not_started",
+    "not_attempted",
+    "deferred",
+    "skipped",
+)
 
 _REQUIRED_NON_CLAIM_CATEGORIES = (
     "creator registry identity proof",
@@ -219,6 +225,7 @@ def validate_tiktok_creator_discovery_scan_receipt(receipt: Mapping[str, Any]) -
                 "missing_source_packet_pointer",
                 "suggested-account packet-available status requires source packet pointer",
             )
+    _validate_cloakbrowser_parent_capture_attempted_suggested_accounts(receipt)
     if receipt.get("browser_closed_by_runner") is not False:
         _fail("browser_close_forbidden", "scan receipt must not close the browser by runner")
 
@@ -251,8 +258,12 @@ def validate_tiktok_creator_discovery_scan_receipt(receipt: Mapping[str, Any]) -
         _require_non_negative_int(receipt.get(field_name), field_name)
     if receipt.get("candidate_profiles_opened") != 0:
         _fail("candidate_profile_open_forbidden", "scan receipt must not open candidate profiles")
-    if receipt.get("follow_unfollow_actions_taken") != 0:
-        _fail("follow_unfollow_forbidden", "scan receipt must not take follow/unfollow actions")
+    follow_unfollow_actions_taken = int(receipt.get("follow_unfollow_actions_taken"))
+    if follow_unfollow_actions_taken > 1:
+        _fail(
+            "follow_unfollow_limit_exceeded",
+            "scan receipt may record at most one owner-authorized root follow action",
+        )
     if receipt.get("screenshots_emitted_to_chat") != 0:
         _fail("screenshot_chat_output_forbidden", "scan receipt must not emit screenshots to chat")
 
@@ -441,6 +452,30 @@ def _validate_packet_pair(value: Mapping[str, Any], prefix: str) -> None:
         _fail("missing_packet_path", f"{path_key} is required when {id_key} is present")
     if packet_path and not packet_id:
         _fail("missing_packet_id", f"{id_key} is required when {path_key} is present")
+
+def _validate_cloakbrowser_parent_capture_attempted_suggested_accounts(
+    receipt: Mapping[str, Any]
+) -> None:
+    """Require the suggested-account hop after parent capture on the intended surface."""
+    if not receipt.get("parent_grid_packet_id_or_none"):
+        return
+    surface_fingerprint = " ".join(
+        str(receipt.get(field_name) or "").lower()
+        for field_name in (
+            "source_surface",
+            "method_mode",
+            "access_mode",
+            "browser_session_label_or_none",
+        )
+    )
+    if "cloakbrowser" not in surface_fingerprint:
+        return
+    suggested_status = str(receipt.get("suggested_accounts_capture_status") or "").lower()
+    if any(marker in suggested_status for marker in _SUGGESTED_ACCOUNTS_NOT_ATTEMPTED_MARKERS):
+        _fail(
+            "suggested_accounts_required_after_cloakbrowser_parent_grid",
+            "CloakBrowser parent profile/grid capture must attempt Following/Followers Suggested graphing or record blocked/empty outcome",
+        )
 
 
 def _validate_node(node: Mapping[str, Any], provenance: Mapping[str, Any]) -> None:
