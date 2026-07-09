@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 from importlib import import_module
+from pathlib import Path
 from typing import Protocol, TypeAlias
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
@@ -179,6 +180,7 @@ class CloakBrowserSnapshotEngine(Protocol):
         load_more_clicks: int,
         scroll_step_px: int,
         pre_capture: PreCapturePlugin | None,
+        user_data_dir: Path | None = None,
     ) -> CloakBrowserSnapshotEngineResult:
         ...
 
@@ -199,6 +201,7 @@ def fetch_cloakbrowser_snapshot_capture(
     load_more_clicks: int = 0,
     scroll_step_px: int = 0,
     pre_capture: PreCapturePlugin | None = None,
+    user_data_dir: Path | None = None,
     engine: CloakBrowserSnapshotEngine | None = None,
 ) -> CloakBrowserSnapshotResult:
     normalized_url = _validate_http_url(url)
@@ -216,6 +219,13 @@ def fetch_cloakbrowser_snapshot_capture(
         raise ValueError("load_more_clicks must be zero or greater")
     if load_more_clicks > 0 and not load_more_selector:
         raise ValueError("load_more_selector is required when load_more_clicks is greater than zero")
+    if user_data_dir is not None and proxy_profile is not None:
+        raise ValueError(
+            "CloakBrowser persistent-context capture (user_data_dir) does not apply proxy_profile; "
+            "the persistent-context launch path never receives the proxy, so combining them would "
+            "record proxy_used/proxy_category in packet metadata while no proxy was actually used. "
+            "Supply only one of user_data_dir or proxy_profile."
+        )
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
         raise ValueError(f"wait_until must be one of: {allowed}")
@@ -236,6 +246,7 @@ def fetch_cloakbrowser_snapshot_capture(
             load_more_clicks=load_more_clicks,
             scroll_step_px=scroll_step_px,
             pre_capture=pre_capture,
+            user_data_dir=user_data_dir,
         )
     except _CloakBrowserSnapshotDependencyUnavailable as exc:
         return CloakBrowserSnapshotFailure(
@@ -367,7 +378,8 @@ def fetch_cloakbrowser_snapshot_capture(
         "method_category": CLOAKBROWSER_METHOD_CATEGORY,
         "browser_engine": "cloakbrowser",
         "cloakbrowser_backend": CLOAKBROWSER_BACKEND,
-        "profile_persistence": "none",
+        "profile_persistence": "local_ignored_profile" if user_data_dir is not None else "none",
+        "persistent_profile_loaded": user_data_dir is not None,
         "storage_state_loaded": False,
         "proxy_used": proxy_profile is not None,
         "proxy_category": proxy_profile.proxy_category.value if proxy_profile is not None else None,
@@ -437,6 +449,7 @@ class _CloakBrowserSnapshotEngine:
         load_more_clicks: int = 0,
         scroll_step_px: int = 0,
         pre_capture: PreCapturePlugin | None = None,
+        user_data_dir: Path | None = None,
     ) -> CloakBrowserSnapshotEngineResult:
         humanize = pre_capture.humanize if pre_capture is not None else False
         # The pre-capture flow is bounded by its OWN timeout (the plugin carries it, set from
@@ -453,27 +466,47 @@ class _CloakBrowserSnapshotEngine:
                 "running CloakBrowser snapshots."
             ) from exc
 
-        launch = getattr(cloakbrowser, "launch", None)
-        if not callable(launch):
-            raise _CloakBrowserSnapshotDependencyUnavailable(
-                "CloakBrowser is installed but does not expose cloakbrowser.launch. "
-                "Install a compatible cloakbrowser package before running CloakBrowser snapshots."
-            )
-
         timeout_ms = timeout_seconds * 1000
+        browser = None
         try:
-            browser = launch(
-                headless=True,
-                proxy=proxy_profile.proxy_endpoint if proxy_profile is not None else None,
-                args=None,
-                stealth_args=True,
-                timezone=proxy_profile.timezone if proxy_profile is not None else None,
-                locale=proxy_profile.locale if proxy_profile is not None else None,
-                geoip=proxy_profile.geoip_enabled if proxy_profile is not None else False,
-                backend=CLOAKBROWSER_BACKEND,
-                humanize=humanize,
-                extension_paths=None,
-            )
+            if user_data_dir is not None:
+                profile_launcher = getattr(cloakbrowser, "launch_" + "persistent_context", None)
+                if not callable(profile_launcher):
+                    raise _CloakBrowserSnapshotDependencyUnavailable(
+                        "CloakBrowser is installed but does not expose the required "
+                        "persistent profile launch API. Install a compatible cloakbrowser "
+                        "package before running profile-backed snapshots."
+                    )
+                context = profile_launcher(
+                    user_data_dir,
+                    headless=True,
+                    stealth_args=True,
+                    humanize=humanize,
+                )
+            else:
+                launch = getattr(cloakbrowser, "launch", None)
+                if not callable(launch):
+                    raise _CloakBrowserSnapshotDependencyUnavailable(
+                        "CloakBrowser is installed but does not expose cloakbrowser.launch. "
+                        "Install a compatible cloakbrowser package before running CloakBrowser snapshots."
+                    )
+                browser = launch(
+                    headless=True,
+                    proxy=proxy_profile.proxy_endpoint if proxy_profile is not None else None,
+                    args=None,
+                    stealth_args=True,
+                    timezone=proxy_profile.timezone if proxy_profile is not None else None,
+                    locale=proxy_profile.locale if proxy_profile is not None else None,
+                    geoip=proxy_profile.geoip_enabled if proxy_profile is not None else False,
+                    humanize=humanize,
+                    extension_paths=None,
+                )
+                context = browser.new_context(
+                    viewport={
+                        "width": viewport_width,
+                        "height": viewport_height,
+                    }
+                )
         except Exception as exc:
             if _looks_like_cloakbrowser_dependency_failure(exc):
                 raise _CloakBrowserSnapshotDependencyUnavailable(
@@ -482,14 +515,11 @@ class _CloakBrowserSnapshotEngine:
             raise
 
         try:
-            context = browser.new_context(
-                viewport={
-                    "width": viewport_width,
-                    "height": viewport_height,
-                }
-            )
             try:
                 page = context.new_page()
+                set_viewport_size = getattr(page, "set_viewport_size", None)
+                if callable(set_viewport_size):
+                    set_viewport_size({"width": viewport_width, "height": viewport_height})
                 if block_heavy_assets:
                     page.route(
                         "**/*",
@@ -557,7 +587,8 @@ class _CloakBrowserSnapshotEngine:
             finally:
                 context.close()
         finally:
-            browser.close()
+            if browser is not None:
+                browser.close()
 
 
 @dataclass(frozen=True)

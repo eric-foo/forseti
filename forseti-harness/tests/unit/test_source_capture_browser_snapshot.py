@@ -28,6 +28,7 @@ from source_capture.adapters.browser_snapshot import (
     fetch_browser_snapshot_capture,
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
+from source_capture.source_detail_sufficiency import SourceDetailSufficiencyRequirements
 
 
 @pytest.fixture
@@ -2572,3 +2573,79 @@ def test_browser_snapshot_runner_cleans_staged_files_when_metadata_write_fails(
     assert not (output_dir.parent / "browser_visible_text.txt").exists()
     assert not (output_dir.parent / "browser_viewport_screenshot.png").exists()
     assert not (output_dir.parent / "browser_snapshot_metadata.json").exists()
+
+
+def test_browser_snapshot_runner_records_source_detail_sufficiency_pass(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    def fake_capture(**kwargs: object) -> BrowserSnapshotSuccess:
+        return BrowserSnapshotSuccess(
+            requested_url="https://example.com/source",
+            final_url="https://example.com/source",
+            title="Rendered Source",
+            rendered_dom="<html><body><main>Visible source language</main></body></html>",
+            visible_text="Visible source language",
+            screenshot_png=b"\x89PNG\r\n\x1a\nbrowser",
+            metadata={
+                "requested_url": "https://example.com/source",
+                "final_url": "https://example.com/source",
+                "title": "Rendered Source",
+                "capture_timestamp": "2026-06-03T01:02:03Z",
+                "timeout_seconds": kwargs["timeout_seconds"],
+                "wait_until": kwargs["wait_until"],
+                "viewport_width": kwargs["viewport_width"],
+                "viewport_height": kwargs["viewport_height"],
+                "screenshot_mode": "viewport",
+                "access_blocked": False,
+                "access_block_reason": None,
+                "rendered_dom_byte_count": 64,
+                "visible_text_byte_count": 23,
+                "screenshot_byte_count": 15,
+            },
+            warning_notes=[],
+            limitation_notes=[],
+            access_block_reason=None,
+        )
+
+    monkeypatch.setattr(browser_runner, "fetch_browser_snapshot_capture", fake_capture)
+
+    exit_code, message = browser_runner.run_source_capture_browser_packet(
+        url="https://example.com/source",
+        source_family="web_page",
+        source_surface="browser_snapshot",
+        decision_question="What rendered source was visible before cutoff?",
+        output_directory=output_dir,
+        capture_context="test browser snapshot",
+        operator_category="browser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        source_detail_sufficiency_requirements=SourceDetailSufficiencyRequirements(
+            require_not_access_blocked=True,
+            min_visible_text_bytes=10,
+            visible_text_contains=("Visible source language",),
+            rendered_dom_regexes=(r"<main>Visible source",),
+        ),
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=5_000,
+    )
+
+    assert exit_code == 0
+    assert message == str(output_dir.resolve())
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert "source_detail_sufficiency_passed" in manifest["visible_mode_changes"]
+    assert not any("source_detail_sufficiency_failed" in item for item in manifest["limitations"])
