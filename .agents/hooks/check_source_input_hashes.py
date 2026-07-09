@@ -70,6 +70,8 @@ def is_repo_local_pointer(pointer: str) -> bool:
         return False
     if pointer.startswith("#"):
         return False
+    if pointer.startswith(("/", "\\")):
+        return False
     if Path(pointer).is_absolute():
         return False
     if PureWindowsPath(pointer).drive:
@@ -170,6 +172,12 @@ def relevant_records(records: list[SourceInput], changed_paths: set[str]) -> lis
     ]
 
 
+def relevant_problems(
+    problems: list[tuple[str, str]], changed_paths: set[str]
+) -> list[tuple[str, str]]:
+    return [(rel, message) for rel, message in problems if normalize_relpath(rel) in changed_paths]
+
+
 def _git(root: Path, args: list[str], timeout: int = 20) -> tuple[int, str]:
     try:
         result = subprocess.run(
@@ -210,15 +218,15 @@ def tracked_json_files(root: Path) -> list[str] | None:
     return [normalize_relpath(line) for line in output.splitlines() if line.strip()]
 
 
-def collect_records(root: Path, rel_paths: list[str]) -> tuple[list[SourceInput], list[str]]:
+def collect_records(root: Path, rel_paths: list[str]) -> tuple[list[SourceInput], list[tuple[str, str]]]:
     records: list[SourceInput] = []
-    problems: list[str] = []
+    problems: list[tuple[str, str]] = []
     for rel in rel_paths:
         path = root / Path(rel)
         try:
             document = json.loads(path.read_text(encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError) as exc:
-            problems.append(f"{rel}: cannot read JSON ({exc})")
+            problems.append((rel, f"cannot read JSON ({exc})"))
             continue
         records.extend(source_inputs_from_document(document, rel))
     return records, problems
@@ -244,14 +252,10 @@ def run_scan(root: Path, *, base_ref: str | None, strict: bool, audit: bool) -> 
         print("check_source_input_hashes: WARNING: git ls-files unavailable; fail-open")
         return 0
     records, read_problems = collect_records(root, json_files)
-    if read_problems and (strict or audit):
-        print("check_source_input_hashes: JSON read problem(s):")
-        for problem in read_problems:
-            print(f"  {problem}")
-        return 1 if strict else 0
 
     if audit:
         scoped = records
+        scoped_problems = read_problems
         base_note = "audit"
     else:
         assert base_ref is not None
@@ -263,7 +267,17 @@ def run_scan(root: Path, *, base_ref: str | None, strict: bool, audit: bool) -> 
             )
             return 0
         scoped = relevant_records(records, changed)
+        # Diff-scoped, forward-only: an unreadable JSON file outside the
+        # current diff must not gate-fail an unrelated change (repo-wide
+        # backlog stays --audit-only, never gated).
+        scoped_problems = relevant_problems(read_problems, changed)
         base_note = f"base: {base_ref}"
+
+    if scoped_problems and (strict or audit):
+        print(f"check_source_input_hashes: JSON read problem(s) in scope ({base_note}):")
+        for rel, message in scoped_problems:
+            print(f"  {rel}: {message}")
+        return 1 if strict else 0
 
     findings = findings_for_records(root, scoped)
     if findings:
@@ -305,6 +319,13 @@ def selftest() -> int:
     check("url pointer skipped", is_repo_local_pointer("https://example.com/x"), False)
     check("windows absolute skipped", is_repo_local_pointer("F:/outside/file.json"), False)
     check("parent traversal skipped", is_repo_local_pointer("../outside.json"), False)
+    check("posix-rooted pointer skipped", is_repo_local_pointer("/etc/passwd"), False)
+    check("unc-rooted pointer skipped", is_repo_local_pointer("\\\\server\\share\\file.json"), False)
+    check(
+        "relevant problems scoped to changed paths",
+        relevant_problems([("docs/a.json", "bad"), ("docs/unrelated.json", "bad")], {"docs/a.json"}),
+        [("docs/a.json", "bad")],
+    )
     check(
         "name-status includes rename source and destination",
         parse_name_status(["M\tdocs/a.json", "D\tdocs/b.json", "R100\tdocs/c.json\tdocs/d.json"]),
