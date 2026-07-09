@@ -10,9 +10,9 @@ use_when:
   - Picking up the queued source-side-posture-supply decision or handing it to the ECR lane.
 authority_boundary: retrieval_only
 open_next:
-  - orca-harness/runners/run_reddit_old_http_batch.py
-  - orca-harness/ecr/deriver.py
-  - orca/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md
+  - forseti-harness/runners/run_reddit_old_http_batch.py
+  - forseti-harness/ecr/deriver.py
+  - forseti/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md
 downstream_consumers:
   - The source-side-posture-supply decision (gap-vs-by-design) this finding tees up.
 stale_if:

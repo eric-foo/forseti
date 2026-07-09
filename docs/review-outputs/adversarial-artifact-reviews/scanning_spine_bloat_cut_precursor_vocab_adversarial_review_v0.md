@@ -12,8 +12,8 @@ use_when:
   - Checking residual receipt-completeness and inheritance-claim risks before acceptance.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/scanning/README.md
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/scanning/README.md
+  - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
   - docs/prompts/reviews/scanning_spine_bloat_cut_precursor_vocab_adversarial_review_prompt_v0.md
 branch_or_commit: 8e70605c1e24ad38997d7c94bcdbd67da1728f3f
 input_hashes:

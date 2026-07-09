@@ -13,7 +13,7 @@ open_next:
   - docs/workflows/forseti_repo_map_v0.md
   - docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md
   - docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0_evidence.json
-  - orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
+  - forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
 stale_if:
   - The AEO Phase-0 probe is superseded by a later accepted answer-engine research record.
   - The scanning answer-engine/source-family spec is superseded.

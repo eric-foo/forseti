@@ -16,8 +16,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/cases/canoo-walmart/jsg_08_reveal_calibration_receipt_v0.md
-  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
-  - orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md
+  - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+  - forseti/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md
 input_hashes:
   docs/research/judgment-spine/cases/canoo-walmart/jsg_08_reveal_calibration_receipt_v0.md: 6DA7BBF5CF62BD3DE919E429E9F3C9C642FFDAD4B4B44F2F38F0E9CBBFFBB546
   docs/review-outputs/adversarial-artifact-reviews/canoo_walmart_jsg_08_reveal_calibration_receipt_post_patch_adversarial_recheck_v0.md: C3AF97729B4443ABAB2B09654ED550C719FFF82D428147A80245D81A79C1F5D4

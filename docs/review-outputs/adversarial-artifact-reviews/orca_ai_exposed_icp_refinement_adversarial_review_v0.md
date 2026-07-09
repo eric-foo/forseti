@@ -10,10 +10,10 @@ use_when:
   - Preparing patch implications for the first ICP wedge decision artifact, buyer-proof packet, and product proof lead charter.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
-  - orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
-  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
-  - orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
+  - forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
   - .agents/workflow-overlay/product-proof.md
 input_hashes:
   - path: docs/prompts/reviews/orca_ai_exposed_icp_refinement_adversarial_review_prompt_v0.md

@@ -18,7 +18,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/hooks/check_ontology_drift.py
-  - orca/product/spines/foundation/ontology/ontology.yaml
+  - forseti/product/spines/foundation/ontology/ontology.yaml
   - docs/decisions/adversarial_review_routing_policy_v0.md
 stale_if:
   - A runtime binding introduces a Pydantic discriminated union (the --strict readiness check fires in CI; the top-level scope must be revisited / nested recursion added).

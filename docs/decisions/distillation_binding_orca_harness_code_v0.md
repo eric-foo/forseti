@@ -10,7 +10,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
-  - orca-harness/docs/source_capture_agent_runbook.md
+  - forseti-harness/docs/source_capture_agent_runbook.md
 ```
 
 **Status: PREPARE-ONLY DRAFT** (see the index). This is Orca's **code-enforced pole** — the closest

@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 15
     defaults:
       run:
-        working-directory: orca-harness
+        working-directory: forseti-harness
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install Forseti harness (legacy orca-harness path) + pytest
+      - name: Install Forseti harness + pytest
         run: |
           python -m pip install --upgrade pip
           # pyyaml is pinned explicitly (not left transitive) so the strict

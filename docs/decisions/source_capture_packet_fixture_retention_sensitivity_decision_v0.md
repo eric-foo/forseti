@@ -10,10 +10,10 @@ use_when:
   - Checking what sensitivity and retention notes must travel with raw source files, screenshots, media, account-visible, entitled, or client-provided packet artifacts.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_capture_toolbox/README.md
-  - orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
-  - orca-harness/docs/source_capture_agent_runbook.md
-  - orca-harness/docs/source_capture_packet.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/README.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+  - forseti-harness/docs/source_capture_agent_runbook.md
+  - forseti-harness/docs/source_capture_packet.md
 stale_if:
   - A later owner decision supersedes Source Capture Packet lifecycle, retention, sensitivity, or fixture-admission handling.
   - The Mini God-Tier profile materially changes packet lifecycle vocabulary.

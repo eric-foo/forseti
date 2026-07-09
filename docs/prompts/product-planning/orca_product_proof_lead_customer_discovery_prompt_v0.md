@@ -24,9 +24,9 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/product-proof.md
-  - orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
-  - orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
-  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
+  - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
 input_hashes:
   - path: docs/product/orca_product_lead_first_icp_wedge_decision_v0.md
     sha256: B570672CD7F31B2D78F9DC5E851C3AEDA7030A56ECF2CDC6733E0191ED3DDC23

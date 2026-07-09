@@ -12,9 +12,9 @@ use_when:
   - Running or dispatching the bounded ECR-consolidation-v0 architecture decision.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/judgment/source_side_receipts/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md
-  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
-  - orca/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md
+  - forseti/product/spines/judgment/source_side_receipts/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - forseti/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md
 input_hashes:
   docs/product/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md: 03310806D8B4475CC281FF65F2247B59702D3B4036DF6C38A9A1383EDB7102AB
   docs/product/jsg01_source_side_receipt_translator_v0.md: E8944D13FF8B3FAF62AC24209EC50FDA7C03CC9D4F906687246B2E15C01592B2

@@ -10,8 +10,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/turn_08_product_thesis_v0.md
-  - orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
-  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
   - docs/research/judgment-spine/harness/v0_14/packing_to_harness_foundation_interface_architecture_v3.md
 branch_or_commit: main @ b7627d3 at authoring time (dirty; product and harness sources untracked — recheck at run time)
 stale_if:

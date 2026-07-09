@@ -14,8 +14,8 @@ open_next:
   - docs/workflows/reddit_candidate_intake_operator_pilot_plan_v0.md
   - docs/workflows/reddit_candidate_intake_operator_pilot_parameter_packet_v0.md
   - docs/workflows/reddit_candidate_intake_no_live_dry_use_receipt_v0.md
-  - orca-harness/_test_runs/reddit_candidate_pilot_001/reddit_candidate_url_intake.json # nonresolving: gitignored run scratch
-  - orca-harness/_test_runs/reddit_candidate_pilot_001/reddit_candidate_url_intake_receipt.md # nonresolving: gitignored run scratch
+  - forseti-harness/_test_runs/reddit_candidate_pilot_001/reddit_candidate_url_intake.json # nonresolving: gitignored run scratch
+  - forseti-harness/_test_runs/reddit_candidate_pilot_001/reddit_candidate_url_intake_receipt.md # nonresolving: gitignored run scratch
 ```
 
 ## Status

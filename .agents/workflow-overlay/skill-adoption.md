@@ -14,7 +14,7 @@ authority_boundary: retrieval_only
 ## Current Status
 
 - Orca has no local reusable workflow skill source.
-- Orca has one accepted Orca-local candidate skill: `orca-product-lead`
+- Orca has one accepted Forseti-local candidate skill: `forseti-product-lead`
   (accepted/frozen 2026-06-08; DEPLOYED/ACTIVATED 2026-06-08 for the Claude Code
   runtime, project-scoped — not user-global). See `## Accepted Orca-Local
   Candidate Skills` below. Orca accepts only specific, narrowly scoped local
@@ -23,7 +23,7 @@ authority_boundary: retrieval_only
 - Orca has no same-name global skill promotions.
 - Orca may use resolver-visible workflow skills when explicitly invoked or
   selected by the active resolver. This does not make external workflow source
-  documents Orca authority.
+  documents Forseti authority.
 - This recognition record does not install, update, validate, promote, or
   activate plugin skills. The current running thread may still expose an older
   skill registry until Codex reloads plugin metadata.
@@ -72,27 +72,27 @@ Observed on 2026-06-05:
 | `meta-planning` | Upstream framing: detect when a request starts below the right decision layer and name the missing decision or operating contract. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `micro-decision-locking` | Pre-implementation locking of the few route-critical decisions needed before a bounded source edit. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-adversarial-artifact-review` | Source-backed adversarial review of non-code artifacts. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
-| `workflow-architecture-planning` | Target-architecture planning before feature or implementation scoping. | No Orca-local or user-level same-name collision observed. |
-| `workflow-before-after-lens` | Explicit before/after comparison of an original frame against a proposed or actual output, with drift and acceptance-risk surfacing. | No Orca-local or user-level same-name collision observed. |
-| `workflow-branch-completion-report` | Chat-first report for a completed branch or work unit. | No Orca-local or user-level same-name collision observed. |
-| `workflow-cartographer` | Goal-bound route mapping from a stated goal to a starting point and first move. | No Orca-local or user-level same-name collision observed. |
+| `workflow-architecture-planning` | Target-architecture planning before feature or implementation scoping. | No Forseti-local or user-level same-name collision observed. |
+| `workflow-before-after-lens` | Explicit before/after comparison of an original frame against a proposed or actual output, with drift and acceptance-risk surfacing. | No Forseti-local or user-level same-name collision observed. |
+| `workflow-branch-completion-report` | Chat-first report for a completed branch or work unit. | No Forseti-local or user-level same-name collision observed. |
+| `workflow-cartographer` | Goal-bound route mapping from a stated goal to a starting point and first move. | No Forseti-local or user-level same-name collision observed. |
 | `workflow-code-review` | Implementation/code review focused on bugs, regressions, risks, and missing tests. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-deep-thinking` | Deeper reasoning for explicitly requested analysis or workflow skill source behavior. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
-| `workflow-delegated-review-patch` | Commissioning and adjudicating a bounded de-correlated review-and-patch hardening pass. | No Orca-local or user-level same-name collision observed. |
+| `workflow-delegated-review-patch` | Commissioning and adjudicating a bounded de-correlated review-and-patch hardening pass. | No Forseti-local or user-level same-name collision observed. |
 | `workflow-feature-ultraplan` | Planning-only feature exploration before implementation scoping. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
-| `workflow-goal-framing` | Compact goal framing across long-term goal, pillar goal, near-term outcome, and success signal. | No Orca-local or user-level same-name collision observed. |
+| `workflow-goal-framing` | Compact goal framing across long-term goal, pillar goal, near-term outcome, and success signal. | No Forseti-local or user-level same-name collision observed. |
 | `workflow-handoff` | Cold cross-lane handoff packet for a fresh agent, thread, worktree, or session. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-health-check` | Advisory repository/workflow health checks for structure, source boundaries, stale indexes, and drift signals. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
-| `workflow-humanise` | Plain-language re-encoding of dense content for a named human reader while preserving facts, uncertainty, and stakes. | No Orca-local or user-level same-name collision observed. |
+| `workflow-humanise` | Plain-language re-encoding of dense content for a named human reader while preserving facts, uncertainty, and stakes. | No Forseti-local or user-level same-name collision observed. |
 | `workflow-implementation-scoping` | Non-executing implementation route for an accepted plan. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-postmortem-review` | Postmortem review of workflow skill behavior or specifically bound postmortem targets. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-precompact` | Manual precompact working packet mechanics when explicitly invoked. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-problem-framing` | Problem framing before product planning, feature planning, prompt orchestration, scoping, review, or execution. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-product-ultraplan` | Planning-only product-direction, product-proof, and product-bet exploration. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-prompt-orchestrator` | Prompt, wrapper, handoff, rerun, patch, and review-prompt orchestration. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
-| `workflow-reorient` | Operator-facing state reorientation after handoffs, reviews, compaction, or parallel work. | No Orca-local or user-level same-name collision observed. |
+| `workflow-reorient` | Operator-facing state reorientation after handoffs, reviews, compaction, or parallel work. | No Forseti-local or user-level same-name collision observed. |
 | `workflow-repo-context` | Compact repository context packets and advisory routing recommendations. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
-| `workflow-repo-hygiene` | Repository hygiene closeout after completed work, before handoff, or before branch/worktree cleanup. | No Orca-local or user-level same-name collision observed. |
+| `workflow-repo-hygiene` | Repository hygiene closeout after completed work, before handoff, or before branch/worktree cleanup. | No Forseti-local or user-level same-name collision observed. |
 | `workflow-skill-authoring-discipline` | Discipline for creating, editing, reviewing, or promoting reusable workflow skills. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 | `workflow-spec-writing` | Thin binding-actor spec writing before scoping when downstream actors would otherwise invent intent. | Same-name user-level skill exists under `C:\Users\vmon7\.codex\skills`; recheck resolver behavior before strict adoption. |
 
@@ -111,16 +111,16 @@ behavior was not proven in-thread.
 
 ## Adoption Rules
 
-- Orca-local candidate skills may be created and iterated only after explicit
+- Forseti-local candidate skills may be created and iterated only after explicit
   owner authorization for that named candidate.
-- Candidate skills must stay Orca-local until a separate promotion decision.
-- Candidate skills are not Orca authority. They must defer Orca facts,
+- Candidate skills must stay Forseti-local until a separate promotion decision.
+- Candidate skills are not Forseti authority. They must defer Forseti facts,
   artifact roles, review lanes, output modes, validation gates, and safety
   rules to `AGENTS.md` and `.agents/workflow-overlay/`.
 - Candidate skills must record trigger examples, source boundary, collision
   status, rollback path, and validation notes before acceptance.
-- Accept an Orca-local candidate as frozen only when it is specific and narrowly
-  scoped to a real Orca lane (like `orca-product-lead`), defers all Orca facts to
+- Accept an Forseti-local candidate as frozen only when it is specific and narrowly
+  scoped to a real Orca lane (like `forseti-product-lead`), defers all Forseti facts to
   `AGENTS.md` and `.agents/workflow-overlay/`, carries the adoption metadata
   above, and has a re-confirmed collision check plus a pinned source hash. Do not
   accept broad, generic, or authority-claiming local skills. Acceptance is a
@@ -136,17 +136,17 @@ behavior was not proven in-thread.
 
 ## Accepted Orca-Local Candidate Skills
 
-Orca does accept Orca-local candidate skills, but only specific, narrowly scoped
+Orca does accept Forseti-local candidate skills, but only specific, narrowly scoped
 ones like the product-lead method below — never broad, generic, or
 authority-claiming local skills. Acceptance is a LOCAL FREEZE only: it does not
 deploy, activate, or make the skill resolver-visible; that remains a separate
 skill-governance action under the Protected Skill Boundary.
 
-- `orca-product-lead` — accepted/frozen 2026-06-08; refreshed + re-frozen
+- `forseti-product-lead` — accepted/frozen 2026-06-08; refreshed + re-frozen
   2026-06-12 (owner-authorized skill-edit: thesis/wedge citations re-routed
   through the repo-map product-anchor rows after the consumer-demand
   ratification; both copies verified identical; closes ORCA-HYGIENE-019).
-  - Source path: `.agents/skills/orca-product-lead/SKILL.md` (Orca-local).
+  - Source path: `.agents/skills/forseti-product-lead/SKILL.md` (Forseti-local).
   - Source sha256: `37FD65B7833CE80AC251111C6D5E7A1F26C26106E948F2134BE5533340AA3510`
     (re-pinned 2026-06-16 after the product-lead adoption-record route
     reference moved from flat `docs/product/` to `docs/product/product_lead/`;
@@ -177,21 +177,21 @@ skill-governance action under the Protected Skill Boundary.
     artifact-folders, communication-style, validation-gates, source-loading,
     retrieval-metadata.
   - Deployment (2026-06-08): DEPLOYED/ACTIVATED for the Claude Code runtime as a
-    project-level copy at `.claude/skills/orca-product-lead/SKILL.md`
+    project-level copy at `.claude/skills/forseti-product-lead/SKILL.md`
     (byte-identical to source; same sha256). Project scope only — not user-global
     (`~/.claude/skills/`), not plugin, not external. Sync rule: the
     `.agents/skills/` file is source-of-record; on any source change, regenerate
     the `.claude/skills/` copy and re-pin the sha256 here. Activation needs one
     Claude Code restart to begin watching the newly-created `.claude/skills/`
-    directory. Invocation: `/orca-product-lead` (command name from the
+    directory. Invocation: `/forseti-product-lead` (command name from the
     directory), description auto-trigger, or the Skill tool. Codex /
     other-runtime activation is a separate target, not done here.
-  - Rollback: delete `.claude/skills/orca-product-lead/` (deployment copy) and/or
-    `.agents/skills/orca-product-lead/` (source); revert this record, the
+  - Rollback: delete `.claude/skills/forseti-product-lead/` (deployment copy) and/or
+    `.agents/skills/forseti-product-lead/` (source); revert this record, the
     acceptance policy bullet above, and the `.agents/skills/` entry in
     `artifact-folders.md`; no plugin / user-level / installed / external skill
     source is touched.
-  - Boundary: not Orca authority; Orca-local only; project-scoped (not
+  - Boundary: not Forseti authority; Forseti-local only; project-scoped (not
     user-global, not plugin, not external).
 
 ## Protected Skill Boundary
@@ -201,7 +201,7 @@ user-level, plugin-contributed, installed, or external source skills from
 ordinary Orca product work.
 
 Those actions require a separate explicit skill-governance authorization after
-resolver-visible collision checks and rollback planning. The Orca-local
+resolver-visible collision checks and rollback planning. The Forseti-local
 candidate lane above does not grant that authority.
 
 ## Rollback

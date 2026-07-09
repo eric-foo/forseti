@@ -13,8 +13,8 @@ use_when:
 open_next:
   - docs/review-outputs/capture_spine_runner_data_lake_v4_1_addendum_v0.md
   - docs/prompts/reviews/capture_runner_v4_1_blocker_adversarial_review_prompt_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-  - orca-harness/data_lake/root.py
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+  - forseti-harness/data_lake/root.py
 branch_or_commit: codex/ig-reels-capture-spine @ 558265a33031be973f3702d17164bf0f983f3d34
 stale_if:
   - root.py, the seam test, or the data-lake availability/root tests change.

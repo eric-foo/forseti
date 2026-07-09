@@ -19,8 +19,8 @@ entry_points:
   route_card: docs/workflows/forseti_repo_map_v0.md
   legacy_route_card: docs/workflows/orca_repo_map_v0.md
   product: forseti/product/README.md
-  legacy_product: orca/product/README.md
-  harness_compat: orca-harness/README.md
+  product_corpus: forseti/product/README.md
+  harness: forseti-harness/README.md
 
 # Exhaustive allowed top-level entries. Anything else at repo root is unplaced.
 known_top_level:
@@ -28,13 +28,16 @@ known_top_level:
     - .agents
     - .claude
     - .codex
-    - .git
+    - .github
+    - .githooks
     - docs
-    - forseti            # canonical Forseti identity/product root; new product entrypoints route through forseti/product/.
-    - orca               # legacy compatibility product root; most pre-Forseti product files still physically live under orca/product/ until a separate migration moves them.
-    - orca-harness       # legacy compatibility runtime harness root; no forseti-harness/ exists yet.
+    - forseti            # canonical Forseti identity/product root; product entrypoints route through forseti/product/.
+    - forseti-harness    # canonical runtime harness root.
+    - worktrees          # tracked lane pointer/metadata records; not a live source root.
   files:
+    - .gitattributes
     - .gitignore
+    - .tmp_head_restore.md
     - AGENTS.md
     - CLAUDE.md
     - README.md
@@ -54,7 +57,7 @@ docs_roles:
 
 # docs/product/ second-level lanes retired by spine-first migration Wave E.
 # Keep the schema key present; the canonical product front door is now
-# forseti/product/, with the larger legacy corpus still under orca/product/.
+# forseti/product/.
 product_lanes: []
 
 # Runtime/scratch: excluded from placement evaluation wherever they sit.
@@ -71,12 +74,11 @@ scratch_rules:
     - "pytest_source_observability_runner_tmp"
     - node_modules
 
-# Known pre-move debt the checker tolerates (WARN-only, never strict-fail).
-# Each entry is removed by the change that retires the debt.
+# Known placement exclusions the checker tolerates (WARN-only, never strict-fail).
 legacy_tolerated:
                                       # (single '*' never crosses '/' - lanes
                                       # are evaluated normally)
-  - "orca-harness/**"                 # harness INTERNAL layout is not evaluated
+  - "forseti-harness/**"                 # harness INTERNAL layout is not evaluated
                                       # in v0; top-level scratch noise retired by
                                       # the Phase-2 pytest/uv config consolidation
 
@@ -86,10 +88,13 @@ inbox:
 
 # Trees never evaluated for placement (config, VCS, worktrees, other repos).
 # Linked worktrees live OUTSIDE the repo in the sibling container
-# ../orca-worktrees/ (convention, 2026-06-11; git worktree list is the truth);
+# ../orca-worktrees/ (legacy local convention, 2026-06-11; git worktree list is the truth);
 # .codex/worktrees/ is the codex-managed in-repo exception.
 excluded:
   - .git
+  - .github
+  - .githooks
   - .claude
   - .codex
   - .agents          # governance internals; layout owned by the overlay itself
+  - worktrees        # tracked lane pointer/metadata records; not evaluated as source

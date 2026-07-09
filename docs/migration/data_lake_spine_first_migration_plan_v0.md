@@ -16,7 +16,7 @@ open_next:
   - docs/migration/data_lake_spine_first_migration_inventory_v0.md
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
   - docs/decisions/orca_repo_structure_binding_v0.md
-  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+  - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
   - docs/workflows/orca_repo_map_v0.md
 stale_if:
   - The spine-first workspace proposal is accepted, rejected, or materially amended.

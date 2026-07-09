@@ -15,10 +15,10 @@ use_when:
   - Preventing Reddit capture/consolidation rows from becoming storage, source-quality verdicts, fixture admission, ECR, Cleaning, Judgment, or production monitoring by implication.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/README.md
-  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/README.md
+  - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
 stale_if:
   - Reddit source-access order, CloakBrowser backend selection, or `.json` posture changes.
   - The Source Capture Armory packet shape, lifecycle, source-quality profile, queue template, or state assembler changes.

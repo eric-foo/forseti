@@ -16,7 +16,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/delegated-review-patch.md
-  - orca/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_phase0_semantics_spec_v0.md
+  - forseti/product/spines/judgment/learning_loops/far_half/prospective_decision_loop_phase0_semantics_spec_v0.md
 input_hashes:
   docs/product/judgment_spine/prospective_decision_loop_phase0_semantics_spec_v0.md: 0eb599c15a99182f2d2c8870bbd786bfcd8592837e513d50d0ab116ea30f7e10 (SHA256 over git blob bytes at a3ddd6d, per the bound hash convention; not CRLF working-tree bytes)
 branch_or_commit: phase0-semantics-spec-v0 @ a3ddd6d (PR #46, base main @ 64c442a)

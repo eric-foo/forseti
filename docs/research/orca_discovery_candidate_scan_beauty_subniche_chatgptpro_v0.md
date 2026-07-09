@@ -16,8 +16,8 @@ authority_boundary: retrieval_only
 open_next:
   - docs/prompts/product-planning/chatgptpro_beauty_subniche_research_prompt_v0.md
   - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
-  - orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
-  - orca/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
+  - forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md
+  - forseti/product/spines/product_lead/icp_wedge/orca_discovery_consumer_demand_target_selection_brief_v0.md
 stale_if:
   - A verified no-contact candidate scan supersedes this external intake.
   - The buyer-proof gate, first commercial target, or demand-read taxonomy changes.

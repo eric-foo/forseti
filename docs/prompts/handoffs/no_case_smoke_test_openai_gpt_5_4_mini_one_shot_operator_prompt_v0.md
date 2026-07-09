@@ -13,7 +13,7 @@ open_next:
   - docs/decisions/no_case_smoke_test_authorization_openai_gpt_5_4_mini_20260601_v0.md
   - docs/research/judgment-spine/harness/v0_14/no_case_smoke_test_authorization_checklist_v0.md
   - docs/research/judgment-spine/harness/v0_14/contestant_no_tools_execution_contract_v0.md
-  - orca-harness/runners/run_memorization_probe_raw_api.py
+  - forseti-harness/runners/run_memorization_probe_raw_api.py
 input_hashes:
   docs/decisions/no_case_smoke_test_authorization_openai_gpt_5_4_mini_20260601_v0.md: 377D834A70F4B38ACD4A419290394DFD1B5C7A2F1957146DEBEE5B29867DB52B
   docs/review-outputs/adversarial-artifact-reviews/no_case_smoke_test_authorization_openai_gpt_5_4_mini_adversarial_artifact_review_v0.md: F883F0EB19B87F4369CE1704BA39D6D727AC27BABC9693ECC7B4042FA8715E7B

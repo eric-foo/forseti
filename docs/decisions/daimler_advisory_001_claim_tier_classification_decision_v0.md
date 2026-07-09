@@ -10,7 +10,7 @@ use_when:
   - Preventing no-run or no-output run-control surfaces from being converted into stronger claims.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+  - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
   - docs/decisions/daimler_advisory_run_001_authorization_record_v0.md
   - docs/prompts/handoffs/daimler_advisory_run_001_manual_execution_handoff_v0.md
   - docs/prompts/wrappers/daimler_advisory_run_001_manual_execution_handoff_wrapper_v0.md

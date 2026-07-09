@@ -16,8 +16,8 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/source-loading.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/orca_creator_momentum_pipeline_architecture_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_discovery_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/orca_creator_momentum_pipeline_architecture_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_discovery_spec_v0.md
   - docs/decisions/wind_caller_calibration_carveout_v0.md
 stale_if:
   - `main` is updated past local `origin/main` or the receiver is not on the recorded HEAD/ref.

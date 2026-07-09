@@ -16,9 +16,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - .gitignore
 source_base_revision: codex/data-lake-medallion-contract @ ffb22cae
 prompt_branch: codex/data-lake-physicality-location-prompt

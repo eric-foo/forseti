@@ -15,7 +15,7 @@ use_when:
   - Drafting the architecture contract or DCP receipt that would ratify it.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/workflows/reddit_graph_frontier_b2b_marketing_traversal_record_v0.md
 stale_if:
   - The capture-spine no-body/comment hard stop is formally amended (this becomes the ratified record).

@@ -14,10 +14,10 @@ use_when:
   - Preventing ad, sponsorship, demand, bot, credibility, or action-use conclusions from entering non-Judgment lanes.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
-  - orca/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
+  - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
-  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
   - IG creator-grid runner, parser, row identity, source surfaces, static-row handling, or candidate preservation changes.
   - Projection doctrine changes mechanical-only, no-salience, loss-ledger, or carry-or-residualize rules.

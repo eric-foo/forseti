@@ -17,9 +17,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/ecr_spine_submap_v0.md
-  - orca-harness/source_capture/ig_reels_grid_projection.py
+  - forseti-harness/source_capture/ig_reels_grid_projection.py
   - docs/workflows/ig_reels_capture_to_projection_ecr_cleaning_handoff_v0.md
-  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 stale_if:
   - The IG reels projection row contract (row_id / raw_ref / raw_anchor / join_status /
     source_surface_count_candidates) changes shape.

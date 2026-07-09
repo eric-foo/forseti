@@ -13,7 +13,7 @@ use_when:
   - Dispatching the cross-family review+patch of the ECR consolidation v0 plan.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md
+  - forseti/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md
   - .agents/workflow-overlay/review-lanes.md
 input_hashes:
   docs/product/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md: 609768AEAB398A8FDDFC2D7B5EBBC1053682E3FD366A1481B54A3E137D8EF5CF

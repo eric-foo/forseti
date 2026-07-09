@@ -55,7 +55,7 @@ Validation reports must preserve failure visibility by bucket:
   (c) single-source any value otherwise enumerated in multiple places (enumerate
   once; reference it). This gate is a check, not validation or readiness
   evidence; its presence does not prove any artifact passes it. Lifecycle:
-  Orca-local adoption of general authoring/review discipline, not Orca-owned
+  Forseti-local adoption of general authoring/review discipline, not Forseti-owned
   doctrine; it is a candidate for future skill-source adoption and becomes
   stale here if an equivalent accepted skill-source rule is adopted.
 - New or materially touched durable human-authored workflow artifacts follow
@@ -78,7 +78,7 @@ Validation reports must preserve failure visibility by bucket:
   carry the start-preflight fields owned by
   `.agents/workflow-overlay/source-loading.md`.
 - Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Orca overlay file.
-- Source-resolution gate: external workflow sources do not provide Orca authority; installed skills are deployment copies; `jb` project policy must not be imported.
+- Source-resolution gate: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy must not be imported.
 - Worktree preflight gate: repository-aware prompts must state workspace, revision or hash when needed, dirty-state allowance, target scope, and edit permission.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Orca
@@ -176,7 +176,7 @@ Validation reports must preserve failure visibility by bucket:
   buyer-proof, advisory, backtest, fixture, model-run, scoring, memo, deck,
   calibration, architecture, spec, prompt, wrapper, and runbook artifacts must
   classify the claim tier and closeout state using
-  `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` before
+  `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` before
   making proof, readiness, validation, fixture-admission, scoring,
   blind-use-readiness, or judgment-quality claims. Product-Learning evidence
   cannot be reused as Buyer-Proof or Judgment-Quality evidence without the
@@ -287,7 +287,7 @@ direction_change_propagation:
       reason: >
         Out of scope and already covered by jb's own evidence/claim discipline;
         Orca must not edit jb authority.
-    - path: orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md and the JS gate/owner-contract docs
+    - path: forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md and the JS gate/owner-contract docs
       reason: >
         They already encode this discipline for Judgment Spine gates (e.g., the
         no-tools contract Receipt Provenance Boundary). This overlay gate

@@ -12,7 +12,7 @@ use_when:
   - Checking the license posture (research-only vs commercial-clear) of a creator dataset before use.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
 stale_if:
   - A new creator-engagement dataset or provider materially changes the menu.
   - The owner accepts a wedge / proof decision that supersedes this plan.

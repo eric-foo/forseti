@@ -1,5 +1,0 @@
-# Placeholder so the spine-first product root (orca/product/) exists as a tracked
-# directory from Wave B (structural commit), satisfying repo-structure.yaml
-# known_top_level: orca and check_placement freshness. Wave C moves the product
-# files in (git mv populates orca/product/spines|satellites|case_families|shared);
-# this placeholder may be removed once real content lands.

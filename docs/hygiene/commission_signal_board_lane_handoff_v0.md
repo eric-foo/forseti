@@ -15,8 +15,8 @@ open_next:
   - .agents/workflow-overlay/source-loading.md
   - .agents/workflow-overlay/artifact-folders.md
   - docs/workflows/orca_repo_map_v0.md
-  - orca/product/spines/commission_signal_board/README.md
-  - orca/product/spines/commission_signal_board/spine.yaml
+  - forseti/product/spines/commission_signal_board/README.md
+  - forseti/product/spines/commission_signal_board/spine.yaml
 branch_or_commit: main @ c449b0f97906b4be1ccfee7ef734ba54f5b55df1
 stale_if:
   - The CSB spine is renamed, retired, merged into another spine, or moved out of orca/product/spines/commission_signal_board/.

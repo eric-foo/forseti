@@ -10,9 +10,9 @@ use_when:
   - Checking what is built vs declared-but-dormant vs frozen, without bulk-loading every ECR/SCR artifact.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
-  - orca/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md
-  - orca-harness/ecr/__init__.py
+  - forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
+  - forseti/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md
+  - forseti-harness/ecr/__init__.py
 downstream_consumers:
   - JSG-01 conductor (UNFROZEN 2026-06-12 by the owner's dated act, docs/decisions/jsg01_unfreeze_decision_v0.md; evaluable, clears no case (Case) until an authorized run) — the reader of the records this spine produces; nothing under this map authorizes runs or clears cases.
 stale_if:
@@ -35,9 +35,9 @@ stale_if:
 
 Three stacked layers over one captured source slice — **linked by key, never collapsed:**
 
-- **Provenance** — *that a capture happened* + how to trust the bytes. `SourceCapturePacket` (CapturePacket) (`orca-harness/source_capture/`).
-- **Integrity** — *can I trust the saying.* ECR postures: SP-1 identity / SP-2 inspectability / SP-3 timing-cutoff / SP-6 source-visibility (`orca-harness/ecr/`).
-- **Content** — *what the signal says.* The Signal Content Record (`orca-harness/signal_content/`).
+- **Provenance** — *that a capture happened* + how to trust the bytes. `SourceCapturePacket` (CapturePacket) (`forseti-harness/source_capture/`).
+- **Integrity** — *can I trust the saying.* ECR postures: SP-1 identity / SP-2 inspectability / SP-3 timing-cutoff / SP-6 source-visibility (`forseti-harness/ecr/`).
+- **Content** — *what the signal says.* The Signal Content Record (`forseti-harness/signal_content/`).
 
 The cross-kind invariants the spine runs on (stated here for orientation only — the owner doc holds the authority):
 
@@ -51,39 +51,39 @@ The cross-kind invariants the spine runs on (stated here for orientation only �
 
 | I need to... | Open |
 | --- | --- |
-| Understand the content layer's locked direction + invariants | `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` |
-| Build/review the SCR deriver (carry-or-residualize, per-slice grain, the D2 event-time amendment) | `orca/product/spines/ecr/signal_content/signal_content_record_deriver_architecture_plan_v0.md` (see **Amendment v0.1**) |
-| Understand the ECR frame (the M1/M2/M3 binding rule + INV-1..5) and the SP-6 source-visibility slice | `orca/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md` |
-| Bind SP-1 identity / SP-2 inspectability / SP-3 timing-cutoff to committed producer fields | `orca/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_sp1_sp2_sp3_source_side_slice_plan_v0.md` |
-| Decide SP-6 derivation ownership + mechanical rule shape | `orca/product/spines/judgment/source_side_receipts/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md`, `..._routing_v0.md` |
-| See where the source-side fields + closed allowed-values came from (interim translator) | `orca/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md` |
-| Check the schema-evolution doctrine the spine inherits | `orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md` |
-| Inspect the built ECR integrity derivers (SP-1/2/3/6) + models | `orca-harness/ecr/` |
-| Inspect the built Signal Content Record deriver + model | `orca-harness/signal_content/` |
-| Record an out-of-band SP-5 finalization act (`FinalizationReceipt` producer) | `orca-harness/runners/run_finalization_receipt.py` (model + validate-only consumer: `orca-harness/schemas/finalization_models.py`) |
-| Bind what JSG-01 reads onto one case-packet evidence unit (EvidenceUnit) (three-key binding + composer) | `orca-harness/evidence_binding/` (ratified contract: boundary doc → "JSG-01-scoped EvidenceUnit binding contract RATIFIED") |
-| Inspect the tests | `orca-harness/tests/unit/test_ecr_*`, `orca-harness/tests/unit/test_signal_content_*`, `orca-harness/tests/unit/test_finalization_models.py`, `orca-harness/tests/unit/test_run_finalization_receipt.py` |
+| Understand the content layer's locked direction + invariants | `forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` |
+| Build/review the SCR deriver (carry-or-residualize, per-slice grain, the D2 event-time amendment) | `forseti/product/spines/ecr/signal_content/signal_content_record_deriver_architecture_plan_v0.md` (see **Amendment v0.1**) |
+| Understand the ECR frame (the M1/M2/M3 binding rule + INV-1..5) and the SP-6 source-visibility slice | `forseti/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md` |
+| Bind SP-1 identity / SP-2 inspectability / SP-3 timing-cutoff to committed producer fields | `forseti/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_sp1_sp2_sp3_source_side_slice_plan_v0.md` |
+| Decide SP-6 derivation ownership + mechanical rule shape | `forseti/product/spines/judgment/source_side_receipts/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md`, `..._routing_v0.md` |
+| See where the source-side fields + closed allowed-values came from (interim translator) | `forseti/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md` |
+| Check the schema-evolution doctrine the spine inherits | `forseti/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md` |
+| Inspect the built ECR integrity derivers (SP-1/2/3/6) + models | `forseti-harness/ecr/` |
+| Inspect the built Signal Content Record deriver + model | `forseti-harness/signal_content/` |
+| Record an out-of-band SP-5 finalization act (`FinalizationReceipt` producer) | `forseti-harness/runners/run_finalization_receipt.py` (model + validate-only consumer: `forseti-harness/schemas/finalization_models.py`) |
+| Bind what JSG-01 reads onto one case-packet evidence unit (EvidenceUnit) (three-key binding + composer) | `forseti-harness/evidence_binding/` (ratified contract: boundary doc → "JSG-01-scoped EvidenceUnit binding contract RATIFIED") |
+| Inspect the tests | `forseti-harness/tests/unit/test_ecr_*`, `forseti-harness/tests/unit/test_signal_content_*`, `forseti-harness/tests/unit/test_finalization_models.py`, `forseti-harness/tests/unit/test_run_finalization_receipt.py` |
 | Reach the upstream provenance layer (the packet this all keys to) | `docs/workflows/data_capture_spine_consolidation_map_v0.md` (capture submap) |
-| Check logical data-lake mechanics across capture, projection, ECR/SCR, Cleaning, and Judgment | `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md` |
+| Check logical data-lake mechanics across capture, projection, ECR/SCR, Cleaning, and Judgment | `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md` |
 
 ## Current Reality Snapshot
 
-- **Built + committed (clean working tree; unit tests under `orca-harness/tests/unit/`):** the four ECR integrity postures — SP-1 identity, SP-2 inspectability, SP-3 timing-cutoff, SP-6 source-visibility — in `orca-harness/ecr/`, and the Signal Content Record deriver in `orca-harness/signal_content/`. Each at its own true grain; pure; binds no Evidence Unit. *Implementation reality is the code — check it there; plan docs may run ahead of or behind it. Review history lives in the owning plan docs and the commit log.*
+- **Built + committed (clean working tree; unit tests under `forseti-harness/tests/unit/`):** the four ECR integrity postures — SP-1 identity, SP-2 inspectability, SP-3 timing-cutoff, SP-6 source-visibility — in `forseti-harness/ecr/`, and the Signal Content Record deriver in `forseti-harness/signal_content/`. Each at its own true grain; pure; binds no Evidence Unit. *Implementation reality is the code — check it there; plan docs may run ahead of or behind it. Review history lives in the owning plan docs and the commit log.*
 - **Declared-but-dormant:** the SCR **authored-interpretation lane** (`signal_family` + event-core). The deriver residualizes that core today (the default) because no authored-classification input / SP-5-style finalizer exists in source. A named, typed seam — not built (the SP-6 precedent).
-- **Built (SP-5 finalization, judgment-lane sibling):** the `FinalizationReceipt` model + validate-only consumer (`orca-harness/schemas/finalization_models.py`, committed `a37f896`) and the operator-driven producer recording the out-of-band act (`orca-harness/runners/run_finalization_receipt.py`; cross-vendor reviewed + adjudicated). Binds no Evidence Unit; clears no case.
-- **Ratified + built (JSG-01-scoped composition layer):** the **JSG-01-scoped EvidenceUnit binding** (three-key `Jsg01EvidenceBinding` + pure no-aggregate-verdict composer; owner-ratified 2026-06-12 at the boundary doc; code in `orca-harness/evidence_binding/`, cross-vendor reviewed + adjudicated). Scoped to exactly what the JSG-01 predicate reads; the full field-by-field Evidence Unit schema stays reserved.
+- **Built (SP-5 finalization, judgment-lane sibling):** the `FinalizationReceipt` model + validate-only consumer (`forseti-harness/schemas/finalization_models.py`, committed `a37f896`) and the operator-driven producer recording the out-of-band act (`forseti-harness/runners/run_finalization_receipt.py`; cross-vendor reviewed + adjudicated). Binds no Evidence Unit; clears no case.
+- **Ratified + built (JSG-01-scoped composition layer):** the **JSG-01-scoped EvidenceUnit binding** (three-key `Jsg01EvidenceBinding` + pure no-aggregate-verdict composer; owner-ratified 2026-06-12 at the boundary doc; code in `forseti-harness/evidence_binding/`, cross-vendor reviewed + adjudicated). Scoped to exactly what the JSG-01 predicate reads; the full field-by-field Evidence Unit schema stays reserved.
 - **Deferred / reserved (named, not owned here):** the field-by-field Evidence Unit schema; D2; Cleaning; Judgment; run authorization. Each separately gated. (The JSG-01 unfreeze was performed by the owner's dated act, 2026-06-12.)
-- **Cross-layer mechanics map:** `orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md`
+- **Cross-layer mechanics map:** `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md`
   records the planning-only by-key flow from raw capture through projection,
   ECR/SCR, Cleaning, and Judgment. It does not select storage, schema, or
   implementation.
 
 ## Owners By Layer
 
-- **Provenance (capture):** `docs/workflows/data_capture_spine_consolidation_map_v0.md` → `orca-harness/source_capture/`.
-- **Integrity (ECR postures):** frame + SP-6 slice — `orca/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md`; SP-1/2/3 — `orca/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_sp1_sp2_sp3_source_side_slice_plan_v0.md`; SP-6 derivation ownership/rule — `orca/product/spines/judgment/source_side_receipts/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md` (+ `..._routing_v0.md`); origin of the closed values — `orca/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md`. Code: `orca-harness/ecr/`.
-- **Content (SCR):** direction + invariants — `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md`; deriver contract — `orca/product/spines/ecr/signal_content/signal_content_record_deriver_architecture_plan_v0.md`. Code: `orca-harness/signal_content/`.
-- **Shared discipline:** schema evolution — `orca/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md`; data/cleaning boundary — `core_spine_v0_data_and_cleaning_spine_boundary_v0.md`.
+- **Provenance (capture):** `docs/workflows/data_capture_spine_consolidation_map_v0.md` → `forseti-harness/source_capture/`.
+- **Integrity (ECR postures):** frame + SP-6 slice — `forseti/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md`; SP-1/2/3 — `forseti/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_sp1_sp2_sp3_source_side_slice_plan_v0.md`; SP-6 derivation ownership/rule — `forseti/product/spines/judgment/source_side_receipts/jsg01_sp6_source_visibility_derivation_architecture_plan_v0.md` (+ `..._routing_v0.md`); origin of the closed values — `forseti/product/spines/judgment/source_side_receipts/jsg01_source_side_receipt_translator_v0.md`. Code: `forseti-harness/ecr/`.
+- **Content (SCR):** direction + invariants — `forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md`; deriver contract — `forseti/product/spines/ecr/signal_content/signal_content_record_deriver_architecture_plan_v0.md`. Code: `forseti-harness/signal_content/`.
+- **Shared discipline:** schema evolution — `forseti/product/spines/capture/core/packet_schema/source_capture_packet_schema_evolution_architecture_v0.md`; data/cleaning boundary — `core_spine_v0_data_and_cleaning_spine_boundary_v0.md`.
 - **Downstream consumer:** the JSG-01 conductor (unfrozen 2026-06-12; evaluable, clears no case until an authorized run) — the final Evidence Unit field architecture stays owner-reserved; boundary in `.agents/workflow-overlay/safety-rules.md`.
 
 ## Non-Claims

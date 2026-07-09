@@ -18,11 +18,11 @@ open_next:
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md
   - .agents/workflow-overlay/source-loading.md
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
-  - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+  - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
   - docs/decisions/orca_venue_registry_rejection_decision_v0.md
-  - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+  - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
 input_hashes_sha256_worktree:
   scanning_intelligent_walk_mgt_operating_model: 35E57952D9092F5B91E67BDB43FDD4EA5FAE6006D07CF47D3F0B54A41374BA74
   vertical_exploration_guide: A7E7983A939687A2AA5C2A391ED6FCFF0A945BF0675EE6C11A43071D7C4AF0C3

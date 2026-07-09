@@ -12,8 +12,8 @@ open_next:
   - .agents/workflow-overlay/delegated-review-patch.md
   - .agents/workflow-overlay/review-lanes.md
   - .agents/workflow-overlay/prompt-orchestration.md
-  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
-  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md
 input_hashes:
   candidate_url_intake_contract: 1D2BD160E94DF7A016ECB172FD0179244A135D1308CBFC0CA10D00692964E308

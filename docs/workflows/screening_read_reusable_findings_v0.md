@@ -13,8 +13,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/screening_read_service_build_receipt_v0.md
-  - orca-harness/source_capture/screening_browser_read.py
-  - orca-harness/source_capture/screening_extraction.py
+  - forseti-harness/source_capture/screening_browser_read.py
+  - forseti-harness/source_capture/screening_extraction.py
 stale_if:
   - `screening_browser_read.py` changes what it classifies or returns.
   - `screening_extraction.py` changes `StructuredListingExtractionSpec` semantics.

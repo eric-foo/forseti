@@ -11,7 +11,7 @@ use_when:
   - Checking what the delegated artifact review found and what the CA kept.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_anti_blocking_http_ladder_daimler_rung_resolution_closeout_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_anti_blocking_http_ladder_daimler_rung_resolution_closeout_v0.md
   - docs/prompts/reviews/source_capture_anti_blocking_http_ladder_daimler_closeout_delegated_adversarial_artifact_review_and_patch_prompt_v0.md
 ```
 

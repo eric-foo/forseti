@@ -10,9 +10,9 @@ use_when:
   - Confirming that source-access implementation, archive retrieval, media capture implementation, browser automation, contract hardening, ECR, Cleaning, and Judgment work remain out of scope.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/operating_model/data_capture_spine_source_observability_requirements_scoping_v0.md
+  - forseti/product/spines/capture/core/operating_model/data_capture_spine_source_observability_requirements_scoping_v0.md
   - docs/decisions/data_capture_spine_source_observability_scoping_authorization_v0.md
-  - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_all_slot_synthesis_v0.md
+  - forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_all_slot_synthesis_v0.md
   - docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_pressure_test_all_slot_synthesis_blast_radius_recheck_v0.md
 stale_if:
   - A later owner decision supersedes this authorization.

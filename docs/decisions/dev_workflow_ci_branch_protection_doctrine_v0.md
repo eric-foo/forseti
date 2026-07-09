@@ -19,7 +19,7 @@ open_next:
 
 Accepted 2026-06-09 (owner sign-off, eric-foo); amended 2026-06-09 to record the enforcement outcome.
 
-- **Live:** CI (`.github/workflows/ci.yml`) runs the orca-harness suite on every `pull_request` and
+- **Live:** CI (`.github/workflows/ci.yml`) runs the forseti-harness suite on every `pull_request` and
   on `push` to `main`; verified green on both triggers (see Enforcement status).
 - **Blocked:** the server-side hard merge gate (branch protection / rulesets) and `allow_auto_merge`
   are **not available** on this repository — it is private on a free plan, and GitHub returns HTTP
@@ -64,13 +64,13 @@ This record does not assert that any server-side gate is active. It is not.
 
 ## Decision
 
-1. **CI.** A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the orca-harness test suite
+1. **CI.** A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the forseti-harness test suite
    on every `pull_request` and on `push` to `main`: Ubuntu, Python 3.12, `pip install -e .`
-   (orca-harness core dependencies only) plus a pinned `pytest`, then `python -m pytest` from
-   `orca-harness/`. Single target — no version matrix, no path-filter, no dependency caching.
+   (forseti-harness core dependencies only) plus a pinned `pytest`, then `python -m pytest` from
+   `forseti-harness/`. Single target — no version matrix, no path-filter, no dependency caching.
 2. **Branch protection on `main`** (TARGET — deferred; blocked on this private+free repo, see
    Status). When enabled it requires:
-   - the `orca-harness-tests` status check to pass;
+   - the `forseti-harness-tests` status check to pass;
    - a pull request before merging (`required_approving_review_count: 0`; under this *server-gated
      target* a solo lane could self-merge once green — the current interim (structure B′, item 7)
      approximates this locally: the guard allows an agent self-merge only on a CLEAN + CI-green +
@@ -113,7 +113,7 @@ This record does not assert that any server-side gate is active. It is not.
    `strict: false`, so this stays a lane responsibility rather than a server requirement.
 7. **Interim enforcement — structure B′ (guard-verified CLEAN self-merge; else human-landed).** Until
    a server-side gate is available, agents **prepare** green PRs — push their own lane branch, open the
-   PR, confirm the `orca-harness-tests` check is green. An agent **may self-merge its own PR** with a
+   PR, confirm the `forseti-harness-tests` check is green. An agent **may self-merge its own PR** with a
    direct `gh pr merge <N>`, but **only when the protected-action guard
    (`.agents/hooks/guard_protected_actions.py`) confirms the PR is `mergeStateStatus == CLEAN`, every
    CI check has completed green, and it carries the opt-in `agent-automerge` label.** Every other case
@@ -121,14 +121,14 @@ This record does not assert that any server-side gate is active. It is not.
    or failing checks, an empty check set, a missing/ambiguous PR number, the no-arg form, the
    lower-level `gh api .../merge` form, a foreign `--repo`, or any lookup error/timeout — **fails
    closed**: the guard blocks (exit 2) and prints the repo-scoped manual command
-   (`gh pr merge <N> --squash --delete-branch --repo eric-foo/orca`) for a human to run from anywhere.
+   (`gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`) for a human to run from anywhere.
    Push to `main`, force-push, and destructive `reset --hard` / `clean` stay hard-blocked; a benign
    lane-branch push stays allowed. **Why CLEAN + green + label, not bare CLEAN:** on this repo branch
    protection is 403-blocked, so no check is *required* and an empty/early check set can read `CLEAN`
    before CI even starts — requiring the rollup present-and-green (plus an explicit opt-in label)
    closes that false-green race and makes self-merge a deliberate, auditable act. The **opt-in label
    is the agent's deliberate marker**; one-time setup `gh label create agent-automerge --repo
-   eric-foo/orca` makes it applyable, and absent the label nothing auto-merges. **Liveness (durable on
+   eric-foo/forseti` makes it applyable, and absent the label nothing auto-merges. **Liveness (durable on
    `main`):** the guard and its `.claude/settings.json` PreToolUse registration are **durable on
    `main`** — they landed via PR #15 (then in block-all-merges form) and are verified tracked +
    registered on `origin/main`; this amendment relaxes the guard to the CLEAN-gated form, and **a human
@@ -171,7 +171,7 @@ This record does not assert that any server-side gate is active. It is not.
    `pull-requests: write`, since the repo default is read-only) and is **not** subject to the PreToolUse
    guard, so it carries its **own** guardrails in code: the `agent-automerge` label, the
    deterministic router label `risk/auto-merge-eligible`, no `risk/manual-review-required` or
-   `risk/blocked-for-merge-policy` label, `mergeable == MERGEABLE`, the `orca-harness-tests` check
+   `risk/blocked-for-merge-policy` label, `mergeable == MERGEABLE`, the `forseti-harness-tests` check
    green (and no failing/pending check), **`behind_by == 0` (up-to-date with `main`)**, **one merge
    per run** (safe serialization — there is no native merge queue), and squash + delete-branch. The
    up-to-date guard is **stricter than** the in-session guard
@@ -362,7 +362,7 @@ re-derivable and is re-run by CI on every PR; it is not a self-asserted pass.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Orca now has a developer-workflow doctrine: CI runs the orca-harness test suite on every PR and
+    Orca now has a developer-workflow doctrine: CI runs the forseti-harness test suite on every PR and
     push to main (live), behind a per-lane PR off main with a squash default and a rebase cadence.
     The server-side hard merge gate (branch protection / rulesets) and auto-merge are the deferred
     target — blocked on this private+free repo (HTTP 403) — so interim enforcement is a
@@ -797,7 +797,7 @@ direction_change_propagation:
     Where the guard lets the in-session agent self-merge a CLEAN + green + agent-automerge-labeled PR,
     this workflow lands the SAME opt-in PRs with no agent session, triggered on CI completion plus a
     3-hour cron backstop and workflow_dispatch. It carries its own in-code guardrails: the
-    agent-automerge label, mergeable == MERGEABLE, orca-harness-tests green (no failing/pending check),
+    agent-automerge label, mergeable == MERGEABLE, forseti-harness-tests green (no failing/pending check),
     behind_by == 0 (up-to-date with main), one merge per run, and squash + delete-branch. It uses an
     immediate `gh pr merge --squash` that does NOT need the 403-blocked allow_auto_merge, so it is an
     interim unattended auto-merge, NOT the deferred server-side gate. The EP-03 guard and
@@ -820,7 +820,7 @@ direction_change_propagation:
         documented residual and a deferred enforcement-lane follow-on, not closed here.
     - path: .github/workflows/ci.yml
       reason: >
-        Referenced by the bot's workflow_run trigger (workflows: [ci]) and as the orca-harness-tests
+        Referenced by the bot's workflow_run trigger (workflows: [ci]) and as the forseti-harness-tests
         green gate; its content is unchanged.
     - path: .agents/workflow-overlay/safety-rules.md
       reason: >

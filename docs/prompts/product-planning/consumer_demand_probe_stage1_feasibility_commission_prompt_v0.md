@@ -30,7 +30,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md   # the authorization (Owner Decision Record, ask 3 + addendum)
   - docs/decisions/orca_product_thesis_consumer_demand_v0.md               # OWNER_LOCKED; central read + falsifiers the probe tests
-  - orca/product/case_families/product_learning/fragrance/consumer_demand_candidate_pool_handoff_v0.md   # candidate input (facilitator-side; outcome-bearing)
+  - forseti/product/case_families/product_learning/fragrance/consumer_demand_candidate_pool_handoff_v0.md   # candidate input (facilitator-side; outcome-bearing)
 input_hashes:
   docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md: 7911CC00BDD486DC9661632B6A9C28D097A492A176646EF4B081899F2EC13195
   docs/decisions/orca_product_thesis_consumer_demand_v0.md: B119E24691066E4772E0CFD4051C3C9C8214ED3A91F8775658E45B77DB0723F1

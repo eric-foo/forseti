@@ -7,7 +7,7 @@ scope: Canonical Forseti product-tree entrypoint during identity convergence.
 use_when:
   - Starting product-surface work in Forseti.
   - Finding the accepted Aphrodite / Creator Signal product records.
-  - Checking which Orca-named roots are still legacy compatibility paths.
+  - Checking the live Forseti product root.
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/forseti_repo_map_v0.md
@@ -17,16 +17,13 @@ open_next:
   - forseti/product/spines/foundation/ontology/README.md
   - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml
 stale_if:
-  - The physical product corpus under orca/product/ is migrated into forseti/product/.
-  - A later accepted product-tree binding supersedes the legacy compatibility posture.
+  - A later accepted product-tree binding supersedes this front door.
 ```
 
 ## Canonical Route
 
-Forseti is the canonical project and product identity. New product entrypoints
-and newly accepted product artifacts route through `forseti/product/` unless the
-work is a narrow update to an existing legacy owner that still physically lives
-under `orca/product/`.
+Forseti is the canonical project and product identity. Product entrypoints and
+newly accepted product artifacts route through `forseti/product/`.
 
 ## Current Live Forseti Product Areas
 
@@ -37,14 +34,12 @@ under `orca/product/`.
   needed by the Aphrodite D-1 rehearsal. Start at
   `forseti/product/spines/foundation/ontology/README.md`.
 
-## Legacy Compatibility Roots
-
-- `orca/product/`: legacy product corpus. Most pre-Forseti product and spine
-  owners still physically live there; do not mass-move them in a writing lane
-  unless a separate migration explicitly authorizes it.
-- `orca-harness/`: legacy runtime harness root. No `forseti-harness/` directory
-  exists in this workspace yet; use the legacy harness path when a live harness
-  file is required.
+- `forseti/product/spines/`: Product spines for foundation, commission signal
+  board, scanning, capture, ECR, cleaning, judgment, product lead, data lake,
+  and creator signal.
+- `forseti/product/satellites/`, `forseti/product/case_families/`, and
+  `forseti/product/shared/`: Product satellites, case-family records, and shared
+  product material.
 
 ## Aphrodite D-1 Fast Route
 
@@ -61,5 +56,4 @@ Open these live files for the D-1 bundle:
 ## Non-Claims
 
 This README is navigation only. It is not validation, readiness, buyer proof,
-source promotion, build authorization, runtime authorization, or evidence that
-the legacy physical-root migration is complete.
+source promotion, build authorization, or runtime authorization.

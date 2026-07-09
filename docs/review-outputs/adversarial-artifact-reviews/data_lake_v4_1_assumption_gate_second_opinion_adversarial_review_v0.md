@@ -18,8 +18,8 @@ use_when:
 open_next:
   - docs/review-outputs/adversarial-artifact-reviews/capture_runner_v4_1_blocker_adversarial_review_v0.md
   - docs/review-outputs/capture_spine_runner_data_lake_v4_1_addendum_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-  - orca-harness/data_lake/root.py
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+  - forseti-harness/data_lake/root.py
 branch_or_commit: codex/ig-reels-capture-spine @ 49f8bc81
 stale_if:
   - The v4.1 forward-epoch contract lands on origin/main, is rejected, or materially changes.

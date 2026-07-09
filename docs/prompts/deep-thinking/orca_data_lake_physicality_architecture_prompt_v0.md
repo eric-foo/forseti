@@ -14,10 +14,10 @@ use_when:
   - Stress-testing by-key discovery, append-only records, rebuildable indexes, and queue deferral.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-  - orca/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+  - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+  - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
 stale_if:
   - A later owner decision selects storage engine, manifest version, sidecar layout, queue/runtime, or migration path.
   - Data Lake raw/attachment/derived-record ownership changes.

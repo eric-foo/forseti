@@ -16,10 +16,10 @@ use_when:
   - Deciding how much to invest in judgment-quality machinery vs product-learning.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
-  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+  - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
+  - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
   - docs/research/judgment-spine/cases/canoo-walmart/case_index.md
-  - orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md   # claims posture while the gap stands (dated note below)
+  - forseti/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md   # claims posture while the gap stands (dated note below)
 stale_if:
   - The conductor's case-selection posture, the by-hand cap, or the probe's role changes.
   - The evidence ladder changes its tier vocabulary.

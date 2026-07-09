@@ -91,7 +91,7 @@ Core field rules:
 `retrieval_only` means the header helps agents find and interpret the artifact.
 It does not create, upgrade, or imply:
 
-- Orca authority beyond the artifact's existing authority;
+- Forseti authority beyond the artifact's existing authority;
 - validation proof;
 - approval;
 - readiness;
