@@ -24,6 +24,33 @@ stale_if:
   - The capture playbook changes the caller-bound detail-sufficiency rule.
 ```
 
+## Disposition (2026-07-10) — Active Objective executed once and DEFERRED by owner
+
+Read this before acting on the packet. It supersedes the Active Objective and
+Exact Next Authorized Action below for sequencing purposes; the packet's
+capture facts, evidence boundary, candidate ledger, and drift guard remain
+valid.
+
+- The answer-strategy pilot named below **was executed once** on lane
+  `claude/quora-b2b-answer-strategy-0439af` (2026-07-10): the load contract was
+  completed (calibration record and delegated review re-read and hash-matched),
+  the three recommended-default units were drafted and validated, and the owner
+  then **dropped the draft before push** (recoverable on that lane's local
+  history at `f2a8a84b`; never on `main`).
+- Owner decision (user-stated): drafting real Quora answers is deferred until a
+  proper **answering methodology ("answering meta")** exists — context
+  requirements, non-generic depth-of-value bar, tone, and per-question approach.
+  Generic answer drafts from the paraphrase table are not worth producing.
+- What stands unchanged: the capture proof (PR #825 calibration + PR #829
+  playbook lesson) and the admissible candidate table. Those needed no further
+  work and this disposition does not weaken them.
+- Re-entry condition: do **not** re-execute the answer-strategy pilot from this
+  packet until (1) a channel goal for Quora answer content is owner-decided
+  (which buyer it serves and what job the content does), and (2) the answering
+  meta exists. The commissioning prompt for that methodology work is
+  `docs/prompts/handoffs/quora_b2b_answering_meta_design_commission_prompt_v0.md`;
+  open it instead of this packet's Active Objective.
+
 ## Load Contract
 
 - packet_version: 1
