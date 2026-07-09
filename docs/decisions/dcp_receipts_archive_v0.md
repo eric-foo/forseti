@@ -3571,3 +3571,63 @@ direction_change_propagation:
     - not a bound or mandatory review lane
     - a green run is disposition shape only, never proof a review happened or was sufficient
 ```
+
+## From forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Commission Signal Board rows now carry recency/currentness as source-route
+    attention metadata: same-strength newer/current URL-backed signals normally
+    deserve more downstream scan attention than older context, without becoming
+    proof, classifier mapping, or graph weight.
+  trigger: product_doctrine
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - orca-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - orca-harness/tests/fixtures/commission_signal_board_outputs/
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - forseti/product/spines/scanning/README.md
+    - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        The CSB validator remains a manual/local checker, not a CI, pre-commit,
+        or write-hook gate. The existing enforcement-placement rule already
+        covers why mechanically checkable output shape lives in the checker.
+  stale_language_search: >
+    rg -n "recency|recent|current-state|currentness|optional board metadata|validator only requires existing core row columns|proof|graph weight|classifier mapping"
+    forseti/product/spines/commission_signal_board forseti/product/spines/scanning docs/workflows/orca_repo_map_v0.md
+    (run 2026-06-23)
+  stale_language_search_result: >
+    Hits were accepted recency/currentness attention language, repo-map routing
+    summaries, existing scanning safeguards, historical CSB source-family
+    references, or explicit no-proof/no-classifier/no-graph-weight boundaries.
+    No controlling CSB/scanning surface was found that turns recency/currentness
+    into buyer proof, demand classification, classifier mapping, or graph weight;
+    the old optional-validator wording produced only receipt search-string hits,
+    not live instructional hits, after the CSB validator began requiring recency
+    fields and enum values.
+    Capture and Judgment surfaces carry their own DCP receipts for the same
+    propagation, and the follow-up adversarial review ran a cross-spine leakage
+    search with no proof, scoring, route-binding, or gate-clearance leakage found.
+  non_claims:
+    - not validation
+    - not readiness
+    - not demand classification
+    - not buyer proof
+    - not source-access authorization
+```
