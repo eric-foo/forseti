@@ -8,8 +8,8 @@ use_when:
   - Spinning up a new session to run the slot 2 (Teal) commissioned capture as the batch's 2nd pressure-test data point.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
-  - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
   - slot1_mi_CAPTURE_operator_workfile.md # nonresolving: operator workfile, never committed
   - docs/_inbox/data_capture_pressure_test_subagent_outputs_2026_05_28/slot2_teal_subagent_output.md # nonresolving: inbox output, never committed
   - docs/prompts/data_capture_spine_pressure_test_llm_capture_visibility_checker_prompt_v0.md

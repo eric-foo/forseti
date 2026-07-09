@@ -11,7 +11,7 @@ use_when:
   - Dispatching the independent 2nd-opinion review of the R2 proposal.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/contracts/obligation_contracts/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
+  - forseti/product/spines/capture/core/contracts/obligation_contracts/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md
   - .agents/workflow-overlay/review-lanes.md
 input_hashes:
   docs/product/data_capture_spine_posture_vocabulary_enforcement_proposal_v0.md: 2E5D05B8F8366711F4A749B68664E0034BED7C8460B629EF1BA881AED04D5FA5

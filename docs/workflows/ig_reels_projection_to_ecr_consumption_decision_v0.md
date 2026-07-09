@@ -16,8 +16,8 @@ authority_boundary: retrieval_only
 open_next:
   - docs/workflows/ig_reels_projection_to_ecr_consumption_handoff_v0.md
   - docs/workflows/ecr_spine_submap_v0.md
-  - orca-harness/source_capture/ig_reels_grid_projection.py
-  - orca-harness/ecr/
+  - forseti-harness/source_capture/ig_reels_grid_projection.py
+  - forseti-harness/ecr/
 stale_if:
   - A new named ECR/SCR consumer must point at the reconciled source-surface disagreement view (re-open Option 2).
   - The IG reels projection row contract (row_id / raw_ref / join_status) changes shape.

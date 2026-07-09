@@ -18,7 +18,7 @@ belong in `prompt-orchestration.md`; review lane behavior still belongs in
 `review-lanes.md`; validation checks still belong in `validation-gates.md`.
 
 For Judgment Spine work, claim-tier and closeout-state architecture is controlled by
-`orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`. Product-proof
+`forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`. Product-proof
 artifacts may use Product-Learning evidence as design input, but they must not
 reuse Product-Learning evidence as Buyer-Proof evidence unless the buyer-proof
 promotion gate in that artifact is satisfied. Buyer-proof artifacts that make
@@ -206,7 +206,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - .agents/workflow-overlay/product-proof.md
     - .agents/workflow-overlay/validation-gates.md
-    - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+    - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
@@ -214,7 +214,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-loading.md
     - docs/workflows/orca_repo_map_v0.md
   intentionally_not_updated:
-    - path: orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
+    - path: forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
       reason: >
         Deferred by owner decision; this patch aligns existing proof and gate
         surfaces without creating the later thin operating-model spine.
@@ -226,7 +226,7 @@ direction_change_propagation:
     rg -n "closeout_state|no_durable_evidence|weakest-cleared-gate|buyer-proof"
     .agents/workflow-overlay/product-proof.md
     .agents/workflow-overlay/validation-gates.md
-    orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+    forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
     .agents/workflow-overlay/source-loading.md
     docs/workflows/orca_repo_map_v0.md
   non_claims:

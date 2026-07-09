@@ -356,15 +356,15 @@ def selftest() -> int:
     m = {
         "version": 1,
         "entry_points": {"docs_readme": "docs/README.md"},
-        "known_top_level": {"dirs": [".agents", "docs", "orca-harness"],
+        "known_top_level": {"dirs": [".agents", "docs", "forseti-harness"],
                             "files": ["AGENTS.md", "repo-structure.yaml"]},
         "docs_roles": [{"home": "docs/decisions", "entry": "docs/decisions/README.md"},
-                       {"home": "docs/product", "entry": "orca/product/README.md"},
+                       {"home": "docs/product", "entry": "forseti/product/README.md"},
                        {"home": "docs/_inbox", "entry": "docs/_inbox/README.md"}],
         "product_lanes": [{"name": "core_spine", "status": "planned"}],
         "scratch_rules": {"underscore_prefix_dirs": True,
                           "generated_patterns": ["__pycache__", "pytest_run_*"]},
-        "legacy_tolerated": ["docs/product/*.md", "orca-harness/**"],
+        "legacy_tolerated": ["docs/product/*.md", "forseti-harness/**"],
         "inbox": {"home": "docs/_inbox", "max_age_days": 30},
         "excluded": [".git", ".claude"],
     }
@@ -382,10 +382,10 @@ def selftest() -> int:
         ("docs/product/random_lane/file.md", VIOLATION),  # DRB-002: unknown lane rejected
         ("docs/product/core_spine/deep/nested_v0.md", OK),  # depth below a bound lane
         ("docs/_inbox/whatever.bin", SCRATCH),        # quarantine, excluded
-        ("orca-harness/pytest_run_3/out.json", SCRATCH),
-        ("orca-harness/__pycache__/x.pyc", SCRATCH),
-        ("orca-harness/Makefile", LEGACY),            # harness tolerance (recursive **)
-        ("orca-harness/capture_spine/runner.py", LEGACY),
+        ("forseti-harness/pytest_run_3/out.json", SCRATCH),
+        ("forseti-harness/__pycache__/x.pyc", SCRATCH),
+        ("forseti-harness/Makefile", LEGACY),            # harness tolerance (recursive **)
+        ("forseti-harness/capture_spine/runner.py", LEGACY),
         (".claude/settings.json", EXCLUDED),
     ]
     ok = True

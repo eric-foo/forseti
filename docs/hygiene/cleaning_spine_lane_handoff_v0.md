@@ -17,7 +17,7 @@ open_next:
   - .agents/workflow-overlay/source-of-truth.md
   - .agents/workflow-overlay/source-loading.md
   - docs/workflows/orca_repo_map_v0.md
-  - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_readme_v0.md
+  - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_readme_v0.md
 stale_if:
   - This handoff file is consumed by a new lane.
   - Local main is fetched, rebased, reset, or materially updated.

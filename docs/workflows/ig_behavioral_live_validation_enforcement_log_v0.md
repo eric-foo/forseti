@@ -13,10 +13,10 @@ use_when:
   - Scoping the next data-lake record-linkage patch for IG deep capture and product extraction.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-  - orca-harness/runners/run_source_capture_ig_reels_grid_packet.py
-  - orca-harness/runners/run_source_capture_ig_reels_deep_capture.py # nonresolving: proposed or branch-only runner; log keeps provenance only
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - forseti-harness/runners/run_source_capture_ig_reels_grid_packet.py
+  - forseti-harness/runners/run_source_capture_ig_reels_deep_capture.py # nonresolving: proposed or branch-only runner; log keeps provenance only
 stale_if:
   - IG grid capture, deep-capture, product-extraction, or behavioral-projection record contracts change.
   - A later accepted doctrine artifact binds a different IG live-validation sequence.

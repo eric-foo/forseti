@@ -66,7 +66,7 @@ bad-minimizing form):
   machine-local in `.claude/settings.local.json` (machine-specific absolute
   paths; a fresh clone re-adds its own).
 - **EP-02 deliberately excluded** from the floor (impl-dir blocking would
-  false-block legitimate `orca-harness/` work; lower value).
+  false-block legitimate `forseti-harness/` work; lower value).
 - Discoverability: the repo map "Active Hooks" note was extended. Authority:
   `safety-rules.md` + validation-gates "Enforcement Placement".
 
@@ -124,7 +124,7 @@ declares itself to be.
 
 **Classification (stated inline, since EP-32 had no prior table row): PARTIAL.**
 The mechanically-detectable structural subset is SUBSTRATE — a new top-level area
-(`stale_if` #1) and a new `orca-harness/` runner/adapter (#2) are high-precision
+(`stale_if` #1) and a new `forseti-harness/` runner/adapter (#2) are high-precision
 gate triggers; a `source-of-truth.md` edit (#5) is an advisory nudge only. The
 judgment-shaped staleness — "a spine was materially reorganized" (#3) and "routing
 doctrine changed" (#4) — stays **resident**, owned by the Doctrine Change
@@ -270,7 +270,7 @@ block."* The owner intends it, with conditions:
   paths (a guard bug must not brick all of the agent's tools); only the merge
   path fails closed.
 - The block message **always prints the repo-scoped manual command**
-  (`gh pr merge <N> --squash --delete-branch --repo eric-foo/orca`) so a human
+  (`gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`) so a human
   can land from any directory.
 - **Classification: PARTIAL → still substrate-appropriate.** `mergeStateStatus`,
   check conclusions, and label presence are deterministic API shape the guard can
@@ -338,7 +338,7 @@ Substrate types: `hook` (Pre/PostToolUse tool-boundary guard — the only always
 **Load-bearing finding — Orca has zero governance substrate today.** Verified this turn:
 
 - **No hooks configured.** `.claude/settings.json` is plugin/marketplace config only; `.claude/settings.local.json` is a permission allowlist; there is no `PreToolUse`/`PostToolUse` block anywhere in-repo.
-- **The only deterministic code (`orca-harness/`) is domain-scoped** (Judgment Spine v0.14 + Source Capture: `pytest`, a `Makefile`, fail-closed runners). It proves Orca *can* host deterministic tests and fail-closed assertions, but nothing in it enforces overlay governance.
+- **The only deterministic code (`forseti-harness/`) is domain-scoped** (Judgment Spine v0.14 + Source Capture: `pytest`, a `Makefile`, fail-closed runners). It proves Orca *can* host deterministic tests and fail-closed assertions, but nothing in it enforces overlay governance.
 - Every overlay "gate / contract / boundary" is therefore a **resident instruction**. None fires by construction.
 
 Consequence: in Orca **right now**, every SUBSTRATE/PARTIAL verdict names a substrate that **does not exist yet**, and building it is **owner-gated**. So the "moved" column is empty by construction — this deliverable is inventory + classification + **proposals**, with one explicit owner gate. (This is exactly the prepare-only, owner-gated boundary the task set.)

@@ -11,11 +11,11 @@ use_when:
   - Deciding whether to scope the next layer above foundation for Candidate URL Intake.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
-  - orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
+  - forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md
+  - forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md
   - docs/decisions/data_capture_spine_reddit_candidate_url_intake_default_policy_decision_v0.md
-  - orca-harness/tests/unit/test_reddit_candidate_intake.py
-  - orca-harness/tests/fixtures/reddit_candidate_intake/old_reddit_listing_noisy.html
+  - forseti-harness/tests/unit/test_reddit_candidate_intake.py
+  - forseti-harness/tests/fixtures/reddit_candidate_intake/old_reddit_listing_noisy.html
 downstream_consumers:
   - docs/workflows/reddit_candidate_intake_operator_pilot_plan_v0.md
 ```

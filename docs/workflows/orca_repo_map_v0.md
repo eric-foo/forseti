@@ -15,7 +15,7 @@ open_next:
 superseded_by: docs/workflows/forseti_repo_map_v0.md for cold starts
 stale_if:
   - New top-level folders (under the repo root or docs/) are added.
-  - orca-harness/ packages, adapters, runners, fixtures, or its build authorizations are added or reorganized.
+  - forseti-harness/ packages, adapters, runners, fixtures, or its build authorizations are added or reorganized.
   - Core Spine, Data Capture Spine, Cleaning Spine, Judgment Spine, offer, proof, or prompt families are materially reorganized.
   - Reddit CloakBrowser/proxy allowance, Candidate URL Intake, Reddit Graph Frontier Lane, or Source Capture Armory routing changes.
   - .agents/workflow-overlay/source-of-truth.md changes source hierarchy or the doctrine-change propagation contract.
@@ -25,11 +25,11 @@ stale_if:
 - Status: LEGACY_DETAIL_MAP (retrieval-only; cold starts use `docs/workflows/forseti_repo_map_v0.md`; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Legacy route detail and compatibility navigation for old Orca physical roots
-- Refreshed: 2026-06-29 (IG reels-grid projection runner added: `run_ig_reels_grid_projection.py` projects existing `/reels/` grid packets locally or appends by-key derived records under the data lake; no capture, Cleaning, ECR, or Judgment). Prior: 2026-06-22 (IG optimized reels-grid Source Capture runner added: `run_source_capture_ig_reels_grid_packet.py` supersedes `run_source_capture_ig_calls_packet.py` for default public creator monitoring; calls runner remains legacy item-page fallback). Prior: 2026-06-21 (scanning spine front-door + precursor vocabulary alignment: added `orca/product/spines/scanning/README.md`, routes cold scanning starts through the MGT intelligent-walk model, and rehomes AEO Phase-0 probe evidence to `docs/research/answer_engine/`). Prior: 2026-06-21 (scanning MGT intelligent-walk operating model: added the scan-core bridge and vertical-guide routing for frontier selection, branch pivoting, minimum evidence, and capture requests). Prior: 2026-06-21 (bounded screening-read service propagation: added the build receipt, maps to `screening_read` / `screening_browser_read`, and de-staled the old Reddit screening route). Prior: 2026-06-21 (Capture internal core migration: current Capture docs moved under `orca/product/spines/capture/core/`, with IG under `core/source_families/social_media/instagram/`; repo map and Data Capture submap route to the new paths). Prior: 2026-06-20 (accuracy reconciliation pass — corrected the SCI-reminder hook matcher and the git-commit permission tier, documented the SessionStart capsule and the second Stop hook, added the built `orca-harness/evidence_binding/` and `cleaning/` packages, and de-staled `docs/prompts/patches/`). Prior: 2026-06-18 (spine-first migration Wave E retired the live product-docs navigation and routes product artifacts to `orca/product/`; earlier the same day added spine-first target-structure binding and blocker-authorization routes after the owner authorized B1-B7 for the execution pass). Prior: 2026-06-17 promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `orca-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic. Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
+- Refreshed: 2026-06-29 (IG reels-grid projection runner added: `run_ig_reels_grid_projection.py` projects existing `/reels/` grid packets locally or appends by-key derived records under the data lake; no capture, Cleaning, ECR, or Judgment). Prior: 2026-06-22 (IG optimized reels-grid Source Capture runner added: `run_source_capture_ig_reels_grid_packet.py` supersedes `run_source_capture_ig_calls_packet.py` for default public creator monitoring; calls runner remains legacy item-page fallback). Prior: 2026-06-21 (scanning spine front-door + precursor vocabulary alignment: added `forseti/product/spines/scanning/README.md`, routes cold scanning starts through the MGT intelligent-walk model, and rehomes AEO Phase-0 probe evidence to `docs/research/answer_engine/`). Prior: 2026-06-21 (scanning MGT intelligent-walk operating model: added the scan-core bridge and vertical-guide routing for frontier selection, branch pivoting, minimum evidence, and capture requests). Prior: 2026-06-21 (bounded screening-read service propagation: added the build receipt, maps to `screening_read` / `screening_browser_read`, and de-staled the old Reddit screening route). Prior: 2026-06-21 (Capture internal core migration: current Capture docs moved under `forseti/product/spines/capture/core/`, with IG under `core/source_families/social_media/instagram/`; repo map and Data Capture submap route to the new paths). Prior: 2026-06-20 (accuracy reconciliation pass — corrected the SCI-reminder hook matcher and the git-commit permission tier, documented the SessionStart capsule and the second Stop hook, added the built `forseti-harness/evidence_binding/` and `cleaning/` packages, and de-staled `docs/prompts/patches/`). Prior: 2026-06-18 (spine-first migration Wave E retired the live product-docs navigation and routes product artifacts to `forseti/product/`; earlier the same day added spine-first target-structure binding and blocker-authorization routes after the owner authorized B1-B7 for the execution pass). Prior: 2026-06-17 promoted repo-map edits from advisory reminder to blocking commit interrupt in Claude/Codex hook wiring; added the neutral ChatGPT Pro beauty advisory intake route, the offline IG creator-momentum projection runner route, the local Retail/PDP projection runner route, the opt-in Retail/PDP CloakBrowser projection sidecar under `forseti-harness/runners/`, and the Retail/PDP sidecar operator playbook for the Amazon/Sephora/Ulta smoke; clarified the corresponding source package routes for projection and retailer binding/residual logic. Prior: 2026-06-16 added Codex-compatible local Git-hook adapters under `.githooks/`, the local hook installer under `.github/scripts/`, and the promoted auto-merge/main-red-alert workflows under `.github/workflows/`; 2026-06-11 repo-structure binding v0 registered machine map `repo-structure.yaml` + EP-04 placement checker and quarantined root strays to `docs/_inbox/`.
 - Implementation authorized: no
 
 ## How To Use This Map
-Use this map only as second-hop detail for legacy `orca/product/` or `orca-harness/` routes after starting from `docs/workflows/forseti_repo_map_v0.md`. Do not treat it as product authority.
+Use this map only as second-hop detail for legacy `forseti/product/` or `forseti-harness/` routes after starting from `docs/workflows/forseti_repo_map_v0.md`. Do not treat it as product authority.
 
 For source precedence, open `.agents/workflow-overlay/source-of-truth.md`.
 For source-loading budgets, open `.agents/workflow-overlay/source-loading.md`.
@@ -112,7 +112,7 @@ python .agents/hooks/check_repo_map_freshness.py --hook
 It reads THIS map as its own spec and, forward-only on the file just touched,
 emits a non-blocking advisory when an edit adds navigable structure this map
 does not yet cover -- the mechanically-detectable subset of the `stale_if:` block
-above: a new top-level area (#1) or a new `orca-harness/` runner/adapter (#2).
+above: a new top-level area (#1) or a new `forseti-harness/` runner/adapter (#2).
 When the file just touched IS this repo map and Git still shows it dirty after
 the edit, the hook exits 2 as a blocking commit interrupt with the explicit-path
 commit command. Edits to `.agents/workflow-overlay/source-of-truth.md` get a
@@ -352,11 +352,11 @@ do not block by default. Open these in order:
 | --- | --- |
 | Is CloakBrowser/proxy-backed Reddit access allowed at all? | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` |
 | What is the Reddit-specific capture/intake route? | `docs/workflows/data_capture_spine_consolidation_map_v0.md` |
-| Is this Candidate URL Intake rather than Armory capture? | `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md`, then `orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md` |
-| Is bounded graph/frontier scouting accepted? | `orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` |
+| Is this Candidate URL Intake rather than Armory capture? | `forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md`, then `forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md` |
+| Is bounded graph/frontier scouting accepted? | `forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md` |
 | How should old Reddit search/listing HTML be saved, parsed, and interpreted? | `docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md` |
-| What are the proxy and anti-blocking hard stops? | `orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` |
-| What is implemented now? | `docs/workflows/screening_read_service_build_receipt_v0.md`, `docs/workflows/screening_read_reusable_findings_v0.md`, `orca/product/spines/capture/core/source_capture_toolbox/README.md`, then `orca-harness/README.md` and the named runner/adapter files |
+| What are the proxy and anti-blocking hard stops? | `forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md` |
+| What is implemented now? | `docs/workflows/screening_read_service_build_receipt_v0.md`, `docs/workflows/screening_read_reusable_findings_v0.md`, `forseti/product/spines/capture/core/source_capture_toolbox/README.md`, then `forseti-harness/README.md` and the named runner/adapter files |
 
 Current map-level summary: CloakBrowser is the approved primary anti-blocking
 route for bounded pre-commercial Reddit capture, and residential/rotating
@@ -385,7 +385,7 @@ row-local locator/range-sanity pattern in
 Reddit Candidate URL Intake is also the bounded first-contact sourcing path for
 declared Reddit source surfaces when a run envelope and live access
 authorization are supplied. The implemented runner is
-`orca-harness/runners/run_reddit_candidate_intake_live.py`; it writes candidate
+`forseti-harness/runners/run_reddit_candidate_intake_live.py`; it writes candidate
 rows, provenance, and a live-run receipt only.
 
 Reddit Graph Frontier is accepted only as a bounded planning lane with a Graph
@@ -394,7 +394,7 @@ bounded run, but it does not authorize same-run traversal, Graph Frontier-owned
 live Reddit fetch, automatic capture, broad crawling, Source Capture, Data
 Capture, storage, scheduler, dashboard, or production runtime. Operator-facing
 nickname: "crawling graph." The runner is
-`orca-harness/runners/run_reddit_graph_frontier_register.py`.
+`forseti-harness/runners/run_reddit_graph_frontier_register.py`.
 
 ## Top-Level Structure
 
@@ -406,25 +406,25 @@ nickname: "crawling graph." The runner is
 | `.githooks/` | Tracked local Git hook adapters installed via `.github/scripts/install-local-hooks.ps1`; catches local Git push/commit boundaries where enabled. Bypassable with `--no-verify`; not a server-side lock. |
 | `.agents/workflow-overlay/` | Orca overlay authority for project facts, folders, source rules, prompt rules, validation, safety, and review lanes. |
 | `.agents/hooks/` | Portable enforcement/checker scripts for protected actions, retrieval headers, repo-map freshness, and local Git pre-push policy. Harness adapters invoke these scripts; passing checks are not validation or readiness. |
-| `orca-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Orca Harness section. |
-| `orca/` | Declared top-level product-tree root. Product substance lives under `orca/product/`; runtime remains under `orca-harness/`. |
-| `orca/product/` | Spine-first product tree: product contracts, Core Spine artifacts, proof plans, source/evidence standards, offer, buyer-proof, demand-signal method/surface docs, satellites, case families, and shared product registries. Historical product-docs references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`. |
-| `orca/product/spines/data_lake/` | Data Lake shared-foundation spine (promotion-bound 2026-06-18; contracts + mechanics landed by R2). Owns cross-layer storage contracts (raw-packet preservation, keyed retrievability, Attachment Record, passive Availability Index) and the medallion/gold-readiness contract consumed by projection/ECR/cleaning/judgment. Binding: `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md`. |
-| `orca/product/spines/data_lake/authority/` | Data Lake contracts/invariants: core, storage, Attachment-Record implementation, and medallion/gold-readiness contracts. |
-| `orca/product/spines/data_lake/workflows/` | Data Lake operational/read-flow docs: the canonical mechanics map (supersedes the retired `shared/data_lake_mechanics/`). |
-| `orca/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + cards), demand-read taxonomy, vertical-exploration. |
-| `orca/product/spines/scanning/` | Scanning (discovery-side) spine: open `orca/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. |
-| `orca/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families (`retail_pdp`, `social_media/instagram`). Dense — open the Data Capture submap. |
-| `orca/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver). |
-| `orca/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
-| `orca/product/spines/judgment/` | Judgment spine: conductor, claim_ladder, demand_read (core/c2_weighting/c3_verdict_action/grading), learning_loops (near_half/far_half), source_side_receipts, toolkit_gaps. Dense — submap candidate. |
-| `orca/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge. |
-| `orca/product/spines/commission_signal_board/` | Commission Signal Board pilot spine: authority, dispatch_rules, harness + tests + migrations + prompts + workflows (#261). |
-| `orca/product/satellites/beauty/` | Beauty satellite: domain venue/card assets. |
-| `orca/product/satellites/fragrance/` | Fragrance satellite: Level-1 judgment organizers (casebook_admission, named_case_screens, reconciliation, satellite_skeleton). |
-| `orca/product/case_families/product_learning/` | Product-learning case corpora: fragrance + other_verticals (SaaS/tech method-validation + first-proof-run families). |
-| `orca/product/shared/engagement_registry/` | Shared engagement-logic registry. |
-| `orca/product/shared/projection_doctrine/` | Shared projection doctrine (raw->view constraint, not Cleaning/Judgment). |
+| `forseti-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Orca Harness section. |
+| `orca/` | Declared top-level product-tree root. Product substance lives under `forseti/product/`; runtime remains under `forseti-harness/`. |
+| `forseti/product/` | Spine-first product tree: product contracts, Core Spine artifacts, proof plans, source/evidence standards, offer, buyer-proof, demand-signal method/surface docs, satellites, case families, and shared product registries. Historical product-docs references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`. |
+| `forseti/product/spines/data_lake/` | Data Lake shared-foundation spine (promotion-bound 2026-06-18; contracts + mechanics landed by R2). Owns cross-layer storage contracts (raw-packet preservation, keyed retrievability, Attachment Record, passive Availability Index) and the medallion/gold-readiness contract consumed by projection/ECR/cleaning/judgment. Binding: `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md`. |
+| `forseti/product/spines/data_lake/authority/` | Data Lake contracts/invariants: core, storage, Attachment-Record implementation, and medallion/gold-readiness contracts. |
+| `forseti/product/spines/data_lake/workflows/` | Data Lake operational/read-flow docs: the canonical mechanics map (supersedes the retired `shared/data_lake_mechanics/`). |
+| `forseti/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + cards), demand-read taxonomy, vertical-exploration. |
+| `forseti/product/spines/scanning/` | Scanning (discovery-side) spine: open `forseti/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. |
+| `forseti/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families (`retail_pdp`, `social_media/instagram`). Dense — open the Data Capture submap. |
+| `forseti/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver). |
+| `forseti/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
+| `forseti/product/spines/judgment/` | Judgment spine: conductor, claim_ladder, demand_read (core/c2_weighting/c3_verdict_action/grading), learning_loops (near_half/far_half), source_side_receipts, toolkit_gaps. Dense — submap candidate. |
+| `forseti/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge. |
+| `forseti/product/spines/commission_signal_board/` | Commission Signal Board pilot spine: authority, dispatch_rules, harness + tests + migrations + prompts + workflows (#261). |
+| `forseti/product/satellites/beauty/` | Beauty satellite: domain venue/card assets. |
+| `forseti/product/satellites/fragrance/` | Fragrance satellite: Level-1 judgment organizers (casebook_admission, named_case_screens, reconciliation, satellite_skeleton). |
+| `forseti/product/case_families/product_learning/` | Product-learning case corpora: fragrance + other_verticals (SaaS/tech method-validation + first-proof-run families). |
+| `forseti/product/shared/engagement_registry/` | Shared engagement-logic registry. |
+| `forseti/product/shared/projection_doctrine/` | Shared projection doctrine (raw->view constraint, not Cleaning/Judgment). |
 | `docs/decisions/` | Decision records. |
 | `docs/decisions/consultant_loop/` | Consultant-loop judgment records. |
 | `docs/prompts/` | Prompt artifacts, wrappers, reruns, reviews, and local templates. |
@@ -449,7 +449,7 @@ nickname: "crawling graph." The runner is
 | `.agents/workflow-overlay/artifact-roles.md` | Artifact role bindings and permissions. |
 | `.agents/workflow-overlay/retrieval-metadata.md` | Retrieval-header contract. |
 | `.agents/workflow-overlay/prompt-orchestration.md` | Prompt artifact, wrapper, preflight, and rerun rules. |
-| `.agents/workflow-overlay/template-registry.md` | Orca-local prompt template registry. |
+| `.agents/workflow-overlay/template-registry.md` | Forseti-local prompt template registry. |
 | `.agents/workflow-overlay/product-proof.md` | Buyer-proof semantics and non-claims. |
 | `.agents/workflow-overlay/communication-style.md` | Orca response style. |
 | `.agents/workflow-overlay/validation-gates.md` | Validation gate expectations. |
@@ -467,12 +467,12 @@ nickname: "crawling graph." The runner is
 | `docs/workflows/orca_repo_map_v0.md` | Compact navigation map for bounded source-pack selection and prompt setup. |
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Data Capture Spine repo submap. Open before enumerating capture owner docs. |
 | `docs/workflows/ecr_spine_submap_v0.md` | ECR source-side spine repo submap (integrity postures SP-1/2/3/6 + Signal Content Record). Open before enumerating ECR/SCR owner docs. |
-| `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | Judgment Spine submap. Open before enumerating Judgment owners across `docs/research/judgment-spine/` and `orca/product/spines/judgment/`. |
-| `orca/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator playbook for the bounded Amazon/Sephora/Ulta Retail/PDP CloakBrowser sidecar smoke: canonical URLs, flags, scratch outputs, expected residuals, failure taxonomy, and code-enforceable follow-up flags. |
+| `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` | Judgment Spine submap. Open before enumerating Judgment owners across `docs/research/judgment-spine/` and `forseti/product/spines/judgment/`. |
+| `forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md` | Operator playbook for the bounded Amazon/Sephora/Ulta Retail/PDP CloakBrowser sidecar smoke: canonical URLs, flags, scratch outputs, expected residuals, failure taxonomy, and code-enforceable follow-up flags. |
 
 ## Orca Harness
 
-`orca-harness/` is bounded, authorized implementation backing Data Capture
+`forseti-harness/` is bounded, authorized implementation backing Data Capture
 source acquisition and the v0.14 Judgment Harness. It is navigation context
 here, not a runtime, acceptance, or readiness claim. Build scope is controlled
 by the authorization decisions named below; surfaces outside them (production
@@ -481,23 +481,23 @@ design) remain gated.
 
 | Path | Use for |
 | --- | --- |
-| `orca-harness/capture_spine/` | Capture Spine local support for Reddit Candidate URL Intake projection and Reddit Graph Frontier register/receipt helpers. Not Source Capture Armory execution, Source Capture Packet output, storage, scheduler, dashboard, or production runtime. |
-| `orca-harness/source_capture/` | Source-capture packet core: models, writer, CLI support, plaintext receipts, bounded mechanical projection helpers, the `block_shell` honest-success classifier (block-shell / empty / content-unverified; no positive content class), the bounded Reddit screening-read entry `screening_reddit_read.py` (entitlement-gated, screen-light, adapter-not-runner: wires `fetch_direct_http_capture` only, never the packet/ECR runner; returns a screen-light record, no disk artifact / no ECR), and the cross-archive historical-capture LOCATE orchestrator `historical_capture.py` (slice E: ordered Wayback -> archive.today -> publisher-history ladder above the adapters; stops at the first verified pre-cutoff body; neutral `archives_tried`/`archive_selected` facts, INV-1). |
-| `orca-harness/source_capture/adapters/` | Bounded capture adapters (direct HTTP, media/asset, Archive.org, archive.today (`archive_today`: Memento TimeMap locate+body rung, served-time verification, no-gate-defeat STOP on a challenge), browser snapshot, authenticated browser, Reddit API where present, and a header-complete anti-blocking HTTP rung-1 adapter `anti_blocking_http`). CloakBrowser Snapshot anonymous non-persistent v0 now has a live engine and packet runner for one explicitly supplied URL; verify any adapter's presence in code before use. Reddit discovery/consolidation, proxy/session behavior, commercial fetch, broad crawling, storage, dashboards, deployment, and production runtime remain separately gated. |
-| `orca-harness/source_observability/` | Local operator-record posture checker and limitation reporter. |
-| `orca-harness/ecr/` | Evidence Candidate Record source-side integrity postures (SP-1/2/3/6): per-packet/slice derived records keyed to the `SourceCapturePacket`; bind no `EvidenceUnit`; JSG-01 frozen. Boundary context: `orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`. |
-| `orca-harness/signal_content/` | Signal Content Record (v0): the second derived-record kind (content — "what a signal says"), parallel to `ecr/`; wedge-agnostic StrictModel + validators, references packet/ECR by key, no deriver/persistence/binding. Direction: `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md`. |
-| `orca-harness/evidence_binding/` | JSG-01-scoped EvidenceUnit binding (owner-ratified 2026-06-12): the three-key `Jsg01EvidenceBinding` + the pure `compose_jsg01_evidence_record` composer + verifier; references packet/ECR/receipt by key, binds no posture/value, computes no aggregate verdict. Design basis: `orca/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_jsg01_evidence_unit_binding_slice_plan_v0.md`. Navigation context only; not a JSG-01 unfreeze, validation, or readiness. |
-| `orca-harness/cleaning/` | Bounded local Cleaning-layer code (models, core, projection). Navigation context only — not the gated production Cleaning lane, acceptance, or readiness. |
-| `orca-harness/schemas/` | Pydantic v2 models for cases, judgments, scoring, and probes (v0.14). |
-| `orca-harness/scoring/` | Deterministic band scorer and mapping table (v0.14 Step A); not judgment-quality proof. |
-| `orca-harness/reports/` | Report-rendering code (case and source-observability reports); generated dry-run outputs under it are gitignored. |
-| `orca-harness/runners/` | CLI entrypoints for case runs, memorization probe, bounded Candidate URL Intake live first-contact sourcing, Reddit Graph Frontier / crawling graph register preparation, source-capture packets (incl. the cross-archive `run_source_capture_historical_packet.py`, which runs the slice-E locate ladder and writes the selected rung's body plus a thin `archive_locate_metadata.json` ladder receipt), IG public creator capture (`run_source_capture_ig_reels_grid_packet.py` is the optimized `/reels/` grid default; `run_source_capture_ig_calls_packet.py` is legacy item-page fallback), offline projection materialization such as `run_ig_creator_momentum_projection.py` and `run_ig_reels_grid_projection.py` (the latter projects existing IG `/reels/` grid packets or appends by-key lake-derived records), local Retail/PDP packet-directory projection (`run_retail_pdp_projection.py`; no capture, ECR, Cleaning, or Judgment), the opt-in Retail/PDP CloakBrowser projection sidecar (`run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>`), and source-observability reports. Retail/PDP binding/residual implementation lives in `orca-harness/source_capture/retail_pdp_projection.py`. The runners named here are illustrative, not exhaustive (~34 total; enumerate with `git ls-files orca-harness/runners/*.py`). |
-| `orca-harness/cases/` | Tracked deterministic fixture case(s) (e.g. TR/Casetext v0.14) with evidence, packet, and ledger; generated `scores/` and run outputs are gitignored. |
-| `orca-harness/config/` | Static YAML config (contestants, models, prompts) consumed by runners. |
-| `orca-harness/docs/` | Harness operating docs: source-capture packet and agent runbook, source-observability record guide, and scalability note. |
-| `orca-harness/tests/` | `unit/`, `contract/`, and `integration/` tests, including no-LLM-import and no-tools contract guards. |
-| `orca-harness/harness_utils.py`, `orca-harness/Makefile`, `orca-harness/pyproject.toml` | Shared utilities, dev shortcuts, and package metadata (optional `[browser]` Playwright extra). |
+| `forseti-harness/capture_spine/` | Capture Spine local support for Reddit Candidate URL Intake projection and Reddit Graph Frontier register/receipt helpers. Not Source Capture Armory execution, Source Capture Packet output, storage, scheduler, dashboard, or production runtime. |
+| `forseti-harness/source_capture/` | Source-capture packet core: models, writer, CLI support, plaintext receipts, bounded mechanical projection helpers, the `block_shell` honest-success classifier (block-shell / empty / content-unverified; no positive content class), the bounded Reddit screening-read entry `screening_reddit_read.py` (entitlement-gated, screen-light, adapter-not-runner: wires `fetch_direct_http_capture` only, never the packet/ECR runner; returns a screen-light record, no disk artifact / no ECR), and the cross-archive historical-capture LOCATE orchestrator `historical_capture.py` (slice E: ordered Wayback -> archive.today -> publisher-history ladder above the adapters; stops at the first verified pre-cutoff body; neutral `archives_tried`/`archive_selected` facts, INV-1). |
+| `forseti-harness/source_capture/adapters/` | Bounded capture adapters (direct HTTP, media/asset, Archive.org, archive.today (`archive_today`: Memento TimeMap locate+body rung, served-time verification, no-gate-defeat STOP on a challenge), browser snapshot, authenticated browser, Reddit API where present, and a header-complete anti-blocking HTTP rung-1 adapter `anti_blocking_http`). CloakBrowser Snapshot anonymous non-persistent v0 now has a live engine and packet runner for one explicitly supplied URL; verify any adapter's presence in code before use. Reddit discovery/consolidation, proxy/session behavior, commercial fetch, broad crawling, storage, dashboards, deployment, and production runtime remain separately gated. |
+| `forseti-harness/source_observability/` | Local operator-record posture checker and limitation reporter. |
+| `forseti-harness/ecr/` | Evidence Candidate Record source-side integrity postures (SP-1/2/3/6): per-packet/slice derived records keyed to the `SourceCapturePacket`; bind no `EvidenceUnit`; JSG-01 frozen. Boundary context: `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`. |
+| `forseti-harness/signal_content/` | Signal Content Record (v0): the second derived-record kind (content — "what a signal says"), parallel to `ecr/`; wedge-agnostic StrictModel + validators, references packet/ECR by key, no deriver/persistence/binding. Direction: `forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md`. |
+| `forseti-harness/evidence_binding/` | JSG-01-scoped EvidenceUnit binding (owner-ratified 2026-06-12): the three-key `Jsg01EvidenceBinding` + the pure `compose_jsg01_evidence_record` composer + verifier; references packet/ECR/receipt by key, binds no posture/value, computes no aggregate verdict. Design basis: `forseti/product/spines/ecr/evidence_candidate_record/ecr_consolidation_v0_jsg01_evidence_unit_binding_slice_plan_v0.md`. Navigation context only; not a JSG-01 unfreeze, validation, or readiness. |
+| `forseti-harness/cleaning/` | Bounded local Cleaning-layer code (models, core, projection). Navigation context only — not the gated production Cleaning lane, acceptance, or readiness. |
+| `forseti-harness/schemas/` | Pydantic v2 models for cases, judgments, scoring, and probes (v0.14). |
+| `forseti-harness/scoring/` | Deterministic band scorer and mapping table (v0.14 Step A); not judgment-quality proof. |
+| `forseti-harness/reports/` | Report-rendering code (case and source-observability reports); generated dry-run outputs under it are gitignored. |
+| `forseti-harness/runners/` | CLI entrypoints for case runs, memorization probe, bounded Candidate URL Intake live first-contact sourcing, Reddit Graph Frontier / crawling graph register preparation, source-capture packets (incl. the cross-archive `run_source_capture_historical_packet.py`, which runs the slice-E locate ladder and writes the selected rung's body plus a thin `archive_locate_metadata.json` ladder receipt), IG public creator capture (`run_source_capture_ig_reels_grid_packet.py` is the optimized `/reels/` grid default; `run_source_capture_ig_calls_packet.py` is legacy item-page fallback), offline projection materialization such as `run_ig_creator_momentum_projection.py` and `run_ig_reels_grid_projection.py` (the latter projects existing IG `/reels/` grid packets or appends by-key lake-derived records), local Retail/PDP packet-directory projection (`run_retail_pdp_projection.py`; no capture, ECR, Cleaning, or Judgment), the opt-in Retail/PDP CloakBrowser projection sidecar (`run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>`), and source-observability reports. Retail/PDP binding/residual implementation lives in `forseti-harness/source_capture/retail_pdp_projection.py`. The runners named here are illustrative, not exhaustive (~34 total; enumerate with `git ls-files forseti-harness/runners/*.py`). |
+| `forseti-harness/cases/` | Tracked deterministic fixture case(s) (e.g. TR/Casetext v0.14) with evidence, packet, and ledger; generated `scores/` and run outputs are gitignored. |
+| `forseti-harness/config/` | Static YAML config (contestants, models, prompts) consumed by runners. |
+| `forseti-harness/docs/` | Harness operating docs: source-capture packet and agent runbook, source-observability record guide, and scalability note. |
+| `forseti-harness/tests/` | `unit/`, `contract/`, and `integration/` tests, including no-LLM-import and no-tools contract guards. |
+| `forseti-harness/harness_utils.py`, `forseti-harness/Makefile`, `forseti-harness/pyproject.toml` | Shared utilities, dev shortcuts, and package metadata (optional `[browser]` Playwright extra). |
 
 Controlling build authority:
 `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`
@@ -506,7 +506,7 @@ Controlling build authority:
 (local source-observability support).
 
 Generated/gitignored scratch — do not enumerate or treat as authoritative:
-`orca-harness/_test_runs/` (scratch; does not exist yet on a fresh clone), `_auth_state/`, `pytest_*` temp dirs,
+`forseti-harness/_test_runs/` (scratch; does not exist yet on a fresh clone), `_auth_state/`, `pytest_*` temp dirs,
 `reports/source_observability/*_dry_run.*`, `cases/*/*/scores/`, and
 `memory/logs/`.
 
@@ -517,15 +517,15 @@ Use these before broad product architecture or CA setup:
 | Path | Use for |
 | --- | --- |
 | `docs/decisions/orca_product_thesis_consumer_demand_v0.md` | Orca thesis (consumer-demand decision intelligence, beauty first; owner-ratified 2026-06-12; supersedes `docs/decisions/turn_08_product_thesis_v0.md`), value proposition, strategic center, product boundary. |
-| `orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md` | Offer hypothesis, buyer-facing language, first proof offer, ICP boundary. |
-| `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` | First buyer-proof packet, proof gates, pull signals, kill/graduation criteria. |
+| `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md` | Offer hypothesis, buyer-facing language, first proof offer, ICP boundary. |
+| `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md` | First buyer-proof packet, proof gates, pull signals, kill/graduation criteria. |
 | `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md` | Current first-proof ICP wedge (beauty operator door; owner co-ratified 2026-06-12; supersedes pricing-first) and decision-family focus. |
-| `orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md` | Product proof lead role and proof execution boundary. |
-| `orca/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md` | Operative external-claims policy (owner-signed 2026-06-11): built-to vs proven-at, per-tier wording table, debunking triage. Read before any externally visible sentence about Orca's judgment evidence. |
+| `forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md` | Product proof lead role and proof execution boundary. |
+| `forseti/product/spines/product_lead/proof_charter/orca_claim_defense_doctrine_v0.md` | Operative external-claims policy (owner-signed 2026-06-11): built-to vs proven-at, per-tier wording table, debunking triage. Read before any externally visible sentence about Orca's judgment evidence. |
 
 ## Judgment Spine
 
-The Judgment Spine spans **both** trees — `docs/research/judgment-spine/` (thesis, manifest, cases, harness) and `orca/product/spines/judgment/`. **Open the consolidation map first**: it is the single `retrieval_only` entry that orients across both trees and routes one hop to every owner. Do not pre-load the owners from here.
+The Judgment Spine spans **both** trees — `docs/research/judgment-spine/` (thesis, manifest, cases, harness) and `forseti/product/spines/judgment/`. **Open the consolidation map first**: it is the single `retrieval_only` entry that orients across both trees and routes one hop to every owner. Do not pre-load the owners from here.
 
 | Path | Use for |
 | --- | --- |
@@ -534,7 +534,7 @@ The Judgment Spine spans **both** trees — `docs/research/judgment-spine/` (the
 ## Data Capture Spine
 
 The Data Capture Spine spans product authority, source-access decisions, Source
-Capture Armory docs, source-quality support, and `orca-harness/` implementation.
+Capture Armory docs, source-quality support, and `forseti-harness/` implementation.
 **Open the repo submap first** for capture/armory work: it is the
 `retrieval_only` entry that orients across these surfaces and routes one hop to
 the owner sources. Do not pre-load all capture artifacts from this map.
@@ -542,11 +542,11 @@ the owner sources. Do not pre-load all capture artifacts from this map.
 | Path | Use for |
 | --- | --- |
 | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | **Data Capture Spine repo submap — open first.** Routes to Capture obligations, source-access boundary, build authorization, method plan, Source Capture Armory README, packet lifecycle, harness runners, source-quality support, and current Reddit pre-commercial routing. Map only; not validation, readiness, source-access permission, or implementation authority. |
-| `orca/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md` | **Corpus Intake (standing-capture) obligation contract — owner-ratified 2026-06-15.** The standing sibling of the v0 commissioned obligation contract: the obligation home for recurring capture of an approved public signal into an append-only corpus before a Decision Frame. Ratified, not pressure-tested; authorizes no build, scheduler, runtime, or source access. |
-| `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` | **LinkedIn lane entry map — open first for any LinkedIn task.** THE canonical cold-start index for LinkedIn access (no-live, planning-only): ties the authority docs + the slice-1/slice-2 harness + the hard rails + deferred work + cross-vendor review provenance. |
-| `orca/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md` | Capture-spine-level backlog of deferred, legally-gated capabilities (relationship-graph analytics; contact/outreach) surfaced during LinkedIn discovery design — non-authorizing, out of scope for all discovery lanes. |
-| `orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` | **Capture-investigation method (the playbook).** The repeatable "read the problem -> point to the route" method for deciding whether/how a NEW source is capturable, within entitlement, by the cheapest route. MVP = entitlement gate (Step 0) + read + route catalog + pointer + guardrails; per-source recipe cards are a growing tail authored BY probes. Review-hardened draft (de-correlated artifact review, AR-01..AR-07 adjudicated) with a later owner risk-posture amendment (status `RISK_POSTURE_AMENDED_V0` — check the Risk Posture section before applying); non-authorizing, not validation/readiness. |
-| `orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md` | Capture recon consolidation index — the per-source probe findings (forums / pricing / archive / PDF / reviews / embedded-state) the playbook distills from, incl. worktree-pending findings and the explicit TikTok/Instagram recon gap. Non-authorizing. |
+| `forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md` | **Corpus Intake (standing-capture) obligation contract — owner-ratified 2026-06-15.** The standing sibling of the v0 commissioned obligation contract: the obligation home for recurring capture of an approved public signal into an append-only corpus before a Decision Frame. Ratified, not pressure-tested; authorizes no build, scheduler, runtime, or source access. |
+| `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` | **LinkedIn lane entry map — open first for any LinkedIn task.** THE canonical cold-start index for LinkedIn access (no-live, planning-only): ties the authority docs + the slice-1/slice-2 harness + the hard rails + deferred work + cross-vendor review provenance. |
+| `forseti/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md` | Capture-spine-level backlog of deferred, legally-gated capabilities (relationship-graph analytics; contact/outreach) surfaced during LinkedIn discovery design — non-authorizing, out of scope for all discovery lanes. |
+| `forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md` | **Capture-investigation method (the playbook).** The repeatable "read the problem -> point to the route" method for deciding whether/how a NEW source is capturable, within entitlement, by the cheapest route. MVP = entitlement gate (Step 0) + read + route catalog + pointer + guardrails; per-source recipe cards are a growing tail authored BY probes. Review-hardened draft (de-correlated artifact review, AR-01..AR-07 adjudicated) with a later owner risk-posture amendment (status `RISK_POSTURE_AMENDED_V0` — check the Risk Posture section before applying); non-authorizing, not validation/readiness. |
+| `forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md` | Capture recon consolidation index — the per-source probe findings (forums / pricing / archive / PDF / reviews / embedded-state) the playbook distills from, incl. worktree-pending findings and the explicit TikTok/Instagram recon gap. Non-authorizing. |
 
 ## ECR Source-Side Spine
 
@@ -558,24 +558,24 @@ one hop to every owner. Do not pre-load the ECR/SCR owner docs from this map.
 
 | Path | Use for |
 | --- | --- |
-| `docs/workflows/ecr_spine_submap_v0.md` | **ECR source-side spine repo submap — open first.** Routes to the SCR direction + deriver plan, the ECR frame + SP-1/2/3 + SP-6 slices, the receipt-translator origin, the schema-evolution doctrine, and the built `orca-harness/ecr/` + `orca-harness/signal_content/` code. States the reference-never-merge / per-kind-grain / carry-or-residualize / re-derive-not-migrate / frozen-conductor invariants. Map only; not validation, readiness, ratification, a JSG-01 unfreeze, or Evidence-Unit binding. |
+| `docs/workflows/ecr_spine_submap_v0.md` | **ECR source-side spine repo submap — open first.** Routes to the SCR direction + deriver plan, the ECR frame + SP-1/2/3 + SP-6 slices, the receipt-translator origin, the schema-evolution doctrine, and the built `forseti-harness/ecr/` + `forseti-harness/signal_content/` code. States the reference-never-merge / per-kind-grain / carry-or-residualize / re-derive-not-migrate / frozen-conductor invariants. Map only; not validation, readiness, ratification, a JSG-01 unfreeze, or Evidence-Unit binding. |
 
 ## Core Spine Files
 
 | Path | Use for |
 | --- | --- |
-| `orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md` | Core Spine product contract and eight primitives. |
-| `orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md` | Manual information-production foundation and Evidence Unit standard. |
-| `orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` | Data Capture/Cleaning/Judgment boundary and Evidence Candidate Record setup context. |
-| `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | Signal Content Record (v0) architecture DIRECTION — the second derived-record kind ("what a signal says"), parallel to the ECR integrity postures and structuring the IPF Evidence Unit content vocabulary; records the owner carrier/lifecycle/decision-relevance-tag decisions and the bounded content-field ratification. Direction only; the final Evidence Unit field architecture stays owner-reserved and JSG-01 frozen. v0 model lives in `orca-harness/signal_content/`. |
-| `orca/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md` | Proposed Core Spine design note on placing independent-corroboration vs artificial-amplification discipline across the Cleaning/Judgment boundary; proposed, not validated. |
+| `forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md` | Core Spine product contract and eight primitives. |
+| `forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md` | Manual information-production foundation and Evidence Unit standard. |
+| `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md` | Data Capture/Cleaning/Judgment boundary and Evidence Candidate Record setup context. |
+| `forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | Signal Content Record (v0) architecture DIRECTION — the second derived-record kind ("what a signal says"), parallel to the ECR integrity postures and structuring the IPF Evidence Unit content vocabulary; records the owner carrier/lifecycle/decision-relevance-tag decisions and the bounded content-field ratification. Direction only; the final Evidence Unit field architecture stays owner-reserved and JSG-01 frozen. v0 model lives in `forseti-harness/signal_content/`. |
+| `forseti/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md` | Proposed Core Spine design note on placing independent-corroboration vs artificial-amplification discipline across the Cleaning/Judgment boundary; proposed, not validated. |
 | `docs/decisions/daimler_advisory_001_claim_tier_classification_decision_v0.md` | Daimler advisory claim-tier classification decision recording the current no-durable-evidence state, required product-learning receipt before any evidence claim, and blocked buyer-proof/judgment-quality claims. |
-| `orca/product/shared/engagement_registry/engagement_logic_registry_v0.md` | Signal-use and engagement interpretation registry. |
-| `orca/product/spines/foundation/product_contract/core_spine_v0_proof_protocol_v0.md` | Core proof protocol. |
-| `orca/product/spines/foundation/product_contract/core_spine_v0_proof_input_selection_v0.md` | Proof input-selection rules. |
-| `orca/product/spines/foundation/product_contract/core_spine_v0_proof_packet_preflight_v0.md` | Proof packet preflight. |
-| `orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md` | WHERE-side vertical exploration guide (owner-adopted Shape C; renamed 2026-06-11 from the venue exploration procedure): batch-scoped walk steps, commons split, influence yield, promote-on-reuse trigger. Subordinate to the case-finder frame; amendments are dated notes. |
-| `orca/product/satellites/beauty/beauty_venue_card_set_v0.md` | Beauty venue card-set (promoted 2026-06-11; the ONE maintained venue asset — 12-card hard cap, per-card review dates): read FIRST at Step 0 of any beauty/personal-care screen, fragrance included. Binding terms: `docs/decisions/beauty_venue_card_set_promotion_decision_v0.md`. |
+| `forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md` | Signal-use and engagement interpretation registry. |
+| `forseti/product/spines/foundation/product_contract/core_spine_v0_proof_protocol_v0.md` | Core proof protocol. |
+| `forseti/product/spines/foundation/product_contract/core_spine_v0_proof_input_selection_v0.md` | Proof input-selection rules. |
+| `forseti/product/spines/foundation/product_contract/core_spine_v0_proof_packet_preflight_v0.md` | Proof packet preflight. |
+| `forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md` | WHERE-side vertical exploration guide (owner-adopted Shape C; renamed 2026-06-11 from the venue exploration procedure): batch-scoped walk steps, commons split, influence yield, promote-on-reuse trigger. Subordinate to the case-finder frame; amendments are dated notes. |
+| `forseti/product/satellites/beauty/beauty_venue_card_set_v0.md` | Beauty venue card-set (promoted 2026-06-11; the ONE maintained venue asset — 12-card hard cap, per-card review dates): read FIRST at Step 0 of any beauty/personal-care screen, fragrance included. Binding terms: `docs/decisions/beauty_venue_card_set_promotion_decision_v0.md`. |
 
 For Data Capture / Source Capture Armory detail, open the repo submap at
 `docs/workflows/data_capture_spine_consolidation_map_v0.md`; this repo map
@@ -597,16 +597,16 @@ are directly relevant. Do not include by default in Data Capture Spine CA prompt
 
 Key files:
 
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_replay_packet_v0.md`
-- `orca/product/spines/foundation/product_contract/core_spine_v0_method_validation_rubric_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_locks_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_frame_locks_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_frame_lock_contract_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv01_intercom_zendesk_replay_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv03_stack_overflow_chatgpt_replay_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv05_reddit_api_pricing_replay_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv09_thomson_reuters_casetext_replay_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_replay_packet_v0.md`
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_method_validation_rubric_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_locks_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_frame_locks_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_case_frame_lock_contract_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv01_intercom_zendesk_replay_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv03_stack_overflow_chatgpt_replay_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv04_unity_runtime_fee_replay_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv05_reddit_api_pricing_replay_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_method_validation_mv09_thomson_reuters_casetext_replay_v0.md`
 
 ## Proof-Case Discovery Files
 
@@ -617,19 +617,19 @@ proof rebuilds on the discovery candidates below.)
 
 Key files:
 
-- `orca/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_target_selection_brief_v0.md`
-- `orca/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md`
-- `orca/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_candidate_context_scan_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md` (discovery-scope charter), `orca/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md` (READY_FOR_OWNER_CASE_SELECTION), and `orca/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md` (backtest candidates; proposes BT2-01 Chegg/ChatGPT) — the heavyweight proof-case discovery pass that produced the candidates the older case-selection brief was blocked on.
+- `forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_target_selection_brief_v0.md`
+- `forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md`
+- `forseti/product/spines/product_lead/icp_wedge/orca_discovery_batch_0_candidate_context_scan_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_charter_v0.md` (discovery-scope charter), `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_results_v0.md` (READY_FOR_OWNER_CASE_SELECTION), and `forseti/product/case_families/product_learning/other_verticals/core_spine_v0_heavyweight_proof_case_discovery_results_part_2_v0.md` (backtest candidates; proposes BT2-01 Chegg/ChatGPT) — the heavyweight proof-case discovery pass that produced the candidates the older case-selection brief was blocked on.
 
 ## Backtest Specimens
 
 Use when the task is specifically about historical cutoff discipline or the
 Unity runtime-fee specimen:
 
-- `orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md`
-- `orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md`
+- `forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md`
 
 ## Prompt Families
 
@@ -682,7 +682,7 @@ fixture-admission claim. See also the mapped Daimler claim-tier classification
 | `docs/decisions/daimler_advisory_run_authorization_decision_v0.md` and `docs/decisions/daimler_advisory_run_001_authorization_record_v0.md` | Advisory-run authorization state (gates currently closed) and the specific DAIMLER_ADVISORY_001 authorization for participant-safe prompt preparation only; not model-run authorization. |
 | `docs/decisions/daimler_v0_14_probe_execution_authorization_decision_v0.md` and `docs/decisions/daimler_v0_14_backup_probe_authorization_decision_v0.md` | Bounded public-identifiers-only memorization-probe authorizations for the primary (GPT-5.5) and backup (Claude Opus) families; no scoring, blind-use, or fixture admission. |
 | `docs/decisions/daimler_v0_14_selected_family_probe_gate_outcome_decision_v0.md` | Facilitator-only gate outcome: no selected target family cleared the memorization-probe gate (GPT-5.5 access-blocked; Claude Opus failed with a tool-isolation caveat); blind-use/fixture-admission not authorized. |
-| `orca/product/spines/judgment/toolkit_gaps/judgment_spine_toolkit_blocker_specs_from_daimler_source_fanout_v0.md` | Toolkit capability specs inferred from the Daimler source fanout (cutoff provenance, evidence registry, packet compiler, isolation checker); planning only, not build/runtime authorization or a judgment-quality claim. |
+| `forseti/product/spines/judgment/toolkit_gaps/judgment_spine_toolkit_blocker_specs_from_daimler_source_fanout_v0.md` | Toolkit capability specs inferred from the Daimler source fanout (cutoff provenance, evidence registry, packet compiler, isolation checker); planning only, not build/runtime authorization or a judgment-quality claim. |
 
 ## Inbox Warning
 
@@ -739,8 +739,8 @@ map versions unless the task is explicitly reviewing that older state.
 Start with:
 
 - `docs/decisions/orca_product_thesis_consumer_demand_v0.md`
-- `orca/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`
-- `orca/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
+- `forseti/product/spines/product_lead/offer/orca_offer_hypothesis_v0.md`
+- `forseti/product/spines/product_lead/buyer_proof/orca_buyer_proof_packet_v0.md`
 - `docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md`
 - `.agents/workflow-overlay/product-proof.md`
 
@@ -748,14 +748,14 @@ Start with:
 
 Start with:
 
-- `orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`
-- `orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md`
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`
+- `forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md`
 - **Open `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` first** for any Judgment Spine work; it routes to the ladder, gate ownership map, conductor, JSG-08 owner contract, current-state/decomposition, and fragrance Level 1 product-learning organizers.
-- `orca/product/spines/judgment/judgment_current_state_and_decomposition_v0.md` when the work is Level 1 backtesting-first product learning: core/satellite split, commission gate, source registry, outcome labels, forecast/action/log/evaluation artifacts, satellite fill, or fragrance backtest setup.
-- `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` when the work classifies Judgment Spine claim tier, proof tier, buyer-proof boundary, or judgment-quality boundary.
-- `orca/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md` when the work needs to route or block Judgment Spine gate ownership before claim promotion.
-- `orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md` — **the Judgment Spine conductor; open this FIRST for the judgment run lane** (running or planning any case through gates JSG-01 to JSG-10). It sequences the gates and routes to the evidence ladder, gate ownership map, and JSG-08 owner contract rather than restating them; use it to decide a run lifecycle state or check what a partial or by-hand run can claim. It is the path toward judgment-quality evidence, not proof — by-hand runs cap at product-learning.
-- `orca/product/shared/engagement_registry/engagement_logic_registry_v0.md`
+- `forseti/product/spines/judgment/judgment_current_state_and_decomposition_v0.md` when the work is Level 1 backtesting-first product learning: core/satellite split, commission gate, source registry, outcome labels, forecast/action/log/evaluation artifacts, satellite fill, or fragrance backtest setup.
+- `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` when the work classifies Judgment Spine claim tier, proof tier, buyer-proof boundary, or judgment-quality boundary.
+- `forseti/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md` when the work needs to route or block Judgment Spine gate ownership before claim promotion.
+- `forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md` — **the Judgment Spine conductor; open this FIRST for the judgment run lane** (running or planning any case through gates JSG-01 to JSG-10). It sequences the gates and routes to the evidence ladder, gate ownership map, and JSG-08 owner contract rather than restating them; use it to decide a run lifecycle state or check what a partial or by-hand run can claim. It is the path toward judgment-quality evidence, not proof — by-hand runs cap at product-learning.
+- `forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md`
 - nearest boundary or proof artifact named by the request.
 
 ### Prompt Or Review Prompt Work
@@ -793,18 +793,18 @@ direction_change_propagation:
     - ".agents/workflow-overlay/source-loading.md"
     - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
     - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
-    - "orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md"
-    - "orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md"
-    - "orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md"
-    - "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+    - "forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md"
+    - "forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md"
+    - "forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md"
+    - "forseti/product/spines/capture/core/source_capture_toolbox/README.md"
   intentionally_not_updated:
     - path: ".agents/workflow-overlay/source-loading.md"
       reason: "The canonical read-pack still routes Data Capture work through the consolidation sub-map. This patch adds a top-level anti-friction cue, not a new source-loading pack."
-    - path: "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+    - path: "forseti/product/spines/capture/core/source_capture_toolbox/README.md"
       reason: "The Armory README already records CloakBrowser implementation limits and non-claims. This patch changes repo-map discoverability, not Armory implementation."
     - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
       reason: "The authorization already controls CloakBrowser/proxy allowance. This patch does not change the owner decision."
-  stale_language_search: "rg -n \"Reddit CloakBrowser / Proxy Allowance Quick Route|CloakBrowser is the approved primary|residential/rotating|Candidate URL Intake may record this approved downstream route|approved primary anti-blocking route|not blanket stop\" docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md orca/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md"
+  stale_language_search: "rg -n \"Reddit CloakBrowser / Proxy Allowance Quick Route|CloakBrowser is the approved primary|residential/rotating|Candidate URL Intake may record this approved downstream route|approved primary anti-blocking route|not blanket stop\" docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_success_signal_architecture_v0.md"
   stale_language_search_result: "Executed 2026-06-06 after this patch. Hits were the new repo-map quick route, the Data Capture sub-map allowance summary, the parent Candidate URL Intake downstream access posture, the Reddit Candidate URL Intake specialization, and controlling source-access authorization / Reddit success-signal hard-stop language. No checked surface required a new CA to block CloakBrowser or residential/rotating proxies by default for bounded pre-commercial Reddit capture."
   non_claims:
     - "not validation"
@@ -835,8 +835,8 @@ direction_change_propagation:
   controlling_sources_updated:
     - "docs/workflows/orca_repo_map_v0.md"
     - "docs/workflows/data_capture_spine_consolidation_map_v0.md"
-    - "orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md"
-    - "orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md"
+    - "forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md"
+    - "forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md"
     - "docs/workflows/reddit_candidate_intake_to_projection_lane_handoff_v0.md"
   downstream_surfaces_checked:
     - "AGENTS.md"
@@ -846,11 +846,11 @@ direction_change_propagation:
     - "docs/workflows/reddit_candidate_intake_old_reddit_search_surface_handling_v0.md"
     - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
   intentionally_not_updated:
-    - path: "orca/product/spines/capture/core/source_capture_toolbox/README.md"
+    - path: "forseti/product/spines/capture/core/source_capture_toolbox/README.md"
       reason: "Graph Frontier is not Source Capture Armory and does not emit Source Capture Packets."
-    - path: "orca-harness/docs/source_capture_agent_runbook.md"
+    - path: "forseti-harness/docs/source_capture_agent_runbook.md"
       reason: "No runner behavior changed and this patch does not authorize implementation execution."
-  stale_language_search: "rg -n \"Future Crawler-Graph|future crawler|may be architected|architected or rejected|candidate_graph_ledger|crawler_graph_exploration_lane|should wait for an architecture decision|Commission the separate crawler-graph|accepted Reddit Graph Frontier|Graph Frontier Register\" docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md orca/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md docs/workflows/reddit_candidate_intake_to_projection_lane_handoff_v0.md"
+  stale_language_search: "rg -n \"Future Crawler-Graph|future crawler|may be architected|architected or rejected|candidate_graph_ledger|crawler_graph_exploration_lane|should wait for an architecture decision|Commission the separate crawler-graph|accepted Reddit Graph Frontier|Graph Frontier Register\" docs/workflows/orca_repo_map_v0.md docs/workflows/data_capture_spine_consolidation_map_v0.md forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_reddit_candidate_url_intake_crawler_architecture_v0.md forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md docs/workflows/reddit_candidate_intake_to_projection_lane_handoff_v0.md"
   stale_language_search_result: "Executed 2026-06-08 after this patch. Active route surfaces now point to accepted Reddit Graph Frontier and Graph Frontier Register language; the old future-question wording is not present in the active route surfaces checked."
   non_claims:
     - "not validation"
@@ -869,22 +869,22 @@ status field. Open the owning doc for authority; this table is navigation only.
 
 | Workstream | Owning doc | Status |
 | --- | --- | --- |
-| Beauty vertical satellite | `orca/product/satellites/beauty/beauty_venue_card_set_v0.md` | venue card set promoted; no separate beauty vertical satellite owner doc exists |
-| Data capture spine | `orca/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md` | `PROPOSED_ARCHITECTURE_V2` |
-| Judgment spine | `orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` | no status field |
+| Beauty vertical satellite | `forseti/product/satellites/beauty/beauty_venue_card_set_v0.md` | venue card set promoted; no separate beauty vertical satellite owner doc exists |
+| Data capture spine | `forseti/product/spines/capture/core/operating_model/data_capture_harness_operating_model_architecture_v2.md` | `PROPOSED_ARCHITECTURE_V2` |
+| Judgment spine | `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` | no status field |
 | ECR | `docs/workflows/ecr_spine_submap_v0.md` | no status field |
-| Signal content | `orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION` |
-| Source capture toolbox | `orca/product/spines/capture/core/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
-| Core spine | `orca/product/spines/foundation/product_contract/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
+| Signal content | `forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION` |
+| Source capture toolbox | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
+| Core spine | `forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
 | Search lane | `docs/decisions/orca_search_product_lane_binding_v0.md` | owner-authorized v0; demand-signal intelligence (search-led): search/answer-engine surfaces + demand-scan/read/gate method |
-| Spine-first target structure | `docs/decisions/orca_spine_first_target_structure_binding_v0.md` | executed by spine-first migration; current product tree routes through `orca/product/` |
+| Spine-first target structure | `docs/decisions/orca_spine_first_target_structure_binding_v0.md` | executed by spine-first migration; current product tree routes through `forseti/product/` |
 | Spine-first blocker authorization | `docs/decisions/orca_spine_first_blocker_authorization_v0.md` | B1-B7 execution settlement consumed by the spine-first migration |
 
 ## Not-Proven Boundaries
 
 This map does not prove acceptance, validation, readiness, buyer pull,
 implementation authorization, source correctness, or freshness of every listed
-artifact. Listing `orca-harness/` reflects authorized, bounded implementation
+artifact. Listing `forseti-harness/` reflects authorized, bounded implementation
 only; it does not assert runtime readiness, that its build scope is validated,
 or that any gated surface (production runtime, API/commercial fetch, ECR,
 Cleaning, Judgment) is authorized. Check the target artifact, retrieval header,

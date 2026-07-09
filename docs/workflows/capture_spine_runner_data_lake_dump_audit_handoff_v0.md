@@ -16,11 +16,11 @@ authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/source-loading.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-  - orca-harness/data_lake/root.py
-  - orca-harness/source_capture/writer.py
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+  - forseti-harness/data_lake/root.py
+  - forseti-harness/source_capture/writer.py
 stale_if:
   - Any capture runner gains or loses --data-root / ORCA_DATA_ROOT support.
   - DataLakeRoot raw pathing, availability index shape, or sharding behavior changes.

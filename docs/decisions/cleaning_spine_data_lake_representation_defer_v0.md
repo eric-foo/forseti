@@ -12,8 +12,8 @@ use_when:
   - Checking the un-defer triggers before building a Cleaning lake writer or a derived_retrieval view.
   - Confirming the per-packet vs cross-packet representation boundary for cleaned records.
 open_next:
-  - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+  - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
 stale_if:
   - The owner adopts, amends, or rejects this recommendation.
   - A Cleaning transform-ledger / cleaned-record producer or a cross-packet dedupe deriver lands.

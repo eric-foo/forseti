@@ -9,9 +9,9 @@ use_when:
   - Deciding the derivation/extraction contract before any deriver build.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
-  - orca-harness/signal_content/models.py
-  - orca-harness/ecr/__init__.py
+  - forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md
+  - forseti-harness/signal_content/models.py
+  - forseti-harness/ecr/__init__.py
 ```
 
 You are a fresh reader. Treat this packet as a pointer, not as authority:

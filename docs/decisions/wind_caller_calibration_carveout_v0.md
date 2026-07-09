@@ -13,9 +13,9 @@ use_when:
   - Checking whether audience-graph or cross-platform handle stitching is authorized.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md   # wind-caller read type
-  - orca/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md  # Tier 2 deferred items
-  - orca/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md  # external boundary unchanged
+  - forseti/product/spines/foundation/demand_read_taxonomy/orca_demand_read_taxonomy_v0.md   # wind-caller read type
+  - forseti/product/spines/capture/core/operating_model/data_capture_spine_future_exploration_lanes_v0.md  # Tier 2 deferred items
+  - forseti/product/spines/product_lead/proof_charter/orca_product_proof_lead_charter_v0.md  # external boundary unchanged
 stale_if:
   - The owner amends this record (dated amendments only; no silent rewrites).
   - Commercial scale begins — triggers mandatory licensed/bought-data posture for wind-caller stats.

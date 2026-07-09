@@ -11,8 +11,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/source-loading.md
-  - orca/product/spines/capture/core/source_capture_toolbox/README.md
-  - orca/product/spines/capture/core/source_capture_toolbox/source_quality_slot3_post_recapture_closeout_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/README.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_quality_slot3_post_recapture_closeout_v0.md
   - docs/decisions/source_capture_packet_fixture_retention_sensitivity_decision_v0.md
 stale_if:
   - The Source Capture Armory display-name rename, lifecycle decision, Mini God-Tier profile, Slot 3 closeout, or source-loading rules change materially.

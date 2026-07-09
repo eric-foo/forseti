@@ -15,7 +15,7 @@ use_when:
   - Authoring the data_lake spine README, future spine.yaml, or move manifest.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/data_lake/README.md
+  - forseti/product/spines/data_lake/README.md
   - docs/decisions/orca_spine_first_target_structure_binding_v0.md
   - docs/decisions/orca_repo_structure_binding_v0.md
   - .agents/workflow-overlay/artifact-folders.md

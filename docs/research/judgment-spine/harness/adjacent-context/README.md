@@ -10,8 +10,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/harness/v0_14/index.md
-  - orca/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
-  - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
 ```
 
 ## Side Context Rule

@@ -13,11 +13,11 @@ use_when:
   - Reusing IG social DOM/passive-JSON lessons while forcing source-family-specific proof.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-  - orca/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_capture_recon_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/youtube/youtube_capture_agent_playbook_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_capture_recon_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_capture_agent_playbook_v0.md
 stale_if:
   - YouTube recon/playbook changes route, field, posture, or implementation-boundary claims.
   - A TikTok recon card or source-family playbook is created and supersedes the probe-first state.

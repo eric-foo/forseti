@@ -12,9 +12,9 @@ authority_boundary: retrieval_only
 open_next:
   - docs/research/judgment-spine/cases/unity-runtime-fee/reveal_readout_v0.md
   - docs/research/judgment-spine/manifest_v0.md
-  - orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md
-  - orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md
-  - orca/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md
+  - forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_source_packet_v0.md
+  - forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_memo_unity_runtime_fee_at_cutoff_v0.md
+  - forseti/product/case_families/product_learning/other_verticals/orca_backtest_specimen_unity_runtime_fee_outcome_calibration_v0.md
 ```
 
 ## Preflight

@@ -14,7 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
-  - orca/product/spines/data_lake/README.md
+  - forseti/product/spines/data_lake/README.md
 stale_if:
   - A later accepted decision relocates the data_lake spine contents.
 ```

@@ -11,8 +11,8 @@ open_next:
   - docs/research/data_capture_spine_pressure_test_batch_synthesis_n2of3_v0.md
   - slot2_teal_CAPTURE_operator_workfile.md # nonresolving: operator workfile, never committed
   - slot1_mi_CAPTURE_operator_workfile.md # nonresolving: operator workfile, never committed
-  - orca/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
-  - orca/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
+  - forseti/product/spines/capture/core/operating_model/data_capture_spine_pressure_test_commissioning_plan_v0.md
+  - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md
   - docs/_inbox/data_capture_pressure_test_subagent_outputs_2026_05_28/slot3_nontarget_forum_subagent_output.md # nonresolving: inbox output, never committed
 stale_if:
   - The slot-3 fork is resolved and slot 3 is run (this handoff then describes a past state).

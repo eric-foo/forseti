@@ -17,9 +17,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/prompts/product-planning/imaginary_authors_csb_seeded_scanning_mgt_commission_prompt_v0.md
-  - orca/product/spines/scanning/README.md
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
-  - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+  - forseti/product/spines/scanning/README.md
+  - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
 stale_if:
   - Any promoted observation is used after the 21-day forward scan-to-use window
     without fresh re-verification.

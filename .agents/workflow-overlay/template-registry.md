@@ -3,14 +3,14 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Orca overlay authority
-scope: Orca-owned prompt template registry for project-local templates.
+scope: Forseti-owned prompt template registry for project-local templates.
 use_when:
   - Resolving which Orca prompt template should be used.
   - Checking whether prompt-orchestrator template fallback is allowed.
 authority_boundary: retrieval_only
 ```
 
-This registry binds Orca-local prompt templates. Reusable prompt-orchestrator
+This registry binds Forseti-local prompt templates. Reusable prompt-orchestrator
 mechanics may use the registry for template discovery, but Orca owns the
 template paths, template targets, output modes, artifact roles, and non-claim
 boundaries.

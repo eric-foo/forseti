@@ -29,13 +29,13 @@ authority_boundary: retrieval_only
 - `docs/workflows/`: workflow records, repo maps, validation notes, and operational records owned by Forseti.
 - `docs/migration/`: migration and import queue records.
 - `forseti/product/` (repo root): the canonical Forseti product tree and forward route for new product entrypoints and newly accepted product artifacts when no existing legacy owner must be updated in place. Current live content is sparse during identity convergence.
-- `orca/product/` (repo root): legacy compatibility product corpus for the pre-Forseti **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/orca_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`, `data_lake/`), `satellites/`, `case_families/`, `shared/`. `data_lake/` is a shared-foundation spine promotion-bound 2026-06-18 by `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` (R2 landed the contracts + mechanics into authority/+workflows/ and retired shared/data_lake_mechanics/; the 2 planning docs are pending placement). Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `orca/` as a declared top-level area. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
+- `forseti/product/` (repo root): legacy compatibility product corpus for the pre-Forseti **spine-first product tree** for product contracts, product proof plans, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, executive-deck shape drafts, Source Capture Toolbox design notes, and demand-signal method/surface docs. The tree is bound by `docs/decisions/orca_spine_first_target_structure_binding_v0.md` and authorized by `docs/decisions/orca_spine_first_blocker_authorization_v0.md` (#254). Second-level axis: `spines/` (`foundation/`, `commission_signal_board/`, `scanning/`, `capture/`, `ecr/`, `cleaning/`, `judgment/`, `product_lead/`, `data_lake/`), `satellites/`, `case_families/`, `shared/`. `data_lake/` is a shared-foundation spine promotion-bound 2026-06-18 by `docs/decisions/orca_data_lake_spine_promotion_binding_v0.md` (R2 landed the contracts + mechanics into authority/+workflows/ and retired shared/data_lake_mechanics/; the 2 planning docs are pending placement). Per-spine structure is owned by the spine-first binding, not the machine map; `check_placement.py` treats `orca/` as a declared top-level area. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md` by design. `docs/doctrine/` is intentionally NOT created by this migration (owner B3: index/router-only, seeded later).
 - `repo-structure.yaml` (repo root): the machine structure map - router only, consumed by `.agents/hooks/check_placement.py` and agents for navigation. It declares homes and never states rules; this overlay file remains the placement authority and wins on conflict.
 - `docs/research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, and reject-pattern maps that support Forseti product or proof work without becoming product authority by default.
 - `docs/research/judgment-spine/harness/v0_14/smoke_tests/`: Judgment Harness v0.14 no-case smoke-test receipts and operator provenance records. Artifacts in this folder are plumbing evidence only and do not become real-case probe, validation, fixture-admission, product-proof, or judgment-quality evidence by location.
 - `docs/hygiene/`: triage queues and cleanup notes for Forseti artifacts.
 - `docs/_inbox/`: non-authoritative temporary holding area for scratch prompts, notes, imports, and untriaged material.
-- `.agents/skills/`: Forseti-local accepted/candidate workflow skill source (for example, `orca-product-lead`, still legacy-named), governed by `.agents/workflow-overlay/skill-adoption.md`. Forseti-local only; this is NOT plugin, user-level, installed, or external skill source, and living here does not deploy, activate, or make a skill resolver-visible.
+- `.agents/skills/`: Forseti-local accepted/candidate workflow skill source (for example, `forseti-product-lead`, still legacy-named), governed by `.agents/workflow-overlay/skill-adoption.md`. Forseti-local only; this is NOT plugin, user-level, installed, or external skill source, and living here does not deploy, activate, or make a skill resolver-visible.
 
 ## Rules
 
@@ -46,8 +46,8 @@ authority_boundary: retrieval_only
   excludes the artifact class.
 - Treat `docs/_inbox/` as scratch only. Nothing in `_inbox` is Forseti authority until promoted into an accepted docs folder or overlay file.
 - Track parked or temporary material through `docs/hygiene/queue.md` when it may need promotion, review, archiving, or deletion.
-- Keep new product artifacts in `forseti/product/` unless they are accepted decision records, prompt artifacts, workflow records, review artifacts, migration records, or narrow updates to an existing legacy owner that still physically lives under `orca/product/`.
-- Keep research artifacts in `docs/research/` when the primary purpose is source discovery, corpus qualification, evidence gathering, candidate screening, or rejected-source mapping. Promote research conclusions into `forseti/product/`, a still-live legacy owner under `orca/product/`, or `docs/decisions/` only through a later accepted product or decision artifact.
+- Keep new product artifacts in `forseti/product/` unless they are accepted decision records, prompt artifacts, workflow records, review artifacts, migration records, or narrow updates to an existing legacy owner that still physically lives under `forseti/product/`.
+- Keep research artifacts in `docs/research/` when the primary purpose is source discovery, corpus qualification, evidence gathering, candidate screening, or rejected-source mapping. Promote research conclusions into `forseti/product/`, a still-live legacy owner under `forseti/product/`, or `docs/decisions/` only through a later accepted product or decision artifact.
 - Do not create implementation folders such as `src`, `app`, `packages`, `tests`, or automation runtimes until explicitly authorized.
 - Forseti-local workflow skills live only under `.agents/skills/` and are governed by `.agents/workflow-overlay/skill-adoption.md`; acceptance there is a local freeze, not deployment, and must not edit plugin, user-level, installed, or external workflow source.
 - Do not copy or move material from external reference folders unless a later turn explicitly authorizes the import.
@@ -58,27 +58,27 @@ authority_boundary: retrieval_only
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    `.agents/skills/` is now a bound Orca-local accepted/candidate workflow-skill
-    source folder, and the first Orca-local skill (`orca-product-lead`) is
+    `.agents/skills/` is now a bound Forseti-local accepted/candidate workflow-skill
+    source folder, and the first Forseti-local skill (`forseti-product-lead`) is
     accepted/frozen. Acceptance is a local freeze only — not deployment,
     activation, or resolver-visibility.
   trigger: output_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/artifact-folders.md
     - .agents/workflow-overlay/skill-adoption.md
-    - .agents/skills/orca-product-lead/SKILL.md
+    - .agents/skills/forseti-product-lead/SKILL.md
   downstream_surfaces_checked:
     - AGENTS.md                                      # grep: no skill/folder reference; skill rules already defer to overlay; no change
     - .agents/workflow-overlay/README.md             # grep: no reference; no change
     - .agents/workflow-overlay/source-of-truth.md    # grep: no reference; skill is not an authority source (it defers)
     - .agents/workflow-overlay/project-authority.md  # grep: no reference; skill is explicitly non-authority
-  stale_language_search: 'rg -n "orca-product-lead|\.agents/skills|no accepted Orca-local" . (run 2026-06-08; only skill-adoption.md carried the stale "no accepted" status, now fixed)'
+  stale_language_search: 'rg -n "forseti-product-lead|\.agents/skills|no accepted Forseti-local" . (run 2026-06-08; only skill-adoption.md carried the stale "no accepted" status, now fixed)'
   intentionally_not_updated:
     - path: .agents/workflow-overlay/skill-adoption.md (Known Snapshots, 2026-05-24 line)
       reason: dated historical observation, true as of its date.
     - path: docs/workflows/orca_pricing_first_doc_cascade_proposal_v0.md
       reason: historical proposal record (row 7 deferral); current acceptance state now lives in skill-adoption.md; the proposal is not retro-edited.
-    - path: orca/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
+    - path: forseti/product/spines/product_lead/icp_wedge/orca_product_lead_first_icp_wedge_decision_v0.md
       reason: already-superseded historical record; its supersede banner governs.
     - path: docs/decisions/orca_icp_wedge_convergence_break_in_first_v0.md
       reason: already-superseded historical record; its supersede banner governs.
@@ -99,7 +99,7 @@ direction_change_propagation:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Orca adopts the agent-first repo-structure invariant core as Orca-owned
+    Orca adopts the agent-first repo-structure invariant core as Forseti-owned
     doctrine via docs/decisions/orca_repo_structure_binding_v0.md, binds the
     docs/product/ by-lane second axis and root machine map repo-structure.yaml
     (router-only), and authorizes the EP-04 placement substrate
@@ -160,7 +160,7 @@ direction_change_propagation:
     - docs/decisions/orca_repo_structure_binding_v0.md        # bound-lanes bullet notes search/
     - repo-structure.yaml                                     # product_lanes += { search } (current once applied)
     - .agents/workflow-overlay/artifact-folders.md            # search accepted-folder entry + lane-subfolder list + this receipt
-    - orca/product/README.md                                  # lane list includes search/
+    - forseti/product/README.md                                  # lane list includes search/
     - docs/product/search/README.md                          # lane front-door index (restructured for the expanded lane)
     - docs/workflows/orca_repo_map_v0.md                      # Workstream Status Pointers: search lane row
     - docs/migration/repo_structure_search_lane_v0/           # package: 10-row manifest + idempotent apply/reverse + runbook + reference inventory + moved-paths index
@@ -181,7 +181,7 @@ direction_change_propagation:
       reason: narrative tier per the binding's surface tiering; no product-lane list to amend (same treatment as the Phase-2 move).
     - path: the moved docs' content
       reason: not edited except intra-set full-path references (hash-safe; no inbound hash pins); search/README.md was hand-restructured separately.
-    - path: orca/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md (bare-name "in-flight/not on main" prose)
+    - path: forseti/product/spines/foundation/ontology/orca_ontology_backbone_architecture_v0.md (bare-name "in-flight/not on main" prose)
       reason: pre-existing stale status independent of this move (the scan-core spec is already on main); out of scope for this migration.
   stale_language_search: >
     The runbook's apply sequence includes a git-grep reference-resolution check
@@ -202,10 +202,10 @@ direction_change_propagation:
   doctrine_changed: >
     Spine-first migration Wave B (structural commit): the `orca/` top-level root
     is created and declared in repo-structure.yaml known_top_level, and
-    artifact-folders.md now declares `orca/product/` as the spine-first product
+    artifact-folders.md now declares `forseti/product/` as the spine-first product
     tree (target bound by orca_spine_first_target_structure_binding_v0,
     authorized by orca_spine_first_blocker_authorization_v0 / #254). The
-    `docs/product/` by-lane axis is being superseded by the `orca/product/` spine
+    `docs/product/` by-lane axis is being superseded by the `forseti/product/` spine
     axis; both coexist during execution. No files are moved by Wave B (that is
     Wave C); `docs/product/` remains valid until Wave E drops it. `docs/doctrine/`
     is intentionally NOT added (owner B3: index/router-only, seeded later, not
@@ -226,7 +226,7 @@ direction_change_propagation:
   intentionally_not_updated:
     - path: docs/workflows/orca_repo_map_v0.md
       reason: >
-        docs/product -> orca/product reference rewrites + the orca/ nav section are
+        docs/product -> forseti/product reference rewrites + the orca/ nav section are
         Wave C (apply engine, live nav) and Wave E (status pointers); Wave B does
         not touch the map. The repo-map-freshness advisory on the new orca/
         top-level is acknowledged and deferred to Wave E.
@@ -234,18 +234,18 @@ direction_change_propagation:
       reason: >
         No code change needed: classify() treats any non-docs known_top_level dir
         as a declared area, so adding `orca` to known_top_level.dirs suffices for
-        orca/product/ to be placed.
+        forseti/product/ to be placed.
     - path: repo-structure.yaml docs_roles + product_lanes (docs/product)
       reason: >
         Left intact: docs/product/ is still populated until Wave C moves the files
         and Wave E drops the role; removing it now would flag the live files.
   stale_language_search: >
-    rg -n "known_top_level|orca/product" repo-structure.yaml
+    rg -n "known_top_level|forseti/product" repo-structure.yaml
     .agents/workflow-overlay/artifact-folders.md (run 2026-06-18, worktree
     orca-spine-first-execution)
   stale_language_search_result: >
     docs/product by-lane bullet + repo-structure.yaml docs_roles/product_lanes
-    remain (intentional, live until Wave C/E); the new orca/product bullet +
+    remain (intentional, live until Wave C/E); the new forseti/product bullet +
     known_top_level orca entry are the Wave B additions; no surface claims the
     migration is complete or that files have moved.
   non_claims:
@@ -261,13 +261,13 @@ direction_change_propagation:
 direction_change_propagation:
   doctrine_changed: >
     Spine-first migration Wave E (authority retirement): docs/product/ placement
-    authority is removed now that the 217 product files moved to orca/product/
+    authority is removed now that the 217 product files moved to forseti/product/
     (Wave C) and docs/product/ is empty. repo-structure.yaml drops the
     docs/product docs_role + all docs/product product_lanes (fixing the Wave C
     home/entry rewrite artifact); artifact-folders.md removes the docs/product,
     source_capture_toolbox, search, and docs/product lane-subfolder accepted-folder
-    bullets (content now under orca/product/); repo map + STRUCTURE nav route to
-    orca/product/. docs/doctrine/ remains intentionally uncreated (owner B3).
+    bullets (content now under forseti/product/); repo map + STRUCTURE nav route to
+    forseti/product/. docs/doctrine/ remains intentionally uncreated (owner B3).
   trigger: architecture_doctrine
   related_triggers:
     - output_authority
@@ -288,7 +288,7 @@ direction_change_propagation:
         Historical body prose / provenance keeps its point-in-time docs/product
         paths by design (resolved via the spine-first moved_paths_index); not
         mass-rewritten per owner instruction. The open_next retrieval metadata in
-        these same files WAS repointed to orca/product under the A-prime patch
+        these same files WAS repointed to forseti/product under the A-prime patch
         (see the A-prime receipt below); only body prose is preserved.
         check_map_links --strict now passes.
   stale_language_search: >
@@ -314,7 +314,7 @@ direction_change_propagation:
     A-prime (owner-authorized 2026-06-18): retrieval metadata must resolve
     directly; only historical BODY prose stays point-in-time. Refines
     reference-model-B -- the migration's open_next pointers and the repo map's
-    live references are repointed from docs/product/... to their orca/product/...
+    live references are repointed from docs/product/... to their forseti/product/...
     successors via the moved_paths_index; historical body prose/provenance is
     still NOT mass-rewritten. check_map_links.py stays strict and was NOT taught
     index resolution.
@@ -327,7 +327,7 @@ direction_change_propagation:
     - docs/migration/repo_structure_spine_first_v0/moved_paths_index.md
   bulk_change: >
     165 historical .md retrieval headers: 335 open_next entries repointed
-    docs/product -> orca/product (C2 surface); 3 repo-map retirement-prose
+    docs/product -> forseti/product (C2 surface); 3 repo-map retirement-prose
     docs/product tokens dropped (C1 surface); docs/product/search/README.md
     open_next occurrences (2) annotated "# nonresolving:" -> moved_paths_index
     (retired, no successor).
@@ -349,12 +349,12 @@ direction_change_propagation:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    orca/product/spines/data_lake/ is promoted to an accepted shared_foundation
+    forseti/product/spines/data_lake/ is promoted to an accepted shared_foundation
     spine (the 9th spine), extending the spine-first target structure. It earns
-    its own home rather than orca/product/shared/data_lake_mechanics/ because it
+    its own home rather than forseti/product/shared/data_lake_mechanics/ because it
     owns hard cross-layer storage contracts. SHAPE/PROMOTION binding only: no
     files moved, no docs/product re-creation, no capture/projection/engagement
-    re-org, runtime stays in orca-harness. Content relocation (3 lake contracts
+    re-org, runtime stays in forseti-harness. Content relocation (3 lake contracts
     from the codex/data-lake-core-contract lane -> authority/; mechanics map from
     shared/data_lake_mechanics/ -> workflows/) is a separate later R2 move pass.
   trigger: architecture_doctrine
@@ -363,7 +363,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - .agents/workflow-overlay/artifact-folders.md
     - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
-    - orca/product/spines/data_lake/README.md
+    - forseti/product/spines/data_lake/README.md
     - docs/workflows/orca_repo_map_v0.md
     - docs/decisions/orca_spine_first_target_structure_binding_v0.md
   intentionally_not_updated:
@@ -372,7 +372,7 @@ direction_change_propagation:
         data_lake is under orca/ (already a declared top-level area) and per-spine
         structure is owned by the spine-first binding, not the machine map; no
         machine-map change is needed.
-    - path: orca/product/shared/data_lake_mechanics/ + orca/product/shared/projection_doctrine/
+    - path: forseti/product/shared/data_lake_mechanics/ + forseti/product/shared/projection_doctrine/
       reason: >
         re-homing these is the R2 move pass (owner deferred the pinning); left in
         place transitionally.
@@ -391,9 +391,9 @@ direction_change_propagation:
 direction_change_propagation:
   doctrine_changed: >
     Data Lake R2 convergence: the 3 lake contracts (core/storage/Attachment-Record)
-    landed in orca/product/spines/data_lake/authority/ and the canonical mechanics
+    landed in forseti/product/spines/data_lake/authority/ and the canonical mechanics
     map in workflows/, harvested from codex/data-lake-core-contract (#232) with refs
-    repointed to orca/product/ paths. orca/product/shared/data_lake_mechanics/ is
+    repointed to forseti/product/ paths. forseti/product/shared/data_lake_mechanics/ is
     RETIRED (superseded by the workflows/ copy; the #232 mechanics map was verified
     canonical via a 3-way reconciliation vs main's shared/ copy and the
     codex/data-lake-mechanics-map lane). The 2 #239 repo-structure planning docs are
@@ -404,7 +404,7 @@ direction_change_propagation:
     - workflow_authority
   controlling_sources_updated:
     - docs/workflows/orca_repo_map_v0.md
-    - orca/product/spines/data_lake/README.md
+    - forseti/product/spines/data_lake/README.md
     - docs/decisions/orca_data_lake_spine_promotion_binding_v0.md
     - docs/migration/repo_structure_data_lake_r2_v0/moved_paths_index.md
     - .agents/workflow-overlay/artifact-folders.md

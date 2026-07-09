@@ -16,8 +16,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/orca_icp_wedge_pricing_first_v0.md
-  - orca/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
-  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
+  - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
+  - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
   - docs/research/judgment-spine/harness/v0_14/index.md
   - docs/research/judgment-spine/manifest_v0.md
 stale_if:

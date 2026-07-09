@@ -7,7 +7,7 @@ scope: Compact navigation map for Forseti cold starts, source loading, and ident
 use_when:
   - Orienting a new Forseti thread without bulk-loading the repository.
   - Choosing the first source pack for product, prompt, review, research, or workflow work.
-  - Checking which Orca-named roots are legacy compatibility paths.
+  - Checking the live Forseti product and harness roots.
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/source-loading.md
@@ -16,22 +16,21 @@ open_next:
 supersedes:
   - docs/workflows/orca_repo_map_v0.md as the cold-start route card
 stale_if:
-  - The physical product corpus under orca/product/ is migrated into forseti/product/.
-  - The legacy runtime harness under orca-harness/ is migrated or replaced by forseti-harness/.
+  - The product corpus or runtime harness are materially reorganized.
   - A later accepted repo map supersedes this file.
 ```
 
 - Status: ACTIVE_RETRIEVAL_MAP (retrieval-only; source authority remains in `.agents/workflow-overlay/source-of-truth.md`)
 - Artifact type: Workflow navigation artifact
 - Scope: Forseti navigation and source-pack selection
-- Refreshed: 2026-07-09 (harness packaging smoke plus high-traffic front doors for Creator Signal, Foundation ontology, Judgment, Capture, and Answer Engine). Prior: 2026-07-09 (Forseti identity convergence front door; legacy Orca physical roots made explicit)
+- Refreshed: 2026-07-10 (live product and harness roots moved under Forseti). Prior: 2026-07-09 (harness packaging smoke plus high-traffic front doors for Creator Signal, Foundation ontology, Judgment, Capture, and Answer Engine)
 - Implementation authorized: no
 
 ## How To Use This Map
 
 Start with this map, not `docs/workflows/orca_repo_map_v0.md`, for new Forseti
-work. Use the legacy Orca map only when a needed owner or detailed route still
-physically lives under an Orca-named compatibility root.
+work. Use the older detailed map only when a compact route here does not expose
+the needed owner.
 
 Do not treat this map as product authority, validation, readiness, proof, or
 migration completion evidence. For precedence, open
@@ -44,7 +43,7 @@ migration completion evidence. For precedence, open
 | --- | --- |
 | `README.md` | Workspace identity and first orientation. |
 | `AGENTS.md` | Agent behavior kernel, isolation rule, verification discipline, and Forseti project triggers. |
-| `.agents/workflow-overlay/README.md` | Project authority overlay. Some files retain legacy Orca labels during migration. |
+| `.agents/workflow-overlay/README.md` | Project authority overlay. |
 | `repo-structure.yaml` | Machine-readable router; points cold starts to this map and `forseti/product/README.md`. |
 | `forseti/product/README.md` | Canonical Forseti product front door. |
 | `docs/research/README.md` | Research front door; routes answer-engine/AEO, Aphrodite, Judgment Spine research, and other research lanes. |
@@ -53,12 +52,10 @@ migration completion evidence. For precedence, open
 
 | Path | Current routing status |
 | --- | --- |
-| `forseti/product/` | Canonical Forseti product root for new entrypoints and newly accepted product artifacts when no existing legacy owner must be updated in place. |
+| `forseti/product/` | Canonical Forseti product root for entrypoints, product spines, satellites, case families, and shared product material. |
 | `forseti/product/spines/creator_signal/` | Live Aphrodite / Creator Signal product records restored for the D-1 bundle. |
 | `forseti/product/spines/foundation/ontology/` | Live Forseti ontology reference data for Aphrodite D-1. |
-| `orca/product/` | Legacy compatibility product corpus. Most pre-Forseti product files still physically live here; update existing owners in place until a separate migration moves them. |
-| `orca-harness/` | Legacy compatibility runtime harness root. Use it for live harness files until a separate migration creates or populates `forseti-harness/`. |
-| `forseti-harness/` | Not present in this workspace as of this map. Do not cite it as a live path. |
+| `forseti-harness/` | Canonical runtime harness root. |
 
 ## High-Traffic Front Doors
 
@@ -66,8 +63,8 @@ migration completion evidence. For precedence, open
 | --- | --- |
 | `forseti/product/spines/creator_signal/README.md` | Creator Signal and Aphrodite product-record routing. |
 | `forseti/product/spines/foundation/ontology/README.md` | Fragrance reference, foundation ontology, and legacy foundation-owner routing. |
-| `orca/product/spines/judgment/README.md` | Legacy Judgment spine product owners and judgment-quality routing. |
-| `orca/product/spines/capture/README.md` | Legacy Capture spine, Source Capture Armory, and harness-adjacent routing. |
+| `forseti/product/spines/judgment/README.md` | Legacy Judgment spine product owners and judgment-quality routing. |
+| `forseti/product/spines/capture/README.md` | Legacy Capture spine, Source Capture Armory, and harness-adjacent routing. |
 | `docs/research/answer_engine/README.md` | Answer-engine / AEO research and scanning-source-family bridge. |
 
 ## Aphrodite D-1 Bundle Route
@@ -87,16 +84,15 @@ Open these live paths for the D-1 bundle:
 ## Legacy Detailed Map
 
 `docs/workflows/orca_repo_map_v0.md` remains a detailed compatibility map for
-pre-Forseti physical roots and historical route detail. It is not the cold-start
-route card. When this map is too compact for an owner that still lives under
-`orca/product/` or `orca-harness/`, open the legacy map as a second-hop detail
-source and verify every referenced live path before claiming it resolves.
+older route detail. It is not the cold-start route card. When this map is too
+compact for an owner under `forseti/product/` or `forseti-harness/`, open the
+detailed map as a second-hop source and verify every referenced live path before
+claiming it resolves.
 
 ## Not-Proven Boundaries
 
 This map does not prove validation, readiness, buyer proof, implementation
-authorization, source correctness, product authority, runtime authority, or that
-the legacy physical-root migration is complete.
+authorization, source correctness, product authority, or runtime authority.
 
 ## Direction Change Propagation - Forseti Identity Convergence
 
@@ -106,8 +102,8 @@ direction_change_propagation:
     Forseti becomes the canonical project identity and cold-start route. The
     repo route card is now docs/workflows/forseti_repo_map_v0.md and the product
     front door is forseti/product/README.md. Orca-named physical roots remain
-    explicit legacy compatibility roots only: orca/product/ for existing product
-    owners and orca-harness/ for live harness files until a separate migration
+    explicit legacy compatibility roots only: forseti/product/ for existing product
+    owners and forseti-harness/ for live harness files until a separate migration
     moves or replaces them. This change does not mass-move product or harness
     files and does not create a fake forseti-harness/ path.
   trigger: workflow_authority
@@ -132,13 +128,13 @@ direction_change_propagation:
   downstream_surfaces_checked:
     - docs/research/aphrodite_depth_rehearsal_d1_gentsscents_corpus_v0.md
   intentionally_not_updated:
-    - path: orca/product/
+    - path: forseti/product/
       reason: Most pre-Forseti product owners still physically live there; mass move is a separate migration.
-    - path: orca-harness/
+    - path: forseti-harness/
       reason: Live harness implementation still physically lives there; no forseti-harness/ exists to point at honestly.
 
   stale_language_search: >
-    rg -n "Orca|orca/product|orca-harness|orca_repo_map|Forseti|forseti/product|forseti-harness|forseti_repo_map" README.md AGENTS.md repo-structure.yaml docs/workflows/forseti_repo_map_v0.md docs/research/aphrodite_depth_rehearsal_extraction_recipe_v1.md
+    rg -n "Orca|forseti/product|forseti-harness|orca_repo_map|Forseti|forseti/product|forseti-harness|forseti_repo_map" README.md AGENTS.md repo-structure.yaml docs/workflows/forseti_repo_map_v0.md docs/research/aphrodite_depth_rehearsal_extraction_recipe_v1.md
   non_claims:
     - not validation
     - not readiness
@@ -167,14 +163,14 @@ direction_change_propagation:
     - forseti/product/README.md
     - forseti/product/spines/creator_signal/README.md
     - forseti/product/spines/foundation/ontology/README.md
-    - orca/product/spines/judgment/README.md
-    - orca/product/spines/capture/README.md
+    - forseti/product/spines/judgment/README.md
+    - forseti/product/spines/capture/README.md
     - docs/research/README.md
     - docs/research/answer_engine/README.md
   intentionally_not_updated:
-    - path: orca/product/
+    - path: forseti/product/
       reason: Legacy physical product corpus remains in place until a separate migration moves it.
-    - path: orca-harness/
+    - path: forseti-harness/
       reason: Harness root remains the live legacy runtime path; the package-guard change only fixes package discovery.
     - path: docs/prompts/** and docs/review-outputs/**
       reason: Historical prompt/review cleanup is intentionally deferred to a later retention/deletion gate.

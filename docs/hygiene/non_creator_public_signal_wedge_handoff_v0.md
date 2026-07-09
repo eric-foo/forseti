@@ -16,9 +16,9 @@ open_next:
   - .agents/workflow-overlay/source-of-truth.md
   - .agents/workflow-overlay/decision-routing.md
   - docs/workflows/orca_repo_map_v0.md
-  - orca/product/spines/commission_signal_board/README.md
-  - orca/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
-  - orca/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+  - forseti/product/spines/commission_signal_board/README.md
+  - forseti/product/spines/commission_signal_board/prompts/orca_commission_signal_board_prompt_v0.md
+  - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
   - docs/hygiene/precompact_linkedin_lane_signal_pivot_v0.md # nonresolving: checkpoint consumed or absent from live tree; handoff keeps provenance only
 stale_if:

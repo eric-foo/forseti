@@ -11,7 +11,7 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
   - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
-  - orca/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
+  - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
 ```
 
 **Status: PREPARE-ONLY DRAFT** (see the index). Distills recorded Judgment Spine outcomes. **Reconcile
@@ -68,7 +68,7 @@ deterministic check. One partial substrate exists (the band scorer hardcodes
 - outcome_class: a mechanically successful capture (right page, pre-cutoff, hash-anchored) is treated as backing a claim its body does not contain — `silent-wrong-input`
 - causal_miss: missing distinction — "capture succeeded" is NOT "the body backs claim X"; the second question was skipped
 - verification: under-case (asserted span absent from the cited body) → `ClaimSupportError` block; over-edge (span present in the hash-verified body) → passes; omitted (no assertion) → composes clean
-- substrate: CODE-BACKED + CONTRACT-TESTED (I/O) — `evidence_binding/verifier.py::verify_claim_support` is a deterministic checker (recompute the cited file's sha256 [AR-04 `raw_stored_bytes`] → packet-dir containment → byte-substring; block-don't-repair, mirroring `Jsg01BindingError`), exercised by `orca-harness/tests/unit/test_claim_support_verifier.py`. enforced_in: those two paths.
+- substrate: CODE-BACKED + CONTRACT-TESTED (I/O) — `evidence_binding/verifier.py::verify_claim_support` is a deterministic checker (recompute the cited file's sha256 [AR-04 `raw_stored_bytes`] → packet-dir containment → byte-substring; block-don't-repair, mirroring `Jsg01BindingError`), exercised by `forseti-harness/tests/unit/test_claim_support_verifier.py`. enforced_in: those two paths.
 - claim boundary (VERIFY FIRING — narrowed after the de-correlated cross-vendor review, F1/F2, 2026-06): it fires only WHEN INVOKED and WHEN an assertion is declared, and it verifies span PRESENCE — a necessary precondition, NOT semantic support or specificity (actor-carried). It is NOT yet an automatic write-time/assembly/CI gate on every binding; that enforcement-wiring is a deferred follow-on (no assembly runner exists; JSG-01 is FROZEN). Honest claim: "code-backed + contract-tested when invoked", not "auto-enforced for all assemblies". v0 match = exact UTF-8 byte-substring (fail-closed; HTML entity/whitespace brittleness named).
 - PROV: case `beautypie_repricing_2023_v0` — the `beautypie.com/how-it-works` capture (`source_captures/e2_howitworks_20221201`) was clean but its body lacked the £5/£59/spending-limit facts the premise leaned on; reclassified to a case-stated premise (`source_provenance_notes_v0.md`). tier: probed (recorded session outcome + code-backed contract test). date 2026-06.
 

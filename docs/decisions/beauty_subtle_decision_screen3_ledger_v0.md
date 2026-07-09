@@ -17,10 +17,10 @@ use_when:
   - Designing any future subtle-class screen (assembly model + access shapes).
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/satellites/beauty/beauty_venue_card_set_v0.md                 # the promoted card-set (this ledger's trigger outcome)
+  - forseti/product/satellites/beauty/beauty_venue_card_set_v0.md                 # the promoted card-set (this ledger's trigger outcome)
   - docs/decisions/beauty_venue_card_set_promotion_decision_v0.md       # owner promotion decision + binding terms
   - docs/decisions/venue_procedure_proving_screen_beauty_ledger_v0.md   # screen 2 (hub read this screen targeted from)
-  - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md      # the operative method
+  - forseti/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md      # the operative method
   - docs/decisions/orca_venue_registry_rejection_decision_v0.md         # trigger terms + survival ingredients
 stale_if:
   - The owner decides the card-set question (that decision record takes over).

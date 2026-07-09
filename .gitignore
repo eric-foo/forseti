@@ -22,25 +22,25 @@ __pycache__/
 dist/
 build/
 *.egg-info/
-orca-harness/_scratch/
-orca-harness/_test_runs/
-orca-harness/_auth_state/
-orca-harness/_reddit_credentials/
-orca-harness/_proxy_profiles/
-orca-harness/pytest_tmp/
-orca-harness/pytest_tmp_*/
-orca-harness/pytest_*_tmp/
-orca-harness/pytest_run_*/
-orca-harness/pytest-cache-files-*/
-orca-harness/reports/source_observability/*_dry_run.yaml
-orca-harness/reports/source_observability/*_dry_run.json
-orca-harness/reports/source_capture/
-orca-harness/cases/*/*/scores/
-orca-harness/memory/logs/
+forseti-harness/_scratch/
+forseti-harness/_test_runs/
+forseti-harness/_auth_state/
+forseti-harness/_reddit_credentials/
+forseti-harness/_proxy_profiles/
+forseti-harness/pytest_tmp/
+forseti-harness/pytest_tmp_*/
+forseti-harness/pytest_*_tmp/
+forseti-harness/pytest_run_*/
+forseti-harness/pytest-cache-files-*/
+forseti-harness/reports/source_observability/*_dry_run.yaml
+forseti-harness/reports/source_observability/*_dry_run.json
+forseti-harness/reports/source_capture/
+forseti-harness/cases/*/*/scores/
+forseti-harness/memory/logs/
 # YouTube capture tooling: track code, never the captured data/outputs
-orca-harness/youtube_capture/packets/
-orca-harness/youtube_capture/shorts_scroll_runs/
-orca-harness/youtube_capture/route_guard.json
+forseti-harness/youtube_capture/packets/
+forseti-harness/youtube_capture/shorts_scroll_runs/
+forseti-harness/youtube_capture/route_guard.json
 
 # Disposable workflow scratch (precompact checkpoints, operator/subagent inbox)
 docs/hygiene/precompact_*

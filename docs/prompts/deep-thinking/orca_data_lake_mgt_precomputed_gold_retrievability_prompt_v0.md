@@ -13,10 +13,10 @@ use_when:
   - Checking decision-integrity retrieval without turning the lake into Judgment or a person-dossier product.
 authority_boundary: retrieval_only
 open_next:
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-  - orca/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-  - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+  - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+  - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
 stale_if:
   - Data Lake, ECR/SCR, Cleaning, Judgment, or person-dossier boundaries change.
   - A later owner decision selects physical storage, queue/runtime, or gold-view persistence.

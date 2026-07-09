@@ -55,11 +55,11 @@ import subprocess
 import sys
 
 HOME = os.path.expanduser("~")
-REPO_SLUG = "eric-foo/orca"
+REPO_SLUG = "eric-foo/forseti"
 
 # Opt-in label a PR must carry before the guard will allow an agent self-merge.
 # A PR without it never auto-merges (safe default). One-time repo setup to make
-# the label applyable: `gh label create agent-automerge --repo eric-foo/orca`.
+# the label applyable: `gh label create agent-automerge --repo eric-foo/forseti`.
 AUTOMERGE_LABEL = "agent-automerge"
 # Router risk labels meaning "a human must land this" (deletions, protected
 # surfaces). The guard honors them so an in-session self-merge cannot override
@@ -350,7 +350,7 @@ def _selftest():
         # EP-03 conditional merge — the new behavior (lookup injected):
         ("Bash", {"command": "gh pr merge 100 --squash"}, False, _fake),                 # CLEAN+green+label -> ALLOW
         ("PowerShell", {"command": "gh pr merge 100 --squash --delete-branch"}, False, _fake),
-        ("Bash", {"command": "gh pr merge https://github.com/eric-foo/orca/pull/100"}, False, _fake),  # URL form -> ALLOW
+        ("Bash", {"command": "gh pr merge https://github.com/eric-foo/forseti/pull/100"}, False, _fake),  # URL form -> ALLOW
         ("Bash", {"command": "gh pr merge 101"}, True, _fake),                            # missing opt-in label
         ("Bash", {"command": "gh pr merge 102"}, True, _fake),                            # not CLEAN (UNSTABLE)
         ("Bash", {"command": "gh pr merge 103"}, True, _fake),                            # pending check
@@ -361,8 +361,8 @@ def _selftest():
         ("Bash", {"command": "gh pr merge 100"}, True, _raises),                          # lookup raises -> fail closed
         ("PowerShell", {"command": "gh pr merge"}, True, _fake),                          # no explicit PR number
         ("Bash", {"command": "gh pr merge 9 --squash"}, True, _fake),                     # 9 not in fake -> fail closed
-        ("Bash", {"command": "gh api -X PUT repos/eric-foo/orca/pulls/9/merge"}, True, _fake),  # api form always manual
-        ("Bash", {"command": "gh pr merge 100 --repo eric-foo/orca --squash"}, False, _fake),  # explicit own-repo -> ALLOW
+        ("Bash", {"command": "gh api -X PUT repos/eric-foo/forseti/pulls/9/merge"}, True, _fake),  # api form always manual
+        ("Bash", {"command": "gh pr merge 100 --repo eric-foo/forseti --squash"}, False, _fake),  # explicit own-repo -> ALLOW
         ("Bash", {"command": "gh pr merge 100 --repo someone/else"}, True, _fake),        # foreign repo -> fail closed
         ("Bash", {"command": "gh pr merge 100 -R other/repo"}, True, _fake),              # foreign repo (-R) -> fail closed
         ("Bash", {"command": "gh pr merge 100 && git push origin main"}, True, _fake),    # merge ALLOWED, push-to-main still blocks
@@ -398,7 +398,7 @@ def _selftest():
         ("Bash", {"command": "git commit -m 'x'"}, False),
         ("Bash", {"command": "git log --grep=push"}, False),
         ("Write", {"file_path": j("Desktop", "projects", "orca", "docs", "x.md")}, False),
-        ("Edit", {"file_path": j("Desktop", "projects", "orca", ".claude", "skills", "orca-product-lead", "SKILL.md")}, False),
+        ("Edit", {"file_path": j("Desktop", "projects", "orca", ".claude", "skills", "forseti-product-lead", "SKILL.md")}, False),
         ("Read", {"file_path": j("Desktop", "projects", "jb", "x.md")}, False),
     ]
     ok = True
