@@ -36,21 +36,93 @@ output_mode: file-write
 
 Do not retire `orca_start_preflight` by word match. The product-lead skill ID is now migrated through the governed skill-identity lane, not by broad replacement.
 
+> **Amended 2026-07-10 (owner-decided):** `forseti_start_preflight` is now the go-forward primary and `orca_start_preflight` retirement is authorized on a **forward-primary / adopt-on-touch** basis (rename it only on files already being edited). Broad word-match sweep and historical/frozen-snapshot rewrite remain **not** authorized. See "Amendment 2026-07-10" below.
+
 Current rule:
 
 | Surface | Current state | Migration decision |
 | --- | --- | --- |
 | `forseti_start_preflight` | Primary start-preflight key in `.agents/workflow-overlay/source-loading.md` and prompt orchestration. | Keep as the forward-primary key. |
-| `orca_start_preflight` | Accepted legacy alias during the Forseti rename compatibility migration. | Preserve until durable prompt/history tolerance is explicitly retired. |
+| `orca_start_preflight` | Accepted legacy alias; **forward-primary retiring** (Amendment 2026-07-10). | Adopt `forseti_start_preflight` on any file being edited (adopt-on-touch); broad sweep + historical/frozen-snapshot provenance still deferred. |
 | `forseti-product-lead` | Primary accepted/frozen Forseti-local product-lead skill command/path, with source at `.agents/skills/forseti-product-lead/SKILL.md` and deployment copy at `.claude/skills/forseti-product-lead/SKILL.md`. | Use as the forward skill identity after this lane lands. |
 | `orca-product-lead` | Legacy compatibility wrapper retained in source and deployment skill roots. | Preserve for one transition window; wrapper loads sibling `forseti-product-lead` and carries no product method of its own. |
+
+## Amendment 2026-07-10 — Start-Preflight Forward-Primary (owner-decided)
+
+Owner decision (in-thread, 2026-07-10): `forseti_start_preflight` is the
+go-forward **primary** preflight receipt key, and `orca_start_preflight`
+retirement is **authorized on a forward-primary / adopt-on-touch basis** — when a
+file is edited for any reason, renaming its `orca_start_preflight:` ->
+`forseti_start_preflight:` is allowed and preferred.
+
+**Blocker discharged.** The order-2 prerequisite ("classify current live
+consumers vs historical provenance") is resolved: verified 2026-07-10 that no
+code consumes the token — zero `.py`/`.yml`/`.yaml`/`.json` references to
+`orca_start_preflight` or `forseti_start_preflight` repo-wide; it is purely a
+prompt-template label parsed by nothing (no hook, validator, CI job, or test).
+Adopt-on-touch therefore breaks nothing.
+
+**Still not authorized (unchanged):** a broad word-match sweep of the remaining
+~180 occurrences, and any rewrite of historical provenance or frozen
+review-input snapshots (`docs/review-inputs/**/*.md.snapshot.txt`). A full sweep
+remains a separate migration with its own moved-path index, validation, and
+rollback per `docs/decisions/forseti_compatibility_migration_boundary_v0.md`.
+
+This amendment supersedes the "Preserve until ... explicitly retired" cell in the
+Decision table above and the deferred/blocker stance in the assumption gate, and
+endorses codex `ef9ef940` (answer-engine routing patch) adopting
+`forseti_start_preflight` in the two Commission Signal Board files on-touch.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Owner decision 2026-07-10 flips orca_start_preflight from "preserve /
+    retirement deferred (blocker)" to forward-primary adopt-on-touch retirement:
+    forseti_start_preflight is the go-forward primary key, and renaming
+    orca_start_preflight -> forseti_start_preflight is authorized on any file
+    being edited. The prompt/history-consumer blocker (assumption gate, order 2)
+    is discharged: verified no live code consumers (zero .py/.yml/.yaml/.json
+    references to either token repo-wide, 2026-07-10); the token is a
+    prompt-template label only. A broad word-match sweep of the remaining ~180
+    occurrences, and any rewrite of historical provenance or frozen review-input
+    snapshots, remain NOT authorized (a full sweep stays a separate migration).
+    Endorses codex ef9ef940 adopting forseti_start_preflight in the two CSB files
+    on-touch.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/forseti_skill_preflight_identity_migration_plan_v0.md
+    - docs/decisions/forseti_compatibility_migration_boundary_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/skill-adoption.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: historical prompts/reviews/DCPs and docs/review-inputs/**/*.md.snapshot.txt frozen snapshots
+      reason: >
+        Forward-primary scope preserves historical provenance and frozen review
+        snapshots; adopt-on-touch does not rewrite them and no broad sweep is
+        authorized here.
+    - path: the ~180 untouched live occurrences of orca_start_preflight
+      reason: >
+        Adopt-on-touch only; each migrates when its file is next edited, or under
+        a separate broad-sweep migration if the owner later authorizes one.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a broad word-match sweep authorization
+    - not historical or frozen-snapshot rewrite
+    - not implementation beyond this docs decision and its propagation
+```
 
 ## Assumption Gate
 
 ```yaml
 assumption_gate:
-  status: SKILL_ID_EXECUTED_PREFLIGHT_ALIAS_DEFERRED
-  applies_to: "skill ID migration executed for forseti-product-lead; orca_start_preflight retirement remains later"
+  status: SKILL_ID_EXECUTED_PREFLIGHT_ALIAS_FORWARD_PRIMARY
+  applies_to: "skill ID migration executed for forseti-product-lead; orca_start_preflight retirement flipped to forward-primary adopt-on-touch by Amendment 2026-07-10"
   load_bearing_assumptions:
     - assumption: "`orca_start_preflight` is a compatibility alias, not the current primary key."
       why_load_bearing: "If false, the first step would be authority repair; if true, the later migration should preserve alias tolerance and only retire it after prompt/history consumers are classified."
@@ -74,10 +146,10 @@ assumption_gate:
       order: 1
       basis: "No repo-local, project-level Claude, user-level Codex, user-level Agents, or user-level Claude skill folder named `forseti-product-lead` was present before this lane; current running-thread resolver activation is not claimed."
     - item: "Prompt/history residual classification for `orca_start_preflight`."
-      triage: blocker
+      triage: resolved_2026_07_10
       owner: agent
       order: 2
-      basis: "The legacy alias appears in durable workflow/prompt history; retirement requires classifying current live consumers versus historical provenance."
+      basis: "Discharged by Amendment 2026-07-10: verified no live code consumers (zero .py/.yml/.yaml/.json references to orca_start_preflight or forseti_start_preflight repo-wide); the token is a prompt-template label only. Forward-primary adopt-on-touch retirement authorized; broad word-match sweep and historical/frozen-snapshot provenance remain deferred."
 ```
 
 ## Phased Migration
