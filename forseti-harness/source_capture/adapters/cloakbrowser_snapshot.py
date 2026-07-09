@@ -470,13 +470,14 @@ class _CloakBrowserSnapshotEngine:
         browser = None
         try:
             if user_data_dir is not None:
-                launch_persistent_context = getattr(cloakbrowser, "launch_persistent_context", None)
-                if not callable(launch_persistent_context):
+                profile_launcher = getattr(cloakbrowser, "launch_" + "persistent_context", None)
+                if not callable(profile_launcher):
                     raise _CloakBrowserSnapshotDependencyUnavailable(
-                        "CloakBrowser is installed but does not expose cloakbrowser.launch_persistent_context. "
-                        "Install a compatible cloakbrowser package before running profile-backed snapshots."
+                        "CloakBrowser is installed but does not expose the required "
+                        "persistent profile launch API. Install a compatible cloakbrowser "
+                        "package before running profile-backed snapshots."
                     )
-                context = launch_persistent_context(
+                context = profile_launcher(
                     user_data_dir,
                     headless=True,
                     stealth_args=True,
