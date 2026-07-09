@@ -192,6 +192,10 @@ Stop on any mismatch. `STALE_REREAD_REQUIRED` = re-verify and re-plan;
   ```
 
   must return nothing lake-touching (the querying shell itself may match).
+  Command-line matching cannot see open directory handles: also close any
+  Explorer window or shell whose current directory is inside
+  `F:\orca-data-lake` (an open handle makes E1 fail with a sharing violation;
+  the rename never partially applies).
 - **P4 staging quiet**: every entry under `F:\orca-data-lake\.staging` has a
   `LastWriteTime` older than the quiesce start.
 - **P5 baseline doctor**: from the repo root,
@@ -201,103 +205,114 @@ Stop on any mismatch. `STALE_REREAD_REQUIRED` = re-verify and re-plan;
 
 ## Execution (E1-E8; stop at the first unexpected output)
 
-- **E1 -- rename (atomic, same volume):**
+Run every step from the **repo root** in one PowerShell 7 session. Command
+blocks sit at column 0 on purpose: the `@" ... "@` here-strings require their
+closing `"@` at column 0, so copy each block exactly as written, without
+re-indenting. If the session restarts mid-run, E7 re-derives `$ts` itself.
 
-  ```powershell
-  Rename-Item -LiteralPath 'F:\orca-data-lake' -NewName 'forseti-data-lake'
-  Test-Path 'F:\orca-data-lake'      # expect False
-  Test-Path 'F:\forseti-data-lake'   # expect True
-  ```
+**E1 -- rename (atomic, same volume):**
 
-- **E2 -- promote the primary root marker** (preserved UUID, v4.1, new label;
-  fresh `created_at` is the marker file's own creation time):
+```powershell
+Rename-Item -LiteralPath 'F:\orca-data-lake' -NewName 'forseti-data-lake'
+Test-Path 'F:\orca-data-lake'      # expect False
+Test-Path 'F:\forseti-data-lake'   # expect True
+```
 
-  ```powershell
-  $ts = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
-  @"
-  {
-    "contract_version": "v4.1",
-    "created_at": "$ts",
-    "label": "forseti-canonical-v4-1",
-    "root_uuid": "01KW7N6ERSVVANCEZ8SD6YW3EQ"
-  }
-  "@ | Set-Content -LiteralPath 'F:\forseti-data-lake\.forseti-data-root' -Encoding utf8
-  ```
+If `Rename-Item` fails with a sharing/access violation, something still holds
+a handle on the directory (an Explorer window or a shell `cd`'d inside
+counts); close it and retry. The rename fully succeeds or does nothing.
 
-- **E3 -- promote the epoch marker** (`legacy_roots` preserved verbatim):
+**E2 -- promote the primary root marker** (preserved UUID, v4.1, new label;
+fresh `created_at` is the marker file's own creation time):
 
-  ```powershell
-  @"
-  {
-    "compatibility_migration": false,
-    "created_at": "$ts",
-    "epoch_policy": "clean_forward_epoch",
-    "lake_epoch": "v4.1",
-    "legacy_roots": [
-      "F:\\orca-data-lake-legacy-v0-20260628T174129Z"
-    ]
-  }
-  "@ | Set-Content -LiteralPath 'F:\forseti-data-lake\.forseti-lake-epoch.json' -Encoding utf8
-  ```
+```powershell
+$ts = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+@"
+{
+  "contract_version": "v4.1",
+  "created_at": "$ts",
+  "label": "forseti-canonical-v4-1",
+  "root_uuid": "01KW7N6ERSVVANCEZ8SD6YW3EQ"
+}
+"@ | Set-Content -LiteralPath 'F:\forseti-data-lake\.forseti-data-root' -Encoding utf8
+```
 
-- **E4 -- migrate the environment pointer** (durable User scope + this shell):
+**E3 -- promote the epoch marker** (`legacy_roots` preserved verbatim):
 
-  ```powershell
-  [Environment]::SetEnvironmentVariable('FORSETI_DATA_ROOT','F:\forseti-data-lake','User')
-  [Environment]::SetEnvironmentVariable('ORCA_DATA_ROOT',$null,'User')
-  $env:FORSETI_DATA_ROOT = 'F:\forseti-data-lake'
-  Remove-Item Env:ORCA_DATA_ROOT -ErrorAction SilentlyContinue
-  ```
+```powershell
+@"
+{
+  "compatibility_migration": false,
+  "created_at": "$ts",
+  "epoch_policy": "clean_forward_epoch",
+  "lake_epoch": "v4.1",
+  "legacy_roots": [
+    "F:\\orca-data-lake-legacy-v0-20260628T174129Z"
+  ]
+}
+"@ | Set-Content -LiteralPath 'F:\forseti-data-lake\.forseti-lake-epoch.json' -Encoding utf8
+```
 
-  Already-running shells keep their stale process env: restart them before any
-  lake work (the quiesce window means nothing lake-touching is running anyway).
+**E4 -- migrate the environment pointer** (durable User scope + this shell):
 
-- **E5 -- verify resolution and health:**
+```powershell
+[Environment]::SetEnvironmentVariable('FORSETI_DATA_ROOT','F:\forseti-data-lake','User')
+[Environment]::SetEnvironmentVariable('ORCA_DATA_ROOT',$null,'User')
+$env:FORSETI_DATA_ROOT = 'F:\forseti-data-lake'
+Remove-Item Env:ORCA_DATA_ROOT -ErrorAction SilentlyContinue
+```
 
-  ```powershell
-  python -c "import sys; sys.path.insert(0, 'forseti-harness'); from data_lake.root import DataLakeRoot; r = DataLakeRoot.resolve(); assert str(r.path) == r'F:\forseti-data-lake', r.path; assert r.root_uuid == '01KW7N6ERSVVANCEZ8SD6YW3EQ', r.root_uuid; print('RESOLVE_OK', r.path, r.root_uuid)"
-  python forseti-harness/runners/run_data_lake_doctor.py --data-root 'F:\forseti-data-lake'
-  ```
+Already-running shells keep their stale process env: restart them before any
+lake work (the quiesce window means nothing lake-touching is running anyway).
 
-  Expected: `RESOLVE_OK`; the doctor report must match the P5 baseline modulo
-  the root path (no NEW issues; pre-existing ones may persist unchanged).
+**E5 -- verify resolution and health** (from the repo root):
 
-- **E6 -- retire the legacy markers** (restorable byte-for-byte from the
-  Verified Baseline section):
+```powershell
+python -c "import sys; sys.path.insert(0, 'forseti-harness'); from data_lake.root import DataLakeRoot; r = DataLakeRoot.resolve(); assert str(r.path) == r'F:\forseti-data-lake', r.path; assert r.root_uuid == '01KW7N6ERSVVANCEZ8SD6YW3EQ', r.root_uuid; print('RESOLVE_OK', r.path, r.root_uuid)"
+python forseti-harness/runners/run_data_lake_doctor.py --data-root 'F:\forseti-data-lake'
+```
 
-  ```powershell
-  Remove-Item -LiteralPath 'F:\forseti-data-lake\.orca-data-root'
-  Remove-Item -LiteralPath 'F:\forseti-data-lake\.orca-lake-epoch.json'
-  ```
+Expected: `RESOLVE_OK`; the doctor report must match the P5 baseline modulo
+the root path (no NEW issues; pre-existing ones may persist unchanged).
 
-  Then re-run both E5 checks (resolution must now ride the `.forseti-*`
-  markers alone).
+**E6 -- retire the legacy markers** (restorable byte-for-byte from the
+Verified Baseline section):
 
-- **E7 -- tombstone the old path** (directory with one note, NO markers):
+```powershell
+Remove-Item -LiteralPath 'F:\forseti-data-lake\.orca-data-root'
+Remove-Item -LiteralPath 'F:\forseti-data-lake\.orca-lake-epoch.json'
+```
 
-  ```powershell
-  New-Item -ItemType Directory -Path 'F:\orca-data-lake' | Out-Null
-  @"
-  TOMBSTONE -- this root was renamed on $ts.
-  Current root: F:\forseti-data-lake (root_uuid 01KW7N6ERSVVANCEZ8SD6YW3EQ, lake_epoch v4.1).
-  Set FORSETI_DATA_ROOT=F:\forseti-data-lake. This directory intentionally has no
-  root marker so any stale pointer fails closed. See
-  docs/workflows/forseti_data_lake_physical_rename_runbook_v0.md.
-  "@ | Set-Content -LiteralPath 'F:\orca-data-lake\TOMBSTONE_RENAMED_TO_FORSETI.md' -Encoding utf8
-  ```
+Then re-run both E5 checks (resolution must now ride the `.forseti-*`
+markers alone).
 
-- **E8 -- fail-closed probe + final readback** (proves the old pointer dies
-  loudly, then records the end state):
+**E7 -- tombstone the old path** (directory with one note, NO markers;
+`$ts` is re-derived so a restarted session cannot blank the note):
 
-  ```powershell
-  $env:FORSETI_DATA_ROOT = 'F:\orca-data-lake'
-  python forseti-harness/runners/run_data_lake_doctor.py   # expect exit 2, missing-root-marker error
-  $env:FORSETI_DATA_ROOT = 'F:\forseti-data-lake'
-  Get-FileHash 'F:\forseti-data-lake\.forseti-data-root','F:\forseti-data-lake\.forseti-lake-epoch.json' -Algorithm SHA256
-  ```
+```powershell
+if (-not $ts) { $ts = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") }
+New-Item -ItemType Directory -Path 'F:\orca-data-lake' | Out-Null
+@"
+TOMBSTONE -- this root was renamed on $ts.
+Current root: F:\forseti-data-lake (root_uuid 01KW7N6ERSVVANCEZ8SD6YW3EQ, lake_epoch v4.1).
+Set FORSETI_DATA_ROOT=F:\forseti-data-lake. This directory intentionally has no
+root marker so any stale pointer fails closed. See
+docs/workflows/forseti_data_lake_physical_rename_runbook_v0.md.
+"@ | Set-Content -LiteralPath 'F:\orca-data-lake\TOMBSTONE_RENAMED_TO_FORSETI.md' -Encoding utf8
+```
 
-  Record both new hashes, the doctor outputs, and all command outputs in the
-  execution receipt below.
+**E8 -- fail-closed probe + final readback** (from the repo root; proves the
+old pointer dies loudly, then records the end state):
+
+```powershell
+$env:FORSETI_DATA_ROOT = 'F:\orca-data-lake'
+python forseti-harness/runners/run_data_lake_doctor.py   # expect exit 2, missing-root-marker error
+$env:FORSETI_DATA_ROOT = 'F:\forseti-data-lake'
+Get-FileHash 'F:\forseti-data-lake\.forseti-data-root','F:\forseti-data-lake\.forseti-lake-epoch.json' -Algorithm SHA256
+```
+
+Record both new hashes, the doctor outputs, and all command outputs in the
+execution receipt below.
 
 ## Rollback Map
 
@@ -305,7 +320,7 @@ Stop on any mismatch. `STALE_REREAD_REQUIRED` = re-verify and re-plan;
 | --- | --- |
 | E1 | `Rename-Item -LiteralPath 'F:\forseti-data-lake' -NewName 'orca-data-lake'` -- identity intact, nothing else changed. |
 | E2-E3 | Rename back as above. The extra `.forseti-*` markers are harmless at any path (same UUID; primary markers simply win); delete them to restore the exact prior state. |
-| E4 | `[Environment]::SetEnvironmentVariable('ORCA_DATA_ROOT','F:\orca-data-lake','User')` and remove the User `FORSETI_DATA_ROOT`. |
+| E4 | `[Environment]::SetEnvironmentVariable('ORCA_DATA_ROOT','F:\orca-data-lake','User')` and remove the User `FORSETI_DATA_ROOT`; then restart the shell (or also restore `$env:ORCA_DATA_ROOT` and remove `Env:FORSETI_DATA_ROOT` in the current session, which E4 also changed). |
 | E6 | Re-create both legacy markers byte-for-byte from the Verified Baseline JSON (then `Get-FileHash` must reproduce the baseline SHA256 values). |
 | E7 | `Remove-Item -Recurse 'F:\orca-data-lake'` (tombstone only) before renaming back. |
 
