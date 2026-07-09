@@ -429,20 +429,30 @@ disposition gate). Disposition presence/shape only — never review quality,
 reason truth, or whether review should have been recommended (resident
 judgment). `--audit` = per-commit advisory history view; `--selftest` present.
 
-**Local pre-push doc-gate mirror.** `.agents/hooks/pre_push_guard.py` (the
+**Source-input hash freshness gate (EP-37).** `.agents/hooks/check_source_input_hashes.py`
+— diff-scoped, forward-only CI gate plus local pre-push mirror: list-style JSON
+`source_inputs[]` records with repo-local `source_pointer` + `sha256` must match
+current file bytes when the artifact or referenced source changed. Born from PR
+#817: a Creator Registry ledger merge changed the ledger hash while the YouTube
+metric seed's source-input hash stayed stale; full pytest caught it late.
+Provenance freshness only — never semantic generated-artifact validity,
+completeness, readiness, source quality, capture freshness, or metric validity.
+`--audit` = whole-repo advisory view; `--selftest` present.
+
+**Local pre-push selected-gate mirror.** `.agents/hooks/pre_push_guard.py` (the
 policy behind the tracked `.githooks/pre-push` adapter, installed via
 `.github/scripts/install-local-hooks.ps1`) blocks pushes targeting `main`,
 branch deletes, and non-fast-forward updates, and — for allowed lane pushes —
-mirrors the strict CI doc gates (`check_map_links.py --strict`,
-`header_index.py --strict`, `check_review_routing.py --strict`; diff-scoped
-base `origin/main`, same as CI) so a durable-doc gate miss (e.g. a headerless
-`docs/review-outputs/` report, PR #613) fails at the push boundary instead of
-costing a red CI round. Blocks on any gate failure; the checkers' infra-gap
-fail-opens are unchanged; bypassable with `--no-verify`; CI stays the
-authoritative gate. `python .agents/hooks/pre_push_guard.py --selftest`
+mirrors selected strict CI gates (`check_map_links.py --strict`,
+`header_index.py --strict`, `check_review_routing.py --strict`,
+`check_source_input_hashes.py --strict`; diff-scoped base `origin/main`, same
+as CI) so a durable-doc or source-input hash gate miss fails at the push
+boundary instead of costing a red CI round. Blocks on any gate failure; the
+checkers' infra-gap fail-opens are unchanged; bypassable with `--no-verify`;
+CI stays the authoritative gate. `python .agents/hooks/pre_push_guard.py --selftest`
 checks the decision logic. Rule owner:
 `.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement"
-(Local pre-push doc-gate mirror).
+(Local pre-push selected-gate mirror).
 
 **Handoff-pointer resolution gate (EP-36).** `.agents/hooks/check_handoff_pointers.py`
 — diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`):
@@ -610,7 +620,7 @@ nickname: "crawling graph." The runner is
 | `.github/` | GitHub Actions workflows and local operational scripts for lane setup, merge-when-green, lane health, and local hook installation. Local automation only; not validation, readiness, or server-side branch protection. |
 | `.githooks/` | Tracked local Git hook adapters installed via `.github/scripts/install-local-hooks.ps1`; catches local Git push/commit boundaries where enabled. Bypassable with `--no-verify`; not a server-side lock. |
 | `.agents/workflow-overlay/` | Forseti overlay authority for project facts, folders, source rules, prompt rules, validation, safety, and review lanes. |
-| `.agents/hooks/` | Portable enforcement/checker scripts for protected actions, retrieval headers, repo-map freshness, CSB-first scanning artifact receipt shape, and local Git pre-push policy. Harness adapters invoke some scripts; passing checks are not validation or readiness. |
+| `.agents/hooks/` | Portable enforcement/checker scripts for protected actions, retrieval headers, repo-map freshness, CSB-first scanning artifact receipt shape, source-input hash freshness, and local Git pre-push policy. Harness adapters invoke some scripts; passing checks are not validation or readiness. |
 | `forseti-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Forseti Harness section. |
 | `forseti/` | Declared top-level product-tree root. Product substance lives under `forseti/product/`; runtime remains under `forseti-harness/`. Historical `orca/product/` paths resolve through `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md`. |
 | `forseti/product/` | Spine-first product tree: product contracts, Core Spine artifacts, proof plans, source/evidence standards, offer, buyer-proof, demand-signal method/surface docs, satellites, case families, and shared product registries. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`; historical `orca/product/` references resolve through `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md`. |

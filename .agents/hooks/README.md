@@ -16,7 +16,8 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) irreversible / main-affecting actions: an agent's `gh pr merge` → main, push-to-main, force-push, `reset --hard`, `git clean`, and writes into protected external roots. **Allows** a benign lane-branch push. Fires in **all** permission modes. **Fails OPEN** on internal error. |
 | `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, and blocks raw shell durable-write primitives for repo source/docs files. |
-| `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it then mirrors the strict CI doc gates (`check_map_links.py --strict`, `header_index.py --strict`, `check_review_routing.py --strict`; diff-scoped base `origin/main`, same as CI) so a durable-doc gate miss — e.g. a headerless `docs/review-outputs/` report (PR #613) — fails before push instead of in CI. Bypassable with `--no-verify`; misses GitHub API merges; CI stays the authoritative gate. |
+| `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it then mirrors selected strict CI gates (`check_map_links.py --strict`, `header_index.py --strict`, `check_review_routing.py --strict`, `check_source_input_hashes.py --strict`; diff-scoped base `origin/main`, same as CI) so durable-doc or source-input hash gate misses fail before push instead of in CI. Bypassable with `--no-verify`; misses GitHub API merges; CI stays the authoritative gate. |
+| `check_source_input_hashes.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: list-style JSON `source_inputs[]` records with repo-local `source_pointer` + `sha256` must match current file bytes when the artifact or referenced source changed. Provenance freshness only; never semantic validation, generated-artifact completeness, readiness, or source quality. Backlog via `--audit`; `--selftest` present. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
 | `check_dcp_receipt_hygiene.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on deterministic DCP receipt storage defects in changed durable docs: more than two inline receipts, missing archive pointer, or unauthorized standalone DCP receipt files. Shape only; never receipt truth, validation, readiness, or acceptance. |
 | `check_registry_list_sync.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on explicitly registered vocabulary-list drift. Current binding: Foundation Allowed Signal Uses must be contained by the engagement registry Signal Use Classification list. Shape only; never category correctness or auto-promotion. |
@@ -71,6 +72,8 @@ python .agents/hooks/check_review_output_provenance.py --selftest
 python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
 python .agents/hooks/check_review_routing.py --selftest
 python .agents/hooks/check_handoff_pointers.py --selftest
+python .agents/hooks/check_source_input_hashes.py --selftest
+python .agents/hooks/check_source_input_hashes.py --strict
 python .agents/hooks/check_repo_map_freshness.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --strict --base main
@@ -134,6 +137,8 @@ python .agents/hooks/check_review_output_provenance.py --selftest
 python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
 python .agents/hooks/check_review_routing.py --selftest
 python .agents/hooks/check_handoff_pointers.py --selftest
+python .agents/hooks/check_source_input_hashes.py --selftest
+python .agents/hooks/check_source_input_hashes.py --strict
 python .agents/hooks/check_repo_map_freshness.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --strict --base main
@@ -158,7 +163,7 @@ python .codex/hooks/forseti_guard_codex_adapter.py --selftest
    This sets `core.hooksPath` to `.githooks`, enabling:
    - `.githooks/pre-push` — blocks pushes targeting `main`, branch deletes, and
      non-fast-forward updates at Git's pre-push boundary, then mirrors the
-     strict CI doc gates over the outgoing change (see the `pre_push_guard.py`
+     selected strict CI gates over the outgoing change (see the `pre_push_guard.py`
      row above).
    - `.githooks/commit-msg` — runs `check_repo_map_freshness.py --commit-msg`.
 3. Confirm with:

@@ -7,10 +7,11 @@ Reads Git pre-push updates from stdin:
 
 Blocks pushes targeting main, branch deletions, non-fast-forward updates, and
 updates whose fast-forward safety cannot be verified. For allowed lane pushes
-it then mirrors the strict doc gates CI runs (DOC_GATES below) so a
-forward-only gate miss -- e.g. a reviewer-authored docs/review-outputs report
-missing its retrieval header (PR #613) -- fails at the push boundary instead
-of costing a red CI round. Same checkers, same rule owners; the mirror adds no
+it then mirrors selected strict CI gates (DOC_GATES below) so a forward-only
+gate miss -- e.g. a reviewer-authored docs/review-outputs report missing its
+retrieval header (PR #613), or a stale JSON source-input hash after a source
+ledger edit -- fails at the push boundary instead of costing a red CI round.
+Same checkers, same rule owners; the mirror adds no
 rule. This is a Git-bound local adapter, not a Claude/Codex tool hook. It is
 bypassable with --no-verify, does not see GitHub API actions such as
 `gh pr merge`, and CI remains the authoritative gate.
@@ -25,7 +26,7 @@ from pathlib import Path
 ZERO = "0" * 40
 MAIN_REFS = {"main", "refs/heads/main"}
 
-# Strict doc gates mirrored from .github/workflows/ci.yml. The diff-scoped
+# Selected strict gates mirrored from .github/workflows/ci.yml. The diff-scoped
 # checkers default their base to origin/main -- the same base CI resolves for
 # a PR -- so a local result predicts the CI result for these gates. Rule
 # authority: .agents/workflow-overlay/validation-gates.md ("Enforcement
@@ -34,6 +35,7 @@ DOC_GATES = (
     ("retrieval link check", (".agents/hooks/check_map_links.py", "--strict")),
     ("retrieval header index", (".agents/hooks/header_index.py", "--strict")),
     ("review-routing disposition", (".agents/hooks/check_review_routing.py", "--strict")),
+    ("source-input hash freshness", (".agents/hooks/check_source_input_hashes.py", "--strict")),
 )
 
 GATE_TIMEOUT_SECONDS = 120  # generous; the gates run in ~5s combined
@@ -198,7 +200,7 @@ def main(argv: list[str]) -> int:
         gate_reasons = doc_gate_reasons(repo_root())
         if gate_reasons:
             return block(gate_reasons, authority=DOC_GATE_AUTHORITY)
-        print(f"pre-push doc gates: OK ({len(DOC_GATES)} gate(s))", file=sys.stderr)
+        print(f"pre-push gates: OK ({len(DOC_GATES)} gate(s))", file=sys.stderr)
     return 0
 
 
