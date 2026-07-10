@@ -440,6 +440,9 @@ judgment). `--audit` = per-commit advisory history view; `--selftest` present.
 current file bytes when the artifact or referenced source changed. Born from PR
 #817: a Creator Registry ledger merge changed the ledger hash while the YouTube
 metric seed's source-input hash stayed stale; full pytest caught it late.
+Extended 2026-07-10 to source-capture packet manifests: top-level
+`preserved_files[]` records (`relative_packet_path` + `sha256`) must match
+current raw stored bytes, resolved against the manifest's own directory.
 Provenance freshness only — never semantic generated-artifact validity,
 completeness, readiness, source quality, capture freshness, or metric validity.
 `--audit` = whole-repo advisory view; `--selftest` present.
