@@ -143,6 +143,37 @@ def resolve_base_ref(cli_base: str | None) -> str:
     return "origin/main"
 
 
+def _parse_added_lines_by_file(diff_text: str) -> dict[str, list[tuple[int, str]]]:
+    """Parse `git diff --unified=0` output into relpath -> [(new_lineno, added_line)].
+
+    File headers (`+++ b/...`) are recognized STRUCTURALLY — only outside a
+    hunk — so an added content line beginning `++` (which git renders as
+    `+++...` inside a hunk) is kept as content instead of being dropped as a
+    header and desynchronizing subsequent line numbers.
+    """
+    files: dict[str, list[tuple[int, str]]] = {}
+    current: str | None = None
+    in_hunk = False
+    new_lineno = 0
+    for raw in diff_text.splitlines():
+        if raw.startswith("diff "):
+            in_hunk = False
+            current = None
+        elif raw.startswith("@@"):
+            in_hunk = True
+            match = re.search(r"\+(\d+)", raw)
+            new_lineno = int(match.group(1)) if match else 0
+        elif not in_hunk and raw.startswith("+++ b/"):
+            current = raw[6:].strip()
+            files.setdefault(current, [])
+        elif not in_hunk and raw.startswith("+++ "):
+            current = None
+        elif in_hunk and raw.startswith("+") and current is not None:
+            files[current].append((new_lineno, raw[1:]))
+            new_lineno += 1
+    return files
+
+
 def added_lines_by_file(root: Path, base_ref: str) -> dict[str, list[tuple[int, str]]] | None:
     """Map relpath -> [(new_lineno, added_line)] for changed .md files. None on infra gap."""
     for probe in ("HEAD", base_ref):
@@ -155,20 +186,7 @@ def added_lines_by_file(root: Path, base_ref: str) -> dict[str, list[tuple[int, 
     )
     if rc != 0:
         return None
-    files: dict[str, list[tuple[int, str]]] = {}
-    current: str | None = None
-    new_lineno = 0
-    for raw in out.splitlines():
-        if raw.startswith("+++ b/"):
-            current = raw[6:].strip()
-            files.setdefault(current, [])
-        elif raw.startswith("@@"):
-            match = re.search(r"\+(\d+)", raw)
-            new_lineno = int(match.group(1)) if match else 0
-        elif raw.startswith("+") and not raw.startswith("+++") and current is not None:
-            files[current].append((new_lineno, raw[1:]))
-            new_lineno += 1
-    return files
+    return _parse_added_lines_by_file(out)
 
 
 def scan_changed(root: Path, base_ref: str) -> list[str] | None:
@@ -213,15 +231,8 @@ def _added_lines_vs_head(root: Path, relposix: str) -> list[tuple[int, str]] | N
     rc, out = _git(root, ["diff", "--unified=0", "HEAD", "--", relposix])
     if rc != 0:
         return None
-    added: list[tuple[int, str]] = []
-    new_lineno = 0
-    for raw in out.splitlines():
-        if raw.startswith("@@"):
-            match = re.search(r"\+(\d+)", raw)
-            new_lineno = int(match.group(1)) if match else 0
-        elif raw.startswith("+") and not raw.startswith("+++"):
-            added.append((new_lineno, raw[1:]))
-            new_lineno += 1
+    parsed = _parse_added_lines_by_file(out)
+    added = [pair for pairs in parsed.values() for pair in pairs]
     if not added and _git(root, ["ls-files", "--error-unmatch", relposix])[0] != 0:
         return None
     return added
@@ -232,8 +243,13 @@ def run_hook() -> int:
         payload = json.load(sys.stdin)
     except (json.JSONDecodeError, OSError):
         return 0
-    file_path = (payload.get("tool_input") or {}).get("file_path", "")
-    if not file_path:
+    if not isinstance(payload, dict):
+        return 0
+    tool_input = payload.get("tool_input")
+    if not isinstance(tool_input, dict):
+        return 0
+    file_path = tool_input.get("file_path", "")
+    if not isinstance(file_path, str) or not file_path:
         return 0
     root = repo_root()
     candidate = Path(file_path)
@@ -272,8 +288,11 @@ def run_hook() -> int:
 
 def selftest() -> int:
     failures: list[str] = []
+    cases = 0
 
     def check(name: str, actual: object, expected: object) -> None:
+        nonlocal cases
+        cases += 1
         if actual != expected:
             failures.append(f"{name}: expected {expected!r}, got {actual!r}")
 
@@ -312,11 +331,43 @@ def selftest() -> int:
           classify_added_line("docs/decisions/x.md", "The catalog rebuilds byte-identically."),
           None)
 
+    # FIND-02 red-green: an added content line beginning `++` renders as
+    # `+++...` inside a hunk and must be parsed as CONTENT with correct
+    # line numbers, not dropped as a file header.
+    tricky_diff = (
+        "diff --git a/docs/decisions/x.md b/docs/decisions/x.md\n"
+        "index 1111111..2222222 100644\n"
+        "--- a/docs/decisions/x.md\n"
+        "+++ b/docs/decisions/x.md\n"
+        "@@ -0,0 +1,2 @@\n"
+        "+++ Bronze is full God Tier.\n"
+        "+Second added line is full God Tier too.\n"
+    )
+    parsed = _parse_added_lines_by_file(tricky_diff)
+    check("parser keeps the ++ content line",
+          parsed.get("docs/decisions/x.md", [])[:1],
+          [(1, "++ Bronze is full God Tier.")])
+    check("parser keeps subsequent line numbering",
+          parsed.get("docs/decisions/x.md", [])[1:],
+          [(2, "Second added line is full God Tier too.")])
+    check("parser still maps the real header to the file",
+          list(parsed.keys()), ["docs/decisions/x.md"])
+
+    # FIND-03: --hook must fail OPEN (exit 0) on valid-but-wrong-shaped JSON.
+    import io
+    real_stdin = sys.stdin
+    try:
+        for bad_payload in ("[]", '{"tool_input": "bad"}', '{"tool_input": {"file_path": 5}}', "not json"):
+            sys.stdin = io.StringIO(bad_payload)
+            check(f"hook fails open on payload {bad_payload!r}", run_hook(), 0)
+    finally:
+        sys.stdin = real_stdin
+
     if failures:
         for failure in failures:
             print(f"SELFTEST FAIL {failure}")
         return 1
-    print("check_full_gt_claims --selftest: OK (11 cases)")
+    print(f"check_full_gt_claims --selftest: OK ({cases} cases)")
     return 0
 
 
@@ -335,7 +386,12 @@ def main() -> int:
     if args.selftest:
         return selftest()
     if args.hook:
-        return run_hook()
+        # Advisory contract: --hook ALWAYS exits 0, including on internal errors.
+        try:
+            return run_hook()
+        except Exception as exc:  # fail OPEN — never block the tool call
+            print(f"check_full_gt_claims --hook: internal error ({exc!r}); failing open", file=sys.stderr)
+            return 0
 
     root = repo_root()
     if args.changed:

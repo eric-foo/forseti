@@ -108,15 +108,19 @@ def _to_posix(path: str) -> str:
 
 
 def _relativize(root: Path, raw: str) -> str:
-    """Map an absolute path (hook payloads carry absolute file_path values) to a
-    repo-relative POSIX path; pass repo-relative paths through unchanged. Without
-    this, in_scope() never matches hook-delivered paths and the hook no-ops."""
+    """Map an absolute or rooted path (hook payloads carry absolute file_path
+    values; POSIX payloads may be `/`-rooted) to a repo-relative POSIX path;
+    pass repo-relative paths through unchanged. Absolute/rooted paths that
+    resolve OUTSIDE the repo return "" (never in scope) — stripping them to a
+    relative-looking string could collide with an unrelated in-repo path.
+    Without this, in_scope() never matches hook-delivered paths and the hook
+    no-ops."""
     candidate = Path(raw.replace("\\", "/"))
-    if candidate.is_absolute():
+    if candidate.is_absolute() or candidate.anchor:
         try:
             return candidate.resolve().relative_to(root.resolve()).as_posix()
         except (OSError, ValueError):
-            return _to_posix(raw)
+            return ""
     return _to_posix(raw)
 
 
@@ -272,9 +276,17 @@ def resolve_base(cli_base: str | None) -> str:
 
 
 def analyze_paths(root: Path, paths: list[str]) -> list[Finding]:
+    # Relativize BEFORE any lossy normalization: _to_posix() strips leading
+    # "/" and "." characters, which would mangle rooted absolute paths into
+    # relative-looking strings before _relativize() could resolve them.
     findings: list[Finding] = []
-    for relpath in sorted(set(_to_posix(path) for path in paths)):
-        findings.extend(analyze_file(root, relpath))
+    seen: set[str] = set()
+    for raw in sorted(paths):
+        rel = _relativize(root, raw)
+        if not rel or rel in seen:
+            continue
+        seen.add(rel)
+        findings.extend(analyze_file(root, rel))
     return findings
 
 
@@ -459,9 +471,29 @@ def selftest() -> int:
         True,
     )
     check(
-        "path outside the repo stays out of scope",
+        "windows-drive path outside the repo stays out of scope",
         in_scope(_relativize(root, "C:/elsewhere/docs/decisions/x.md")),
         False,
+    )
+    check(
+        "posix-rooted path outside the repo stays out of scope",
+        in_scope(_relativize(root, "/docs/decisions/x.md")),
+        False,
+    )
+    check(
+        "unc path outside the repo stays out of scope",
+        in_scope(_relativize(root, "//server/share/docs/decisions/x.md")),
+        False,
+    )
+    check(
+        "production path: analyze_paths on rooted out-of-repo path yields nothing",
+        analyze_paths(root, ["/docs/decisions/x.md"]),
+        [],
+    )
+    check(
+        "production path: backslash windows payload under root is in scope",
+        in_scope(_relativize(root, str(root) + "\\docs\\decisions\\x.md")),
+        True,
     )
 
     print("SELFTEST", "OK" if ok else "FAILED")
