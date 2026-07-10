@@ -41,6 +41,34 @@ phrases like **smallest complete fix, patch, edit, rewrite, refactor, review,
 or answer** -- interpret it as **X performed under the Smallest complete
 intervention rule above.**
 
+### Problem Integrity
+
+Before planning or expanding a non-trivial task, bind the owner-requested
+outcome and the condition under which it must hold. Completeness is measured
+against that bound outcome, not every adjacent risk surfaced during analysis.
+Do not silently substitute a broader problem, capability ambition, or
+architecture for the stated problem.
+
+This boundary applies to analysis, recommendations, and plans as well as edits.
+A decision request does not authorize designing the downstream system: answer
+the decision, include only the minimum rationale needed to keep it true, and
+name a reversal condition only when it materially helps owner steering. Do not
+turn adjacent risks into recommended infrastructure merely because it could be
+useful.
+
+A skill, method, or architecture lens may deepen reasoning within the bound
+outcome. It does not redefine the outcome or import its full option space as
+scope.
+
+Before proposing or adding an abstraction, repository, automation, lifecycle,
+fallback, or other standing maintenance surface, name what part of the bound
+outcome would become false or materially fragile without it. If none, exclude
+it from the proposed or executed scope and retain at most a deferred risk with
+an upgrade trigger. This test does not prohibit
+necessary supporting work: include that work when omitting it would make the
+outcome false or materially fragile. If necessary supporting work materially
+increases lock-in, surface the tradeoff for owner steering; do not underfix.
+
 ## Decision Priority
 
 When design options conflict and each already passes the always-on rules

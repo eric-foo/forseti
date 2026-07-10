@@ -3841,3 +3841,81 @@ direction_change_propagation:
     - not capture freshness, source quality, or packet content correctness
     - a green run is provenance hash freshness only
 ```
+
+## From docs/decisions/forseti_mini_god_tier_doctrine_v0.md (archived 2026-07-11, problem-bound target rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Mini God Tier doctrine renames the mandatory visible-limitations requirement
+    to accepted residuals: residuals are named, bounded, justified, and carry
+    remaining risk plus an upgrade trigger after pushing to the diminishing-
+    returns edge; source-quality "visible limitations" vocabulary remains
+    operational reporting vocabulary, not the doctrine-level name.
+  trigger: product_doctrine
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - AGENTS.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/safety-rules.md
+    - docs/workflows/orca_repo_map_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/README.md
+  intentionally_not_updated:
+    - path: CLAUDE.md
+      reason: >
+        Claude shim imports AGENTS.md and must not duplicate Orca project rules.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        Overlay index does not own Mini God Tier vocabulary; AGENTS.md points to
+        this decision record as the full statement.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading owns read-pack mechanics and does not restate the Mini God
+        Tier lens.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Safety rules reference the separate Source Capture Armory Mini God-Tier
+        source-quality discipline; that operating profile is intentionally not
+        renamed by this doctrine-level vocabulary patch.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Repo map routes Source Capture Armory source-quality surfaces. The
+        global Mini God Tier trigger remains AGENTS.md -> this decision record;
+        no path or read-pack destination changed.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+      reason: >
+        The source-quality profile owns operating result tokens and the
+        visible_limitations report field. Those are lower-level source/capture
+        reporting vocabulary and remain valid; changing them would rewrite
+        historical tokens and exceed this owner vocabulary patch.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/README.md
+      reason: >
+        The README indexes the source-quality operating profile and closeouts,
+        whose visible-limitations terminology remains intentionally unchanged.
+  stale_language_search: >
+    rg -n "mini god tier|Mini God Tier|Mini God-Tier|visible limitations|accepted residual|source_quality_mini_god_tier"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
+    docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/README.md
+  stale_language_search_result: >
+    Executed 2026-06-21 in branch codex/mgt-accepted-residuals-v2 after the patch.
+    Remaining "visible limitations" hits in the checked source-quality surfaces
+    are operating/reporting vocabulary by design. AGENTS.md now uses accepted
+    residuals for the global trigger binding, and this record now separates
+    doctrine-level accepted residuals from source-quality visible-limit reporting.
+  non_claims:
+    - not validation
+    - not readiness
+    - not proof
+    - not source-quality token migration
+    - not source-of-truth promotion
+```
