@@ -35,6 +35,12 @@ jobs:
         run: python .agents/hooks/check_source_input_hashes.py --strict
       - name: Run tests
         run: python -m pytest
+      - name: Batch 0 process tracker self-test
+        working-directory: ${{ github.workspace }}
+        run: python .github/scripts/batch0_process_tracker.py --self-test
+      - name: Validate Batch 0 review receipts
+        working-directory: ${{ github.workspace }}
+        run: python .github/scripts/batch0_process_tracker.py --json
       - name: retrieval link check
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_map_links.py --strict
