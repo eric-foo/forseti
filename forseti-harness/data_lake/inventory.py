@@ -63,8 +63,6 @@ PACKET_WRITER_NAME_RE = re.compile(r"write_.*_packet$")
 ENV_OUTPUT_OMITTED_TOKENS = (
     'args.output is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))',
     'output_directory is None and (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT"))',
-    'args.output is None and os.environ.get("ORCA_DATA_ROOT")',
-    'output_directory is None and os.environ.get("ORCA_DATA_ROOT")',
 )
 EXPLICIT_PAIR_REJECT_TOKENS = (
     "args.output is not None and args.data_root is not None",
@@ -77,6 +75,15 @@ EXPLICIT_PAIR_REJECT_TOKENS = (
 # exclusions and in the seam test as acknowledged-unsynced runners.
 KNOWN_UNSYNCED: dict[str, str] = {}
 
+# Packet-producing runners whose live-acquisition safety boundary requires an
+# explicit data-root selection rather than ambient automatic admission. These
+# runners still carry a real lake seam; the declaration prevents the seam
+# detector from mistaking help text for a FORSETI_DATA_ROOT read.
+EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
+    "run_source_capture_tiktok_live_batch_probe.py": (
+        "live acquisition stages first; durable lake admission requires explicit --data-root"
+    ),
+}
 # Orchestrator runners that forward data_root into raw-packet sub-runners
 # instead of calling a packet writer directly. Declared, not auto-discovered.
 BRONZE_PACKET_ORCHESTRATORS: dict[str, tuple[str, ...]] = {
@@ -554,6 +561,7 @@ class RunnerSeam:
     exposes_output_arg: bool
     exposes_data_root_arg: bool
     exposes_env_fallback: bool
+    explicit_data_root_only: bool
     resolves_data_root: bool
     rejects_output_and_data_root: bool
     env_fallback_uses_output_omitted: bool
@@ -567,7 +575,7 @@ class RunnerSeam:
     def has_seam(self) -> bool:
         return (
             self.exposes_data_root_arg
-            and self.exposes_env_fallback
+            and (self.exposes_env_fallback or self.explicit_data_root_only)
             and self.resolves_data_root
             and self.forwards_data_root
         )
@@ -582,8 +590,8 @@ class RunnerSeam:
         missing: list[str] = []
         if not self.exposes_data_root_arg:
             missing.append("--data-root argument")
-        if not self.exposes_env_fallback:
-            missing.append("FORSETI_DATA_ROOT/ORCA_DATA_ROOT fallback")
+        if not self.exposes_env_fallback and not self.explicit_data_root_only:
+            missing.append("FORSETI_DATA_ROOT fallback or named explicit-root-only posture")
         if not self.resolves_data_root:
             missing.append("DataLakeRoot.resolve")
         if not self.forwards_data_root:
@@ -707,6 +715,27 @@ def cli_flags(tree: ast.AST) -> set[str]:
     return flags
 
 
+def environment_get_names(tree: ast.AST) -> set[str]:
+    """Return environment-variable names read through os.environ.get.
+
+    AST detection keeps help text and error messages from falsely certifying a
+    runner as carrying an ambient production-root fallback.
+    """
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not node.args:
+            continue
+        function = dotted_name(node.func)
+        first = node.args[0]
+        if (
+            function == "os.environ.get"
+            and isinstance(first, ast.Constant)
+            and isinstance(first.value, str)
+        ):
+            names.add(first.value)
+    return names
+
+
 def source_capture_imports(tree: ast.AST) -> tuple[set[str], set[str]]:
     packet_writer_names = source_capture_packet_writer_names()
     writer_names = set(DIRECT_PACKET_WRITER_TOKENS)
@@ -763,13 +792,18 @@ def packet_producers() -> dict[str, RunnerSeam]:
         src = path.read_text(encoding="utf-8")
         tree = ast.parse(src, filename=str(path))
         flags = cli_flags(tree)
+        env_names = environment_get_names(tree)
         writer_names, module_aliases = source_capture_imports(tree)
         calls = producer_calls(tree, writer_names, module_aliases)
         if calls:
             producers[path.name] = RunnerSeam(
                 exposes_output_arg="--output" in flags,
                 exposes_data_root_arg="--data-root" in flags,
-                exposes_env_fallback=("FORSETI_DATA_ROOT" in src or "ORCA_DATA_ROOT" in src),
+                exposes_env_fallback=(
+                    "FORSETI_DATA_ROOT" in env_names
+                    or ("--output" not in flags and "--admit-output" not in flags)
+                ),
+                explicit_data_root_only=path.name in EXPLICIT_DATA_ROOT_RUNNERS,
                 resolves_data_root="DataLakeRoot.resolve" in src,
                 rejects_output_and_data_root=has_any_token(src, EXPLICIT_PAIR_REJECT_TOKENS),
                 env_fallback_uses_output_omitted=has_any_token(src, ENV_OUTPUT_OMITTED_TOKENS),
