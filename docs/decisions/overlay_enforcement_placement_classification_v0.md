@@ -29,6 +29,45 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-10: EP-37 extended to source-capture packet preserved_files[]
+
+Not a new EP handle — a matched-shape extension of the already-built EP-37
+substrate, landed under the current-turn owner instruction to close the
+`preserved_files[]` coverage gap.
+
+- **Gap provenance:** the EP-15 build survey (PR #842, open at authoring time,
+  branch `claude/sub-agent-spawning-plan-2dc064`) and that PR's owner-flag
+  list: source-capture packet manifests at
+  `forseti-harness/cases/**/source_captures/**/manifest.json` record preserved
+  raw files under `preserved_files[]` (`relative_packet_path` + `sha256`), a
+  shape matched by neither EP-37 (JSON `source_inputs[]` with
+  `source_pointer`) nor EP-15 (markdown pin grammars only; the sibling
+  `receipt.md` bullets ARE covered there).
+- **What it enforces now:** a JSON document with a top-level
+  `manifest_version` string has its top-level `preserved_files[]` records
+  checked: `relative_packet_path` resolves against the manifest's own
+  directory and the recorded `sha256` must match current **raw stored bytes**
+  (the manifests' `hash_basis: raw_stored_bytes`; `.gitattributes` pins
+  `**/source_captures/** -text`) — unlike the CRLF-normalized `source_inputs[]`
+  basis. Non-packet-local paths (absolute, drive, parent traversal) fail loud
+  as `preserved_file_path_not_packet_local`. Nested `preserved_files` blocks
+  (review-input fixtures describing machine-local packets outside the repo)
+  are deliberately not matched — they would false-positive as missing.
+- **Born-green measurement first:** `--audit` green over all 281 records
+  (17 `source_inputs[]` + 264 `preserved_files[]` across 88 manifests; 0
+  missing, 0 raw-basis mismatches). Live probes: one flipped byte in a
+  preserved `.bin` → `preserved_file_hash_mismatch` in `--audit`, and the same
+  drift committed on a temp branch → `--strict` exit 1 via the real diff
+  scope.
+- **Wiring unchanged:** rides EP-37's existing `.github/workflows/ci.yml`
+  step, `.agents/hooks/pre_push_guard.py` mirror, and
+  `test_hook_internal_error_gating.py` CASES row; selftest grown to 32 cases.
+
+Same classification and boundary as EP-37 (PARTIAL/SUBSTRATE shell). PLACEMENT
+IS NOT AUTHORITY: a green run is provenance hash freshness, never archive
+completeness, source-state truth, capture freshness, validation, or readiness.
+The DCP receipt lives in `validation-gates.md`.
+
 ## Update — 2026-07-10: EP-37 (source-input hash freshness gate) built and wired
 
 A new Enforcement Placement handle — **EP-37, beyond the EP-01..EP-36 set** —

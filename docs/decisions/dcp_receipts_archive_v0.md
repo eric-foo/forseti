@@ -3631,3 +3631,77 @@ direction_change_propagation:
     - not buyer proof
     - not source-access authorization
 ```
+
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-10)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca validation doctrine adds a handoff-pointer resolution gate: a changed
+    durable .md file must not reference a handoff-packet path
+    (docs/workflows/*handoff*.md, docs/prompts/handoffs/*.md) that does not
+    resolve in the same tree, unless the pointer line carries an explicit
+    resolution pin (branch / PR # / origin ref vocabulary) or an exemption
+    marker -- enforced diff-scoped and forward-only by
+    .agents/hooks/check_handoff_pointers.py (EP-36) as a CI --strict gate.
+    Born from repeated cold-agent resolution failures where handoff packets
+    lived only on unmerged authoring branches while filed prompts referencing
+    them landed on main, so receiving agents and delegated reviewers starting
+    cold from main could not resolve their required reads.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_handoff_pointers.py
+    - .github/workflows/ci.yml
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .claude/settings.json
+    - .agents/hooks/check_map_links.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already routes validation and enforcement-placement changes to this
+        overlay file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Per the enforcement-placement principle a substrate-enforced rule is
+        not also carried as a resident instruction; prompt authors hit the CI
+        gate mechanically, and the existing worktree-preflight and
+        input-prompt-source rules already carry the judgment side (which
+        branch, which source) that stays resident.
+    - path: .claude/settings.json
+      reason: >
+        No PostToolUse wiring: the defect is a merge-topology property
+        (packet on a different unmerged branch), invisible at the write
+        boundary where the packet usually exists in the author's own tree;
+        the enforcing boundary is CI on the landing PR.
+    - path: .agents/hooks/check_map_links.py
+      reason: >
+        Its C1/C2/C4 checks gate map files, open_next headers, and inline
+        markdown links whole-corpus; the new gate covers prose/backtick
+        handoff pointers diff-scoped with pin/exemption vocabulary --
+        different scope and exemption grammar, kept as a sibling checker.
+  stale_language_search: >
+    rg -in "handoff.*resolv|resolve.*handoff|unmerged.*handoff|check_handoff_pointers"
+    AGENTS.md .agents docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-03 after edits: hits are this gate's own rule text,
+    checker, README row, and registration surfaces, plus unrelated generic
+    mentions (the AGENTS.md jb-handoffs boundary sentence and skill-adoption
+    skill-name rows); no other surface carries a conflicting handoff-pointer
+    resolution rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not packet content freshness, pin truth, or source-choice correctness
+    - not a courier-delivery guarantee for prompts that never land in the repo
+    - a green run is pointer shape only, never proof the right packet was cited
+```
