@@ -1,11 +1,6 @@
 name: batch0-owner-notify
 
 on:
-  pull_request:
-    paths:
-      - "docs/workflows/process_improvement_batch0/review_receipts/*.json"
-      - ".github/scripts/batch0_process_tracker.py"
-      - ".github/workflows/batch0-owner-notify.yml"
   push:
     branches: [main]
     paths:
