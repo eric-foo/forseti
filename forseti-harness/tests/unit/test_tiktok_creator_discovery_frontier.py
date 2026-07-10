@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
 
+from capture_spine.creator_profile_current.registry_match_preflight import (
+    build_creator_registry_match_preflight_receipt,
+)
 from capture_spine.tiktok_creator_discovery_frontier import (
     DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS,
     FrontierEdge,
@@ -179,9 +183,11 @@ def _register(**wrapper_overrides) -> dict:
     return {"tiktok_creator_discovery_frontier_register": wrapper}
 
 
-def _raises_code(register: dict, code: str) -> None:
+def _raises_code(register: dict, code: str, *, resolver=None) -> None:
     with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
-        validate_tiktok_creator_discovery_frontier_register(register)
+        validate_tiktok_creator_discovery_frontier_register(
+            register, preflight_receipt_resolver=resolver
+        )
     assert exc_info.value.code == code
 
 
@@ -609,6 +615,88 @@ def _decision(**overrides) -> dict:
     return fields
 
 
+_PREFLIGHT_RECEIPT_POINTER = "lake://creator-registry-preflight/receipt_3whiffs.json"
+
+
+def _preflight_receipt_bytes(*, row_overrides=None, normalized_overrides=None, schema_version=None) -> bytes:
+    document = build_creator_registry_match_preflight_receipt(
+        candidates=(
+            {
+                "candidate_id": "candidate_3whiffs",
+                "intended_action": "new_capture",
+                "platform": "tiktok",
+                "handle_or_url": "@3whiffs",
+            },
+        ),
+        registry_document={
+            "creator_profile_current_view": {
+                "schema_version": "creator_profile_current_view_v0",
+                "generated_at_utc": "2026-07-11T00:00:00Z",
+                "counts": {"profiles_total": 0},
+                "profiles": [],
+            }
+        },
+        registry_source_pointer="repo://creator_profile_current_view_v0.json",
+        registry_sha256="a" * 64,
+        generated_at_utc="2026-07-11T00:01:00Z",
+    )
+    wrapper = document["creator_registry_match_preflight_receipt"]
+    row = wrapper["results"][0]
+    row.update(row_overrides or {})
+    row["normalized_candidate"].update(normalized_overrides or {})
+    decision = row["decision"]
+    wrapper["summary"] = {
+        "total_candidates": 1,
+        "existing_matches": int(decision == "existing_match"),
+        "new_candidates": int(decision == "new_candidate"),
+        "ambiguous_matches": int(decision == "ambiguous_match"),
+        "invalid_candidates": int(decision == "invalid_candidate"),
+        "blocked_actions": int(row["action_status"] == "blocked"),
+        "safe_to_capture_new": int(row["can_start_new_capture"] is True),
+    }
+    if schema_version is not None:
+        wrapper["schema_version"] = schema_version
+    return (json.dumps(document, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def _preflight_evidence(receipt_bytes: bytes, **overrides) -> dict:
+    evidence = {
+        "receipt_pointer": _PREFLIGHT_RECEIPT_POINTER,
+        "receipt_sha256": hashlib.sha256(receipt_bytes).hexdigest(),
+        "candidate_id": "candidate_3whiffs",
+        "intended_action": "new_capture",
+        "decision": "new_candidate",
+        "action_status": "allowed",
+        "can_start_new_capture": True,
+    }
+    evidence.update(overrides)
+    return evidence
+
+
+def _receipt_resolver(receipt_bytes: bytes):
+    def resolve(pointer: str) -> bytes:
+        if pointer != _PREFLIGHT_RECEIPT_POINTER:
+            raise FileNotFoundError(pointer)
+        return receipt_bytes
+
+    return resolve
+
+
+def _register_with_candidate_evidence(evidence, *, legacy_status=None) -> dict:
+    nodes = [
+        _node(_RUN_NODE_ID, FrontierNodeType.RUN, None).to_dict(),
+        _node(_SEED_NODE_ID, FrontierNodeType.TIKTOK_CREATOR_SEED, "fragranceknowledge").to_dict(),
+        _node(
+            _CANDIDATE_NODE_ID,
+            FrontierNodeType.TIKTOK_CREATOR_CANDIDATE,
+            "3whiffs",
+            registry_preflight_status_or_none=legacy_status,
+            registry_preflight_receipt_evidence_or_none=evidence,
+        ).to_dict(),
+    ]
+    return _register(nodes=nodes, frontier_decisions=[_decision()])
+
+
 def _receipt_raises_code(receipt: dict, code: str) -> None:
     with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
         validate_tiktok_creator_discovery_scan_receipt(receipt)
@@ -654,53 +742,178 @@ def test_scan_receipt_explicit_link_hub_outcomes_pass() -> None:
     )
 
 
-def test_promote_decision_without_registry_preflight_raises() -> None:
+def test_promote_decision_without_registry_preflight_evidence_raises() -> None:
     register = _register(frontier_decisions=[_decision()])
-    _raises_code(register, "promote_requires_registry_preflight")
+    _raises_code(register, "promote_requires_registry_preflight_receipt_evidence")
 
 
-def test_promote_decision_with_registry_preflight_passes() -> None:
-    nodes = [
-        _node(_RUN_NODE_ID, FrontierNodeType.RUN, None).to_dict(),
-        _node(_SEED_NODE_ID, FrontierNodeType.TIKTOK_CREATOR_SEED, "fragranceknowledge").to_dict(),
-        _node(
-            _CANDIDATE_NODE_ID,
-            FrontierNodeType.TIKTOK_CREATOR_CANDIDATE,
-            "3whiffs",
-            registry_preflight_status_or_none="no_exact_string_seen_in_registry_json",
-        ).to_dict(),
-    ]
-    register = _register(nodes=nodes, frontier_decisions=[_decision()])
-    validate_tiktok_creator_discovery_frontier_register(register)
+def test_promote_legacy_status_string_does_not_clear_receipt_gate() -> None:
+    register = _register_with_candidate_evidence(
+        None, legacy_status="no_exact_string_seen_in_registry_json"
+    )
+    _raises_code(register, "promote_requires_registry_preflight_receipt_evidence")
+
+
+def test_promote_known_negative_legacy_status_does_not_clear_receipt_gate() -> None:
+    register = _register_with_candidate_evidence(
+        None, legacy_status="not_run_suggested_frontier_only"
+    )
+    _raises_code(register, "promote_requires_registry_preflight_receipt_evidence")
+
+
+def test_promote_non_string_legacy_status_does_not_clear_receipt_gate() -> None:
+    register = _register_with_candidate_evidence(None, legacy_status=123)
+    _raises_code(register, "invalid_registry_preflight_status")
+
+
+def test_promote_malformed_receipt_evidence_fails_closed() -> None:
+    register = _register_with_candidate_evidence("self_certified")
+    _raises_code(register, "malformed_registry_preflight_receipt_evidence")
+
+
+def test_promote_receipt_evidence_requires_resolver() -> None:
+    receipt_bytes = _preflight_receipt_bytes()
+    register = _register_with_candidate_evidence(_preflight_evidence(receipt_bytes))
+    _raises_code(register, "promote_preflight_receipt_resolver_required")
+
+
+def test_promote_missing_receipt_fails_closed() -> None:
+    receipt_bytes = _preflight_receipt_bytes()
+    register = _register_with_candidate_evidence(_preflight_evidence(receipt_bytes))
+
+    def missing(_pointer: str) -> bytes:
+        raise FileNotFoundError("receipt absent")
+
+    _raises_code(register, "promote_preflight_receipt_not_found", resolver=missing)
+
+
+def test_promote_stale_receipt_hash_fails_closed() -> None:
+    receipt_bytes = _preflight_receipt_bytes()
+    evidence = _preflight_evidence(receipt_bytes, receipt_sha256="0" * 64)
+    register = _register_with_candidate_evidence(evidence)
+    _raises_code(
+        register,
+        "promote_preflight_receipt_hash_mismatch",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
+def test_promote_malformed_receipt_fails_closed() -> None:
+    receipt_bytes = b"not json\n"
+    register = _register_with_candidate_evidence(_preflight_evidence(receipt_bytes))
+    _raises_code(
+        register,
+        "promote_preflight_receipt_malformed",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
+def test_promote_wrong_receipt_schema_fails_closed() -> None:
+    receipt_bytes = _preflight_receipt_bytes(schema_version="wrong")
+    register = _register_with_candidate_evidence(_preflight_evidence(receipt_bytes))
+    _raises_code(
+        register,
+        "promote_preflight_receipt_schema_mismatch",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
+def test_promote_incomplete_receipt_schema_fails_closed() -> None:
+    document = json.loads(_preflight_receipt_bytes())
+    del document["creator_registry_match_preflight_receipt"]["registry_source"]
+    receipt_bytes = (json.dumps(document, sort_keys=True) + "\n").encode("utf-8")
+    register = _register_with_candidate_evidence(_preflight_evidence(receipt_bytes))
+    _raises_code(
+        register,
+        "missing_registry_source",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
+@pytest.mark.parametrize(
+    ("summary_field", "bad_value"),
+    (("blocked_actions", 1), ("total_candidates", True)),
+)
+def test_promote_inconsistent_receipt_summary_fails_closed(summary_field, bad_value) -> None:
+    document = json.loads(_preflight_receipt_bytes())
+    document["creator_registry_match_preflight_receipt"]["summary"][summary_field] = bad_value
+    receipt_bytes = (json.dumps(document, sort_keys=True) + "\n").encode("utf-8")
+    register = _register_with_candidate_evidence(_preflight_evidence(receipt_bytes))
+    _raises_code(
+        register,
+        "promote_preflight_receipt_summary_mismatch",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
+def test_promote_unrelated_receipt_candidate_fails_closed() -> None:
+    receipt_bytes = _preflight_receipt_bytes()
+    evidence = _preflight_evidence(receipt_bytes, candidate_id="candidate_other")
+    register = _register_with_candidate_evidence(evidence)
+    _raises_code(
+        register,
+        "promote_preflight_receipt_candidate_unrelated",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
+def test_promote_copied_clearance_fields_must_match_receipt_row() -> None:
+    receipt_bytes = _preflight_receipt_bytes()
+    evidence = _preflight_evidence(receipt_bytes, action_status="blocked")
+    register = _register_with_candidate_evidence(evidence)
+    _raises_code(
+        register,
+        "promote_preflight_evidence_row_mismatch",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
+def test_promote_known_negative_receipt_row_fails_closed() -> None:
+    clearance = {
+        "decision": "existing_match",
+        "action_status": "blocked",
+        "can_start_new_capture": False,
+    }
+    receipt_bytes = _preflight_receipt_bytes(row_overrides=clearance)
+    register = _register_with_candidate_evidence(
+        _preflight_evidence(receipt_bytes, **clearance)
+    )
+    _raises_code(
+        register,
+        "promote_preflight_receipt_not_cleared",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
+@pytest.mark.parametrize(
+    "normalized_overrides",
+    (
+        {"platform_or_none": "instagram"},
+        {"handles": ["someone_else"]},
+    ),
+)
+def test_promote_wrong_platform_or_handle_fails_closed(normalized_overrides) -> None:
+    receipt_bytes = _preflight_receipt_bytes(normalized_overrides=normalized_overrides)
+    register = _register_with_candidate_evidence(_preflight_evidence(receipt_bytes))
+    _raises_code(
+        register,
+        "promote_preflight_receipt_candidate_mismatch",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
+def test_promote_candidate_bound_cleared_receipt_passes() -> None:
+    receipt_bytes = _preflight_receipt_bytes()
+    register = _register_with_candidate_evidence(_preflight_evidence(receipt_bytes))
+    validate_tiktok_creator_discovery_frontier_register(
+        register,
+        preflight_receipt_resolver=_receipt_resolver(receipt_bytes),
+    )
 
 
 def test_non_promote_decision_without_preflight_passes() -> None:
     register = _register(frontier_decisions=[_decision(projection_decision="hold")])
     validate_tiktok_creator_discovery_frontier_register(register)
-
-
-def _register_with_candidate_preflight(preflight_value) -> dict:
-    nodes = [
-        _node(_RUN_NODE_ID, FrontierNodeType.RUN, None).to_dict(),
-        _node(_SEED_NODE_ID, FrontierNodeType.TIKTOK_CREATOR_SEED, "fragranceknowledge").to_dict(),
-        _node(
-            _CANDIDATE_NODE_ID,
-            FrontierNodeType.TIKTOK_CREATOR_CANDIDATE,
-            "3whiffs",
-            registry_preflight_status_or_none=preflight_value,
-        ).to_dict(),
-    ]
-    return _register(nodes=nodes, frontier_decisions=[_decision()])
-
-
-def test_promote_with_not_run_preflight_marker_raises() -> None:
-    register = _register_with_candidate_preflight("not_run_suggested_frontier_only")
-    _raises_code(register, "promote_registry_preflight_not_attempted")
-
-
-def test_promote_with_non_string_preflight_raises() -> None:
-    register = _register_with_candidate_preflight(123)
-    _raises_code(register, "promote_requires_registry_preflight")
 
 
 def test_scan_receipt_captured_link_hub_rejects_non_url_evidence() -> None:
