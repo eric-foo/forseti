@@ -15,8 +15,8 @@ open_next:
 
 ## State
 
-`active`; `WU-01` is reserved for the Batch 0 setup PR after its final closeout.
-No firing result is recorded before that work unit completes.
+`active`; `WU-01` records the adjudicated delegated-review return for the Batch
+0 setup PR. Nine sample slots remain open.
 
 ## Recording rule
 
@@ -26,7 +26,7 @@ consequence. A checklist tick with no consequence is not evidence.
 
 | Work unit | Source / PR | Applicable resident rule | Result | Observed consequence | Evidence | Evaluator |
 | --- | --- | --- | --- | --- | --- | --- |
-| WU-01 | Batch 0 setup PR | to_verify_at_closeout | unknown | pending | pending | pending |
+| WU-01 | PR #850 Batch 0 setup | delegated-review return requires independent home-model adjudication | fired | Reviewer claims were independently adjudicated; AR-01 was downgraded, three bounded hunks were accepted, and the first economics receipt was filed. | `docs/review-outputs/adversarial-artifact-reviews/batch0_process_pilot_implementation_adjudication_v0.md` | OpenAI Codex / GPT-5 |
 | WU-02 | pending | pending | unknown | pending | pending | pending |
 | WU-03 | pending | pending | unknown | pending | pending | pending |
 | WU-04 | pending | pending | unknown | pending | pending | pending |

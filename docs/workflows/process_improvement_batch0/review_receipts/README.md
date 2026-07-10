@@ -19,6 +19,15 @@ Counting rules:
 - `review_report_path` and every `evidence_pointers` entry must exist in the repository.
 - `reviewed_by` and `authored_by` may be `unrecorded`; never fabricate them.
 - Invalid or duplicated receipts fail validation and do not count.
+- A single malformed or duplicated receipt anywhere in this directory zeroes
+  the entire `completed_count`, not just its own slot — this is deliberate
+  fail-closed behavior, not partial exclusion. If `--json` reports
+  `completed_count: 0` unexpectedly, check `errors` before assuming no
+  receipts have landed.
+- `status`, `material_review`, and `ca_adjudication_status` are self-reported
+  by the filer; the validator checks shape and pointer existence only, not
+  that adjudication genuinely occurred. Treat the sample as a measurement of
+  filed receipts, not an independently verified one.
 
 The tenth valid receipt merged to `main` makes the sample notification-eligible.
 The workflow creates exactly one historical issue titled

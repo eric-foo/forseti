@@ -204,6 +204,20 @@ def run_selftest() -> int:
         result = inspect_receipts(receipts, root, DEFAULT_THRESHOLD, "selftest-*.json")
         if result["valid"] or result["completed_count"] != 0:
             failures.append(f"duplicate case failed: {result}")
+
+        # A single malformed receipt zeroes the whole directory's count, even
+        # when nine other receipts in the same directory are otherwise valid.
+        # This is deliberate fail-closed behavior (a corrupted receipt must
+        # never let the sample silently under-report as "9 valid" instead of
+        # surfacing the error), not a partial-exclusion count.
+        reset(10)
+        mixed = receipts / "selftest-05.json"
+        mixed_payload = json.loads(mixed.read_text(encoding="utf-8"))
+        mixed_payload.pop("ca_adjudicator")
+        mixed.write_text(json.dumps(mixed_payload), encoding="utf-8")
+        result = inspect_receipts(receipts, root, DEFAULT_THRESHOLD, "selftest-*.json")
+        if result["valid"] or result["completed_count"] != 0:
+            failures.append(f"mixed valid+malformed case failed: {result}")
     finally:
         for item in receipts.glob("selftest-*.json"):
             item.unlink()
@@ -212,7 +226,7 @@ def run_selftest() -> int:
         for failure in failures:
             print(f"FAIL: {failure}", file=sys.stderr)
         return 1
-    print("SELFTEST OK: 0/9/10/11, malformed, and duplicate cases")
+    print("SELFTEST OK: 0/9/10/11, malformed, duplicate, and mixed valid+malformed cases")
     return 0
 
 
