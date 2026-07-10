@@ -83,12 +83,15 @@ Validation reports must preserve failure visibility by bucket:
   `--strict`; whole-corpus backlog via `--audit`, never gated).
 - Source-input hash freshness gate: changed repo-local JSON `source_inputs[]`
   records that carry `source_pointer` + `sha256` must match current file bytes
-  when the JSON artifact or referenced source changed. This is provenance
-  freshness only: it is not semantic validation, generated-artifact
-  completeness, readiness, source quality, capture freshness, or metric
-  validity. Enforced diff-scoped and forward-only by
-  `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local pre-push
-  mirror; whole-repo advisory via `--audit`, never gated).
+  (CRLF-normalized), and source-capture packet manifests (top-level
+  `manifest_version`) must have top-level `preserved_files[]` records whose
+  `relative_packet_path` + `sha256` match current raw stored bytes resolved
+  against the manifest's own directory, when the JSON artifact or referenced
+  file changed. This is provenance freshness only: it is not semantic
+  validation, generated-artifact completeness, readiness, source quality,
+  capture freshness, or metric validity. Enforced diff-scoped and forward-only
+  by `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local
+  pre-push mirror; whole-repo advisory via `--audit`, never gated).
 - Receipt-field provenance gate (non-self-certification): a gate, predicate,
   acceptance check, or completion claim must not clear on a self-asserted field
   value. A field clears only when it is owner-produced and provenance-bound or
@@ -379,11 +382,21 @@ Current Gates bullet above: list-style JSON `source_inputs[]` records with
 repo-local `source_pointer` + `sha256` must match current file bytes when the
 JSON artifact or referenced source changed. Born from PR #817: a Creator
 Registry ledger merge changed the ledger hash while the YouTube metric seed's
-source-input hash stayed stale, and full pytest caught it late. Registered in
-`.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`; `--audit`
-and `--selftest` present. Provenance shape/freshness only — a green run never
-proves semantic validity, completeness, readiness, source quality, capture
-freshness, or metric validity.
+source-input hash stayed stale, and full pytest caught it late. Extended
+2026-07-10 to source-capture packet manifests: a JSON document with a
+top-level `manifest_version` string has its top-level `preserved_files[]`
+records (`relative_packet_path` + `sha256`) checked against current **raw
+stored bytes**, with the path resolved against the manifest's own directory
+(the manifests' `hash_basis: raw_stored_bytes`; `.gitattributes` pins
+`**/source_captures/** -text`). Non-packet-local paths fail loud; nested
+`preserved_files` blocks (review-input fixtures describing machine-local
+packets outside the repo) are deliberately not matched. Gap surfaced by the
+EP-15 build survey (PR #842): the packet-manifest shape was matched by
+neither the `source_inputs[]` JSON gate nor the markdown pin-grammar gate.
+Registered in `.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`;
+`--audit` and `--selftest` present. Provenance shape/freshness only — a green
+run never proves semantic validity, completeness, readiness, source quality,
+capture freshness, or metric validity.
 
 **Handoff-pointer resolution gate** (`.agents/hooks/check_handoff_pointers.py`,
 EP-36). Diff-scoped, forward-only CI gate for the Current Gates bullet above:
@@ -412,78 +425,6 @@ green run never proves packet content, freshness, or pin truth.
 - Runtime or integration validation: UNKNOWN - requires owner input.
 
 ## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Orca validation doctrine adds a handoff-pointer resolution gate: a changed
-    durable .md file must not reference a handoff-packet path
-    (docs/workflows/*handoff*.md, docs/prompts/handoffs/*.md) that does not
-    resolve in the same tree, unless the pointer line carries an explicit
-    resolution pin (branch / PR # / origin ref vocabulary) or an exemption
-    marker -- enforced diff-scoped and forward-only by
-    .agents/hooks/check_handoff_pointers.py (EP-36) as a CI --strict gate.
-    Born from repeated cold-agent resolution failures where handoff packets
-    lived only on unmerged authoring branches while filed prompts referencing
-    them landed on main, so receiving agents and delegated reviewers starting
-    cold from main could not resolve their required reads.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_handoff_pointers.py
-    - .github/workflows/ci.yml
-    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-    - .agents/hooks/README.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .claude/settings.json
-    - .agents/hooks/check_map_links.py
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Already routes validation and enforcement-placement changes to this
-        overlay file; a kernel restatement would fork the owner.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        Per the enforcement-placement principle a substrate-enforced rule is
-        not also carried as a resident instruction; prompt authors hit the CI
-        gate mechanically, and the existing worktree-preflight and
-        input-prompt-source rules already carry the judgment side (which
-        branch, which source) that stays resident.
-    - path: .claude/settings.json
-      reason: >
-        No PostToolUse wiring: the defect is a merge-topology property
-        (packet on a different unmerged branch), invisible at the write
-        boundary where the packet usually exists in the author's own tree;
-        the enforcing boundary is CI on the landing PR.
-    - path: .agents/hooks/check_map_links.py
-      reason: >
-        Its C1/C2/C4 checks gate map files, open_next headers, and inline
-        markdown links whole-corpus; the new gate covers prose/backtick
-        handoff pointers diff-scoped with pin/exemption vocabulary --
-        different scope and exemption grammar, kept as a sibling checker.
-  stale_language_search: >
-    rg -in "handoff.*resolv|resolve.*handoff|unmerged.*handoff|check_handoff_pointers"
-    AGENTS.md .agents docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-03 after edits: hits are this gate's own rule text,
-    checker, README row, and registration surfaces, plus unrelated generic
-    mentions (the AGENTS.md jb-handoffs boundary sentence and skill-adoption
-    skill-name rows); no other surface carries a conflicting handoff-pointer
-    resolution rule.
-  non_claims:
-    - not validation
-    - not readiness
-    - not packet content freshness, pin truth, or source-choice correctness
-    - not a courier-delivery guarantee for prompts that never land in the repo
-    - a green run is pointer shape only, never proof the right packet was cited
-```
 
 ```yaml
 direction_change_propagation:
@@ -553,6 +494,69 @@ direction_change_propagation:
     - not readiness
     - not semantic generated-artifact completeness
     - not source quality, capture freshness, or metric validity
+    - a green run is provenance hash freshness only
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The source-input hash freshness gate (EP-37) extends to source-capture
+    packet manifests: a JSON document with a top-level manifest_version string
+    must have top-level preserved_files[] records (relative_packet_path +
+    sha256) that match current raw stored bytes, with the path resolved
+    against the manifest's own directory, when the manifest or the preserved
+    file changed -- same diff-scoped, forward-only CI --strict gate plus local
+    pre-push mirror in .agents/hooks/check_source_input_hashes.py. Gap
+    surfaced by the EP-15 build survey (PR #842): the packet-manifest shape
+    was matched by neither the source_inputs[] JSON gate nor the markdown
+    pin-grammar gate, leaving preserved raw capture bytes ungated.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_source_input_hashes.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - .github/workflows/ci.yml
+    - .agents/hooks/pre_push_guard.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - .gitattributes
+  intentionally_not_updated:
+    - path: .github/workflows/ci.yml
+      reason: >
+        The extension rides the already-registered EP-37 --strict step; there
+        is no new gate to register.
+    - path: .agents/hooks/pre_push_guard.py
+      reason: >
+        The local mirror already invokes check_source_input_hashes.py
+        --strict; the extended record family is picked up unchanged.
+    - path: forseti-harness/tests/unit/test_hook_internal_error_gating.py
+      reason: >
+        The hook's CASES row already pins internal-error gating; the
+        extension changes matched record shapes, not error or exit semantics.
+    - path: .gitattributes
+      reason: >
+        Its **/source_captures/** -text rule already pins the raw-bytes
+        invariant this extension verifies; the gate consumes that invariant,
+        it does not amend it.
+  stale_language_search: >
+    rg -in "preserved_files|relative_packet_path|source-input hash|source_inputs.*sha256"
+    .agents docs/workflows/forseti_repo_map_v0.md
+    docs/decisions/overlay_enforcement_placement_classification_v0.md .github
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits: hits are this gate's own rule text and
+    receipt, the checker and its selftest, CI/pre-push wiring, the hook README
+    rows, the enforcement-placement decision record, and the repo-map gate
+    entry plus its generic .agents/hooks folder description; no other surface
+    carries a conflicting source-input or preserved-file hash rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not archive completeness or source-state truth
+    - not capture freshness, source quality, or packet content correctness
     - a green run is provenance hash freshness only
 ```
 
