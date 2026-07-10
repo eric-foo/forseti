@@ -54,3 +54,24 @@ def test_classify_rendered_access_reports_no_block_marker_for_source_content() -
 
     assert result.classification == RenderedAccessClass.NO_BLOCK_MARKER
     assert result.signal is None
+
+
+def test_classify_rendered_access_flags_visible_tiktok_slider() -> None:
+    result = classify_rendered_access(
+        title="TikTok",
+        visible_text="Creator profile\nDrag the slider to fit the puzzle",
+        rendered_dom="<html><body>Creator profile</body></html>",
+    )
+
+    assert result.classification == RenderedAccessClass.ACCESS_BLOCKED
+    assert result.signal == "tiktok_slider_or_captcha"
+
+
+def test_classify_rendered_access_keeps_hidden_tiktok_marker_residual() -> None:
+    result = classify_rendered_access(
+        title="TikTok creator",
+        visible_text="Creator profile and public source text",
+        rendered_dom="<html><template>verify to continue</template></html>",
+    )
+
+    assert result.classification == RenderedAccessClass.RESIDUAL_CHALLENGE_MARKER

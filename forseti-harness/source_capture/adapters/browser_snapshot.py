@@ -24,6 +24,7 @@ BROWSER_BACKEND_PLAYWRIGHT = "playwright"
 BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
 ALLOWED_BROWSER_BACKENDS = {BROWSER_BACKEND_PLAYWRIGHT, BROWSER_BACKEND_CLOAKBROWSER}
 DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS = 180.0
+PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME = "page_load_before_pointer_actions_v0"
 # Pause after each scroll-to-bottom pass so lazy-loaded (infinite-scroll / "load
 # more") content can fetch and render before the next pass or the capture.
 _SCROLL_PASS_SETTLE_MS = 2000
@@ -873,11 +874,11 @@ class _PlaywrightBrowserSnapshotEngine:
                     pointer_action_receipts: list[dict[str, object]] = []
                     human_challenge_handoff_receipts: list[dict[str, object]] = []
 
-                    def maybe_run_handoff(after_action_name: str) -> None:
+                    def maybe_run_handoff(after_action_name: str) -> bool:
                         if not self._should_run_human_challenge_handoff_after_action(
                             after_action_name
                         ):
-                            return
+                            return False
                         handoff_receipt = _run_human_challenge_handoff(
                             page,
                             markers=self.human_challenge_handoff_markers,
@@ -885,35 +886,47 @@ class _PlaywrightBrowserSnapshotEngine:
                             prompt=self.human_challenge_handoff_prompt,
                         )
                         if handoff_receipt is None:
-                            return
+                            return False
                         handoff_receipt["after_action_name"] = after_action_name
                         human_challenge_handoff_receipts.append(handoff_receipt)
-                        if handoff_receipt.get("cleared") is not True:
-                            warning_notes.append(
-                                "browser_page_observation human challenge handoff did not clear visible markers"
-                            )
+                        if handoff_receipt.get("cleared") is True:
+                            return False
+                        warning_notes.append(
+                            "browser_page_observation human challenge handoff did not clear visible markers"
+                        )
+                        return True
 
-                    if post_load_action_script is not None:
-                        page.evaluate(post_load_action_script, post_load_action_arg)
-                    observed_response_count = lambda: len(selected_responses)
-                    if post_load_pointer_action is not None:
-                        pointer_action_receipt = _run_pointer_action(
-                            page,
-                            post_load_pointer_action,
-                            observed_response_count=observed_response_count,
+                    pointer_actions_suppressed = maybe_run_handoff(
+                        PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
+                    )
+                    if pointer_actions_suppressed:
+                        warning_notes.append(
+                            "browser_page_observation scripted actions suppressed pending owner challenge clearance"
                         )
-                        pointer_action_receipts.append(pointer_action_receipt)
-                        maybe_run_handoff(post_load_pointer_action.action_name)
-                    for pointer_action in post_load_pointer_actions:
-                        pointer_action_receipt = _run_pointer_action(
-                            page,
-                            pointer_action,
-                            observed_response_count=observed_response_count,
-                        )
-                        pointer_action_receipts.append(pointer_action_receipt)
-                        maybe_run_handoff(pointer_action.action_name)
-                        if _should_stop_pointer_action_sequence(pointer_action, pointer_action_receipt):
-                            break
+                    else:
+                        if post_load_action_script is not None:
+                            page.evaluate(post_load_action_script, post_load_action_arg)
+                        observed_response_count = lambda: len(selected_responses)
+                        if post_load_pointer_action is not None:
+                            pointer_action_receipt = _run_pointer_action(
+                                page,
+                                post_load_pointer_action,
+                                observed_response_count=observed_response_count,
+                            )
+                            pointer_action_receipts.append(pointer_action_receipt)
+                            maybe_run_handoff(post_load_pointer_action.action_name)
+                        for pointer_action in post_load_pointer_actions:
+                            pointer_action_receipt = _run_pointer_action(
+                                page,
+                                pointer_action,
+                                observed_response_count=observed_response_count,
+                            )
+                            pointer_action_receipts.append(pointer_action_receipt)
+                            maybe_run_handoff(pointer_action.action_name)
+                            if _should_stop_pointer_action_sequence(
+                                pointer_action, pointer_action_receipt
+                            ):
+                                break
                     try:
                         visible_text = page.locator("body").inner_text(timeout=timeout_ms)
                     except Exception as exc:
@@ -979,6 +992,7 @@ class _PlaywrightBrowserSnapshotEngine:
                         "human_challenge_handoff_attempts": human_challenge_handoff_receipts,
                         "viewport_width": viewport_width,
                         "viewport_height": viewport_height,
+                        "pointer_actions_suppressed_by_human_challenge_handoff": pointer_actions_suppressed,
                         "storage_state_loaded": storage_state_path is not None,
                         "blocked_resource_types": sorted(blocked_resource_types),
                         "max_response_bytes": max_response_bytes,
@@ -1252,11 +1266,11 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                 pointer_action_receipts: list[dict[str, object]] = []
                 human_challenge_handoff_receipts: list[dict[str, object]] = []
 
-                def maybe_run_handoff(after_action_name: str) -> None:
+                def maybe_run_handoff(after_action_name: str) -> bool:
                     if not self._should_run_human_challenge_handoff_after_action(
                         after_action_name
                     ):
-                        return
+                        return False
                     handoff_receipt = _run_human_challenge_handoff(
                         page,
                         markers=self.human_challenge_handoff_markers,
@@ -1264,35 +1278,47 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                         prompt=self.human_challenge_handoff_prompt,
                     )
                     if handoff_receipt is None:
-                        return
+                        return False
                     handoff_receipt["after_action_name"] = after_action_name
                     human_challenge_handoff_receipts.append(handoff_receipt)
-                    if handoff_receipt.get("cleared") is not True:
-                        warning_notes.append(
-                            "browser_page_observation human challenge handoff did not clear visible markers"
-                        )
+                    if handoff_receipt.get("cleared") is True:
+                        return False
+                    warning_notes.append(
+                        "browser_page_observation human challenge handoff did not clear visible markers"
+                    )
+                    return True
 
-                if post_load_action_script is not None:
-                    page.evaluate(post_load_action_script, post_load_action_arg)
-                observed_response_count = lambda: len(selected_responses)
-                if post_load_pointer_action is not None:
-                    pointer_action_receipt = _run_pointer_action(
-                        page,
-                        post_load_pointer_action,
-                        observed_response_count=observed_response_count,
+                pointer_actions_suppressed = maybe_run_handoff(
+                    PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
+                )
+                if pointer_actions_suppressed:
+                    warning_notes.append(
+                        "browser_page_observation scripted actions suppressed pending owner challenge clearance"
                     )
-                    pointer_action_receipts.append(pointer_action_receipt)
-                    maybe_run_handoff(post_load_pointer_action.action_name)
-                for pointer_action in post_load_pointer_actions:
-                    pointer_action_receipt = _run_pointer_action(
-                        page,
-                        pointer_action,
-                        observed_response_count=observed_response_count,
-                    )
-                    pointer_action_receipts.append(pointer_action_receipt)
-                    maybe_run_handoff(pointer_action.action_name)
-                    if _should_stop_pointer_action_sequence(pointer_action, pointer_action_receipt):
-                        break
+                else:
+                    if post_load_action_script is not None:
+                        page.evaluate(post_load_action_script, post_load_action_arg)
+                    observed_response_count = lambda: len(selected_responses)
+                    if post_load_pointer_action is not None:
+                        pointer_action_receipt = _run_pointer_action(
+                            page,
+                            post_load_pointer_action,
+                            observed_response_count=observed_response_count,
+                        )
+                        pointer_action_receipts.append(pointer_action_receipt)
+                        maybe_run_handoff(post_load_pointer_action.action_name)
+                    for pointer_action in post_load_pointer_actions:
+                        pointer_action_receipt = _run_pointer_action(
+                            page,
+                            pointer_action,
+                            observed_response_count=observed_response_count,
+                        )
+                        pointer_action_receipts.append(pointer_action_receipt)
+                        maybe_run_handoff(pointer_action.action_name)
+                        if _should_stop_pointer_action_sequence(
+                            pointer_action, pointer_action_receipt
+                        ):
+                            break
                 try:
                     visible_text = page.locator("body").inner_text(timeout=timeout_ms)
                 except Exception as exc:
@@ -1361,6 +1387,7 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                     "storage_state_loaded": storage_state_path is not None,
                     "blocked_resource_types": sorted(blocked_resource_types),
                     "max_response_bytes": max_response_bytes,
+                    "pointer_actions_suppressed_by_human_challenge_handoff": pointer_actions_suppressed,
                     "response_count": len(responses),
                     **_proxy_metadata(proxy_profile),
                 }

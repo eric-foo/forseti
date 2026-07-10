@@ -17,6 +17,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserPagePointerAction,
     BrowserPageResponse,
     BrowserSnapshotFailure,
+    PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
     fetch_browser_page_observation_capture,
 )
 from source_capture.auth_state import (
@@ -316,8 +317,6 @@ def run_tiktok_live_batch_probe(
         raise ValueError(
             "challenge-close diagnostic and followthrough modes are mutually exclusive"
         )
-    if human_challenge_handoff and not allow_challenge_close_followthrough:
-        raise ValueError("human_challenge_handoff requires challenge-close followthrough mode")
     if (
         browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
         and cloakbrowser_humanize
@@ -1042,10 +1041,7 @@ def _interleave_challenge_diagnostic_actions(
     return tuple(interleaved)
 
 def _tiktok_human_challenge_handoff_after_action_names() -> tuple[str, ...]:
-    return (
-        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
-        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
-    )
+    return (PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,)
 
 
 def _tiktok_comment_route_pointer_actions(

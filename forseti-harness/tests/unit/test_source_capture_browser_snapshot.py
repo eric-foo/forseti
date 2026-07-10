@@ -1078,6 +1078,79 @@ def test_page_observation_human_challenge_handoff_after_named_pointer_action(
     assert event_log.count("human_marker_match") == 2
 
 
+def test_page_load_handoff_suppresses_pointer_actions_until_challenge_clears(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+        marker_match_results=[
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "drag the slider",
+                "marker_count": 1,
+            },
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "drag the slider",
+                "marker_count": 1,
+            },
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+    monkeypatch.setattr(
+        browser_snapshot_module,
+        "_show_human_challenge_prompt",
+        lambda _prompt: "test_prompt",
+    )
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        human_challenge_handoff_markers=("drag the slider",),
+        human_challenge_handoff_after_action_names=(
+            browser_snapshot_module.PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
+        ),
+        human_challenge_handoff_timeout_seconds=0,
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="must_not_run",
+                candidate_selector="button",
+                text_markers=("continue",),
+                wait_after_ms=0,
+            ),
+        ),
+    )
+
+    assert result.metadata["pointer_actions_suppressed_by_human_challenge_handoff"] is True
+    assert result.metadata["post_load_pointer_actions"] == []
+    assert "pointer_target_lookup" not in event_log
+    assert "mouse_click" not in event_log
+    attempt = result.metadata["human_challenge_handoff_attempts"][0]
+    assert attempt["after_action_name"] == (
+        browser_snapshot_module.PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
+    )
+    assert attempt["cleared"] is False
+    assert attempt["timeout_exceeded"] is True
+
+
+
 def test_pointer_action_target_script_matches_data_attributes() -> None:
     script = browser_snapshot_module._POINTER_ACTION_TARGET_SCRIPT
     assert "data-e2e" in script
