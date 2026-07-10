@@ -272,6 +272,44 @@ recorded. Entity flags: CROX 2022-2023 outcomes include HeyDude (acquired
    the doctrine's core claim that only Class-A live capture compounds reliably.
    No revision to the taxonomy is proposed.
 
+## Post-readout signal-role recommendation (added 2026-07-10 after owner readout)
+
+Owner direction from the readout thread (in-thread words; provenance, not
+ratification): purchase-side data should lead demand intensity ("we probably
+only need the purchase data"); review grade kept "for more forward looking
+stuff"; "ongoing sku tracking is much more reliable than anything else"
+(endorsing live SKU-state capture as the priority stream); Keepa-style ToS
+posture accepted for self-capture ("we'll do the same thing") — read within
+the already-ratified measured-risk posture, i.e. bounded own-account capture,
+not industrial scale.
+
+Probe-informed signal-role hierarchy (design input for capture priorities and
+any real backtest; `product_learning`-capped):
+
+1. **Demand intensity (lead): live SKU-state purchase proxies.** Amazon
+   "bought in past month" badge (published purchase-rate state; only the
+   current value is shown -> Class-A capture candidate; snapshot preservation
+   unverified in this probe), bestseller rank (rendered in every sampled
+   snapshot including late-2025), price/availability/stockout state.
+2. **Authenticity (co-primary): review forensics, not review counting.**
+   Star-mix distribution shifts, velocity anomalies vs purchase rate, and
+   purge/merge events (all three observed live in this probe) as
+   manufactured-vs-organic and quality-decay instruments.
+3. **Durability (follow-on):** rating decay vs sales persistence over time;
+   attention series (Wikipedia pageviews) as a regime cross-check.
+4. **Review-count velocity: demoted** to cross-check/backtest fuel only
+   (purchase proxy with a drifting review-propensity rate and unstable pool
+   identity).
+
+Capture consequence: the probe's decay evidence plus this hierarchy point
+capture priority at live SKU-state tracking (badge/rank/price), not
+review-stream reconstruction. The probe supports (does not prove) the owner's
+read that ongoing SKU tracking beats reconstruction: every too_thin cell in
+Part 2 traces to a hole live capture would not have had. Promotion of this
+hierarchy into the indicator lean and capture-lane priorities is a separate
+owner act; the indicator-lean home is the moat capture on PR #832
+(`docs/decisions/forseti_unbackfillable_signal_moat_doctrine_v0.md` # nonresolving: on PR #832 until merge).
+
 ## Boundaries honored and accepted residuals
 
 - Probe tier held: no standing pipelines, monitors, dashboards, models, capture
