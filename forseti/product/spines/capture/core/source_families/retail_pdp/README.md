@@ -13,6 +13,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/README.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/amazon_demand_signal_route_candidates_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_site_registry_v0.md

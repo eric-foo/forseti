@@ -108,6 +108,54 @@ categories is sufficient; thousands are not needed.
    two real clocks (live Class-A capture; the forward track record) remain
    the moat; the panel is calibration + distribution, not moat.
 
+## How the panel calibrates public signals (the mechanism)
+
+The panel exists to answer one question the public signals cannot answer
+alone: *how many units is this movement actually worth?* Public capture
+(badge buckets, rank, price) is precise about DIRECTION and RELATIVE change
+but bracketed about ABSOLUTE units. Panel members' SP-API sales series are
+the absolute ground truth that pins the conversion.
+
+The pairing (per panel SKU, per day/week): join Forseti's own publicly
+captured signals for that ASIN — bestseller rank, bought-in-past-month
+bucket, price, review velocity — to the member's SP-API actual units sold
+for the same SKU and window. That yields matched pairs of
+(public signal state -> true units), which is exactly the training data the
+vendors' consented panels give them and we otherwise lack.
+
+Three calibration outputs from those pairs:
+
+1. **Rank -> units curve, per category.** Bestseller rank maps to unit
+   velocity along a category-specific power curve (steeper in fast-moving
+   CPG, flatter in apparel). Panel SKUs supply enough (rank, units) points
+   per category to fit that curve, so a NON-panel competitor's public rank
+   can then be read as an estimated unit rate with a stated error band.
+2. **Badge-bucket -> rate bounds.** The bought-in-past-month bucket
+   ("10K+", "40K+") is coarse, but panel members whose true monthly units
+   fall inside a bucket calibrate what that bucket actually means in units,
+   and bucket-transition dates (captured daily) tighten the estimate between
+   the bracket edges.
+3. **Signal-blend weighting.** With true units in hand, fit how much each
+   public signal should count when they disagree (rank moving without badge
+   change, price cuts inflating rank, etc.) — turning several noisy proxies
+   into one calibrated demand-intensity read per SKU.
+
+Aggregation to the tradeable object: SKU-level calibrated units roll up to
+brand-level demand intensity via the entity-resolution layer
+(brand -> SKUs -> parent/ticker), which is the input to the earnings-print
+prediction. The panel calibrates the SKU rung; entity resolution carries it
+to the ticker rung; the Judgment spine turns the calibrated series into the
+scored call.
+
+Honest limits (stated, not solved): the fitted curves are only as
+representative as the panel is (consenting sellers skew small/cooperative —
+a per-category bias note is required when curves are fitted); panel SKUs and
+the competitor SKUs being estimated may differ in listing structure; and
+calibration drifts as Amazon changes rank/badge behavior, so curves need
+periodic refit against fresh panel data. None of this blocks the mechanism;
+all of it is disclosed at read time as part of the methodology the buyer
+diligences.
+
 ## The input-class rule for the sold signal chain
 
 Every input to any sold read must belong to one of these classes, and be
