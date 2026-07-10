@@ -18,6 +18,8 @@ open_next:
 - `review_status`: `adjudicated`
 - `reviewer_verdict`: `accept_with_friction`
 - `ca_verdict`: `accept_with_changes`
+reviewed_by: OpenAI Codex / GPT-5
+authored_by: OpenAI Codex / GPT-5
 - `patch_disposition`: keep all three bounded file edits
 - `blocking_findings_after_adjudication`: none
 - `accepted_residuals`: receipt completion fields remain filer-attested rather
@@ -34,6 +36,10 @@ hardening and removing redundant CI work. It did not change the receipt schema,
 threshold, notification target, CA ownership, or four-probe pilot boundaries.
 
 ## Evidence and non-claims
+
+The findings and adjudication are decision input only. They are not approval,
+validation, mandatory remediation, or patch authority outside the independently
+accepted bounded changes recorded above.
 
 The reviewer report was copied verbatim from the reviewer worktree and matched by
 SHA-256 before integration. The accepted edits were rerun through the tracker,
