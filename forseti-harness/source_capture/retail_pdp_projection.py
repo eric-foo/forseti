@@ -402,6 +402,7 @@ def _project_retail_html(
                 raw_ref=raw_ref,
                 raw_anchor=variant_anchor,
                 source_visible_fields=variant_fields,
+                residuals=variant_residuals,
             )
         )
         bindings.extend(
@@ -572,6 +573,10 @@ def _variant_offer_fields(
     apollo_fields, apollo_anchor = _ulta_apollo_offer_fields(structured_entries) if retailer == "ulta" else ({}, None)
     if retailer == "ulta" and not apollo_fields and _ulta_apollo_offer_substrate_present(structured_entries):
         residuals.append(f"{source_slice.slice_id}:ulta:variant_offer_substrate_present_but_unextracted")
+    if retailer == "sephora" and selected_sku and not structured_fields:
+        substrate_skus = _sephora_structured_offer_substrate_skus(structured_entries)
+        if substrate_skus and selected_sku not in substrate_skus:
+            residuals.append("sephora_selected_sku_absent_from_structured_variants")
     if sephora_dom_fields:
         structured_fields = {
             **structured_fields,
@@ -742,6 +747,30 @@ def _structured_variant_offer_fields(
                 offer = product.get("offers") if isinstance(product.get("offers"), dict) else {}
                 return _offer_fields_from_product(product, product, offer, entry.kind), entry.raw_anchor
     return {}, None
+
+
+def _sephora_structured_offer_substrate_skus(structured_entries: list[_StructuredJsonEntry]) -> set[str]:
+    skus: set[str] = set()
+    for entry in structured_entries:
+        for product in _walk_dicts(entry.parsed):
+            product_type = product.get("@type")
+            if isinstance(product_type, list):
+                product_type_values = set(str(item) for item in product_type)
+            else:
+                product_type_values = {str(product_type)} if product_type is not None else set()
+            if "ProductGroup" in product_type_values:
+                variants = product.get("hasVariant")
+                if isinstance(variants, list):
+                    for item in variants:
+                        if isinstance(item, dict):
+                            sku = _string_or_none(item.get("sku"))
+                            if sku:
+                                skus.add(sku)
+            if "Product" in product_type_values:
+                sku = _string_or_none(product.get("sku"))
+                if sku:
+                    skus.add(sku)
+    return skus
 
 
 def _offer_fields_from_product(
@@ -969,9 +998,13 @@ def _sephora_rating_distribution(review_section_html: str) -> dict[str, Any] | N
         flags=re.IGNORECASE,
     )
     percentages: dict[int, str] = {}
+    ambiguous_ratings: set[int] = set()
     for raw_rating, raw_value in matches:
-        percentages.setdefault(int(raw_rating), raw_value)
-    if set(percentages) != {1, 2, 3, 4, 5}:
+        rating = int(raw_rating)
+        if rating in percentages and percentages[rating] != raw_value:
+            ambiguous_ratings.add(rating)
+        percentages.setdefault(rating, raw_value)
+    if ambiguous_ratings or set(percentages) != {1, 2, 3, 4, 5}:
         return None
     return {
         "basis": "percent",

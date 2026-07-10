@@ -190,6 +190,56 @@ def test_runner_preserves_retail_projection_residuals_in_cleaning_handle(
     assert mismatch in retail_source["projection_residuals"]
 
 
+def test_runner_propagates_retail_variant_offer_residuals_to_cleaning_handle(
+    tmp_path: Path,
+) -> None:
+    # A DOM-selected SKU the JSON-LD structured substrate does not carry must reach the
+    # variant-offer Cleaning handle's own residuals/raw_pull_triggers -- not just the packet-level
+    # projection_residuals summary -- otherwise a consumer inspecting only that handle never sees
+    # the gap.
+    html = _retail_html().replace(
+        'data-cnstrc-item-variation-id="1234567"',
+        'data-cnstrc-item-variation-id="9999999"',
+    )
+    retail_packet_dir = _write_retail_packet_dir(tmp_path, html=html)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+
+    outputs = run_capture_ecr_cleaning_smoke(
+        smoke_manifest_path=smoke_manifest_path,
+        output_dir=tmp_path / "smoke_outputs",
+    )
+
+    cleaning_packet = CleaningPacket.model_validate(
+        _load_json(Path(outputs["cleaning_packet"]))
+    )
+    variant_handle = next(
+        handle
+        for handle in cleaning_packet.handles
+        if handle.projection_ref
+        and handle.projection_ref.row_kind == "retail_variant_offer"
+    )
+    mismatch = "sephora_selected_sku_absent_from_structured_variants"
+    assert mismatch in variant_handle.residuals
+    assert (
+        "inspect_raw_before_retail_use:projection_residual_present"
+        in variant_handle.raw_pull_triggers
+    )
+    summary = _load_json(Path(outputs["smoke_summary"]))
+    retail_source = next(
+        source for source in summary["sources"] if source["source_label"] == "retail:sephora"
+    )
+    assert mismatch in retail_source["projection_residuals"]
+
+
 def test_runner_writes_ecr_receipts_and_cleaning_packet_for_instagram(
     tmp_path: Path,
 ) -> None:

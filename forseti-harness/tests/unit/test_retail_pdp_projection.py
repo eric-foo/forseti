@@ -588,6 +588,101 @@ def test_sephora_projection_residualizes_missing_exact_count_and_distribution() 
     assert "sephora_target_widget_rating_distribution_absent" in projection.residuals
 
 
+def test_sephora_projection_residualizes_selected_sku_absent_from_structured_variants() -> None:
+    # The DOM-selected SKU (data-cnstrc-item-variation-id) can drift from every sku the JSON-LD
+    # substrate actually carries (cache/JS-timing/catalog inconsistency). That drift must be a
+    # named residual, not a silent DOM-only fallback with no signal that the structured substrate
+    # never backed the selected variant.
+    packet = _packet(
+        retailer="sephora",
+        locator="https://www.sephora.com/product/lip-sleeping-mask-P420652",
+        series_id="sephora_laneige_lipmask_sku_drift_us_v0",
+    )
+    ld_json = json.dumps(
+        {
+            "@context": "http://schema.org",
+            "@type": "ProductGroup",
+            "productGroupID": "P420652",
+            "hasVariant": [
+                {
+                    "@type": "Product",
+                    "sku": "1111111",
+                    "color": "Berry",
+                    "offers": {
+                        "price": "25.00",
+                        "priceCurrency": "USD",
+                        "availability": "https://schema.org/OutOfStock",
+                    },
+                },
+            ],
+            "aggregateRating": {"@type": "AggregateRating", "reviewCount": "22273", "ratingValue": "4.3"},
+        },
+        separators=(",", ":"),
+    )
+    html = f"""
+    <html><head><script type="application/ld+json">{ld_json}</script></head><body>
+      <div data-cnstrc-item-id="P420652" data-cnstrc-item-price="$25.00"
+        data-cnstrc-item-variation-id="2961324" data-comp="ProductPage ProductPage BaseComponent">
+      </div>
+      <h2 data-at="ratings_reviews_section">Ratings &amp; Reviews (22.1K)</h2>
+    </body></html>
+    """
+
+    projection = _projection(packet=packet, html=html, visible_text="Ratings & Reviews (22.1K)")
+
+    variant = _single_row(projection, "retail_variant_offer")
+    assert variant.source_visible_fields["selected_sku"] == "2961324"
+    assert variant.source_visible_fields["sku"] == "2961324"
+    assert variant.source_visible_fields.get("availability") is None
+    assert "sephora_selected_sku_absent_from_structured_variants" in projection.residuals
+    assert "sephora_selected_variant_availability_absent" in projection.residuals
+    assert "sephora_selected_sku_absent_from_structured_variants" in variant.residuals
+    assert "sephora_selected_variant_availability_absent" in variant.residuals
+
+
+def test_sephora_rating_distribution_ambiguous_duplicate_labels_residualizes_absent() -> None:
+    # A second, conflicting bucket for the same rating digit within the review-section window must
+    # not be silently resolved by keeping whichever occurrence was matched first -- that would
+    # invent a bucket percentage the source never unambiguously stated.
+    packet = _packet(
+        retailer="sephora",
+        locator="https://www.sephora.com/product/lip-sleeping-mask-P420652",
+        series_id="sephora_laneige_lipmask_ambiguous_histogram_us_v0",
+    )
+    ld_json = json.dumps(
+        {
+            "@context": "http://schema.org",
+            "@type": "Product",
+            "productID": "P420652",
+            "sku": "2961324",
+            "offers": {"price": "25.00", "priceCurrency": "USD"},
+            "aggregateRating": {"@type": "AggregateRating", "reviewCount": "22273", "ratingValue": "4.3"},
+        },
+        separators=(",", ":"),
+    )
+    histogram = "".join(
+        f'<button data-at="histogram_rating_option"><span class="Histogram-label">{rating}</span>'
+        f'<div class="Histogram-bar" style="width: {percentage}%;"></div></button>'
+        for rating, percentage in ((5, 69), (4, 12), (3, 7), (2, 6), (1, 6))
+    )
+    conflicting_extra = (
+        '<button data-at="histogram_rating_option"><span class="Histogram-label">5</span>'
+        '<div class="Histogram-bar" style="width: 40%;"></div></button>'
+    )
+    html = f"""
+    <html><head><script type="application/ld+json">{ld_json}</script></head><body>
+      <h2 data-at="ratings_reviews_section">Ratings &amp; Reviews (22.1K)</h2>
+      <div data-comp="ReviewsStats">{histogram}{conflicting_extra}<span>22,069 Reviews*</span></div>
+    </body></html>
+    """
+
+    projection = _projection(packet=packet, html=html, visible_text="Ratings & Reviews (22.1K)")
+
+    review = _single_row(projection, "retail_review_substrate")
+    assert review.source_visible_fields["rating_distribution_histogram"] is None
+    assert "sephora_target_widget_rating_distribution_absent" in projection.residuals
+
+
 def test_sephora_projection_uses_target_dom_price_when_product_page_anchor_exists() -> None:
     packet = _packet(
         retailer="sephora",
@@ -909,6 +1004,7 @@ def test_amazon_price_unanchored_visible_text_fallback_is_residualized() -> None
     assert variant.source_visible_fields["price"] == "10"
     assert variant.source_visible_fields["price_isolation"] == "unanchored_visible_text_fallback"
     assert "amazon_price_from_unanchored_visible_text_fallback" in projection.residuals
+    assert "amazon_price_from_unanchored_visible_text_fallback" in variant.residuals
     assert projection.loss_ledger.structure_preserved is True
 
 
@@ -972,6 +1068,7 @@ def test_packet_directory_writer_emits_hash_verified_projection_json(tmp_path: P
     product_row = next(row for row in written["rows"] if row["row_kind"] == "retail_pdp_product")
     assert product_row["raw_anchor"]["sha256"] == packet.preserved_files[0].sha256
     assert product_row["source_visible_fields"]["retailer"] == "sephora"
+    assert product_row["source_visible_fields"]["location_pin"] is None
 
 
 def test_retail_pdp_projection_runner_writes_projection_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
