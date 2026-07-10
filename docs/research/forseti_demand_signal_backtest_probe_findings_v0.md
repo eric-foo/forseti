@@ -18,7 +18,7 @@ use_when:
   - Designing capture priorities informed by observed Class-B decay events.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/forseti_unbackfillable_signal_moat_doctrine_v0.md   # taxonomy under test (PR #832; same branch as the packet until merge)
+  - docs/decisions/forseti_unbackfillable_signal_moat_doctrine_v0.md # nonresolving: on PR #832 (origin/claude/sleipnir-ci-product-shape-ab29bd) until that PR merges; taxonomy under test
   - docs/workflows/forseti_research_engine_map_v0.md
 stale_if:
   - The owner commissions and lands a real forward backtest program (point here to it).
