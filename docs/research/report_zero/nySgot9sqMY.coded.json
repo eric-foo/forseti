@@ -1,0 +1,45 @@
+{
+  "video_id": "nySgot9sqMY",
+  "title": "NEW Rasasi Hawas Gold Digger | Hawas La Mer | Hawas Sapphire | CDNIM Absolu + MORE",
+  "video_class": {"value": "other", "subtype": "release_intel_news", "receipt": "nySgot9sqMY@23360-46080 'there are many Hawas fragrances coming out... Armaf is finally potentially bringing their latest Club de Nuit... A little new nitro action... additional info on that new Acqua di Gio Forte'", "fragrance_topical": true, "confidence": "high"},
+  "views": 53759, "likes": 2064, "publish_date": "2026-06-21", "total_comments": 310,
+  "format_note": "news/release-intel = 2nd-highest views (53,759) + 2nd-highest comment pool (310) — the market-intelligence format performs",
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:jean-paul-gaultier.ultra-male", "kind": "dupe_target_identified_from_notes", "stance": "neutral_mention", "receipt": "nySgot9sqMY@310440-337919 'Top: Bergamot, Lavender, Pear, Mint. Mid: Cinnamon, Sage. Base: Patchouli, Cedar, Vanilla, Amber... No freaking way. That sounds a lot like Ultramale... that note breakdown, awfully similar' + @442919 'to me that is just very clearly Ultra Male' (Hawas Gold Digger)", "note": "creator identifies clone target from leaked note breakdown — note-pyramid fingerprinting"},
+      {"product_id": "product:creed.aventus", "kind": "speculative_dupe_target", "stance": "neutral_mention", "confidence": "medium (speculation)", "receipt": "@638200-646120 'It seems like, and this is kind of a layup, that Club de Nuit Intense Man Absolu would smell like Absolute Aventus'"},
+      {"product_id": "product:chanel.bleu-de-chanel", "kind": "clone_target_forecast", "stance": "neutral_mention", "receipt": "@990280-995680 'what are the next Hawas fragrances going to be?... Either Sauvage Elixir or Bleu de Chanel Exclusive... a Layton. I'm going to lock those in' (flanker-level)"},
+      {"product_id": "product:dior.sauvage", "kind": "clone_target_forecast", "stance": "neutral_mention", "receipt": "same cue @990280 (Sauvage Elixir flanker)"}
+    ],
+    "clone_market_analysis": [
+      {"note": "SATURATION/TIMING ADJUDICATION (the intake buyer's core decision, performed by the creator): 'Rasasi... they're not trendsetters anymore... coming out with alternatives years after all the other brands have already come out with their version... you already own 9PM, you already own Liquid Bronze... who cares... You need to come out with something that not everybody else is doing... or come out when they put theirs out, not a year later' @158200-438200"},
+      {"note": "target-selection mechanism named: 'they're looking at stuff and just going, Well, what's a best seller?... 9PM has been a best seller for a long time. Let's do that' @408480-416600"},
+      {"note": "release-flood context: '5 new Hawas... this year a lot of Middle Eastern brands are not releasing much... Rasasi is making up for everybody else' @116120-130600"}
+    ],
+    "aeo_quality_receipt": {"note": "AI-overview inflation critique: Google AI overview claims Hawas Sapphire 'often discussed in online fragrance communities' — 'You mean a single Reddit thread?... That's not at all what they said in the thread. AI overviews suck' @786320-829520 — a wild receipt of answer-engine visibility fabricating consensus (AEO-visibility != demand)"},
+    "release_intel_provenance": {"note": "sources: iFragranceOfficial (linked in desc), Fragrantica early-post-then-removed listings, removed Reddit post; FBFragrances collab confirmation @842880-863360 — the news chain the creator navigates"},
+    "creator_precommit": {"note": "'I'm going to buy [ADG Forte] up the millisecond it becomes available because I'm an Acqua di Gio fanboy' @508600-513159"}
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": true,
+    "receipts": ["short_description: iFragranceOfficial link + pre-order affiliate links (Hawas Sapphire, Nitro White Intensely) + 'GET MY NEW FRAGRANCES ARASHI REEF & FRENCH QUARTER 25% OFF'", "transcript @514880-532680 codes segment", "paid_content_overlay: not_captured"]
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "news format -> HIGHEST dupe-request density in corpus (6/40) + flanker-fatigue humor",
+    "intent_counts": {"bought_because_of_creator": 0, "where_to_buy": 0, "dupe_request": 6, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 3, "owned_no_creator_causality": 2, "none": 29},
+    "intent_refs": {
+      "dupe_request": ["c34 'Well Rasasi if you are reading this give the people what they want YSL Y EDP clone is very much needed' — SECOND corpus request for a Y EDP clone (see V7q8PrAebz8 c11, 35 likes)", "c11 (40 likes) 'I'd love a dupe of TF Soleil Blanc, THAT ACTUALLY LASTS'", "c06 (63 likes) 'Want a Hawas take on L'Immensite'", "c26 'Imagine if there was a hawas plum. Tom ford plum japonais clone'", "c27 'hoping rasasi does a flanker with percival dna or bleu de chanel l'exclusif dna'", "c37 'branch to the fragrances that have been discontinued... superleggera, edition Blanche or even allure pour homme extreme'"],
+      "future_buy_watchlist": ["c28 'Im definitely getting that reina and dumont!!'", "c18 'That Dumont nitro white intensely is gonna get me for sure. Love the OG'", "c24 'can't wait to try these'"]
+    },
+    "owned_refs": ["c18 (OG Nitro White)", "c21 (OG Nitro White, detailed)"],
+    "audience_market_analysis": [
+      {"ref": "c38", "note": "WHITE-SPACE analysis from the crowd: 'Xerjoff has many that have yet to be cloned. That's why verde got hype. Rasasi, take note!' — uncloned-originals = demand gap"},
+      {"ref": "c15", "note": "strategy advice: 'Maybe they should focus on discontinued fragrances, and that goes for all clone houses' (5 likes) — discontinued-preservation demand"},
+      {"ref": "c30", "note": "TOP-3 (106 likes): 'how do you make your fragrances insignificant? release 50 in one year' — flanker-dilution critique"},
+      {"ref": "c19", "note": "'Rasasi is literally going for the top spot as the number 1 clone house... bottles are very attractive... Game of Spades does the same thing' — audience competitive read"},
+      {"ref": "c21", "note": "dupe-improvement grading: OG Nitro White 'inspired by Dior Bois D'Argent but... amped up... Projects 3x more than Dior. The dry down gets close'"}
+    ],
+    "creator_trust_texture": [{"ref": "c20", "note": "'You seem the most genuine and trustworthy of the influencers in this space. It's refreshing' — new-viewer trust"}, {"ref": "c09", "note": "creator-influence lore: 'Ash was pushing Hawas Ice and saying he was surprised there hadn't been a new hawas release... careful what you ask for'"}, {"ref": "c35", "note": "FBFragrances collab backstory + 'shouts you out as the goat content creator' — creator-ecosystem intel"}],
+    "top_comment_concentration": "c02 (149) + c03 (128) + c01 (107) + c30 (106) — flanker-flood satire dominates liked support; dupe requests heavily liked too (c06: 63, c11: 40)"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "video_id": "tVUqAYGT3SE",
+  "title": "10 BRAND NEW Must Know Cheap Clone Fragrances For Men",
+  "video_class": {"value": "clone-guide", "subtype": "blind_buy_clone_haul", "receipt": "tVUqAYGT3SE@7160-13000 'spending $300 blind buying a ton of cheap clone fragrances, not telling my wife about it'", "fragrance_topical": true, "confidence": "high"},
+  "views": 32530, "likes": 1948, "publish_date": "2026-06-20", "total_comments": 634,
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:jean-paul-gaultier.ultra-male", "kind": "dupe_target_comparative", "stance": "neutral_mention", "receipt": "tVUqAYGT3SE@179200-209080 '[Zimaya Cult] turns into a Jean Paul Gaultier combo deal... taking Le Beau Le Parfum and mixing it with Ultra Male... sometimes leaning way more Ultra Male, especially off the top'"},
+      {"product_id": "product:louis-vuitton.imagination", "kind": "taste_adjacent_comparative", "stance": "neutral_mention", "receipt": "@803200-812120 '[Maison Asrar Regent] if you like fragrances like Bvlgari Tiger or... some of the Louis Vuitton fragrances Afternoon Swim, Imagination, stuff like that, then you're going to really enjoy this'"}
+    ],
+    "integrity_receipt_astroturfing": {"note": "REVIEW-MANIPULATION called out on-screen: Nusuk Gladius 'is very very stupid good, but it is heavily Astro turfed. Like to an extent I don't think I have ever seen before in my entire life... Fragrantica... a 4.93 out of 5. 135 votes and 131 of those loved the fragrance... that is very suspicious... brands — and I'm not talking just Middle Eastern, I'm talking designer, niche, indie, the whole 9 yards — have discovered that they can make their stuff rated a little higher... expect to see more insanity like that as time goes' @357640-426960 — manufactured public review signal named in the wild; creator separates his own read ('is it really good? Yes') from the polluted rating"},
+    "clone_subjects_unresolved": [
+      {"surface": "Zimaya Cult ($20 Jomashop)", "dupe_target": "JPG Le Beau Le Parfum + Ultra Male hybrid", "note": "maceration caveat: fresh bottle 'smelled like alcohol... let it mature' @164800-228080; hardcover-book packaging"},
+      {"surface": "Amaran Kafu 333", "dupe_target": "Chanel Allure Homme Edition Blanche (flanker)", "note": "'rough around the edges version' @284040-290080"},
+      {"surface": "Nusuk Gladius", "dupe_target": "Azzaro Forever Wanted Elixir", "note": "the astroturfed one; creator verdict independent-positive"},
+      {"surface": "Maison Alhambra Luminous Vivid", "dupe_target": "PDM Percival", "note": "quality-tiering across THREE clones of one original: 'French Avenue Pierce... higher quality... you'll pay more' vs 'Lattafa Art of Wood... funky dankness' vs this (cheapest) @485400-538440 — clone-market price/quality laddering"},
+      {"surface": "Nusuk Fawah Midnight Edition", "dupe_target": "PDM Wajjan", "note": "'straight-up stone-cold monster... 12-plus hours' @600800-640760"},
+      {"surface": "Mykonos Conquer", "dupe_target": "Afnan 9PM Night Out (color-scheme 'theft' joke)", "note": "@642920-658880"},
+      {"surface": "MYSLF Absolu clone ($49.50)", "dupe_target": "YSL MYSLF Absolu", "note": "maceration caveat again: 'set it to the side, it'll get way better in like 2 weeks' @758880-763480"},
+      {"surface": "Maison Asrar Regent", "dupe_target": "Vibrato", "note": "'quality is high as giraffe nuts' @785400"},
+      {"surface": "Fahad Gaze", "dupe_target": "Gucci Guilty Elixir", "note": "divisive twist; 'if you're looking for a one-to-one... may not do it for you' @905520-908960"},
+      {"surface": "Harmony Code Intense ($19.99)", "dupe_target": "Armani Code Ultimate (DISCONTINUED)", "note": "discontinued-original replacement economics again @916080-971920"},
+      {"surface": "Al Emprador Elixir", "dupe_target": "Invictus Victory Elixir", "note": "'one of the absolute best ones out of everything here' @996600-1019040"}
+    ],
+    "giveaway": {"note": "gives away Armaf Dunescape (the V7q8PrAebz8 subject); prompt = 'your favorite recent pickup of a dupe fragrance' — drives the comment pool's dupe-ownership census @1075960-1106400"}
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": false,
+    "receipts": ["short_description: per-clone affiliate links (8+ visible, truncated)", "transcript @546640-566040 codes segment", "self-funded $300 blind-buy framing @7160", "giveaway self-purchased @1085160", "paid_content_overlay: not_captured"]
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "giveaway prompt 'favorite recent dupe pickup' -> dupe-ownership census (~30/40 name an owned clone); 634 total comments (2nd-largest pool)",
+    "intent_counts": {"bought_because_of_creator": 2, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 3, "owned_no_creator_causality": 27, "none": 8},
+    "intent_refs": {
+      "bought_because_of_creator": ["c33 'I recently got Hawas Highness and really digging it... Had to pick it up after your review Ash!' — review-attributed purchase of a prior video's subject", "c38 'just purchased Lattafa Vintage Radio... Glad I follow for these amazing insights!' — follow-attributed purchase"],
+      "future_buy_watchlist": ["c40 'Dunescape is one of my next ones I want to buy' (Germany)", "c03 'would love to give it a try'", "c14 'Want to get the elixir version next, hopefully not redundant' — REDUNDANCY-AWARE buyer echoing the creator's overlap doctrine"]
+    },
+    "owned_sample_note": "27 owned-clone reports incl. Lattafa (Jasoor, Dynasty, Vintage Radio, Pride), Hawas (Black, Tropical, Malibu, Highness), Armaf (Odyssey Mandarin Sky, Limoni), Zimaya (Cult, Modhesh Aura), Nusuk Gladius (c36 — the astroturfed one, organically owned), Itqan Noir (c35 'myslf dupe. Quality is there and the wife loves it')",
+    "notable_textures": [
+      {"ref": "c01", "note": "TOP (48 likes): 'My absolute favourite type of video... New / less known clones' — format demand for clone-discovery"},
+      {"ref": "c10", "note": "audience dupe-mapping: 'Lattafa Dynasty... I believe it is a clone of Clive Christian Red Tea Vetiver'"},
+      {"ref": "c12", "note": "secondary market: 'got Hawas Black in a trade'"},
+      {"ref": "c17", "note": "original-buyer segment self-identifies: 'I don't buy dupes but I got Allure homme edition Blanche' — gift"},
+      {"ref": "c14", "note": "flanker-redundancy awareness internalized from creator doctrine"}
+    ],
+    "top_comment_concentration": "c01 (48, format-love) + c02 (29, Khamrah pickup) — ownership census is flat-liked long tail"
+  }
+}

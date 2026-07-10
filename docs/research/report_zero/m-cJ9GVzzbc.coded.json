@@ -1,0 +1,50 @@
+{
+  "video_id": "m-cJ9GVzzbc",
+  "title": "NEW Rasasi Hawas Chrome - #1 Hawas Release Of 2026?",
+  "video_input_hash": "cite:corpus_record",
+  "video_class": {"value": "review", "subtype": "first_impressions", "receipt": "m-cJ9GVzzbc@31599-50239 'first impressions today... I'm just going to open this up, spray it, and we're just going to let it ride'", "fragrance_topical": true, "confidence": "high"},
+  "views": 27206, "likes": 1204, "publish_date": "2026-07-01", "total_comments": 170,
+  "asr_garble_note": "transcript garbles: 'Has'=Hawas, 'Rasi'=Rasasi, 'Herbapura/Urbapura'=Erba Pura (anchored by title 'Rasasi Hawas Chrome' + comments c33/c38/c39/c40 'erba pura dupe'); 'Kodarfam/Kyoto Parfom' unresolvable garble; 'Versace' @867279 likely garble of 'Rasasi' (context: Hawas release cadence) — NOT counted as brand:versace",
+  "product_mentions": [
+    {"seg": "20560-975759", "surface_name": "Rasasi Hawas Chrome (subject)", "resolution": "unresolved", "reason": "clone-house product not in reference (excluded-pending-source tail per ontology header)", "stance": "negative_caution", "receipt": "m-cJ9GVzzbc@434960 'I hate it' (dry-down) + @848959-852079 'At the current price, I don't think it's worth it at all' + @716240 'It's a feminine fruit bomb'", "price_receipt": "@772320-776880 'I paid $65 for this from eBay. At that price point, I don't think it's worth it' + @816880 'A more realistic price, 35'"},
+    {"seg": "379039-416000", "surface_name": "Erba Pura (Xerjoff) — dupe target", "resolution": "unresolved", "reason": "not in reference", "stance": "negative_caution", "receipt": "m-cJ9GVzzbc@385120-402639 'not the biggest fan of most fragrances that are in that style... it's a clone of a fragrance I don't really like'", "dupe_discourse": {"note": "the SUBJECT video is dupe-of-Erba-Pura discourse; 'there's all kinds of different Urbanapure dupes out there' @808560-812079", "receipt": "m-cJ9GVzzbc@934000-966480 'If you're looking for a dupe of Herbapura... Amber Oud Gold Edition by Haramain... Barara King... Latafa has confidential private gold and then Armoff has Clubbed Oud'"}},
+    {"seg": "674720-713440", "surface_name": "Azzaro Chrome", "resolution": "unresolved", "reason": "not in reference", "stance": "mixed_comparative", "receipt": "m-cJ9GVzzbc@687440-694959 'Aaro Chrome... actually nailed the name better than this one'"},
+    {"seg": "876399-885440", "surface_name": "Gold Digger (upcoming Rasasi)", "resolution": "unresolved", "reason": "not in reference", "stance": "neutral_mention", "comparative_resolved": [{"product_id": "product:jean-paul-gaultier.ultra-male", "confidence": "medium", "receipt": "m-cJ9GVzzbc@881600-885440 'Looking at the note breakdown, that looks really similar to Ultramal' (ASR 'Ultramal'=Ultra Male, precedent: ontology existence receipt uses same-garble anchoring)", "stance": "neutral_mention"}]},
+    {"seg": "938399-957120", "surface_name": "Amber Oud Gold Edition (Al Haramain) / Bharara King / Lattafa Confidential Private Gold / Armaf Club de Nuit Oud", "resolution": "unresolved", "reason": "clone-house tail excluded-pending-source (ontology header)", "stance": "positive_recommend", "receipt": "m-cJ9GVzzbc@944000-948639 'Barara King... crazy strong... I think that'd be a better choice overall for most dudes'"}
+  ],
+  "disclosure": {
+    "class": "affiliate-or-self-brand",
+    "confidence": "high",
+    "self_brand_commerce": true,
+    "receipts": [
+      "short_description: 'GET MY NEW FRAGRANCES ARASHI REEF & FRENCH QUARTER - https://gentsscents.me/4d77XQd USE CODE MMGENTSSCENTS25 FOR 25% OFF FULL SIZE BOTTLES' (creator's OWN fragrance line)",
+      "short_description: 'FRAGFLEX SALE - https://gentsscents.me/3Tbwyex; FragBuy Sale - https://gentsscents.me/4fdE9BW; JOMASHOP APP-ONLY CODES GS10/GS15' (affiliate)",
+      "transcript m-cJ9GVzzbc@79040-84400 'gift express. The code is garbanzo beans. It's done... I can't recommend them anymore' (kills own affiliate code over retailer trust — disclosure-hygiene/independence texture)",
+      "transcript @104960-115200 'I do try to sometimes place incognito orders... just to see kind of how it goes' (independence texture)",
+      "self-purchase: @772320 'I paid $65 for this from eBay'",
+      "paid_content_overlay: not_captured (absence is not organic proof)"
+    ],
+    "affiliate_domains": ["gentsscents.me"],
+    "limitation": "short_description truncated (~500 chars); link inventory lower bound"
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "flanker-fatigue humor dominates (Hawas release cadence jokes); no giveaway prompt",
+    "intent_counts": {"bought_because_of_creator": 0, "where_to_buy": 1, "dupe_request": 1, "price_objection": 0, "comparison_shopping": 1, "future_buy_watchlist": 3, "owned_no_creator_causality": 8, "none": 26},
+    "intent_refs": {"where_to_buy": ["c37 'Any chance on a fragrancebuy code for your Canadian friends?'"], "dupe_request": ["c04 'Rasasi should make a solid Acqua Di Gio Profondo EDP clone Hawas version' (26 likes)"], "comparison_shopping": ["c36 'is it like Arashi Reef? Which I own and love' — pre-purchase similarity question; NOTE: owns the CREATOR'S OWN brand product"], "future_buy_watchlist": ["c20 'I'm going to try it'", "c29 'i just want my haws venom already. been waiting'", "c35 'Looking forward to Sapphire'"]},
+    "owned_refs": ["c16", "c19", "c21", "c31", "c33", "c34", "c38", "c40"],
+    "resolved_in_comments": [
+      {"product_id": "product:versace.pour-homme", "refs": ["c21 'My go to blue is Versace Piur Homme….can't miss' (typo surface form; confidence medium-high)"], "texture": "ownership"}
+    ],
+    "dupe_clone_discourse": [
+      {"ref": "c04", "text_receipt": "'Rasasi should make a solid Acqua Di Gio Profondo EDP clone Hawas version' (26 likes)", "note": "explicit clone REQUEST naming the original"},
+      {"ref": "c33", "text_receipt": "'Club de Nuit Oud is my favorita Erba Pura dupe'", "note": "Armaf clone-house ownership, dupe target named"},
+      {"ref": "c38", "text_receipt": "'I like Ana Abiyedh by Lattafa as the erba pura dupe'", "note": "Lattafa ownership, dupe target named"},
+      {"ref": "c40", "text_receipt": "'Bharara King is my favorite twist on Erba Pura'", "note": "dupe-space ownership"},
+      {"ref": "c34", "text_receipt": "'similar smell and performance to Al Haramain Amber oud gold' + 'beast mode longevity'", "note": "clone-house comparative + scene vocabulary 'beast mode'"}
+    ],
+    "collector_discourse": [{"ref": "c16", "text_receipt": "'i have all 13 men bottles of Hawas, in Poland cost 40$'"}],
+    "creator_trust_texture": [{"ref": "c03", "text_receipt": "'Respect for talking about the issue with the discounter' (24 likes)"}, {"ref": "c07", "text_receipt": "'Props for doing incognito orders to see what the average joe's experience is'"}],
+    "self_brand_ownership": [{"ref": "c36", "text_receipt": "'Arashi Reef? Which I own and love'", "note": "audience owns the creator's own DTC fragrance — self-brand conversion texture"}],
+    "top_comment_concentration": "c01 (125 likes, Rasasi joke) tops; c02/c05 (50 each) next — liked support is humor-dominated, not product-intent"
+  }
+}

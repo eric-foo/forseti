@@ -1,0 +1,64 @@
+{
+  "video_id": "eH93HPAWucE",
+  "title": "12 Fragrances SO GOOD I Wear Them Every Single Day ALL YEAR ROUND",
+  "video_input_hash": "cite:corpus_record",
+  "video_class": {"value": "ranking", "subtype": "personal_favorites_list", "receipt": "eH93HPAWucE@960600-964680 'maybe it's just my own personal list of things that I like want to wear pretty frequently'", "fragrance_topical": true, "confidence": "high"},
+  "views": 44605, "likes": 1642, "publish_date": "2026-06-30", "total_comments": 155,
+  "product_mentions": [
+    {"seg": "27600-110080", "surface_name": "Amouage Reflection Man", "resolution": "unresolved", "reason": "not in reference", "stance": "positive_recommend", "receipt": "eH93HPAWucE@66560-74640 'Reflection is that type of fragrance that you're going to want to wear every single freaking day... one of the most hyped niche fragrances that has ever existed'", "comparative_unresolved": [{"surface": "JPG Le Male (original)", "receipt": "@49400-59520 'like taking Jean Paul Gaultier's Le Male, the original, and just improving everything'", "note": "le male original distinct from jean-paul-gaultier.ultra-male; house resolves brand:jean-paul-gaultier"}]},
+    {"seg": "110080-237640", "surface_name": "Versace Dylan Blue", "resolution": "unresolved_product_house_resolved", "house_id": "brand:versace", "reason": "product not in reference", "stance": "positive_recommend", "receipt": "eH93HPAWucE@229120-237640 'Dylan Blue, a lot of people will... throw tomatoes at it. No tomatoes here. Dylan Blue is good'", "comparative_resolved": [{"product_id": "product:ysl.y-eau-de-parfum", "receipt": "@147480 'the big blue fragrances out there... YSL Y, Bleu de Chanel, Dior Sauvage'", "stance": "neutral_mention"}, {"product_id": "product:chanel.bleu-de-chanel", "receipt": "same cue @147480 + @168200 'some people compare it to the smell of Bleu de Chanel'", "stance": "neutral_mention"}, {"product_id": "product:dior.sauvage", "receipt": "same cue @149320", "stance": "neutral_mention"}, {"product_id": "product:versace.pour-homme", "receipt": "@155720 'Missoni Wave... smells similar to Versace Pour Homme, smells similar to Chanel Allure Homme Sport'", "stance": "neutral_mention"}, {"product_id": "product:chanel.allure-homme-sport", "receipt": "same cue @157240", "stance": "neutral_mention"}]},
+    {"seg": "240040-321600", "surface_name": "La-Di-Da (Arabiyat/Rabanne Prestige — ASR ambiguous)", "resolution": "unresolved", "reason": "not in reference; ASR 'Rabanne Prestige' vs description 'La-Di-Da Arabiyat Prestige' conflict — surface form uncertain", "stance": "positive_recommend", "receipt": "eH93HPAWucE@289480-294160 'pretty affordable and... just a great scent'", "hybrid_note": "'basically YSL Myself mixed with a little bit of Stronger With You' @262240 — hybrid-clone discourse; components unresolved"},
+    {"seg": "321600-434960", "surface_name": "Voyage d'Hermès Parfum", "resolution": "unresolved", "reason": "not in reference", "stance": "positive_recommend", "receipt": "eH93HPAWucE@416600-432680 'this stuff is fantastic... this is for when you want to feel elevated'"},
+    {"seg": "434960-521240", "surface_name": "French Quarter (Michael Malul) — CREATOR'S OWN, creative-directed", "resolution": "unresolved", "reason": "not in reference", "stance": "positive_recommend", "self_brand": true, "receipt": "eH93HPAWucE@432680-441440 'Biased choice alert. French Quarter by Michael [Malul]. This is a fragrance that I creatively directed' + @450200-455480 'find it online at Michael Malul's website, which is linked in the description. There's also a code for this one'", "disclosure_hygiene_note": "verbal 'Biased choice alert' before pitching own product", "comparative_note": "'if you like fragrances like Invictus... Victory, Elixir... this is in that overall wheelhouse' @487240 — Invictus line-level (house brand:paco-rabanne), not the parfum flanker specifically"},
+    {"seg": "521240-566840", "surface_name": "Tam Dao EDT (Diptyque)", "resolution": "unresolved", "reason": "not in reference", "stance": "positive_recommend", "receipt": "eH93HPAWucE@537280-541839 'one of the more well-known sandalwood scents that has ever been made'"},
+    {"seg": "564839-630800", "surface_name": "Chili Pineapple (Montagne)", "resolution": "unresolved", "reason": "not in reference; hybrid-clone", "stance": "positive_recommend", "receipt": "eH93HPAWucE@621720-628160 'for a day-to-day freshy, it stands out really, really nicely and the quality very high'", "dupe_discourse": {"note": "hybrid of 'Pacific chill' + 'Aventus cologne' — Aventus Cologne is a Creed FLANKER distinct from product:creed.aventus (house brand:creed resolves); attention is Aventus-name-adjacent but NOT direct-original attention for the intake target", "receipt": "@587040-611640 'it's Pacific chill... and then Aventus cologne. That's where the pineapple comes in... as it settles, it starts to lean in further toward the Aventus side of things, Aventus cologne'"}},
+    {"seg": "630800-708760", "surface_name": "Invictus Parfum (Rabanne)", "resolution": "resolved", "product_id": "product:paco-rabanne.invictus-parfum", "confidence": "high", "stance": "positive_recommend", "receipt": "eH93HPAWucE@685080-692520 'The performance is good, the wearability is fantastic' + @703760 'Part fun. It's good' (former 'certified hater' converted @692520)", "adjacent_unresolved": [{"surface": "Invictus Elixir", "receipt": "@645839 'they did just come out with Invictus Elixir'"}]},
+    {"seg": "712240-796520", "surface_name": "Icarus (Valixir)", "resolution": "unresolved", "reason": "not in reference", "stance": "positive_recommend", "receipt": "eH93HPAWucE@759760-764320 'This is Blue Talisman. That's what it smells similar to. And it absolutely rips'", "dupe_discourse": {"note": "explicit inspired-by discourse: 'a lot of the other fragrances that are inspired by Blue Talisman... There are a bunch of them out there' @769560-775280; dupe target (Ex Nihilo Blue Talisman) not in reference", "receipt": "@769560-775280"}, "price_guidance": "@726000-729360 'about 45 bucks at TJ Maxx... Don't pay more than that'"},
+    {"seg": "796520-833680", "surface_name": "Coral Fantasy", "resolution": "unresolved", "reason": "not in reference", "stance": "positive_recommend", "receipt": "eH93HPAWucE@809400-812000 'Yeah, the opening rules. Great sweetness here'"},
+    {"seg": "836600-897200", "surface_name": "You or Someone Like You (Etat Libre d'Orange per c03)", "resolution": "unresolved", "reason": "not in reference", "stance": "positive_recommend", "receipt": "eH93HPAWucE@893400-897200 'I think it smells amazing'", "comparative_unresolved": [{"surface": "Torino 21", "receipt": "@875920-883839"}]},
+    {"seg": "897200-954840", "surface_name": "Forever Wanted Elixir (Azzaro)", "resolution": "unresolved", "reason": "not in reference", "stance": "positive_recommend", "receipt": "eH93HPAWucE@946320-952680 'one of the best ones out there, absolutely killer stuff. I will wear that all fall and winter long'"}
+  ],
+  "disclosure": {
+    "class": "affiliate-or-self-brand",
+    "confidence": "high",
+    "self_brand_commerce": true,
+    "receipts": [
+      "short_description: per-product affiliate links incl. 'French Quarter - https://gentsscents.me/4ebOexH' (creator's own product monetized via own link) + Reflection Man go.magik.ly + 6 more gentsscents.me links (truncated at 'Invictus Parfum - https://gents')",
+      "transcript @434960-441440 'Biased choice alert... a fragrance that I creatively directed' (verbal bias disclosure)",
+      "transcript @452960-465800 'There's also a code for this one and a whole bunch of other codes... Fragrance Flex, [Jomashop], Fragrance Lord, Perfume Box'",
+      "paid_content_overlay: not_captured"
+    ],
+    "affiliate_domains": ["gentsscents.me", "go.magik.ly"],
+    "affiliate_link_count_lower_bound": 8,
+    "limitation": "short_description truncated; link inventory lower bound"
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "outro prompt 'Let me know in the comments kind of your go-to stuff' drives ownership answers",
+    "intent_counts": {"bought_because_of_creator": 2, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 1, "owned_no_creator_causality": 19, "none": 18},
+    "intent_refs": {
+      "bought_because_of_creator": ["c15 'All recommendations by you that I ended up buying have been awesome, thanks Ash!' (8 likes; '22 so far' bottles)", "c18 'Before watching your channel... 6-8 bottles. My collection is now approaching the mighty 100 mark. Thanks a lot dude' (4 likes)"],
+      "future_buy_watchlist": ["c09 'Reflection man is on my list to eventually get. One day!' (5 likes)"]
+    },
+    "owned_refs": ["c05","c06","c10","c11","c12","c13","c17","c19","c21","c22","c23","c25","c26","c27","c28","c30","c32","c34","c37","c39"],
+    "resolved_in_comments": [
+      {"product_id": "product:paco-rabanne.invictus-parfum", "refs": ["c10 'My wife got me Invictus Parfum for Father's Day... Have not been able to stop wearing it since' (6 likes)"], "texture": "gift-received ownership, strong satisfaction"},
+      {"product_id": "product:dior.sauvage", "refs": ["c17 'Dylan Blue is my fav blue, above even Sauvage/YSL Y/BDC'"], "note": "comparative, medium confidence"},
+      {"product_id": "product:ysl.y-eau-de-parfum", "refs": ["c17"], "note": "comparative 'YSL Y', medium"},
+      {"product_id": "product:chanel.bleu-de-chanel", "refs": ["c17 'BDC'", "c34 'BDC EDP'"], "note": "abbreviation surface form, medium confidence"}
+    ],
+    "dupe_clone_discourse": [
+      {"ref": "c28", "text_receipt": "'My most versatile fragance is Bois de Bois, clon of Bois Imperial'", "note": "explicit dupe ownership, target named (Bois Imperial), both unresolved"},
+      {"ref": "c37", "text_receipt": "'Lattafa Fakhar black' in daily list", "note": "clone-house ownership (Lattafa)"},
+      {"ref": "c34", "text_receipt": "'Hawas 🧊... Supremacy CE' in dailies list", "note": "clone-house products in rotation (Rasasi, Afnan)"}
+    ],
+    "collector_discourse": [
+      {"ref": "c15", "text_receipt": "'22 so far, wonder how far this addiction will go'"},
+      {"ref": "c18", "text_receipt": "'collection is now approaching the mighty 100 mark'"},
+      {"ref": "c34", "text_receipt": "13-item daily rotation list"}
+    ],
+    "gift_buyer_texture": [{"ref": "c24", "text_receipt": "'I buy fragrances for my sons & grandsons... I try to stay up on what's out there'", "note": "purchase-decision-maker using channel as research input"}, {"ref": "c10", "text_receipt": "wife gift purchase"}],
+    "niche_appetite_texture": [{"refs": ["c03","c07","c14","c25","c29","c31","c38"], "note": "repeated appreciation for niche inclusions — audience taste includes niche, not only designer/clone"}],
+    "content_request": [{"ref": "c40", "text_receipt": "'top 10 first niche fragrance... to begin your journey?'"}, {"ref": "c18", "text_receipt": "shelf organization video request"}],
+    "top_comment_concentration": "c01 (75 likes, layering joke) tops; c07 (31) niche appreciation; liked support mixes humor + meta"
+  }
+}

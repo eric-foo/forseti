@@ -1,0 +1,49 @@
+{
+  "video_id": "1N44B-O7VzE",
+  "title": "10 Underrated Designer Fragrances EVERY MAN SHOULD OWN",
+  "video_class": {"value": "ranking", "subtype": "underrated_gems_list", "receipt": "1N44B-O7VzE@11920-19560 'fragrances that most people don't know about. But if you do know about them, it gives you an unfair advantage'", "fragrance_topical": true, "confidence": "high"},
+  "views": 28485, "likes": 1279, "publish_date": "2026-06-19", "total_comments": 108,
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:dior.sauvage", "kind": "fame_anchor_comparative", "stance": "neutral_mention", "receipt": "1N44B-O7VzE@1200-11920 'So, you know Dior Sauvage? Good. You even know Bleu de Chanel?... we're not talking about those today'"},
+      {"product_id": "product:chanel.bleu-de-chanel", "kind": "fame_anchor_comparative", "stance": "neutral_mention", "receipt": "same cue @4280"},
+      {"product_id": "product:jean-paul-gaultier.ultra-male", "kind": "dupe_target_comparative", "stance": "neutral_mention", "receipt": "@418800-426760 '[Rayhaan] lion, that one smells similar to Ultra Male, and it's basically just like a turbocharged version of that fragrance'"},
+      {"product_id": "product:coach.coach-for-men", "kind": "price_tier_anchor", "stance": "neutral_mention", "receipt": "@961920-973160 '[Michael Kors Absolu] if it dropped down to say 50 or it came in line with the Coach for Men fragrances as far as the pricing... a lot more people would be about it'", "note": "Coach used as the accessible-designer price benchmark"}
+    ],
+    "brand_cachet_analysis": {"note": "brand-equity vs price read: 'the name Michael Kors at this point does not command a lot of cachet... Giorgio Armani — everyone goes oh yeah... You say Michael Kors and they go... they have this stuff at TJ Maxx... sitting around 70 bucks... kind of iffy' @932240-965520 — brand-halo pricing analysis, inverse of the LV Imagination case (sw34VzzWlvA)"},
+    "subjects_unresolved": [
+      {"surface": "Armaf Spartacus", "dupe_target": "Le Male Elixir Absolu + PDM Layton hybrid", "note": "bought on eBay — availability-led channel choice despite fake-risk stance @89880-96560; clone SAMPLE pricing objection @77760-87160"},
+      {"surface": "Rabanne Phantom in Red", "note": "'the best one of the lineup' contrarian pick"},
+      {"surface": "John Varvatos Artisan Forest", "note": "CREATOR full-retail impulse #2: 'I unfortunately paid full retail... I just couldn't wait long enough. I gave in. Don't be like me' @289520-303080"},
+      {"surface": "Rayhaan Wolf", "dupe_target": "Azzaro The Most Wanted", "note": "AI-generated bottle-art joke @369840-375720"},
+      {"surface": "Tommy Hilfiger Impact Parfum", "note": "snap-decision warning: 'as it settles, it gets legitimately like three times nicer' @538680-543480"},
+      {"surface": "Pepe Jeans Addictive Indulgence ($20)", "note": "price-fairness philosophy: 'I went to McDonald's and it didn't taste as good as Nobu. Blah' @628200-633560"},
+      {"surface": "Mykonos Slow Living (Cotton Sheets & Italian Summer)", "dupe_target": "~MFK Petit Matin / TF Neroli Portofino", "note": "scarcity again (c01 top comment, c31)"},
+      {"surface": "Mercedes-Benz Club Extreme ($30)", "dupe_target": "~Mugler A*Men", "note": "scarcity->return pricing story"},
+      {"surface": "Remy Latour Remarque Men", "dupe_target": "Ormonde Jayne Montabaco", "note": "signature-scent positioning"},
+      {"surface": "Michael Kors Absolu (~$70)", "note": "the cachet-pricing case"}
+    ]
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": false,
+    "receipts": ["short_description per-product affiliate links (8+ visible)", "transcript @564320-590280 codes segment", "self-purchases named (eBay Spartacus, full-retail Artisan Forest, Jomashop Impact)", "paid_content_overlay: not_captured"]
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "hidden-gems list; ownership + watchlist discourse; taxonomy dispute thread",
+    "intent_counts": {"bought_because_of_creator": 0, "where_to_buy": 0, "dupe_request": 0, "price_objection": 1, "comparison_shopping": 0, "future_buy_watchlist": 5, "owned_no_creator_causality": 9, "none": 25},
+    "intent_refs": {
+      "future_buy_watchlist": ["c10 'will definitely snag it when this runs out. Also gonna grab London Calling!' (repurchase + add-on)", "c11 (Michael Kors 'eager to give it a shot since its in the same wheel house as a lot of the clones ive been trying price wise' — designer-at-clone-price-parity shopping)", "c13 'Never knew about the Tommy joint... Gotta give it a shot'", "c17 'waiting for the John Varvatos to come down... Michael Kors. I might have to try that one!'", "c40 'Finally smelled phantom in red. It may have to be my first Rabanne'"],
+      "price_objection": ["c17 price-waiting posture (also counted watchlist)"]
+    },
+    "owned_refs": ["c02","c05","c07","c10","c15 (Jomashop 6-week fulfillment complaint)","c18 ('bought it full retail as well and don't regret it' — echoes creator)","c22","c31","c33 ('I got half this list'),","c34"],
+    "taxonomy_integrity_dispute": [{"refs": ["c36 (8 likes, 11 replies) 'Are clone houses now considered designer?'", "c25 'Since when arab clone houses are Designer?'", "c27 'The term designer must mean something with a name. I see all clones & dupes'"], "note": "audience polices the designer/clone vocabulary boundary against the video's own title — tier-vocabulary integrity pressure from the market itself"}],
+    "notable_textures": [
+      {"ref": "c03", "note": "clone-content saturation complaint: 'getting tired of hearing about the clones... they're literally taking over the fragrance YouTube space'"},
+      {"ref": "c16", "note": "dupe-first shopping posture: 'Let's see what new colognes I'll need a dupe in!' — watches designer lists to select dupe targets"},
+      {"ref": "c38", "note": "channel-discovery via product (5 likes): gift-shopping at retailer -> Phantom in Red -> found the channel"},
+      {"ref": "c39", "note": "cross-platform context: 'ash getting hated on on fragrantica page for the Pepe jeans frag cuz it doesn't last as long as a $200 frag'"},
+      {"ref": "c32", "note": "audience release-forecasting: 'the next Rayhaan animal named release will be Bear'"}
+    ],
+    "top_comment_concentration": "c01 (23, Mykonos scarcity) tops; c36 (8, taxonomy dispute) most-replied"
+  }
+}
