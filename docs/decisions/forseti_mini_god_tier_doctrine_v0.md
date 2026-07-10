@@ -37,6 +37,20 @@ When the owner invokes the lens without a lower numeric bar, aim for roughly
 stopping before full-GT infrastructure, backend, migration, or maintenance
 commitments consume the speed/cost advantage.
 
+## Problem-Bound Target
+
+Mini God Tier applies only after the owner-requested problem or capability has
+been bound. Its maximal comparator is the maximal practical version of that
+bounded capability, not a broader neighboring ambition, platform, architecture,
+or risk universe.
+
+MGT may push capability depth toward the edge of diminishing returns within
+the bound target; it may not widen that target. Accepted residuals describe
+foregone practical value within the bound target. Adjacent problems remain out
+of scope and may carry a deferred-risk note plus an upgrade trigger when
+material; they do not become MGT residuals or implementation scope unless the
+owner explicitly expands the target.
+
 ## The Lens
 
 Mini god tier = roughly 90-95% of the maximal ("god tier") capability's
@@ -118,6 +132,75 @@ this record.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
+    Forseti now binds the owner-requested problem before measuring SCI
+    completeness or applying MGT; analysis, recommendations, plans, and
+    methods may deepen but not redefine the problem; decision requests do not
+    authorize downstream system design; proposed or executed standing
+    maintenance surfaces require outcome-level necessity; and MGT's maximal
+    comparator is limited to the bound capability.
+  trigger: workflow_authority
+  related_triggers:
+    - product_doctrine
+  controlling_sources_updated:
+    - AGENTS.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/communication-style.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: CLAUDE.md
+      reason: >
+        It remains a shim importing AGENTS.md and must not duplicate the rule.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        The overlay index routes authority and does not own the always-on
+        behavior kernel or the MGT target lens.
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        The router already requires a smallest complete outcome and a
+        disallowed next move; problem integrity belongs in the always-on
+        behavior kernel.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading controls retrieval budgets and does not define task
+        scope or MGT target selection.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Whether a component is necessary to the bound outcome is judgment-based
+        and cannot be safely enforced by a deterministic checker.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        No response format or communication contract changes.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        No source route or artifact destination changes.
+  stale_language_search: >
+    rg -n -i "Problem Integrity|owner-requested outcome|bound outcome|decision
+    request|recommended infrastructure|proposing or adding|Problem-Bound
+    Target|maximal comparator|standing maintenance surface"
+    AGENTS.md .agents docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+    docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-11 on codex/problem-integrity-guard after the patch. New
+    defining vocabulary is confined to AGENTS.md and this MGT decision record.
+    The contradiction-oriented scan found only same-direction existing SCI,
+    MGT, and decision-router scope guards; no checked downstream surface
+    redefines the problem boundary or maximal comparator.
+  non_claims:
+    - not validation
+    - not readiness
+    - not implementation authorization
+    - not automatic MGT invocation
+```
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
     Mini God Tier doctrine now sets the default owner-invoked target at roughly
     90-95% of practical maximal capability value, explicitly rejecting an 80/20
     shortcut interpretation while preserving Smallest Complete Intervention,
@@ -193,81 +276,7 @@ direction_change_propagation:
     - not implementation authorization
 ```
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Mini God Tier doctrine renames the mandatory visible-limitations requirement
-    to accepted residuals: residuals are named, bounded, justified, and carry
-    remaining risk plus an upgrade trigger after pushing to the diminishing-
-    returns edge; source-quality "visible limitations" vocabulary remains
-    operational reporting vocabulary, not the doctrine-level name.
-  trigger: product_doctrine
-  related_triggers:
-    - workflow_authority
-    - output_authority
-  controlling_sources_updated:
-    - AGENTS.md
-    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
-  downstream_surfaces_checked:
-    - CLAUDE.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/safety-rules.md
-    - docs/workflows/orca_repo_map_v0.md
-    - orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
-    - orca/product/spines/capture/core/source_capture_toolbox/README.md
-  intentionally_not_updated:
-    - path: CLAUDE.md
-      reason: >
-        Claude shim imports AGENTS.md and must not duplicate Orca project rules.
-    - path: .agents/workflow-overlay/README.md
-      reason: >
-        Overlay index does not own Mini God Tier vocabulary; AGENTS.md points to
-        this decision record as the full statement.
-    - path: .agents/workflow-overlay/source-loading.md
-      reason: >
-        Source-loading owns read-pack mechanics and does not restate the Mini God
-        Tier lens.
-    - path: .agents/workflow-overlay/safety-rules.md
-      reason: >
-        Safety rules reference the separate Source Capture Armory Mini God-Tier
-        source-quality discipline; that operating profile is intentionally not
-        renamed by this doctrine-level vocabulary patch.
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        Repo map routes Source Capture Armory source-quality surfaces. The
-        global Mini God Tier trigger remains AGENTS.md -> this decision record;
-        no path or read-pack destination changed.
-    - path: orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
-      reason: >
-        The source-quality profile owns operating result tokens and the
-        visible_limitations report field. Those are lower-level source/capture
-        reporting vocabulary and remain valid; changing them would rewrite
-        historical tokens and exceed this owner vocabulary patch.
-    - path: orca/product/spines/capture/core/source_capture_toolbox/README.md
-      reason: >
-        The README indexes the source-quality operating profile and closeouts,
-        whose visible-limitations terminology remains intentionally unchanged.
-  stale_language_search: >
-    rg -n "mini god tier|Mini God Tier|Mini God-Tier|visible limitations|accepted residual|source_quality_mini_god_tier"
-    AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
-    docs/decisions/forseti_mini_god_tier_doctrine_v0.md
-    orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
-    orca/product/spines/capture/core/source_capture_toolbox/README.md
-  stale_language_search_result: >
-    Executed 2026-06-21 in branch codex/mgt-accepted-residuals-v2 after the patch.
-    Remaining "visible limitations" hits in the checked source-quality surfaces
-    are operating/reporting vocabulary by design. AGENTS.md now uses accepted
-    residuals for the global trigger binding, and this record now separates
-    doctrine-level accepted residuals from source-quality visible-limit reporting.
-  non_claims:
-    - not validation
-    - not readiness
-    - not proof
-    - not source-quality token migration
-    - not source-of-truth promotion
-```
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 Prior adoption surfaces updated 2026-06-11: `AGENTS.md` (trigger section);
 `docs/decisions/venue_procedure_proving_screen_beauty_ledger_v0.md` (separate
