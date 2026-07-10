@@ -289,7 +289,7 @@ def load_map_text(root: Path) -> str:
         return _load_map_text_cml(map_files)
     # Fallback: local logic (used only when check_map_links import failed)
     parts: list[str] = []
-    map_path = root / "docs" / "workflows" / "orca_repo_map_v0.md"
+    map_path = root / "docs" / "workflows" / "forseti_repo_map_v0.md"
     if map_path.exists():
         try:
             parts.append(map_path.read_text(encoding="utf-8", errors="replace"))
@@ -725,15 +725,15 @@ def run_report_orca(root: Path) -> int:
 
     Measures retrieval-header PRESENCE/validity using the SAME structural predicate
     as the live header gate (header_problems_for_lines), applied directly so the
-    orca/ corpus is not masked by the live IN_SCOPE_PREFIXES scope (check_relpath
+    forseti/ corpus is not masked by the live IN_SCOPE_PREFIXES scope (check_relpath
     returns [] for out-of-scope paths). Frozen predicate = strict-minus-exit-0; the
     Phase-3 flip changes the exit only, not the predicate.
 
-    Orphan / folder-coverage over orca/ is intentionally NOT reported here: it
+    Orphan / folder-coverage over forseti/ is intentionally NOT reported here: it
     depends on check_map_links.dir_is_covered, which is currently vacuous (F2), so
     any count would falsely imply coverage. Coverage is the W-map / coverage-gate piece.
     """
-    spines_root = root / "orca" / "product" / "spines"
+    spines_root = root / "forseti" / "product" / "spines"
     if not spines_root.is_dir():
         print("header_index --report-orca: no forseti/product/spines/ tree; nothing to report")
         return 0

@@ -76,6 +76,22 @@ VALID_ROUTE_BINDING_STATES = {
     "not_applicable",
 }
 AUTO_SCAN_PREFIXES = ("docs/research/",)
+# Pre-contract legacy scan artifacts (2026-06-21/22): written before the
+# receipt contract and closeout vocabulary existed; each fails 9-16 current
+# shape checks it predates. Version-scoped grandfathering (mirrors the packet
+# schema v0->v1 pattern; owner-adjudicated on the research-engine strategy
+# lane, 2026-07-10): auto-detection (CI --diff / --changed) skips exactly
+# these paths so an incidental touch cannot fail CI on a contract that did
+# not exist when they were written. Historical receipts are not rewritten;
+# explicit-path invocation still validates strictly against the current
+# contract. Every later artifact stays fully in scope.
+PRE_CONTRACT_LEGACY_ARTIFACTS = frozenset(
+    {
+        "docs/research/orca_discovery_candidate_scan_imaginary_authors_mgt_v0.md",
+        "docs/research/orca_discovery_candidate_scan_imaginary_authors_csb_first_venue_eval_v0.md",
+        "docs/research/orca_discovery_candidate_scan_imaginary_authors_core_satellite_csb_v0.md",
+    }
+)
 AUTO_SCAN_REQUIRED_MARKERS = (
     "commission_id:",
     "source_context_status:",
@@ -1147,6 +1163,8 @@ def _relposix(root: Path, path: Path) -> str:
 def auto_targets(root: Path, relpaths: Iterable[str]) -> list[Path]:
     targets: list[Path] = []
     for rel in _dedupe(relpaths):
+        if rel.replace("\\", "/") in PRE_CONTRACT_LEGACY_ARTIFACTS:
+            continue
         path = root / rel
         if not path.is_file():
             continue
@@ -1225,6 +1243,21 @@ def selftest() -> int:
         else:
             ok = False
             print(f"FAIL {path.name} expected={expected or '<missing>'} findings={findings}")
+    legacy_rel = "docs/research/orca_discovery_candidate_scan_imaginary_authors_mgt_v0.md"
+    if (root / legacy_rel).is_file():
+        if auto_targets(root, [legacy_rel]):
+            ok = False
+            print(f"FAIL pre-contract legacy artifact was auto-targeted: {legacy_rel}")
+        else:
+            print("PASS pre-contract legacy artifact skipped by auto-detection")
+    current_rel = "docs/research/orca_discovery_candidate_scan_imaginary_authors_broad_scout_deep_scan_v0.md"
+    if (root / current_rel).is_file():
+        if auto_targets(root, [current_rel]):
+            print("PASS current-contract artifact still auto-targeted")
+        else:
+            ok = False
+            print(f"FAIL current-contract artifact no longer auto-targeted: {current_rel}")
+
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 

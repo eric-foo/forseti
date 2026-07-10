@@ -472,6 +472,36 @@ def selftest() -> int:
     check("scope docs decisions", in_scope("docs/decisions/x.md"), True)
     check("scope excludes inbox", in_scope("docs/_inbox/x.md"), False)
     check("scope excludes code", in_scope(".agents/hooks/x.md"), False)
+    root = repo_root()
+    rel_win = to_relposix("C:/elsewhere/docs/decisions/x.md", root)
+    check(
+        "windows-drive path outside the repo never lands in scope",
+        rel_win is None or not in_scope(rel_win),
+        True,
+    )
+    rel_rooted = to_relposix("/docs/decisions/x.md", root)
+    check(
+        "posix-rooted path outside the repo never lands in scope",
+        rel_rooted is None or not in_scope(rel_rooted),
+        True,
+    )
+    rel_unc = to_relposix("//server/share/docs/decisions/x.md", root)
+    check(
+        "unc path outside the repo never lands in scope",
+        rel_unc is None or not in_scope(rel_unc),
+        True,
+    )
+    check(
+        "production path: analyze_paths on rooted out-of-repo path yields nothing",
+        analyze_paths(root, ["/docs/decisions/x.md"]),
+        [],
+    )
+    if os.name == "nt":
+        check(
+            "production path: backslash windows payload under root is in scope",
+            in_scope(to_relposix(str(root) + "\\docs\\decisions\\x.md", root) or ""),
+            True,
+        )
 
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1

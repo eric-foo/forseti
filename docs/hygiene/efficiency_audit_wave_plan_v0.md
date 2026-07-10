@@ -47,12 +47,12 @@ stale_if:
 Execution order: T2 (rename bugs) → T1 (receipt archival) → T3 S-effort code bugs → T6 staleness → CER-3 drift.
 
 ### T2 · Rename-debt dead refs inside live mechanisms  `[bug]`
-- [ ] **HOOK-2** (W1) — `header_index --report-orca` walks non-existent `orca/product/spines` tree → repoint to `forseti/product/spines` — `.agents/hooks/header_index.py:736`
-- [ ] **HOOK-7** (W1) — `header_index` fallback reads legacy `orca_repo_map_v0.md` → repoint to `forseti_repo_map_v0.md` — `.agents/hooks/header_index.py:292`
+- [x] **HOOK-2** (W1·landed 2026-07-10, research-engine strategy lane) — `header_index --report-orca` walked non-existent `orca/product/spines`; repointed to `forseti/product/spines` (report now scans 282 durable .md) — `.agents/hooks/header_index.py`
+- [x] **HOOK-7** (W1·landed 2026-07-10, research-engine strategy lane) — `header_index` fallback repointed `orca_repo_map_v0.md` → `forseti_repo_map_v0.md` — `.agents/hooks/header_index.py`
 - [ ] **NAV-2** (W1) — repo map's pasted permissions/hooks JSON has desynced from live settings → delete JSON, point to `.claude/settings.json` — `docs/workflows/forseti_repo_map_v0.md:113-121,274-303,329-337`
-- [ ] **RE-CSB-4** (W1) — dead `orca_` paths in an active sha256 provenance-pin → repoint the 4 path strings (hashes stay; re-verify) — `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md:36,48,51,57`
+- [ ] **RE-CSB-4** (W1 — **blocked on content drift**, re-verified 2026-07-10, research-engine strategy lane) — dead `orca_` paths in an active sha256 provenance-pin. Re-verify FAILED: all 4 renamed `forseti_*` blobs hash-mismatch the pinned values (e.g. taxonomy want `5FE5C41E1036D1A2` got `79DB73942F08A665`), so sources drifted in content since the 2026-06-16 pin, not just in name. A mechanical repoint would launder drift past the spec's derived sections; needs a re-derivation pass like the spec's own 2026-06-16 one — `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md:36,48,51,57`
 - [ ] **APH-HAND-4** (W1) — dead pointer to renamed binding in active v1 handoff — `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v1.md:167`
-- [ ] **REF-5** (W1) — Armory README points to retired `docs/product/source_capture_toolbox/` → repoint to actual location — `forseti/product/spines/capture/core/source_capture_toolbox/README.md:726`
+- [x] **REF-5** (W1·landed 2026-07-10, research-engine strategy lane) — Armory README Folder Convention block repointed from retired `docs/product/source_capture_toolbox/` + `orca-harness/*` to the live spine folder + `forseti-harness/*` — `forseti/product/spines/capture/core/source_capture_toolbox/README.md`
 
 ### T1 · DCP-receipt archival backlog  `[bloat + live gate failure]`
 Destination for all: `docs/decisions/dcp_receipts_archive_v0.md` (verbatim move, keep ≤2 inline + pointer).
@@ -75,8 +75,8 @@ Destination for all: `docs/decisions/dcp_receipts_archive_v0.md` (verbatim move,
 - [x] **RE-HARN-9** (landed) — deleted the structurally-unreachable `comment_reconciliation_mismatch` hard-raise guard (false assurance); the real, reachable reconciliation check is the tested batch quality-flag in `run_reddit_batch_quality_summary.py:164-167` (`comments_parsed != observable_comment_nodes`). Behavior-neutral; reddit tests green. — `reddit_consolidation/parser.py`
 - [x] **APH-IMPL-3** (W1·landed #830) — attempt rows now carry `receipt_pointer` = str(receipt_jsonl) (was: always null from absent key) — IG heartbeat `control.py`
 - [x] **APH-IMPL-1** (W1·landed #830) — session artifacts now keyed `session_{bucket}_{lane_id}` (roster/receipts/summary; roster-snapshot-id carries lane); bucket-scoped lock stays deferred (F2) — IG heartbeat `control.py`
-- [x] **HOOK-1** (W1·landed #835) — hook path now relativizes absolute payload paths via `to_relposix` (+ `_to_posix` dotfile fix, 3 selftest pins) — `.agents/hooks/check_search_surface_google_route.py`
-- [x] **HOOK-8** (W1·landed #835) — `--hook` now emits `additionalContext` + scopes to added-lines-vs-HEAD; adjudicated cross-vendor review patch on top: tracked no-diff → no findings, whole-file fallback only for untracked — `.agents/hooks/check_full_gt_claims.py`
+- [x] **HOOK-1** (W1·landed #835) — hook path now relativizes absolute payload paths via `to_relposix` (+ `_to_posix` dotfile fix, 3 selftest pins); #837 layers extra out-of-repo selftest coverage (POSIX-rooted, UNC, production-path `analyze_paths`) — `.agents/hooks/check_search_surface_google_route.py`
+- [x] **HOOK-8** (W1·landed #835) — `--hook` now emits `additionalContext` + scopes to added-lines-vs-HEAD; adjudicated cross-vendor review patch on top: tracked no-diff → no findings, whole-file fallback only for untracked; #837 layers adjudicated FIND-02/03 fixes (structural diff parser keeps added `++` lines in BOTH hook and CI paths; payload type-guards + fail-open `--hook` entry; rooted-path rejection) — `.agents/hooks/check_full_gt_claims.py`
 
 ### T6 · Staleness debt + 1 render bug  `[dead-reference / staleness]`
 - [~] **APH-HAND-3** (W1·in-flight) — deleted the stray fence + leaked courier block (was :248-256); fence parity restored (4, even) — `docs/prompts/handoffs/aphrodite_fragrance_subontology_build_handoff_v0.md`
