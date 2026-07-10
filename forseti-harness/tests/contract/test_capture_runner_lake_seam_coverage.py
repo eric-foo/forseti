@@ -91,6 +91,10 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ): 1,
         ("capture_spine/creator_profile_current/silver_metric_reader.py", "lane_dir"): 3,
         (
+            "capture_spine/tiktok_creator_discovery_frontier/register_lake_writer.py",
+            "append_record",
+        ): 1,
+        (
             "capture_spine/creator_profile_current/youtube_silver_metric_producer.py",
             "append_silver_record",
         ): 2,

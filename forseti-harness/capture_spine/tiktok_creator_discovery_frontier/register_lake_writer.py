@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+from data_lake.root import DataLakeRoot
+
 from capture_spine.tiktok_creator_discovery_frontier.models import (
     TikTokCreatorDiscoveryFrontierError,
 )
@@ -34,6 +36,13 @@ def write_tiktok_creator_discovery_frontier_register(
     parent-grid packet cannot be lake-written (fail-closed -- use an explicit
     local ``--output`` escape instead).
     """
+    if not isinstance(data_root, DataLakeRoot):
+        raise TikTokCreatorDiscoveryFrontierError(
+            "invalid_data_root",
+            "lake write requires a resolved DataLakeRoot (construct via "
+            "resolve()/initialize()/for_test()); arbitrary root objects bypass "
+            "the verified write guard",
+        )
     validate_tiktok_creator_discovery_frontier_register(register)
     wrapper = register["tiktok_creator_discovery_frontier_register"]
     raw_anchor = wrapper["provenance"].get("parent_grid_packet_id_or_none")
@@ -42,6 +51,12 @@ def write_tiktok_creator_discovery_frontier_register(
             "missing_parent_grid_packet_anchor",
             "lake write requires provenance.parent_grid_packet_id_or_none; a "
             "register without a committed parent-grid packet has no raw anchor",
+        )
+    if data_root.find_packet(str(raw_anchor)) is None:
+        raise TikTokCreatorDiscoveryFrontierError(
+            "unknown_parent_grid_packet_anchor",
+            f"parent-grid packet {raw_anchor!r} is not committed in this lake "
+            "root; a derived register must anchor to committed raw truth",
         )
     body = json.dumps(register, indent=2, sort_keys=True) + "\n"
     return data_root.append_record(

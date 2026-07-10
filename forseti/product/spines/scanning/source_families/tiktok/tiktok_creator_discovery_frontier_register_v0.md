@@ -169,11 +169,18 @@ tiktok_creator_discovery_frontier_register:
 
 The preferred code path is the network-free builder under
 `forseti-harness/capture_spine/tiktok_creator_discovery_frontier/`. It consumes a
-validated `tiktok_creator_discovery_scan_receipt_v0` plus already-observed
+validated `tiktok_creator_discovery_scan_receipt_v1` plus already-observed
 suggested-account rows, then emits this register shape. The receipt records caps,
 packet/lake pointers, refresh outcome, pagination bound, browser-close posture,
-and no follow/open/screenshot actions. It still does not launch TikTok, create a
-live runner, prove source truth, authorize next runs, or mutate Creator Registry.
+no follow/open/screenshot actions, and (v1, 2026-07-10) a required
+source-visible link-hub outcome (`captured` with an absolute http(s) URL,
+`blocked`, `deferred_not_authorized`, or `none_visible`) so a visible Linktree
+can no longer be silently skipped. A validated register may be persisted to the
+data lake as a derived record anchored to its committed parent-grid packet via
+`runners/run_tiktok_creator_discovery_register.py` (lake write is the default;
+an explicit `--output` file is the local escape). The builder still does not
+launch TikTok, create a live runner, prove source truth, authorize next runs,
+or mutate Creator Registry.
 
 The builder prepends a default scope-limit `accepted_residuals` entry for
 suggested-account registers: suggested handles are recommendation targets only;

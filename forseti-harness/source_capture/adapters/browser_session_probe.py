@@ -42,11 +42,18 @@ def probe_local_cdp_endpoints(
         )
     if not ports:
         raise ValueError("probe requires at least one port")
+    for port in ports:
+        if not isinstance(port, int) or isinstance(port, bool) or not 1 <= port <= 65535:
+            raise ValueError(f"probe port must be an integer in 1..65535; got {port!r}")
+    if not isinstance(timeout_seconds, (int, float)) or isinstance(timeout_seconds, bool) or timeout_seconds <= 0:
+        raise ValueError(f"probe timeout_seconds must be positive; got {timeout_seconds!r}")
+    # IPv6 literals need brackets in URLs (http://[::1]:9223).
+    host_for_url = f"[{host}]" if ":" in host else host
     read = opener or _http_get
     probed: list[dict[str, Any]] = []
     live_endpoints: list[str] = []
     for port in ports:
-        endpoint = f"http://{host}:{int(port)}"
+        endpoint = f"http://{host_for_url}:{int(port)}"
         url = f"{endpoint}/json/version"
         entry: dict[str, Any] = {
             "endpoint": endpoint,

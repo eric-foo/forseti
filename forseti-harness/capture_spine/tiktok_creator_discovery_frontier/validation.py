@@ -5,6 +5,7 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import fields
 from typing import Any
+from urllib.parse import urlparse
 
 from capture_spine.tiktok_creator_discovery_frontier.models import (
     TIKTOK_CREATOR_DISCOVERY_FRONTIER_REGISTER_SCHEMA_VERSION,
@@ -82,6 +83,16 @@ _REQUIRED_SCAN_RECEIPT_EXCLUSION_MARKERS = (
 _SUGGESTED_ACCOUNTS_NOT_ATTEMPTED_MARKERS = (
     "not_started",
     "not_attempted",
+    "deferred",
+    "skipped",
+)
+# A PROMOTE decision needs preflight that actually ran: these markers name
+# known not-run/negative statuses that must not clear the PROMOTE gate.
+_PREFLIGHT_NOT_ATTEMPTED_MARKERS = (
+    "not_run",
+    "not_started",
+    "not_attempted",
+    "pending",
     "deferred",
     "skipped",
 )
@@ -499,8 +510,15 @@ def _validate_link_hub_outcome(receipt: Mapping[str, Any]) -> None:
             f"{sorted(_ALLOWED_LINK_HUB_OUTCOMES)}",
         )
     url = receipt.get("link_hub_url_or_none")
-    if url is not None and (not isinstance(url, str) or not url.strip()):
-        _fail("invalid_link_hub_url", "link_hub_url_or_none must be a non-empty string or null")
+    if url is not None:
+        if not isinstance(url, str) or not url.strip():
+            _fail("invalid_link_hub_url", "link_hub_url_or_none must be a non-empty string or null")
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            _fail(
+                "invalid_link_hub_url",
+                "link_hub_url_or_none must be an absolute http(s):// URL",
+            )
     if status == LinkHubOutcome.CAPTURED.value and not url:
         _fail(
             "missing_link_hub_url",
@@ -603,12 +621,20 @@ def _validate_decision(decision: Mapping[str, Any], node_by_id: Mapping[str, Map
     if decision.get("projection_decision") not in _ALLOWED_PROJECTION_DECISIONS:
         _fail("invalid_projection_decision", "frontier decision projection_decision is invalid")
     if decision.get("projection_decision") == ProjectionDecision.PROMOTE.value:
-        if not selected_node.get("registry_preflight_status_or_none"):
+        preflight = selected_node.get("registry_preflight_status_or_none")
+        if not isinstance(preflight, str) or not preflight.strip():
             _fail(
                 "promote_requires_registry_preflight",
                 "a PROMOTE frontier decision requires the selected node to carry a "
-                "non-null registry_preflight_status_or_none (exact-match preflight "
-                "before any onboarding decision)",
+                "non-empty string registry_preflight_status_or_none (exact-match "
+                "preflight before any onboarding decision)",
+            )
+        lowered_preflight = preflight.lower()
+        if any(marker in lowered_preflight for marker in _PREFLIGHT_NOT_ATTEMPTED_MARKERS):
+            _fail(
+                "promote_registry_preflight_not_attempted",
+                "a PROMOTE frontier decision requires preflight that actually ran; "
+                f"status {preflight!r} names a not-run/negative marker",
             )
     _validate_non_claims(decision.get("non_claims"), "frontier_decision")
 

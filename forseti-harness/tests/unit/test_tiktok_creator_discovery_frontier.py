@@ -679,6 +679,35 @@ def test_non_promote_decision_without_preflight_passes() -> None:
     validate_tiktok_creator_discovery_frontier_register(register)
 
 
+def _register_with_candidate_preflight(preflight_value) -> dict:
+    nodes = [
+        _node(_RUN_NODE_ID, FrontierNodeType.RUN, None).to_dict(),
+        _node(_SEED_NODE_ID, FrontierNodeType.TIKTOK_CREATOR_SEED, "fragranceknowledge").to_dict(),
+        _node(
+            _CANDIDATE_NODE_ID,
+            FrontierNodeType.TIKTOK_CREATOR_CANDIDATE,
+            "3whiffs",
+            registry_preflight_status_or_none=preflight_value,
+        ).to_dict(),
+    ]
+    return _register(nodes=nodes, frontier_decisions=[_decision()])
+
+
+def test_promote_with_not_run_preflight_marker_raises() -> None:
+    register = _register_with_candidate_preflight("not_run_suggested_frontier_only")
+    _raises_code(register, "promote_registry_preflight_not_attempted")
+
+
+def test_promote_with_non_string_preflight_raises() -> None:
+    register = _register_with_candidate_preflight(123)
+    _raises_code(register, "promote_requires_registry_preflight")
+
+
+def test_scan_receipt_captured_link_hub_rejects_non_url_evidence() -> None:
+    receipt = _scan_receipt(link_hub_url_or_none="x")
+    _receipt_raises_code(receipt, "invalid_link_hub_url")
+
+
 def test_lake_writer_appends_register_keyed_to_parent_grid_packet(tmp_path) -> None:
     from data_lake.root import DataLakeRoot
     from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
@@ -686,6 +715,7 @@ def test_lake_writer_appends_register_keyed_to_parent_grid_packet(tmp_path) -> N
     )
 
     root = DataLakeRoot.for_test(tmp_path / "lake")
+    root.allocate_raw_packet_dir("01KWYMDCZMSB4S5HBERVBYJQNG")
     register = _register()
     written = write_tiktok_creator_discovery_frontier_register(
         register, root, record_id="register_example.json"
@@ -715,3 +745,36 @@ def test_lake_writer_requires_parent_grid_anchor(tmp_path) -> None:
             register, root, record_id="register_example.json"
         )
     assert exc_info.value.code == "missing_parent_grid_packet_anchor"
+
+
+def test_lake_writer_rejects_uncommitted_anchor(tmp_path) -> None:
+    from data_lake.root import DataLakeRoot
+    from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+        write_tiktok_creator_discovery_frontier_register,
+    )
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")  # anchor packet never committed
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        write_tiktok_creator_discovery_frontier_register(
+            _register(), root, record_id="register_example.json"
+        )
+    assert exc_info.value.code == "unknown_parent_grid_packet_anchor"
+
+
+def test_lake_writer_rejects_unverified_root_object(tmp_path) -> None:
+    from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+        write_tiktok_creator_discovery_frontier_register,
+    )
+
+    class FakeRoot:
+        def append_record(self, **kwargs):  # pragma: no cover - must never be reached
+            raise AssertionError("unverified root must be rejected before any write")
+
+        def find_packet(self, packet_id):  # pragma: no cover - must never be reached
+            return None
+
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        write_tiktok_creator_discovery_frontier_register(
+            _register(), FakeRoot(), record_id="register_example.json"
+        )
+    assert exc_info.value.code == "invalid_data_root"

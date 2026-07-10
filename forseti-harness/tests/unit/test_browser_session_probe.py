@@ -61,5 +61,29 @@ def test_probe_requires_at_least_one_port() -> None:
         probe_local_cdp_endpoints(())
 
 
+def test_probe_rejects_out_of_range_or_non_int_ports() -> None:
+    for bad_port in (0, 70000, -1, True, "9222"):
+        with pytest.raises(ValueError):
+            probe_local_cdp_endpoints((bad_port,), opener=lambda url, timeout: "{}")
+
+
+def test_probe_rejects_non_positive_timeout() -> None:
+    for bad_timeout in (0, -2.5, True):
+        with pytest.raises(ValueError):
+            probe_local_cdp_endpoints((9222,), timeout_seconds=bad_timeout, opener=lambda url, timeout: "{}")
+
+
+def test_probe_brackets_ipv6_host_in_endpoint() -> None:
+    seen: list[str] = []
+
+    def opener(url: str, timeout: float) -> str:
+        seen.append(url)
+        return "{}"
+
+    report = probe_local_cdp_endpoints((9223,), host="::1", opener=opener)
+    assert seen == ["http://[::1]:9223/json/version"]
+    assert report["live_endpoints"] == ["http://[::1]:9223"]
+
+
 def test_default_ports_cover_the_cloakbrowser_endpoint() -> None:
     assert 9223 in DEFAULT_CDP_PROBE_PORTS

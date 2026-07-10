@@ -15,6 +15,8 @@ from capture_spine.creator_profile_current.materialize import (
     load_json,
 )
 from capture_spine.creator_profile_current.registry_match_preflight import (
+    RECEIPT_SCHEMA_VERSION,
+    RECEIPT_WRAPPER_KEY,
     has_blocking_preflight_results,
 )
 
@@ -161,18 +163,29 @@ def _enforce_new_account_preflight(
 
     New platform accounts are ledger platform_account_ids absent from the
     existing output view. A missing view means every ledger account is new.
+    The receipt must be a real preflight receipt (schema-checked) whose result
+    rows cover every new account's public handle without blocking -- a bare
+    summary counter is not evidence.
     """
-    ledger_ids = {
-        str(account.get("platform_account_id"))
+    ledger_accounts = [
+        account
         for account in load_json(account_ledger_path).get("platform_accounts", [])
         if isinstance(account, dict) and account.get("platform_account_id")
-    }
+    ]
     existing_ids: set[str] = set()
     if output_path.exists():
         _collect_platform_account_ids(load_json(output_path), existing_ids)
-    new_ids = sorted(ledger_ids - existing_ids)
-    if not new_ids:
+    new_accounts = sorted(
+        (
+            account
+            for account in ledger_accounts
+            if str(account["platform_account_id"]) not in existing_ids
+        ),
+        key=lambda account: str(account["platform_account_id"]),
+    )
+    if not new_accounts:
         return
+    new_ids = [str(account["platform_account_id"]) for account in new_accounts]
     if preflight_receipt_path is None:
         raise ValueError(
             "materialization introduces new platform accounts "
@@ -180,10 +193,49 @@ def _enforce_new_account_preflight(
             "exact-match preflight before new registry rows)"
         )
     receipt = load_json(preflight_receipt_path)
+    wrapper = receipt.get(RECEIPT_WRAPPER_KEY) if isinstance(receipt, dict) else None
+    if not isinstance(wrapper, dict):
+        raise ValueError(
+            f"preflight receipt {preflight_receipt_path} is missing the "
+            f"{RECEIPT_WRAPPER_KEY} wrapper"
+        )
+    if wrapper.get("schema_version") != RECEIPT_SCHEMA_VERSION:
+        raise ValueError(
+            f"preflight receipt {preflight_receipt_path} schema_version must be "
+            f"{RECEIPT_SCHEMA_VERSION}"
+        )
+    results = wrapper.get("results")
+    if not isinstance(results, list) or not results:
+        raise ValueError(
+            f"preflight receipt {preflight_receipt_path} carries no candidate "
+            "results; a summary alone is not preflight evidence"
+        )
     if has_blocking_preflight_results(receipt):
         raise ValueError(
             f"preflight receipt {preflight_receipt_path} carries blocking results; "
             "resolve them before materializing new registry rows"
+        )
+    covered_handles: set[str] = set()
+    for row in results:
+        if not isinstance(row, dict):
+            continue
+        if row.get("action_status") == "blocked":
+            continue
+        candidate = row.get("normalized_candidate")
+        if isinstance(candidate, dict):
+            handle = candidate.get("handle")
+            if isinstance(handle, str) and handle.strip():
+                covered_handles.add(handle.strip().lower())
+    uncovered = [
+        str(account.get("public_handle"))
+        for account in new_accounts
+        if str(account.get("public_handle", "")).strip().lower() not in covered_handles
+    ]
+    if uncovered:
+        raise ValueError(
+            f"preflight receipt {preflight_receipt_path} does not cover new "
+            f"account handle(s) {uncovered!r} with a non-blocking candidate "
+            "result; run exact-match preflight for each new account"
         )
 
 
