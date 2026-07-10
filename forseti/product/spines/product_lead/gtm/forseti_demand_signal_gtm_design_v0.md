@@ -48,10 +48,23 @@ seller authorizes a registered developer application (an OAuth-style grant,
 revocable by the seller), and the developer operates under Amazon's Data
 Protection Policy (registration + data-handling audit).
 
-The micro-panel: Forseti registers as an SP-API developer; 5–20
-brands/sellers in the pilot categories (beauty, beverage/CPG) each authorize
-Forseti to read their own sales history (SP-API exposes roughly two years
-back) and ongoing sales. Their per-seller data is used for exactly one
+The micro-panel takes two separate consents, not one (do not conflate them
+with being a seller — being a seller only exposes one's OWN data):
+1. Amazon approves Forseti as a developer with a registered PUBLIC
+   application. Registration path matters: via Seller Central it requires a
+   Professional selling account, but via the **Solution Provider Portal** it
+   does NOT require any selling account — that portal is the path for a
+   data/software provider, so Forseti does not have to become an Amazon
+   seller to run the panel.
+2. Each of 5–20 pilot-category (beauty, beverage/CPG) sellers separately
+   authorizes that public app against their own account via Login with
+   Amazon (Amazon's OAuth), revocable anytime — granting Forseti read access
+   to their own sales history (SP-API exposes roughly two years back) and
+   ongoing sales.
+Scope note: the calibration inputs (aggregate units/sales/traffic) sit in
+SP-API's normal tier; PII-bearing order reports need a separate restricted-
+role approval Forseti deliberately does not need and should not request
+(verify exact per-report restricted boundary at build). Their per-seller data is used for exactly one
 internal purpose — calibration ground truth: fitting the curves that map the
 public signals Forseti captures (bestseller rank, bought-in-past-month badge
 buckets, review velocity) to actual unit sales, per category. In exchange,
@@ -205,7 +218,11 @@ question at commercialization.
 - Consent/terms drafting for panel members (counsel; includes the
   aggregate-use grant and revocation mechanics).
 - SP-API developer registration + Data Protection Policy audit: effort and
-  timeline unknown; Amazon vets developers (non-trivial, not exotic).
+  timeline unknown; Amazon vets the public app (non-trivial, not exotic).
+  Register via the Solution Provider Portal (no selling account) rather than
+  Seller Central (Pro selling account required); confirm the current
+  restricted-role boundary so the app requests only the normal-tier
+  units/sales/traffic scope.
 - Panel-selection bias: consenting sellers skew small/cooperative; per-
   category curve validity needs a bias note when fitted.
 - Recruiting motion design (who, in what order, with what pitch) — product-
