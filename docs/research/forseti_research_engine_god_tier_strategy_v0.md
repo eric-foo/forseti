@@ -343,11 +343,13 @@ and smoke tier.
    Recommend: narrow, budget-capped grant for named families only. Highest
    value / medium lock-in; both doctrine layers already strain toward it.
    *(Open.)*
-2. **Route-State Ledger** vs the venue-registry rejection precedent. Recommend:
-   capture-owned dated ledger (mini shape) — low lock-in, high compounding;
-   distinct from the rejected scanning-authority atlas. *(Open.)*
-3. **CSB board lineage** (inheritance on regeneration) vs mutable boards vs
-   status quo. Recommend lineage. *(Open.)*
+2. **Route-State Ledger** vs the venue-registry rejection precedent —
+   **ROUTED 2026-07-10**: owner redirected W4/W5 to a cross-family state model,
+   alternatives-first; subsumed by
+   `docs/prompts/handoffs/research_engine_cross_family_memory_cost_model_design_handoff_v0.md`.
+3. **CSB board lineage** — **ROUTED 2026-07-10** into the same cross-family
+   design handoff (whether lineage lives inside the state model or as a CSB
+   prompt amendment is one of its mutable questions).
 4. **Legacy scan-artifact closeout enum** — **RESOLVED 2026-07-10: grandfather.**
    Implemented this turn: `check_csb_scanning_artifact.py` auto-detection
    (CI `--diff` / `--changed`) skips the 3 pre-contract legacy artifacts
