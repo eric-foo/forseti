@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: DCP receipts archive
-scope: Verbatim archive of direction_change_propagation receipts that have cycled out of the two-most-recent inline limit in controlling overlay files.
+scope: Frozen legacy archive of direction_change_propagation receipts cycled out before 2026-07-11.
 use_when:
   - Auditing the full propagation history of past doctrine changes.
   - Verifying that a stale-language search term was already handled in a prior receipt.
@@ -11,7 +11,12 @@ use_when:
 authority_boundary: retrieval_only
 ```
 
-This file is the single authorized standalone archive for Orca direction_change_propagation receipts that have been moved out of controlling overlay files under the receipt-archiving rule (at most two most-recent receipts inline per controlling file; older receipts move here verbatim). The rule that governs receipt archiving lives in `.agents/workflow-overlay/source-of-truth.md`, Doctrine Change Propagation Contract section. This file carries no source authority, validation evidence, readiness, approval, or lifecycle claims.
+Frozen 2026-07-11. Do not append new receipts. Forseti controlling files keep at
+most two current inline receipts and delete the oldest when adding a third; Git
+and PR history preserve later history. The governing rule lives in
+`.agents/workflow-overlay/source-of-truth.md`, Doctrine Change Propagation
+Contract. This file carries no source authority, validation evidence, readiness,
+approval, or lifecycle claims and is not loaded for ordinary doctrine work.
 
 ## From .agents/workflow-overlay/source-of-truth.md
 

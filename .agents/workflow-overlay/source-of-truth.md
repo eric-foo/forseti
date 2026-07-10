@@ -105,10 +105,18 @@ it, so the copies cannot desynchronize.
 
 Store the propagation evidence inline in the changed artifact, prompt, handoff,
 or final closeout. A controlling file keeps at most the two most recent receipts
-inline; older receipts move verbatim to `docs/decisions/dcp_receipts_archive_v0.md`,
-the single authorized standalone receipt archive. The inline receipts section must
-end with one pointer line to the archive. No standalone receipt files other than
-the authorized archive.
+inline. When adding a third, delete the oldest inline receipt; Git and PR history
+preserve it. Do not append new receipts to
+`docs/decisions/dcp_receipts_archive_v0.md`: that file is frozen legacy history.
+Existing archive-pointer lines may remain as historical notes, but new or changed
+DCP sections do not require one. Do not create another standalone receipt file.
+
+Cold-agent fast path: decide whether a durable rule changed; name its controlling
+source; consider the baseline surfaces above; record what was updated, checked,
+and intentionally unchanged; keep the receipt compact; run the diff-scoped shape
+check; and report semantic evidence separately. Do not read the legacy archive
+for ordinary doctrine work. Whole-repository audit is reserved for changes to
+the DCP contract/checker or explicit legacy-corpus repair.
 
 Use this receipt shape:
 
@@ -117,17 +125,12 @@ direction_change_propagation:
   doctrine_changed: "<one sentence>"
   trigger: product_doctrine | architecture_doctrine | workflow_authority | validation_philosophy | review_authority | output_authority | lifecycle_boundary
   related_triggers: [] # optional discovery/routing metadata; does not reduce required checks
-  controlling_sources_updated:
-    - "<path>"
-  downstream_surfaces_checked:
-    - "<path>"
+  controlling_sources_updated: ["<path>"]
+  downstream_surfaces_checked: ["<path>"]
   intentionally_not_updated:
-    - path: "<path>"
-      reason: "<why unchanged>"
+    - {path: "<path>", reason: "<why unchanged>"}
   stale_language_search: "<query, or not_run + why — not_run only for a purely additive change>"
-  non_claims:
-    - "not validation"
-    - "not readiness"
+  non_claims: ["not validation", "not readiness"]
 ```
 
 If propagation cannot be completed, return an explicit blocker instead of a
@@ -155,137 +158,29 @@ promotion.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Receipt-archiving rule adopted (at most two most-recent receipts inline per
-    controlling file; older receipts move verbatim to the single authorized
-    standalone archive docs/decisions/dcp_receipts_archive_v0.md; inline section
-    ends with one pointer line to the archive; no other standalone receipt files)
-    AND strength-preserving compression of prompt-orchestration.md and
-    source-of-truth.md (duplicate prose collapsed, multi-sentence annotations
-    tightened to one sentence; every must/never/only/required obligation
-    preserved verbatim or in equivalent enumeration).
+    DCP keeps its existing receipt schema and baseline-surface accountability
+    while retiring archive rotation: controlling files keep at most two inline
+    receipts, delete the oldest when adding a third, and never append the frozen
+    legacy archive; routine work uses diff-scoped shape/hygiene checks, while
+    whole-corpus audit is maintenance-only and reports receipt-relevant counts.
   trigger: workflow_authority
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - docs/decisions/dcp_receipts_archive_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - CLAUDE.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/source-loading.md
+  related_triggers: [validation_philosophy, lifecycle_boundary]
+  controlling_sources_updated: [.agents/workflow-overlay/source-of-truth.md, .agents/workflow-overlay/validation-gates.md, .agents/hooks/check_dcp_receipt.py, .agents/hooks/check_dcp_receipt_hygiene.py, .agents/hooks/README.md, docs/decisions/dcp_receipts_archive_v0.md, docs/workflows/forseti_repo_map_v0.md]
+  downstream_surfaces_checked: [AGENTS.md, CLAUDE.md, .agents/workflow-overlay/README.md, .agents/workflow-overlay/source-loading.md, .agents/workflow-overlay/decision-routing.md, .agents/workflow-overlay/artifact-folders.md, .agents/workflow-overlay/communication-style.md, .agents/workflow-overlay/template-registry.md, .github/workflows/ci.yml]
   intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        AGENTS.md is the agent-behavior kernel; it carries no receipt mechanics
-        and does not enumerate inline-vs-archive storage rules. The kernel
-        already routes doctrine-changing work to the overlay.
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        Its gate 12 defers to source-of-truth.md for receipt mechanics and its
-        "standalone receipt file" prohibition refers to unauthorized expansions,
-        not the one authorized archive. No gate logic changes.
-  stale_language_search: >
-    rg -i -n "standalone receipt|inline in the changed artifact|do not create a standalone"
-    .agents docs AGENTS.md
+    - {path: AGENTS.md, reason: "The kernel already routes doctrine-changing work to source-of-truth.md; receipt storage mechanics stay overlay-owned."}
+    - {path: .github/workflows/ci.yml, reason: "CI continues to run the same diff-scoped strict shape command; only checker output and audit scope change."}
+    - {path: existing archive-pointer lines, reason: "Forward-only transition: existing pointers remain historical notes and do not authorize new archive writes."}
+    - {path: legacy receipt corpus, reason: "No bulk migration or rewrite; existing receipts remain historical evidence under the unchanged schema."}
+  stale_language_search: 'rg -n -i "older receipts.*archiv|receipts.*cycled out|move.*dcp_receipts_archive|append.*dcp_receipts_archive|archive pointer|missing_dcp_archive_pointer|receipt-archiving rule" AGENTS.md CLAUDE.md .agents docs/workflows/forseti_repo_map_v0.md docs/decisions/forseti_mini_god_tier_doctrine_v0.md'
   stale_language_search_result: >
-    Executed 2026-06-13 in worktree orca-f2-trim-wt (branch f2-doctrine-trim,
-    base origin/main). Hits: .agents/workflow-overlay/validation-gates.md:33
-    ("standalone receipt file" in the prohibition list for unauthorized
-    expansions — consistent with the new rule; the one authorized archive is
-    named in source-of-truth.md and not prohibited).
-    .agents/workflow-overlay/source-of-truth.md:106,109,110 — the amended
-    paragraph introducing the archive rule.
-    .agents/workflow-overlay/artifact-folders.md:203 — DCP contract stores
-    receipts inline, consistent.
-    docs/prompts/handoffs/ecr_jsg01_source_side_receipt_lane_setup_v0.md:87 —
-    unrelated "no standalone receipt file" in a prompt context.
-    review-input and review-output snapshots — contain historical text only.
-    No live surface retains an instruction that contradicts the new archive rule
-    or the removed "Do not create a standalone receipt file" sentence.
-  non_claims:
-    - not validation
-    - not readiness
-    - not source promotion
-    - not implementation authorization
+    Executed 2026-07-11 after the patch. Remaining archive-pointer hits are
+    historical notes in untouched DCP sections or compatibility selftest
+    fixtures; the controlling contract, archive header, repo map, communication
+    owner, validation owner, and checker docs now state the frozen lifecycle.
+  non_claims: [not validation, not readiness, not receipt truth, not implementation authorization]
 ```
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Orientation/research subagent dispatch now binds a third dimension — the
-    return shape. prompt-orchestration.md (the subagent-contract owner) now
-    requires, for a subagent whose output an agent will consume (act on,
-    summarize, or route — even if later shown to a human), a terse schema-bound
-    verdict (named fields, one line each, a file:line cite per load-bearing
-    claim, `unknown` for an absent field) instead of a prose dump, validated by
-    the spawning CA on receipt. The load side stays owned by the source-readiness
-    rule and source-loading.md; the new rule defers to them and binds only the
-    return shape. The behavior contract gains a CA-facing pointer rather than a
-    separate local return rule. Additive and orthogonal to the two existing
-    subagent rules: source-readiness (prompt-orchestration.md, above it) and
-    forked-context runtime-payload safety (decision-routing.md).
-  trigger: workflow_authority
-  related_triggers:
-    - output_authority
-  reviewed_by: >
-    Cross-vendor delegated review (GPT-family, provisional convention) run and
-    CA-adjudicated 2026-06-12; findings AR-01 (human/agent boundary loophole),
-    AR-02 (behavior-contract pointer not a soft local rule), AR-03 (defer
-    load-side ownership), AR-04 (receipt honesty) accepted and applied. Decision
-    input only; not a bound-lane verdict.
-  controlling_sources_updated:
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - docs/prompts/templates/shared/orca_prompt_behavior_contract_v0.md
-    - .agents/workflow-overlay/source-of-truth.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/communication-style.md
-    - docs/workflows/orca_repo_map_v0.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Carries no subagent return-shape instruction (grep: no "subagent" hit)
-        and already routes detail to the owning overlay file; the rule lives in
-        prompt-orchestration.md, so no AGENTS.md restatement is added.
-    - path: .agents/workflow-overlay/decision-routing.md
-      reason: >
-        Owns the distinct forked-context runtime-payload rule; the return-shape
-        dimension is orthogonal and cross-referenced from prompt-orchestration.md,
-        so nothing here changes or conflicts.
-    - path: .agents/workflow-overlay/source-loading.md
-      reason: >
-        The load-side owner (budgets, pack tiers, source-capsule and repo-access
-        rules); the new rule defers to it for the load side and changes nothing
-        in it.
-    - path: .agents/workflow-overlay/communication-style.md
-      reason: >
-        Its prose guidance governs human-facing chat output; the new rule governs
-        agent-facing subagent returns — complementary, no conflict, no edit.
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        No subagent enumeration to update (grep: no hit); these are additive
-        in-file doc edits, not a structural or navigation change. repo-map-ack.
-  stale_language_search: run
-  stale_language_search_result: >
-    Ran 2026-06-12 (AR-04): rg -i "prose|verbose|narrative|return.*(report|prose)"
-    across .agents/workflow-overlay, plus a "subagent|return|prose" sweep of
-    source-loading.md. No conflicting language — every prose/verbose hit governs
-    human-facing CHAT output (communication-style.md, decision-routing.md,
-    validation-gates.md), complementary to this agent-facing return rule. No
-    prior rule permitted prose subagent returns.
-  non_claims:
-    - not validation
-    - not readiness
-    - not approval or acceptance
-    - not source-of-truth promotion
-    - delegated review findings are decision input only, not a bound-lane verdict
-```
 
 ```yaml
 direction_change_propagation:
@@ -344,7 +239,7 @@ direction_change_propagation:
     - not implementation authorization
 ```
 
-Older receipts (#1–#13) archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+Legacy receipts #1–#13 remain frozen in `docs/decisions/dcp_receipts_archive_v0.md`; do not append or load them for ordinary work.
 
 ## Known Source Documents
 
@@ -367,7 +262,7 @@ Older receipts (#1–#13) archived verbatim in `docs/decisions/dcp_receipts_arch
 - `docs/workflows/data_capture_spine_consolidation_map_v0.md`: retrieval-only entry map for Data Capture Spine and Source Capture Armory navigation; routes to owner sources, no source-access/validation/readiness/implementation authority.
 - `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`: retrieval-only entry map for Judgment Spine navigation; routes to owner sources, no validation/readiness/buyer-proof/scoring/model-execution/judgment-quality authority.
 - `docs/migration/import_queue.md`: read-only import queue state.
-- `docs/decisions/dcp_receipts_archive_v0.md`: verbatim archive of direction_change_propagation receipts cycled out of inline storage; retrieval-only, no source authority.
+- `docs/decisions/dcp_receipts_archive_v0.md`: frozen legacy receipt history; retrieval-only, no source authority, no new writes, and not part of ordinary doctrine work.
 - `docs/decisions/forseti_rename_migration_policy_v0.md`: rename policy binding Forseti as the canonical project/product name and Orca as the legacy alias; controls live-vs-historical rename classes and compatibility migration sequencing.
 - `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`: current Forseti product thesis and value proposition (owner-ratified 2026-06-12; supersedes the earlier turn-08 thesis, retained as history).
 - `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`: Judgment Spine claim-tier architecture for Product-Learning, Buyer-Proof, and Judgment-Quality evidence boundaries.

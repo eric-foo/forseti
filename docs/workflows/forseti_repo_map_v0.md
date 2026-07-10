@@ -1224,7 +1224,7 @@ direction_change_propagation:
     - "not Data Capture"
 ```
 
-Older receipts, when cycled out, are archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+The legacy DCP archive is frozen; current controlling files delete their oldest inline receipt when adding a third.
 
 ## Workstream Status Pointers
 

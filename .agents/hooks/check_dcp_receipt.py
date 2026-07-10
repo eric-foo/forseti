@@ -30,11 +30,9 @@ WHAT THIS GATE DOES *NOT* DO (the over-edge boundary -- PLACEMENT IS NOT AUTHORI
     `downstream_surfaces_checked` were really checked, is the human/author's
     job. A substrate checks a receipt's SHAPE, never its truth
     (cf. the receipt-field provenance gate in validation-gates.md).
-  - It does NOT enforce the inline-receipt cap, the archive pointer, or the
-    "no standalone receipt files" rule. Those are receipt-storage hygiene, are
-    not born-green on the current corpus (several controlling files already hold
-    >2 inline receipts), and would red-line nearly every doctrine edit if made
-    strict. They stay resident / advisory, out of this gate's scope.
+  - It does NOT enforce the inline-receipt cap or the "no new standalone receipt
+    files" rule. Those remain advisory storage hygiene. The former archive-pointer
+    requirement is retired; the legacy archive receives no new receipts.
 
 TEMPLATE BLOCKS ARE SKIPPED
   The contract file itself defines a receipt TEMPLATE (`trigger: a | b | c ...`,
@@ -47,9 +45,8 @@ WHY STRICT (not report-mode)
   The receipt contract is one of the highest-frequency overlay rules (almost
   every doctrine/overlay edit owes a receipt) and was 100% actor-carried -- a
   malformed receipt (e.g. an invalid `trigger`) would sail through. Only a red
-  check closes that. The gate is BORN GREEN: every real receipt in the current
-  corpus passes the shape predicate (verify with --audit), so adopting strict
-  now matches the clean state without a red-main event.
+  check closes that. Corpus-wide `--audit` is maintenance-only for changes to
+  this checker/contract or explicit legacy-corpus repair, not change validation.
 
 DETECTION CONTRACT (mirrors header_index.py / check_deletion_evidence.py --strict)
   base ref priority: $GITHUB_BASE_REF -> origin/<ref>; else --base <ref>; else
@@ -71,7 +68,7 @@ MODES
   check_dcp_receipt.py --strict     fail (exit 1) on findings; CI gate
   check_dcp_receipt.py --report     same findings, advisory (exit 0)
   check_dcp_receipt.py --check      alias for --report
-  check_dcp_receipt.py --audit      whole-repo advisory scan (born-green check); exit 0
+  check_dcp_receipt.py --audit      maintenance-only whole-repo advisory scan; exit 0
   check_dcp_receipt.py --selftest   pure-function cases; exit 0/1
 
 Contract + archive:
@@ -114,6 +111,10 @@ REQUIRED_BLOCKER_KEYS = ("doctrine_changed", "trigger", "blocking_surface", "att
 
 # Walk-prune dirs for --audit.
 _PRUNE_DIRS = {".git", "node_modules", "__pycache__"}
+
+
+def should_prune_dir(dirname: str) -> bool:
+    return dirname in _PRUNE_DIRS
 
 
 def repo_root() -> Path:
@@ -235,8 +236,8 @@ def receipt_problems(inner: dict, kind: str) -> list[str]:
     return problems
 
 
-def file_findings(text: str, relposix: str, yaml_mod) -> list[str]:
-    """All receipt-shape findings for one file's text (empty == ok).
+def inspect_file(text: str, relposix: str, yaml_mod) -> tuple[list[str], int]:
+    """Return receipt-shape findings and real receipt/blocker count for one file.
 
     A yaml block is validated only when it has a TOP-LEVEL receipt/blocker key
     (has_receipt_key_line) -- prose mentions and review findings ABOUT receipts
@@ -246,10 +247,11 @@ def file_findings(text: str, relposix: str, yaml_mod) -> list[str]:
         (e.g. `direction_change_propagation: {note:, authority:, date:}`,
         a pre-existing downstream-surface marker convention) are NOT receipts
         and are skipped;
-      - a real receipt (has `trigger`) is shape-validated.
+      - a real receipt (has `trigger`) is counted and shape-validated.
     A block WITH a top-level receipt key that fails YAML parse is a finding (a
     malformed real receipt), not a skip. Pure given an injected yaml module."""
     findings: list[str] = []
+    real_blocks = 0
     for block in iter_yaml_blocks(text):
         if not has_receipt_key_line(block):
             continue
@@ -270,9 +272,15 @@ def file_findings(text: str, relposix: str, yaml_mod) -> list[str]:
                 continue  # contract template / example, not a real receipt
             if "trigger" not in inner:
                 continue  # note-marker / non-receipt reuse of the key; not a receipt
+            real_blocks += 1
             for p in receipt_problems(inner, kind):
                 findings.append("%s: %s" % (relposix, p))
-    return findings
+    return findings, real_blocks
+
+
+def file_findings(text: str, relposix: str, yaml_mod) -> list[str]:
+    """All receipt-shape findings for one file's text (empty == ok)."""
+    return inspect_file(text, relposix, yaml_mod)[0]
 
 
 # ---------------------------------------------------------------------------
@@ -321,9 +329,11 @@ def changed_md_files(root: Path, base_ref: str) -> list[str] | None:
 # Scans
 # ---------------------------------------------------------------------------
 
-def scan_paths(root: Path, relpaths: list[str], yaml_mod) -> list[str]:
-    """Validate receipts in the given repo-relative .md paths."""
+def scan_paths(root: Path, relpaths: list[str], yaml_mod) -> tuple[list[str], int, int]:
+    """Return findings, real-block count, and files-with-real-blocks count."""
     findings: list[str] = []
+    real_blocks = 0
+    files_with_real_blocks = 0
     for rel in relpaths:
         p = root / rel
         if not p.is_file():
@@ -332,15 +342,19 @@ def scan_paths(root: Path, relpaths: list[str], yaml_mod) -> list[str]:
             text = p.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        findings.extend(file_findings(text, rel, yaml_mod))
-    return findings
+        file_findings_list, file_real_blocks = inspect_file(text, rel, yaml_mod)
+        findings.extend(file_findings_list)
+        real_blocks += file_real_blocks
+        if file_real_blocks:
+            files_with_real_blocks += 1
+    return findings, real_blocks, files_with_real_blocks
 
 
 def all_md_files(root: Path) -> list[str]:
     """Every .md relpath under the repo (pruned of .git/node_modules/__pycache__)."""
     out: list[str] = []
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in _PRUNE_DIRS and not d.startswith(".git")]
+        dirnames[:] = [d for d in dirnames if not should_prune_dir(d)]
         for fname in filenames:
             if fname.endswith(".md"):
                 out.append((Path(dirpath) / fname).relative_to(root).as_posix())
@@ -360,15 +374,19 @@ def run(root: Path, mode: str, cli_base: str | None) -> int:
 
     if mode == "audit":
         relpaths = all_md_files(root)
-        findings = scan_paths(root, relpaths, yaml)
+        findings, real_blocks, receipt_files = scan_paths(root, relpaths, yaml)
         if findings:
-            print("check_dcp_receipt --audit: %d receipt-shape finding(s) across the repo "
-                  "(advisory, exit 0):" % len(findings))
+            print("check_dcp_receipt --audit: %d receipt-shape finding(s); "
+                  "%d Markdown files enumerated; %d real receipts/blockers across %d files "
+                  "(maintenance-only advisory, exit 0):"
+                  % (len(findings), len(relpaths), real_blocks, receipt_files))
             for f in findings:
                 print("  " + f)
         else:
-            print("check_dcp_receipt --audit: OK -- every real receipt in the repo is shape-valid "
-                  "(%d .md scanned)" % len(relpaths))
+            print("check_dcp_receipt --audit: OK -- %d Markdown files enumerated; "
+                  "%d real receipts/blockers shape-valid across %d files. "
+                  "Maintenance-only advisory corpus check -- not validation of a current change."
+                  % (len(relpaths), real_blocks, receipt_files))
         return 0
 
     base_ref = resolve_base_ref(cli_base)
@@ -381,16 +399,19 @@ def run(root: Path, mode: str, cli_base: str | None) -> int:
         print("check_dcp_receipt --%s: no changed .md files in this diff -- OK" % mode)
         return 0
 
-    findings = scan_paths(root, changed, yaml)
+    findings, real_blocks, receipt_files = scan_paths(root, changed, yaml)
     if findings:
-        print("check_dcp_receipt --%s: %d receipt-shape finding(s) on changed .md files "
-              "(base: %s):" % (mode, len(findings), base_ref))
+        print("check_dcp_receipt --%s: %d receipt-shape finding(s); "
+              "%d changed Markdown files; %d real receipts/blockers across %d files "
+              "(base: %s):"
+              % (mode, len(findings), len(changed), real_blocks, receipt_files, base_ref))
         for f in findings:
             print("  " + f)
         print("  Rule authority: %s" % RULE_AUTHORITY)
         return 1 if mode == "strict" else 0
-    print("check_dcp_receipt --%s: OK -- every real receipt in the changed .md files is "
-          "shape-valid (base: %s)" % (mode, base_ref))
+    print("check_dcp_receipt --%s: OK -- %d changed Markdown files; "
+          "%d real receipts/blockers shape-valid across %d files (base: %s)"
+          % (mode, len(changed), real_blocks, receipt_files, base_ref))
     return 0
 
 
@@ -430,6 +451,11 @@ def selftest() -> int:
           is_template_receipt({"trigger": "workflow_authority", "doctrine_changed": "<one sentence>"}), True)
     check("real receipt not template",
           is_template_receipt({"trigger": "workflow_authority", "doctrine_changed": "real change"}), False)
+
+    # --- audit directory pruning ---
+    check("audit prunes exact .git directory", should_prune_dir(".git"), True)
+    check("audit prunes node_modules", should_prune_dir("node_modules"), True)
+    check("audit keeps .github", should_prune_dir(".github"), False)
 
     # --- receipt_problems (RECEIPT) ---
     good = {
@@ -494,6 +520,8 @@ def selftest() -> int:
               len(file_findings(fence(bad_real), "f.md", _yaml)), 1)
         check("file_findings passes good real receipt",
               file_findings(fence(good_real), "f.md", _yaml), [])
+        check("inspect_file counts one real receipt",
+              inspect_file(fence(good_real), "f.md", _yaml)[1], 1)
         check("file_findings skips template",
               file_findings(fence(tmpl), "f.md", _yaml), [])
         check("file_findings skips note-marker (no trigger)",
