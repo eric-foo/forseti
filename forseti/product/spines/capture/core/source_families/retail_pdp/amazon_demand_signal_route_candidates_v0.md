@@ -61,14 +61,21 @@ receipt).
    accepted answer; a justification narrative is not. Realistic downside of
    internal use is seller-account action by Amazon (knowledge-tier claim);
    counsel pass named for commercialization.
-2. **Consented SP-API panel data: the sanctioned calibration input.**
-   Amazon's Selling Partner API with per-seller authorization grants is the
-   officially provided rail for receiving sellers' own data. Panel data
-   enters ONLY the calibration layer (never sold, never per-seller exposed).
-   Motion design + rationale + input-class rule for the sold chain are owned
-   by `forseti/product/spines/product_lead/gtm/forseti_demand_signal_gtm_design_v0.md`;
-   calibration mechanics live there too. SP-API developer registration and
-   panel recruitment are NOT authorized by this capture note.
+2. **Consented SP-API panel data: the sanctioned calibration input — and
+   NOT capture-lane capture.** Amazon's Selling Partner API with per-seller
+   authorization grants is the officially provided rail for receiving
+   sellers' own data. This is a consented, authorized inbound data feed: it
+   does NOT route through the Source Capture Armory / Runner Ladder, uses no
+   anti-block rungs, and emits no Source Capture Packets — it is a data
+   partnership, not scraping. Only R1-R4 (public/interactive Amazon reads)
+   are capture-lane routes; R5 is a vendor licence; the panel is a third
+   category (authorized feed) owned by the GTM lane. Panel data enters ONLY
+   the calibration layer (never sold, never per-seller exposed). Motion
+   design + rationale + input-class rule for the sold chain + calibration
+   mechanics are owned by
+   `forseti/product/spines/product_lead/gtm/forseti_demand_signal_gtm_design_v0.md`.
+   SP-API developer registration and panel recruitment are NOT authorized by
+   this capture note.
 3. **Sold-chain input classes** (mirror of the GTM rule, for capture-side
    reference): public logged-out capture (documented per-venue) · licensed
    data with verified derive rights · consented panel data · first-party
