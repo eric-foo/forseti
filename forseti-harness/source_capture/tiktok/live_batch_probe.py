@@ -17,6 +17,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserPagePointerAction,
     BrowserPageResponse,
     BrowserSnapshotFailure,
+    PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
     fetch_browser_page_observation_capture,
 )
 from source_capture.auth_state import (
@@ -148,9 +149,10 @@ TIKTOK_BROWSER_BACKEND_DEFAULT = "play" + "wright"
 TIKTOK_BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
 TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS = 180.0
 TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT = (
-    "TikTok slider/captcha/security text remained after the scripted X/Close "
-    "path. If authorized for this run, solve it manually in the open browser, "
-    "then click OK here. The receipt will mark human_challenge_handoff; the "
+    "A TikTok slider/captcha/security challenge is visible before any scripted "
+    "pointer action. If authorized for this run, solve it manually in the open "
+    "browser, then click OK here. Scripted actions stay suppressed until the "
+    "marker clears; the receipt will mark human_challenge_handoff and the "
     "agent does not drag or solve the puzzle."
 )
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
@@ -316,8 +318,6 @@ def run_tiktok_live_batch_probe(
         raise ValueError(
             "challenge-close diagnostic and followthrough modes are mutually exclusive"
         )
-    if human_challenge_handoff and not allow_challenge_close_followthrough:
-        raise ValueError("human_challenge_handoff requires challenge-close followthrough mode")
     if (
         browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
         and cloakbrowser_humanize
@@ -1042,10 +1042,7 @@ def _interleave_challenge_diagnostic_actions(
     return tuple(interleaved)
 
 def _tiktok_human_challenge_handoff_after_action_names() -> tuple[str, ...]:
-    return (
-        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
-        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
-    )
+    return (PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,)
 
 
 def _tiktok_comment_route_pointer_actions(

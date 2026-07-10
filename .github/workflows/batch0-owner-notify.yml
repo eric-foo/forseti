@@ -1,0 +1,66 @@
+name: batch0-owner-notify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/workflows/process_improvement_batch0/review_receipts/*.json"
+      - ".github/scripts/batch0_process_tracker.py"
+      - ".github/workflows/batch0-owner-notify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: batch0-owner-notify
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Self-test threshold and failure behavior
+        run: python .github/scripts/batch0_process_tracker.py --self-test
+      - name: Validate committed review receipts
+        run: python .github/scripts/batch0_process_tracker.py --json
+
+  notify-owner:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    needs: validate
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      OWNER: ${{ github.repository_owner }}
+      TITLE: "Batch 0 review sample reached 10 completions"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Determine notification eligibility
+        id: tracker
+        run: python .github/scripts/batch0_process_tracker.py --json --github-output "$GITHUB_OUTPUT"
+      - name: Notify the owner exactly once
+        if: ${{ steps.tracker.outputs.notification_eligible == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --state all --limit 200 \
+            --search "in:title $TITLE" --json number,title \
+            --jq "[.[] | select(.title==env.TITLE) | .number][0] // empty")
+          if [ -n "$existing" ]; then
+            echo "Owner notification already exists as issue #$existing; no duplicate created."
+            exit 0
+          fi
+          gh issue create --repo "$REPO" --assignee "$OWNER" --title "$TITLE" --body \
+          "@$OWNER — Batch 0 now contains at least ten valid, CA-adjudicated material-review receipts.
+
+          Ask an agent to summarize all four Batch 0 probes, distinguish method defects from adoption/enforcement defects, and prepare keep/change/stop recommendations. Do not promote lessons, change doctrine, or begin Batch 1 solely because this threshold was reached.
+
+          Source: \`docs/workflows/process_improvement_batch0/README.md\`."
+          echo "Created the one-time Batch 0 owner notification."
