@@ -32,9 +32,11 @@ _PROGRESSIVE_SCROLL_PAUSE_MS = 1500
 # Safety cap on progressive scroll steps so an infinite-scroll page (whose
 # scrollHeight keeps growing) cannot loop unbounded.
 _MAX_PROGRESSIVE_SCROLL_STEPS = 40
+_SCROLL_TARGET_CONDITION_TIMEOUT_MS = 5000
+_SCROLL_TARGET_POLL_MS = 100
 CLOAKBROWSER_METHOD_CATEGORY = "anti_blocking_browser"
 CLOAKBROWSER_BACKEND = "playwright"
-CAPTURE_PHASE_TIMING_SCHEMA_VERSION = 1
+CAPTURE_PHASE_TIMING_SCHEMA_VERSION = 2
 HEAVY_RESOURCE_TYPES = frozenset({"font", "image", "media"})
 SECRET_LIKE_QUERY_KEYS = {
     "access_token",
@@ -215,6 +217,7 @@ class CloakBrowserSnapshotEngine(Protocol):
         load_more_clicks: int,
         scroll_step_px: int,
         scroll_stop_condition: ScrollStopCondition | None,
+        scroll_target_selector: str | None,
         pre_capture: PreCapturePlugin | None,
         user_data_dir: Path | None = None,
     ) -> CloakBrowserSnapshotEngineResult:
@@ -237,6 +240,7 @@ def fetch_cloakbrowser_snapshot_capture(
     load_more_clicks: int = 0,
     scroll_step_px: int = 0,
     scroll_stop_condition: ScrollStopCondition | None = None,
+    scroll_target_selector: str | None = None,
     pre_capture: PreCapturePlugin | None = None,
     user_data_dir: Path | None = None,
     engine: CloakBrowserSnapshotEngine | None = None,
@@ -256,6 +260,8 @@ def fetch_cloakbrowser_snapshot_capture(
         raise ValueError("load_more_clicks must be zero or greater")
     if load_more_clicks > 0 and not load_more_selector:
         raise ValueError("load_more_selector is required when load_more_clicks is greater than zero")
+    if scroll_target_selector is not None and scroll_stop_condition is None:
+        raise ValueError("scroll_target_selector requires scroll_stop_condition")
     if user_data_dir is not None and proxy_profile is not None:
         raise ValueError(
             "CloakBrowser persistent-context capture (user_data_dir) does not apply proxy_profile; "
@@ -283,6 +289,7 @@ def fetch_cloakbrowser_snapshot_capture(
             load_more_clicks=load_more_clicks,
             scroll_step_px=scroll_step_px,
             scroll_stop_condition=scroll_stop_condition,
+            scroll_target_selector=scroll_target_selector,
             pre_capture=pre_capture,
             user_data_dir=user_data_dir,
         )
@@ -409,6 +416,12 @@ def fetch_cloakbrowser_snapshot_capture(
             "progressive_scroll_steps": [],
             "scroll_passes": [],
             "load_more_actions": [],
+            "scroll_target": {
+                "configured": scroll_target_selector is not None,
+                "action_ms": None,
+                "condition_wait_ms": None,
+                "reached": None,
+            },
             "scroll_stop_condition": {
                 "configured": scroll_stop_condition is not None,
                 "reached": None,
@@ -432,6 +445,7 @@ def fetch_cloakbrowser_snapshot_capture(
         "load_more_selector": load_more_selector,
         "load_more_clicks": load_more_clicks,
         "scroll_stop_condition_configured": scroll_stop_condition is not None,
+        "scroll_target_selector": scroll_target_selector,
         "viewport_width": viewport_width,
         "viewport_height": viewport_height,
         "screenshot_mode": "viewport",
@@ -513,6 +527,7 @@ class _CloakBrowserSnapshotEngine:
         load_more_clicks: int = 0,
         scroll_step_px: int = 0,
         scroll_stop_condition: ScrollStopCondition | None = None,
+        scroll_target_selector: str | None = None,
         pre_capture: PreCapturePlugin | None = None,
         user_data_dir: Path | None = None,
     ) -> CloakBrowserSnapshotEngineResult:
@@ -666,6 +681,43 @@ class _CloakBrowserSnapshotEngine:
                     page.wait_for_timeout(settle_seconds * 1000)
                 phase_ms["configured_settle"] = elapsed_ms(settle_started_ns)
                 check_scroll_stop(stage="after_configured_settle")
+                scroll_target_timing: dict[str, object] = {
+                    "configured": scroll_target_selector is not None,
+                    "action_ms": None,
+                    "condition_wait_ms": None,
+                    "reached": scroll_stop_reached,
+                }
+                if scroll_target_selector is not None and not scroll_stop_reached:
+                    target_action_started_ns = clock_ns()
+                    target_activated = False
+                    try:
+                        target = page.locator(scroll_target_selector)
+                        if target.count() == 0:
+                            warning_notes.append(
+                                "cloakbrowser_snapshot scroll target selector matched no elements"
+                            )
+                        else:
+                            target.scroll_into_view_if_needed(
+                                timeout=min(timeout_ms, _SCROLL_TARGET_CONDITION_TIMEOUT_MS)
+                            )
+                            target_activated = True
+                    except Exception as exc:
+                        warning_notes.append(
+                            f"cloakbrowser_snapshot scroll target activation failed: {exc}"
+                        )
+                    scroll_target_timing["action_ms"] = elapsed_ms(target_action_started_ns)
+                    if target_activated and scroll_stop_condition is not None:
+                        target_wait_started_ns = clock_ns()
+                        for _ in range(
+                            _SCROLL_TARGET_CONDITION_TIMEOUT_MS // _SCROLL_TARGET_POLL_MS
+                        ):
+                            if check_scroll_stop(stage="scroll_target"):
+                                break
+                            page.wait_for_timeout(_SCROLL_TARGET_POLL_MS)
+                        scroll_target_timing["condition_wait_ms"] = elapsed_ms(
+                            target_wait_started_ns
+                        )
+                    scroll_target_timing["reached"] = scroll_stop_reached
                 if scroll_step_px > 0 and not scroll_stop_reached:
                     position = 0
                     for index in range(_MAX_PROGRESSIVE_SCROLL_STEPS):
@@ -750,6 +802,7 @@ class _CloakBrowserSnapshotEngine:
                     "progressive_scroll_steps": progressive_scroll_steps,
                     "scroll_passes": scroll_pass_timings,
                     "load_more_actions": load_more_timings,
+                    "scroll_target": scroll_target_timing,
                     "scroll_stop_condition": {
                         "configured": scroll_stop_condition is not None,
                         "reached": scroll_stop_reached,

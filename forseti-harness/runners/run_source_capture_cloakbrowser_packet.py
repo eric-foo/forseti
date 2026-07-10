@@ -123,6 +123,7 @@ def run_source_capture_cloakbrowser_packet(
     load_more_selector: str | None = None,
     load_more_clicks: int = 0,
     scroll_step_px: int = 0,
+    scroll_target_selector: str | None = None,
     delivery_zip: str | None = None,
     delivery_zip_setup_timeout_seconds: float = 30.0,
     session_visibility_pin=None,
@@ -191,6 +192,13 @@ def run_source_capture_cloakbrowser_packet(
         scroll_step_px=scroll_step_px,
         scroll_stop_condition=(
             retail_capture_profile.scroll_stop_condition()
+            if retail_capture_profile is not None
+            else None
+        ),
+        scroll_target_selector=(
+            scroll_target_selector
+            if scroll_target_selector is not None
+            else retail_capture_profile.scroll_target_selector
             if retail_capture_profile is not None
             else None
         ),
@@ -565,6 +573,16 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--scroll-target-selector",
+        default=None,
+        help=(
+            "Before progressive scrolling, scroll one matching element into view and wait up to "
+            "five seconds for the profile's content condition. Falls back to progressive scrolling "
+            "when the selector is absent, activation fails, or the condition is not reached. "
+            "Requires a retail capture profile."
+        ),
+    )
+    parser.add_argument(
         "--preflight-only",
         action="store_true",
         help="Validate CLI inputs and optional proxy profile locally, then exit without network capture.",
@@ -695,6 +713,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             if retail_capture_profile is not None
             else 0
         )
+        scroll_target_selector = (
+            args.scroll_target_selector
+            if args.scroll_target_selector is not None
+            else retail_capture_profile.scroll_target_selector
+            if retail_capture_profile is not None
+            else None
+        )
         if args.retail_pdp_projection_output is not None and args.source_family != "retail_pdp":
             raise ValueError("--retail-pdp-projection-output requires --source-family retail_pdp")
         proxy_profile = _load_optional_proxy_profile(
@@ -818,6 +843,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             load_more_selector=args.load_more_selector,
             load_more_clicks=args.load_more_clicks,
             scroll_step_px=scroll_step_px,
+            scroll_target_selector=scroll_target_selector,
             delivery_zip=args.delivery_zip,
             delivery_zip_setup_timeout_seconds=args.delivery_zip_setup_timeout_seconds,
             # Demand-durability series facts (Ob.17). Element 1 pins (each an honest

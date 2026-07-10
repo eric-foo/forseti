@@ -39,6 +39,12 @@ def test_profiles_cover_each_retailer_and_page_kind_with_explicit_route_flags() 
         == "cloakbrowser_snapshot"
     )
     assert get_retail_capture_profile("sephora_pdp_aggregate").scroll_step_px == 350
+    assert get_retail_capture_profile("sephora_grid_aggregate").scroll_target_selector is None
+    assert get_retail_capture_profile("sephora_pdp_aggregate").scroll_target_selector is None
+    assert (
+        get_retail_capture_profile("sephora_pdp_distribution").scroll_target_selector
+        == "#ratings-reviews-container"
+    )
     assert get_retail_capture_profile("ulta_pdp_aggregate").scroll_passes == 0
     assert get_retail_capture_profile("target_pdp_aggregate").settle_seconds == 6.0
 

@@ -10,7 +10,7 @@ from source_capture.source_detail_sufficiency import (
 )
 
 
-RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 1
+RETAIL_CAPTURE_PROFILE_SCHEMA_VERSION = 2
 
 
 @dataclass(frozen=True)
@@ -26,6 +26,7 @@ class RetailCaptureProfile:
     settle_seconds: float = 0.0
     scroll_passes: int = 0
     scroll_step_px: int = 0
+    scroll_target_selector: str | None = None
     block_heavy_assets: bool = False
 
     def scroll_stop_condition(self) -> ScrollStopCondition | None:
@@ -56,6 +57,7 @@ class RetailCaptureProfile:
                 "settle_seconds": self.settle_seconds,
                 "scroll_passes": self.scroll_passes,
                 "scroll_step_px": self.scroll_step_px,
+                "scroll_target_selector": self.scroll_target_selector,
                 "block_heavy_assets": self.block_heavy_assets,
             },
         }
@@ -123,6 +125,7 @@ _PROFILES = {
             settle_seconds=5.0,
             scroll_passes=1,
             scroll_step_px=350,
+            scroll_target_selector="#ratings-reviews-container",
             requirements=_requirements(
                 visible_text_contains=(
                     "Lip Sleeping Mask",
