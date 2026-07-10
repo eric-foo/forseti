@@ -149,9 +149,10 @@ TIKTOK_BROWSER_BACKEND_DEFAULT = "play" + "wright"
 TIKTOK_BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
 TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS = 180.0
 TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT = (
-    "TikTok slider/captcha/security text remained after the scripted X/Close "
-    "path. If authorized for this run, solve it manually in the open browser, "
-    "then click OK here. The receipt will mark human_challenge_handoff; the "
+    "A TikTok slider/captcha/security challenge is visible before any scripted "
+    "pointer action. If authorized for this run, solve it manually in the open "
+    "browser, then click OK here. Scripted actions stay suppressed until the "
+    "marker clears; the receipt will mark human_challenge_handoff and the "
     "agent does not drag or solve the puzzle."
 )
 TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2

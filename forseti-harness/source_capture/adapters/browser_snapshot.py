@@ -2169,8 +2169,8 @@ def _run_human_challenge_handoff(
     if initial_match.get("matched") is not True:
         return None
     prompt_text = prompt or (
-        "A slider/captcha/security marker remained after the scripted UI move. "
-        "Solve it manually in the open browser if authorized, then click OK here."
+        "A slider/captcha/security marker is visible. Solve it manually in the "
+        "open browser if authorized, then click OK here."
     )
     receipt: dict[str, object] = {
         "action_name": "human_challenge_handoff_v0",
