@@ -139,6 +139,12 @@ Frontier separates Reddit-native discovery surfaces from external web/SERP
 discovery and keeps web-discovered subreddit candidates distinct rather than
 laundering them into Reddit-source intake
 (`docs/workflows/reddit_graph_frontier_b2b_marketing_traversal_record_v0.md`).
+Quora has one bounded post-merge capture proof: a profile-backed CloakBrowser
+Quora search-packet capture with caller-bound detail sufficiency
+(`docs/workflows/quora_b2b_postmerge_capture_calibration_v0.md`); the capture
+playbook's route-maturity note treats that as bounded Quora evidence, not broad
+Quora reliability, session durability, or proxy/geo proof
+(`forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md`).
 AEO is currently non-origin visibility corroboration only, not a gate-recordable
 or independent demand-origin surface
 (`forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`).
@@ -213,7 +219,7 @@ noise, provenance, independence, and graph behavior.
 
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
-| Forums / community | Reddit, Basenotes, Fragrantica forums, specialist boards, public repeatable community threads | consumer language, objections, comparisons, repeat questions, rebuttals, corrections | Reddit is an explicit subfamily; Discord is noisy/deferred unless a public, repeatable, bounded slice exists with noise controls. |
+| Forums / community | Reddit, Quora, Basenotes, Fragrantica forums, specialist boards, public repeatable community threads | consumer language, objections, comparisons, repeat questions, question-and-answer threads, rebuttals, corrections | Reddit and Quora are explicit subfamilies; boards include Quora Q&A route rows when consumer/buyer questions, comparisons, objections, or recommendation-seeking are commission-relevant, with `capture_posture: manual_only` and capture execution routed to the Capture spine. Discord is noisy/deferred unless a public, repeatable, bounded slice exists with noise controls. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |

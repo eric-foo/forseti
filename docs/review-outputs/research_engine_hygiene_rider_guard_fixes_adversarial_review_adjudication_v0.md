@@ -64,6 +64,28 @@ stale_if:
 - Focused unit suites (`test_csb_scanning_artifact_validator.py`,
   `test_hook_internal_error_gating.py`): 130 passed.
 
+## Merge-Resolution Addendum (2026-07-10, same lane)
+
+`origin/main` landed a PARALLEL fix of the same audit items via PR #835
+(`to_relposix` + a literal-`./`-only `_to_posix` in the google-route hook;
+`_hook_relposix` + `_uncommitted_added_lines` with tracked-no-diff/untracked
+handling in the full-GT hook). The merge was resolved by converging on main's
+implementation as the base and keeping only this record's genuinely additive
+fixes on top:
+
+- FIND-01: main's `to_relposix`/`_to_posix` shape adopted; this lane's
+  `_relativize` removed as duplicate. Remaining #837 delta = extra selftest
+  coverage (POSIX-rooted, UNC, production-path `analyze_paths` out-of-repo).
+- FIND-02: main's `_uncommitted_added_lines` still had the `++`-content
+  parser defect; it now uses the shared structural `_parse_added_lines_by_file`
+  (as does the CI-path `added_lines_by_file`). Red-green selftest retained.
+- FIND-03: main's `run_hook` still had the unguarded payload chain; the
+  type-guards, fail-open `--hook` wrapper, and a rooted-path rejection in
+  `_hook_relposix` were layered on. Fail-open selftests retained alongside
+  main's monkeypatched `_uncommitted_added_lines` cases.
+
+The Verification section below was re-run after the merge resolution.
+
 ## Reviewer Residual (accepted)
 
 Future rewrites of a grandfathered legacy scan artifact retaining the exempt

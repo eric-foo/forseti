@@ -104,24 +104,28 @@ def repo_root() -> Path:
 
 
 def _to_posix(path: str) -> str:
-    return path.replace("\\", "/").lstrip("./")
+    # Strip only a LITERAL leading "./" prefix. NOT lstrip("./"), which is a
+    # character-set strip that would also eat the leading dot of ".agents/..."
+    # paths (silently dropping overlay files out of scope).
+    s = path.replace("\\", "/")
+    return s[2:] if s.startswith("./") else s
 
 
-def _relativize(root: Path, raw: str) -> str:
-    """Map an absolute or rooted path (hook payloads carry absolute file_path
-    values; POSIX payloads may be `/`-rooted) to a repo-relative POSIX path;
-    pass repo-relative paths through unchanged. Absolute/rooted paths that
-    resolve OUTSIDE the repo return "" (never in scope) — stripping them to a
-    relative-looking string could collide with an unrelated in-repo path.
-    Without this, in_scope() never matches hook-delivered paths and the hook
-    no-ops."""
-    candidate = Path(raw.replace("\\", "/"))
-    if candidate.is_absolute() or candidate.anchor:
+def to_relposix(target: str, root: Path) -> str | None:
+    """Repo-relative POSIX path for a target, or None if outside the repo.
+
+    Handles the ABSOLUTE file_path that Claude Code passes in the PostToolUse
+    payload. Without this, in_scope() never matched an in-scope prefix, so the
+    --hook advisory silently no-opped on every edit (CI --changed still worked
+    because git yields repo-relative paths).
+    """
+    p = Path(target)
+    if p.is_absolute():
         try:
-            return candidate.resolve().relative_to(root.resolve()).as_posix()
-        except (OSError, ValueError):
-            return ""
-    return _to_posix(raw)
+            return p.resolve().relative_to(root).as_posix()
+        except (ValueError, OSError):
+            return None
+    return _to_posix(target)
 
 
 def in_scope(relpath: str) -> bool:
@@ -221,7 +225,7 @@ def analyze_text(path: str, text: str) -> list[Finding]:
 
 
 def analyze_file(root: Path, relpath: str) -> list[Finding]:
-    rel = _relativize(root, relpath)
+    rel = _to_posix(relpath)
     if not in_scope(rel):
         return []
     path = root / rel
@@ -276,17 +280,10 @@ def resolve_base(cli_base: str | None) -> str:
 
 
 def analyze_paths(root: Path, paths: list[str]) -> list[Finding]:
-    # Relativize BEFORE any lossy normalization: _to_posix() strips leading
-    # "/" and "." characters, which would mangle rooted absolute paths into
-    # relative-looking strings before _relativize() could resolve them.
     findings: list[Finding] = []
-    seen: set[str] = set()
-    for raw in sorted(paths):
-        rel = _relativize(root, raw)
-        if not rel or rel in seen:
-            continue
-        seen.add(rel)
-        findings.extend(analyze_file(root, rel))
+    relpaths = {rel for path in paths if (rel := to_relposix(path, root)) is not None}
+    for relpath in sorted(relpaths):
+        findings.extend(analyze_file(root, relpath))
     return findings
 
 
@@ -391,6 +388,17 @@ def selftest() -> int:
             ok = False
         print(f"{'PASS' if passed else 'FAIL'}  {label}  expect={expected!r} got={got!r}")
 
+    _root = repo_root()
+    check("absolute payload path -> repo-relative (was the --hook no-op bug)",
+          to_relposix(str(_root / "docs" / "decisions" / "x.md"), _root),
+          "docs/decisions/x.md")
+    check("to_posix keeps a leading dot (no lstrip corruption)",
+          _to_posix(".agents/workflow-overlay/x.md"),
+          ".agents/workflow-overlay/x.md")
+    check("outside-repo absolute path -> None",
+          to_relposix(str(_root.parent / "definitely_outside_x.md"), _root),
+          None)
+
     good = (
         "Google Search capture URL: "
         "https://www.google.com/search?q=niche+perfume&hl=en&gl=us&pws=0\n"
@@ -465,36 +473,35 @@ def selftest() -> int:
     check("scope excludes inbox", in_scope("docs/_inbox/x.md"), False)
     check("scope excludes code", in_scope(".agents/hooks/x.md"), False)
     root = repo_root()
+    rel_win = to_relposix("C:/elsewhere/docs/decisions/x.md", root)
     check(
-        "absolute hook payload path relativized into scope",
-        in_scope(_relativize(root, str(root / "docs" / "decisions" / "x.md"))),
+        "windows-drive path outside the repo never lands in scope",
+        rel_win is None or not in_scope(rel_win),
         True,
     )
+    rel_rooted = to_relposix("/docs/decisions/x.md", root)
     check(
-        "windows-drive path outside the repo stays out of scope",
-        in_scope(_relativize(root, "C:/elsewhere/docs/decisions/x.md")),
-        False,
+        "posix-rooted path outside the repo never lands in scope",
+        rel_rooted is None or not in_scope(rel_rooted),
+        True,
     )
+    rel_unc = to_relposix("//server/share/docs/decisions/x.md", root)
     check(
-        "posix-rooted path outside the repo stays out of scope",
-        in_scope(_relativize(root, "/docs/decisions/x.md")),
-        False,
-    )
-    check(
-        "unc path outside the repo stays out of scope",
-        in_scope(_relativize(root, "//server/share/docs/decisions/x.md")),
-        False,
+        "unc path outside the repo never lands in scope",
+        rel_unc is None or not in_scope(rel_unc),
+        True,
     )
     check(
         "production path: analyze_paths on rooted out-of-repo path yields nothing",
         analyze_paths(root, ["/docs/decisions/x.md"]),
         [],
     )
-    check(
-        "production path: backslash windows payload under root is in scope",
-        in_scope(_relativize(root, str(root) + "\\docs\\decisions\\x.md")),
-        True,
-    )
+    if os.name == "nt":
+        check(
+            "production path: backslash windows payload under root is in scope",
+            in_scope(to_relposix(str(root) + "\\docs\\decisions\\x.md", root) or ""),
+            True,
+        )
 
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1

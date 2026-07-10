@@ -153,6 +153,8 @@ not been run yet (see below). No capture gap remains.
      run in this environment (see caveats). This is the immediate next move.
    - **Fragrance ontology with tier/note reference data** — so product-tier and
      note-family distributions are *derived*, not operator-asserted. Build task.
+     *(Update 2026-07-10: since built —
+     `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml`.)*
 4. **Corrected from the first draft:** the earlier "add description capture to
    the watch-packet schema" shopping item was **wrong** — the description is
    already captured (`packet.metadata.short_description`, 85 affiliate links
@@ -162,6 +164,12 @@ not been run yet (see below). No capture gap remains.
    single-cycle grade by the owner rubric above.
 
 ## Product-mention / share-of-voice status (not yet run)
+
+> **Update (2026-07-10): since run.** The round-2 share-of-voice extraction
+> landed as `docs/research/aphrodite_depth_rehearsal_round2_share_of_voice_v0.md`,
+> and the fragrance reference graph consumed its output (see the "round-2 SoV
+> extraction" note in `fragrance_reference_v0.yaml`). The section below records
+> the historical pre-run state.
 
 The `silver__cleaning__product_mentions` lane (the share-of-voice input) is
 **not populated for GentsScents**. Only the two capture runners
