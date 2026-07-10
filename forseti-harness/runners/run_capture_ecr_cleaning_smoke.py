@@ -85,6 +85,7 @@ RETAIL_STRUCTURE_NOT_PRESERVED_REASON = "retail_structure_not_preserved"
 SOURCE_STRUCTURE_NOT_PRESERVED_REASON = "source_structure_not_preserved"
 INSTAGRAM_RAW_PULL_TRIGGER_PREFIX = "inspect_raw_before_instagram_use"
 RETAIL_RAW_PULL_TRIGGER_PREFIX = "inspect_raw_before_retail_use"
+RETAIL_PROJECTION_RESIDUAL_REASON = "projection_residual_present"
 
 _RETAIL_TRANSFORM_CONTEXT_ROW_KINDS = frozenset({"retail_pdp_product"})
 _RETAIL_TRANSFORM_METADATA_FIELDS = frozenset(
@@ -328,15 +329,25 @@ def _process_retail_entry(
         findings=findings,
     )
     handles: list[CleaningInputHandle] = []
-    for handle in base_handles:
+    for handle, row in zip(base_handles, projection.rows, strict=True):
         handle_payload = handle.model_dump(mode="json")
+        row_residuals = list(row.residuals)
+        row_raw_pull_triggers = (
+            [f"{RETAIL_RAW_PULL_TRIGGER_PREFIX}:{RETAIL_PROJECTION_RESIDUAL_REASON}"]
+            if row_residuals
+            else []
+        )
         handles.append(
             CleaningInputHandle.model_validate(
                 {
                     **handle_payload,
                     "ecr_ref": ecr_ref.model_dump(mode="json"),
                     "residuals": _dedupe_preserve_order(
-                        [*handle_payload.get("residuals", []), *handle_trace_notes["residuals"]]
+                        [
+                            *handle_payload.get("residuals", []),
+                            *row_residuals,
+                            *handle_trace_notes["residuals"],
+                        ]
                     ),
                     "warnings": _dedupe_preserve_order(
                         [*handle_payload.get("warnings", []), *handle_trace_notes["warnings"]]
@@ -344,6 +355,7 @@ def _process_retail_entry(
                     "raw_pull_triggers": _dedupe_preserve_order(
                         [
                             *handle_payload.get("raw_pull_triggers", []),
+                            *row_raw_pull_triggers,
                             *handle_trace_notes["raw_pull_triggers"],
                         ]
                     ),
@@ -384,6 +396,7 @@ def _process_retail_entry(
             "structure_preserved": structure_preserved,
             "capture_validity_supported": capture_validity_supported,
             "capture_validity_reasons": capture_validity_reasons,
+            "projection_residuals": list(projection.residuals),
         },
         "transform_candidates": _retail_transform_candidates(
             handles=handles,
