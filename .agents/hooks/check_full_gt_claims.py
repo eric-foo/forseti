@@ -32,7 +32,7 @@ HARD BOUNDARY
 MODES
   check_full_gt_claims.py --changed [--strict] [--base REF]   diff-scoped scan
   check_full_gt_claims.py [--strict] PATH [...]               whole-file scan (all lines treated as added)
-  check_full_gt_claims.py --hook                              PostToolUse advisory (stdin JSON; always exit 0)
+  check_full_gt_claims.py --hook                              PostToolUse advisory (stdin JSON; lines changed vs HEAD only, whole file for new/untracked files; emits additionalContext; always exit 0)
   check_full_gt_claims.py --selftest                          fixture cases; exit 0/1
 """
 from __future__ import annotations
@@ -204,6 +204,29 @@ def scan_whole_files(root: Path, paths: list[str]) -> list[str]:
     return findings
 
 
+def _added_lines_vs_head(root: Path, relposix: str) -> list[tuple[int, str]] | None:
+    """Working-tree lines added vs HEAD for one file; None on infra gap or
+    untracked file (callers fall back to a whole-file scan — for a new file the
+    whole file IS the change)."""
+    if _git(root, ["rev-parse", "--verify", "--quiet", "HEAD"])[0] != 0:
+        return None
+    rc, out = _git(root, ["diff", "--unified=0", "HEAD", "--", relposix])
+    if rc != 0:
+        return None
+    added: list[tuple[int, str]] = []
+    new_lineno = 0
+    for raw in out.splitlines():
+        if raw.startswith("@@"):
+            match = re.search(r"\+(\d+)", raw)
+            new_lineno = int(match.group(1)) if match else 0
+        elif raw.startswith("+") and not raw.startswith("+++"):
+            added.append((new_lineno, raw[1:]))
+            new_lineno += 1
+    if not added and _git(root, ["ls-files", "--error-unmatch", relposix])[0] != 0:
+        return None
+    return added
+
+
 def run_hook() -> int:
     try:
         payload = json.load(sys.stdin)
@@ -213,11 +236,36 @@ def run_hook() -> int:
     if not file_path:
         return 0
     root = repo_root()
-    findings = scan_whole_files(root, [file_path])
+    candidate = Path(file_path)
+    if candidate.is_absolute():
+        try:
+            relposix = candidate.resolve().relative_to(root.resolve()).as_posix()
+        except (OSError, ValueError):
+            return 0
+    else:
+        relposix = candidate.as_posix()
+    if not is_in_scope(relposix):
+        return 0
+    added = _added_lines_vs_head(root, relposix)
+    if added is None:
+        findings = scan_whole_files(root, [file_path])
+    else:
+        findings = []
+        for lineno, line in added:
+            message = classify_added_line(relposix, line)
+            if message:
+                findings.append(f"{relposix}:{lineno}: {message}")
     if findings:
         print(
-            "full-gt-claims (advisory): " + " | ".join(findings[:5]),
-            file=sys.stderr,
+            json.dumps(
+                {
+                    "hookSpecificOutput": {
+                        "hookEventName": "PostToolUse",
+                        "additionalContext": "full-gt-claims (advisory): "
+                        + " | ".join(findings[:5]),
+                    }
+                }
+            )
         )
     return 0
 

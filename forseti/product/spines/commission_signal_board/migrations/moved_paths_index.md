@@ -36,8 +36,8 @@ stale_if:
 | Current path | Spine pointer | Reason not moved |
 | --- | --- | --- |
 | `.agents/hooks/check_commission_signal_board_output.py` | `forseti/product/spines/commission_signal_board/harness/validator.md` | Shared manual/local hook substrate stays global during the pilot. |
-| `orca-harness/tests/unit/test_commission_signal_board_output_validator.py` | `forseti/product/spines/commission_signal_board/tests/validator_tests.md` | Executable tests stay with the harness until separate code-root migration authority exists. |
-| `orca-harness/tests/fixtures/commission_signal_board_outputs/` | `forseti/product/spines/commission_signal_board/tests/validator_tests.md` | Fixtures remain bound to the executable harness test suite. |
+| `forseti-harness/tests/unit/test_commission_signal_board_output_validator.py` | `forseti/product/spines/commission_signal_board/tests/validator_tests.md` | Executable tests stay with the harness until separate code-root migration authority exists. |
+| `forseti-harness/tests/fixtures/commission_signal_board_outputs/` | `forseti/product/spines/commission_signal_board/tests/validator_tests.md` | Fixtures remain bound to the executable harness test suite. |
 
 ## Historical Records Absent On Current Main
 

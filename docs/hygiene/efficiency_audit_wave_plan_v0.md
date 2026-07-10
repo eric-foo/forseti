@@ -47,12 +47,12 @@ stale_if:
 Execution order: T2 (rename bugs) → T1 (receipt archival) → T3 S-effort code bugs → T6 staleness → CER-3 drift.
 
 ### T2 · Rename-debt dead refs inside live mechanisms  `[bug]`
-- [ ] **HOOK-2** (W1) — `header_index --report-orca` walks non-existent `orca/product/spines` tree → repoint to `forseti/product/spines` — `.agents/hooks/header_index.py:736`
-- [ ] **HOOK-7** (W1) — `header_index` fallback reads legacy `orca_repo_map_v0.md` → repoint to `forseti_repo_map_v0.md` — `.agents/hooks/header_index.py:292`
+- [x] **HOOK-2** (W1·landed 2026-07-10, research-engine strategy lane) — `header_index --report-orca` walked non-existent `orca/product/spines`; repointed to `forseti/product/spines` (report now scans 282 durable .md) — `.agents/hooks/header_index.py`
+- [x] **HOOK-7** (W1·landed 2026-07-10, research-engine strategy lane) — `header_index` fallback repointed `orca_repo_map_v0.md` → `forseti_repo_map_v0.md` — `.agents/hooks/header_index.py`
 - [ ] **NAV-2** (W1) — repo map's pasted permissions/hooks JSON has desynced from live settings → delete JSON, point to `.claude/settings.json` — `docs/workflows/forseti_repo_map_v0.md:113-121,274-303,329-337`
-- [ ] **RE-CSB-4** (W1) — dead `orca_` paths in an active sha256 provenance-pin → repoint the 4 path strings (hashes stay; re-verify) — `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md:36,48,51,57`
+- [ ] **RE-CSB-4** (W1 — **blocked on content drift**, re-verified 2026-07-10, research-engine strategy lane) — dead `orca_` paths in an active sha256 provenance-pin. Re-verify FAILED: all 4 renamed `forseti_*` blobs hash-mismatch the pinned values (e.g. taxonomy want `5FE5C41E1036D1A2` got `79DB73942F08A665`), so sources drifted in content since the 2026-06-16 pin, not just in name. A mechanical repoint would launder drift past the spec's derived sections; needs a re-derivation pass like the spec's own 2026-06-16 one — `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md:36,48,51,57`
 - [ ] **APH-HAND-4** (W1) — dead pointer to renamed binding in active v1 handoff — `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v1.md:167`
-- [ ] **REF-5** (W1) — Armory README points to retired `docs/product/source_capture_toolbox/` → repoint to actual location — `forseti/product/spines/capture/core/source_capture_toolbox/README.md:726`
+- [x] **REF-5** (W1·landed 2026-07-10, research-engine strategy lane) — Armory README Folder Convention block repointed from retired `docs/product/source_capture_toolbox/` + `orca-harness/*` to the live spine folder + `forseti-harness/*` — `forseti/product/spines/capture/core/source_capture_toolbox/README.md`
 
 ### T1 · DCP-receipt archival backlog  `[bloat + live gate failure]`
 Destination for all: `docs/decisions/dcp_receipts_archive_v0.md` (verbatim move, keep ≤2 inline + pointer).
@@ -73,10 +73,10 @@ Destination for all: `docs/decisions/dcp_receipts_archive_v0.md` (verbatim move,
 - [x] **RE-HARN-6** (closed — NOT a live bug) — `model_info` is built in deterministic literal order (`audio_asr.py:70-96`), so the committed content-sha is already stable; `sort_keys` would only re-derive committed ASR records for no gain. No change (add a "field order is load-bearing" comment on the next legitimate pinned touch). Owner + independent cross-vendor (Codex) review confirmed. — `asr_packet.py:127`
 - [x] **RE-HARN-8** (closed — NOT a bug) — fragrantica review votes are discrete ordinal integers (`rating`/`longevity`/`sillage` from `perfume_votes` JSON, e.g. `5`/`3`/`2`); parfumo ratings are continuous floats. The int-vs-float difference is deliberate domain modeling, not an inconsistency; coercing would be output-shaping on a pinned module for no correctness gain. No change. Owner + independent cross-vendor (Codex) review confirmed. — `cleaning/fragrantica_lake.py:312`
 - [x] **RE-HARN-9** (landed) — deleted the structurally-unreachable `comment_reconciliation_mismatch` hard-raise guard (false assurance); the real, reachable reconciliation check is the tested batch quality-flag in `run_reddit_batch_quality_summary.py:164-167` (`comments_parsed != observable_comment_nodes`). Behavior-neutral; reddit tests green. — `reddit_consolidation/parser.py`
-- [ ] **APH-IMPL-3** (W1) — attempt rows always `receipt_pointer=null` (reads absent key) — IG heartbeat `control.py:497`
-- [ ] **APH-IMPL-1** (W1) — session artifacts keyed by `bucket` not `(bucket,lane)` → roster/summary clobber + inflated telemetry — IG heartbeat `control.py:264,292-294,332,536`
-- [ ] **HOOK-1** (W1) — Google-route hook no-ops on every real edit (absolute path never normalized) — `.agents/hooks/check_search_surface_google_route.py:106-117,206-209,298-303`
-- [ ] **HOOK-8** (W1) — `check_full_gt_claims --hook` emits stderr (never reaches context) + scans whole file — `.agents/hooks/check_full_gt_claims.py:207-222`
+- [x] **APH-IMPL-3** (W1·landed) — `receipt_pointer` no longer reads an absent key — commit `668b0e0d` (PR #830), regression tests in `forseti-harness/tests/unit/test_ig_daily_heartbeat_control.py`
+- [x] **APH-IMPL-1** (W1·landed) — session artifacts rekeyed to `(bucket, lane)`; 2-lane no-clobber regression test — commit `668b0e0d` (PR #830)
+- [x] **HOOK-1** (W1·landed 2026-07-10, research-engine strategy lane) — hook payload absolute paths now relativized before `in_scope()` (`_relativize`); selftest cases added; e2e probe emits findings — `.agents/hooks/check_search_surface_google_route.py`
+- [x] **HOOK-8** (W1·landed 2026-07-10, research-engine strategy lane) — `--hook` now emits `hookSpecificOutput.additionalContext` JSON on stdout (was stderr, lost) and scans only lines changed vs HEAD (whole file only for new/untracked files) — `.agents/hooks/check_full_gt_claims.py`
 
 ### T6 · Staleness debt + 1 render bug  `[dead-reference / staleness]`
 - [ ] **APH-HAND-3** (W1) — unpaired ``` fence opens code block to EOF wrapping leaked courier-prompt; delete lines — `docs/prompts/handoffs/aphrodite_fragrance_subontology_build_handoff_v0.md:247-255`

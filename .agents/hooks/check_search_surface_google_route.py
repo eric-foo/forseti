@@ -107,6 +107,19 @@ def _to_posix(path: str) -> str:
     return path.replace("\\", "/").lstrip("./")
 
 
+def _relativize(root: Path, raw: str) -> str:
+    """Map an absolute path (hook payloads carry absolute file_path values) to a
+    repo-relative POSIX path; pass repo-relative paths through unchanged. Without
+    this, in_scope() never matches hook-delivered paths and the hook no-ops."""
+    candidate = Path(raw.replace("\\", "/"))
+    if candidate.is_absolute():
+        try:
+            return candidate.resolve().relative_to(root.resolve()).as_posix()
+        except (OSError, ValueError):
+            return _to_posix(raw)
+    return _to_posix(raw)
+
+
 def in_scope(relpath: str) -> bool:
     rel = _to_posix(relpath)
     if not rel.endswith(".md"):
@@ -204,7 +217,7 @@ def analyze_text(path: str, text: str) -> list[Finding]:
 
 
 def analyze_file(root: Path, relpath: str) -> list[Finding]:
-    rel = _to_posix(relpath)
+    rel = _relativize(root, relpath)
     if not in_scope(rel):
         return []
     path = root / rel
@@ -439,6 +452,17 @@ def selftest() -> int:
     check("scope docs decisions", in_scope("docs/decisions/x.md"), True)
     check("scope excludes inbox", in_scope("docs/_inbox/x.md"), False)
     check("scope excludes code", in_scope(".agents/hooks/x.md"), False)
+    root = repo_root()
+    check(
+        "absolute hook payload path relativized into scope",
+        in_scope(_relativize(root, str(root / "docs" / "decisions" / "x.md"))),
+        True,
+    )
+    check(
+        "path outside the repo stays out of scope",
+        in_scope(_relativize(root, "C:/elsewhere/docs/decisions/x.md")),
+        False,
+    )
 
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
