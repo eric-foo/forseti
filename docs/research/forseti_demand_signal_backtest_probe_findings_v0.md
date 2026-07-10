@@ -287,10 +287,15 @@ Probe-informed signal-role hierarchy (design input for capture priorities and
 any real backtest; `product_learning`-capped):
 
 1. **Demand intensity (lead): live SKU-state purchase proxies.** Amazon
-   "bought in past month" badge (published purchase-rate state; only the
-   current value is shown -> Class-A capture candidate; snapshot preservation
-   unverified in this probe), bestseller rank (rendered in every sampled
-   snapshot including late-2025), price/availability/stockout state.
+   "bought in past month" badge — published purchase-rate state in coarse
+   buckets; only the current value is shown -> capture-forward Class-A
+   stream. VERIFIED 2026-07-10: server-rendered logged-out and preserved in
+   archives — the 2025-06-12 Wayback capture of ASIN B06X6J5266 carries
+   "40K+ bought in past month" with embedded `showFaceout:true`,
+   `loggedIn:false` (so live logged-out capture works, and sparse archived
+   badge history exists back toward the badge's ~2023 launch). Then
+   bestseller rank (rendered in every sampled snapshot including late-2025)
+   and price/availability/stockout state.
 2. **Authenticity (co-primary): review forensics, not review counting.**
    Star-mix distribution shifts, velocity anomalies vs purchase rate, and
    purge/merge events (all three observed live in this probe) as
