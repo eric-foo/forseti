@@ -301,17 +301,161 @@ August 2025 launch, revenue milestones after the cutoff, or holiday
 discounting; no outcome-backward reasoning), and grading per the stage-1
 rubric.
 
-## Observed Reads
+## Observed Reads (compressed; full verbatim traces attached to the lane PR as a comment)
 
-`PENDING`.
+Both readers produced complete per-item derivations over all 15 items with
+explicit sub-claim maps (A: six claims; B: six claims, near-identical
+decomposition). Highlights against the planted expectations:
+
+- **E1 (#ad):** both ruled it non-probative promotion; both independently
+  noted its one real informational value — it proves the wave has *paid
+  amplification components*. A used `unknown` ("manufactured content, not a
+  measurement of response"); B "uninformative."
+- **E5/E6 (safety scare):** both split the item per claim exactly as the
+  doctrine demands — load-bearing for "a ~12M-view controversy exists"
+  (the retailer must plan around it regardless of medical truth), near-zero
+  for the brand's "scientifically impossible" rebuttal (both called the
+  absolute language itself a red flag). Neither integrity-routed the scare
+  (correct: risk to the wave, not fake evidence). A additionally
+  step-10-routed the right object unprompted: the *view counts and wave
+  authenticity* (organic vs seeded/amplified), flagged unresolved with
+  verification named and explicitly not allowed to spill onto the audited
+  financials.
+- **E10 (FY2024 results):** load-bearing anchor in both, each declaring its
+  cap — A: overseas-aggregate, not US-channel evidence; B: the temporal
+  boundary (data stops one month before the controversy window).
+- **E11 (TJX):** the ambiguity fired as designed, in opposite declared
+  directions — A discounted it (off-price channel, predecessor device,
+  pre-controversy) and chose it as its steelman; B elevated it to
+  load-bearing for the competitive-urgency claim ("a comparable retailer
+  already committed at scale"). Both cited the same facts.
+- **E15 (systematic review):** the prestige-vs-role-fit test passed
+  emphatically. B: "methodological prestige must not be allowed to inflate
+  weight where role-fit is absent," capped it near-zero for efficacy and
+  chose it as its steelman. A weighted the same scope-gap as load-bearing
+  for a different claim ("there is no clinical evidence base, pro or con,
+  for these modalities"). Same fact, different claim assignment.
+- **E4 vs E7 (dermatologist tension):** flagged and carried unresolved in
+  both; neither averaged. Both independently noted E4's refusal to
+  overclaim raises her credibility.
+- **E9 booth traffic:** both severed the item into sub-facts and discounted
+  the attendance figure as a vanity metric while crediting the disclosed
+  revenue figure.
+
+**Verdicts (before reveal):** A — staged/limited rollout, bounded
+high-volume doors for the holiday window, pre-agreed sell-through and
+return-rate thresholds to expand toward nationwide in early 2026, fast
+de-list/discount rights; confidence moderate. B — staged/limited rollout,
+test cohort with holdback of the full commitment, checkpoint keyed to
+Q1/Q2-2025 sell-through and return data; confidence moderate. Both
+explicitly rejected passing (the competitive-urgency evidence is real) and
+full commitment (the post-controversy window is an evidence blind spot).
 
 ## Tell-Audit, Agreement Audit, Reveal, And Grading
 
-`PENDING`.
+**Tell-audit: CLEAN, both reads.** No assertion of the Ulta partnership,
+the August 2025 launch as fact, post-cutoff revenue milestones, or holiday
+discounting; no outcome-backward reasoning found; every load-bearing figure
+traces to a packet item. (Named residual: absence of tells is not proof of
+zero parametric influence; the de-memorization steps — retailer unnamed,
+background-beliefs clause — are the mitigations.)
+
+**Agreement audit (owner-adopted standard):**
+
+- **Per-item direction: 13/15 identical.** The two exceptions are the
+  category base-rate items, where the labels shade without substantive
+  disagreement: E13 (A "opposes uncritical full commitment — caps
+  confidence rather than determining direction"; B "hedges — the analytic
+  lens for the fade question") and E14 (same shading, milder). Both readers
+  used both items identically in function: as caps on commitment size.
+- **Load-bearing facts: convergent.** Same facts cited, same discounts
+  (490% figure as relayed marketing; booth traffic as vanity; TJX channel
+  structure; E10's boundary), same conflict flags, same
+  missing-evidence core.
+- **Ceiling-binding item: same constraint, different item IDs.** A's
+  ceiling: E5's confined probative value plus the E4/E7 tension. B's
+  ceiling: E10/E12 stopping just before the controversy window. Nominally
+  different items — but both name the *identical underlying fact*: the
+  packet cannot show demand after January 2025. Both closings then name the
+  same single most-impactful missing item: post-controversy
+  sell-through/return data.
+- **Role wobble: scales with packet size.** Roughly four items (E8, E9's
+  revenue sub-fact, E11, E12, plus the E15 claim-assignment split) sit at
+  load-bearing-for-a-sub-claim in one read and supporting in the other —
+  all declared, none silent, verdict unaffected. The adopted tolerance
+  ("a single declared wobble") was calibrated on an 8-item synthetic
+  packet; a 15-item, six-claim real packet produces proportionally more
+  label variance with no substantive disagreement underneath. See Finding
+  R-1.
+- **Verdict direction: identical** (staged rollout, post-controversy
+  checkpoint, expansion path, moderate confidence — neither full commit nor
+  pass).
+
+**Reveal (against the stage-1 sealed outcome):** the real-world actor
+committed to the full nationwide rollout; the August 2025 launch was large
+and successful in-window ($100M+ franchise revenue, 1M+ units reported);
+by Black Friday (November 2025) the flagship device carried discounts up to
+~44% — markdown exposure materialized at full commitment scale.
+
+**Grading (pre-registered rubric):**
+
+1. **Direction fit — met, both.** The packet's load-bearing evidence
+   supported real-and-large current demand with unprovable durability; both
+   verdicts said exactly that.
+2. **Right-sizing — met, both.** Both distinguished committing to the wave
+   now (which they did, bounded) from betting on full-price durability past
+   the holiday peak (which they refused, with named triggers). Against the
+   mixed outcome, the staged calls capture holiday upside through bounded
+   doors while avoiding the markdown exposure that materialized; the
+   evidence-right assessment is **low decision-quality regret for both**.
+   Honest residual stated: the real full commitment captured more in-window
+   upside than a staged rollout would have — but nothing in the packet
+   could have certified the durability that bet required, so under the
+   regret-at-the-evidence-frontier rule the staged call stands as the
+   right-sized one; the full commit was a higher-variance bet the packet
+   could not underwrite.
+3. **Anticipation — met emphatically, both.** Both named post-controversy
+   sell-through/return/markdown data as the single most-impactful missing
+   item — and the real uncertainty resolved precisely as discount-depth
+   data. Reader A additionally pre-specified "contractual right to
+   discount/de-list quickly," the exact exposure that materialized.
+4. **No outcome laundering:** this grading cites packet items and the
+   sealed outcome's shape only.
 
 ## Findings And Disposition
 
-`PENDING`.
+- **R-1 (agreement-standard refinement candidate — owner's call, not
+  applied here).** On a real multi-claim packet, the adopted standard's
+  stable core held (direction, facts, binding constraint, verdict), but two
+  item-ID-level comparisons frayed without any substantive disagreement:
+  the ceiling-binding *item* differed while the ceiling-binding *fact* was
+  identical, and role wobbles scaled beyond "a single" with packet size.
+  Candidate refinement: compare the ceiling-binding **constraint** (the
+  named fact that caps confidence) rather than the item ID, and phrase the
+  wobble tolerance proportionally ("declared wobbles on multi-claim items")
+  rather than as a count. Deliberately not folded — second consecutive
+  standard change would be wording-iteration without owner sign-off.
+- **R-2 (minor vocabulary drift, observed twice).** Readers use `unknown`
+  for "this item is not probative for this claim" (a role statement) as
+  well as the doctrine's defined "bearing cannot be determined." Harmless
+  here (always declared, never evasive), but the two meanings overlap
+  `not_relied_on`; one clarifying line in the doctrine would close it.
+  Candidate for the next doctrine touch, not urgent.
+- **R-3 (positive result).** First real-evidence support, at
+  `product_learning`: on a 15-item live-history packet the Instruction Core
+  produced clean tell-audits, refused the source-class ladder under real
+  temptation (a peer-reviewed review capped near-zero on role fit; a
+  disclosed ad read as evidence of paid amplification rather than demand),
+  split a real safety scare per claim without integrity-laundering it,
+  independently derived the packet's genuine blind spot as the binding
+  constraint, and produced two convergent, right-sized, low-regret staged
+  verdicts under opposite framings.
+
+**Disposition:** the doctrine now carries three probe rounds — two
+synthetic, one real — all `product_learning`, all same-model-family. Open
+for owner adjudication alongside the doctrine: the R-1 standard refinement.
+Next-stronger evidence classes remain: cross-family reads/grading, and a
+Level 1 conductor-run backtest with a zero-spoiler constructor.
 
 ## Claim Classification
 
