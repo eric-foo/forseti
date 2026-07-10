@@ -178,20 +178,144 @@ expected tolerance behavior (pass with the known one-band give). Auditor
 misses (expectations wrong, not reads wrong) are recorded as expectation
 errors, not read failures.
 
-## Observed Reads
+## Observed Reads (compressed per probe v2 convention; full verbatim traces attached to the lane PR as a comment)
 
-`PENDING` — filled after the pre-registration commit; see the following
-sections in the next revision of this artifact.
+Both readers produced complete per-item derivations (claim + fitness target
+stated before every weight) and complete instruction-11 closings. Compressed
+comparison — direction / qualitative level / role per reader:
+
+| Item | Reader A (opportunity) | Reader B (caution) | Agree? |
+| --- | --- | --- | --- |
+| E1 Reddit thread | supports; substantial; **load_bearing** for quality/durability, not_relied_on for demand-trend ("no volume or trajectory data here") | supports; medium-high for organic-grounding + quality, medium for persistence; **load_bearing** for organic grounding | direction ✓; role set ✓ (both load-bearing; different primary sub-claim — see Finding P-2) |
+| E2 TikTok #ad | nominally supports awareness; low; not_relied_on ("cannot discriminate real demand amplified from paid campaign manufacturing appearance") | nominally supports; low; not_relied_on (placement + incentive cap) | ✓ |
+| E3 press-kit trio | "collapse to one promotional source reprinted three times, not three data points"; negligible; not_relied_on; integrity-flagged (fake independence) with named verification | "must not be read as three independent data points"; low; not_relied_on; reclassified to promotion via the wording tell | direction ✓; level adjacent (negligible vs low); trap avoided by both |
+| E4 distributor report | strongly supports; high; **load_bearing** ("strongest costly-behavior evidence in the packet"; two layers: full-price consumers + 31/40 boutique reorders) | strongly supports; high; **load_bearing** ("closest analogue to the retailer's own decision"); discounts declared (channel incentive, sample framing, summer→winter gap) | ✓ |
+| E5 fad essay | opposes; low-to-moderate as direct evidence, moderate as general caution; supporting, "must be carried into the verdict's confidence, not averaged away" | opposes; low-medium; supporting for risk-framing, not_relied_on for current trajectory; dedicated conflict-handling section | ✓ |
+| E6 brand scarcity | nominally supports; low; not_relied_on; integrity-flagged (manufactured scarcity), verification named (check production volumes via the E4 channel) | nominally supports; low; not_relied_on; integrity-flagged, verification named (batch size vs claimed sellouts); noted as non-additive with E4 | ✓ |
+| E7 search trend | moderately supports; moderate; supporting ("does not raise the verdict's ceiling on its own") | supports current-trajectory claim, hedges persistence claim; medium-high for trajectory, low for persistence; **load_bearing for the trajectory sub-claim only** | direction ✓; level within one band; **role label differs** — Finding P-1 |
+| E8 2019 category stat | nominally mildly supportive; negligible; not_relied_on ("'industry report' framing should not lend it more authority than its staleness allows" — explicit anti-source-class move) | mildly supports category-not-dying; very low; not_relied_on (temporal cap) | ✓ |
+
+**Closings (instruction 11), both complete:**
+
+- A: load-bearing = {E4, E1}; ceiling rests on the weaker ("if E4 fails a
+  boutique spot-check, or E1's gasket defect scales into winter returns").
+  Steelman = E5 + what would make it strong (GripMug-specific deceleration
+  data, or demonstrated mechanism match to the two collapsed comparators).
+  Missing evidence: later Trends/restock reads; spot-verification of E4 and
+  Corvo production volumes behind E6; a denominator on E1's gasket complaints.
+- B: load-bearing = {E4, E7, E1}; ceiling explicitly rests on the weakest =
+  E1 (most anecdotal, unresolved astroturf flag). Steelman = E5 + what would
+  make it strong (same substance as A). Missing evidence: cycle-over-cycle
+  distributor deltas; competitor/allocation evidence; commercial terms;
+  clarification whether E4's 40 boutiques are the full book.
+
+**Verdicts:** A — confirm the allocation, commit a strong majority of volume,
+negotiate staging/reopeners keyed to the next Trends/restock/return reads.
+B — commit meaningful non-maximal exposure in two tranches, base tranche
+anchored to E4, reserve tranche released on an early-fall sell-through read.
+Both: bounded commit — neither avoid nor unconditional maximum. Both carry
+E5's surviving concern into confidence wording (A: "moderately high that
+committing is right; only moderate at full unhedged scale"; B:
+"moderate-to-good on current demand being real; low-to-moderate on
+unattenuated persistence through winter").
 
 ## Audit Against Pre-Registered Criteria
 
-`PENDING`.
+1. **Per-item direction identical — PASS (8/8).** No item flipped direction
+   across framings.
+2. **Load-bearing set identical — PARTIAL.** Ceiling-determining subset
+   identical ({E4, E1}; both effectively rest the ceiling on E1/weaker-of-two)
+   and matches the pre-registered expectation ("E4 certainly; E1 likely;
+   nothing else"). Flat set labels differ on E7: A supporting; B load-bearing
+   for the current-trajectory sub-claim only. The difference is declared, not
+   silent, and traces to per-claim decomposition granularity (instruction 1
+   invites per-claim weighing; instruction 11 asks for one flat load-bearing
+   list). See Finding P-1.
+3. **Verdict direction identical — PASS.** Both bounded-commit with staged
+   exposure; matches the pre-registered expected direction.
+4. **Levels within one band, attributable — PASS.** Largest gap: E7
+   (moderate vs medium-high on the trajectory sub-claim), attributable to B's
+   declared per-claim split; E3 negligible-vs-low adjacent; all others same
+   band. No silent drift found.
+5. **Trap handling — PASS.** E5 divergence-flagged and not averaged in both
+   (A: "carried into the verdict's confidence, not averaged away"; B:
+   dedicated conflict section downgrading E5 from "already fading" —
+   contradicted — to "could still fade by winter" — not ruled out). E6
+   integrity-routed in both with named verifications. E3 collapsed to one
+   origin in both.
+6. **FM sweep + instruction-following marks — PASS.** No FM-1..FM-10 pattern
+   found in either trace. Notable positive instances: anti-FM-1 (A's explicit
+   refusal of E8's "industry report" authority; both judged E2 on placement
+   "regardless of genuine hands-on contact" / "however polished"); anti-FM-8
+   (both denied E1 a prevalence reading: "can show a cohort exists without
+   telling us how large"); anti-FM-10 (both split E1's quality claim from its
+   demand claim and E7's trajectory claim from persistence). Numeric facts
+   from the packet were cited but no weight was numeric or computed. Claim +
+   fitness target precede every weight; closings complete.
+
+**Framing-drift observation (contrast with probe v2):** probe v2 found a
+systematic half-notch valence drift (strengths-first read higher than
+concerns-first). Here, no directional drift appeared: the caution-framed
+reader B did not read lower across the board (it elevated E7 for the
+trajectory sub-claim). Consistent with v2's cross-model addendum — forced
+cap/discount/neutral classification plus explicit fitness-target derivation
+appears to anchor the dial. One case, two same-family readers: suggestive,
+not proven.
+
+**Auditor expectation errors (pre-registered rule):** the expectation table
+oversimplified per-claim structure twice — E1's expected direction named the
+demand claim where reader A weighed it primarily on quality/durability (both
+legitimate claims the item bears on), and E7's expected role ("supporting")
+did not anticipate a per-sub-claim load-bearing elevation. Recorded as
+expectation simplifications, not read failures.
 
 ## Findings And Implications For The Doctrine
 
-`PENDING` (one already banked from method construction: Instruction Core step
-10's repo pointer is not self-contained for no-repo readers — see Named
-deviation above).
+- **P-1 (main finding — wording hardening candidate).** Instruction Core step
+  11 and Required Behavior 4 ask for one flat `load_bearing /
+  supporting / not_relied_on` list, but instruction 1 mandates per-claim
+  weighing — so two faithful readers can emit different flat sets while
+  agreeing on every fact (observed on E7). The partition that matters
+  downstream is the set carrying the **verdict** (whose weakest member the
+  trace's ceiling rationale must cite; C3's own contract derives its cap by
+  its own rules and declares no partition input). Candidate fix: step 11 and
+  Required Behavior 4 say "the load-bearing items **for the verdict**";
+  per-sub-claim role splits stay legal and declared. Minimum closure: the
+  doctrine wording pins which partition the paired-read comparison is judged
+  on.
+- **P-2 (observation, no fix required).** Both readers made E1 load-bearing
+  but for different primary sub-claims (quality/durability vs organic
+  grounding). Facts and direction identical; the variance is which sub-claim
+  a multi-claim item leads with. Same root as P-1; covered by its fix.
+- **P-3 (wording hardening candidate).** Step 10's "do not weigh **it**
+  here" is ambiguous between the risk and the item. Both readers resolved it
+  sensibly (merits-weigh the item; route the risk with a named verification)
+  — which matches the doctrine's intent — but a strict reader could exclude
+  the whole item. Candidate fix: "do not let the risk move the weight here —
+  flag it for separate verification; weigh the item's non-risk merits
+  normally."
+- **P-4 (banked at dispatch).** Step 10's repo pointer ("Rule 3, C2 ledger
+  read contract") is not self-contained for no-repo readers; the probe prompt
+  had to adapt it. Candidate fix: the Instruction Core carries the
+  self-contained flag-and-verify wording, with the repo pointer as a
+  bracketed annotation for repo-capable readers.
+- **P-5 (positive result, product_learning).** At Sonnet reader tier, the
+  Instruction Core produced full per-item derivations, caught all six planted
+  traps in both framings, and held direction/verdict/level stability within
+  the doctrine's declared tolerance on this case. The instruction content is
+  followable as-is by a mid-tier model with no repo access.
+
+## Disposition (same lane, post-probe)
+
+The doctrine was hardened in the same lane after this probe, folding P-1, P-3,
+and P-4 (plus two delegated checker reviews) into its wording — see the
+doctrine's second `direction_change_propagation` receipt. This probe's
+observations are against the **pre-hardening** Instruction Core; the
+pre-registered sections above are preserved verbatim as the point-in-time
+record. The hardened core (verdict-carrying partition wording, self-contained
+step 10, widened step-11 missing-evidence scope, new FM-11..FM-14) has **no**
+probe evidence yet; a re-run under the hardened wording is the natural next
+probe (v1) if the owner wants one before a real-case read.
 
 ## Claim Classification
 
