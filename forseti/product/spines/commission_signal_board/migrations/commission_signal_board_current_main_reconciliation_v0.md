@@ -49,6 +49,13 @@ rename to Prompt Structure / Prompt Structure Rules has not landed on
 present on the pinned main commits; re-pin and update it after that rename
 lands.
 
+Update (2026-07-10): that rename has since landed on `origin/main` — the live
+tree now carries `prompts/forseti_commission_signal_board_prompt_structure_v0.md`
+and `authority/forseti_commission_signal_board_prompt_structure_rules_v0.md`
+(with `orca_` → `forseti_` stem renames across the spine). The pinned lists
+below stay as-recorded for those baselines; resolve old names via
+`migrations/moved_paths_index.md`.
+
 The live CSB spine path remains:
 
 ```text
