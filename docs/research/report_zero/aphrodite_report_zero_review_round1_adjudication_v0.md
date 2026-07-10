@@ -140,15 +140,16 @@ patch (8QpC36Q_eeM giveaway receipt dropped "for this" without an ellipsis) —
 fixed by restoring the words verbatim; touched-delta clean (receipt strings
 only); 16/16 JSON parse; M2 sums stand.
 
-Criterion-5 evidence now on file: round-3 cross-vendor return with all prior
+Criterion-5 evidence on file: round-3 cross-vendor return with all prior
 findings verified closed and one residual, that residual accepted + patched +
 verified closed by the bounded in-family recheck under the ratified tiering
-rule. **Whether this satisfies the gate criterion's "cross-vendor review
-returns blocker/major-free" letter is the owner's call**: accept the
-round-3-plus-recheck evidence at `product_learning` tier (the
-proportionality-by-assurance-tier rule in delegated-review-patch.md), or
-courier the round-3 prompt once more for a literally clean cross-vendor
-return. The home lane does not decide this.
+rule. **Owner decision 2026-07-11: accepted as criterion-5 evidence at
+`product_learning` tier; a further courier round was declined** (the
+proportionality-by-assurance-tier rule in delegated-review-patch.md). The
+named residual of that acceptance: the final closure verification is
+same-vendor, so the strict "survives-cross-vendor-with-no-new-seam" standard
+is claimed only up to the round-3 return, not for the last nine receipt
+strings — bounded and accepted below buyer-proof tier.
 
 ## Non-claims
 
