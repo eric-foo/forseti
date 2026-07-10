@@ -19,6 +19,13 @@ stale_if:
   - The patched hooks are materially rewritten.
 ```
 
+reviewed_by: unrecorded (delegated adversarial reviewer; findings returned via owner in-thread, 2026-07-10)
+authored_by: Anthropic Claude (Fable 5) — research-engine strategy lane (author of the reviewed change and this adjudication)
+review_use_boundary: >
+  The reviewer's findings and this adjudication are decision input only — not
+  approval, not validation, not mandatory remediation, and not executor-ready
+  patch authority.
+
 - Review input: delegated adversarial code review of `e16b5e39` (read-only,
   findings-first), returned 2026-07-10. Review prompt:
   `docs/prompts/reviews/research_engine_hygiene_rider_guard_fixes_delegated_adversarial_code_review_prompt_v0.md`.
