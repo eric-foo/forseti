@@ -29,7 +29,7 @@ stale_if:
 
 ## Status
 
-`GTM_DESIGN_CAPTURED_PENDING_OWNER_SIGNOFF`. Owner-directed capture from the
+`GTM_DESIGN_CAPTURED_DEFERRED_FAR_FUTURE`. Owner-directed capture from the
 2026-07-10 demand-signal probe readout thread ("micro panel - that's very
 interesting. let's put that in the GTM document and explain why in detail").
 Enacts nothing: no panel exists, no recruitment is authorized, no SP-API
@@ -38,6 +38,19 @@ direction referenced here is an in-thread owner lean the owner explicitly
 declined to formalize yet ("we dont formalize it yet"); this document designs
 one motion inside that unformalized direction. Claims are
 `product_learning`-capped.
+
+**Sequencing (owner, 2026-07-11): the SP-API panel is deferred to the far
+future.** Once the developer-registration / app-review / seller-recruitment
+weight was clear, the owner deferred it. Consequence — deferring the panel
+defers ABSOLUTE-UNIT calibration, not the demand-signal product: the
+near-term work (public capture of rank/badge/price per the Amazon
+route-candidate note; the retrospective and forward earnings-print backtest)
+runs on RELATIVE signals plus Wikipedia pageviews and EDGAR outcomes, none of
+which need the panel — this is exactly what the probe scored. If absolute-unit
+levels are wanted before the panel exists, the interim option is a paid vendor
+licence (Keepa/Cobalt, derive-rights check required), not a reason to pull the
+panel forward. The design below is preserved intact for whenever calibration
+is picked up.
 
 ## What a consented SP-API micro-panel is
 
