@@ -184,48 +184,96 @@ Measurable definition of done (baseline → target):
 7. Judgment-input integrity: % of new product-learning cases using ECR-derived
    (not hand-authored) evidence: **0% → 100%**.
 
+## Owner Decisions Applied (2026-07-10)
+
+The owner adjudicated this record on 2026-07-10. Applied here; the plan below
+is updated to match:
+
+- **Scope narrowed to the research engine (CSB, Scanning, Capture).** ECR,
+  Cleaning, Judgment, and buyer proof are deferred — kept, not retired. P0 is
+  re-scoped to STOP at the Capture→ECR handoff line. See
+  `docs/decisions/forseti_research_engine_ecr_onwards_deferral_v0.md`. This
+  removes done-condition #7 (ECR-derived judgment evidence) from research-engine
+  scope; it returns when the deferral lifts.
+- **God-tier target recorded** as the durable north star:
+  `docs/decisions/forseti_research_engine_god_tier_target_v0.md`.
+- **P0 + hygiene rider commissioned.** Hygiene rider largely landed this turn
+  (below). P0 commissioned as
+  `docs/research/forseti_research_engine_p0_golden_thread_commission_v0.md`
+  (scoped, not yet executed).
+- **W2 (demand-origin access)** owner-owned ("Basenotes will be fixed") — P1
+  coordinates with that fix rather than duplicating it.
+- **W3 (93 runners)** investigated — the "mostly superseded" hypothesis is
+  largely false; see the Runner Census appendix.
+
 ## The Plan
 
 Ordering logic (Cynefin: complex → risk-first probe before infrastructure):
 close the loop once manually before automating it; pull forward only the access
 wins that are already discovered/parked; add standing substrate only where
-volume proves the need.
+volume proves the need. Scope is now research-engine-only (ECR-onwards
+deferred).
 
-### H — Hygiene rider (runs alongside P0; small, high tax-relief)
+### H — Hygiene rider (LANDED 2026-07-10 on this lane, except where noted)
 
-- Fix stale `orca-*` pointers in live surfaces: CSB `spine.yaml` /
-  `harness/validator.md` / `tests/validator_tests.md`, `ecr_spine_submap_v0.md`,
-  hook dead refs (HOOK-2, HOOK-7).
-- Fix the two buggy guards (HOOK-1 path normalization; HOOK-8 stderr + scope).
-- Reconcile the efficiency-audit checklist against merged PRs (APH-IMPL-1/-3).
-- Merge-or-close the two parked retail findings (Sephora/Bazaarvoice, Ulta
-  Apollo-state) — already-discovered value currently unreachable from a clean
-  checkout.
+- **[done]** Stale `orca-harness/` pointers repointed to `forseti-harness/` in
+  the CSB spine's own canonical surfaces: `spine.yaml` (+ repo_map →
+  `forseti_repo_map_v0.md`), `tests/validator_tests.md`, `README.md`,
+  `migrations/moved_paths_index.md`; and `ecr_spine_submap_v0.md`. (These were
+  fresh findings, not in the efficiency-audit wave plan.)
+- **[done]** Two buggy guards fixed + selftested: HOOK-1
+  (`check_search_surface_google_route.py`) now relativizes absolute hook-payload
+  paths so it no longer no-ops; HOOK-8 (`check_full_gt_claims.py`) now emits
+  `additionalContext` JSON on stdout (was lost on stderr) and scans only lines
+  changed vs HEAD. Also HOOK-2/HOOK-7 (`header_index.py` `orca` → `forseti`) and
+  REF-5 (Armory folder-convention block).
+- **[done]** Efficiency-audit checklist reconciled: APH-IMPL-1/-3 marked landed
+  (PR #830); HOOK-1/2/7/8 + REF-5 marked landed this turn.
+- **[blocked → routed]** RE-CSB-4 (scan-core sha256 provenance pins): re-verify
+  FAILED — all four renamed `forseti_*` sources hash-mismatch their pinned
+  values, so they drifted in *content*, not just name. A mechanical repoint
+  would launder drift; it needs a re-derivation pass, not a hygiene edit.
+  Recorded in the wave plan.
+- **[owner/other-lane]** Merge-or-close the two parked retail findings
+  (Sephora/Bazaarvoice, Ulta Apollo-state) — in unmerged worktrees this lane
+  cannot see.
 
-### P0 — Golden Thread: close the loop once, for real, on the ratified vertical
+Note: HOOK-1/2/7/8, REF-5, RE-CSB-4 are also tracked by the separate
+efficiency-audit lane's wave plan; landing them here (with that plan
+reconciled) retires them from that lane to avoid double-work.
+
+### P0 — Golden Thread: close the Scanning→Capture loop once, for real
+
+**Commissioned** as
+`docs/research/forseti_research_engine_p0_golden_thread_commission_v0.md`
+(scoped, not yet executed). Re-scoped to the research-engine boundary: it STOPS
+at Capture→ECR-handoff-ready and does not run ECR/Cleaning/Judgment.
 
 One commissioned decision (beauty/personal-care candidate per ICP; extending an
-existing board is acceptable) driven end-to-end:
+existing board is acceptable) driven through the engine:
 
 1. CSB board (fresh or lineage-extended) → bounded scan → capture_requests
-   emitted **into a new minimal lifecycle ledger** (requested → bound →
-   captured → admitted → declined-with-reason). The ledger is the smallest
-   artifact that makes fulfillment visible forever after.
+   emitted **into a new minimal lifecycle ledger** (requested → route_bound →
+   captured → handoff_ready → declined-with-reason). The ledger is the smallest
+   artifact that makes fulfillment visible forever after, and the core new
+   piece P0 builds.
 2. Execute the requests via already-proven routes across **>=2 independent
    demand-origin families**: fragrance-native DB (Fragrantica proven; Parfumo
    session route) + Reddit fragrance/beauty subreddits via the proven API/
    screening-read route + retail review rows.
-3. Data-lake raw-admission/hash checks actually run; ECR derivation
-   (SP-1/2/3/6 + SP-5) on >=1 real vertical packet; Cleaning adapters invoked
-   on the captured lake content; the derived evidence lands in a Judgment
-   product-learning case **instead of hand-authored YAML** (or A/B beside one).
+3. Each packet is `source_capture_packet_manifest_v1`-valid, hash-provenanced,
+   and Obligation-16 handoff-ready — the boundary line. ECR derivation,
+   Cleaning invocation, and Judgment-case feeding are **deferred** (they were
+   step 3 in the pre-decision draft; removed from research-engine scope per the
+   ECR-onwards deferral, and will be the natural next lane when it lifts).
 4. Instrument everything from the first run: tokens, wall-clock, rows, packets
    per stage — the P0 receipts are the cost baseline.
 
-Success = the flow demonstrated, or every break named with owner-visible
-evidence. Expected outcome is a punch list (ECR/Cleaning have only ever seen
-fixtures); that punch list is the point. Non-claims: not JSG-01 clearance, not
-anti-leak proof, not readiness.
+Success = the seam exercised and every outcome visible (fulfilled or
+declined-with-reason), or every break named with owner-visible evidence. A run
+where most requests end `declined(reason)` with honest mode-ladder receipts
+still passes P0 — it closed the loop and produced the baseline. Non-claims: not
+buyer proof, not readiness, not the vertical proven.
 
 ### P1 — Demand-origin access supremacy (current vertical)
 
@@ -278,13 +326,15 @@ anti-leak proof, not readiness.
 
 ### P4 — Batch scale (the payoff)
 
-Run 5-10 commissioned cases through the closed loop with orchestrated capture:
->=2 demand-origin families each, ECR-derived evidence, measured cost, parallel
-lanes under per-lane isolation. This is exactly the feedstock the moat gates
-(ECR-to-JSG-01, judgment anti-leak, batch-1) are waiting on. Aphrodite
-composition: the creator heartbeat continues as the longitudinal layer;
-commissioned cases pull selective deep capture on demand; both streams share
-the dispatcher, ledgers, and smoke tier.
+Run 5-10 commissioned cases through the closed research-engine loop with
+orchestrated capture: >=2 demand-origin families each, handoff-ready packets,
+measured cost, parallel lanes under per-lane isolation. This is the feedstock
+that the deferred moat gates (ECR-to-JSG-01, judgment anti-leak, batch-1) will
+consume *when the ECR-onwards deferral lifts* — P4 fills the pantry;
+downstream consumption is out of current scope. Aphrodite composition: the
+creator heartbeat continues as the longitudinal layer; commissioned cases pull
+selective deep capture on demand; both streams share the dispatcher, ledgers,
+and smoke tier.
 
 ## Owner Forks (decisions needed; recommendation first)
 
@@ -292,19 +342,27 @@ the dispatcher, ledgers, and smoke tier.
    indicators; Aphrodite grid heartbeat) vs strict commissioned-only.
    Recommend: narrow, budget-capped grant for named families only. Highest
    value / medium lock-in; both doctrine layers already strain toward it.
+   *(Open.)*
 2. **Route-State Ledger** vs the venue-registry rejection precedent. Recommend:
    capture-owned dated ledger (mini shape) — low lock-in, high compounding;
-   distinct from the rejected scanning-authority atlas.
+   distinct from the rejected scanning-authority atlas. *(Open.)*
 3. **CSB board lineage** (inheritance on regeneration) vs mutable boards vs
-   status quo. Recommend lineage.
-4. **Legacy scan-artifact closeout enum**: retrofit the 3 old artifacts vs
-   version-scoped grandfathering. Recommend grandfather (precedent: packet
-   schema v0→v1).
-5. **Judgment-case evidence source**: switch new product-learning cases to
-   ECR-derived evidence (crosses into Judgment spine ownership; needs that
-   lane's acceptance).
+   status quo. Recommend lineage. *(Open.)*
+4. **Legacy scan-artifact closeout enum** — **RESOLVED 2026-07-10: grandfather.**
+   Implemented this turn: `check_csb_scanning_artifact.py` auto-detection
+   (CI `--diff` / `--changed`) skips the 3 pre-contract legacy artifacts
+   (`..._mgt_v0.md`, `..._csb_first_venue_eval_v0.md`, `..._core_satellite_csb_v0.md`),
+   which each fail 9-16 checks they predate; explicit-path invocation still
+   validates strictly. Mirrors the packet schema v0→v1 grandfathering. Selftest
+   added.
+5. **Judgment-case evidence source** — **out of current scope** (ECR-onwards
+   deferred); revisit when the deferral lifts.
 6. **AEO schema home**: defer until the P1 visible-browser SERP route proves
-   value; then decide.
+   value; then decide. *(Open.)*
+7. **capture_request lifecycle-ledger schema** (new; the one lock-in choice in
+   P0). Recommend: smallest append-only shape, locked via micro-decision-locking
+   at execution, surfaced for confirmation before hardening. *(Open — decide at
+   P0 execution.)*
 
 ## Accepted Residuals / Anti-Goals
 
@@ -341,10 +399,58 @@ Anti-goals (god tier is NOT):
 - Inventory counts (93 runners, 448 commits, artifact counts) are as-observed
   2026-07-10 by the inventory lanes; not individually re-verified.
 
+## Appendix — Runner Census (W3, investigated 2026-07-10)
+
+Owner question: "why do we have 93 standalone runners — I believe a lot would be
+superseded." Census (in-repo, `git log` last-touch + doc-reference count +
+test-name match over `forseti-harness/runners/`):
+
+**The "mostly superseded" hypothesis is largely false.** Evidence:
+
+- **91 of 93 runners are referenced by at least one durable doc**; only **2**
+  have zero doc references: `run_reddit_agent_view_ab_probe.py` and
+  `run_source_capture_proxy_profile_bootstrap.py`. A superseded-leftover set
+  would show many zero-reference orphans; it doesn't.
+- **Last-touch date is not a supersession signal here.** ~80 of 93 show a
+  last-touch of 2026-07-05 — the orca→forseti rename campaign's mass-move date,
+  not a real edit — so date cannot distinguish live from dead. (This is the same
+  rename debt as W8, here obscuring the census rather than breaking a link.)
+
+**Why 93 exist (the real answer): per-operation CLI by design.** The harness
+follows a one-command-per-operation runbook pattern (`docs/source_capture_agent_runbook.md`):
+a distinct `run_*` per adapter × operation. The count decomposes into families —
+capture-packet-per-adapter (`run_source_capture_*_packet.py`), projection-per-
+source (`run_*_projection.py`), catch-up/backfill (`run_*_catchup.py`),
+metric-rollup-per-platform (`run_*_metric_rollup_producer.py`), data-lake ops
+(`run_data_lake_*`), and probes. This is breadth of coverage, not redundancy;
+it is also exactly why P2's single orchestrated dispatcher is worth building —
+93 hand-invoked entrypoints is the operability cost of that design, not dead code.
+
+**Genuine trim/lineage candidates (low confidence; verify before any deletion):**
+
+| Runner | Signal | Confidence |
+| --- | --- | --- |
+| `run_reddit_agent_view_ab_probe.py` | 0 doc refs; `_ab_probe` sibling of `run_reddit_agent_view.py` | med — likely one-off A/B probe |
+| `run_source_capture_proxy_profile_bootstrap.py` | 0 doc refs | low — may be live operational tooling used ad hoc |
+| `run_case_case001.py` | specific-case sibling of generic `run_case.py` (4 refs) | low-med — likely a superseded single-case script |
+| `run_memorization_probe.py` vs `_raw_api.py` | probe pair | low — both may be intentionally retained |
+| IG heartbeat trio (`run_source_capture_ig_daily_heartbeat{,_control,_operator}.py`) | active lineage (recent fixes #830) | keep — active, not superseded |
+
+Recommendation: **do not delete on this evidence.** The high-value W3 move is
+P2's dispatcher (collapses 93 hand-invocations behind one orchestrated
+entrypoint), not pruning — pruning saves little and risks removing a documented
+fallback. A proper deletion pass needs the deletion-evidence gate per runner;
+the two zero-reference runners are the only reasonable first candidates.
+(Census note: the deeper per-runner subagent census was not completed — its
+agent hit a spend limit — so the lineage table is from the in-repo signals
+above, not an exhaustive read.)
+
 ## Non-Claims
 
 This record is analysis and proposal only. It is not owner ratification, not
 validation, not readiness, not capture/source-access authorization, not
 implementation authorization for any code root, not a schedule commitment, not
-buyer proof, and not a claim that any listed weakness has been fixed. Landing
-any phase requires the normal per-lane authorization and review flow.
+buyer proof, and not a claim that any listed weakness has been fixed. The
+2026-07-10 hygiene-rider fixes (hook + pointer edits) are verified by their
+selftests and the focused unit suite; every other phase requires the normal
+per-lane authorization and review flow.
