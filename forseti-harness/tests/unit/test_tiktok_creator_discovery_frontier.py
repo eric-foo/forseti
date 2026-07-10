@@ -747,6 +747,30 @@ def test_promote_decision_without_registry_preflight_evidence_raises() -> None:
     _raises_code(register, "promote_requires_registry_preflight_receipt_evidence")
 
 
+def test_promote_decision_on_non_candidate_node_raises_even_with_valid_evidence() -> None:
+    receipt_bytes = _preflight_receipt_bytes()
+    evidence = _preflight_evidence(receipt_bytes)
+    nodes = [
+        _node(_RUN_NODE_ID, FrontierNodeType.RUN, None).to_dict(),
+        _node(
+            _SEED_NODE_ID,
+            FrontierNodeType.TIKTOK_CREATOR_SEED,
+            "fragranceknowledge",
+            registry_preflight_receipt_evidence_or_none=evidence,
+        ).to_dict(),
+    ]
+    register = _register(
+        nodes=nodes,
+        edges=[],
+        frontier_decisions=[_decision(selected_node_id=_SEED_NODE_ID)],
+    )
+    _raises_code(
+        register,
+        "promote_requires_candidate_node",
+        resolver=_receipt_resolver(receipt_bytes),
+    )
+
+
 def test_promote_legacy_status_string_does_not_clear_receipt_gate() -> None:
     register = _register_with_candidate_evidence(
         None, legacy_status="no_exact_string_seen_in_registry_json"
