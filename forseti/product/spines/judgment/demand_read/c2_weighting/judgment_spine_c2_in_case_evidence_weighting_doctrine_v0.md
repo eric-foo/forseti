@@ -167,19 +167,22 @@ When a judgment read weights presented evidence, it must:
    independence and costly-behavior rules; whether C3's interface adds a
    partition field is its owner's call — see Interfaces.)
 5. **Honor the band tolerance.** This doctrine's paired-read agreement
-   standard — used identically here, in the Acceptance Criteria, and in the
-   Enforcement Posture — is: **direction + load-bearing facts + the
-   verdict-carrying partition**. (It extends the sibling contract's
-   direction + load-bearing facts + counterfactual standard; the closing
-   missing-evidence line is the counterfactual surface in this doctrine.)
-   The level carries the two-sided ≈one-band tolerance (owner decision
-   2026-06-14, consumed from the sibling): level wording may differ between
-   faithful re-reads without conflict when that standard agrees, and every
-   level difference must be attributable to a declared cap/discount/neutral
-   classification. "One band" describes the expected give — it is not an
-   audited adjacency measure, and no band enum exists (see Open Questions).
-   This obligation is deliberately audit-side and not carried into the
-   Instruction Core.
+   standard — **owner-adopted 2026-07-10 (probe finding P-6, option a)** and
+   used identically here, in the Acceptance Criteria, and in the Enforcement
+   Posture — is: **per-item direction + load-bearing facts + the
+   ceiling-binding weakest load-bearing item**. (It extends the sibling
+   contract's direction + load-bearing facts + counterfactual standard; the
+   closing missing-evidence line is the counterfactual surface in this
+   doctrine.) Tolerated when declared with a reason: a single item's role
+   wobbling between load-bearing-for-a-sub-claim and supporting (probes
+   v0–v1 showed this is inherent reader variance on multi-claim items while
+   the standard above stays stable), and level wording within the two-sided
+   ≈one-band tolerance (owner decision 2026-06-14, consumed from the
+   sibling), with every level difference attributable to a declared
+   cap/discount/neutral classification. "One band" describes the expected
+   give — it is not an audited adjacency measure, and no band enum exists
+   (see Open Questions). This obligation is deliberately audit-side and not
+   carried into the Instruction Core.
 6. **Weigh before the verdict.** Weights are assigned before the verdict is
    formed, and no weight rationale may cite the verdict or the desired action
    ("strong because the call needs it" is a defect). The trace must read
@@ -393,11 +396,13 @@ independence rules).
 - **INV-1 disqualifier:** no numeric/ordinal weight, formula, arithmetic, or
   source-class lookup anywhere in the weighting trace (FM-7); an auditor must
   find interpretation, not computation.
-- **Band tolerance honored:** two faithful reads agreeing on the paired-read
-  standard (direction + load-bearing facts + the verdict-carrying partition)
-  are both compliant whatever their level wording, provided every level
-  difference is attributable to a declared classification. Level-wording
-  variance alone is non-gating; failing a read on level alone is itself a
+- **Band tolerance honored:** two faithful reads agreeing on the
+  owner-adopted paired-read standard (per-item direction + load-bearing
+  facts + the same ceiling-binding weakest item) are both compliant whatever
+  their level wording, and despite a single declared load-bearing/supporting
+  role wobble, provided every level difference is attributable to a declared
+  classification. Level-wording variance alone is non-gating; failing a read
+  on level alone, or on a declared one-item role wobble alone, is itself a
   violation. (No band enum exists — adjacency is not an audited measure.)
 - **Rule 3 routing:** a dispositive integrity risk (the fake-vs-biased test)
   weighed as an ordinary incentive discount here, instead of flagged and
@@ -415,9 +420,10 @@ trace; run no scorer):
   through FM-14 pattern; such a trace fails review.
 - **Pre-use and ongoing:** the blind paired-read method (probe v2, consumed
   from the sibling): run the same case under ≥2 framings; pass requires
-  agreement on direction + load-bearing facts + the verdict-carrying
-  partition, with every level difference attributable to a declared
-  classification, not silent drift.
+  agreement on per-item direction + load-bearing facts + the ceiling-binding
+  weakest item (owner-adopted standard, 2026-07-10), with any single
+  declared role wobble and every level difference attributable to declared
+  classifications, not silent drift.
 - **Known limits (disclosed):** the verdict-blind criterion is a structural
   surface check — order plus absence of explicit verdict reference — and
   cannot detect silently motivated reasoning that emits weights in the
@@ -503,10 +509,11 @@ trace; run no scorer):
   satellite rubric that needs one; default is tells-only.
 - **Claim granularity.** Nothing pins how many discrete claims one decision
   frame yields, so two faithful readers may decompose sub-claims at different
-  granularity (observed benignly in the paired-read probe: same facts and
-  directions, different sub-claim labels). The verdict-carrying partition
-  absorbs most of the variance; a decidable segmentation rule is deferred
-  until multi-case evidence shows the variance bites.
+  granularity (observed benignly in probes v0–v1: same facts and directions,
+  different sub-claim labels). The owner-adopted agreement standard
+  (2026-07-10) absorbs the practical variance by comparing the
+  ceiling-binding item rather than flat set labels; a decidable segmentation
+  rule remains deferred until multi-case evidence shows the residual bites.
 - **Cross-item halo.** One exceptionally strong item inflating the perceived
   credibility of unrelated weaker items in the same packet is a real,
   currently unnamed pattern (distinct from FM-10's same-item transfer and
@@ -671,6 +678,34 @@ direction_change_propagation:
     - not readiness
     - not owner adoption
     - findings adjudicated at lane level; delegated checker reports are advisory, not a bound review lane
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Owner decision 2026-07-10 (chat, this lane): the paired-read agreement
+    standard is adjudicated per probe v1 finding P-6, option (a) — agreement
+    is judged on per-item direction + load-bearing facts + the
+    ceiling-binding weakest load-bearing item; a single declared
+    load-bearing/supporting role wobble and one-band level drift with
+    declared classifications are tolerated. Applied identically at Required
+    Behavior 5, the band-tolerance Acceptance Criterion, and the Enforcement
+    Posture; the claim-granularity Open Question is narrowed accordingly.
+    The per-read output obligations (full partition per item) are unchanged —
+    this decision changes only what paired-read AGREEMENT is judged on.
+  trigger: product_doctrine
+  controlling_sources_updated:
+    - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md
+    - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_weighting_paired_read_probe_v1.md   # P-6 disposition line records the adjudication
+  downstream_surfaces_checked:
+    - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md   # its own item-7 standard (direction + load-bearing facts + counterfactual) is unchanged and still consumed
+  intentionally_not_updated:
+    - path: forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md
+      reason: the sibling's consistency standard governs the ledger-read seam and is extended here, not amended.
+  non_claims:
+    - not validation or readiness
+    - not adoption of the doctrine as a whole (that adjudication remains pending)
+    - product_learning evidence basis (two synthetic probe rounds) is named, not inflated
 ```
 
 ## Non-Claims

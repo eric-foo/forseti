@@ -193,6 +193,9 @@ evidence than the packet supplies").
   ceremony, pins the variance explicitly); (c) accept as-is and treat flat
   set agreement as aspirational. This probe applies none of them; the
   doctrine is unedited by v1.
+  **Adjudicated:** owner adopted option (a) on 2026-07-10 (chat, this lane;
+  the owner separately rejected per-claim derivation ceremony). Folded into
+  the doctrine under its third `direction_change_propagation` receipt.
 - **P-7 (observation).** E7's direction shifted supports→hedges from v0 to
   v1 in both readers — internally consistent each round, and the v1 reading
   ("plateau is genuinely ambiguous") is arguably the more careful one.
