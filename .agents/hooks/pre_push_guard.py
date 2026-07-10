@@ -36,6 +36,7 @@ DOC_GATES = (
     ("retrieval header index", (".agents/hooks/header_index.py", "--strict")),
     ("review-routing disposition", (".agents/hooks/check_review_routing.py", "--strict")),
     ("source-input hash freshness", (".agents/hooks/check_source_input_hashes.py", "--strict")),
+    ("hash-pin freshness", (".agents/hooks/check_hash_pin_freshness.py", "--strict")),
 )
 
 GATE_TIMEOUT_SECONDS = 120  # generous; the gates run in ~5s combined

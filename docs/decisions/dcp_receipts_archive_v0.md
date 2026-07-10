@@ -3571,3 +3571,148 @@ direction_change_propagation:
     - not a bound or mandatory review lane
     - a green run is disposition shape only, never proof a review happened or was sufficient
 ```
+
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-10, EP-10/11/15 gate-wave rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca validation doctrine adds a handoff-pointer resolution gate: a changed
+    durable .md file must not reference a handoff-packet path
+    (docs/workflows/*handoff*.md, docs/prompts/handoffs/*.md) that does not
+    resolve in the same tree, unless the pointer line carries an explicit
+    resolution pin (branch / PR # / origin ref vocabulary) or an exemption
+    marker -- enforced diff-scoped and forward-only by
+    .agents/hooks/check_handoff_pointers.py (EP-36) as a CI --strict gate.
+    Born from repeated cold-agent resolution failures where handoff packets
+    lived only on unmerged authoring branches while filed prompts referencing
+    them landed on main, so receiving agents and delegated reviewers starting
+    cold from main could not resolve their required reads.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_handoff_pointers.py
+    - .github/workflows/ci.yml
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .claude/settings.json
+    - .agents/hooks/check_map_links.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already routes validation and enforcement-placement changes to this
+        overlay file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Per the enforcement-placement principle a substrate-enforced rule is
+        not also carried as a resident instruction; prompt authors hit the CI
+        gate mechanically, and the existing worktree-preflight and
+        input-prompt-source rules already carry the judgment side (which
+        branch, which source) that stays resident.
+    - path: .claude/settings.json
+      reason: >
+        No PostToolUse wiring: the defect is a merge-topology property
+        (packet on a different unmerged branch), invisible at the write
+        boundary where the packet usually exists in the author's own tree;
+        the enforcing boundary is CI on the landing PR.
+    - path: .agents/hooks/check_map_links.py
+      reason: >
+        Its C1/C2/C4 checks gate map files, open_next headers, and inline
+        markdown links whole-corpus; the new gate covers prose/backtick
+        handoff pointers diff-scoped with pin/exemption vocabulary --
+        different scope and exemption grammar, kept as a sibling checker.
+  stale_language_search: >
+    rg -in "handoff.*resolv|resolve.*handoff|unmerged.*handoff|check_handoff_pointers"
+    AGENTS.md .agents docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-03 after edits: hits are this gate's own rule text,
+    checker, README row, and registration surfaces, plus unrelated generic
+    mentions (the AGENTS.md jb-handoffs boundary sentence and skill-adoption
+    skill-name rows); no other surface carries a conflicting handoff-pointer
+    resolution rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not packet content freshness, pin truth, or source-choice correctness
+    - not a courier-delivery guarantee for prompts that never land in the repo
+    - a green run is pointer shape only, never proof the right packet was cited
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Forseti validation doctrine adds a source-input hash freshness gate:
+    repo-local JSON list-style source_inputs[] records with source_pointer +
+    sha256 must match current file bytes when the artifact or referenced
+    source changed, enforced by .agents/hooks/check_source_input_hashes.py
+    (EP-37) as a diff-scoped CI --strict gate plus a local pre-push mirror.
+    Born from PR #817, where a Creator Registry ledger merge changed the
+    ledger hash while the YouTube metric seed still carried the old
+    source-input hash and full pytest caught it late.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_source_input_hashes.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/pre_push_guard.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md routes validation and enforcement-placement doctrine to the
+        overlay; restating this narrow gate there would fork the owner.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Its DCP storage rule governs receipt rotation; the gate changes
+        validation placement, not source hierarchy or receipt mechanics.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading budgets and source packs are unchanged; this is
+        post-change provenance freshness, not source-loading procedure.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        This path is a compatibility pointer whose open_next is the live
+        Forseti repo map; duplicating active hook content there would fork the
+        current retrieval surface.
+    - path: forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+      reason: >
+        The existing semantic/generated-artifact test remains; the new hook
+        catches the broader hash-drift class earlier without weakening that
+        test.
+  stale_language_search: >
+    rg -in "source-input hash|source_inputs.*sha256|check_source_input_hashes|strict CI doc gates"
+    .agents docs .github forseti-harness
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits: intended hits are this gate's owner text,
+    checker, CI/pre-push wiring, hook README, live Forseti repo-map note,
+    enforcement-placement classification, and historical/source-input ledger
+    references; the stale phrase "strict CI doc gates" appears only in this
+    receipt's search query/result provenance text, and no conflicting
+    source-input hash rule remains.
+  non_claims:
+    - not validation
+    - not readiness
+    - not semantic generated-artifact completeness
+    - not source quality, capture freshness, or metric validity
+    - a green run is provenance hash freshness only
+```

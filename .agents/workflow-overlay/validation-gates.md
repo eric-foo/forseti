@@ -89,6 +89,37 @@ Validation reports must preserve failure visibility by bucket:
   validity. Enforced diff-scoped and forward-only by
   `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local pre-push
   mirror; whole-repo advisory via `--audit`, never gated).
+- Review-summary shape gate: a changed durable review output under
+  `docs/review-outputs/` carrying a real (non-template) `review_summary`
+  YAML block must keep the block's mechanically checkable shape from
+  `.agents/workflow-overlay/communication-style.md`: none of the forbidden
+  process keys, a `report_path` that resolves in the same tree, the bound
+  failed-write shape when `status: failed` (no `report_path`,
+  `recommendation: blocked`, `review_location: chat_only_current_thread`),
+  and a non-blank `recommendation` when the key is present. Full
+  `recommendation` vocabulary membership is advisory only (`--audit`):
+  delegated-review-patch lanes carry an extended vocabulary that
+  `communication-style.md` does not yet bind, and binding or extending that
+  vocabulary is an owner decision, not a checker default. The gate is
+  summary shape only: it is not review quality, finding truth, severity
+  authority, validation, or readiness; retrieval-header, provenance, and
+  fencing checks stay with `check_review_output_provenance.py`. Enforced
+  diff-scoped and forward-only by `.agents/hooks/check_review_summary.py`
+  (CI `--strict`; whole-corpus advisory via `--audit`, never gated).
+- Hash-pin freshness gate: markdown freshness hash pins in changed durable
+  docs — labeled `path:` + `sha256:` bullet pairs (e.g. the skill-adoption
+  source pins) and `source_captures/**/receipt.md` preserved-file bullets —
+  must match the current CRLF-normalized bytes of their repo-local targets
+  when the pin-carrying doc or the pinned target changed. Provenance-style
+  records (package-manifest tables, source-read ledgers, external-repo
+  bootstrap tables) are deliberately not parsed as pins: they record a past
+  observation, and gating them would false-block working-as-intended
+  history. This is pin freshness only: not semantic validity, source
+  quality, capture freshness, skill correctness, validation, or readiness.
+  The markdown sibling of the source-input hash freshness gate above.
+  Enforced diff-scoped and forward-only by
+  `.agents/hooks/check_hash_pin_freshness.py` (CI `--strict`; local pre-push
+  mirror; whole-repo advisory via `--audit`, never gated).
 - Receipt-field provenance gate (non-self-certification): a gate, predicate,
   acceptance check, or completion claim must not clear on a self-asserted field
   value. A field clears only when it is owner-produced and provenance-bound or
@@ -137,6 +168,14 @@ Validation reports must preserve failure visibility by bucket:
   acceptance, source-of-truth, validation, or proof claims remain blocked unless
   owner acceptance or controlling authority is explicit.
 - Output-mode gate: prompts must name exactly one output mode from `.agents/workflow-overlay/prompt-orchestration.md`.
+  The mechanically checkable shell — an output-mode declaration naming at
+  least one closed-set token in a changed `docs/prompts/**` artifact
+  (templates and READMEs excluded) — is enforced diff-scoped and forward-only
+  by `.agents/hooks/check_prompt_output_mode.py` (CI `--strict`; backlog via
+  `--audit`, never gated). Whether the mode is exactly one and correctly
+  scoped to this artifact rather than a nested dispatch/receiver role stays
+  resident judgment; multi-declaration and compound-token shapes are
+  advisory INFO, never gate failures.
 - Chat-output topology gate: prompt-policy patches, workflow patches, and
   reusable prompt templates touching chat output shape must check for
   contradictions between the general human-summary / agent-detail /
@@ -404,6 +443,57 @@ usually exists in the author's own tree. Registered in
 `.github/workflows/ci.yml`; `--selftest` present. Pointer shape only — a
 green run never proves packet content, freshness, or pin truth.
 
+**Prompt output-mode gate** (`.agents/hooks/check_prompt_output_mode.py`,
+EP-11 shape subset). Diff-scoped, forward-only CI gate for the Output-mode
+gate bullet (Prompt Orchestration Gates above): a changed prompt artifact
+under `docs/prompts/**` (templates and READMEs excluded) must carry an
+output-mode declaration naming at least one token from the closed set in
+`.agents/workflow-overlay/prompt-orchestration.md` § Output Modes,
+referencing that owner, never restating it. Build-time corpus measurement
+falsified the literal "exactly one" substrate reading — the `output_mode:`
+field shape is legitimately reused for receiver/reviewer/dispatch roles
+within one prompt, and legitimate compound two-token values exist — so the
+gate checks presence + token-in-set only, multi-declaration and multi-token
+shapes are INFO (never gated), and the EP-11 classification row moved
+SUBSTRATE→PARTIAL. Registered in `.github/workflows/ci.yml`; `--selftest`
+present, including a token-drift assertion that parses the owning section;
+no new write-time hook (`check_prompt_provenance.py` already reminds at that
+boundary).
+
+**Review-summary shape gate** (`.agents/hooks/check_review_summary.py`,
+EP-10 born-green subset). Diff-scoped, forward-only CI gate for the
+Review-summary shape gate bullet above (shape source
+`.agents/workflow-overlay/communication-style.md`, referenced never
+restated). Strict scope is deliberately the born-green subset: forbidden
+process keys, `report_path` resolution, failed-write consistency, and
+non-blank `recommendation`; full `recommendation` enum membership runs
+`--audit`-only because delegated-review-patch lanes carry an extended
+vocabulary `communication-style.md` never bound (measured on roughly 40% of
+one recent week's real closeouts at build time) — widening or binding that
+vocabulary is a flagged owner decision, not a checker default. Non-overlap:
+retrieval-header, provenance, and fencing checks stay with
+`check_review_output_provenance.py`. No write-time hook by design: review
+outputs are frequently authored by other harnesses that never fire this
+harness's hooks, so CI on the landing tree is the boundary. Registered in
+`.github/workflows/ci.yml`; `--selftest` present.
+
+**Hash-pin freshness gate** (`.agents/hooks/check_hash_pin_freshness.py`,
+EP-15 freshness subset). Diff-scoped, forward-only CI gate plus local
+pre-push mirror for the Hash-pin freshness gate bullet above. Build-time
+corpus survey found six markdown sha256 grammars; only the two freshness
+grammars are parsed — labeled `path:` + `sha256:` bullet pairs (the
+skill-adoption source pins) and `source_captures/**/receipt.md`
+preserved-file bullets — while package-manifest tables, source-read
+ledgers, and the external-path bootstrap-record table are provenance
+records and deliberately unparsed (gating them would false-block
+working-as-intended history). Hashes compare CRLF-normalized and
+case-insensitive; the two skill-adoption pins were re-pinned in the same
+change from raw-CRLF Get-FileHash values (which would pass on CRLF checkouts
+and permanently fail on LF CI checkouts) to the normalized convention. The
+markdown sibling of the EP-37 JSON gate. Registered in
+`.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`;
+`--selftest` present.
+
 
 ## Future Gates
 
@@ -416,144 +506,98 @@ green run never proves packet content, freshness, or pin truth.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Orca validation doctrine adds a handoff-pointer resolution gate: a changed
-    durable .md file must not reference a handoff-packet path
-    (docs/workflows/*handoff*.md, docs/prompts/handoffs/*.md) that does not
-    resolve in the same tree, unless the pointer line carries an explicit
-    resolution pin (branch / PR # / origin ref vocabulary) or an exemption
-    marker -- enforced diff-scoped and forward-only by
-    .agents/hooks/check_handoff_pointers.py (EP-36) as a CI --strict gate.
-    Born from repeated cold-agent resolution failures where handoff packets
-    lived only on unmerged authoring branches while filed prompts referencing
-    them landed on main, so receiving agents and delegated reviewers starting
-    cold from main could not resolve their required reads.
+    Forseti validation doctrine adds two gates and hardens one: a
+    review-summary shape gate (changed docs/review-outputs/ files carrying a
+    real review_summary block must keep the communication-style.md shape --
+    no forbidden process keys, a resolving report_path, the bound
+    failed-write shape, non-blank recommendation; full recommendation
+    vocabulary membership stays advisory-only pending an owner decision on
+    the delegated-review-patch extended vocabulary), a hash-pin freshness
+    gate (markdown freshness pins -- labeled path+sha256 bullet pairs and
+    source_captures receipt.md preserved-file bullets -- must match current
+    CRLF-normalized target bytes when the pin doc or target changed;
+    provenance-style tables and ledgers deliberately unparsed), and
+    substrate enforcement of the existing Output-mode gate's checkable shell
+    (declaration presence plus at least one closed-set token; exactly-one
+    and role-scoping stay resident). Enforced by
+    .agents/hooks/check_review_summary.py, check_hash_pin_freshness.py, and
+    check_prompt_output_mode.py as diff-scoped forward-only CI --strict
+    gates (hash-pin also mirrored in the local pre-push guard), built under
+    the EP-10/EP-11/EP-15 rows of
+    docs/decisions/overlay_enforcement_placement_classification_v0.md with
+    the EP-11 row corrected SUBSTRATE->PARTIAL from build-time corpus
+    measurement.
   trigger: validation_philosophy
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_handoff_pointers.py
-    - .github/workflows/ci.yml
-    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-    - .agents/hooks/README.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .claude/settings.json
-    - .agents/hooks/check_map_links.py
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Already routes validation and enforcement-placement changes to this
-        overlay file; a kernel restatement would fork the owner.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        Per the enforcement-placement principle a substrate-enforced rule is
-        not also carried as a resident instruction; prompt authors hit the CI
-        gate mechanically, and the existing worktree-preflight and
-        input-prompt-source rules already carry the judgment side (which
-        branch, which source) that stays resident.
-    - path: .claude/settings.json
-      reason: >
-        No PostToolUse wiring: the defect is a merge-topology property
-        (packet on a different unmerged branch), invisible at the write
-        boundary where the packet usually exists in the author's own tree;
-        the enforcing boundary is CI on the landing PR.
-    - path: .agents/hooks/check_map_links.py
-      reason: >
-        Its C1/C2/C4 checks gate map files, open_next headers, and inline
-        markdown links whole-corpus; the new gate covers prose/backtick
-        handoff pointers diff-scoped with pin/exemption vocabulary --
-        different scope and exemption grammar, kept as a sibling checker.
-  stale_language_search: >
-    rg -in "handoff.*resolv|resolve.*handoff|unmerged.*handoff|check_handoff_pointers"
-    AGENTS.md .agents docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-03 after edits: hits are this gate's own rule text,
-    checker, README row, and registration surfaces, plus unrelated generic
-    mentions (the AGENTS.md jb-handoffs boundary sentence and skill-adoption
-    skill-name rows); no other surface carries a conflicting handoff-pointer
-    resolution rule.
-  non_claims:
-    - not validation
-    - not readiness
-    - not packet content freshness, pin truth, or source-choice correctness
-    - not a courier-delivery guarantee for prompts that never land in the repo
-    - a green run is pointer shape only, never proof the right packet was cited
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Forseti validation doctrine adds a source-input hash freshness gate:
-    repo-local JSON list-style source_inputs[] records with source_pointer +
-    sha256 must match current file bytes when the artifact or referenced
-    source changed, enforced by .agents/hooks/check_source_input_hashes.py
-    (EP-37) as a diff-scoped CI --strict gate plus a local pre-push mirror.
-    Born from PR #817, where a Creator Registry ledger merge changed the
-    ledger hash while the YouTube metric seed still carried the old
-    source-input hash and full pytest caught it late.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_source_input_hashes.py
+    - .agents/hooks/check_prompt_output_mode.py
+    - .agents/hooks/check_review_summary.py
+    - .agents/hooks/check_hash_pin_freshness.py
     - .github/workflows/ci.yml
     - .agents/hooks/pre_push_guard.py
     - forseti-harness/tests/unit/test_hook_internal_error_gating.py
     - docs/decisions/overlay_enforcement_placement_classification_v0.md
     - docs/workflows/forseti_repo_map_v0.md
     - .agents/hooks/README.md
+    - .agents/workflow-overlay/skill-adoption.md
   downstream_surfaces_checked:
     - AGENTS.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
     - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/workflows/orca_repo_map_v0.md
-    - forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+    - .claude/settings.json
   intentionally_not_updated:
     - path: AGENTS.md
       reason: >
-        AGENTS.md routes validation and enforcement-placement doctrine to the
-        overlay; restating this narrow gate there would fork the owner.
-    - path: .agents/workflow-overlay/source-of-truth.md
+        Routes validation and enforcement-placement doctrine to this overlay
+        file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/communication-style.md
       reason: >
-        Its DCP storage rule governs receipt rotation; the gate changes
-        validation placement, not source hierarchy or receipt mechanics.
-    - path: .agents/workflow-overlay/source-loading.md
+        It owns the review_summary shape being enforced; the checker
+        references it, and the known delegated-review-patch extended
+        recommendation vocabulary is flagged for a separate owner decision
+        rather than silently widening the bound enum here.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
       reason: >
-        Source-loading budgets and source packs are unchanged; this is
-        post-change provenance freshness, not source-loading procedure.
-    - path: docs/workflows/orca_repo_map_v0.md
+        It owns the closed output-mode set; per the enforcement-placement
+        principle the substrate references the owner (and the checker
+        selftest asserts against the owning section), so no restatement is
+        added.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
       reason: >
-        This path is a compatibility pointer whose open_next is the live
-        Forseti repo map; duplicating active hook content there would fork the
-        current retrieval surface.
-    - path: forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+        Its lanes' extended recommendation vocabulary is the flagged owner
+        gap; binding or renaming that vocabulary is a doctrine decision this
+        gate deliberately does not make.
+    - path: .claude/settings.json
       reason: >
-        The existing semantic/generated-artifact test remains; the new hook
-        catches the broader hash-drift class earlier without weakening that
-        test.
+        No new write-time hooks: prompt writes already receive the
+        check_prompt_provenance.py reminder, review outputs are frequently
+        authored by other harnesses that never fire this harness's hooks,
+        and hash drift is a cross-file property best caught at push/CI.
   stale_language_search: >
-    rg -in "source-input hash|source_inputs.*sha256|check_source_input_hashes|strict CI doc gates"
-    .agents docs .github forseti-harness
+    rg -in "output-mode gate|review_summary|hash-pin|check_prompt_output_mode|check_review_summary|check_hash_pin_freshness"
+    AGENTS.md .agents docs/workflows/forseti_repo_map_v0.md docs/decisions/overlay_enforcement_placement_classification_v0.md
   stale_language_search_result: >
-    Executed 2026-07-10 after edits: intended hits are this gate's owner text,
-    checker, CI/pre-push wiring, hook README, live Forseti repo-map note,
-    enforcement-placement classification, and historical/source-input ledger
-    references; the stale phrase "strict CI doc gates" appears only in this
-    receipt's search query/result provenance text, and no conflicting
-    source-input hash rule remains.
+    Executed 2026-07-10 after edits over the declared scope: hits are the new
+    gate bullets and Enforcement Placement registry text in this file, the
+    three checkers' own docstrings/selftests, the hooks README rows, the
+    pre_push_guard mirror entry, the repo-map Active Hooks notes, the
+    classification-doc update and corrected EP-11 row, the skill-adoption pin
+    pointer, and pre-existing reference text in communication-style.md (the
+    review_summary shape source), review-lanes.md, delegated-review-patch.md
+    (hash-pinned protected-path language), and one hash-pinned mention in
+    check_handoff_pointers.py; AGENTS.md has zero hits. No surface carries a
+    conflicting output-mode, review-summary, or hash-pin enforcement rule.
   non_claims:
     - not validation
     - not readiness
-    - not semantic generated-artifact completeness
-    - not source quality, capture freshness, or metric validity
-    - a green run is provenance hash freshness only
+    - not review quality, finding truth, or severity authority
+    - not prompt quality or mode-choice correctness
+    - not semantic validity, source quality, or capture freshness
+    - a green run is shape/freshness only, never approval
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
