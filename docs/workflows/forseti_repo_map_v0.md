@@ -71,6 +71,7 @@ hierarchy.
 | "Research engine" grouping: what CSB + Scanning + Capture are as one data-extraction group | `docs/workflows/forseti_research_engine_map_v0.md` | Colloquial cross-spine grouping map over the three extraction spines; states the Capture->ECR boundary. Label + navigation only, not a spine or authority. |
 | Source-capture access routes / anti-blocking playbook | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | Armory index over the tested per-source capture routes. |
 | Known source capture-to-lake route (TikTok, YouTube, Instagram, Reddit, fragrance-native database, Retail/PDP, vendor pricing page) | `forseti/product/spines/capture/core/source_families/README.md` | Source-family lane catalog routes from the generic playbook/Armory into the owning family index and onward to runners/projection/lake/cleaning seams without duplicating lake doctrine. |
+| Instruct a model to weight presented evidence / how much a source counts for a decision (evidence weighting; source credibility/quality as a decision-relative judgment question, not capture access) | `forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md` | Owning doctrine for the C2 in-case merits basis: decision-relative fitness, merits axes, model-facing Instruction Core, weighting failure modes; mirrors the Judgment consolidation map's Fast Route row. |
 
 ## Active Hooks (IMPORTANT)
 
