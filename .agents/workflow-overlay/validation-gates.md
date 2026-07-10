@@ -83,12 +83,15 @@ Validation reports must preserve failure visibility by bucket:
   `--strict`; whole-corpus backlog via `--audit`, never gated).
 - Source-input hash freshness gate: changed repo-local JSON `source_inputs[]`
   records that carry `source_pointer` + `sha256` must match current file bytes
-  when the JSON artifact or referenced source changed. This is provenance
-  freshness only: it is not semantic validation, generated-artifact
-  completeness, readiness, source quality, capture freshness, or metric
-  validity. Enforced diff-scoped and forward-only by
-  `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local pre-push
-  mirror; whole-repo advisory via `--audit`, never gated).
+  (CRLF-normalized), and source-capture packet manifests (top-level
+  `manifest_version`) must have top-level `preserved_files[]` records whose
+  `relative_packet_path` + `sha256` match current raw stored bytes resolved
+  against the manifest's own directory, when the JSON artifact or referenced
+  file changed. This is provenance freshness only: it is not semantic
+  validation, generated-artifact completeness, readiness, source quality,
+  capture freshness, or metric validity. Enforced diff-scoped and forward-only
+  by `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local
+  pre-push mirror; whole-repo advisory via `--audit`, never gated).
 - Review-summary shape gate: a changed durable review output under
   `docs/review-outputs/` carrying a real (non-template) `review_summary`
   YAML block must keep the block's mechanically checkable shape from
@@ -420,11 +423,21 @@ Current Gates bullet above: list-style JSON `source_inputs[]` records with
 repo-local `source_pointer` + `sha256` must match current file bytes when the
 JSON artifact or referenced source changed. Born from PR #817: a Creator
 Registry ledger merge changed the ledger hash while the YouTube metric seed's
-source-input hash stayed stale, and full pytest caught it late. Registered in
-`.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`; `--audit`
-and `--selftest` present. Provenance shape/freshness only — a green run never
-proves semantic validity, completeness, readiness, source quality, capture
-freshness, or metric validity.
+source-input hash stayed stale, and full pytest caught it late. Extended
+2026-07-10 to source-capture packet manifests: a JSON document with a
+top-level `manifest_version` string has its top-level `preserved_files[]`
+records (`relative_packet_path` + `sha256`) checked against current **raw
+stored bytes**, with the path resolved against the manifest's own directory
+(the manifests' `hash_basis: raw_stored_bytes`; `.gitattributes` pins
+`**/source_captures/** -text`). Non-packet-local paths fail loud; nested
+`preserved_files` blocks (review-input fixtures describing machine-local
+packets outside the repo) are deliberately not matched. Gap surfaced by the
+EP-15 build survey (PR #842): the packet-manifest shape was matched by
+neither the `source_inputs[]` JSON gate nor the markdown pin-grammar gate.
+Registered in `.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`;
+`--audit` and `--selftest` present. Provenance shape/freshness only — a green
+run never proves semantic validity, completeness, readiness, source quality,
+capture freshness, or metric validity.
 
 **Handoff-pointer resolution gate** (`.agents/hooks/check_handoff_pointers.py`,
 EP-36). Diff-scoped, forward-only CI gate for the Current Gates bullet above:
