@@ -20,6 +20,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md  # the doctrine under test
+  - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_weighting_paired_read_probe_v1.md  # round two: the hardened-core re-run this Disposition anticipated
   - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_qualitative_read_feasibility_probe_v2.md   # the blind-protocol precedent this follows
 stale_if:
   - The owner adjudicates the doctrine (adopt / amend / reject) — re-read which obligations survived before reusing this probe's expectations.

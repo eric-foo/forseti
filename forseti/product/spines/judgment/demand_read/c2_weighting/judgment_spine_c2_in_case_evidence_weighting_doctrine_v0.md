@@ -28,7 +28,8 @@ open_next:
   - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md # the C0-C4 core whose C2 this instructs; INV-1..6
   - forseti/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md # consumes the load-bearing partition (weakest-evidence cap)
   - forseti/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md # first intended consumer surface (c2_weighting trace slots)
-  - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_weighting_paired_read_probe_v0.md # first instruction-following evidence (blind paired-read probe, product_learning)
+  - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_weighting_paired_read_probe_v0.md # first instruction-following evidence (blind paired-read probe, pre-hardening core, product_learning)
+  - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_weighting_paired_read_probe_v1.md # round two: hardened core verbatim; carries the P-6 agreement-standard question for owner adjudication
 stale_if:
   - The owner lifts the no-scoring boundary (INV-1); numeric weighting becomes admissible and the qualitative-only obligations here relax.
   - The core architecture amends C2's step shape or moves the merits basis to another step.

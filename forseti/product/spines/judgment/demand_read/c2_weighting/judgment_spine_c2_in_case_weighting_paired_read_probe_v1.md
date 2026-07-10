@@ -104,17 +104,115 @@ criterion 1 → the hardening damaged something; diff the failing trace
 against the specific wording change before any further edit. Auditor
 expectation errors are recorded as such, per v0's rule.
 
-## Observed Reads
+## Observed Reads (compressed; full verbatim traces attached to the lane PR as a comment)
 
-`PENDING` — filled after the pre-registration commit.
+| Item | Reader A (opportunity) | Reader B (caution) | Agree? |
+| --- | --- | --- | --- |
+| E1 Reddit thread | supports; strong for quality, weak-to-moderate for demand; **supporting** ("doesn't by itself carry the reorder-volume question") | supports; moderate-high; **load_bearing** (retention sub-question + independent corroboration of E4, "genuine corroboration, not double-counting") | direction ✓; role differs — Finding P-6 |
+| E2 TikTok #ad | weak; not_relied_on ("cheap talk, not costly behavior") | low; not_relied_on ("explains why virality happened, proves nothing") | ✓ |
+| E3 press-kit trio | not_relied_on; "one source laundered through three outlets"; checked specific defeats it | not_relied_on; "one source triple-counted"; checkability is "the load-bearing check for this item and it defeats the apparent corroboration" | ✓ |
+| E4 distributor report | strongly supports; strong; **load_bearing** (primary) | supports; high; **load_bearing** ("the strongest single anchor") | ✓ |
+| E5 fad essay | opposes; weak-to-moderate; supporting ("correctly names a real risk category"); conflict-flagged, structurally downweighted | opposes; low; not_relied_on ("supplies no checkable facts"); conflict-flagged, "not treated as a genuine counterweight" | direction ✓; role varies (declared, neither in a verdict set) |
+| E6 brand scarcity | not_relied_on; integrity-flagged unresolved, verification named; "does not add independent corroboration... the demand case rests on E4, not on E6 riding alongside it" | not_relied_on; integrity-flagged unresolved, verification named; "cannot be load-bearing while the staged-scarcity question is open" | ✓ |
+| E7 search trend | **hedges** ("plateau consistent with either... doesn't distinguish"); moderate; secondary **load_bearing** | **hedges** (same reasoning, "ambiguity explicitly carried forward as a cap"); moderate-high; **load_bearing** | ✓ (both hedge — a cross-round shift from v0's "supports", consistent within-round) |
+| E8 2019 stat | negligible; not_relied_on | negligible; not_relied_on | ✓ |
+
+**Closings:** A — load-bearing = {E4, E7}, ceiling rests on these two; steelman
+= E3 (what would make it strong: genuinely independent reviews, no press-kit
+wording overlap); missing evidence general + single (retailer's own POS/trial
+data). B — load-bearing = {E4, E1, E7}, **ceiling explicitly on the weakest =
+E7** (plateau ambiguity); steelman = E6 (verified units/waitlist would make it
+strong); missing evidence general + single (real second-season outcome data
+for comparable viral products). **Verdicts:** both bounded staged commit at
+stated moderate confidence; both used stakes only on the sufficiency side (A
+verbatim: "per instruction 8, the size of this decision calls for more total
+evidence than the packet supplies").
 
 ## Audit Against Pre-Registered Criteria
 
-`PENDING`.
+1. **v0 criteria — PASS with one carried exception.** Direction 8/8 within
+   round (E7 = hedges in both). Verdict direction identical (bounded staged
+   commit). Levels within one band, differences attributable (E5
+   weak-to-moderate vs low, adjacent + declared; E1 role variance is P-6).
+   All traps caught by both readers again: E3 collapsed via the checked
+   wording specific, E6 integrity-routed with named verifications and
+   explicitly denied additivity with E4, E5 conflict-flagged and not
+   averaged (B additionally separated "E5 is no counterweight" from "E7
+   genuinely tempers E4" — a cleaner conflict decomposition than v0). The
+   carried exception is criterion 2.
+2. **P-1 resolution — FAIL (as pre-registered).** The closing
+   verdict-carrying lists differ by one member again: A {E4, E7}, B {E4, E1,
+   E7}. v0 varied on E7; v1 varies on E1 — the varying member moved, so this
+   is not the identical failure, but flat-list agreement was the criterion
+   and it did not hold. What DID converge, in both rounds and both readers:
+   E4 always load-bearing; direction and load-bearing facts identical; and
+   in v1 both readers independently rest the verdict's **ceiling** on the
+   same item (E7's ambiguity) — the ceiling-binding judgment converged even
+   where set membership did not. Auditor expectation error recorded: the
+   pre-registered membership prediction ("E4 and E1 certain, E7 admissible")
+   was anchored on v0 and wrong about which member varies.
+3. **Step-11 scope — PASS.** Both closings carry the general
+   missing-evidence statement and the single most-impactful item.
+4. **Stakes clause — PASS.** No weight rationale cites stakes; reader A
+   explicitly routed decision size to the total-evidence bar. Both v1
+   verdicts are somewhat more conservative than v0's (staging emphasized,
+   confidence explicitly "moderate") — consistent with the stakes clause
+   working on the sufficiency side; n=2, not attributable with confidence.
+5. **`unknown` — PASS.** Neither reader used it; E7's "hedges" is a
+   determinate direction call, not an evasion.
+6. **FM-11..FM-14 — PASS with one borderline note.** FM-11: reader B's
+   packet order put E4/E1 last and both still emerged load-bearing. FM-12:
+   both readers explicitly refused to let E2/E3/E6 agreement upgrade
+   anything; B named the E1-E4 pairing as legitimate cross-source
+   corroboration and the E6-E4 pairing as non-additive — the exact
+   distinction FM-12 draws. FM-13: the caution-framed reader B assigned E1 a
+   HIGHER role than A did — no valence deference. FM-14 borderline: reader A
+   cited "well-documented recent shifts" in the category (an outside-world
+   claim not in the packet) as a secondary reason for E8's staleness
+   discount; the discount stands on temporal fit alone, so the effect is
+   nil, but the reflex is real — recorded, not failed.
 
 ## Findings And Disposition
 
-`PENDING`.
+- **P-6 (main finding — owner decision requested, not another wording
+  edit).** In both rounds, two faithful readers' flat verdict-carrying
+  load-bearing lists differ by exactly one member (v0: E7; v1: E1), each
+  time an item that is load-bearing for a *sub-claim* (trajectory,
+  organic-grounding/quality) rather than for the whole verdict, while
+  direction, load-bearing facts, traps, verdict direction, and (in v1) the
+  ceiling-binding weakest item all agree. Two rounds suggest this is
+  inherent reader variance on multi-claim items, not a wording defect the
+  core can fix. Per this probe's pre-registered interpretation, the
+  partition-granularity question escalates to the owner. Options, with a
+  recommendation: (a) **recommended** — amend the paired-read agreement
+  standard so the compared objects are the ceiling-binding weakest
+  load-bearing item + direction + load-bearing facts, with declared
+  one-member set variance tolerated (matches the observed stable core and
+  the sibling contract's judged-on-direction-plus-reasoning posture);
+  (b) require per-claim load-bearing lists in the closing (heavier trace
+  ceremony, pins the variance explicitly); (c) accept as-is and treat flat
+  set agreement as aspirational. This probe applies none of them; the
+  doctrine is unedited by v1.
+- **P-7 (observation).** E7's direction shifted supports→hedges from v0 to
+  v1 in both readers — internally consistent each round, and the v1 reading
+  ("plateau is genuinely ambiguous") is arguably the more careful one.
+  Attribution between the hardened wording (step 2's anti-frame-import, the
+  stakes clause) and sampling noise is not possible at n=2 per round;
+  recorded as cross-round drift on an ambiguous-trajectory item, the same
+  item class probe v2 (ledger series) identified as the consistency lever.
+- **P-8 (positive result).** The hardened core embedded verbatim with zero
+  adaptation (step 10 self-contained — the v0 deviation is closed), and the
+  new elements behaved as designed on this case: stakes routed to
+  sufficiency, no `unknown` misuse, FM-11/FM-12/FM-13 behaviors explicitly
+  visible in the traces. Instruction-following quality did not regress
+  anywhere the audit looked.
+
+**Disposition:** the doctrine now carries two-round paired-read evidence
+(`product_learning`, one synthetic case, same-family readers). The single
+open item for owner adjudication alongside the doctrine itself is P-6's
+agreement-standard choice. No further probe round is proposed before a real
+case; the next-stronger evidence is a real-case read or cross-family
+grading.
 
 ## Claim Classification
 
