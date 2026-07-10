@@ -228,7 +228,13 @@ def test_walmart_projection_preserves_review_distribution_and_channel_availabili
                             "__typename": "Product",
                             "usItemId": "2150828728",
                             "name": "Vitamasques Cherry Vegan Collagen Lip Mask",
-                            "priceInfo": {"linePrice": "$2.97"},
+                            "priceInfo": {
+                                "currentPrice": {
+                                    "price": 2.97,
+                                    "priceString": "$2.97",
+                                    "currencyUnit": "USD",
+                                }
+                            },
                             "availabilityStatusV2": {"display": "In stock", "value": "IN_STOCK"},
                             "sellerName": "Walmart.com",
                             "variantList": [{"usItemId": "2150828728", "displayName": "Single"}],
@@ -285,6 +291,50 @@ Sold and shipped by Walmart.com
     assert projection.loss_ledger.structure_preserved is True
 
 
+def test_walmart_projection_does_not_bind_arbitrary_product_when_locator_has_no_id() -> None:
+    packet = _packet(
+        retailer="walmart",
+        locator="https://www.walmart.com/ip/product-without-numeric-id",
+        series_id="walmart_missing_target_id_us_v0",
+    )
+    next_data = json.dumps(
+        {
+            "props": {
+                "pageProps": {
+                    "items": [
+                        {
+                            "__typename": "Product",
+                            "usItemId": "1111111111",
+                            "name": "Target-shaped product candidate",
+                            "priceInfo": {"linePrice": "$11.11"},
+                            "availabilityStatusV2": {"display": "In stock"},
+                        },
+                        {
+                            "__typename": "Product",
+                            "usItemId": "2222222222",
+                            "name": "Recommendation product candidate",
+                            "priceInfo": {"linePrice": "$22.22"},
+                            "availabilityStatusV2": {"display": "In stock"},
+                            "sellerName": "Recommendation seller",
+                        },
+                    ]
+                }
+            }
+        },
+        separators=(",", ":"),
+    )
+    html = (
+        '<html><head><script id="__NEXT_DATA__" type="application/json">'
+        f"{next_data}</script></head></html>"
+    )
+
+    projection = _projection(packet=packet, html=html, visible_text="")
+
+    assert not any(row.row_kind == "retail_variant_offer" for row in projection.rows)
+    assert "cloakbrowser_snapshot_01:walmart:variant_offer_absent" in projection.residuals
+    assert projection.loss_ledger.structure_preserved is False
+
+
 def test_target_projection_keeps_percent_histogram_and_matching_reviews_separate() -> None:
     packet = _packet(
         retailer="target",
@@ -295,8 +345,9 @@ def test_target_projection_keeps_percent_histogram_and_matching_reviews_separate
     <html><head>
       <meta property="og:title" content="BYOMA Liptide Lip Mask - 0.2 fl oz">
     </head><body>
-      <div data-test="current-price"><span>$10.99</span></div>
+      <div data-test="product-price"><span>$10.99</span></div>
       <a id="ratingReviewId">ratings</a>
+      <svg><polygon class="starFill" points="18.3 17.5 3.5 17.5"></polygon></svg>
     </body></html>
     """
     visible_text = """Ship to 52404
@@ -340,6 +391,11 @@ We found 127 matching reviews
     assert review.source_visible_fields["rating_distribution_basis"] == "percent"
     assert [bucket["value"] for bucket in review.source_visible_fields["rating_distribution_buckets"]] == [53, 16, 9, 3, 19]
     assert "target_written_review_count_not_observed" in review.residuals
+    assert not any(
+        row.row_kind == "retail_carried_module"
+        and row.source_visible_fields["module_type"] == "loyalty"
+        for row in projection.rows
+    )
     assert projection.loss_ledger.structure_preserved is True
 
 

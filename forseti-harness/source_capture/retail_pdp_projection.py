@@ -725,8 +725,18 @@ def _walmart_variant_offer_fields(
     if not product and product_id is None:
         return {}
     price_info = product.get("priceInfo") if isinstance(product.get("priceInfo"), dict) else {}
-    line_price = _string_or_none(price_info.get("linePrice")) or _string_or_none(price_info.get("linePriceDisplay"))
-    price = _string_or_none(product.get("price")) or line_price
+    current_price = (
+        price_info.get("currentPrice")
+        if isinstance(price_info.get("currentPrice"), dict)
+        else {}
+    )
+    line_price = (
+        _string_or_none(price_info.get("linePrice"))
+        or _string_or_none(price_info.get("linePriceDisplay"))
+        or _string_or_none(current_price.get("priceString"))
+        or _string_or_none(current_price.get("priceDisplay"))
+    )
+    price = _string_or_none(product.get("price")) or _string_or_none(current_price.get("price")) or line_price
     if price and price.startswith("$"):
         price = price[1:]
     availability_v2 = product.get("availabilityStatusV2") if isinstance(product.get("availabilityStatusV2"), dict) else {}
@@ -739,7 +749,9 @@ def _walmart_variant_offer_fields(
         "variant_name": _walmart_selected_variant(product, product_id) or _fact_value(source_slice.variant_pin),
         "price": price,
         "price_isolation": "walmart_next_data_product" if price else "absent",
-        "price_currency": _fact_value(source_slice.currency_pin) or ("USD" if line_price and line_price.startswith("$") else None),
+        "price_currency": _fact_value(source_slice.currency_pin)
+        or _string_or_none(current_price.get("currencyUnit"))
+        or ("USD" if line_price and line_price.startswith("$") else None),
         "availability": _string_or_none(availability_v2.get("display")) or _string_or_none(product.get("availabilityStatus")) or _availability_summary(channels),
         **channels,
         "seller": seller,
@@ -766,7 +778,10 @@ def _target_variant_offer_fields(
     product_id = _retail_product_id(packet=packet, source_slice=source_slice, retailer="target")
     if product_id is None:
         return {}
-    price = _first_regex(html, (r'data-test=["\']current-price["\'][\s\S]*?\$([\d,.]+)',)) or _first_regex(visible_text, (r"^\$([\d,.]+)$",))
+    price = _first_regex(
+        html,
+        (r'data-test=["\'](?:current-price|product-price)["\'][\s\S]*?\$([\d,.]+)',),
+    ) or _first_regex(visible_text, (r"^\$([\d,.]+)$",))
     channels = _fulfillment_channel_fields(visible_text)
     return {
         "product_id": product_id,
@@ -802,13 +817,15 @@ def _retail_commerce_absence_residuals(retailer: Retailer, fields: Mapping[str, 
 
 
 def _walmart_next_data_product(structured_entries: Sequence[_StructuredJsonEntry], product_id: str | None) -> dict[str, object] | None:
+    if product_id is None:
+        return None
     candidates = [
         item
         for entry in structured_entries
         if entry.kind == "next_data"
         for item in _walk_dicts(entry.parsed)
         if item.get("name") and item.get("usItemId")
-        and (product_id is None or _string_or_none(item.get("usItemId")) == product_id)
+        and _string_or_none(item.get("usItemId")) == product_id
     ]
     if not candidates:
         return None
@@ -1160,7 +1177,7 @@ def _carried_module_fields(
     modules: list[dict[str, Any]] = []
     module_specs = [
         ("shipping", ("FREE delivery", "standard shipping", "same day delivery", "deliveryBlock")),
-        ("loyalty", ("Beauty Insider", "points", "Store Card", "Rewards")),
+        ("loyalty", ("Beauty Insider", "earn points", "Store Card", "Rewards")),
         ("recommendations", ("data-cnstrc-item=\"recommendation\"", "customers bought together", "Make it a routine")),
     ]
     anchorable_texts = [

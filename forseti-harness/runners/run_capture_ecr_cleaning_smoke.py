@@ -50,6 +50,10 @@ from source_capture.ig_projection import IgCreatorMomentumProjectionPacket  # no
 from source_capture.reddit_consolidation import (  # noqa: E402
     REDDIT_THREAD_CONSOLIDATION_SCHEMA_VERSION,
 )
+from source_capture.retail_grid_projection import (  # noqa: E402
+    RETAIL_GRID_PROJECTION_METHOD,
+    RetailGridProjectionPacket,
+)
 from source_capture.retail_pdp_projection import RetailPdpProjectionPacket  # noqa: E402
 
 
@@ -286,7 +290,7 @@ def _process_retail_entry(
     projection_path = _resolve_manifest_path(manifest_dir, entry, "projection_json")
 
     packet = _load_packet(packet_dir)
-    projection = RetailPdpProjectionPacket.model_validate(
+    projection = _load_retail_projection(
         _load_json_object(projection_path, f"{source_label} projection")
     )
     if projection.packet_id != packet.packet_id:
@@ -328,7 +332,7 @@ def _process_retail_entry(
         findings=findings,
     )
     handles: list[CleaningInputHandle] = []
-    for handle in base_handles:
+    for handle, row in zip(base_handles, projection.rows):
         handle_payload = handle.model_dump(mode="json")
         handles.append(
             CleaningInputHandle.model_validate(
@@ -336,7 +340,12 @@ def _process_retail_entry(
                     **handle_payload,
                     "ecr_ref": ecr_ref.model_dump(mode="json"),
                     "residuals": _dedupe_preserve_order(
-                        [*handle_payload.get("residuals", []), *handle_trace_notes["residuals"]]
+                        [
+                            *handle_payload.get("residuals", []),
+                            *row.residuals,
+                            *projection.residuals,
+                            *handle_trace_notes["residuals"],
+                        ]
                     ),
                     "warnings": _dedupe_preserve_order(
                         [*handle_payload.get("warnings", []), *handle_trace_notes["warnings"]]
@@ -381,6 +390,9 @@ def _process_retail_entry(
             "handle_count": len(handles),
             "projection_method": projection.projection_method,
             "projection_version": projection.projection_version,
+            "page_kind": (
+                "grid" if projection.projection_method == RETAIL_GRID_PROJECTION_METHOD else "pdp"
+            ),
             "structure_preserved": structure_preserved,
             "capture_validity_supported": capture_validity_supported,
             "capture_validity_reasons": capture_validity_reasons,
@@ -1088,7 +1100,7 @@ def _verify_retail_projection_anchors(
     *,
     packet_dir: Path,
     packet: SourceCapturePacket,
-    projection: RetailPdpProjectionPacket,
+    projection: RetailPdpProjectionPacket | RetailGridProjectionPacket,
     source_label: str,
     findings: list[dict[str, Any]],
 ) -> None:
@@ -1155,8 +1167,12 @@ def _retail_anchor_unverified_reason(
     anchor_value: str | None,
     raw_bytes: bytes,
 ) -> str | None:
-    if anchor_kind in {"file", "json_pointer"}:
+    if anchor_kind == "file":
         return None
+    if anchor_kind == "json_pointer":
+        return _json_pointer_anchor_unverified_reason(
+            anchor_value=anchor_value, raw_bytes=raw_bytes
+        )
     if not anchor_value or not anchor_value.strip():
         return "anchor_value_absent"
     if anchor_kind == "text_pattern":
@@ -1173,6 +1189,26 @@ def _retail_anchor_unverified_reason(
     return "unsupported_anchor_kind"
 
 
+def _json_pointer_anchor_unverified_reason(
+    *, anchor_value: str | None, raw_bytes: bytes
+) -> str | None:
+    if not anchor_value or not anchor_value.strip():
+        return "json_pointer_absent"
+    raw_text = _decode_bytes(raw_bytes)
+    match = re.search(
+        r"<script[^>]+id=[\"']__NEXT_DATA__[\"'][^>]*>(.*?)</script>",
+        raw_text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if match is None:
+        return "json_pointer_substrate_absent_from_raw"
+    try:
+        payload = json.loads(match.group(1))
+    except json.JSONDecodeError:
+        return "json_pointer_substrate_malformed"
+    return None if _json_pointer_exists(payload, anchor_value) else "json_pointer_absent_from_raw"
+
+
 def _script_anchor_unverified_reason(*, anchor_value: str, raw_bytes: bytes) -> str | None:
     raw_lower = raw_bytes.lower()
     anchor_lower = anchor_value.lower()
@@ -1187,6 +1223,21 @@ def _script_anchor_unverified_reason(*, anchor_value: str, raw_bytes: bytes) -> 
 
 
 def _html_selector_unverified_reason(*, anchor_value: str, raw_bytes: bytes) -> str | None:
+    occurrence_match = re.fullmatch(
+        r'^:nth-match\(\[data-focusid=["\'](?P<value>[^"\']+)["\']\],\s*'
+        r'(?P<ordinal>\d+)\)$',
+        anchor_value,
+    )
+    if occurrence_match is not None:
+        value = re.escape(occurrence_match.group("value")).encode("utf-8")
+        pattern = rb"data-focusid\s*=\s*['\"]" + value + rb"['\"]"
+        occurrence_count = len(re.findall(pattern, raw_bytes, flags=re.IGNORECASE))
+        ordinal = int(occurrence_match.group("ordinal"))
+        return (
+            None
+            if 1 <= ordinal <= occurrence_count
+            else "html_selector_occurrence_absent_from_raw"
+        )
     selector_ids = [match.group(1) for match in re.finditer(r"#([A-Za-z0-9_-]+)", anchor_value)]
     if not selector_ids:
         return None if anchor_value.encode("utf-8") in raw_bytes else "html_selector_literal_absent_from_raw"
@@ -1203,17 +1254,25 @@ def _retail_capture_validity_reasons(
     *,
     packet_dir: Path,
     packet: SourceCapturePacket,
-    projection: RetailPdpProjectionPacket,
+    projection: RetailPdpProjectionPacket | RetailGridProjectionPacket,
 ) -> list[str]:
     reasons: list[str] = []
-    html_files = [
+    inspectable_files = [
         preserved_file
         for preserved_file in packet.preserved_files
-        if preserved_file.relative_packet_path.lower().endswith((".html", ".htm"))
+        if preserved_file.relative_packet_path.lower().endswith((".html", ".htm", ".bin"))
     ]
-    if not html_files:
+    if not inspectable_files:
         reasons.append("rendered_dom_absent")
-    for preserved_file in html_files:
+    if (
+        projection.projection_method != RETAIL_GRID_PROJECTION_METHOD
+        and not any(
+            preserved_file.relative_packet_path.lower().endswith((".html", ".htm"))
+            for preserved_file in inspectable_files
+        )
+    ):
+        reasons.append("rendered_dom_absent")
+    for preserved_file in inspectable_files:
         _raw_file, raw_path = _verified_preserved_file(
             packet_dir=packet_dir,
             packet=packet,
@@ -1269,8 +1328,15 @@ def _retail_handle_trace_notes(
     }
 
 
-def _projection_has_all_null_required_rows(projection: RetailPdpProjectionPacket) -> bool:
+def _projection_has_all_null_required_rows(
+    projection: RetailPdpProjectionPacket | RetailGridProjectionPacket,
+) -> bool:
     for row in projection.rows:
+        if row.row_kind == "retail_grid_product" and not all(
+            _source_value_present(row.source_visible_fields.get(field))
+            for field in ("source_product_id", "product_url", "name")
+        ):
+            return True
         if row.row_kind == "retail_variant_offer" and not any(
             _source_value_present(row.source_visible_fields.get(field))
             for field in ("sku", "product_id", "variant_name", "price", "price_currency", "availability")
@@ -1282,6 +1348,14 @@ def _projection_has_all_null_required_rows(projection: RetailPdpProjectionPacket
         ):
             return True
     return False
+
+
+def _load_retail_projection(
+    payload: dict[str, Any],
+) -> RetailPdpProjectionPacket | RetailGridProjectionPacket:
+    if payload.get("projection_method") == RETAIL_GRID_PROJECTION_METHOD:
+        return RetailGridProjectionPacket.model_validate(payload)
+    return RetailPdpProjectionPacket.model_validate(payload)
 
 
 def _source_value_present(value: Any) -> bool:
