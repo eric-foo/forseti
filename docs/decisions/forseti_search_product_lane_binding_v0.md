@@ -187,7 +187,9 @@ spines during the window; `repo-structure.yaml` carries `search` at
 - `.agents/workflow-overlay/artifact-folders.md` - search-lane accepted-folder entry + lane-subfolder list + the direction-change-propagation receipt.
 - `docs/decisions/forseti_repo_structure_binding_v0.md` - bound-lanes bullet notes `search/`.
 - `docs/product/README.md` - lane list includes `search/`.
-- `docs/product/search/README.md` - lane front-door index.
+- `docs/product/search/README.md` - lane front-door index *(since retired
+  without successor — nonresolving; see this doc's header note and resolve via
+  the spine-first moved-paths index)*.
 - `docs/workflows/orca_repo_map_v0.md` - Workstream Status Pointers row.
 - `docs/migration/repo_structure_search_lane_v0/` - the migration package (manifest, apply/reverse script, runbook, reference inventory, moved-paths index).
 - The 10 moved docs (search / answer-engine surfaces + demand-signal method) and the ~19 live referencing files whose paths the apply rewrites.

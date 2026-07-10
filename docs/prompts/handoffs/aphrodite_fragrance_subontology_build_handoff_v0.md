@@ -29,6 +29,15 @@ stale_if:
 > both agrees the framing and grants build-authorization. Until then this packet
 > is orientation only.
 
+> **STATUS UPDATE (2026-07-10): SUPERSEDED — overtaken by events.** The
+> commissioned artifact now exists:
+> `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml`
+> (self-described as the fragrance sub-ontology reference data; the backbone
+> carries the `windcaller_kind` amendment dated 2026-07-04, resolving the
+> framing this packet gated on), and
+> `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v1.md` records the
+> ontology as built. Treat this packet as a historical record, not a live gate.
+
 ## Load Contract
 
 - packet_version: v0
@@ -245,11 +254,3 @@ destinations:
   output_artifact_written: docs/prompts/handoffs/aphrodite_fragrance_subontology_build_handoff_v0.md
 non_claims: [not build authorization, not validation, not readiness, not fact-correctness, product_learning-capped]
 ```
-```
-
-Get back context from:
-docs/prompts/handoffs/aphrodite_fragrance_subontology_build_handoff_v0.md
-
-Follow the packet's confirm-don't-trust load contract. If you have repo/filesystem access, open the packet and re-read its named load-bearing sources on `origin/main` (the `forseti/` ontology substrate) before making strict or actionable claims. If you do not have repo/filesystem access, stop and request a pasted source capsule or no-repo handoff.
-
-Continue only the lane named in the packet's Goal Handoff / Active Objective (build the Aphrodite fragrance sub-ontology as reference data on the adopted backbone). Do not perform work excluded by the packet's Drift Guard — no new capped type without owner sign-off, no `orca/` paths, no parallel ontology machinery, no capture/selling — unless explicitly redirected by the current user.

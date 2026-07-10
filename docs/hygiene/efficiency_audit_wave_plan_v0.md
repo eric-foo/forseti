@@ -79,19 +79,19 @@ Destination for all: `docs/decisions/dcp_receipts_archive_v0.md` (verbatim move,
 - [x] **HOOK-8** (W1·landed #835) — `--hook` now emits `additionalContext` + scopes to added-lines-vs-HEAD; adjudicated cross-vendor review patch on top: tracked no-diff → no findings, whole-file fallback only for untracked — `.agents/hooks/check_full_gt_claims.py`
 
 ### T6 · Staleness debt + 1 render bug  `[dead-reference / staleness]`
-- [ ] **APH-HAND-3** (W1) — unpaired ``` fence opens code block to EOF wrapping leaked courier-prompt; delete lines — `docs/prompts/handoffs/aphrodite_fragrance_subontology_build_handoff_v0.md:247-255`
-- [ ] **APH-HAND-2** (W1) — handoff says "NOT AUTHORIZED" after build shipped; apply SUPERSEDED banner — same file `:25-30,66,149-155`
-- [ ] **APH-HAND-1** (W1) — monitoring handoff open after deliverable shipped; mark delivered + repoint repo-map row — `docs/workflows/aphrodite_silver_metric_monitoring_docs_handoff_v0.md` + `forseti_repo_map_v0.md:680`
-- [ ] **APH-CORE-2** (W1) — charter + vetting panel point to superseded v0 handoff → repoint to v1 — `aphrodite_carveout_charter_v0.md:302`, `aphrodite_vetting_sprint_panel_design_v0.md:23`
-- [ ] **APH-RSCH-2** (W1) — 3 files call fragrance ontology an open "build task" though it exists — `docs/research/aphrodite_depth_rehearsal_grade_v0.md:80-84`, `round2_gentsscents_grade_v0.md:154-155`, `ontology_slice_v0.md:20-21`
-- [ ] **APH-RSCH-3** (W1) — dead handoff path cited 3× → repoint — `docs/research/aphrodite_creator_capture_field_map_v0.md:22,116,149`
-- [ ] **APH-RSCH-4** (W1) — "not yet run" claim stale (sibling ran it) — `docs/research/aphrodite_depth_rehearsal_round2_gentsscents_grade_v0.md:164-176`
-- [ ] **APH-RSCH-1** (W1) — `docs/research/README.md` indexes 3 of 12 lane files — `docs/research/README.md:26`
-- [ ] **APH-RSCH-5** (W1) — ontology-slice orphaned from forward-nav chain (add link-back) — `docs/research/aphrodite_depth_rehearsal_ontology_slice_v0.md`
-- [ ] **APH-HAND-5** (W1) — cites superseded handoff's OPEN gates as binding → repoint to v1 — `docs/prompts/handoffs/aphrodite_silver_integration_direction_handoff_v0.md:126-128`
-- [ ] **RE-CSB-5** (W1) — stale CSB reconciliation note (its `stale_if` fired) — `forseti/product/spines/commission_signal_board/migrations/commission_signal_board_current_main_reconciliation_v0.md:46-50,58-71`
-- [ ] **DEC-2** (W1) — intra-doc contradiction: retired doc still listed live in checklist — `docs/decisions/forseti_search_product_lane_binding_v0.md:177`
-- [ ] **DEC-1** (W1) — stale `decisions/README.md` front door (no pointer to doctrine index) — `docs/decisions/README.md`
+- [x] **APH-HAND-3** (W1·landed) — deleted the stray fence + leaked courier block (was :248-256); fence parity restored (4, even) — `docs/prompts/handoffs/aphrodite_fragrance_subontology_build_handoff_v0.md`
+- [x] **APH-HAND-2** (W1·landed) — STATUS UPDATE banner added (SUPERSEDED — overtaken by events): the commissioned artifact exists as `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` (windcaller_kind amendment 2026-07-04 resolved the framing); the 2026-07-04 gate banner kept as history — same file
+- [x] **APH-HAND-1** (W1·landed) — DELIVERED banner + repo-map row repointed to the shipped inventory (`aphrodite_silver_metric_monitoring_inventory_v0.md`); map anchor had drifted :680→:695 — `docs/workflows/aphrodite_silver_metric_monitoring_docs_handoff_v0.md` + `forseti_repo_map_v0.md`
+- [x] **APH-CORE-2** (W1·landed) — charter :302 prose cite + vetting-panel open_next repointed to v1 (v1:30 states supersession); point-in-time cites in decision/propagation registers left as records — 2 files
+- [x] **APH-RSCH-2** (W1·landed) — dated update-notes at the 3 sites pointing to `fragrance_reference_v0.yaml`; historical text preserved. Premise re-verified against primary source (initial gate check false-negatived on the `*ontology*` name; artifact shipped as `fragrance_reference`) — 3 files
+- [x] **APH-RSCH-3** (W1·landed) — the 3 cites were already annotated nonresolving/discharged; completed them with the resolving design-spec path (`.../instagram/aphrodite_proposed_creator_stats_design_spec_v0.md`) — `aphrodite_creator_capture_field_map_v0.md:22,116,149`
+- [x] **APH-RSCH-4** (W1·landed) — update-note: the extraction since ran (`aphrodite_depth_rehearsal_round2_share_of_voice_v0.md`; `fragrance_reference_v0.yaml` consumed its output); pre-run section kept as history — `round2_gentsscents_grade_v0.md`
+- [x] **APH-RSCH-1** (W1·landed) — README bullet now enumerates the full `aphrodite_*` set incl. the 10-artifact depth-rehearsal series — `docs/research/README.md`
+- [x] **APH-RSCH-5** (W1·landed via RSCH-1 + banner) — README row is the inbound link; the slice's new STATUS banner cross-links `fragrance_reference_v0.yaml` — `aphrodite_depth_rehearsal_ontology_slice_v0.md`
+- [x] **APH-HAND-5** (W1·landed) — repointed to v1 with supersession note (v0's PR #661 provenance kept) — `aphrodite_silver_integration_direction_handoff_v0.md`
+- [x] **RE-CSB-5** (W1·landed) — dated Update block added per the doc's own re-pin instruction (rename landed; live `forseti_*prompt_structure*` names cited); pinned baseline lists preserved — `commission_signal_board_current_main_reconciliation_v0.md`
+- [x] **DEC-2** (W1·landed) — real anchor was :190 (audit :177 drifted): controlling-sources row for `docs/product/search/README.md` now carries the retired/nonresolving annotation matching the doc's own header — `forseti_search_product_lane_binding_v0.md`
+- [x] **DEC-1** (W1·landed) — README front door now routes via `forseti_doctrine_index_v0.md` (router) + `dcp_receipts_archive_v0.md` — `docs/decisions/README.md`
 
 ### T4 · Drifted duplication (correctness subset)  `[drift-bug]`
 - [ ] **CER-3** (W1) — prompt-preflight in 4 copies drifted: `edit_permission` 4-value vs 3-value enum + orphaned `isolation_decision` — `.agents/workflow-overlay/prompt-orchestration.md:32,549` vs `forseti_preflight_defaults_v0.md:59`
