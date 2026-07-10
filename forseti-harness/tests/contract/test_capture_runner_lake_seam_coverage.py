@@ -26,6 +26,7 @@ from collections import Counter
 
 from data_lake.inventory import (
     BRONZE_PACKET_ORCHESTRATORS,
+    EXPLICIT_DATA_ROOT_RUNNERS,
     KNOWN_UNSYNCED,
     RUNNER_IDENTITY_BINDINGS,
     HARNESS_ROOT as _HARNESS_ROOT,
@@ -35,6 +36,7 @@ from data_lake.inventory import (
     call_name as _call_name,
     calls_named as _calls_named,
     cli_flags as _cli_flags,
+    environment_get_names as _environment_get_names,
     non_raw_lake_touchpoints as _non_raw_lake_touchpoints,
     packet_producers as _packet_producers,
     producer_calls as _producer_calls,
@@ -263,6 +265,22 @@ def build_parser(parser):
     assert "--output" not in flags
 
 
+def test_detector_requires_a_real_canonical_environment_read() -> None:
+    help_text_only = ast.parse(
+        'HELP = "Defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT)."'
+    )
+    legacy_only = ast.parse(
+        'import os\nvalue = os.environ.get("ORCA_DATA_ROOT")'
+    )
+    canonical = ast.parse(
+        'import os\nvalue = os.environ.get("FORSETI_DATA_ROOT")'
+    )
+
+    assert _environment_get_names(help_text_only) == set()
+    assert _environment_get_names(legacy_only) == {"ORCA_DATA_ROOT"}
+    assert _environment_get_names(canonical) == {"FORSETI_DATA_ROOT"}
+
+
 def test_every_packet_runner_is_lake_wired_or_acknowledged() -> None:
     producers = _packet_producers()
     assert producers, "no packet-producing runners detected -- detection tokens are stale"
@@ -304,6 +322,32 @@ def test_packet_runner_output_modes_are_exclusive() -> None:
 def test_known_unsynced_entries_have_reasons() -> None:
     missing = [name for name, reason in KNOWN_UNSYNCED.items() if not reason.strip()]
     assert not missing, f"KNOWN_UNSYNCED entries need a reason: {missing}"
+
+
+def test_explicit_data_root_runner_declarations_are_current_and_reasoned() -> None:
+    producers = _packet_producers()
+    missing_reasons = [
+        name for name, reason in EXPLICIT_DATA_ROOT_RUNNERS.items() if not reason.strip()
+    ]
+    stale = sorted(set(EXPLICIT_DATA_ROOT_RUNNERS) - set(producers))
+    misclassified = sorted(
+        name
+        for name in EXPLICIT_DATA_ROOT_RUNNERS
+        if name in producers
+        and (
+            not producers[name].explicit_data_root_only
+            or producers[name].exposes_env_fallback
+        )
+    )
+
+    assert not missing_reasons, (
+        f"EXPLICIT_DATA_ROOT_RUNNERS entries need a reason: {missing_reasons}"
+    )
+    assert not stale, f"explicit-root-only declarations are stale: {stale}"
+    assert not misclassified, (
+        "explicit-root-only runners must not be credited with ambient "
+        f"FORSETI_DATA_ROOT fallback: {misclassified}"
+    )
 
 
 def test_every_bronze_writer_runner_declares_identity_binding() -> None:
