@@ -1,12 +1,13 @@
 {
   "video_id": "1N44B-O7VzE",
+  "record_provenance": {"video_input_hash": "a9fe5fa123f2da6bf5340d3e451baa64ec644f66ad724dc1f2dfcf3b7cd4f190", "transcript_hash": "c26c10a8fcd72929ad35c5751467784d9a841cba8e63d06874dd5c97c7fd401e", "watch_metadata_hash": "de42ed5130c3ba3c1ff4074b12b54c655f35c0118e923bb3c551cfb68b957910", "comments_hash": "bfa626c4492de7fae6776c21f5f716b12a7699c868fdb9ec00fe34df6edc812f", "input_content_hash": "a9fe5fa123f2da6bf5340d3e451baa64ec644f66ad724dc1f2dfcf3b7cd4f190", "extraction_model": "claude-fable-5", "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1", "extraction_timestamp": "2026-07-09T18:38:40Z/2026-07-10T03:52:00Z (run window; per-file wall times not separately recorded — run-log receipt)", "receipt_ref_convention": "bare @ms / @start-end refs and comment refs cNN in this record are scoped to this record's video_id; the provenance fields in this block apply to every claim entry in this record (round-1 patch, AR-01)"},
   "title": "10 Underrated Designer Fragrances EVERY MAN SHOULD OWN",
   "video_class": {"value": "ranking", "subtype": "underrated_gems_list", "receipt": "1N44B-O7VzE@11920-19560 'fragrances that most people don't know about. But if you do know about them, it gives you an unfair advantage'", "fragrance_topical": true, "confidence": "high"},
   "views": 28485, "likes": 1279, "publish_date": "2026-06-19", "total_comments": 108,
   "product_mentions_summary": {
     "resolved": [
       {"product_id": "product:dior.sauvage", "kind": "fame_anchor_comparative", "stance": "neutral_mention", "receipt": "1N44B-O7VzE@1200-11920 'So, you know Dior Sauvage? Good. You even know Bleu de Chanel?... we're not talking about those today'"},
-      {"product_id": "product:chanel.bleu-de-chanel", "kind": "fame_anchor_comparative", "stance": "neutral_mention", "receipt": "same cue @4280"},
+      {"product_id": "product:chanel.bleu-de-chanel", "kind": "fame_anchor_comparative", "stance": "neutral_mention", "receipt": "1N44B-O7VzE@4280 'So, you know Dior Sauvage? Good. You even know Bleu de Chanel?... we're not talking about those today' (same cue as the sauvage entry)"},
       {"product_id": "product:jean-paul-gaultier.ultra-male", "kind": "dupe_target_comparative", "stance": "neutral_mention", "receipt": "@418800-426760 '[Rayhaan] lion, that one smells similar to Ultra Male, and it's basically just like a turbocharged version of that fragrance'"},
       {"product_id": "product:coach.coach-for-men", "kind": "price_tier_anchor", "stance": "neutral_mention", "receipt": "@961920-973160 '[Michael Kors Absolu] if it dropped down to say 50 or it came in line with the Coach for Men fragrances as far as the pricing... a lot more people would be about it'", "note": "Coach used as the accessible-designer price benchmark"}
     ],

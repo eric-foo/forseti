@@ -31,7 +31,7 @@ report_zero_run_log:
   transcript_segments_coded: ~160 product-mention segments (per-video product_mentions arrays)
   comments_coded: 600 (40 x 15; intent label + texture per comment)
   claims_emitted:
-    corpus_level: 29 claim types (aphrodite_report_zero_derived_claims_v1.json)
+    corpus_level: 30 claim objects (aphrodite_report_zero_derived_claims_v1.json; erratum — originally recorded as 29, corrected per round-1 review finding AR-06)
     per_video_records: 15 coded.json files (rehearsal-grade claim storage, speed-1)
     panels_projected: 5 (aphrodite_report_zero_sprint_report_v0.md)
   withholds_emitted: 7 honest withholds (clone-tail rollup, niche-share trajectory, matched reception pairs, 4 momentum types) + 5 reference products displayed as not-observed
@@ -59,5 +59,12 @@ report_zero_run_log:
     resolution was cheap at 16 reference products but is the binding constraint
     on value (resolved coverage <10% of discourse); growing the reference tail
     is the highest-leverage speed-2 investment, ahead of automation.
+  round1_correction_note: >
+    Post-run, the round-1 cross-vendor review (blocker verdict) surfaced
+    aggregation arithmetic errors and provenance-materialization gaps in the
+    OUTPUT artifacts; all were adjudicated and patched (see
+    report_zero/aphrodite_report_zero_review_round1_adjudication_v0.md). This
+    log records the original run's effort unchanged — the patch was a separate
+    correction pass on 2026-07-10.
   non_claims: [not validation, not readiness, not buyer proof, product_learning-capped]
 ```

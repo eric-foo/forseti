@@ -34,7 +34,10 @@ below is a claim object in
 recipe `aphrodite-rehearsal-extraction-v1`, model `claude-fable-5`,
 2026-07-10); receipts drill back to
 `docs/research/report_zero/<video_id>.coded.json` and, transitively, the
-canonical lake packets.
+canonical lake packets. **Round-1 cross-vendor review corrections applied**
+(recomputed attention rows, intent totals, tier counts, provenance
+materialization, adjacency relabel — see
+`aphrodite_report_zero_review_round1_adjudication_v0.md`).
 
 **Subject:** GentsScents — YouTube long-form fragrance reviewer
 (`UC9IImcLkUdmURWtQhxu8VwQ`, registry `acct_yt_fragrance_010`).
@@ -50,16 +53,16 @@ purchase-intent → ad-reception → momentum (panel design §6).
 | Row | Posture | Read |
 | --- | --- | --- |
 | Segment share | **show** | 15/15 recent videos are fragrance-topical (8 rankings, 3 reviews, 2 clone-guides, 1 counterfeit-exposure, 1 release-intel). This is a fragrance-only channel, not a general-beauty drive-by. |
-| Presence × attention × stance — **your target originals** | **show** | `creed.aventus`: attention in 5/15 videos (171K captured views) — but **zero dedicated review segments**; it appears exclusively as the clone economy's reference point ("the archetype most-cloned"; "when you want that Aventus vibe for cheap, Explorer's the one" — 8QpC36Q_eeM@181040). `dior.sauvage`: 7/15 videos (284K views, 51% of corpus attention), with **direct positive review segments** (S-tier ctcEju1AvGw@1161520; "one of the best ones ever made" sw34VzzWlvA@777120) *plus* clone-target attention. |
-| Note-family overlap | **show** | All 8 of your intake families observed with receipts. The channel's dominant "blue/fresh" discourse sits squarely on your required citrus/woody/fresh/spicy. Chips: citrus ✓ woody ✓ fresh ✓ spicy ✓ · fruity ✓ sweet ✓ amber ✓ aromatic ✓ (each backed by resolved products' reference coordinates, attention-weighted). |
-| Tier alignment | **show** (M1: rubric-classified, provenance visible) | Resolved mentions skew designer (9/11 observed products); niche = Aventus/Aventus-Absolu (comparative-only); luxury = LV Imagination. **Honest inversion:** the *unresolved* tail is overwhelmingly clone-house — reference v0 carries no clone-house products, so your own tier's discourse (which dominates this channel) is excluded from resolved rollups. Resolved coverage: 11/16 reference products; <10% of all distinct products mentioned. |
+| Presence × attention × stance — **your target originals** | **show** | `creed.aventus`: attention in 4/15 videos (139K captured views) — but **zero dedicated review segments**; it appears exclusively as the clone economy's reference point ("the archetype most-cloned"; "when you want that Aventus vibe for cheap, Explorer's the one" — 8QpC36Q_eeM@181040). Its flanker `creed.aventus-absolu` separately draws clone-target attention in 2/15 videos (90K). `dior.sauvage`: 7/15 videos (284K views, 51% of corpus attention), with **direct positive review segments** (S-tier ctcEju1AvGw@1161520; "one of the best ones ever made" sw34VzzWlvA@777120) *plus* clone-target attention. *Attention method (M4b, displayed with the numbers): a video containing the product contributes its captured views once; product shares overlap and do not sum to 100%.* |
+| Note-family overlap | **show** | All 8 of your intake families observed with receipts. The channel's dominant "blue/fresh" discourse sits squarely on your required citrus/woody/fresh/spicy. Chips: citrus ✓ woody ✓ fresh ✓ spicy ✓ · fruity ✓ sweet ✓ amber ✓ aromatic ✓ (each backed by resolved products' reference coordinates). *Weighting method (M4b, displayed with the chips): family support is read off the once-per-video product-attention rows above; no fractional per-video view division across products was computed for this rehearsal.* |
+| Tier alignment | **show** (M1: rubric-classified, provenance visible) | Resolved mentions skew designer (8/11 observed products, count-based — no view-weighted tier distribution is displayed); niche = Aventus/Aventus-Absolu (comparative-only); luxury = LV Imagination. **Honest inversion:** the *unresolved* tail is overwhelmingly clone-house — reference v0 carries no clone-house products, so your own tier's discourse (which dominates this channel) is excluded from resolved rollups. Resolved coverage: 11/16 reference products; <10% of all distinct products mentioned. |
 | Dupe-space adjacency | see Panel 2 block below | Direct-original evidence **show**; clone-tail roll-up **withhold** (empty graph). |
 | Comparable-brand baseline (within-window, M4a) | **show** (medium) | Your category's content (clone-primary videos, 5-6/15) runs ~0.84× the channel's mean views but carries the **highest purchase-intent density** (up to ~45% intent-bearing comments on a single-product clone review vs ~0 on a giveaway ranking). On this channel, your category trades reach for conversion-shaped engagement. |
-| Attention concentration (gameability check) | **show** | Top video = 11.7% of corpus views; top-3 = 30.7%. Broadly supported; not one-viral-video inflated. |
+| Attention concentration (gameability check) | **show** | Top video = 11.7% of corpus views; top-3 = 30.8% (170,483/552,859). Broadly supported; not one-viral-video inflated. |
 | Niche-share trajectory | **withhold** | Single capture cycle — no trend claim. Missing: a second capture window. |
 | Unresolved mentions (coverage honesty) | **show** | ~150+ distinct products mentioned; the clone-house tail (Rasasi/Hawas, Armaf, Lattafa, Afnan, Maison Alhambra, French Avenue, Nusuk, Zimaya…) is deliberately excluded-pending-source in reference v0. Tier/note rollups above are computed over resolved mentions only. |
 
-## Panel 2 — Dupe-space & organic brand adjacency (your lead follow-on)
+## Panel 2 — Dupe-space & brand adjacency (your lead follow-on)
 
 **Direct Original block (show):**
 - **Aventus demand-space:** the richest dupe-discourse object in the corpus.
@@ -72,7 +75,9 @@ purchase-intent → ad-reception → momentum (panel design §6).
   attention is abundant and mediated through clones — precisely your market.
 - **Sauvage demand-space:** strong direct original attention (positive) + clone
   coverage (Zenith Blue) + the flanker trend-analysis (Sauvage Elixir ranked #1
-  and credited with creating the elixir wave — hzqxkp3OqQw@1006480).
+  and credited with creating the elixir wave — hzqxkp3OqQw@1006480; Elixir
+  itself is a distinct unresolved flanker under the resolution granularity
+  rule — this is line-level discourse evidence, not a resolved Elixir claim).
 
 **Clone Tail block (withhold — honest absence):**
 > Dupe-space roll-up withheld: the ontology contains no citable dupe
@@ -83,7 +88,8 @@ purchase-intent → ad-reception → momentum (panel design §6).
 and audience speech — Explorer→Aventus, Apollo→Y EDP, M→BdC, Gold Digger→Ultra
 Male… — citable as discourse, not as graph edges.)
 
-**Organic adjacency (show; gifted video downgraded out):** the creator
+**Self-funded editorial adjacency (downgrade — no fully non-affiliate context
+exists on this channel; gifted video excluded):** the creator
 self-funds haul-scale coverage of your exact category ("$300 blind buying a ton
 of cheap clone fragrances" — tVUqAYGT3SE@7160), grades clone quality honestly
 (positive Dunescape/Concordia/Gladius; negative Hawas Chrome; tiered
@@ -91,19 +97,22 @@ Pierce > Luminous Vivid > Art of Wood for one original), and performs
 market-timing analysis of clone-house target selection ("coming out with
 alternatives years after all the other brands… you already own 9PM… who cares"
 — nySgot9sqMY@385640). Stance is graded, never promotional: presence ≠
-endorsement.
+endorsement. *Why downgraded, not shown (round-1 correction): every video on
+this channel carries description-level affiliate monetization, so this
+coverage is "self-funded editorial" — the creator buys what he reviews — not
+"organic" in the recipe's sense of a non-affiliate context.*
 
 ## Panel 3 — Audience purchase-intent (aggregate only)
 
 | Signal | Raw count | Liked support (separate, M2) | Posture |
 | --- | --- | --- | --- |
-| Bought-because-of-creator | 12 | ~35 (top 8) | **show** |
+| Bought-because-of-creator | 14 (12 name the purchased product; 2 channel-level) | ~40 (top 8) | **show** |
 | Dupe requests | 12 | **~170** (top 63, 40, 35) | **show** |
 | Future-buy / watchlist | 30 | — | **show** |
 | Where-to-buy | 4 | — | **show** |
 | Comparison shopping | 4 | — | **show** |
 | Price objections | 3 | 21 top | **show** |
-| Ownership reports | ~150 | — | **show** |
+| Ownership reports | 157 | — | **show** |
 
 Highlights for a clone-house buyer: dupe requests are the **most-liked intent
 class** — the audience petitions clone houses through this channel, twice
@@ -173,8 +182,9 @@ the buyer's values. **What the intake needed that did not exist:**
 ## The decision read (what this report supports — and declines)
 
 For this synthetic dupe-first buyer, the evidence supports: **this creator is a
-high-fit channel for clone-house creator spend** — category-exact organic
-coverage, the strongest dupe-request audience observed anywhere in the corpus,
+high-fit channel for clone-house creator spend** — category-exact self-funded
+editorial coverage (downgraded, not organic: every video carries affiliate
+monetization), the strongest dupe-request audience observed anywhere in the corpus,
 explicit purchase conversion, and decision-gating influence — **with the named
 caveats** that reach on clone content runs below the channel's own mean, the
 channel monetizes via affiliate on everything (no organic baseline), and
