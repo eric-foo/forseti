@@ -26,7 +26,7 @@
     "intent_counts": {"bought_because_of_creator": 2, "where_to_buy": 0, "dupe_request": 2, "price_objection": 1, "comparison_shopping": 1, "future_buy_watchlist": 6, "owned_no_creator_causality": 7, "none": 21},
     "intent_refs": {
       "bought_because_of_creator": ["c05 'Because of this channel, I bought Dunescape, Pacific Aura and Hawas Tropical. I was not mislead' (3 likes) — 3-product channel-attributed haul", "c04 'Had this for a while after Ash recommended it on a different video and really enjoy it' (6 likes)"],
-      "dupe_request": ["c11 'I would like to see Hawas come out with a beast mode Y edp clone' (35 likes, TOP comment, 10 replies) — clone request naming product:ysl.y-eau-de-parfum as target + scene vocab 'beast mode'", "c30 'Got my hopes up thinking it could be a Dior Dune pour Homme clone'"],
+      "dupe_request": ["c11 'I would like to see Hawas come out with a beast mode Y edp clone' (35 likes, TOP comment, 10 replies) — clone request naming product:ysl.y-eau-de-parfum as target + scene vocab 'beast mode'", "c30 (2 likes) 'Got my hopes up thinking it could be a Dior Dune pour Homme clone'"],
       "price_objection": ["c20 'short-list of frags to look out for to drop to under $30'"],
       "comparison_shopping": ["c37 'How does it compare to odyssey mega?'"],
       "future_buy_watchlist": ["c03 'Buying this jus cuz the sand in the cap is gangster' (19 likes — packaging-driven)", "c07 'Pulling the trigger on this, been in the cart for about a year'", "c09", "c12 'I gotta pick this one up'", "c14", "c25 'This is my next buy!'"]

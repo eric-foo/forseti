@@ -40,9 +40,9 @@
     "sample": 40, "bias_note": "no giveaway prompt; organic clone-purchase discourse — highest intent density in corpus (~11/40)",
     "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 1, "dupe_request": 3, "price_objection": 0, "comparison_shopping": 2, "future_buy_watchlist": 4, "owned_no_creator_causality": 7, "none": 22},
     "intent_refs": {
-      "bought_because_of_creator": ["c04 'I purchased Raees Luxury edition the day I saw this video and it was in stock and shipped already' — explicit same-day conversion"],
+      "bought_because_of_creator": ["c04 (no like count captured) 'I purchased Raees Luxury edition the day I saw this video and it was in stock and shipped already' — explicit same-day conversion"],
       "where_to_buy": ["c25 'On Ebay, Le Perfect IS Jomashop. Is that where you purchased from?'"],
-      "dupe_request": ["c23 'any iced cologne clone yet in the market?'", "c28 'What is the closest scent to ADG Profumo in your opinion?'", "c33 'Is there any dupes for Sental 33 [Santal 33] out there?'"],
+      "dupe_request": ["c23 (no like count captured) 'any iced cologne clone yet in the market?'", "c28 (no like count captured) 'What is the closest scent to ADG Profumo in your opinion?'", "c33 (no like count captured) 'Is there any dupes for Sental 33 [Santal 33] out there?'"],
       "comparison_shopping": ["c19 'I have 1million elixir (love it) is the new invictus elixir similar or overlapping to the point if just getting 1 of the 2?'", "c31 'How does Concordia compare to island dreams?'"],
       "future_buy_watchlist": ["c06 'Gonna try the Concordia and Mykonos Empire'", "c07 'I'm going to try these fragrances'", "c12 'Mykonos empire is on the list now'", "c29 'thinking of dipping into clones'"]
     },

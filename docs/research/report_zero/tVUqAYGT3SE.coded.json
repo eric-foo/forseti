@@ -33,7 +33,7 @@
     "sample": 40, "bias_note": "giveaway prompt 'favorite recent dupe pickup' -> dupe-ownership census (~30/40 name an owned clone); 634 total comments (2nd-largest pool)",
     "intent_counts": {"bought_because_of_creator": 2, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 3, "owned_no_creator_causality": 27, "none": 8},
     "intent_refs": {
-      "bought_because_of_creator": ["c33 'I recently got Hawas Highness and really digging it... Had to pick it up after your review Ash!' — review-attributed purchase of a prior video's subject", "c38 'just purchased Lattafa Vintage Radio... Glad I follow for these amazing insights!' — follow-attributed purchase"],
+      "bought_because_of_creator": ["c33 (no like count captured) 'I recently got Hawas Highness and really digging it... Had to pick it up after your review Ash!' — review-attributed purchase of a prior video's subject", "c38 (1 like) 'just purchased Lattafa Vintage Radio... Glad I follow for these amazing insights!' — follow-attributed purchase"],
       "future_buy_watchlist": ["c40 'Dunescape is one of my next ones I want to buy' (Germany)", "c03 'would love to give it a try'", "c14 'Want to get the elixir version next, hopefully not redundant' — REDUNDANCY-AWARE buyer echoing the creator's overlap doctrine"]
     },
     "owned_sample_note": "27 owned-clone reports incl. Lattafa (Jasoor, Dynasty, Vintage Radio, Pride), Hawas (Black, Tropical, Malibu, Highness), Armaf (Odyssey Mandarin Sky, Limoni), Zimaya (Cult, Modhesh Aura), Nusuk Gladius (c36 — the astroturfed one, organically owned), Itqan Noir (c35 'myslf dupe. Quality is there and the wife loves it')",

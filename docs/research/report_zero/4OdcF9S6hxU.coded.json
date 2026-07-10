@@ -15,23 +15,23 @@
       {"surface": "Khamrah Waha (Lattafa)", "tier": "D (wife)", "receipt": "@165360-170160 'if I'm being brutal... I'm going to put it down in the D'", "note": "clone-house product; desc anchor 'Khamrah Waha'; audience pushback c25 'khamrah waha is honestly fire'"},
       {"surface": "YSL MYSLF EDP", "tier": "S", "receipt": "@425599-428479 'S tier' + pasta analogy @416880-425599", "note": "broke-a-bottle household story @389360"},
       {"surface": "JPG Le Beau Paradise Garden", "tier": "A (wife) / S (Ash)", "receipt": "@442319-444080 'I'd probably move Paradise Garden up to S'"},
-      {"surface": "Prada Paradigme", "tier": "A", "receipt": "@61600-72640"},
-      {"surface": "La Nuit de L'Homme EDP (YSL)", "tier": "C", "receipt": "@245599-265520"},
-      {"surface": "Dior Homme Parfum (new)", "tier": "C", "receipt": "@194239-245040", "house_id": "brand:dior"},
-      {"surface": "D&G Light Blue EDT", "tier": "B", "receipt": "@333039-371440"},
+      {"surface": "Prada Paradigme", "tier": "A", "receipt": "4OdcF9S6hxU@59840-63120 'So, product paradigm, this one right here, ultra versatile compliment puller, easy to wear' (ASR 'paradigm' = Paradigme)"},
+      {"surface": "La Nuit de L'Homme EDP (YSL)", "tier": "C", "receipt": "4OdcF9S6hxU@245599 'Lanoi Lom Oda Parfam. This the new' (ASR garble = La Nuit de L'Homme EDP; segment @245599-265520)"},
+      {"surface": "Dior Homme Parfum (new)", "tier": "C", "receipt": "4OdcF9S6hxU@192080-195599 'So, next up, Dior Parfam' (ASR garble; segment @194239-245040)", "house_id": "brand:dior"},
+      {"surface": "D&G Light Blue EDT", "tier": "B", "receipt": "4OdcF9S6hxU@333039-337759 'Light blue. Dolce Gabbana... This is the new Odo twelet' + @364720-370800 'All right. B tier... B tier'"},
       {"surface": "Paris Corner Ciao Citrus", "tier": "D-region", "receipt": "@548640-551440 'It's doing too much'"},
-      {"surface": "Rabanne 1 Million Elixir", "tier": "high A", "receipt": "@604959-616959"},
-      {"surface": "Rasasi Hawas Highness", "tier": "B", "receipt": "@702720-705920", "note": "clone-house; 'kind of a vibrato mix'"},
-      {"surface": "Prada Luna Rossa Ocean EDP", "tier": "A", "receipt": "@831600-835279"},
-      {"surface": "CH Bad Boy Cobalt", "tier": "A", "receipt": "@898800-904399", "house_id": "brand:carolina-herrera"},
-      {"surface": "Maison Margiela REPLICA Jazz Club", "tier": "low (wife: 'when are you going to wear that? pretty much never')", "receipt": "@931600-948959", "confidence": "medium (context: 'club of jazz', 'cocktails and cigars')"},
-      {"surface": "Mykonos Dreamscape", "tier": "A/B boundary", "receipt": "@965839-1043520", "note": "'smells like God of Fire' comparative"},
+      {"surface": "Rabanne 1 Million Elixir", "tier": "high A", "receipt": "4OdcF9S6hxU@604959-608720 'man, if there was like a tier in between A and S' (the high-A verdict; segment @604959-616959)"},
+      {"surface": "Rasasi Hawas Highness", "tier": "B", "receipt": "4OdcF9S6hxU@702720-705920 'kind of a vibrato mix'", "note": "clone-house"},
+      {"surface": "Prada Luna Rossa Ocean EDP", "tier": "A", "receipt": "4OdcF9S6hxU@831600-835279 'A tier. So, yeah Ocean. That's basically their blue fragrance'"},
+      {"surface": "CH Bad Boy Cobalt", "tier": "A", "receipt": "4OdcF9S6hxU@898800-904399 'Oh, okay. Okay. Okay... I'm going to put it in a tier. We're getting a lot of A' (spoken 'A tier')", "house_id": "brand:carolina-herrera"},
+      {"surface": "Maison Margiela REPLICA Jazz Club", "tier": "low (wife: 'when are you going to wear that? pretty much never')", "receipt": "4OdcF9S6hxU@929199-930560 'And cigars. Yes.' (context cues 'club of jazz' / 'cocktails and cigars'; segment @931600-948959)", "confidence": "medium (ASR garbled product name; context-anchored)"},
+      {"surface": "Mykonos Dreamscape", "tier": "A/B boundary", "receipt": "4OdcF9S6hxU@965839-1043520 'smells like God of Fire' (comparative spoken in-segment)"},
       {"surface": "YSL Y Elixir", "tier": "S (wife) / Ash would drop", "receipt": "@1043520-1073520 + @1170480-1173120 'I would drop Y elixir down'", "note": "distinct flanker, NOT y-eau-de-parfum"},
-      {"surface": "Atlantis extrait", "tier": "A", "receipt": "@1089760-1127039", "note": "'smells like wave child' comparative"},
-      {"surface": "Armani SWY Powerfully", "tier": "B", "receipt": "@1131919-1161200"},
-      {"surface": "JPG Le Male Elixir Absolu", "tier": "C (wife)", "receipt": "@1185440-1208000", "house_id": "brand:jean-paul-gaultier"},
-      {"surface": "Afnan 9PM Night Out", "tier": "(mid)", "receipt": "@1230240-1246320", "note": "clone-house; 'wore that at the winter thing' household ownership"},
-      {"surface": "Valentino Born in Roma Extradose", "tier": "S (per c11 index)", "receipt": "tail 'two in a row in the S tier'"}
+      {"surface": "Atlantis extrait", "tier": "A", "receipt": "4OdcF9S6hxU@1089760-1094480 'This is Atlantis extra... This one smells like wave child' + @1127039 'And it goes in the A tier'"},
+      {"surface": "Armani SWY Powerfully", "tier": "B", "receipt": "4OdcF9S6hxU@1129280-1134960 'Let's go with stronger with you. Powerfully.' (mention; tier verdict inside segment @1131919-1161200)"},
+      {"surface": "JPG Le Male Elixir Absolu", "tier": "C (wife)", "receipt": "4OdcF9S6hxU@1185440-1191440 'Elixir Absolute... I said JPG' + @1205039-1208000 'I got to put it down here in the C tier'", "house_id": "brand:jean-paul-gaultier"},
+      {"surface": "Afnan 9PM Night Out", "tier": "B", "receipt": "4OdcF9S6hxU@1230240 'So, 9:00 p.m. Night Out' + @1246320-1248400 'the winter thing... I wore that like every day' + @1279280-1282559 'I'm going to put it in B tier. B here. Yep.'", "note": "clone-house; household ownership; tier previously recorded '(mid)' — grounded to the spoken B verdict at patch time"},
+      {"surface": "Valentino Born in Roma Extradose", "tier": "S (per c11 comment tier-index, as stated — not a spoken verdict)", "receipt": "4OdcF9S6hxU@1333120 'Then we have uh Born in Roma extra dose.' (mention)"}
     ]
   },
   "disclosure": {
@@ -46,7 +46,7 @@
     "sample": 40, "bias_note": "wife-collab format drives parasocial/format appreciation (~28/40 about Chelsea/format, not products)",
     "intent_counts": {"bought_because_of_creator": 2, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 0, "owned_no_creator_causality": 3, "none": 35},
     "intent_refs": {
-      "bought_because_of_creator": ["c40 'Everytime you bring Chelsea in I end buying a perfume😅' (3 likes) — FORMAT-driven repeat conversion", "c20 'it was your wife's reaction to it on an old video... that made me pull the trigger on it' (Versace Man, discontinued)"]
+      "bought_because_of_creator": ["c40 'Everytime you bring Chelsea in I end buying a perfume😅' (3 likes) — FORMAT-driven repeat conversion", "c20 (2 likes) 'it was your wife's reaction to it on an old video... that made me pull the trigger on it' (Versace Man, discontinued)"]
     },
     "owned_refs": ["c14 ('JPG Paradise Garden has gotten me the most unsolicited compliments... beast on my skin')", "c25 ('khamrah waha is honestly fire' — Lattafa defense vs wife's D)", "c31 ('the only one I would be caught dead with is Jazz Club')"],
     "authenticity_texture": [{"ref": "c02", "note": "73 likes: 'Chelsey comes off so much more authentic than most of the influencer market just making snap decisions based on what she likes' — authenticity-vs-influencer-market, directly relevant to ad-reception/trust"}],

@@ -21,7 +21,7 @@
     "sample": 40, "bias_note": "wardrobe-guide format; knowledge-consumption + parasocial texture dominates",
     "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 0, "owned_no_creator_causality": 9, "none": 30},
     "intent_refs": {
-      "bought_because_of_creator": ["c13 'I'm wearing Arashi Reef today!... that, French Quarter and Citizens Jack are my first Michael Malul fragrances. Amazing quality and I love all the samples' — SELF-BRAND conversion, 3 creator products owned"]
+      "bought_because_of_creator": ["c13 (2 likes) 'I'm wearing Arashi Reef today!... that, French Quarter and Citizens Jack are my first Michael Malul fragrances. Amazing quality and I love all the samples' — SELF-BRAND conversion, 3 creator products owned"]
     },
     "owned_refs": ["c12 ('Just ordered SWY Powerfully... had a sample... BEAUTIFUL' — sample->bottle funnel, circumstantial creator-influence)","c16","c20","c22","c26","c27","c29","c33","c39"],
     "decision_support_value": [

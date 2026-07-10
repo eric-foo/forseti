@@ -15,7 +15,7 @@
       {"surface": "fake Valentino Purple Melancholia ($48.26, seller info Saudi Arabia, SAME fake NY address)", "receipt": "@1105280-1109440 'absolute garbage. It dissipates almost instantly'"}
     ],
     "integrity_facts": [
-      {"note": "coordinated counterfeit ring signal: two different eBay accounts, different claimed countries, same fake New York shipping address", "receipt": "@903920-915040"},
+      {"note": "coordinated counterfeit ring signal: two different eBay accounts, different claimed countries, same fake New York shipping address", "receipt": "FBda5R_1GGg@903920-915040 'Different seller info coming from the same fake address in New York'"},
       {"note": "batch-code verification defeated: 'they're going to buy a real one and copy that' @518560-532000"},
       {"note": "platform enforcement failure: 'I've reported fakes over and over. They don't remove them' @850000-857440"},
       {"note": "clone-houses now counterfeited too: 'the reason that Lattafa and brands like that have introduced this whole certificate of authenticity' @1253520-1261200"},
@@ -34,7 +34,7 @@
   "comment_coding": {
     "sample": 40, "bias_note": "trust/consumer-protection discourse dominates; no product-prompt",
     "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 0, "owned_no_creator_causality": 5, "none": 34},
-    "intent_refs": {"bought_because_of_creator": ["c39 'After watching one of your videos I started getting into mens fragrance.....now I smell wonderful all the time' — category-entry conversion"]},
+    "intent_refs": {"bought_because_of_creator": ["c39 (no like count captured) 'After watching one of your videos I started getting into mens fragrance.....now I smell wonderful all the time' — category-entry conversion"]},
     "owned_refs": ["c16 (owned fake Hawas + Valentino)", "c25 (discovered own Azzaro is fake via this video's batch code)", "c33 ('bought four bottles of Amouage Beach Hut Man from Jomashop')", "c38 (venue-loyal buyer, one Amazon clone burn)", "c40 (fake Eros eBay burn story)"],
     "trust_integrity_textures": [
       {"ref": "c02", "note": "TOP comment (55 likes): demand for real-vs-fake series on the extra channel"},

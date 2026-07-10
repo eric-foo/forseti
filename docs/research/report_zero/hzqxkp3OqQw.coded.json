@@ -6,10 +6,14 @@
   "views": 25128, "likes": 1242, "publish_date": "2026-06-24", "total_comments": 136,
   "product_mentions_summary": {
     "resolved": [
-      {"product_id": "product:dior.sauvage", "kind": "line_reference + sales_tier_comparative", "stance": "neutral_mention", "receipts": ["hzqxkp3OqQw@94840-99800 '[K] did not compete with Y, Bleu de Chanel, and Sauvage as far as sales goes'", "@1070280-1078480 'Sauvage Elixir did the whole thing where it smells nothing like the Sauvage fragrances that came before it... the eau de toilette, the eau de parfum, or the parfum'"], "note": "Sauvage Elixir (#1, distinct flanker) + market-causality claim: 'Sauvage Elixir... set off all of this... every other brand went what if we do elixir and charge more' @1006480-1038040"},
-      {"product_id": "product:chanel.bleu-de-chanel", "kind": "sales_tier_comparative", "stance": "neutral_mention", "receipt": "@94840 same sales-tier cue"},
-      {"product_id": "product:ysl.y-eau-de-parfum", "kind": "sales_tier_comparative", "stance": "neutral_mention", "receipt": "@94840 (bare 'Y', medium) + Y Elixir segment 'a lot of overlap with a bunch of the other Y fragrances' @501760"},
+      {"product_id": "product:dior.sauvage", "kind": "sales_tier_comparative", "stance": "neutral_mention", "receipt": "hzqxkp3OqQw@94840-99800 '[K] did not compete with Y, Bleu de Chanel, and Sauvage as far as sales goes'", "note": "base-line receipt only; the video's Sauvage Elixir material is a distinct unresolved flanker — moved to flanker_segments_unresolved (granularity rule, round-2 correction)"},
+      {"product_id": "product:chanel.bleu-de-chanel", "kind": "sales_tier_comparative", "stance": "neutral_mention", "receipt": "hzqxkp3OqQw@94840-99800 '[K] did not compete with Y, Bleu de Chanel, and Sauvage as far as sales goes' (same sales-tier cue as the sauvage entry)"},
+      {"product_id": "product:ysl.y-eau-de-parfum", "kind": "sales_tier_comparative", "stance": "neutral_mention", "receipt": "hzqxkp3OqQw@94840-99800 '[K] did not compete with Y, Bleu de Chanel, and Sauvage as far as sales goes' (bare 'Y', confidence medium)", "note": "base-line receipt only; the Y Elixir segment moved to flanker_segments_unresolved (granularity rule, round-2 correction)"},
       {"product_id": "product:paco-rabanne.invictus-parfum", "kind": "comparative_component", "stance": "neutral_mention", "receipt": "@792560-798520 'Invictus Victory Elixir mixed with Invictus Parfum if you want to very simply dumb it down'"}
+    ],
+    "flanker_segments_unresolved": [
+      {"surface": "Sauvage Elixir (Dior)", "resolution": "unresolved", "reason": "distinct flanker with no reference entry of its own; the creator himself distinguishes it from the line's concentrations (granularity rule)", "stance": "positive_recommend (#1 of the elixir ranking)", "receipts": ["hzqxkp3OqQw@1070280-1078480 'Sauvage Elixir did the whole thing where it smells nothing like the Sauvage fragrances that came before it... the eau de toilette, the eau de parfum, or the parfum'", "@1006480-1038040 'Sauvage Elixir... set off all of this... every other brand went what if we do elixir and charge more' (market-causality claim)"]},
+      {"surface": "Y Elixir / Le Parfum (YSL)", "resolution": "unresolved", "reason": "distinct flanker; reference has y-eau-de-parfum only (granularity rule)", "stance": "mixed_comparative", "receipt": "hzqxkp3OqQw@501760-505840 'a lot of overlap with a bunch of the other Y fragrances. It's basically just a tweak on the existing Y DNA'"}
     ],
     "dupe_economy_receipt": {"note": "CREATOR RECOMMENDS DUPE OVER ORIGINAL on price: Y Elixir '$200 for a 2-oz... paying 100 bucks per ounce... for a lot of people this one might make more sense to get a dupe or inspired by fragrance of, because those are really well done, and they cost much less' @463720-538480"},
     "market_reads": [
@@ -29,7 +33,7 @@
     "sample": 40, "bias_note": "category ranking; ownership + list-debate discourse",
     "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 1, "owned_no_creator_causality": 12, "none": 26},
     "intent_refs": {
-      "bought_because_of_creator": ["c17 'Love the Sauvage Elixir... I had to get a bottle I finally pulled the trigger! Can't express how much I love it! 2 sprays last 12+ hours! Thank You Gentscents!!' — purchase thanks-attributed to channel"],
+      "bought_because_of_creator": ["c17 (no like count captured) 'Love the Sauvage Elixir... I had to get a bottle I finally pulled the trigger! Can't express how much I love it! 2 sprays last 12+ hours! Thank You Gentscents!!' — purchase thanks-attributed to channel"],
       "future_buy_watchlist": ["c07 'Boss Bottled Elixir will be my favorite, as soon as I add it to my elixir free collection'"]
     },
     "owned_refs": ["c04","c09 ('went through a bottle in a month')","c18","c20","c21","c23","c25","c26","c31","c35","c36","c38"],

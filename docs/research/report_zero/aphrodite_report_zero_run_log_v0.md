@@ -42,7 +42,7 @@ report_zero_run_log:
     - lake located via ORCA_DATA_ROOT (F:\orca-data-lake); 54 packets found+verified by a delegated Sonnet worker (read-only)
     - corpus freeze: canonical-pick (newest complete per video), mechanical normalization (authors dropped), five-hash chain computed by scratch script; corpus record + synthetic intake committed (a04270b6)
     - hand-run extraction: per-video read (cues -> comments -> watch) then immediate persist of coded.json, 15 iterations
-    - corpus-level synthesis: 29 claim types aggregated from the 15 coded records
+    - corpus-level synthesis: 30 claim objects aggregated from the 15 coded records (erratum: originally recorded as 29 here too — second occurrence corrected per round-2 review)
     - panel projection: five-panel sprint report for the synthetic buyer, dupe-first reading order
   exceptions_or_surprises:
     - comment like_count arrives as strings incl. whitespace and K-suffix; freeze script initially crashed -> fixed by hashing VERBATIM raw strings (lossless) with parsed ints as convenience fields

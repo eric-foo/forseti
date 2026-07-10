@@ -91,8 +91,30 @@ the contract as requiring the four run-constant fields duplicated onto every
 inner mention entry as well, that is an owner-level contract-interpretation
 decision to surface, not a silent re-litigation.
 
+## Round 2 (appended 2026-07-10): return adjudicated — all four residuals ACCEPTED
+
+Round-2 return (OpenAI GPT-5, over patched commit `f49825c0`): verdict
+**blocker** — AR-04 and AR-05 closed; AR-01/02/03/06 residuals remained.
+Round-2 criterion 5 outcome: **FAILED.** Home lane re-verified every residual
+at the source and accepted all four:
+
+| Residual | Home-lane verdict | Closure applied |
+| --- | --- | --- |
+| AR-01a: `source_refs` still a prose pointer, not units+hashes | **ACCEPTED** (contract-interpretation capitulated: embed, don't point) | Every corpus claim's `source_refs` now embeds `captured_units` — the actual 15-entry `{video_id: video_input_hash}` map (mechanical scan: 30/30). |
+| AR-01b: receipt cleanup incomplete (hzq "same sales-tier cue"; quote-less segment refs) | **ACCEPTED** | Full sweep run (not just the flagged example): every quote-less transcript receipt across all 15 files filled with verbatim cue text drawn from the frozen cues substrate — hzq sales-tier cue, all 13 quote-less 4OdcF9S6hxU tier-list entries (incl. re-grounding the Born-in-Roma receipt to its actual @1333120 mention and the 9PM Night Out tier to the spoken B verdict), ctc/eH/FB dupe-discourse and integrity receipts. Disclosure receipts that cite captured watch-packet FIELDS (e.g. `paid_content_overlay: not_captured`) are field observations, not speech quotes — named here, not converted. |
+| AR-01c: M2 like sums not reconstructable | **ACCEPTED** | Exact sums recomputed from the frozen comments substrate: dupe_request **176** (top 63/40/35/26 all cross-validated), bought-because **39**; every contributing intent ref now carries its captured like count (blank captures explicitly marked "no like count captured", counted 0). Corpus claim and report updated from ~approximations to exact. |
+| AR-02 residual: similarity claim said "organic clone coverage" at `show` | **ACCEPTED** (relabel; posture kept with stated basis) | Wording replaced with the adjudicated self-funded-editorial classification. `show` retained WITH an explicit `posture_basis`: similarity is measured between reference/intake coordinates and observed coverage — it does not rest on the coverage being organic. Round 3 may contest the posture; the basis is now stated, not implicit. |
+| AR-03 residual: hzq kept Elixir material inside resolved base objects | **ACCEPTED** | hzq restructured: Sauvage and Y entries rest on the independent base-line receipt (@94840) only; Sauvage Elixir and Y Elixir material moved to a `flanker_segments_unresolved` array (rule now applied uniformly; base rows unchanged, as the reviewer noted). |
+| AR-06 residual: second "29" occurrence in operator_steps | **ACCEPTED** | Corrected with its own erratum note. |
+
+Zip-identity residual: the reviewer looked for the pack at a repo-relative
+path; the courier zips live in the session scratchpad (outside the repo, by
+design — packs are not repo artifacts). The round-3 pack is
+`report_zero_review_pack_round3.zip`; identity remains provable only by the
+operator attaching it, which is a named residual, not a defect.
+
 ## Non-claims
 
-Adjudication of round 1 only. Not a criterion-5 pass claim (that requires the
-round-2 blocker/major-free return), not validation or readiness, and not a
-gate-firing claim. `product_learning`-capped.
+Adjudication of rounds 1 and 2 only. Not a criterion-5 pass claim (that
+requires a blocker/major-free round-3 return), not validation or readiness,
+and not a gate-firing claim. `product_learning`-capped.

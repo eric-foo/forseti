@@ -106,13 +106,18 @@ coverage is "self-funded editorial" — the creator buys what he reviews — not
 
 | Signal | Raw count | Liked support (separate, M2) | Posture |
 | --- | --- | --- | --- |
-| Bought-because-of-creator | 14 (12 name the purchased product; 2 channel-level) | ~40 (top 8) | **show** |
-| Dupe requests | 12 | **~170** (top 63, 40, 35) | **show** |
+| Bought-because-of-creator | 14 (12 name the purchased product; 2 channel-level) | 39 (top 8) | **show** |
+| Dupe requests | 12 | **176** (top 63, 40, 35) | **show** |
 | Future-buy / watchlist | 30 | — | **show** |
 | Where-to-buy | 4 | — | **show** |
 | Comparison shopping | 4 | — | **show** |
 | Price objections | 3 | 21 top | **show** |
 | Ownership reports | 157 | — | **show** |
+
+*Like-sum method (M2, displayed with the numbers): raw count and like-sum are
+two separate numbers, never blended; like-sums total the captured like count
+of every contributing comment ref (per-ref counts stamped in the coded
+records; blank captures counted 0).*
 
 Highlights for a clone-house buyer: dupe requests are the **most-liked intent
 class** — the audience petitions clone houses through this channel, twice
