@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Capture source-family candidate/posture capture (owner-directed 2026-07-10; candidates pending capture-lane adjudication; not route bindings)
+artifact_role: Capture source-family candidate/posture record plus pinned logged-out investigation route
 scope: >
   Records the Amazon-side capture candidates for the demand-signal direction
   (bought-in-past-month badge, bestseller rank, price/stockout state,
@@ -14,16 +14,20 @@ use_when:
   - Planning or adjudicating Amazon capture routes for demand-signal work.
   - Checking what may and may not touch the sold signal chain from Amazon surfaces.
   - Designing the tracked-SKU capture set for the pilot categories.
+  - Reusing the proven logged-out Amazon route for a bounded product investigation.
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/product_lead/gtm/forseti_demand_signal_gtm_design_v0.md
   - docs/research/forseti_demand_signal_backtest_probe_findings_v0.md
   - forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
+  - docs/workflows/retail_pdp_amazon_first_silver_lane_handoff_v0.md
 stale_if:
   - The capture lane binds, rejects, or supersedes any candidate route below (point here to the binding record).
   - Amazon changes the badge, rank rendering, cart-quantity behavior, or SP-API/BSA terms materially.
   - The GTM micro-panel design is ratified or dropped.
+  - PR 865 is superseded, rejected, or changes the anonymous session and per-page confirmation posture.
 ```
 
 ## Status
@@ -33,6 +37,43 @@ stale_if:
 capture authorization, build authorization, or validation. The quarantine
 rule below is operative as a CONSTRAINT (it forbids; it authorizes nothing).
 Evidence receipts cited from the probe findings are screening-tier.
+
+## Pinned Logged-Out Investigation Route (2026-07-11)
+
+Status:
+PINNED_OPERATOR_POSTURE__SINGLE_URL_IMPLEMENTED__MULTI_URL_RUNTIME_PROOF_ONLY.
+
+For future bounded Amazon product investigations, use the rendered anonymous
+browser route in the Retail/PDP sidecar playbook and PR 865. Do not substitute
+direct HTTP merely because it returns HTTP 200: prior probes returned the wrong
+marketplace/currency or lacked the required US offer and review envelope.
+
+Single-URL route:
+
+1. Use the product-specific Amazon Retail/PDP capture profile.
+2. Apply declared US ZIP 10001 through the bounded delivery-location plugin.
+3. Let the profile choose domcontentloaded and zero configured settle unless an
+   operator has evidence for an explicit override.
+4. Accept success only when the page-specific content gate and US storefront
+   confirmation both pass.
+
+Multi-URL posture, proven in one bounded runtime probe but not yet a durable
+batch interface:
+
+1. Create one anonymous ephemeral browser context.
+2. Apply ZIP 10001 once, then reuse only that context's in-memory cookies for
+   the bounded URL set.
+3. Re-run the correct profile and storefront confirmation independently on
+   every page. Cookie presence is never a batch-level success shortcut.
+4. Close the context after the batch. Do not write storage state, persist a
+   profile, expose cookie values, or introduce credential/session custody.
+
+The runtime proof captured a PDP and grid page after one ZIP setup and passed
+both pages' data and pin gates. Its timings and lifecycle evidence are recorded
+in PR 865; they are not a claim that a reusable batch runner exists. Exact stock
+quantity and exact sold units remained unavailable. Preserve only the observed
+availability, rounded bought-in-past-month badge, rank, price, and review facts,
+with explicit unknowns or residuals for absent exact values.
 
 ## Candidate capture routes (demand-intensity, tracked-SKU set)
 
