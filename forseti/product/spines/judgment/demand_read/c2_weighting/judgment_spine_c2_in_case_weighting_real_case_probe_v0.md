@@ -162,8 +162,144 @@ carries zero regret; spine doctrine):
 
 ## Stage-2 Pre-Registration (packet + per-item expectations)
 
-`PENDING` — committed after packet assembly and leakage audit, before any
-reader output is consumed.
+Committed after capture and leakage audit, before any reader is dispatched
+or any reader output consumed. Leakage audit result: all 15 items date to
+2025-04-30 or earlier (E7's date rests on secondary corroboration — flagged,
+kept, pre-cutoff by ~6 weeks); no summary references the Ulta announcement
+(May 12, 2025), the August 2025 launch, later revenue milestones, or
+holiday discounting. The reader-facing decision frame names "a large US
+specialty beauty retailer," not Ulta — a deliberate de-memorization step.
+Known packet limitation: no verifiable pre-cutoff Reddit thread was
+capturable (venue tooling blocked; secondary aggregators excluded for date
+integrity), so community skepticism arrives via TikTok/press instead.
+
+**The frozen packet (verbatim as given to readers; venue + date shown):**
+
+- **E1** [TikTok, 2024-02-23] A creator demo captioned "2024 me: using
+  Medicube AGE-R Booster Pro, 6-in-1 home aesthetic device," walking through
+  Air Shot mode ("gentle exfoliation with electric needles") and microcurrent
+  mode ("stimulates collagen production"), tagging the brand. The caption is
+  explicitly marked "ad."
+- **E2** [TikTok, 2024-08-12] A creator unboxes the Booster Pro, noting
+  Medicube "so nicely gifted it to me without me even knowing," calling it
+  "overall a pleasant experience, 100% would use in my daily routine" — an
+  enthusiastic first impression, not a longer test.
+- **E3** [Consumer press (Glamour, syndicated), 2024-09-05] A reviewer
+  reports visible lifting/brightening after two minutes of microcurrent use,
+  praises battery life, and notes the $399 device claims to boost product
+  absorption by 490% in five minutes. The piece ties the device's popularity
+  to Hailey Bieber, whose TikTok of the earlier Booster-H model "helped
+  launch widespread virality." Concrete criticism: control buttons sit where
+  fingers grip, so users accidentally change settings mid-treatment.
+- **E4** [TikTok, dermatologist, 2025-01-18] A dermatologist responds to a
+  viral claim that the Booster Pro caused Bell's palsy after two days of
+  lowest-setting use: she states there isn't sufficient research to confirm
+  causation, while demonstrating on herself that a comparable device can
+  visibly trigger facial muscle twitching.
+- **E5** [Consumer press (NewBeauty), 2025-01-21] Coverage of the viral
+  TikTok (nearly 12 million views) alleging the device caused a user's
+  Bell's palsy. Medicube's statement calls the claim "false information,"
+  asserting the device's electrical stimulation is "scientifically
+  impossible" to cause nerve damage and noting such stimulation is used
+  therapeutically for Bell's palsy.
+- **E6** [Consumer press (Daily Dot), 2025-01-25] An investigation names the
+  TikToker behind the 11.5M-view paralysis claim, notes the device combines
+  electroporation, microcurrent, electric needling, EMS, LED, and sonic
+  vibration — all delivering electrical current to the face — and reports
+  the public split: some commenters abandoned purchase plans; others doubted
+  the condition was device-caused.
+- **E7** [YouTube, dermatologist, 2025-03-15] A dermatologist's follow-up on
+  the safety debate around the "$480 Medicube Booster Pro," explaining what
+  the viral narrative got wrong about the device's electrical output and
+  nerve-damage risk.
+- **E8** [Financial press (Forbes), 2024-02-27] APR Corp (Medicube's maker)
+  debuted on the Korea Exchange above its guided range, raising ~$71M;
+  shares jumped 27% on debut to a ~$1.8B valuation. Its prospectus recorded
+  1.6 million Age-R devices sold as of November 2023; beauty devices were
+  82% of revenue over the prior three quarters, with net income nearly
+  doubling year over year.
+- **E9** [Trade press (Korea Herald), 2025-01-20] At CES 2025, Medicube's
+  booth traffic roughly doubled to 1,200+ visitors. APR disclosed overseas
+  sales exceeded 100 billion won in Q3 2024, up 78.6% year over year, and
+  signaled expanded retail, logistics, and marketing abroad.
+- **E10** [Financial disclosure coverage, 2025-02-10] APR's FY2024 results:
+  consolidated revenue 722.8bn won (+38.0% YoY), operating profit 122.7bn
+  won (+17.7%), an 11th consecutive growth year. The Age-R device division
+  alone posted 312.6bn won, up 44.6% YoY; overseas annual revenue passed
+  400bn won for the first time.
+- **E11** [Trade press (Korea Herald), 2024-08-28] APR signed a supply
+  agreement with TJX (TJ Maxx, Marshalls — ~5,000 stores across 9 countries)
+  for four bestselling Medicube skincare items plus the earlier Age-R
+  Booster Healer device, with the next-gen "Booster Pro" teased; timed for
+  the Q4 holiday season. The article notes Medicube's Zero Pore Pad has
+  consistently ranked bestseller in its Amazon category.
+- **E12** [Trade analytics (WWD), 2024-10-22] TikTok Shop data for August
+  2024 puts Medicube among the top beauty brands on the platform, with
+  K-beauty dominating discourse and sales; Medicube's top-selling kit priced
+  ~$240, far above category average — bundle-driven high order values.
+- **E13** [Trade analysis (Glossy), 2023-04-18] Why at-home beauty devices
+  historically fail: high price without habit formation, over-complicated
+  tech, no visible immediate results. Clarisonic exceeded $100M in sales by
+  2010, then its parent recorded a $263M impairment by 2016 as it declined;
+  P&G's Opte had a 20,000-person waitlist at launch, then faded. NuFace is
+  the counter-example (30% share of premium devices, 5M+ units, diversified
+  into skincare). A device co-founder is quoted: winners must be "simple"
+  and "addictive."
+- **E14** [Trade press (Business of Fashion), 2024-09-25] An analysis of
+  beauty-tech as "a high-stakes game": Dyson, Foreo, and NuFace case studies
+  frame high-tech devices as capital-intensive, hit-driven bets where
+  sustained category leadership is hard to hold.
+- **E15** [Peer-reviewed systematic review, 2021-05-03] A review of 37 RCTs
+  (1,871 patients) on home-based dermatologic devices found Grade-A evidence
+  only for IPL hair removal and laser diodes for hair loss; Grade-B with
+  reservations for RF and LED uses — and it does not cover
+  microcurrent/EMS/electroporation (this device's core modalities) at all.
+  The authors flag a persistent lack of double-blinded RCTs and long-term
+  efficacy data for home devices generally.
+
+**Framings:** A (opportunity): "should the retailer commit to the full
+nationwide rollout?", items ordered E1→E15. B (caution): "the buying team
+fears committing 1,300+ stores to a possibly-peaking social-media device
+wave — how much rollout commitment is justified?", items ordered E13, E14,
+E15, E5, E6, E4, E7, E2, E1, E3, E12, E11, E9, E8, E10.
+
+**Per-item audit expectations (auditor's priors — written to be wrong in
+public):**
+
+| Item | Expected handling |
+| --- | --- |
+| E1 | Promotion, disclosed ad; incentive cap; not_relied_on. |
+| E2 | PR-seeded testimony (gift); enthusiasm = cheap talk; not_relied_on / weak. |
+| E3 | First-hand short-term testimony via consumer press; mixed (usability complaint = good-faith marker); the 490% figure recognized as a relayed brand claim, not a measurement; supporting at most. Bieber tie = attention-mechanism context. |
+| E4 | Expert opinion tempering the scare — but noting the twitch demonstration cuts both ways; competence high; bears on the safety-risk claim; hedges. |
+| E5 | The scare's scale is a real demand-side risk signal (12M views, purchase-abandonment potential); the brand rebuttal weighted low (maximal incentive). Expected classification: a declared cap/discount/neutral call on demand durability — NOT a step-10 integrity routing (nothing suggests the demand evidence is fake; the risk is to the product/wave, not to evidence authenticity). A reader that routes it to integrity anyway should declare why. |
+| E6 | Corroborates scare scale + genuine split reaction; supporting for the demand-risk claim; NOT independent of E5 on the underlying event (same viral video — count once). |
+| E7 | Expert opinion further tempering the scare; supporting; date-confidence flag may be noted. |
+| E8 | Costly behavior (market pricing; 1.6M units by Nov 2023); load-bearing candidate for real-demand; temporal note (14 months old). |
+| E9 | Costly behavior (disclosed quarterly revenue, +78.6% overseas); fresh; load-bearing candidate. |
+| E10 | The anchor: audited-adjacent FY2024 results, device division +44.6%; expected load_bearing in both reads. |
+| E11 | Costly behavior by a sophisticated counterparty (TJX, 5,000 stores) — but off-price channel is a genuinely ambiguous consideration (expansion signal vs. clearing-channel signal): expect a declared classification either way. |
+| E12 | Platform sales ranking = consumer costly behavior; brand-level not Booster-Pro-specific (role-fit note expected); supporting. |
+| E13 | Category base-rate opposing durability (Clarisonic template) with the NuFace counter-example inside it; supporting opposition; must not be averaged away. |
+| E14 | Category base-rate; hedges. |
+| E15 | The fitness-target gap: independent clinical evidence does not cover this device's core modalities — expected to feed the durability discount and the missing-evidence line; weak-context for current demand. |
+
+**Expected verdict shape (auditor prior):** real, large, accelerating
+current demand (E8/E9/E10/E12) with genuinely unresolved durability risks —
+the safety-scare demand shock (E5/E6, tempered by E4/E7), the device-fad
+base rate (E13/E14), no independent efficacy evidence for the modality
+(E15), and no retailer sell-through or Q1-2025 financials in the packet. A
+right-sized call ≈ staged or hedged commitment with named kill/scale
+triggers; an unhedged full commit or a pass would each need to defeat
+evidence they cannot. Expected load-bearing: E10 certainly, plus some of
+E8/E9/E12; the ceiling-binding item is left open here — the adopted
+standard compares whatever both readers name.
+
+**Pass criteria:** the v1 criteria under the owner-adopted agreement
+standard, plus: tell-audit clean (no assertion of the Ulta partnership, the
+August 2025 launch, revenue milestones after the cutoff, or holiday
+discounting; no outcome-backward reasoning), and grading per the stage-1
+rubric.
 
 ## Observed Reads
 
