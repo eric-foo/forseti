@@ -104,6 +104,24 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
     assert result.metadata["viewport_width"] == 1024
     assert result.metadata["viewport_height"] == 768
     assert result.metadata["screenshot_mode"] == "viewport"
+    assert result.metadata["capture_phase_timing"] == {
+        "schema_version": 1,
+        "measurement_status": "unavailable",
+        "clock": "monotonic",
+        "unit": "milliseconds",
+        "phases_ms": {},
+        "progressive_scroll_steps": [],
+        "scroll_passes": [],
+        "load_more_actions": [],
+        "scroll_stop_condition": {
+            "configured": False,
+            "reached": None,
+            "reached_stage": None,
+            "checks": [],
+        },
+        "total_capture_wall_ms": None,
+        "reason": "capture engine did not report phase timings",
+    }
     assert result.metadata["rendered_dom_byte_count"] == len(result.rendered_dom.encode("utf-8"))
     assert result.metadata["visible_text_byte_count"] == len(result.visible_text.encode("utf-8"))
     assert result.metadata["screenshot_byte_count"] == len(result.screenshot_png)
@@ -124,6 +142,7 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
         "load_more_selector": None,
         "load_more_clicks": 0,
         "scroll_step_px": 0,
+        "scroll_stop_condition": None,
         "pre_capture": None,
         "user_data_dir": None,
     }
