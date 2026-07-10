@@ -32,6 +32,7 @@ from source_capture.adapters.amazon_delivery_location import (
     _AMAZON_HOMEPAGE_URL,
     AmazonDeliveryLocationPlugin,
     confirm_us_storefront,
+    confirm_us_storefront_with_zip,
 )
 from source_capture.adapters.cloakbrowser_snapshot import (
     CloakBrowserSnapshotSuccess,
@@ -178,6 +179,43 @@ def test_confirm_us_storefront_not_confirmed_on_prefixed_currency_without_curren
     assert "currencyOfPreference" in confirmation.detail
 
 
+def test_confirm_us_storefront_with_zip_confirms_grid_surface() -> None:
+    dom = """
+<html lang="en-us"><body>
+<script>ue_sn = 'www.amazon.com'</script>
+<span id="glow-ingress-line2">New York 10001</span>
+</body></html>
+"""
+    confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is True
+    assert "delivery ZIP '10001'" in confirmation.detail
+
+
+def test_confirm_us_storefront_with_zip_rejects_zip_outside_location_anchor() -> None:
+    dom = """
+<html><body>
+<script>ue_sn = 'www.amazon.com'; var unrelated = '10001';</script>
+<span id="glow-ingress-line2">Singapore</span>
+</body></html>
+"""
+    confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
+def test_confirm_us_storefront_with_zip_rejects_non_us_marketplace() -> None:
+    dom = """
+<html><body>
+<script>ue_sn = 'www.amazon.sg'</script>
+<span id="glow-ingress-line2">New York 10001</span>
+</body></html>
+"""
+    confirmation = confirm_us_storefront_with_zip(dom, delivery_zip="10001")
+
+    assert confirmation.confirmed is False
+
+
 # ── The honesty keystone: note(...) ─────────────────────────────────────────────
 
 def test_plugin_note_confirmed_says_set_and_confirmed() -> None:
@@ -187,7 +225,7 @@ def test_plugin_note_confirmed_says_set_and_confirmed() -> None:
     note = plugin.note(outcome, PinConfirmation(confirmed=True, detail="USD observed"))
     assert "set to '10001'" in note
     assert "CONFIRMED" in note
-    assert "currencyOfPreference=USD" in note
+    assert "USD observed" in note
 
 
 def test_plugin_note_not_confirmed_never_claims_set() -> None:
@@ -229,19 +267,32 @@ class _FakePage:
         self,
         fail_steps: set[str] | None = None,
         apply_button_missing: bool = False,
+        apply_confirmation_missing: bool = False,
         clock_advance: Callable[[float], None] | None = None,
+        action_advance_ms: float = 0,
     ):
         self.fail_steps = fail_steps or set()
         self.apply_button_missing = apply_button_missing
+        self.apply_confirmation_missing = apply_confirmation_missing
         self._clock_advance = clock_advance
+        self._action_advance_ms = action_advance_ms
         self.calls: list[str] = []
         self.click_timeouts: list[float] = []
         self.return_pressed = False
+        self.filled_zip: str | None = None
+        self.applied = False
+        self.goto_wait_until: str | None = None
 
     def goto(self, url: str, **kwargs: Any) -> None:
         self.calls.append(f"goto:{url}")
+        self.goto_wait_until = kwargs.get("wait_until")
+        self._advance_action()
         if "homepage" in self.fail_steps:
             raise RuntimeError("nav failed")
+
+    def _advance_action(self) -> None:
+        if self._clock_advance is not None and self._action_advance_ms > 0:
+            self._clock_advance(self._action_advance_ms)
 
     def wait_for_timeout(self, ms: float) -> None:
         self.calls.append("wait")
@@ -267,6 +318,7 @@ class _FakeLocator:
 
     def click(self, *, timeout: float) -> None:
         self._page.click_timeouts.append(timeout)
+        self._page._advance_action()
         # Widget-open selectors
         if self._selector in ("#nav-global-location-popover-link", "#glow-ingress-block"):
             if "open_widget" in self._page.fail_steps:
@@ -277,12 +329,24 @@ class _FakeLocator:
         if self._page.apply_button_missing or "apply" in self._page.fail_steps:
             raise RuntimeError("apply button not present")
         self._page.calls.append("apply")
+        self._page.applied = True
 
     def fill(self, value: str, *, timeout: float) -> None:
         self._page.click_timeouts.append(timeout)
+        self._page._advance_action()
         if "fill_zip" in self._page.fail_steps:
             raise RuntimeError("zip input not present")
+        self._page.filled_zip = value
         self._page.calls.append(f"fill:{value}")
+
+    def inner_text(self, *, timeout: float) -> str:
+        if (
+            self._selector == "body"
+            and self._page.applied
+            and not self._page.apply_confirmation_missing
+        ):
+            return f"Deliver to New York {self._page.filled_zip}"
+        return ""
 
 
 class _FakeKeyboard:
@@ -305,6 +369,35 @@ def test_plugin_before_all_steps_succeed() -> None:
     assert "open_widget" in page.calls
     assert "fill:10001" in page.calls
     assert "apply" in page.calls
+    assert page.goto_wait_until == "domcontentloaded"
+    assert "wait" not in page.calls
+
+
+def test_plugin_before_warns_when_apply_confirmation_does_not_arrive(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = {"now": 0.0}
+
+    def _now() -> float:
+        return clock["now"]
+
+    def _advance(ms: float) -> None:
+        clock["now"] += ms / 1000
+
+    monkeypatch.setattr(amazon_pin.time, "monotonic", _now)
+    plugin = AmazonDeliveryLocationPlugin(delivery_zip="10001")
+    page = _FakePage(
+        apply_confirmation_missing=True,
+        clock_advance=_advance,
+    )
+
+    outcome = plugin.before(page, setup_timeout_ms=30_000)
+
+    assert outcome.steps_completed is True
+    assert "wait" in page.calls
+    assert any(
+        "requested ZIP was not observed" in warning for warning in outcome.warning_notes
+    )
 
 
 def test_plugin_before_uses_short_probe_timeout_not_8000ms() -> None:
@@ -329,7 +422,7 @@ def test_plugin_before_uses_setup_timeout_as_shared_budget(monkeypatch: pytest.M
 
     monkeypatch.setattr(amazon_pin.time, "monotonic", _now)
     plugin = AmazonDeliveryLocationPlugin(delivery_zip="10001")
-    page = _FakePage(clock_advance=_advance)
+    page = _FakePage(clock_advance=_advance, action_advance_ms=1_500)
 
     outcome = plugin.before(page, setup_timeout_ms=2_000)
 
