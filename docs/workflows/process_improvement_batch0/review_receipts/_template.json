@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "review_id": "replace-with-stable-review-id",
+  "review_report_path": "docs/review-outputs/adversarial-artifact-reviews/replace-me.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "unrecorded",
+  "authored_by": "unrecorded",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "replace-with-observed-identity",
+  "accepted_net_new_material_findings": 0,
+  "decision_changed": "no",
+  "closure_state": "no_action",
+  "report_lines": 1,
+  "turn_count": "unknown",
+  "evidence_pointers": [
+    "docs/review-outputs/adversarial-artifact-reviews/replace-me.md"
+  ],
+  "completed_at": "2026-07-11"
+}
