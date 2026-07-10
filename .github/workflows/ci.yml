@@ -77,6 +77,15 @@ jobs:
       - name: handoff-pointer resolution (packets resolve where referenced)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_handoff_pointers.py --strict
+      - name: prompt output-mode gate (changed prompts name a recognized output mode)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_prompt_output_mode.py --strict
+      - name: review-summary shape gate (changed review closeouts keep the bound shape)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_review_summary.py --strict
+      - name: hash-pin freshness (markdown sha256 pins stay current)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_hash_pin_freshness.py --strict
       - name: full-GT claim tripwire (new md claims stay bounded)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_full_gt_claims.py --changed --strict

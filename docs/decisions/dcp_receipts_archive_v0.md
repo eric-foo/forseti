@@ -3632,7 +3632,7 @@ direction_change_propagation:
     - not source-access authorization
 ```
 
-## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-10)
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-10, EP-10/11/15 gate-wave rotation)
 
 ```yaml
 direction_change_propagation:
@@ -3704,4 +3704,140 @@ direction_change_propagation:
     - not packet content freshness, pin truth, or source-choice correctness
     - not a courier-delivery guarantee for prompts that never land in the repo
     - a green run is pointer shape only, never proof the right packet was cited
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Forseti validation doctrine adds a source-input hash freshness gate:
+    repo-local JSON list-style source_inputs[] records with source_pointer +
+    sha256 must match current file bytes when the artifact or referenced
+    source changed, enforced by .agents/hooks/check_source_input_hashes.py
+    (EP-37) as a diff-scoped CI --strict gate plus a local pre-push mirror.
+    Born from PR #817, where a Creator Registry ledger merge changed the
+    ledger hash while the YouTube metric seed still carried the old
+    source-input hash and full pytest caught it late.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_source_input_hashes.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/pre_push_guard.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md routes validation and enforcement-placement doctrine to the
+        overlay; restating this narrow gate there would fork the owner.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Its DCP storage rule governs receipt rotation; the gate changes
+        validation placement, not source hierarchy or receipt mechanics.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading budgets and source packs are unchanged; this is
+        post-change provenance freshness, not source-loading procedure.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        This path is a compatibility pointer whose open_next is the live
+        Forseti repo map; duplicating active hook content there would fork the
+        current retrieval surface.
+    - path: forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+      reason: >
+        The existing semantic/generated-artifact test remains; the new hook
+        catches the broader hash-drift class earlier without weakening that
+        test.
+  stale_language_search: >
+    rg -in "source-input hash|source_inputs.*sha256|check_source_input_hashes|strict CI doc gates"
+    .agents docs .github forseti-harness
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits: intended hits are this gate's owner text,
+    checker, CI/pre-push wiring, hook README, live Forseti repo-map note,
+    enforcement-placement classification, and historical/source-input ledger
+    references; the stale phrase "strict CI doc gates" appears only in this
+    receipt's search query/result provenance text, and no conflicting
+    source-input hash rule remains.
+  non_claims:
+    - not validation
+    - not readiness
+    - not semantic generated-artifact completeness
+    - not source quality, capture freshness, or metric validity
+    - a green run is provenance hash freshness only
+```
+
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-10, EP-10/11/15 gate-wave rotation, round 2)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The source-input hash freshness gate (EP-37) extends to source-capture
+    packet manifests: a JSON document with a top-level manifest_version string
+    must have top-level preserved_files[] records (relative_packet_path +
+    sha256) that match current raw stored bytes, with the path resolved
+    against the manifest's own directory, when the manifest or the preserved
+    file changed -- same diff-scoped, forward-only CI --strict gate plus local
+    pre-push mirror in .agents/hooks/check_source_input_hashes.py. Gap
+    surfaced by the EP-15 build survey (PR #842): the packet-manifest shape
+    was matched by neither the source_inputs[] JSON gate nor the markdown
+    pin-grammar gate, leaving preserved raw capture bytes ungated.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_source_input_hashes.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - .github/workflows/ci.yml
+    - .agents/hooks/pre_push_guard.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - .gitattributes
+  intentionally_not_updated:
+    - path: .github/workflows/ci.yml
+      reason: >
+        The extension rides the already-registered EP-37 --strict step; there
+        is no new gate to register.
+    - path: .agents/hooks/pre_push_guard.py
+      reason: >
+        The local mirror already invokes check_source_input_hashes.py
+        --strict; the extended record family is picked up unchanged.
+    - path: forseti-harness/tests/unit/test_hook_internal_error_gating.py
+      reason: >
+        The hook's CASES row already pins internal-error gating; the
+        extension changes matched record shapes, not error or exit semantics.
+    - path: .gitattributes
+      reason: >
+        Its **/source_captures/** -text rule already pins the raw-bytes
+        invariant this extension verifies; the gate consumes that invariant,
+        it does not amend it.
+  stale_language_search: >
+    rg -in "preserved_files|relative_packet_path|source-input hash|source_inputs.*sha256"
+    .agents docs/workflows/forseti_repo_map_v0.md
+    docs/decisions/overlay_enforcement_placement_classification_v0.md .github
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits: hits are this gate's own rule text and
+    receipt, the checker and its selftest, CI/pre-push wiring, the hook README
+    rows, the enforcement-placement decision record, and the repo-map gate
+    entry plus its generic .agents/hooks folder description; no other surface
+    carries a conflicting source-input or preserved-file hash rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not archive completeness or source-state truth
+    - not capture freshness, source quality, or packet content correctness
+    - a green run is provenance hash freshness only
 ```

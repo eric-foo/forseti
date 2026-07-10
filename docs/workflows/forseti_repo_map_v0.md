@@ -453,8 +453,8 @@ policy behind the tracked `.githooks/pre-push` adapter, installed via
 branch deletes, and non-fast-forward updates, and — for allowed lane pushes —
 mirrors selected strict CI gates (`check_map_links.py --strict`,
 `header_index.py --strict`, `check_review_routing.py --strict`,
-`check_source_input_hashes.py --strict`; diff-scoped base `origin/main`, same
-as CI) so a durable-doc or source-input hash gate miss fails at the push
+`check_source_input_hashes.py --strict`, `check_hash_pin_freshness.py --strict`;
+diff-scoped base `origin/main`, same as CI) so a durable-doc or source-input hash gate miss fails at the push
 boundary instead of costing a red CI round. Blocks on any gate failure; the
 checkers' infra-gap fail-opens are unchanged; bypassable with `--no-verify`;
 CI stays the authoritative gate. `python .agents/hooks/pre_push_guard.py --selftest`
@@ -507,6 +507,47 @@ Shape only — never review quality, provenance truth, or de-correlation truth.
 `--changed`/`--staged` are working-tree modes for local use; `--diff` is the
 CI mode (a CI checkout's working tree is always clean). `--selftest` present
 (fixtures under `forseti-harness/tests/fixtures/review_outputs/`).
+
+**Prompt output-mode gate (EP-11, shape subset).** `.agents/hooks/check_prompt_output_mode.py`
+— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`):
+changed prompt artifacts under `docs/prompts/**` (templates and READMEs
+excluded) must carry an output-mode declaration naming at least one token from
+the closed set in `.agents/workflow-overlay/prompt-orchestration.md` § Output
+Modes. Presence + token-in-set only — "exactly one, correctly scoped to this
+artifact vs nested dispatch/receiver roles" stays resident judgment (the
+corpus legitimately reuses the field shape), so multi-declaration and
+compound-token shapes are INFO, never gated. Rule owner:
+`.agents/workflow-overlay/validation-gates.md` (Output-mode gate). Shape only
+— never prompt quality or mode-choice correctness. `--audit` = whole-corpus
+backlog view (never gated); `--selftest` present (includes a token-drift
+assertion against the owning section).
+
+**Review-summary shape gate (EP-10, born-green subset).** `.agents/hooks/check_review_summary.py`
+— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`):
+real (non-template) `review_summary` YAML blocks in changed
+`docs/review-outputs/**` files must carry none of the forbidden process keys,
+a `report_path` that resolves in the tree, the bound failed-write shape when
+`status: failed`, and a non-blank `recommendation` when present. Full
+`recommendation` enum membership is `--audit` advisory only (a known extended
+vocabulary in delegated-review-patch lanes awaits an owner decision). Rule
+owner: `.agents/workflow-overlay/validation-gates.md` (Review-summary shape
+gate); shape source `.agents/workflow-overlay/communication-style.md`.
+Non-overlap: header/provenance/fencing stays with
+`check_review_output_provenance.py`. Shape only — never review quality or
+finding truth. `--selftest` present.
+
+**Hash-pin freshness gate (EP-15, freshness subset).** `.agents/hooks/check_hash_pin_freshness.py`
+— diff-scoped, forward-only CI gate plus local pre-push mirror: markdown
+freshness hash pins — labeled `path:` + `sha256:` bullet pairs (e.g. the
+skill-adoption source pins) and `source_captures/**/receipt.md`
+preserved-file bullets — must match the current CRLF-normalized bytes of
+their repo-local targets when the pin doc or target changed. The markdown
+sibling of the EP-37 JSON gate; provenance-style manifest tables, source-read
+ledgers, and external-path bootstrap tables are deliberately not parsed as
+pins. Rule owner: `.agents/workflow-overlay/validation-gates.md` (Hash-pin
+freshness gate). Pin freshness only — never semantic validity, source
+quality, or skill correctness. `--audit` = whole-repo pin view (never gated);
+`--selftest` present.
 
 **Future agents: reuse this pattern.** To enforce the next load-bearing,
 deterministically-checkable rule, do not add another instruction -- add a

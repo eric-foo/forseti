@@ -92,6 +92,39 @@ Validation reports must preserve failure visibility by bucket:
   capture freshness, or metric validity. Enforced diff-scoped and forward-only
   by `.agents/hooks/check_source_input_hashes.py` (CI `--strict`; local
   pre-push mirror; whole-repo advisory via `--audit`, never gated).
+- Review-summary shape gate: a changed durable review output under
+  `docs/review-outputs/` carrying a real (non-template) `review_summary`
+  YAML block must keep the block's mechanically checkable shape from
+  `.agents/workflow-overlay/communication-style.md`: none of the forbidden
+  process keys, a `report_path` that resolves in the same tree, the bound
+  failed-write shape when `status: failed` (no `report_path`,
+  `recommendation: blocked`, `review_location: chat_only_current_thread`),
+  and a non-blank `recommendation` when the key is present. Full
+  `recommendation` vocabulary membership is advisory only (`--audit`):
+  delegated-review-patch lanes carry an extended vocabulary that
+  `communication-style.md` does not bind, and the owner accepted
+  (2026-07-10) keeping enum membership advisory — the extended vocabulary
+  stays unbound, the 5-value enum remains the canonical target for new
+  summaries, and drift is tracked, never gated. The gate is
+  summary shape only: it is not review quality, finding truth, severity
+  authority, validation, or readiness; retrieval-header, provenance, and
+  fencing checks stay with `check_review_output_provenance.py`. Enforced
+  diff-scoped and forward-only by `.agents/hooks/check_review_summary.py`
+  (CI `--strict`; whole-corpus advisory via `--audit`, never gated).
+- Hash-pin freshness gate: markdown freshness hash pins in changed durable
+  docs — labeled `path:` + `sha256:` bullet pairs (e.g. the skill-adoption
+  source pins) and `source_captures/**/receipt.md` preserved-file bullets —
+  must match the current CRLF-normalized bytes of their repo-local targets
+  when the pin-carrying doc or the pinned target changed. Provenance-style
+  records (package-manifest tables, source-read ledgers, external-repo
+  bootstrap tables) are deliberately not parsed as pins: they record a past
+  observation, and gating them would false-block working-as-intended
+  history. This is pin freshness only: not semantic validity, source
+  quality, capture freshness, skill correctness, validation, or readiness.
+  The markdown sibling of the source-input hash freshness gate above.
+  Enforced diff-scoped and forward-only by
+  `.agents/hooks/check_hash_pin_freshness.py` (CI `--strict`; local pre-push
+  mirror; whole-repo advisory via `--audit`, never gated).
 - Receipt-field provenance gate (non-self-certification): a gate, predicate,
   acceptance check, or completion claim must not clear on a self-asserted field
   value. A field clears only when it is owner-produced and provenance-bound or
@@ -140,6 +173,14 @@ Validation reports must preserve failure visibility by bucket:
   acceptance, source-of-truth, validation, or proof claims remain blocked unless
   owner acceptance or controlling authority is explicit.
 - Output-mode gate: prompts must name exactly one output mode from `.agents/workflow-overlay/prompt-orchestration.md`.
+  The mechanically checkable shell — an output-mode declaration naming at
+  least one closed-set token in a changed `docs/prompts/**` artifact
+  (templates and READMEs excluded) — is enforced diff-scoped and forward-only
+  by `.agents/hooks/check_prompt_output_mode.py` (CI `--strict`; backlog via
+  `--audit`, never gated). Whether the mode is exactly one and correctly
+  scoped to this artifact rather than a nested dispatch/receiver role stays
+  resident judgment; multi-declaration and compound-token shapes are
+  advisory INFO, never gate failures.
 - Chat-output topology gate: prompt-policy patches, workflow patches, and
   reusable prompt templates touching chat output shape must check for
   contradictions between the general human-summary / agent-detail /
@@ -417,6 +458,59 @@ usually exists in the author's own tree. Registered in
 `.github/workflows/ci.yml`; `--selftest` present. Pointer shape only — a
 green run never proves packet content, freshness, or pin truth.
 
+**Prompt output-mode gate** (`.agents/hooks/check_prompt_output_mode.py`,
+EP-11 shape subset). Diff-scoped, forward-only CI gate for the Output-mode
+gate bullet (Prompt Orchestration Gates above): a changed prompt artifact
+under `docs/prompts/**` (templates and READMEs excluded) must carry an
+output-mode declaration naming at least one token from the closed set in
+`.agents/workflow-overlay/prompt-orchestration.md` § Output Modes,
+referencing that owner, never restating it. Build-time corpus measurement
+falsified the literal "exactly one" substrate reading — the `output_mode:`
+field shape is legitimately reused for receiver/reviewer/dispatch roles
+within one prompt, and legitimate compound two-token values exist — so the
+gate checks presence + token-in-set only, multi-declaration and multi-token
+shapes are INFO (never gated), and the EP-11 classification row moved
+SUBSTRATE→PARTIAL. Registered in `.github/workflows/ci.yml`; `--selftest`
+present, including a token-drift assertion that parses the owning section;
+no new write-time hook (`check_prompt_provenance.py` already reminds at that
+boundary).
+
+**Review-summary shape gate** (`.agents/hooks/check_review_summary.py`,
+EP-10 born-green subset). Diff-scoped, forward-only CI gate for the
+Review-summary shape gate bullet above (shape source
+`.agents/workflow-overlay/communication-style.md`, referenced never
+restated). Strict scope is deliberately the born-green subset: forbidden
+process keys, `report_path` resolution, failed-write consistency, and
+non-blank `recommendation`; full `recommendation` enum membership runs
+`--audit`-only because delegated-review-patch lanes carry an extended
+vocabulary `communication-style.md` never bound (measured on roughly 40% of
+one recent week's real closeouts at build time) — the owner decided
+(2026-07-10) to keep the narrowed gate as standing: the vocabulary stays
+unbound, enum membership stays advisory, and re-widening is a future
+doctrine change, not a checker default. Non-overlap:
+retrieval-header, provenance, and fencing checks stay with
+`check_review_output_provenance.py`. No write-time hook by design: review
+outputs are frequently authored by other harnesses that never fire this
+harness's hooks, so CI on the landing tree is the boundary. Registered in
+`.github/workflows/ci.yml`; `--selftest` present.
+
+**Hash-pin freshness gate** (`.agents/hooks/check_hash_pin_freshness.py`,
+EP-15 freshness subset). Diff-scoped, forward-only CI gate plus local
+pre-push mirror for the Hash-pin freshness gate bullet above. Build-time
+corpus survey found six markdown sha256 grammars; only the two freshness
+grammars are parsed — labeled `path:` + `sha256:` bullet pairs (the
+skill-adoption source pins) and `source_captures/**/receipt.md`
+preserved-file bullets — while package-manifest tables, source-read
+ledgers, and the external-path bootstrap-record table are provenance
+records and deliberately unparsed (gating them would false-block
+working-as-intended history). Hashes compare CRLF-normalized and
+case-insensitive; the two skill-adoption pins were re-pinned in the same
+change from raw-CRLF Get-FileHash values (which would pass on CRLF checkouts
+and permanently fail on LF CI checkouts) to the normalized convention. The
+markdown sibling of the EP-37 JSON gate. Registered in
+`.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`;
+`--selftest` present.
+
 
 ## Future Gates
 
@@ -429,135 +523,152 @@ green run never proves packet content, freshness, or pin truth.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Forseti validation doctrine adds a source-input hash freshness gate:
-    repo-local JSON list-style source_inputs[] records with source_pointer +
-    sha256 must match current file bytes when the artifact or referenced
-    source changed, enforced by .agents/hooks/check_source_input_hashes.py
-    (EP-37) as a diff-scoped CI --strict gate plus a local pre-push mirror.
-    Born from PR #817, where a Creator Registry ledger merge changed the
-    ledger hash while the YouTube metric seed still carried the old
-    source-input hash and full pytest caught it late.
+    Forseti validation doctrine adds two gates and hardens one: a
+    review-summary shape gate (changed docs/review-outputs/ files carrying a
+    real review_summary block must keep the communication-style.md shape --
+    no forbidden process keys, a resolving report_path, the bound
+    failed-write shape, non-blank recommendation; full recommendation
+    vocabulary membership stays advisory-only pending an owner decision on
+    the delegated-review-patch extended vocabulary), a hash-pin freshness
+    gate (markdown freshness pins -- labeled path+sha256 bullet pairs and
+    source_captures receipt.md preserved-file bullets -- must match current
+    CRLF-normalized target bytes when the pin doc or target changed;
+    provenance-style tables and ledgers deliberately unparsed), and
+    substrate enforcement of the existing Output-mode gate's checkable shell
+    (declaration presence plus at least one closed-set token; exactly-one
+    and role-scoping stay resident). Enforced by
+    .agents/hooks/check_review_summary.py, check_hash_pin_freshness.py, and
+    check_prompt_output_mode.py as diff-scoped forward-only CI --strict
+    gates (hash-pin also mirrored in the local pre-push guard), built under
+    the EP-10/EP-11/EP-15 rows of
+    docs/decisions/overlay_enforcement_placement_classification_v0.md with
+    the EP-11 row corrected SUBSTRATE->PARTIAL from build-time corpus
+    measurement.
   trigger: validation_philosophy
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_source_input_hashes.py
+    - .agents/hooks/check_prompt_output_mode.py
+    - .agents/hooks/check_review_summary.py
+    - .agents/hooks/check_hash_pin_freshness.py
     - .github/workflows/ci.yml
     - .agents/hooks/pre_push_guard.py
     - forseti-harness/tests/unit/test_hook_internal_error_gating.py
     - docs/decisions/overlay_enforcement_placement_classification_v0.md
     - docs/workflows/forseti_repo_map_v0.md
     - .agents/hooks/README.md
+    - .agents/workflow-overlay/skill-adoption.md
   downstream_surfaces_checked:
     - AGENTS.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
     - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/workflows/orca_repo_map_v0.md
-    - forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+    - .claude/settings.json
   intentionally_not_updated:
     - path: AGENTS.md
       reason: >
-        AGENTS.md routes validation and enforcement-placement doctrine to the
-        overlay; restating this narrow gate there would fork the owner.
-    - path: .agents/workflow-overlay/source-of-truth.md
+        Routes validation and enforcement-placement doctrine to this overlay
+        file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/communication-style.md
       reason: >
-        Its DCP storage rule governs receipt rotation; the gate changes
-        validation placement, not source hierarchy or receipt mechanics.
-    - path: .agents/workflow-overlay/source-loading.md
+        It owns the review_summary shape being enforced; the checker
+        references it, and the known delegated-review-patch extended
+        recommendation vocabulary is flagged for a separate owner decision
+        rather than silently widening the bound enum here.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
       reason: >
-        Source-loading budgets and source packs are unchanged; this is
-        post-change provenance freshness, not source-loading procedure.
-    - path: docs/workflows/orca_repo_map_v0.md
+        It owns the closed output-mode set; per the enforcement-placement
+        principle the substrate references the owner (and the checker
+        selftest asserts against the owning section), so no restatement is
+        added.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
       reason: >
-        This path is a compatibility pointer whose open_next is the live
-        Forseti repo map; duplicating active hook content there would fork the
-        current retrieval surface.
-    - path: forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+        Its lanes' extended recommendation vocabulary is the flagged owner
+        gap; binding or renaming that vocabulary is a doctrine decision this
+        gate deliberately does not make.
+    - path: .claude/settings.json
       reason: >
-        The existing semantic/generated-artifact test remains; the new hook
-        catches the broader hash-drift class earlier without weakening that
-        test.
+        No new write-time hooks: prompt writes already receive the
+        check_prompt_provenance.py reminder, review outputs are frequently
+        authored by other harnesses that never fire this harness's hooks,
+        and hash drift is a cross-file property best caught at push/CI.
   stale_language_search: >
-    rg -in "source-input hash|source_inputs.*sha256|check_source_input_hashes|strict CI doc gates"
-    .agents docs .github forseti-harness
+    rg -in "output-mode gate|review_summary|hash-pin|check_prompt_output_mode|check_review_summary|check_hash_pin_freshness"
+    AGENTS.md .agents docs/workflows/forseti_repo_map_v0.md docs/decisions/overlay_enforcement_placement_classification_v0.md
   stale_language_search_result: >
-    Executed 2026-07-10 after edits: intended hits are this gate's owner text,
-    checker, CI/pre-push wiring, hook README, live Forseti repo-map note,
-    enforcement-placement classification, and historical/source-input ledger
-    references; the stale phrase "strict CI doc gates" appears only in this
-    receipt's search query/result provenance text, and no conflicting
-    source-input hash rule remains.
+    Executed 2026-07-10 after edits over the declared scope: hits are the new
+    gate bullets and Enforcement Placement registry text in this file, the
+    three checkers' own docstrings/selftests, the hooks README rows, the
+    pre_push_guard mirror entry, the repo-map Active Hooks notes, the
+    classification-doc update and corrected EP-11 row, the skill-adoption pin
+    pointer, and pre-existing reference text in communication-style.md (the
+    review_summary shape source), review-lanes.md, delegated-review-patch.md
+    (hash-pinned protected-path language), and one hash-pinned mention in
+    check_handoff_pointers.py; AGENTS.md has zero hits. No surface carries a
+    conflicting output-mode, review-summary, or hash-pin enforcement rule.
   non_claims:
     - not validation
     - not readiness
-    - not semantic generated-artifact completeness
-    - not source quality, capture freshness, or metric validity
-    - a green run is provenance hash freshness only
+    - not review quality, finding truth, or severity authority
+    - not prompt quality or mode-choice correctness
+    - not semantic validity, source quality, or capture freshness
+    - a green run is shape/freshness only, never approval
 ```
 
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    The source-input hash freshness gate (EP-37) extends to source-capture
-    packet manifests: a JSON document with a top-level manifest_version string
-    must have top-level preserved_files[] records (relative_packet_path +
-    sha256) that match current raw stored bytes, with the path resolved
-    against the manifest's own directory, when the manifest or the preserved
-    file changed -- same diff-scoped, forward-only CI --strict gate plus local
-    pre-push mirror in .agents/hooks/check_source_input_hashes.py. Gap
-    surfaced by the EP-15 build survey (PR #842): the packet-manifest shape
-    was matched by neither the source_inputs[] JSON gate nor the markdown
-    pin-grammar gate, leaving preserved raw capture bytes ungated.
+    Owner decision recorded (2026-07-10): the EP-10 review-summary gate's
+    narrowed shape is accepted as standing -- full recommendation enum
+    membership stays --audit-only advisory, the delegated-review-patch
+    extended recommendation vocabulary stays unbound, and the
+    communication-style.md 5-value enum remains the canonical target for
+    new review summaries; the pending-decision language on the gate's live
+    surfaces is retired.
   trigger: validation_philosophy
   related_triggers:
-    - workflow_authority
+    - review_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_source_input_hashes.py
     - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - docs/workflows/forseti_repo_map_v0.md
-    - .agents/hooks/README.md
+    - .agents/hooks/check_review_summary.py
   downstream_surfaces_checked:
-    - .github/workflows/ci.yml
-    - .agents/hooks/pre_push_guard.py
-    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
-    - .gitattributes
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
   intentionally_not_updated:
-    - path: .github/workflows/ci.yml
+    - path: .agents/workflow-overlay/communication-style.md
       reason: >
-        The extension rides the already-registered EP-37 --strict step; there
-        is no new gate to register.
-    - path: .agents/hooks/pre_push_guard.py
+        The 5-value enum stays as-written: this decision keeps enforcement
+        advisory; it does not widen, bind, or endorse the extended
+        vocabulary.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
       reason: >
-        The local mirror already invokes check_source_input_hashes.py
-        --strict; the extended record family is picked up unchanged.
-    - path: forseti-harness/tests/unit/test_hook_internal_error_gating.py
+        Its lanes' extended vocabulary stays deliberately unbound under
+        this decision; binding vocabulary there was the rejected
+        alternative.
+    - path: docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
       reason: >
-        The hook's CASES row already pins internal-error gating; the
-        extension changes matched record shapes, not error or exit semantics.
-    - path: .gitattributes
-      reason: >
-        Its **/source_captures/** -text rule already pins the raw-bytes
-        invariant this extension verifies; the gate consumes that invariant,
-        it does not amend it.
+        Commissioning-time record; its binding instruction (never gate
+        enum membership) remains true under this decision.
   stale_language_search: >
-    rg -in "preserved_files|relative_packet_path|source-input hash|source_inputs.*sha256"
-    .agents docs/workflows/forseti_repo_map_v0.md
-    docs/decisions/overlay_enforcement_placement_classification_v0.md .github
+    rg -in "owner-blocked|flagged owner decision|flagged for owner|pending
+    an owner decision|owner decision, not a checker default"
+    .agents/hooks/check_review_summary.py
+    .agents/workflow-overlay/validation-gates.md
+    docs/decisions/overlay_enforcement_placement_classification_v0.md
   stale_language_search_result: >
-    Executed 2026-07-10 after edits: hits are this gate's own rule text and
-    receipt, the checker and its selftest, CI/pre-push wiring, the hook README
-    rows, the enforcement-placement decision record, and the repo-map gate
-    entry plus its generic .agents/hooks folder description; no other surface
-    carries a conflicting source-input or preserved-file hash rule.
+    Executed 2026-07-10 after edits: remaining hits are the prior
+    gate-wave DCP receipt above (an immutable historical record) and
+    unrelated decisions (self-merge interim wording, EP-04 hook wiring);
+    no live EP-10 surface still reads as pending.
   non_claims:
     - not validation
     - not readiness
-    - not archive completeness or source-state truth
-    - not capture freshness, source quality, or packet content correctness
-    - a green run is provenance hash freshness only
+    - not approval of any historical out-of-enum recommendation value
+    - not review quality or finding truth
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
