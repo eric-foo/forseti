@@ -843,6 +843,26 @@ def test_live_probe_runner_required_proxy_posture_choices_exclude_unknown() -> N
     assert action.choices == ["no_proxy_profile_loaded", "proxy_profile_loaded"]
 
 
+def test_live_probe_runner_admission_targets_stay_mutually_exclusive() -> None:
+    parser = runner.build_parser()
+    mutually_exclusive_option_sets = [
+        {
+            option
+            for action in group._group_actions
+            for option in action.option_strings
+        }
+        for group in parser._mutually_exclusive_groups
+    ]
+
+    assert any(
+        {"--admit-output", "--data-root"} <= options
+        for options in mutually_exclusive_option_sets
+    ), (
+        "--admit-output and --data-root must remain in one argparse "
+        "mutually-exclusive group"
+    )
+
+
 def test_live_probe_runner_defaults_to_cloakbrowser_packet_grade(
     tmp_path: Path,
     monkeypatch,
