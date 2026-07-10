@@ -286,7 +286,7 @@ requires them.
 
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
-| Forums / community | Reddit, Basenotes, Fragrantica forums, specialist boards, public repeatable community threads | consumer language, objections, comparisons, repeat questions, rebuttals, corrections | Reddit is an explicit subfamily. Discord is noisy_deferred unless a public, repeatable, bounded slice exists with noise controls. |
+| Forums / community | Reddit, Quora, Basenotes, Fragrantica forums, specialist boards, public repeatable community threads | consumer language, objections, comparisons, repeat questions, question-and-answer threads, rebuttals, corrections | Reddit and Quora are explicit subfamilies. Include Quora Q&A route rows when the commission raises consumer/buyer questions, comparisons, objections, or recommendation-seeking; a bounded proven capture route exists (one profile-backed CloakBrowser Quora search-packet capture), so mark such rows `to_retrieve` with `capture_posture: manual_only` and route execution to the Capture spine playbook — bounded evidence, not broad Quora reliability or session durability. Discord is noisy_deferred unless a public, repeatable, bounded slice exists with noise controls. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | Instagram has current adjacent capture/discovery work. TikTok, YouTube, and Reddit creator profiles are planned/deferred seams unless separately authorized. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
@@ -650,6 +650,72 @@ COMMISSION INPUTS FOLLOW:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
+    Commission Signal Board now names Quora as an explicit forums/community
+    Q&A subfamily: relevant future boards should include Quora question/answer
+    route rows (consumer/buyer questions, comparisons, objections,
+    recommendation-seeking) instead of omitting Quora as uncapturable, because
+    a bounded proven capture route now exists (one profile-backed CloakBrowser
+    Quora search-packet capture with caller-bound detail sufficiency). Board
+    rows stay to_retrieve with capture_posture manual_only; capture execution
+    stays routed to the Capture spine; the bounded evidence is not broad Quora
+    reliability, session durability, or proxy/geo proof.
+  trigger: product_doctrine
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - forseti/product/spines/scanning/README.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - docs/workflows/quora_b2b_postmerge_capture_calibration_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/hooks/check_commission_signal_board_output.py
+      reason: >
+        The validator enumerates source_family values only; source_subfamily
+        and surface are free text, so Quora rows under forums_community need
+        no new field or enum value.
+    - path: forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+      reason: >
+        The playbook owns run sequence and validator use, not source-family
+        route semantics; no operating-sequence or validator-applicability
+        change is needed.
+    - path: forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+      reason: >
+        The capture playbook already carries the bounded Quora route-maturity
+        note and owns capture method and rung discipline; CSB only routes to
+        it and must not fork capture doctrine.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        Canonical CSB entry points are unchanged; a subfamily addition is an
+        in-file route-semantics edit, not a navigation change. repo-map-ack.
+  stale_language_search: >
+    rg -i -n "quora" forseti/product/spines/commission_signal_board
+    forseti/product/spines/scanning docs/prompts
+    docs/workflows/forseti_repo_map_v0.md
+    (run 2026-07-10)
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits. Before this change no live CSB surface
+    mentioned Quora at all (the omission this change fixes); after it, the
+    hits are the updated Source-Family Map rows, the Rules-doc
+    adjacent-record note, and this receipt. No checked CSB, scanning, prompt,
+    or repo-map surface treats Quora as unavailable or prohibited, makes it
+    an independent demand-origin surface, or turns the single proven capture
+    into broad reliability.
+  non_claims:
+    - not validation
+    - not readiness
+    - not capture authorization
+    - not Quora reliability, session durability, or proxy/geo proof
+    - not demand classification or buyer proof
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
     Commission Signal Board now has a standing Search-Surface MGT route-card
     behavior: relevant future boards should emit search_discovery/source_route
     rows, while execution routes through Scanning/Capture and no SERP/rank/module
@@ -708,63 +774,7 @@ direction_change_propagation:
     - not capture authorization
 ```
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Commission Signal Board rows now carry recency/currentness as source-route
-    attention metadata: same-strength newer/current URL-backed signals normally
-    deserve more downstream scan attention than older context, without becoming
-    proof, classifier mapping, or graph weight.
-  trigger: product_doctrine
-  related_triggers:
-    - output_authority
-  controlling_sources_updated:
-    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
-    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
-    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
-    - .agents/hooks/check_commission_signal_board_output.py
-    - orca-harness/tests/unit/test_commission_signal_board_output_validator.py
-    - orca-harness/tests/fixtures/commission_signal_board_outputs/
-    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-    - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
-    - docs/workflows/orca_repo_map_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/hooks/check_commission_signal_board_output.py
-    - forseti/product/spines/scanning/README.md
-    - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        The CSB validator remains a manual/local checker, not a CI, pre-commit,
-        or write-hook gate. The existing enforcement-placement rule already
-        covers why mechanically checkable output shape lives in the checker.
-  stale_language_search: >
-    rg -n "recency|recent|current-state|currentness|optional board metadata|validator only requires existing core row columns|proof|graph weight|classifier mapping"
-    forseti/product/spines/commission_signal_board forseti/product/spines/scanning docs/workflows/orca_repo_map_v0.md
-    (run 2026-06-23)
-  stale_language_search_result: >
-    Hits were accepted recency/currentness attention language, repo-map routing
-    summaries, existing scanning safeguards, historical CSB source-family
-    references, or explicit no-proof/no-classifier/no-graph-weight boundaries.
-    No controlling CSB/scanning surface was found that turns recency/currentness
-    into buyer proof, demand classification, classifier mapping, or graph weight;
-    the old optional-validator wording produced only receipt search-string hits,
-    not live instructional hits, after the CSB validator began requiring recency
-    fields and enum values.
-    Capture and Judgment surfaces carry their own DCP receipts for the same
-    propagation, and the follow-up adversarial review ran a cross-spine leakage
-    search with no proof, scoring, route-binding, or gate-clearance leakage found.
-  non_claims:
-    - not validation
-    - not readiness
-    - not demand classification
-    - not buyer proof
-    - not source-access authorization
-```
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
 
 ## Non-Claims
 
