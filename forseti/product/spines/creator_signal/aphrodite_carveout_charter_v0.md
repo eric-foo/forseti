@@ -302,6 +302,10 @@ fired — the rehearsal has not run. The depth-layer build itself is
 packaged in `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v1.md`
 (supersedes the v0 packet) and stays gated on explicit owner build-authorization.
 
+**Gate status update (2026-07-10):** the rehearsal has since completed, so the
+preceding 2026-07-05 gate snapshot remains historical and the v1 handoff is no
+longer a live gate under its own `stale_if`.
+
 ## 8. Decision register
 
 | # | Item | Tag | Basis / trigger |

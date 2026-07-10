@@ -124,9 +124,10 @@ beyond what the base unit already scopes.
   `orca/product/...` paths — resolve under `forseti/product/...` (PR #666
   rename).
 - **Depth-layer build handoff**: `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v1.md`
-  (supersedes the v0 packet, which landed via PR #661) — context for what
-  Aphrodite will consume; its OPEN gates bind. Load-bearing: yes (gates);
-  reread-required.
+  (supersedes the v0 packet, which landed via PR #661) — historical context
+  for what Aphrodite was built to consume. The v1 packet's `stale_if` fired
+  when the rehearsal completed, so its former OPEN gates do not bind current
+  work. Load-bearing: yes (historical build context); reread-required.
 - **Silver parent handoff**: `docs/prompts/handoffs/data_lake_silver_vault_lane_handoff_prompt_v0.md`
   (on `origin/main` via PR #662) — unit queue (b)/(c)/(d) definitions.
   Load-bearing: yes; reread-required.
