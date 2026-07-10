@@ -12,6 +12,7 @@ from capture_spine.tiktok_creator_discovery_frontier import (
     FrontierEdgeType,
     FrontierNode,
     FrontierNodeType,
+    LinkHubOutcome,
     RefreshOutcome,
     SUGGESTED_ACCOUNT_FRONTIER_SCOPE_LIMIT_RESIDUAL,
     ScanReceipt,
@@ -113,6 +114,8 @@ def _scan_receipt(**overrides) -> dict:
         source_packet_path_or_none="F:/orca-data-lake/raw/841/01KWYW8Q2SB612TWPA46NKVMKQ",
         parent_profile_capture_status="tiktok_parent_profile_grid_packet_available",
         suggested_accounts_capture_status="tiktok_suggested_accounts_packet_available",
+        link_hub_capture_status=LinkHubOutcome.CAPTURED,
+        link_hub_url_or_none="https://linktr.ee/fragranceknowledge",
         browser_closed_by_runner=False,
         refresh_attempt_count=0,
         refresh_outcome=RefreshOutcome.NOT_NEEDED,
@@ -589,3 +592,126 @@ def test_register_builder_from_receipt_passes_and_keeps_next_runs_unauthorized()
         edge["edge_type"] in {"discovered_from_run", "platform_suggested_account_relation"}
         for edge in wrapper["edges"]
     )
+
+
+def _decision(**overrides) -> dict:
+    fields = dict(
+        decision_id="decision_promote_3whiffs",
+        selected_node_id=_CANDIDATE_NODE_ID,
+        projection_decision="promote",
+        frontier_selection_reason="ranked_first_by_suggested_overlap",
+        frontier_selection_actor="operator",
+        frontier_selection_timestamp="2026-07-10T04:00:00Z",
+        next_run_id_or_none=None,
+        non_claims=list(DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS),
+    )
+    fields.update(overrides)
+    return fields
+
+
+def _receipt_raises_code(receipt: dict, code: str) -> None:
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        validate_tiktok_creator_discovery_scan_receipt(receipt)
+    assert exc_info.value.code == code
+
+
+def test_scan_receipt_missing_link_hub_status_raises() -> None:
+    receipt = _scan_receipt()
+    del receipt["link_hub_capture_status"]
+    _receipt_raises_code(receipt, "missing_link_hub_capture_status")
+
+
+def test_scan_receipt_missing_link_hub_url_key_raises() -> None:
+    receipt = _scan_receipt()
+    del receipt["link_hub_url_or_none"]
+    _receipt_raises_code(receipt, "missing_link_hub_url_or_none")
+
+
+def test_scan_receipt_invalid_link_hub_status_raises() -> None:
+    receipt = _scan_receipt(link_hub_capture_status="skipped")
+    _receipt_raises_code(receipt, "invalid_link_hub_capture_status")
+
+
+def test_scan_receipt_captured_link_hub_requires_url() -> None:
+    receipt = _scan_receipt(link_hub_url_or_none=None)
+    _receipt_raises_code(receipt, "missing_link_hub_url")
+
+
+def test_scan_receipt_none_visible_link_hub_rejects_url() -> None:
+    receipt = _scan_receipt(link_hub_capture_status=LinkHubOutcome.NONE_VISIBLE)
+    _receipt_raises_code(receipt, "link_hub_url_contradicts_none_visible")
+
+
+def test_scan_receipt_explicit_link_hub_outcomes_pass() -> None:
+    for status in (LinkHubOutcome.BLOCKED, LinkHubOutcome.DEFERRED_NOT_AUTHORIZED):
+        validate_tiktok_creator_discovery_scan_receipt(
+            _scan_receipt(link_hub_capture_status=status, link_hub_url_or_none=None)
+        )
+    validate_tiktok_creator_discovery_scan_receipt(
+        _scan_receipt(
+            link_hub_capture_status=LinkHubOutcome.NONE_VISIBLE, link_hub_url_or_none=None
+        )
+    )
+
+
+def test_promote_decision_without_registry_preflight_raises() -> None:
+    register = _register(frontier_decisions=[_decision()])
+    _raises_code(register, "promote_requires_registry_preflight")
+
+
+def test_promote_decision_with_registry_preflight_passes() -> None:
+    nodes = [
+        _node(_RUN_NODE_ID, FrontierNodeType.RUN, None).to_dict(),
+        _node(_SEED_NODE_ID, FrontierNodeType.TIKTOK_CREATOR_SEED, "fragranceknowledge").to_dict(),
+        _node(
+            _CANDIDATE_NODE_ID,
+            FrontierNodeType.TIKTOK_CREATOR_CANDIDATE,
+            "3whiffs",
+            registry_preflight_status_or_none="no_exact_string_seen_in_registry_json",
+        ).to_dict(),
+    ]
+    register = _register(nodes=nodes, frontier_decisions=[_decision()])
+    validate_tiktok_creator_discovery_frontier_register(register)
+
+
+def test_non_promote_decision_without_preflight_passes() -> None:
+    register = _register(frontier_decisions=[_decision(projection_decision="hold")])
+    validate_tiktok_creator_discovery_frontier_register(register)
+
+
+def test_lake_writer_appends_register_keyed_to_parent_grid_packet(tmp_path) -> None:
+    from data_lake.root import DataLakeRoot
+    from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+        write_tiktok_creator_discovery_frontier_register,
+    )
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    register = _register()
+    written = write_tiktok_creator_discovery_frontier_register(
+        register, root, record_id="register_example.json"
+    )
+    assert written.is_file()
+    assert json.loads(written.read_text(encoding="utf-8")) == register
+    written_posix = written.as_posix()
+    assert "/derived/" in written_posix
+    assert "/01KWYMDCZMSB4S5HBERVBYJQNG/" in written_posix
+    assert "/tiktok_creator_discovery_frontier/" in written_posix
+
+
+def test_lake_writer_requires_parent_grid_anchor(tmp_path) -> None:
+    from data_lake.root import DataLakeRoot
+    from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+        write_tiktok_creator_discovery_frontier_register,
+    )
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    register = _register()
+    provenance = dict(register["tiktok_creator_discovery_frontier_register"]["provenance"])
+    provenance["parent_grid_packet_id_or_none"] = None
+    provenance["parent_grid_packet_path_or_none"] = None
+    register["tiktok_creator_discovery_frontier_register"]["provenance"] = provenance
+    with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
+        write_tiktok_creator_discovery_frontier_register(
+            register, root, record_id="register_example.json"
+        )
+    assert exc_info.value.code == "missing_parent_grid_packet_anchor"

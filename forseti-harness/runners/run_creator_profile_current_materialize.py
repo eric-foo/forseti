@@ -14,6 +14,9 @@ from capture_spine.creator_profile_current.materialize import (
     dump_creator_profile_current_view,
     load_json,
 )
+from capture_spine.creator_profile_current.registry_match_preflight import (
+    has_blocking_preflight_results,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -99,6 +102,16 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--check", action="store_true", help="Fail if the output is stale.")
     parser.add_argument("--write", action="store_true", help="Write the materialized output JSON.")
+    parser.add_argument(
+        "--preflight-receipt",
+        type=Path,
+        help=(
+            "Creator Registry match preflight receipt JSON. Required when --write "
+            "introduces platform accounts not present in the existing output view "
+            "(exact-match preflight before new registry rows); rejected when the "
+            "receipt carries blocking results."
+        ),
+    )
     return parser
 
 
@@ -127,6 +140,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"up to date: {args.output}")
             return 0
 
+        _enforce_new_account_preflight(
+            account_ledger_path=args.account_ledger,
+            output_path=args.output,
+            preflight_receipt_path=args.preflight_receipt,
+        )
         args.output.parent.mkdir(parents=True, exist_ok=True)
         # newline="\n": keep the committed view LF on a Windows operator box.
         args.output.write_text(rendered, encoding="utf-8", newline="\n")
@@ -134,6 +152,51 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     except Exception as exc:
         parser.exit(status=2, message=f"creator profile materialization failed: {exc}\n")
+
+
+def _enforce_new_account_preflight(
+    *, account_ledger_path: Path, output_path: Path, preflight_receipt_path: Path | None
+) -> None:
+    """Gate new registry rows on an exact-match preflight receipt.
+
+    New platform accounts are ledger platform_account_ids absent from the
+    existing output view. A missing view means every ledger account is new.
+    """
+    ledger_ids = {
+        str(account.get("platform_account_id"))
+        for account in load_json(account_ledger_path).get("platform_accounts", [])
+        if isinstance(account, dict) and account.get("platform_account_id")
+    }
+    existing_ids: set[str] = set()
+    if output_path.exists():
+        _collect_platform_account_ids(load_json(output_path), existing_ids)
+    new_ids = sorted(ledger_ids - existing_ids)
+    if not new_ids:
+        return
+    if preflight_receipt_path is None:
+        raise ValueError(
+            "materialization introduces new platform accounts "
+            f"{new_ids!r} and requires --preflight-receipt (Creator Registry "
+            "exact-match preflight before new registry rows)"
+        )
+    receipt = load_json(preflight_receipt_path)
+    if has_blocking_preflight_results(receipt):
+        raise ValueError(
+            f"preflight receipt {preflight_receipt_path} carries blocking results; "
+            "resolve them before materializing new registry rows"
+        )
+
+
+def _collect_platform_account_ids(value: object, into: set[str]) -> None:
+    if isinstance(value, dict):
+        account_id = value.get("platform_account_id")
+        if isinstance(account_id, str) and account_id.strip():
+            into.add(account_id)
+        for child in value.values():
+            _collect_platform_account_ids(child, into)
+    elif isinstance(value, list):
+        for child in value:
+            _collect_platform_account_ids(child, into)
 
 
 def _existing_generated_at(path: Path) -> str | None:

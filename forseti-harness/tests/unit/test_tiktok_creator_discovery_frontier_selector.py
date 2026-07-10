@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from capture_spine.tiktok_creator_discovery_frontier import (
+    LinkHubOutcome,
     RefreshOutcome,
     ScanReceipt,
     SuggestedAccountObservation,
@@ -35,6 +36,8 @@ def _scan_receipt(root_handle: str) -> dict:
         source_packet_path_or_none="F:/orca-data-lake/raw/suggested/01KXSUGGESTEDPACKET",
         parent_profile_capture_status="tiktok_parent_profile_grid_packet_available",
         suggested_accounts_capture_status="tiktok_suggested_accounts_packet_available",
+        link_hub_capture_status=LinkHubOutcome.CAPTURED,
+        link_hub_url_or_none=f"https://linktr.ee/{safe_root}",
         browser_closed_by_runner=False,
         refresh_attempt_count=0,
         refresh_outcome=RefreshOutcome.NOT_NEEDED,
