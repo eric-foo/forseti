@@ -113,8 +113,45 @@ design — packs are not repo artifacts). The round-3 pack is
 `report_zero_review_pack_round3.zip`; identity remains provable only by the
 operator attaching it, which is a named residual, not a defect.
 
+## Round 3 (appended 2026-07-11): single residual ACCEPTED, patched, and recheck-verified in-family
+
+Round-3 return (OpenAI GPT-5, over commit `0f466eb4`): verdict **major** —
+every other item closed with full recomputation evidence (all 11 attention
+rows, hash chains, M2 exact sums 176/39, tier 8/2/1, intent totals,
+withholds, boundaries, and the two named 4Od grounding corrections all
+verified). Single finding **R3-AR-01b ACCEPTED**: nine disclosure receipts
+still cited transcript segments or speech-derived facts without verbatim
+quotes — the home lane's round-2 "field observation" boundary was drawn too
+wide (transcript pointers like "transcript @564320 codes segment" are speech
+receipts, not field observations). The adjudicated three-class rule is now:
+transcript speech → verbatim quote + locator; comment evidence → text + ref +
+like count; captured watch-packet FIELD observations (named field: value) →
+no quote required.
+
+Closure: all nine receipts filled with verbatim cue text from the frozen
+substrate. **Recheck (per the owner-ratified 2026-07-10 recheck tiering in
+`.agents/workflow-overlay/delegated-review-patch.md`): same-vendor,
+different-model bounded pass — a spawned Sonnet subagent — not a fourth
+cross-vendor courier round.** Recheck result: mechanical audit found **zero
+quote-less speech receipts** (202 speech receipts across 249 receipt strings,
+all quoted; 47 field observations correctly unquoted); quote-fidelity 9/10
+verbatim with ONE unmarked mid-quote elision caught in the home lane's own
+patch (8QpC36Q_eeM giveaway receipt dropped "for this" without an ellipsis) —
+fixed by restoring the words verbatim; touched-delta clean (receipt strings
+only); 16/16 JSON parse; M2 sums stand.
+
+Criterion-5 evidence now on file: round-3 cross-vendor return with all prior
+findings verified closed and one residual, that residual accepted + patched +
+verified closed by the bounded in-family recheck under the ratified tiering
+rule. **Whether this satisfies the gate criterion's "cross-vendor review
+returns blocker/major-free" letter is the owner's call**: accept the
+round-3-plus-recheck evidence at `product_learning` tier (the
+proportionality-by-assurance-tier rule in delegated-review-patch.md), or
+courier the round-3 prompt once more for a literally clean cross-vendor
+return. The home lane does not decide this.
+
 ## Non-claims
 
-Adjudication of rounds 1 and 2 only. Not a criterion-5 pass claim (that
-requires a blocker/major-free round-3 return), not validation or readiness,
-and not a gate-firing claim. `product_learning`-capped.
+Adjudication of rounds 1–3 only. Not a criterion-5 pass claim (the gate
+reading above is an owner decision), not validation or readiness, and not a
+gate-firing claim. `product_learning`-capped.

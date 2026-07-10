@@ -27,7 +27,7 @@
   },
   "disclosure": {
     "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": false,
-    "receipts": ["short_description per-product affiliate links (8+ visible)", "transcript @564320-590280 codes segment", "self-purchases named (eBay Spartacus, full-retail Artisan Forest, Jomashop Impact)", "paid_content_overlay: not_captured"]
+    "receipts": ["short_description per-product affiliate links (8+ visible)", "1N44B-O7VzE@564320-580600 'codes! Pow! Pow pow pow! Yeah, I got a bunch of different codes here for you. They're all in the description... codes for Perfume Box, Gift Express, Fragrance Lord, and JomaShop as well'", "1N44B-O7VzE@89880-96560 'I actually bought it off eBay... As much as I complain about eBay having fakes, and it does, sometimes you can find things there first' (self-purchase; further self-purchases — full-retail Artisan Forest, Jomashop Impact — receipted at their product entries)", "paid_content_overlay: not_captured"]
   },
   "comment_coding": {
     "sample": 40, "bias_note": "hidden-gems list; ownership + watchlist discourse; taxonomy dispute thread",

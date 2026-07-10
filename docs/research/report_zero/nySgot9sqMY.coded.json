@@ -24,7 +24,7 @@
   },
   "disclosure": {
     "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": true,
-    "receipts": ["short_description: iFragranceOfficial link + pre-order affiliate links (Hawas Sapphire, Nitro White Intensely) + 'GET MY NEW FRAGRANCES ARASHI REEF & FRENCH QUARTER 25% OFF'", "transcript @514880-532680 codes segment", "paid_content_overlay: not_captured"]
+    "receipts": ["short_description: iFragranceOfficial link + pre-order affiliate links (Hawas Sapphire, Nitro White Intensely) + 'GET MY NEW FRAGRANCES ARASHI REEF & FRENCH QUARTER 25% OFF'", "nySgot9sqMY@514880-528240 'codes. I've got a bunch of different codes you can use to save money across different websites. So, if you're shopping at Jomashop... FragranceNet, Perfume Box, Beauty House, Gift Express, Fragrance Lord, Maple Prime, any of those stores'", "paid_content_overlay: not_captured"]
   },
   "comment_coding": {
     "sample": 40, "bias_note": "news format -> HIGHEST dupe-request density in corpus (6/40) + flanker-fatigue humor",

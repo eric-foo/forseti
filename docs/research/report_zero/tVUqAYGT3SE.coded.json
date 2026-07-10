@@ -27,7 +27,7 @@
   },
   "disclosure": {
     "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": false,
-    "receipts": ["short_description: per-clone affiliate links (8+ visible, truncated)", "transcript @546640-566040 codes segment", "self-funded $300 blind-buy framing @7160", "giveaway self-purchased @1085160", "paid_content_overlay: not_captured"]
+    "receipts": ["short_description: per-clone affiliate links (8+ visible, truncated)", "tVUqAYGT3SE@546640-556880 'some codes. These are also in the description, so you can copy and paste them anytime you shop at any of these stores... I've got codes for FragranceNet, for Jomashop, for Perfume Box, for Beauty House, and many more'", "tVUqAYGT3SE@7160-13000 'spending $300 blind buying a ton of cheap clone fragrances, not telling my wife about it' (self-funded framing)", "tVUqAYGT3SE@1085160-1098800 'So, I picked up a bottle... If you want to be entered in the giveaway, all you have to do is like the video' (giveaway prize self-purchased)", "paid_content_overlay: not_captured"]
   },
   "comment_coding": {
     "sample": 40, "bias_note": "giveaway prompt 'favorite recent dupe pickup' -> dupe-ownership census (~30/40 name an owned clone); 634 total comments (2nd-largest pool)",
