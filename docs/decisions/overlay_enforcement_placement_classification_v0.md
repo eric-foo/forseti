@@ -59,13 +59,25 @@ gating modes.
   bound failed-write shape, non-blank `recommendation`. NOT strict: the
   5-value `recommendation` enum — measured ~40% failure across one recent
   week's real closeouts (an undocumented extended vocabulary in
-  delegated-review-patch lanes; genuine doctrine gap flagged for owner in
-  `validation-gates.md`), so enum membership runs `--audit`-only. Build
-  `--audit`: 306 in-scope files, 0 strict findings (whole-corpus green), 23
-  template blocks skipped, 23 enum-drift advisories. Selftest 44/44. One
-  corpus-driven refinement: `report_path: null` (YAML null, "no path") is
-  recognized rather than read as a dead path. Non-overlap:
-  header/provenance/fencing stays with `check_review_output_provenance.py`.
+  delegated-review-patch lanes), so enum membership runs `--audit`-only.
+  **Owner decision 2026-07-10 (follow-up, same day): the narrowed gate is
+  accepted as the standing shape.** Enum membership stays `--audit`-only
+  advisory; the delegated-review-patch extended vocabulary stays unbound
+  (no `communication-style.md` widening); the 5-value enum remains the
+  canonical target vocabulary for new review summaries, with conformance
+  resident judgment — the acceptance covers enforcement placement, it does
+  not endorse drift. Drift is tracked by `--audit` (23 advisories at
+  decision time, re-measured at decision), never gated. Re-opening later is
+  cheap: bind a widened vocabulary in `communication-style.md` (DCP owed)
+  and flip the checker's enum sub-check from drift-advisory to a strict
+  finding. The EP-10 table row below is annotated in place; it stays a
+  SUBSTRATE win for its strict core, unlike EP-11's falsified-claim
+  correction. Build `--audit`: 306 in-scope files, 0 strict findings
+  (whole-corpus green), 23 template blocks skipped, 23 enum-drift
+  advisories. Selftest 44/44. One corpus-driven refinement:
+  `report_path: null` (YAML null, "no path") is recognized rather than read
+  as a dead path. Non-overlap: header/provenance/fencing stays with
+  `check_review_output_provenance.py`.
 - **EP-15 (`check_hash_pin_freshness.py`) — built for the freshness families
   only.** Corpus survey found six markdown sha256 grammars; only the two
   freshness grammars are parsed: labeled `path:` + `sha256:` bullet pairs
@@ -667,7 +679,7 @@ IDs are stable handles for later owner gating. Where a rule appears in several o
 | EP-07 | Header well-formed: `retrieval_header_version: 1`, `authority_boundary: retrieval_only` exact, no forbidden fields, core ≤5 unless justified (`retrieval-metadata`) | header block | **SUBSTRATE** (exact-value + forbidden-key + count) / PARTIAL ("triggered field justified") · Win | `lint`/`test`. **Sampled, App B.** |
 | EP-08 | `orca_start_preflight` receipt present + required fields on repo-aware / docs-write / source-change / completion (`source-loading`; also `validation-gates`, `prompt-orchestration`) | prompt / closeout | **PARTIAL** | `schema` presence/shape. Truth of `agents_read`/`overlay_read` → resident (non-self-cert, EP-29). |
 | EP-09 | `direction_change_propagation` receipt or blocker present on doctrine-changing edits (`source-of-truth` DCP contract; also `validation-gates`, `prompt-orchestration` gate 12, `communication-style`) | doctrine-change closeout | **PARTIAL** · OVER-EDGE | `schema` receipt presence/shape; the `stale_language_search` field is a literal `rg` → re-runnable by `test`. But "is this edit doctrine-changing?" and "are downstream surfaces really checked?" stay resident — a hook must **not** decide doctrine-ness. |
-| EP-10 | `review_summary` shape + forbidden-keys + `recommendation` enum + `report_path` valid only if the file exists (`communication-style`) | review summary YAML | **SUBSTRATE** · Win | `schema`/`lint`; `report_path` existence is a real file check. |
+| EP-10 | `review_summary` shape + forbidden-keys + `recommendation` enum + `report_path` valid only if the file exists (`communication-style`) | review summary YAML | **SUBSTRATE** · Win — enum sub-check accepted `--audit`-only (owner decision 2026-07-10; see the EP-10/11/15 Update) | Built: `check_review_summary.py` — forbidden keys, `report_path` existence (real file check), failed-write shape, non-blank `recommendation` are strict; enum membership is advisory by owner acceptance, never gated. |
 | EP-11 | Exactly one output mode from the closed set (`prompt-orchestration`; `validation-gates` output-mode gate) | prompt artifact | **PARTIAL** — corrected 2026-07-10 (see the EP-10/11/15 Update) | Built: `check_prompt_output_mode.py` — declaration presence + token-in-set is SUBSTRATE; exactly-one / role-scoping is resident (the field shape is legitimately reused for dispatch/receiver roles). |
 | EP-12 | Typed tokens valid: `BLOCKED_*`, `SOURCE_CONTEXT_READY`, prompt verdicts, `access` enum (`artifact-roles` failure states; `prompt-orchestration`; `delegated-review-patch`) | artifact | **PARTIAL** | `schema` token-spelling / enum membership; correct application → resident. |
 | EP-13 | Every prompt role bound in `artifact-roles` (`validation-gates` artifact-role gate; `prompt-orchestration` gate 2) | prompt | **SUBSTRATE** (existence lookup) / PARTIAL ("right role") | `test`/`schema` role-table lookup → `BLOCKED_UNBOUND_ARTIFACT_ROLE`. |
@@ -690,7 +702,7 @@ IDs are stable handles for later owner gating. Where a rule appears in several o
 | EP-30 | Chat-output topology / communication style: human-summary-first, decision-first, readability (`communication-style`) | chat output | **JUDGMENT** | resident; owes VERIFY FIRING. |
 | EP-31 | Checkpoint-artifact lifecycle: non-authoritative; single-consumption/burn; one live instance per lane; point-don't-copy (`source-of-truth`) | checkpoint files | **PARTIAL** | `test` can detect "one live instance / no `_v2`/`_v3`"; "re-confirm volatile claims / burn after consumption" → judgment/behavioral. |
 
-Distribution: **clear SUBSTRATE wins** — EP-01, EP-02, EP-03, EP-05, EP-06, EP-07, EP-10, EP-13, EP-15, EP-20. **PARTIAL (shape→substrate, core→resident)** — EP-04, EP-08, EP-09, EP-11 (corrected 2026-07-10), EP-12, EP-14, EP-16, EP-17, EP-18, EP-19, EP-21, EP-22, EP-29(corollary), EP-31. **JUDGMENT (resident, owes VERIFY FIRING)** — EP-23, EP-24, EP-25, EP-26, EP-27, EP-28, EP-29(core), EP-30.
+Distribution: **clear SUBSTRATE wins** — EP-01, EP-02, EP-03, EP-05, EP-06, EP-07, EP-10 (enum sub-check accepted `--audit`-only, owner decision 2026-07-10), EP-13, EP-15, EP-20. **PARTIAL (shape→substrate, core→resident)** — EP-04, EP-08, EP-09, EP-11 (corrected 2026-07-10), EP-12, EP-14, EP-16, EP-17, EP-18, EP-19, EP-21, EP-22, EP-29(corollary), EP-31. **JUDGMENT (resident, owes VERIFY FIRING)** — EP-23, EP-24, EP-25, EP-26, EP-27, EP-28, EP-29(core), EP-30.
 
 ## The clear code-enforceable wins (proposed, prioritized)
 

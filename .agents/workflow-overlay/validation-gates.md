@@ -99,8 +99,10 @@ Validation reports must preserve failure visibility by bucket:
   and a non-blank `recommendation` when the key is present. Full
   `recommendation` vocabulary membership is advisory only (`--audit`):
   delegated-review-patch lanes carry an extended vocabulary that
-  `communication-style.md` does not yet bind, and binding or extending that
-  vocabulary is an owner decision, not a checker default. The gate is
+  `communication-style.md` does not bind, and the owner accepted
+  (2026-07-10) keeping enum membership advisory — the extended vocabulary
+  stays unbound, the 5-value enum remains the canonical target for new
+  summaries, and drift is tracked, never gated. The gate is
   summary shape only: it is not review quality, finding truth, severity
   authority, validation, or readiness; retrieval-header, provenance, and
   fencing checks stay with `check_review_output_provenance.py`. Enforced
@@ -469,8 +471,10 @@ process keys, `report_path` resolution, failed-write consistency, and
 non-blank `recommendation`; full `recommendation` enum membership runs
 `--audit`-only because delegated-review-patch lanes carry an extended
 vocabulary `communication-style.md` never bound (measured on roughly 40% of
-one recent week's real closeouts at build time) — widening or binding that
-vocabulary is a flagged owner decision, not a checker default. Non-overlap:
+one recent week's real closeouts at build time) — the owner decided
+(2026-07-10) to keep the narrowed gate as standing: the vocabulary stays
+unbound, enum membership stays advisory, and re-widening is a future
+doctrine change, not a checker default. Non-overlap:
 retrieval-header, provenance, and fencing checks stay with
 `check_review_output_provenance.py`. No write-time hook by design: review
 outputs are frequently authored by other harnesses that never fire this
@@ -598,6 +602,60 @@ direction_change_propagation:
     - not prompt quality or mode-choice correctness
     - not semantic validity, source quality, or capture freshness
     - a green run is shape/freshness only, never approval
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Owner decision recorded (2026-07-10): the EP-10 review-summary gate's
+    narrowed shape is accepted as standing -- full recommendation enum
+    membership stays --audit-only advisory, the delegated-review-patch
+    extended recommendation vocabulary stays unbound, and the
+    communication-style.md 5-value enum remains the canonical target for
+    new review summaries; the pending-decision language on the gate's live
+    surfaces is retired.
+  trigger: validation_philosophy
+  related_triggers:
+    - review_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - .agents/hooks/check_review_summary.py
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        The 5-value enum stays as-written: this decision keeps enforcement
+        advisory; it does not widen, bind, or endorse the extended
+        vocabulary.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its lanes' extended vocabulary stays deliberately unbound under
+        this decision; binding vocabulary there was the rejected
+        alternative.
+    - path: docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
+      reason: >
+        Commissioning-time record; its binding instruction (never gate
+        enum membership) remains true under this decision.
+  stale_language_search: >
+    rg -in "owner-blocked|flagged owner decision|flagged for owner|pending
+    an owner decision|owner decision, not a checker default"
+    .agents/hooks/check_review_summary.py
+    .agents/workflow-overlay/validation-gates.md
+    docs/decisions/overlay_enforcement_placement_classification_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits: remaining hits are the prior
+    gate-wave DCP receipt above (an immutable historical record) and
+    unrelated decisions (self-merge interim wording, EP-04 hook wiring);
+    no live EP-10 surface still reads as pending.
+  non_claims:
+    - not validation
+    - not readiness
+    - not approval of any historical out-of-enum recommendation value
+    - not review quality or finding truth
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

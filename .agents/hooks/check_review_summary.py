@@ -29,9 +29,11 @@ NARROWED TO THE BORN-GREEN SUBSET
   blocked) as substrate-enforceable. That vocabulary is NOT strict here: the
   current corpus already carries an extended, undocumented `recommendation`
   vocabulary from delegated-review-patch lanes (dozens of instances), so
-  gating it would not be born green and is owner-blocked. Out-of-enum
-  `recommendation` values are tracked as an ADVISORY enum-drift signal
-  (--audit count/list, --check INFO) and NEVER a strict finding.
+  gating it would not be born green. The owner accepted this narrowing as
+  the standing shape (decision 2026-07-10, recorded in validation-gates.md
+  and the EP-10 classification row). Out-of-enum `recommendation` values are
+  tracked as an ADVISORY enum-drift signal (--audit count/list, --check
+  INFO) and NEVER a strict finding.
 
 WHAT THIS DOES NOT DO (PLACEMENT IS NOT AUTHORITY)
   - It never judges review QUALITY or TRUTH: whether the recommendation was
@@ -92,8 +94,8 @@ MODES
   check_review_summary.py --selftest                 pure-function cases; exit per pass/fail
 
 REGISTRATION
-  Not yet wired into .github/workflows/ci.yml. This file only adds the
-  checker; registration is a separate, owner-gated CI change.
+  Registered in .github/workflows/ci.yml (--strict step, single-line run
+  format) in the same gate-wave change that added this checker.
 """
 from __future__ import annotations
 
@@ -490,8 +492,8 @@ def _print_findings(findings: list[Finding]) -> None:
 
 def _print_drift(drift: list[EnumDrift], label: str) -> None:
     print("  %s: %d out-of-enum `recommendation` value(s) "
-          "(advisory/no-gate: an undocumented extended vocabulary exists in "
-          "delegated-review-patch lanes and gating it is owner-blocked)" % (label, len(drift)))
+          "(advisory/no-gate: owner accepted 2026-07-10 keeping enum membership "
+          "audit-only; the delegated-review-patch extended vocabulary stays unbound)" % (label, len(drift)))
     for d in drift:
         print("    %s:%d  ->  recommendation: %s" % (d.source, d.lineno, d.value))
 
