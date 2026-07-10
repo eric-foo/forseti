@@ -25,4 +25,7 @@ python .github/scripts/review-report-mechanics.py verify `
 The runner emits one compact JSON receipt containing only observed paths,
 hashes, exit codes, and gate buckets. It invokes Git plus the existing review
 provenance and summary-shape checkers. Failures remain nonzero and visible; an
-existing report is replaced only when `assemble --replace` is explicit.
+existing report is replaced only when `assemble --replace` is explicit. The
+report path may not be named `README.md`: that basename is excluded from both
+downstream checkers' scope, so the runner rejects it rather than silently
+skipping provenance/summary verification.

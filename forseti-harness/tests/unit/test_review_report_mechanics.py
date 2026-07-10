@@ -274,6 +274,43 @@ def test_checker_failure_is_nonzero_and_written_report_remains_visible(tmp_path:
     assert (root / "docs" / "review-outputs" / "report.md").exists()
 
 
+def test_checker_missing_expected_callable_is_nonzero(tmp_path: Path) -> None:
+    """Checker interface drift at call-time (module imports fine but lacks the
+    expected callable), distinct from the import-time failure covered above."""
+    root = _init_repo(tmp_path)
+    (root / ".agents" / "hooks" / "check_review_summary.py").write_text(
+        "# drifted checker interface: no scan_files() left to call\n", encoding="utf-8"
+    )
+    result = _assemble(root)
+
+    assert result.returncode != 0
+    assert _receipt(result)["status"] == "GATE FAIL"
+    assert (root / "docs" / "review-outputs" / "report.md").exists()
+
+
+def test_report_named_readme_is_rejected(tmp_path: Path) -> None:
+    """docs/review-outputs/README.md is excluded from both downstream checkers'
+    scope (check_review_output_provenance.py / check_review_summary.py), so
+    accepting that basename would let a report bypass provenance/summary
+    scanning while still reporting GATE PASS."""
+    root = _init_repo(tmp_path)
+    _write_draft(root)
+    result = _run(
+        root,
+        "assemble",
+        "--draft",
+        "drafts/report.md",
+        "--report",
+        "docs/review-outputs/README.md",
+        "--patch",
+        "src/example.txt",
+    )
+
+    assert result.returncode != 0
+    assert _receipt(result)["status"] == "GATE FAIL"
+    assert not (root / "docs" / "review-outputs" / "README.md").exists()
+
+
 def test_readback_mismatch_predicate_fails_closed() -> None:
     module = _load_runner_module()
     assert module.verify_assembled_bytes(b"actual", b"expected") is False
@@ -329,3 +366,11 @@ def test_verify_is_read_only_and_rechecks_exact_diff(tmp_path: Path) -> None:
     assert verified.returncode == 0, verified.stderr
     assert report.read_bytes() == before
     assert _receipt(verified)["mode"] == "verify"
+
+    gate_names = {gate["name"] for gate in _receipt(verified)["gates"]}
+    assert "readback_exact_not_applicable" in gate_names
+    assert "readback_exact" not in gate_names, (
+        "verify mode never runs the assembled-bytes comparison readback_exact "
+        "checks; recording that gate name as GATE PASS would claim a "
+        "comparison that never happened"
+    )

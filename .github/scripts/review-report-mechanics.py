@@ -326,6 +326,13 @@ def prepare_inputs(args: argparse.Namespace, receipt: Receipt) -> tuple[
         raise MechanicsFailure("report_destination", 2, "report must be under docs/review-outputs") from exc
     if report == review_root or report.suffix.lower() != ".md":
         raise MechanicsFailure("report_destination", 2, "report must be a Markdown file below docs/review-outputs")
+    if report.name == "README.md":
+        raise MechanicsFailure(
+            "report_destination",
+            2,
+            "report must not be named README.md; that basename is excluded from "
+            "provenance/summary checker scope and would silently bypass both gates",
+        )
     if not report.parent.is_dir():
         raise MechanicsFailure("report_destination", 2, "report parent directory does not exist")
     receipt.paths["report"] = report_relative
@@ -385,9 +392,14 @@ def execute(args: argparse.Namespace, receipt: Receipt) -> int:
     except OSError as exc:
         raise MechanicsFailure("readback", -1, f"report readback failed: {exc}") from exc
     receipt.hashes["report_sha256"] = sha256_bytes(report_bytes)
-    if expected_report is not None and not verify_assembled_bytes(report_bytes, expected_report):
-        raise MechanicsFailure("readback_exact", 1, "report readback does not match assembled bytes")
-    receipt.record("readback_exact", "GATE PASS", 0)
+    if expected_report is not None:
+        if not verify_assembled_bytes(report_bytes, expected_report):
+            raise MechanicsFailure("readback_exact", 1, "report readback does not match assembled bytes")
+        receipt.record("readback_exact", "GATE PASS", 0)
+    else:
+        # verify mode has no just-written expected bytes to compare against;
+        # recording GATE PASS here would claim a comparison that never ran.
+        receipt.record("readback_exact_not_applicable", "INFO", 0)
     if not verify_diff_occurrence(report_bytes, generated_diff):
         raise MechanicsFailure("generated_diff_once", 1, "generated diff does not occur exactly once")
     receipt.record("generated_diff_once", "GATE PASS", 0)
