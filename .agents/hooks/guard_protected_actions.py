@@ -29,9 +29,9 @@ restating it.
 
 Authority (the rules):     .agents/workflow-overlay/safety-rules.md
 Dev-workflow doctrine:     docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-                           (on main: per-lane PR flow; the server-side merge gate
-                           is 403-blocked on this private/free repo, so this hook
-                           is the local stand-in against unattended land-to-main)
+                           (on main: per-lane PR flow plus an active strict
+                            server-side merge gate; this hook is local defense in depth
+                            and provides earlier, more specific denials)
 Placement principle:       .agents/workflow-overlay/validation-gates.md -> "Enforcement Placement"
 Per-rule classification:   docs/decisions/overlay_enforcement_placement_classification_v0.md
 
