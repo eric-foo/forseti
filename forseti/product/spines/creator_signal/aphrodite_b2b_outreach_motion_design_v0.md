@@ -2,15 +2,15 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Design lane artifact (B2B outreach MOTION for the first paid Vetting Sprints) — applies ratified doctrine; not itself ratified doctrine
+artifact_role: Design lane artifact (candidate B2B outreach MOTION for paid Vetting Sprints) — applies ratified doctrine; not itself ratified doctrine
 scope: >
-  The outreach-motion design that lands Aphrodite's first paid design-partner
-  Vetting Sprints: who to approach first within the ratified lead lane, the
+  A candidate outreach-motion design for paid design-partner Vetting Sprints:
+  who to approach first within the ratified lead lane, the
   demonstrating public-info-only first-touch (medium-is-moat), the qualify/kill
   bar (consumed from product-proof + buyer-proof grammar), and the sequencing +
   Phase-0 "designed, not sent" boundary. Applies existing doctrine; changes none.
 use_when:
-  - Preparing the first design-partner Vetting Sprint outreach once D-1 fires and probes open.
+  - Preparing candidate design-partner Vetting Sprint outreach once D-1 fires and that buyer-contact lane opens.
   - Checking who is approached first and what the demonstrating first-touch must contain.
   - Checking the qualify/kill/graduate bar for the Aphrodite indie/challenger first-touch.
 authority_boundary: retrieval_only
@@ -27,6 +27,14 @@ stale_if:
 
 ## Status and non-claims
 
+**Status amendment 2026-07-12:** the charter reopened the canonical first paid
+unit. This record remains a usable candidate motion for the five-panel Vetting
+Sprint; it is no longer the exclusive first-unit or first-buyer route.
+Shortlists, rankings, and other brief-specific Signals decision reads are
+separate candidate units. Nothing in this amendment authorizes outreach for
+this or any other unit.
+
+
 `DESIGN — PHASE-0 (designed, not sent)`. This is an outreach **plan**, not a send.
 It **applies** ratified doctrine (charter §3/§4/§5/§7, product-proof, the
 buyer-proof grammar) and **changes none of it**, so it carries **no
@@ -42,20 +50,21 @@ authorized only when the charter's own trigger fires (see §5, Sequencing).
 
 ## 0. Governing reframe — "outreach motion" ≠ the forbidden "outreach"
 
-The charter's forbidden set (§3 moat protectors) prohibits **"outreach, contact
-enrichment, lead-list export, public person-level directory."** This motion is
+The charter's forbidden set (§3 moat protectors) prohibits unauthorized
+Signals outreach/contact enrichment, unapproved lead-list or registry export,
+and a public person-level directory. This motion is
 an outreach motion. These do not collide, because they act on two different
 objects:
 
 - **Forbidden "outreach" = the _product surface_ contacting / enriching /
   exporting _creators._** That is the moat protector. Growth-map §A confirms it:
   creator outreach / contact / management is deliberately walled into a
-  **separate company, Aphrodite Studio** — *because* that surface is forbidden
-  inside neutral Aphrodite.
+  **separate operating/revenue lane, Aphrodite Studio** — with its own
+  creator-facing authorization and neutrality firewall.
 - **This motion = _Aphrodite-the-company's B2B sale_ to _brand buyers._** Selling
-  the neutral Vetting Sprint to indie fragrance brands is the charter's own
-  intended Phase-1 path ("owner separately opens buyer probes"; "one paid
-  design-partner Vetting Sprint per buyer", §4/§2). The A1 carve in the parent
+  a neutral Vetting Sprint to indie fragrance brands is one charter-compatible
+  candidate path, not the locked first unit; this motion remains separately
+  owner-gated (§4/§2). The A1 carve in the parent
   thesis (`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`) makes
   Aphrodite a *sold* creator-level surface within its own forbidden set.
 
@@ -147,12 +156,12 @@ being a decision read the founder can act on today.
 4. **An explicit boundary line:** *"This is a public-signal teaser. The paid
    Vetting Sprint adds sponsorship-load / ad-reception, aggregate
    purchase-intent, full candidate-set assembly, and a decision-owner readback.
-   We sell the read, not the roster — no contact info, no creator list."*
+   This teaser sells the read, not a registry transaction — no contact info."*
 
 **What it deliberately does NOT contain** (the firewall, §0, made concrete):
-no creator contact details; no exportable list / roster / directory
-(no-registry-dump, growth-map §E); no person-level or private data (hyper-
-personalize to the **company**, per the owner relaxation, never to a private
+no creator contact details; no unapproved list / roster / directory export
+(strategic-registry boundary, growth-map §E); no person-level or private data
+(hyper-personalize to the **company**, per the owner relaxation, never to a private
 individual); no de-anonymized audience; no invented / zero-filled numbers; no
 single vanity score; no outcome guarantee; and no offer to contact or manage
 creators (that is Aphrodite Studio, not neutral Aphrodite).
@@ -238,13 +247,12 @@ evidence.
 
 ## 4. Sequencing and the Phase-0 boundary (Design Q4)
 
-**The trigger that actually opens outreach** (charter §4/§7): the Vetting Sprint
-is sellable **only after** the **D-1 foundation exit gate fires** (the
-six-criteria practice-run dress rehearsal, charter §7 gate 3) **and** the owner
-**separately opens buyer probes.** A **waitlist-inbound buyer signal** can pull
-the gate forward — the rehearsal becomes the first design-partner sprint prep
-instead of a synthetic cycle (charter §7 accelerator). Until both conditions
-hold, this motion stays fully designed-not-sent.
+**The trigger that opens this candidate motion** (charter §4/§7): D-1 must fire
+for the five-panel Vetting Sprint and the owner must separately open this
+buyer-contact lane. A waitlist-inbound signal may still pull that rehearsal
+forward. D-1 does not gate every possible Signals shortlist, ranking, or
+decision-read unit, and this motion authorizes none of those alternatives.
+Until both Vetting-specific conditions hold, this motion remains designed-not-sent.
 
 **Batch, not blast:**
 
