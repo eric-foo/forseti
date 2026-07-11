@@ -589,8 +589,9 @@ Use the repo map to select a narrow source pack instead.
 
 ## Not-Proven Boundaries
 
-Source loading supplies context, not status or authority. A status claim requires
-its controlling source and evidence; otherwise mark it `not proven`.
+Source loading supplies context, not status or authority. A status claim, as
+defined in `.agents/workflow-overlay/validation-gates.md`, requires its
+controlling source and evidence; otherwise mark it `not proven`.
 
 ## Direction Change Propagation
 

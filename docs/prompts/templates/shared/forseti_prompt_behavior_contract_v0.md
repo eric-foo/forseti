@@ -68,8 +68,10 @@ bypass receipt.
   artifact" collapse into path/hash/status-only chat.
 - Keep missing source fields as `not_found`, `not_bound`, or `UNKNOWN - requires owner input`.
 - Do not turn evidence collection into synthesis unless the prompt is a synthesis template.
-- Make status claims only when an accepted Forseti source and current evidence
-  bind the exact status; otherwise name the unsupported claim once.
+- Make status claims, as defined in
+  `.agents/workflow-overlay/validation-gates.md`, only when an accepted Forseti
+  source and current evidence bind the exact status; otherwise name the
+  unsupported claim once.
 - For review prompts and reports, prefer a review-use boundary over a broad
   non-claims catalog: the review is decision input only and must not be treated
   as approval, validation, mandatory remediation, or executor-ready authority

@@ -27,6 +27,14 @@ Validation reports must preserve failure visibility by bucket:
   `INFO`. A future wrapper may encode this policy, but bucket membership is owned here; any wrapper
   script that encodes it must exit nonzero iff any `GATE FAIL` exists.
 
+Throughout Forseti workflow doctrine, a `status claim` asserts acceptance or
+approval; validation, readiness, or completion (including `PASS` or
+`ADEQUATE_NOW`); implementation, deployment, installation, or resolver state;
+source-of-truth promotion; or buyer pull / willingness to pay. A `strict status
+claim` uses one of those states to clear a gate or authorize movement. Domain
+owners may bind narrower tokens, but compressed references to status claims
+inherit this floor.
+
 ## Current Gates
 
 - Required Forseti files exist before claiming bootstrap completion.

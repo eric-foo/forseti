@@ -36,7 +36,7 @@ Model-target templates (`_generic/`) were retired 2026-06-13 (unused; owner deci
 | Template kind | Primary path | Template target | Output mode | Status | Notes |
 | --- | --- | --- | --- | --- | --- |
 | `shared-behavior-contract` | `docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md` | model-neutral | template include | active | Common behavior clauses for Forseti prompt templates. |
-| `shared-preflight-defaults` | `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` | model-neutral | template include | active | Repo-constant preflight field bindings; required per-prompt deltas must still be stated. |
+| `shared-preflight-defaults` | `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` | model-neutral | template include | active | Repo-constant preflight field bindings; escalated per-prompt deltas must still be stated. |
 | `research-evidence-lane-o3` | `docs/prompts/templates/research/o3_evidence_only_research_lane_v0.md` | o3 / o3-deep-research prompt posture | paste-ready-chat | active | Evidence-only public research lane template. |
 | `research-synthesis-gpt55` | `docs/prompts/templates/research/gpt_5_5_evidence_synthesis_v0.md` | GPT-5.5 prompt posture | paste-ready-chat | active | Synthesis from prior evidence-only lane outputs. |
 | `adversarial-artifact-review` | `docs/prompts/templates/review/adversarial_artifact_review_v0.md` | model-neutral | review-report or paste-ready-chat | active | Read-only non-code artifact review prompt template. |

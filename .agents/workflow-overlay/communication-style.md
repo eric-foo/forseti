@@ -126,9 +126,10 @@ reports, preserve this order:
 6. Reviewer verdict or recommendation: the reviewer summary, if one is bound.
 
 Reviewer recommendations in `review_summary` are courier and decision input.
-Acceptance or execution authority requires a separate binding. Do not create a
-synthesis authority by merging reports; unresolved disagreement stays with the
-Chief Architect unless Forseti binds another owner.
+They do not establish acceptance, validation, readiness, mandatory remediation,
+or execution authority without a separate binding. Do not create a synthesis
+authority by merging reports; unresolved disagreement stays with the Chief
+Architect unless Forseti binds another owner.
 
 ## Review Adjudication Next Step
 

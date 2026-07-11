@@ -209,8 +209,9 @@ token math.
 
 ## Non-Claims
 
-Cynefin routing chooses a safe next-move posture; it does not validate or
-authorize the underlying work.
+Cynefin routing chooses a safe next-move posture. It is not review or proof that
+the route will work, and it does not validate, establish readiness, authorize,
+or promote the underlying work to source-of-truth status.
 
 ## Direction Change Propagation
 
