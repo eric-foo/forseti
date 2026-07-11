@@ -33,6 +33,7 @@ round-3 patched state). Bring the return back for home-lane adjudication.
 
 commission_mode: delegated cross-vendor adversarial artifact review (round 3 — residual-closure verification)
 terminal_output_mode: paste-ready-chat (no repo access; everything you need is in the attached zip)
+output_mode: paste-ready-chat
 review_posture: adversarial — verify each claimed closure yourself
 no_runtime_model_recommendation: true
 

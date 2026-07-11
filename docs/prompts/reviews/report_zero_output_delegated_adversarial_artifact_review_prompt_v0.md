@@ -34,6 +34,7 @@ the prompt). Bring the return back to the home lane for adjudication.
 
 commission_mode: delegated cross-vendor adversarial artifact review
 terminal_output_mode: paste-ready-chat (no repo access; everything you need is in the attached zip)
+output_mode: paste-ready-chat
 review_posture: findings-first, coverage-first, adversarial — try to BREAK the artifact
 no_runtime_model_recommendation: true
 

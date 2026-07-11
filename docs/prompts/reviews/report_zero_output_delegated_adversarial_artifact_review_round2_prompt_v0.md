@@ -34,6 +34,7 @@ to the home lane for adjudication.
 
 commission_mode: delegated cross-vendor adversarial artifact review (round 2 — closure verification + regression sweep)
 terminal_output_mode: paste-ready-chat (no repo access; everything you need is in the attached zip)
+output_mode: paste-ready-chat
 review_posture: adversarial — verify each claimed closure yourself; do not take the patch's word for anything
 no_runtime_model_recommendation: true
 
