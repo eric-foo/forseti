@@ -34,6 +34,9 @@ from capture_spine.creator_profile_current.silver_metric_producer import (
     CreatorMetricSilverResult,
     derive_creator_metric_silver_records_from_projections,
 )
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_id_from_subject_ref as _platform_account_id_from_subject_ref,
+)
 from data_lake.root import DataLakeRoot, DataLakeRootError
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -83,7 +86,9 @@ def run_producer(
 
 def _account_of(record: Mapping[str, Any]) -> str | None:
     try:
-        return record["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+        return _platform_account_id_from_subject_ref(
+            record["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+        )
     except (KeyError, TypeError):
         return None
 

@@ -24,6 +24,11 @@ from capture_spine.creator_profile_current.silver_metric_reader import (
     CreatorRollupDiscoveryError,
     discover_creator_metric_rollup_records,
 )
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY,
+    LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY,
+    platform_account_id_from_subject_ref,
+)
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
     derive_youtube_creator_metric_silver_records_from_seed_file,
 )
@@ -47,7 +52,9 @@ def _ledger(*entries: tuple[str, str]) -> dict:
 
 
 def _account_of(record: dict) -> str:
-    return record["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+    return platform_account_id_from_subject_ref(
+        record["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+    )
 
 
 # -- Instagram (packet-anchored) fixtures -----------------------------------
@@ -192,6 +199,28 @@ def test_discovers_ig_rollup_via_availability_index(tmp_path: Path) -> None:
     record = found[IG_ACCOUNT][0]
     assert _account_of(record) == IG_ACCOUNT
     assert record["payload_kind"] == "MetricRollupObservation"
+
+
+def test_discovers_legacy_orca_subject_ref_key(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _write_ig_rollup(data_root, tmp_path)
+    lane_dir = data_root.lane_dir(
+        subtree="derived", raw_anchor=packet_id, lane="creator_metric_rollup_silver"
+    )
+    record_path = next(lane_dir.glob("*.json"))
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    subject_ref = record["payload"]["observation"]["subject"]["ref"]
+    subject_ref[LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY] = subject_ref.pop(
+        FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY
+    )
+    record_path.write_text(json.dumps(record), encoding="utf-8")
+
+    found = discover_creator_metric_rollup_records(
+        data_root, account_ledger=_ledger((IG_ACCOUNT, "instagram"))
+    )
+
+    assert set(found) == {IG_ACCOUNT}
+    assert _account_of(found[IG_ACCOUNT][0]) == IG_ACCOUNT
 
 
 def test_discovers_yt_rollup_via_account_anchor(tmp_path: Path) -> None:

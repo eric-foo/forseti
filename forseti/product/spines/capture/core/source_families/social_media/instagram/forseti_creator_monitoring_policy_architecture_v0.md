@@ -9,15 +9,17 @@ scope: >
   hot-list, promotion/demotion loop, capture-once-then-recheck lifecycle) and the per-platform
   monitoring PROFILE seam (cadence values, curve window, content unit, momentum metric, spike
   threshold) that IG fills first and TikTok/YouTube/Reddit fill later. PROPOSED; the cadence numbers
-  remain illustrative and R-tunable. The current IG planning default uses a 1,000-creator serious-v0
-  roster target with 10/30/60 A/B/C allocation, while IG R still has only a first measured
-  pace-bound reading and an open at-pace ceiling. Not a build-go, validation, or readiness claim.
+  remain illustrative and R-tunable. The older IG planning default used a 1,000-creator serious-v0
+  roster target with 10/30/60 A/B/C allocation; current steady IG daily-heartbeat posture is now
+  recorded separately in `ig_daily_heartbeat_operating_policy_v0.md`. Not a build-go, validation, or
+  readiness claim.
 use_when:
   - Deciding how to spend the bounded capture budget across creators/posts (tiering + recheck cadence).
   - Scoping the IG capture-shape contract's monitoring half, or a future platform satellite's profile.
   - Checking what monitoring machinery is platform-agnostic core vs per-platform satellite.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_daily_heartbeat_operating_policy_v0.md   # current IG daily-heartbeat posture; supersedes this doc for steady daily cadence defaults
   - forseti/product/spines/capture/core/operating_model/forseti_capture_projection_storage_spine_architecture_v0.md   # the storage/capture-shape backbone (this consumes its projection + records its cadence/fanout parameters)
   - docs/decisions/wind_caller_calibration_carveout_v0.md   # capture posture authority (amended 2026-06-15) — the scheduler must conform
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_at_scale_operating_envelope_v0.md   # current IG R operating envelope
@@ -27,7 +29,7 @@ stale_if:
   - A fuller R run pins the at-pace daily-volume ceiling, exact pace threshold, or throttle decay time.
   - The IG capture-shape contract fills the IG monitoring profile (moves IG from illustrative to bound).
   - A second platform profile (TikTok/YouTube/Reddit) is authorized — tests the profile seam.
-status: PROPOSED — creator monitoring policy (core machinery + per-platform profile seam); cadences illustrative + R-tunable; IG R first-measured pace-bound, at-pace ceiling still open; AWAITING owner adoption
+status: PROPOSED — creator monitoring policy (core machinery + per-platform profile seam); older A/B/C sparse cadence is not current IG daily-heartbeat posture; see ig_daily_heartbeat_operating_policy_v0.md
 ```
 
 # Forseti Creator Monitoring Policy — Coverage Allocator (PROPOSED, v0)
@@ -46,6 +48,16 @@ which already-authorized creator/post gets denser capture or quicker recheck, bu
 they do not authorize a new source-access route, prove demand or buyer pull,
 certify credibility/independence, clear readiness or validation, or create an
 automatic sprint / Capture commitment.
+
+## Current IG Daily-Heartbeat Override
+
+Owner update 2026-07-08: do not use this doc's A/B/C sparse cadence, 1,000-creator
+target, or weekly Tier-C heartbeat as the current steady IG daily-heartbeat default.
+The current steady-state IG posture is all registered IG creators receive one
+daily first-visible-grid heartbeat for now, with the 2.5k/day serious posture
+requiring two distinct egress lanes. Onboarding remains separate. This document
+remains useful as a future coverage allocator if capacity constraints later
+force tiered cadence back into the operating model.
 
 ## Core vs satellite split
 

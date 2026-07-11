@@ -20,6 +20,10 @@ import tempfile
 
 _VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 
+# Liveness backstop: bound a hung `yt-dlp` bestaudio download (subprocess.run kills the child on
+# timeout) so a stuck child cannot block the ASR fallback path forever.
+_YTDLP_AUDIO_TIMEOUT_SECONDS = 300
+
 
 def download_audio(video_id: str) -> tuple[bytes, str] | None:
     """Download bestaudio via yt-dlp android_vr (token-free). Returns (bytes, ext) or None.
@@ -32,11 +36,14 @@ def download_audio(video_id: str) -> tuple[bytes, str] | None:
     url = f"https://www.youtube.com/watch?v={video_id}"
     with tempfile.TemporaryDirectory(prefix="orca_audio_") as tmp:
         out_tmpl = os.path.join(tmp, "%(id)s.%(ext)s")
-        proc = subprocess.run(
-            [sys.executable, "-m", "yt_dlp", "-f", "ba/b",
-             "--extractor-args", "youtube:player-client=android_vr", "-o", out_tmpl, url],
-            capture_output=True, text=True,
-        )
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "yt_dlp", "-f", "ba/b",
+                 "--extractor-args", "youtube:player-client=android_vr", "-o", out_tmpl, url],
+                capture_output=True, text=True, timeout=_YTDLP_AUDIO_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            return None
         hits = glob.glob(os.path.join(tmp, f"{video_id}.*"))
         if proc.returncode != 0 or not hits:
             return None

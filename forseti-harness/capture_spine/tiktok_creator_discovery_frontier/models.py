@@ -17,7 +17,7 @@ TIKTOK_CREATOR_DISCOVERY_NEXT_RUN_ENVELOPE_SCHEMA_VERSION = (
     "tiktok_creator_discovery_next_run_envelope_v0"
 )
 TIKTOK_CREATOR_DISCOVERY_SCAN_RECEIPT_SCHEMA_VERSION = (
-    "tiktok_creator_discovery_scan_receipt_v0"
+    "tiktok_creator_discovery_scan_receipt_v1"
 )
 
 DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS: tuple[str, ...] = (
@@ -73,6 +73,20 @@ class RefreshOutcome(StrEnum):
     VISIBLE_REFRESH_NOT_AUTHORIZED = "visible_refresh_not_authorized"
 
 
+class LinkHubOutcome(StrEnum):
+    """Required outcome accounting for a source-visible bio link hub.
+
+    A scan receipt cannot stay silent about the link hub: the field is
+    required with this closed vocabulary, so 'captured parent, silently
+    skipped the visible Linktree' is no longer representable.
+    """
+
+    CAPTURED = "captured"
+    BLOCKED = "blocked"
+    DEFERRED_NOT_AUTHORIZED = "deferred_not_authorized"
+    NONE_VISIBLE = "none_visible"
+
+
 @dataclass(frozen=True)
 class ScanReceipt:
     receipt_id: str
@@ -91,6 +105,8 @@ class ScanReceipt:
     source_packet_path_or_none: str | None
     parent_profile_capture_status: str
     suggested_accounts_capture_status: str
+    link_hub_capture_status: LinkHubOutcome
+    link_hub_url_or_none: str | None
     browser_closed_by_runner: bool
     refresh_attempt_count: int
     refresh_outcome: RefreshOutcome

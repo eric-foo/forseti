@@ -90,6 +90,9 @@ from capture_spine.creator_profile_current.silver_envelope_core import (
     required_subject_native_id as _required_subject_native_id,
     rollup_metric as _rollup_metric,
 )
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_ref_field as _platform_account_ref_field,
+)
 from harness_utils import generate_ulid
 from data_lake.catalog import source_surface_catalog_rows
 from data_lake.silver_record import append_silver_record
@@ -467,7 +470,10 @@ def _observation_subject(seed_observation: Mapping[str, Any]) -> dict[str, Any]:
             what=f"observation {seed_observation.get('metric_observation_id')!r} publisher subject",
         ),
         "published_by_account_native_id_kind": seed_observation.get("platform_subject_key_type"),
-        "orca_platform_account_id": seed_observation["platform_account_id"],
+        **_platform_account_ref_field(
+            seed_observation["platform_account_id"],
+            what=f"observation {seed_observation.get('metric_observation_id')!r} platform account id",
+        ),
     }
     return {"ref_type": "entity_key", "ref": ref}
 
@@ -483,7 +489,10 @@ def _rollup_subject(seed_rollup: Mapping[str, Any]) -> dict[str, Any]:
             what=f"rollup {seed_rollup.get('metric_rollup_id')!r} account subject",
         ),
         "native_id_kind": seed_rollup.get("platform_subject_key_type"),
-        "orca_platform_account_id": seed_rollup["profile_subject_id"],
+        **_platform_account_ref_field(
+            seed_rollup["profile_subject_id"],
+            what=f"rollup {seed_rollup.get('metric_rollup_id')!r} platform account id",
+        ),
     }
     return {"ref_type": "entity_key", "ref": ref}
 

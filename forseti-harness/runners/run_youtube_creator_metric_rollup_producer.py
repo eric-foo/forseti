@@ -41,6 +41,9 @@ from typing import Any, Mapping, Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_id_from_subject_ref as _platform_account_id_from_subject_ref,
+)
 from capture_spine.creator_profile_current.youtube_metric_seed import (
     YOUTUBE_SHORTS_FRAGRANCE_CREATOR_METRIC_SEED_WRAPPER,
     build_youtube_shorts_fragrance_creator_metric_seed_from_files,
@@ -110,7 +113,9 @@ def run_youtube_producer(
 
 def _account_of(record: Mapping[str, Any]) -> str | None:
     try:
-        return record["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+        return _platform_account_id_from_subject_ref(
+            record["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+        )
     except (KeyError, TypeError):
         return None
 

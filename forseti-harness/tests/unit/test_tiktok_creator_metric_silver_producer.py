@@ -21,6 +21,10 @@ import pytest
 from capture_spine.creator_profile_current.rollup_formula_revalidation import (
     revalidate_creator_metric_rollups,
 )
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY,
+    LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY,
+)
 from capture_spine.creator_profile_current.tiktok_metric_seed import (
     build_tiktok_batch_creator_metric_seed_document,
 )
@@ -106,7 +110,8 @@ def test_derive_appends_observation_and_rollup_silver_records(tmp_path: Path) ->
     assert ref["kind"] == "public_content_object"
     assert ref["native_id_kind"] == "tiktok_video_id"
     assert ref["published_by_account_native_id"] == "funmimonet"
-    assert ref["orca_platform_account_id"] == "acct_tt_funmimonet"
+    assert ref[FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY] == "acct_tt_funmimonet"
+    assert LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY not in ref
     raw_ref = view["raw_refs"][0]
     assert raw_ref["packet_id"] == packet_id
     assert raw_ref["json_pointer"].endswith("/stats/playCount")
@@ -115,7 +120,8 @@ def test_derive_appends_observation_and_rollup_silver_records(tmp_path: Path) ->
     rollup_ref = rollup["payload"]["observation"]["subject"]["ref"]
     assert rollup_ref["kind"] == "platform_public_account"
     assert rollup_ref["native_id"] == "funmimonet"
-    assert rollup_ref["orca_platform_account_id"] == "acct_tt_funmimonet"
+    assert rollup_ref[FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY] == "acct_tt_funmimonet"
+    assert LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY not in rollup_ref
 
 
 def test_rollup_engagement_math_and_derived_refs_lineage(tmp_path: Path) -> None:

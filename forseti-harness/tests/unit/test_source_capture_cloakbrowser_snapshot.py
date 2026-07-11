@@ -21,6 +21,10 @@ from source_capture.adapters.cloakbrowser_snapshot import (
     fetch_cloakbrowser_snapshot_capture,
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile
+from source_capture.source_detail_sufficiency import (
+    SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+    SourceDetailSufficiencyRequirements,
+)
 
 
 @pytest.fixture
@@ -87,6 +91,7 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
     assert result.metadata["browser_engine"] == "cloakbrowser"
     assert result.metadata["cloakbrowser_backend"] == "playwright"
     assert result.metadata["profile_persistence"] == "none"
+    assert result.metadata["persistent_profile_loaded"] is False
     assert result.metadata["storage_state_loaded"] is False
     assert result.metadata["proxy_used"] is False
     assert result.metadata["proxy_category"] is None
@@ -99,6 +104,30 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
     assert result.metadata["viewport_width"] == 1024
     assert result.metadata["viewport_height"] == 768
     assert result.metadata["screenshot_mode"] == "viewport"
+    assert result.metadata["capture_phase_timing"] == {
+        "schema_version": 2,
+        "measurement_status": "unavailable",
+        "clock": "monotonic",
+        "unit": "milliseconds",
+        "phases_ms": {},
+        "progressive_scroll_steps": [],
+        "scroll_passes": [],
+        "load_more_actions": [],
+        "scroll_target": {
+            "configured": False,
+            "action_ms": None,
+            "condition_wait_ms": None,
+            "reached": None,
+        },
+        "scroll_stop_condition": {
+            "configured": False,
+            "reached": None,
+            "reached_stage": None,
+            "checks": [],
+        },
+        "total_capture_wall_ms": None,
+        "reason": "capture engine did not report phase timings",
+    }
     assert result.metadata["rendered_dom_byte_count"] == len(result.rendered_dom.encode("utf-8"))
     assert result.metadata["visible_text_byte_count"] == len(result.visible_text.encode("utf-8"))
     assert result.metadata["screenshot_byte_count"] == len(result.screenshot_png)
@@ -119,7 +148,10 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
         "load_more_selector": None,
         "load_more_clicks": 0,
         "scroll_step_px": 0,
+        "scroll_stop_condition": None,
+        "scroll_target_selector": None,
         "pre_capture": None,
+        "user_data_dir": None,
     }
 
 
@@ -243,7 +275,6 @@ def test_live_engine_uses_anonymous_non_persistent_launch(monkeypatch: pytest.Mo
         "timezone": None,
         "locale": None,
         "geoip": False,
-        "backend": "playwright",
         "humanize": False,
         "extension_paths": None,
         "closed": True,
@@ -261,6 +292,86 @@ def test_live_engine_uses_anonymous_non_persistent_launch(monkeypatch: pytest.Mo
         "timeout": 5000,
     }
 
+
+def test_live_engine_uses_persistent_profile_context_when_user_data_dir_is_supplied(
+    monkeypatch: pytest.MonkeyPatch, scratch_dir: Path
+) -> None:
+    launch_called = False
+    persistent_context_kwargs: dict[str, object] = {}
+    viewport_size: dict[str, int] = {}
+
+    class FakeLocator:
+        def inner_text(self, *, timeout: float) -> str:
+            return "Visible profile-backed source text"
+
+    class FakePage:
+        url = "https://example.com/profile-rendered"
+
+        def set_viewport_size(self, viewport: dict[str, int]) -> None:
+            viewport_size.update(viewport)
+
+        def goto(self, url: str, **kwargs: object) -> None:
+            return None
+
+        def content(self) -> str:
+            return "<html><body>Visible profile-backed source text</body></html>"
+
+        def locator(self, selector: str) -> FakeLocator:
+            return FakeLocator()
+
+        def screenshot(self, **kwargs: object) -> bytes:
+            return b"\x89PNG\r\n\x1a\ncloakbrowser"
+
+        def title(self) -> str:
+            return "Profile Rendered Source"
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            return FakePage()
+
+        def close(self) -> None:
+            persistent_context_kwargs["closed"] = True
+
+    class FakeCloakBrowserModule:
+        def launch(self, **kwargs: object) -> object:
+            nonlocal launch_called
+            launch_called = True
+            raise AssertionError("anonymous launch should not be used")
+
+        def launch_persistent_context(self, user_data_dir: Path, **kwargs: object) -> FakeContext:
+            persistent_context_kwargs["user_data_dir"] = user_data_dir
+            persistent_context_kwargs.update(kwargs)
+            return FakeContext()
+
+    def fake_import_module(name: str) -> FakeCloakBrowserModule:
+        assert name == "cloakbrowser"
+        return FakeCloakBrowserModule()
+
+    monkeypatch.setattr(cloakbrowser_snapshot_module, "import_module", fake_import_module)
+
+    result = _CloakBrowserSnapshotEngine().capture(
+        url="https://example.com/source",
+        timeout_seconds=5,
+        wait_until="domcontentloaded",
+        viewport_width=1024,
+        viewport_height=768,
+        proxy_profile=None,
+        block_heavy_assets=False,
+        user_data_dir=scratch_dir,
+    )
+
+    assert result.final_url == "https://example.com/profile-rendered"
+    assert result.title == "Profile Rendered Source"
+    assert result.visible_text == "Visible profile-backed source text"
+    assert launch_called is False
+    assert persistent_context_kwargs == {
+        "user_data_dir": scratch_dir,
+        "headless": True,
+        "stealth_args": True,
+        "humanize": False,
+        "closed": True,
+    }
+    assert viewport_size == {"width": 1024, "height": 768}
 
 def test_live_engine_passes_proxy_profile_only_to_cloakbrowser_launch(
     monkeypatch: pytest.MonkeyPatch,
@@ -1023,6 +1134,49 @@ def test_fetch_cloakbrowser_snapshot_capture_passes_scroll_step_px_to_engine_and
     assert result.metadata["scroll_step_px"] == 700
 
 
+def test_fetch_cloakbrowser_snapshot_capture_passes_scroll_target_to_engine_and_metadata() -> None:
+    engine = _FakeCloakBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/reviews",
+            title="Reviews",
+            rendered_dom="<html><body>reviews</body></html>",
+            visible_text="reviews",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+        )
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/reviews",
+        scroll_target_selector="#reviews",
+        scroll_stop_condition=cloakbrowser_snapshot_module.ScrollStopCondition(
+            visible_text_contains=("reviews",)
+        ),
+        engine=engine,
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["scroll_target_selector"] == "#reviews"
+    assert result.metadata["scroll_target_selector"] == "#reviews"
+
+
+def test_fetch_cloakbrowser_snapshot_capture_requires_condition_for_scroll_target() -> None:
+    with pytest.raises(ValueError, match="scroll_target_selector requires scroll_stop_condition"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://example.com/reviews",
+            scroll_target_selector="#reviews",
+            engine=_FakeCloakBrowserEngine(
+                _FakeEngineResult(
+                    final_url="https://example.com/reviews",
+                    title="Reviews",
+                    rendered_dom="<html><body>reviews</body></html>",
+                    visible_text="reviews",
+                    screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                )
+            ),
+        )
+
+
 def test_fetch_cloakbrowser_snapshot_capture_rejects_negative_scroll_step_px() -> None:
     with pytest.raises(ValueError, match="scroll_step_px"):
         fetch_cloakbrowser_snapshot_capture(
@@ -1325,6 +1479,53 @@ def test_cloakbrowser_runner_threads_scroll_step_px_to_capture(monkeypatch: pyte
 
     assert exit_code == 3
     assert seen["scroll_step_px"] == 700
+
+
+def test_cloakbrowser_runner_uses_retail_profile_scroll_target(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        seen.update(kwargs)
+        return CloakBrowserSnapshotFailure(
+            requested_url="https://www.sephora.com/product/lip-sleeping-mask-P420652",
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="stub failure after recording kwargs",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+    profile = cloakbrowser_runner.get_retail_capture_profile("sephora_pdp_distribution")
+
+    exit_code, _ = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://www.sephora.com/product/lip-sleeping-mask-P420652",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="does the target selector thread through?",
+        output_directory=Path("unused_no_packet_on_failure"),
+        capture_context="test target-selector threading",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        retail_capture_profile=profile,
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+    )
+
+    assert exit_code == 3
+    assert seen["scroll_target_selector"] == "#ratings-reviews-container"
 
 
 def test_fetch_cloakbrowser_snapshot_capture_records_heavy_asset_blocking() -> None:
@@ -2231,6 +2432,68 @@ def test_cloakbrowser_snapshot_cli_preflight_validates_without_capture(
     assert not (scratch_dir / "packet").exists()
 
 
+def test_cloakbrowser_snapshot_cli_preflight_rejects_proxy_with_browser_profile(
+    scratch_dir: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile_root = scratch_dir / "_proxy_profiles"
+    profile_root.mkdir(parents=True)
+    (profile_root / "quora-res.json").write_text(
+        json.dumps({"server": "http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080"}),
+        encoding="utf-8",
+    )
+    (profile_root / "quora-res.meta.json").write_text(
+        json.dumps(
+            {
+                "profile_file": "quora-res.json",
+                "proxy_category": "residential_rotating",
+                "geoip_enabled": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    browser_profile = scratch_dir / "browser-profile"
+    browser_profile.mkdir()
+    monkeypatch.setattr(
+        cloakbrowser_runner,
+        "browser_user_data_path_for_label",
+        lambda label: browser_profile,
+    )
+
+    with pytest.raises(SystemExit) as excinfo:
+        cloakbrowser_runner.main(
+            [
+                "--url",
+                "https://www.quora.com/search?q=B2B%20questions",
+                "--decision-question",
+                "Can profile-backed preflight validate locally?",
+                "--output",
+                str(scratch_dir / "packet"),
+                "--proxy-profile-label",
+                "quora-res",
+                "--proxy-profile-category",
+                "residential_rotating",
+                "--proxy-profile-root",
+                str(profile_root),
+                "--browser-user-data-label",
+                "quora-client",
+                "--browser-user-data-session-mode",
+                "client_provided_session",
+                "--preflight-only",
+            ]
+        )
+
+    captured = capsys.readouterr()
+    assert excinfo.value.code == 2
+    assert "--browser-user-data-label cannot be combined" in captured.err
+    assert "does not apply proxy profiles" in captured.err
+    assert "preflight passed" not in captured.out
+    assert "SUPER_SECRET_PROXY_VALUE" not in captured.err
+    assert "proxy.example" not in captured.err
+    assert not (scratch_dir / "packet").exists()
+
+
 def test_cloakbrowser_snapshot_cli_guarded_reddit_rejects_non_old_reddit_url(
     scratch_dir: Path,
     capsys: pytest.CaptureFixture[str],
@@ -2416,3 +2679,150 @@ def test_cloakbrowser_snapshot_runner_cleans_staged_files_when_metadata_write_fa
     assert not (output_dir.parent / "cloakbrowser_visible_text.txt").exists()
     assert not (output_dir.parent / "cloakbrowser_viewport_screenshot.png").exists()
     assert not (output_dir.parent / "cloakbrowser_snapshot_metadata.json").exists()
+
+
+def test_cloakbrowser_snapshot_runner_fail_closes_source_detail_sufficiency_after_packet_write(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotSuccess:
+        return CloakBrowserSnapshotSuccess(
+            requested_url="https://www.quora.com/search?q=B2B%20questions",
+            final_url="https://www.quora.com/search?q=B2B%20questions",
+            title="Just a moment...",
+            rendered_dom="<html><script>window.__cf_chl_tk = 'token'</script></html>",
+            visible_text="",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+            metadata={
+                "requested_url": "https://www.quora.com/search?q=B2B%20questions",
+                "final_url": "https://www.quora.com/search?q=B2B%20questions",
+                "title": "Just a moment...",
+                "capture_timestamp": "2026-07-09T01:02:03Z",
+                "timeout_seconds": kwargs["timeout_seconds"],
+                "wait_until": kwargs["wait_until"],
+                "viewport_width": kwargs["viewport_width"],
+                "viewport_height": kwargs["viewport_height"],
+                "screenshot_mode": "viewport",
+                "method_category": "anti_blocking_browser",
+                "browser_engine": "cloakbrowser",
+                "cloakbrowser_backend": "playwright",
+                "profile_persistence": "local_ignored_profile",
+                "persistent_profile_loaded": True,
+                "storage_state_loaded": False,
+                "access_blocked": True,
+                "access_block_reason": "cloudflare_interstitial",
+                "rendered_dom_byte_count": 64,
+                "visible_text_byte_count": 0,
+                "screenshot_byte_count": 20,
+            },
+            warning_notes=[],
+            limitation_notes=[
+                "access_failed: CloakBrowser rendered an access-block/interstitial page instead of source content: cloudflare_interstitial; block artifacts preserved"
+            ],
+            access_block_reason="cloudflare_interstitial",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+
+    exit_code, message = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://www.quora.com/search?q=B2B%20questions",
+        source_family="web_page",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="Can Quora search provide B2B question candidates?",
+        output_directory=output_dir,
+        capture_context="test CloakBrowser sufficiency gate",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        browser_user_data_label="quora-client",
+        browser_user_data_session_mode=None,
+        browser_user_data_dir=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        source_detail_sufficiency_requirements=SourceDetailSufficiencyRequirements(
+            require_not_access_blocked=True,
+            min_visible_text_bytes=100,
+            visible_text_contains=("Results for B2B questions",),
+        ),
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+    )
+
+    assert exit_code == SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE
+    assert str(output_dir.resolve()) in message
+    assert output_dir.exists()
+    manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert "source_detail_sufficiency_failed" in manifest["visible_mode_changes"]
+    assert any("source_detail_sufficiency_failed" in item for item in manifest["limitations"])
+    assert any("not source-content capture" in item for item in manifest["receipt_metadata"]["non_claims"])
+
+
+def test_fetch_cloakbrowser_snapshot_capture_rejects_combining_user_data_dir_and_proxy_profile(
+    scratch_dir: Path,
+) -> None:
+    profile = ProxyProfile(
+        proxy_endpoint="http://user:SUPER_SECRET_PROXY_VALUE@proxy.example:8080",
+        proxy_category=ProxyCategory.RESIDENTIAL_STATIC,
+        geoip_enabled=False,
+    )
+
+    with pytest.raises(ValueError, match="does not apply proxy_profile"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://example.com/source",
+            proxy_profile=profile,
+            user_data_dir=scratch_dir,
+        )
+
+
+def test_cloakbrowser_runner_rejects_user_data_dir_without_label_and_session_mode(
+    scratch_dir: Path,
+) -> None:
+    output_dir = scratch_dir / "packet"
+
+    with pytest.raises(
+        ValueError, match="browser_user_data_dir requires browser_user_data_label"
+    ):
+        cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+            url="https://www.quora.com/search?q=B2B%20questions",
+            source_family="web_page",
+            source_surface="cloakbrowser_snapshot",
+            decision_question="Can Quora search provide B2B question candidates?",
+            output_directory=output_dir,
+            capture_context="test provenance guard",
+            operator_category="cloakbrowser_snapshot_cli_operator",
+            capture_mode=CaptureModeCategory.MULTIMODAL,
+            session_id=None,
+            proxy_profile=None,
+            browser_user_data_label=None,
+            browser_user_data_session_mode=None,
+            browser_user_data_dir=scratch_dir,
+            actor_audience_context=None,
+            visible_mode_changes=[],
+            source_publication_or_event=None,
+            source_edit_or_version=None,
+            cutoff_posture=None,
+            recapture_time=None,
+            re_capture_relationship=None,
+            warnings=[],
+            limitations=[],
+            timeout_seconds=20,
+            wait_until="load",
+            viewport_width=1280,
+            viewport_height=720,
+            max_artifact_bytes=50_000,
+            block_heavy_assets=False,
+        )
