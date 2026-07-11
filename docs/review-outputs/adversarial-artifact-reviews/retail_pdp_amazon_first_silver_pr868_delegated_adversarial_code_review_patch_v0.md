@@ -65,7 +65,7 @@ or excluded source was encountered among the commission's required list.
 | `AGENTS.md`, `.agents/workflow-overlay/README.md`, `source-loading.md`, `decision-routing.md`, `review-lanes.md`, `delegated-review-patch.md`, `prompt-orchestration.md`, `safety-rules.md`, `source-of-truth.md` | full | Method/authority reference-load |
 | `workflow-deep-thinking`, `workflow-code-review`, `workflow-delegated-review-patch` (kernel skills) | full | Reference-loaded methods |
 | `git status --short --branch`, `git rev-parse HEAD`, `gh pr view 868`, `gh pr view 865`, `git merge-base`, `git diff --name-status/--stat` | live command | Preflight verification |
-| `docs/workflows/retail_pdp_amazon_first_silver_lane_handoff_v0.md` (via `git show HEAD^:...`) | full | Reconstructed consumed handoff |
+| `docs/workflows/retail_pdp_amazon_first_silver_lane_handoff_v0.md` (deleted after checkpoint consumption; reconstructed from PR #868 parent commit `a02ca62e6d7f46cdc2c471df94e199d3ba2097c6`) | full | Reconstructed consumed handoff |
 | `forseti-harness/data_lake/lane_registry.py` | full | Silver lane role registry |
 | `forseti-harness/data_lake/silver_record.py` | full | Silver envelope validator + front door |
 | `forseti-harness/data_lake/silver_lineage.py` | full | Silver lineage builder/validator |

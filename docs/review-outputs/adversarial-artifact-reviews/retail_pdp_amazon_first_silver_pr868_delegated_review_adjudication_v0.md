@@ -12,7 +12,7 @@ use_when:
   - Distinguishing the controller's proposed patch from the adjudicated branch state.
 authority_boundary: retrieval_only
 review_report: docs/review-outputs/adversarial-artifact-reviews/retail_pdp_amazon_first_silver_pr868_delegated_adversarial_code_review_patch_v0.md
-review_report_sha256: 1b0d0fcb679658501b2ff781ed118df20ee4a8ef9cbb94052c73882f7dc052bd
+review_report_sha256: 4a682d16313aaaec3b9755c3c68edca67a224bcbd29ff6c727e3d763b9d7717a
 ```
 
 reviewed_by: OpenAI/Codex GPT-5 (home adjudicator)
@@ -94,7 +94,7 @@ Home-model modifications:
 Hashes after adjudication:
 
 - controller report:
-  `1b0d0fcb679658501b2ff781ed118df20ee4a8ef9cbb94052c73882f7dc052bd`
+  `4a682d16313aaaec3b9755c3c68edca67a224bcbd29ff6c727e3d763b9d7717a`
 - unit test:
   `67db64528ca275d1c20e1f7f3b0df821ce628c68f296940d059a578614ab3edb`
 - producer contract:
