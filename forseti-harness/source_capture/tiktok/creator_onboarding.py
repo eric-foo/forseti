@@ -550,6 +550,7 @@ def _build_suggested_accounts_receipt(
             "status": "failed",
             "suggested_accounts": [],
             "profile_external_links": [],
+            "profile_external_links_status": "failed",
             "failure_kind_or_none": capture.failure_kind.value,
             "non_claims": ["not an exhaustive suggested-account graph"],
         }
@@ -569,7 +570,6 @@ def _build_suggested_accounts_receipt(
         "creator_handle": creator_handle,
         "status": "captured" if rows else "blocked_or_empty",
         "suggested_accounts": rows,
-            "profile_external_links_status": "failed",
         "profile_external_links": profile_external_links,
         "profile_external_links_status": "captured" if profile_external_links else "none_visible",
         "attempt_receipt": {

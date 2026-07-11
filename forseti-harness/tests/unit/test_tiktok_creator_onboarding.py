@@ -10,6 +10,8 @@ import source_capture.tiktok.creator_onboarding as onboarding
 from runners import run_source_capture_tiktok_creator_onboarding as runner
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationSuccess,
+    BrowserSnapshotFailure,
+    BrowserSnapshotFailureKind,
     BrowserPageResponse,
 )
 from source_capture.auth_state import AuthenticatedSessionMode
@@ -478,3 +480,18 @@ def test_runner_registry_preflight_enforces_new_vs_existing_intent(
         assert result["action_blockers"] == []
     else:
         assert expected_blocker in result["action_blockers"]
+
+
+def test_suggested_failure_receipt_carries_external_link_failure_status() -> None:
+    receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator",
+        capture=BrowserSnapshotFailure(
+            requested_url="https://www.tiktok.com/@creator",
+            failure_kind=BrowserSnapshotFailureKind.TIMEOUT,
+            message="timed out",
+        ),
+    )
+
+    assert receipt["status"] == "failed"
+    assert receipt["profile_external_links"] == []
+    assert receipt["profile_external_links_status"] == "failed"
