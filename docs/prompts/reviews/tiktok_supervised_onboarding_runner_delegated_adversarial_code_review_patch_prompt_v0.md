@@ -16,6 +16,7 @@ authority_boundary: retrieval_only
 
 ~~~text
 forseti_prompt_preflight:
+  output_mode: review-report
   repository: C:\Users\vmon7\Desktop\projects\orca
   commissioned_branch: codex/tiktok-supervised-onboarding-runner
   commissioned_diff: origin/main...HEAD, observed and recorded by reviewer at start
