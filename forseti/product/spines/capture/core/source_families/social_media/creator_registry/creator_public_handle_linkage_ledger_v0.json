@@ -468,6 +468,30 @@
         "public_display_name_or_none": null,
         "display_name_source_pointer_or_none": null,
         "display_name_source_field_or_none": null
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_005",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.tiktok.com/@noeldeyzel_fragrance",
+        "handle_source_pointer": "docs/review-inputs/noeldeyzel_fragrance_tiktok_creator_discovery_frontier_register_20260708.json#/tiktok_creator_discovery_frontier_register/root_seed/handle",
+        "handle_observed_at": "2026-07-08T15:01:18Z",
+        "public_display_name_or_none": "Noel Smells",
+        "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\8cc\\01KX13YSB6V0Y49D1H7Z3EAZ1K\\raw\\01_noeldeyzel_fragrance_tiktok_profile_grid_observation_20260708.json#/profile_observation/display_name",
+        "display_name_source_field_or_none": "profile_observation.display_name"
+      },
+      {
+        "platform_account_id": "acct_ig_fragrance_006",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.instagram.com/noeldeyzel_fragrance/",
+        "handle_source_pointer": "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/profile_observation/handle",
+        "handle_observed_at": "2026-07-08T15:11:47Z",
+        "public_display_name_or_none": "Noel Deyzel",
+        "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/profile_observation/display_name",
+        "display_name_source_field_or_none": "profile_observation.display_name"
       }
     ],
     "account_link_evidence": [
@@ -487,6 +511,22 @@
         "llm_assisted": true,
         "independence_key": "linktree_official_link_hub:EvanHalI",
         "notes": "Public Linktree profile at https://linktr.ee/EvanHalI lists Instagram, TikTok, and YouTube Fragranceknowledge public accounts in JSON-LD sameAs; TikTok bio source-visible profile text linked to linktr.ee/EvanHalI during the creator graphing probe."
+      },
+      {
+        "evidence_id": "ev_candidate_noeldeyzel_fragrance_20260708_001",
+        "evidence_type": "bio_text_overlap",
+        "evidence_strength": "weak",
+        "account_ids": [
+          "acct_tiktok_fragrance_005",
+          "acct_ig_fragrance_006"
+        ],
+        "source_pointer": "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/linkage_observation/candidate_same_creator_accounts/0/basis",
+        "source_field": "linkage_observation.candidate_same_creator_accounts[0].basis",
+        "observed_at": "2026-07-08T15:11:47Z",
+        "review_actor": "owner_authorized_codex_capture_lane",
+        "llm_assisted": true,
+        "independence_key": "noeldeyzel_fragrance_bio_topic_overlap_20260708",
+        "notes": "TikTok and Instagram accounts share the noeldeyzel_fragrance public handle and source-visible fragrance/cologne profile topic; preserve as candidate linkage pending review, not final identity."
       }
     ],
     "creator_records": [
@@ -506,6 +546,33 @@
         "limitations": "Candidate public-handle linkage only pending non-LLM human review; no private identity, contact enrichment, region enrichment, metric aggregation, outreach authorization, final creator identity, or current-handle guarantee.",
         "created_at": "2026-07-07T15:25:00Z",
         "updated_at": "2026-07-07T15:25:00Z",
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not cross-platform metric rollup",
+          "not current handle guarantee"
+        ]
+      },
+      {
+        "creator_record_id": "creator_noeldeyzel_fragrance_001",
+        "link_state": "candidate_public_account_link",
+        "platform_account_ids": [
+          "acct_tiktok_fragrance_005",
+          "acct_ig_fragrance_006"
+        ],
+        "evidence_ids": [
+          "ev_candidate_noeldeyzel_fragrance_20260708_001"
+        ],
+        "review_state": "candidate_needs_review",
+        "link_rationale": "Owner-supplied Instagram profile and bounded TikTok/Instagram profile observations share the noeldeyzel_fragrance public handle and fragrance/cologne public bio topic; preserve as candidate pending stronger non-LLM review evidence.",
+        "limitations": "Candidate public-handle linkage only; no official link hub or reciprocal link was observed in this pass, YouTube is intentionally not linked, and no private identity, contact enrichment, region enrichment, metric aggregation, outreach authorization, final creator identity, or current-handle guarantee is claimed.",
+        "created_at": "2026-07-08T15:11:47Z",
+        "updated_at": "2026-07-08T15:11:47Z",
         "non_claims": [
           "not real-world identity proof",
           "not non-public-handle join",

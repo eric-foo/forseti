@@ -14,6 +14,7 @@ use_when:
   - Preparing a bounded next creator scan from prior TikTok discovery edges.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_frontier_selector_v0.md
   - forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_enforcement_placement_v0.md
   - forseti/product/spines/scanning/README.md
   - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
@@ -24,6 +25,7 @@ stale_if:
   - TikTok suggested-account surfaces move behind a different access posture.
   - A dedicated TikTok discovery harness/schema supersedes this review-input register shape.
   - Creator Registry adopts a first-class cross-platform discovery graph with typed weak edges.
+  - The advisory frontier selector is promoted beyond an advisory heuristic (see the selector doc's own `stale_if`).
 ```
 
 ## Status
@@ -167,11 +169,32 @@ tiktok_creator_discovery_frontier_register:
 
 The preferred code path is the network-free builder under
 `forseti-harness/capture_spine/tiktok_creator_discovery_frontier/`. It consumes a
-validated `tiktok_creator_discovery_scan_receipt_v0` plus already-observed
+validated `tiktok_creator_discovery_scan_receipt_v1` plus already-observed
 suggested-account rows, then emits this register shape. The receipt records caps,
 packet/lake pointers, refresh outcome, pagination bound, browser-close posture,
-and no follow/open/screenshot actions. It still does not launch TikTok, create a
-live runner, prove source truth, authorize next runs, or mutate Creator Registry.
+no follow/open/screenshot actions, and (v1, 2026-07-10) a required
+source-visible link-hub outcome (`captured` with an absolute http(s) URL,
+`blocked`, `deferred_not_authorized`, or `none_visible`) so a visible Linktree
+can no longer be silently skipped. A validated register may be persisted to the
+data lake as a derived record anchored to its committed parent-grid packet via
+`runners/run_tiktok_creator_discovery_register.py` (lake write is the default;
+an explicit `--output` file is the local escape). The builder still does not
+launch TikTok, create a live runner, prove source truth, authorize next runs,
+or mutate Creator Registry.
+
+The builder prepends a default scope-limit `accepted_residuals` entry for
+suggested-account registers: suggested handles are recommendation targets only;
+candidate account sizes, regions, sibling channels, and quality remain unknown
+until a later authorized candidate-profile run captures them. This is an
+anti-overclaim label, not a new blocker or capture restraint.
+
+When the scan uses the intended CloakBrowser/equivalent surface and captures a
+parent profile/grid packet, suggested-account graphing is the next same-surface
+step. If the seed profile has a source-visible Follow button and the owner has
+authorized it, click once and verify the state; capture the profile suggested
+carousel if present, click `View all` once when available to expand more rows,
+otherwise check `Following` or `Followers` -> `Suggested`, then record a packet
+or blocked/empty outcome before link-hub or sibling-channel work.
 
 ## Count And Completeness Semantics
 
@@ -214,7 +237,7 @@ must not create them by itself.
 | No standing TikTok crawler | Keeps the lane bounded and avoids crawler/runtime lock-in. | Some adjacent creators will be missed between owner-launched runs. | Repeated missed high-value creators or sustained multi-operator discovery cadence. |
 | No live auto-pagination requirement | Keeps capture posture safe and session-visible. | The register may under-sample a suggested list. | Owner authorizes a bounded pagination probe with explicit caps and source-access posture. |
 | Candidate count may differ from observed suggestion count | Allows bounded filtering/deduping without making false completeness claims. | A cold agent could overstate recall if it ignores accepted_residuals. | Exact completeness becomes product-critical and receives an explicit schema mode. |
-| No ranking model | Repeated coappearance and manual selection carry enough early value. | Frontier ordering may be inconsistent. | Repeated low-yield scans from poor ordering or enough graph receipts to justify a transparent ranker. |
+| No ranking model | Superseded: `tiktok_creator_discovery_frontier_selector_v0.md` now provides an advisory duplicate-pressure ranker (frequency/expanded/fragrance heuristic scoring) over caller-supplied registers; it is not a quality model. | Ordering reflects duplicate-pressure heuristics only, not creator quality. | A quality-bearing or learned ranking model would need a separate decision. |
 | No registry mutation | Preserves identity quality and duplicate safety. | Extra preflight step before onboarding. | Registry adopts a typed weak-edge intake lane with deterministic duplicate routing. |
 | No full graph database | JSON registers are enough for current owner-launched scans. | Cross-run querying is manual or script-assisted. | Same vertical reaches repeated weekly scans or multi-root snowball management. |
 

@@ -150,17 +150,24 @@ skill-governance action under the Protected Skill Boundary.
   the old command/path remains as a thin compatibility wrapper for one
   transition window.
   - Source path: `.agents/skills/forseti-product-lead/SKILL.md` (Forseti-local).
-  - Source sha256: `332CF034B92DF701DA573FE3C92004F838B47E1C1759C1986AA4E2D944280634`
-    (observed with Get-FileHash on 2026-07-08; `.agents` source and `.claude`
-    deployment copy are byte-identical; git content blob
-    `b4e05b63c86ca793418409821a94e27519525e28` on both copies).
-    Reread-required if the file changes.
+  - Source sha256: `c8b38c9bcb991b30dd13baeda9d420fe02bc412a8dae9b6a56ac59a9f2cec58c`
+    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-10 so the pin
+    is checkout-independent, superseding the raw-CRLF Get-FileHash value
+    observed 2026-07-08; `.agents` source and `.claude` deployment copy are
+    byte-identical; git content blob
+    `b4e05b63c86ca793418409821a94e27519525e28` on both copies, re-verified
+    2026-07-10).
+    Reread-required if the file changes; pin freshness enforced by
+    `.agents/hooks/check_hash_pin_freshness.py`.
   - Compatibility wrapper path: `.agents/skills/orca-product-lead/SKILL.md` with
     deployment copy at `.claude/skills/orca-product-lead/SKILL.md`.
-  - Compatibility wrapper sha256: `3A7C819477F475761831B05E0A607CC3A8E1A0E97DCD6875438A79BB2706C3E0`
-    (observed with Get-FileHash on 2026-07-05; source and deployment wrapper
-    copies are byte-identical; git content blob
-    `6411b8a9b8abd73386eb64109a85534f40ddf931` on both wrapper copies).
+  - Compatibility wrapper sha256: `21a2725265f14a79a7b35399b2240cbb76af9659d1e26506e09d9b99123bbc3f`
+    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-10 so the pin
+    is checkout-independent, superseding the raw-CRLF Get-FileHash value
+    observed 2026-07-05; source and deployment wrapper copies are
+    byte-identical; git content blob
+    `6411b8a9b8abd73386eb64109a85534f40ddf931` on both wrapper copies,
+    re-verified 2026-07-10).
     The wrapper loads the sibling `forseti-product-lead` skill and carries no
     product method of its own.
   - Scope: prepares — does not freeze, run outreach, produce, or build — any

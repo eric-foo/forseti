@@ -15,12 +15,12 @@
       "creator_record_profiles": 0,
       "cross_platform_rollup_profiles": 0,
       "engagement_rate_observed_profiles": 31,
-      "platform_account_profiles": 38,
-      "profiles_total": 38,
+      "platform_account_profiles": 40,
+      "profiles_total": 40,
       "profiles_with_ideal_audience_profiles": 0,
       "profiles_with_metric_rollups": 33
     },
-    "generated_at_utc": "2026-07-07T15:30:00Z",
+    "generated_at_utc": "2026-07-08T15:12:00Z",
     "non_claims": [
       "not SQLite adoption",
       "not data-lake physicalization",
@@ -127,7 +127,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -308,7 +308,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -483,7 +483,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -634,7 +634,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -806,7 +806,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -993,7 +993,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -1171,7 +1171,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -1343,7 +1343,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -1513,7 +1513,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -1707,7 +1707,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -1895,7 +1895,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -2067,7 +2067,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -2251,7 +2251,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -2429,7 +2429,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -2598,7 +2598,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -2767,7 +2767,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -2925,7 +2925,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -3102,7 +3102,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -3286,7 +3286,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -3450,7 +3450,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -3641,7 +3641,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -3831,7 +3831,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -4011,7 +4011,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -4200,7 +4200,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -4387,7 +4387,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -4575,7 +4575,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -4747,7 +4747,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -4903,7 +4903,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -5062,7 +5062,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -5223,7 +5223,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-27T18:23:26Z",
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -5412,7 +5412,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-29T13:47:06Z",
           "metrics_computed_at_or_none": "2026-06-30T14:15:50Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -5623,7 +5623,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-29T13:47:50Z",
           "metrics_computed_at_or_none": "2026-06-30T14:15:50Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -5834,7 +5834,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-06-30T12:33:04Z",
           "metrics_computed_at_or_none": "2026-06-30T14:15:50Z",
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -5935,7 +5935,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-03T08:41:47Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -5999,7 +5999,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-03T08:41:57Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -6063,7 +6063,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-03T08:42:07Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -6127,7 +6127,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-07T15:01:16Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -6191,7 +6191,7 @@
           "audience_computed_at_or_none": null,
           "identity_updated_at": "2026-07-07T15:01:16Z",
           "metrics_computed_at_or_none": null,
-          "profile_view_computed_at": "2026-07-07T15:30:00Z"
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
         "ideal_audience_profile": null,
         "identity_evidence_summary": {
@@ -6246,13 +6246,141 @@
           "source_metric_observation_ids": []
         },
         "wind_calling_summary": null
+      },
+      {
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-08T15:01:18Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "ideal_audience_profile": null,
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/38",
+          "source_pointers": [
+            "docs/review-inputs/noeldeyzel_fragrance_tiktok_creator_discovery_frontier_register_20260708.json#/tiktok_creator_discovery_frontier_register/root_seed/handle",
+            "F:\\orca-data-lake\\raw\\8cc\\01KX13YSB6V0Y49D1H7Z3EAZ1K\\raw\\01_noeldeyzel_fragrance_tiktok_profile_grid_observation_20260708.json#/profile_observation/display_name"
+          ],
+          "summary": "Single-platform tiktok public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one tiktok platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "platform_account_id_or_none": "acct_tiktok_fragrance_005",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "profile_observation.display_name",
+            "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\8cc\\01KX13YSB6V0Y49D1H7Z3EAZ1K\\raw\\01_noeldeyzel_fragrance_tiktok_profile_grid_observation_20260708.json#/profile_observation/display_name",
+            "handle_observed_at": "2026-07-08T15:01:18Z",
+            "handle_source_pointer": "docs/review-inputs/noeldeyzel_fragrance_tiktok_creator_discovery_frontier_register_20260708.json#/tiktok_creator_discovery_frontier_register/root_seed/handle",
+            "platform": "tiktok",
+            "platform_account_id": "acct_tiktok_fragrance_005",
+            "platform_public_account_id_or_none": null,
+            "public_display_name_or_none": "Noel Smells",
+            "public_handle": "noeldeyzel_fragrance",
+            "public_profile_url": "https://www.tiktok.com/@noeldeyzel_fragrance"
+          }
+        ],
+        "profile_subject_id": "acct_tiktok_fragrance_005",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/38",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-08T15:11:47Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "ideal_audience_profile": null,
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/39",
+          "source_pointers": [
+            "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/profile_observation/handle",
+            "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/profile_observation/display_name"
+          ],
+          "summary": "Single-platform instagram public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one instagram platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "platform_account_id_or_none": "acct_ig_fragrance_006",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "profile_observation.display_name",
+            "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/profile_observation/display_name",
+            "handle_observed_at": "2026-07-08T15:11:47Z",
+            "handle_source_pointer": "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/profile_observation/handle",
+            "platform": "instagram",
+            "platform_account_id": "acct_ig_fragrance_006",
+            "platform_public_account_id_or_none": null,
+            "public_display_name_or_none": "Noel Deyzel",
+            "public_handle": "noeldeyzel_fragrance",
+            "public_profile_url": "https://www.instagram.com/noeldeyzel_fragrance/"
+          }
+        ],
+        "profile_subject_id": "acct_ig_fragrance_006",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/39",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
       }
     ],
     "schema_version": "creator_profile_current_view_v0",
     "source_inputs": [
       {
         "role": "source-backed platform accounts and identity state",
-        "sha256": "073a534d79c95db92a317a29e90f50d20c33366ededa252fe73dd2a727878dd8",
+        "sha256": "e4dd8e773c3d0ed94a73b1d378ee92bfeb79d7ea9c3e2cf5d4f4512a6c1af0c9",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
       },
       {

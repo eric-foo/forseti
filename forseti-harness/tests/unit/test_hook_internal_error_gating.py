@@ -47,6 +47,14 @@ CASES = [
      [["--strict"], ["--selftest"]], [["--hook"]]),
     ("check_handoff_pointers.py",
      [["--strict"], ["--selftest"]], [["--check"], ["--audit"]]),
+    ("check_source_input_hashes.py",
+     [["--strict"], ["--selftest"]], [["--check"], ["--audit"]]),
+    ("check_prompt_output_mode.py",
+     [["--strict"], ["--selftest"]], [["--check"], ["--audit"]]),
+    ("check_review_summary.py",
+     [["--strict"], ["--selftest"]], [["--check"], ["--audit"]]),
+    ("check_hash_pin_freshness.py",
+     [["--strict"], ["--selftest"]], [["--check"], ["--audit"]]),
 ]
 
 GATING = [(hook, mode) for hook, gating, _ in CASES for mode in gating]

@@ -55,6 +55,7 @@ identity, region, endorsement, account safety, or metric quality.
 | Use intended warmed browser/session; do not close it at lane end | Doctrine/runbook | Doctrine only | State intended surface and leave it open unless owner asks otherwise | Session choice and operator intent are live-context judgment. |
 | Avoid duplicate/wrong ordinary Chrome TikTok tabs | Doctrine/runbook | Doctrine only | Verify active surface; avoid reading from wrong tab | Mechanical detection is environment-specific; current safest form is operator checklist. |
 | Parent platform profile/grid capture when entering seed profile | Code plus doctrine | Register validator and scan receipt validator built; future runner optional | Require a parent profile/grid packet pointer or explicit not-captured reason in the receipt/register | Presence of packet pointer is mechanical; deciding capture posture is doctrine. |
+| Suggested-account graphing immediately after CloakBrowser parent capture | Code plus doctrine | Scan receipt validator rejects CloakBrowser parent-grid receipts that leave suggested capture not-started/deferred/skipped | After parent grid capture on the intended CloakBrowser/equivalent surface, capture profile suggested rows, click `View all` once when present, or use `Following`/`Followers` -> `Suggested` as fallback; record suggested packet or blocked/empty outcome before sibling-channel/link-hub work | Ordering is doctrine/live-UI judgment; the receipt can mechanically prove the step was attempted or explicitly blocked. |
 | Data-lake placement for packet-grade parent/suggested observations | Code plus doctrine | Existing packet writer; scan receipt and register validators check packet pointers when packet-grade is claimed | Preserve source packet first, then graph register points to packet | File/packet existence is mechanical; whether an observation is packet-grade is judgment. |
 | No screenshots emitted to chat by default | Code plus doctrine | Scan receipt validator rejects screenshot chat output; doctrine still owns live chat behavior | Report compact receipt facts, not screenshot payloads | Receipt fields are mechanical; chat behavior is resident. |
 | Suggested-account rows become frontier candidates, not registry identities | Doctrine plus register schema | Register validator built | Use tiktok_creator_discovery_frontier_register_v0 with weak edge types | Claim semantics are doctrine; allowed edge vocabulary is mechanical. |
@@ -63,7 +64,7 @@ identity, region, endorsement, account safety, or metric quality.
 | Candidate next runs default to execution_authorized=false | Code | Register validator built | Reject any next_run_envelope where execution_authorized is true | Boolean gate is mechanical and load-bearing. |
 | Same-run unbounded traversal forbidden | Code plus doctrine | Scan receipt validator requires caps and rejects candidate profile opens; live runner still future | Require caps and stop_condition; no candidate profile opens in the discovery scan | Caps are mechanical; live action authorization is doctrine/harness permission. |
 | Bounded Suggested tab pagination only with explicit bound | Code plus doctrine | Scan receipt validator requires pagination_bound; live runner still future | Record pagination bound used; if absent, treat as no pagination authorized | Bound presence is mechanical; deciding bound is operator judgment. |
-| Do not follow/unfollow to force recommendations | Code plus doctrine | Scan receipt validator rejects follow/unfollow action count | Do not perform follow/unfollow during discovery scans | Live UI action semantics are posture/judgment; receipt flags can be checked. |
+| Root follow action before suggested graphing | Code plus doctrine | Scan receipt validator allows at most one owner-authorized root follow action and still rejects candidate profile opens | If the seed profile shows a source-visible Follow button and current owner authorization includes it, click once, verify the resulting state, and then capture suggested rows or blocked/empty outcome; never follow suggested candidates or unfollow in the scan | The single root follow may expose the platform recommendation context; limiting count and forbidding candidate opens keeps the scan bounded. |
 | Refresh failure handling: click Refresh once, record outcome | Code plus doctrine | Scan receipt validator caps refresh attempts at one and requires outcome vocabulary | If visible failure occurs, one refresh max; record clicked/outcome | Count/outcome fields are mechanical; identifying visible failure is source judgment. |
 | Link hub proves identity evidence but not metrics | Doctrine plus registry schema | Existing registry/preflight doctrine; future checker can reject metric zero-fill | Use link hub for same-creator evidence only; metrics stay null/not_attempted | Meaning boundary is doctrine; null/no-zero fields can be checked. |
 | No metric zero-fill from scanning/link hubs | Code | Register validator rejects metric fields in the frontier register | Reject metric fields in scan-frontier output; metric production stays in the metric lanes | Zero-fill is mechanically detectable and should fail closed. |
@@ -96,8 +97,11 @@ shape only:
 10. Packet pointer fields are present when the register claims packet-grade
     observation.
 11. Scan receipts record caps, extraction method, refresh outcome, pagination
-    bound, browser-close posture, and no follow/open/screenshot actions.
-12. The register writer emits weak candidate nodes/edges and unauthorized
+    bound, browser-close posture, no candidate opens, no screenshots, and at
+    most one owner-authorized root follow action.
+12. CloakBrowser parent-grid receipts cannot leave suggested-account capture as
+    not-started/deferred/skipped; they must record attempted, blocked, or empty outcome.
+13. The register writer emits weak candidate nodes/edges and unauthorized
     next-run envelopes from validated receipt input.
 
 The validator should not decide whether a creator is on-niche, whether a region
@@ -109,16 +113,22 @@ is worth scanning. Those stay doctrine/resident judgment.
 1. Read AGENTS.md and .agents/workflow-overlay/README.md.
 2. Read this artifact, then the frontier register spec and MGT scanning model.
 3. Identify the intended browser/session and current owner authorization.
-4. If entering a TikTok seed profile, capture or cite a parent platform packet
-   before graphing extracted candidates.
-5. Record suggested accounts as weak discovery frontier nodes/edges only.
-6. Use the receipt-backed register writer, or manually write/update the frontier
+4. If entering a TikTok seed profile, capture or cite a parent platform packet.
+5. If a source-visible Follow button is present for the seed creator and current
+   owner authorization includes it, click it once and verify the resulting state.
+6. Capture source-visible profile suggested rows; if a `View all` control is
+   present, click it once and capture the expanded suggested panel. If profile
+   suggestions are absent, immediately check `Following` or `Followers` ->
+   `Suggested` on the same surface. Record suggested rows as a packet, or record
+   blocked/empty outcome before link-hub or sibling-channel work.
+7. Record suggested accounts as weak discovery frontier nodes/edges only.
+8. Use the receipt-backed register writer, or manually write/update the frontier
    register to the same schema; leave all next-run envelopes unauthorized.
-7. If emitted candidate nodes are filtered, deduped, or otherwise a subset of
+9. If emitted candidate nodes are filtered, deduped, or otherwise a subset of
    observed suggestions, record that residual and do not claim exhaustive
    suggestion capture.
-8. Run/check Creator Registry exact-match preflight before any registry proposal.
-9. Report compact receipt facts, not screenshots, and state non-verified items.
+10. Run/check Creator Registry exact-match preflight before any registry proposal.
+11. Report compact receipt facts, not screenshots, and state non-verified items.
 
 ## Direction Change Propagation
 

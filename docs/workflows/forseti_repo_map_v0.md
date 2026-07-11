@@ -65,440 +65,48 @@ hierarchy.
 | Fragrance facts: resolve a fragrance/house to canonical ids, note families, tier, dupes, per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` | Self-describing DATA SSOT: facts, per-fact provenance, and the extension pattern live in-file; the backbone doc and object cards are authority/rationale surfaces, not the fact source. |
 | Ontology type roster, namespaces, typed links, dimensions, deferred set | `forseti/product/spines/foundation/ontology/ontology.yaml` | Machine-readable SSOT of the adopted backbone; open the backbone doc only for rationale or conflict adjudication. |
 | Any LinkedIn task | `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` | The lane's canonical cold-start index (its own row says "open first"). |
+| Answer-engine/search-interest/AEO work | `forseti/product/spines/scanning/README.md` | Current route starts at the scanning front door, then the answer-engine source-family spec, then research evidence under `docs/research/answer_engine/`; legacy search-lane records are historical/governance only. |
 | ECR spine orientation | `docs/workflows/ecr_spine_submap_v0.md` | Delegated submap for the ECR spine. |
 | Data Capture spine orientation | `docs/workflows/data_capture_spine_consolidation_map_v0.md` | Delegated Data Capture submap. |
 | "Research engine" grouping: what CSB + Scanning + Capture are as one data-extraction group | `docs/workflows/forseti_research_engine_map_v0.md` | Colloquial cross-spine grouping map over the three extraction spines; states the Capture->ECR boundary. Label + navigation only, not a spine or authority. |
 | Source-capture access routes / anti-blocking playbook | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | Armory index over the tested per-source capture routes. |
 | Known source capture-to-lake route (TikTok, YouTube, Instagram, Reddit, fragrance-native database, Retail/PDP, vendor pricing page) | `forseti/product/spines/capture/core/source_families/README.md` | Source-family lane catalog routes from the generic playbook/Armory into the owning family index and onward to runners/projection/lake/cleaning seams without duplicating lake doctrine. |
+| Instruct a model to weight presented evidence / how much a source counts for a decision (evidence weighting; source credibility/quality as a decision-relative judgment question, not capture access) | `forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md` | Owning doctrine for the C2 in-case merits basis: decision-relative fitness, merits axes, model-facing Instruction Core, weighting failure modes; mirrors the Judgment consolidation map's Fast Route row. |
 
 ## Active Hooks (IMPORTANT)
 
-Forseti enforces load-bearing, mechanically-checkable rules at **tool
-boundaries**, not by instruction alone. The owning principle is
-`.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement"
-(cross-referenced from `.agents/workflow-overlay/decision-routing.md`); the per-rule classification is
-`docs/decisions/overlay_enforcement_placement_classification_v0.md`.
+The locked repo-map architecture requires active-hook discoverability here, not
+a second operations manual. This map routes to the owning surfaces; it does not
+own hook semantics, wiring, activation state, or validation claims. The boundary
+is set by `docs/decisions/forseti_repo_map_architecture_mgt_v0.md`.
 
-**Retrieval-header check.** A PostToolUse hook (matcher `Write|Edit|MultiEdit`) in the
-tracked `.claude/settings.json` runs:
+| Need | Owning surface |
+| --- | --- |
+| Rule semantics, gate boundaries, and non-claims | `.agents/workflow-overlay/validation-gates.md` -> "Current Gates" and "Enforcement Placement" |
+| Per-rule substrate classification and build authority | `docs/decisions/overlay_enforcement_placement_classification_v0.md` |
+| Portable script behavior, wiring patterns, and self-check commands | `.agents/hooks/README.md` and the named script |
+| Claude activation and tracked permission prompts | `.claude/settings.json`; machine-local protected-path denies stay in `.claude/settings.local.json` |
+| Codex activation | `.codex/hooks.json` and `.codex/hooks/forseti_guard_codex_adapter.py` |
+| CI activation | `.github/workflows/ci.yml` |
+| Local Git activation | `.githooks/` and `.github/scripts/install-local-hooks.ps1` |
 
-```
-python .agents/hooks/check_retrieval_header.py --hook
-```
+Cold-start discovery by enforcement family:
 
-When a newly written or edited `*.md` in a durable in-scope folder (the folders
-`.agents/workflow-overlay/retrieval-metadata.md` enumerates) is missing its
-retrieval header, the hook returns a non-blocking advisory warning. It is
-forward-only (only the file just touched), advisory (never blocks the edit),
-and references the rule authority rather than restating it.
+| Family | Entry points |
+| --- | --- |
+| Retrieval and repo-map health | `.agents/hooks/check_retrieval_header.py`, `.agents/hooks/header_index.py`, `.agents/hooks/check_repo_map_freshness.py`, `.agents/hooks/check_map_links.py`, `.agents/hooks/session_context_capsule.py` |
+| Placement and prompt shape | `.agents/hooks/check_placement.py`, `.agents/hooks/check_prompt_provenance.py`, `.agents/hooks/check_prompt_output_mode.py` |
+| Safety and lifecycle | `.agents/hooks/guard_protected_actions.py`, `.agents/hooks/remind_sci.py`, `.agents/hooks/check_shared_files_dirty.py`, `.agents/hooks/check_token_burn.py`, `.agents/hooks/pre_push_guard.py` |
+| Review, handoff, and provenance | `.agents/hooks/check_review_routing.py`, `.agents/hooks/check_review_output_provenance.py`, `.agents/hooks/check_review_summary.py`, `.agents/hooks/check_handoff_pointers.py`, `.agents/hooks/check_source_input_hashes.py`, `.agents/hooks/check_hash_pin_freshness.py` |
+| Doctrine and claim shape | `.agents/hooks/check_dcp_receipt.py`, `.agents/hooks/check_dcp_receipt_hygiene.py`, `.agents/hooks/check_full_gt_claims.py` |
+| Capture and route shape | `.agents/hooks/check_csb_scanning_artifact.py`, `.agents/hooks/check_search_surface_google_route.py` |
+| Additional specialized checkers | Open `.agents/hooks/README.md`, `.agents/hooks/`, and the tracked CI config; do not infer activation from file presence alone. |
 
-**Portable CLI / commit / CI backstop** (runs outside Claude Code too):
-
-```
-# advisory (exit 0): warn on any changed in-scope file missing its header
-python  .agents/hooks/check_retrieval_header.py --changed          # Windows
-python3 .agents/hooks/check_retrieval_header.py --changed          # POSIX
-# strict gate (exit 1 on violation): for a pre-commit hook or CI
-python3 .agents/hooks/check_retrieval_header.py --staged --strict
-# explicit paths also work:
-python3 .agents/hooks/check_retrieval_header.py path/to/artifact.md
-```
-
-**Reinstall (fresh clone, or if local settings were reset).** The checker
-script is tracked at `.agents/hooks/check_retrieval_header.py`. The hook lives
-in the tracked `.claude/settings.json`; if it is missing (for example only
-present in a gitignored `.claude/settings.local.json`, or settings were reset),
-re-add:
-
-```json
-"hooks": {
-  "PostToolUse": [
-    { "matcher": "Write|Edit|MultiEdit",
-      "hooks": [ { "type": "command",
-                   "command": "python .agents/hooks/check_retrieval_header.py --hook",
-                   "timeout": 10 } ] } ]
-}
-```
-
-Hooks load at session start, so **restart the Claude Code session** after
-editing settings. The command uses a path relative to the project root (where
-Claude Code runs hooks); if your environment runs hooks from another directory,
-use an absolute path or `"$CLAUDE_PROJECT_DIR/.agents/hooks/check_retrieval_header.py"`.
-On POSIX, use `python3` if `python` is unavailable.
-
-**Repo-map freshness check.** A second PostToolUse hook (matcher
-`Write|Edit|MultiEdit` in `.claude/settings.json`; `apply_patch|Edit|Write` in
-`.codex/hooks.json`) runs:
-
-```
-python .agents/hooks/check_repo_map_freshness.py --hook
-```
-
-It reads THIS map as its own spec and, forward-only on the file just touched,
-emits a non-blocking advisory when an edit adds navigable structure this map
-does not yet cover -- the mechanically-detectable subset of the `stale_if:` block
-above: a new top-level area (#1) or a new direct `forseti-harness/` area (#2).
-Individual runner/adapter files under already-mapped harness areas are
-discoverable by directory and do not force map edits.
-When the file just touched IS this repo map and Git still shows it dirty after
-the edit, the hook exits 2 as a blocking commit interrupt with the explicit-path
-commit command. Edits to `.agents/workflow-overlay/source-of-truth.md` get a
-coarser advisory nudge (#5). It stays silent
-on ordinary content in already-mapped folders (a new `docs/decisions/*` is
-reachable by convention, not a map event) and cannot see judgment-shaped
-staleness -- "a spine was reorganized" (#3) or "routing doctrine changed" (#4) --
-which stays with the Doctrine Change Propagation contract in
-`.agents/workflow-overlay/source-of-truth.md` (which already lists this map as a
-downstream surface).
-
-**Portable CLI / commit / CI backstop** (runs outside Claude Code too):
-
-```
-# advisory (exit 0): report structural drift in the working tree
-python  .agents/hooks/check_repo_map_freshness.py --changed          # Windows
-python3 .agents/hooks/check_repo_map_freshness.py --changed          # POSIX
-# strict gate (exit 1): block a commit that adds new structure without
-# updating this map / a submap and without an acknowledgment
-python .agents/hooks/check_repo_map_freshness.py --commit-msg "$1"   # commit-msg hook
-python3 .agents/hooks/check_repo_map_freshness.py --changed --strict --message "$PR_BODY"  # CI
-python .agents/hooks/check_repo_map_freshness.py --selftest          # self-check logic
-```
-
-To acknowledge a legitimate non-map change so the strict gate passes: for a
-one-off, put `repo-map-ack: <reason>` in the commit message; for a recurring
-class (generated scratch), add a backtick'd token to the "Generated/gitignored
-scratch ... do not enumerate" list (this checker reads that list as its exclusion
-source). Updating this map or a submap in the same change also satisfies the
-gate. The check enforces map *shape*, never the truth of a route, and fails OPEN
-on internal error. Reinstall = re-add the second PostToolUse entry beside the
-retrieval-header hook in `.claude/settings.json` and `.codex/hooks.json`, then
-restart the relevant session.
-
-**Placement check (EP-04) — built and wired.** A third substrate,
-`.agents/hooks/check_placement.py`, enforces placement shape at the write
-boundary: it reads `repo-structure.yaml` as its ONLY rule source (authority
-stays in `.agents/workflow-overlay/artifact-folders.md`; binding in
-`docs/decisions/forseti_repo_structure_binding_v0.md`), WARNs on unplaced writes,
-flags writes to the now-retired product-docs role, and
-checks map<->tree consistency in both directions. `_inbox` age and declared legacy
-debt are WARN-only. A pass is placement shape only — never validation,
-readiness, or authority.
-
-```
-python .agents/hooks/check_placement.py --check      # advisory tree report (exit 0)
-python .agents/hooks/check_placement.py --strict     # commit/CI gate (exit 1 on violation or stale map)
-python .agents/hooks/check_placement.py --selftest   # decision-logic self-check
-```
-
-WIRED as a PostToolUse (`Write|Edit|MultiEdit`) entry in `.claude/settings.json`,
-beside the other PostToolUse hooks. Reinstall (if settings were reset) = re-add
-`{ "type": "command", "command": "python .agents/hooks/check_placement.py --hook", "timeout": 10 }`
-to the PostToolUse array, then restart the session (hooks load at session start).
-
-**Prompt-preflight reminder (advisory).** A PostToolUse hook (matcher
-`Write|Edit|MultiEdit` in `.claude/settings.json`,
-`python .agents/hooks/check_prompt_provenance.py --hook`): after a canonical
-prompt write under `docs/prompts/**`, injects the **Forseti Prompt Preflight**
-(output mode · template kind · edit-permission+targets+branch · reviews
-findings-first + no runtime-model routing · doctrine-change -> propagation
-receipt · destinations) so a routine prompt applies the contract inline with no
-skill reload; fused / delegated-review-patch / novel prompts still author
-through `workflow-prompt-orchestrator` (rule owned by
-`.agents/workflow-overlay/prompt-orchestration.md`). Remind only, never blocks,
-exit 0; it cannot verify the contract was applied. It does not fire for
-lane-scoped prompts attached to a lane PR body/comment or kept in ignored
-`docs/_inbox/` scratch; those are accepted only under prompt-orchestration.md
-classification and must carry preflight manually.
-`python .agents/hooks/check_prompt_provenance.py --selftest` checks the decision
-logic.
-
-**Google search-surface route guard (advisory + CI).**
-`.agents/hooks/check_search_surface_google_route.py` checks the parameterized
-Google route shell for changed durable docs: Google Search capture URLs use
-`hl=en&gl=us&pws=0`, route-using artifacts carry the physical-locality
-non-claim, and blocked Google pages with visible exit-IP content are not
-preserved in durable docs. Wired in `.claude/settings.json`,
-`.codex/hooks.json`, and `.github/workflows/ci.yml`. Authority:
-`docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md` plus
-the enforcement-placement principle in `.agents/workflow-overlay/validation-gates.md`.
-Shape only; US-parameterized is not physically US-local. It is not
-physical-locality proof, validation, readiness, demand proof, Judgment evidence, or Product Lead evidence.
-
-**SCI reminder (advisory).** A PreToolUse hook (matcher `Bash|PowerShell`
-in `.claude/settings.json`, gated to `git commit`) runs:
-
-```
-python .agents/hooks/remind_sci.py --hook
-```
-
-RIGHT BEFORE a `git commit` (run through the Bash/PowerShell tool) that has durable-artifact changes pending (the same durable-artifact
-folder set the retrieval-header hook uses -- decisions, product, prompts,
-workflows, migration, hygiene, review-inputs/outputs, the workflow overlay, and
-the product corpus; scratch, inbox, skill copies, project config, and code are
-excluded), it injects the Smallest Complete Intervention rule as non-blocking
-`additionalContext`. The rule is OWNED by `AGENTS.md`; the hook carries that
-section's text INLINE as a verbatim mirror (no fetch round-trip) and must be kept
-in sync with it. Forward-only, advisory, fails open.
-`python .agents/hooks/remind_sci.py --selftest` checks the scope logic. Reinstall
-= re-add the PreToolUse entry (matcher `Bash|PowerShell`) in
-`.claude/settings.json`, then restart the session.
-
-**Permission floor (protected paths + git lifecycle).** A second
-enforcement-placement substrate (EP-01 + EP-03 in
-`docs/decisions/overlay_enforcement_placement_classification_v0.md`), built as
-Claude Code `permissions` rules — no script:
-
-- **`ask` — git lifecycle, shared/tracked in `.claude/settings.json`:**
-  `git push`, `git remote`, `gh pr`, `git reset --hard`, `git clean`, for both
-  the `Bash` and `PowerShell` tools (`git commit` is in `allow` — auto-approved,
-  not prompted). Claude Code prompts for
-  explicit approval; the approval is the authorization (`.agents/workflow-overlay/safety-rules.md`
-  "...unless explicitly authorized"). Travels with the repo.
-- **`deny` — protected paths, machine-local in `.claude/settings.local.json`:**
-  writes/edits to external / installed-skill roots — `agent-workflow`, `jb*`,
-  `~/.codex/{plugins,skills}`, `~/.claude/{plugins,skills}`, `~/.agents/skills`.
-  Hard-blocked. Machine-specific absolute paths, so NOT tracked; a fresh clone
-  re-adds its own external paths.
-- Authority: `.agents/workflow-overlay/safety-rules.md` (the rules) + validation-gates "Enforcement
-  Placement" (the placement principle). Config enforces existing rules; it
-  changes no doctrine. EP-02 (impl-dir blocking) was deliberately excluded.
-- Limits: Claude-Code-only (Codex unaffected — the resident instruction stays);
-  `deny` is machine-local; restart the session to load; not a security boundary.
-
-**Reinstall the permission floor (fresh clone, or if local settings were
-reset).** The `ask` git-lifecycle rules live in the tracked
-`.claude/settings.json`; the `deny` path rules live in the gitignored
-`.claude/settings.local.json`, so a clone does NOT recover them — re-add both
-(adjust the absolute paths to the local machine). In `.claude/settings.json`:
-
-```json
-"permissions": {
-  "allow": [
-    "Bash(git commit*)", "PowerShell(git commit*)"
-  ],
-  "ask": [
-    "Bash(git push*)", "PowerShell(git push*)",
-    "Bash(git remote*)", "PowerShell(git remote*)",
-    "Bash(gh pr*)", "PowerShell(gh pr*)",
-    "Bash(git reset --hard*)", "PowerShell(git reset --hard*)",
-    "Bash(git clean*)", "PowerShell(git clean*)"
-  ]
-}
-```
-
-In `.claude/settings.local.json` (machine-specific absolute paths):
-
-```json
-"permissions": {
-  "deny": [
-    "Edit(//c/Users/vmon7/Desktop/projects/agent-workflow/**)", "Write(//c/Users/vmon7/Desktop/projects/agent-workflow/**)",
-    "Edit(//c/Users/vmon7/Desktop/projects/jb*/**)", "Write(//c/Users/vmon7/Desktop/projects/jb*/**)",
-    "Edit(//c/Users/vmon7/.codex/plugins/**)", "Write(//c/Users/vmon7/.codex/plugins/**)",
-    "Edit(//c/Users/vmon7/.codex/skills/**)", "Write(//c/Users/vmon7/.codex/skills/**)",
-    "Edit(//c/Users/vmon7/.claude/plugins/**)", "Write(//c/Users/vmon7/.claude/plugins/**)",
-    "Edit(//c/Users/vmon7/.claude/skills/**)", "Write(//c/Users/vmon7/.claude/skills/**)",
-    "Edit(//c/Users/vmon7/.agents/skills/**)", "Write(//c/Users/vmon7/.agents/skills/**)"
-  ]
-}
-```
-
-Restart the Claude Code session after editing settings.
-
-**Protected-action guard (PreToolUse) — the auto-mode enforcement.** The `ask`
-config rules above are inert in auto / bypass mode (no human to prompt), so the
-real enforcement of EP-01 + EP-03 is a `PreToolUse` hook that fires in ALL
-permission modes:
-
-- script: `.agents/hooks/guard_protected_actions.py` (tracked); matcher
-  `Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit` in `.claude/settings.json`.
-- blocks (exit 2): writes/edits into protected roots (`agent-workflow`, `jb*`,
-  `~/.codex/{plugins,skills}`, `~/.claude/{plugins,skills}`, `~/.agents/skills`);
-  and main-affecting git — landing a PR to `main` (`gh pr merge`), push to
-  `main`, force-push, bare/ambiguous push — plus `reset --hard` / `clean`, via
-  Bash or PowerShell. **Allows** an explicit non-main, non-force lane push
-  (`git push -u origin <lane>`) so lanes prep PRs (per-lane PR flow in
-  `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`); a
-  human/authorized action lands the PR to `main`. Narrow: `commit`, generic
-  deletion, and *mentions* of these in quoted strings are NOT blocked.
-- references authority (`.agents/workflow-overlay/safety-rules.md`), fails OPEN on internal error, and has
-  a selftest: `python .agents/hooks/guard_protected_actions.py --selftest`.
-- authorized exception: run the action yourself, or temporarily remove the hook.
-
-Reinstall the PreToolUse guard in `.claude/settings.json`:
-
-```json
-"hooks": {
-  "PreToolUse": [
-    { "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
-      "hooks": [ { "type": "command",
-                   "command": "python .agents/hooks/guard_protected_actions.py",
-                   "timeout": 10 } ] } ]
-}
-```
-
-Restart the Claude Code session after editing settings.
-
-**Repo-map commit interrupt + Stop-warn backstop.** Two complementary
-substrates for the high-contention commit-once-whole shared files
-(the repo map, `.claude/settings.json`, `.agents/workflow-overlay/source-of-truth.md`):
-
-- **Per-edit (PostToolUse).** The repo-map-freshness hook
-  (`.agents/hooks/check_repo_map_freshness.py`) exits 2 when the edited file IS
-  the repo map and Git still shows it dirty after the edit. The interrupt tells
-  the agent to commit it immediately, explicit-path
-  (`git commit --only -- docs/workflows/forseti_repo_map_v0.md`), before other
-  lanes' edits interleave. Distinct from its structural/freshness trigger
-  (which fires on OTHER files adding navigation and remains advisory unless run
-  in strict commit/CI mode).
-- **Turn-end (Stop).** `.agents/hooks/check_shared_files_dirty.py` (a `Stop` hook, no matcher)
-  warns when any of the three shared files is left dirty at end of turn, listing
-  them plus the explicit-path commit. Exit 0, never blocks, never auto-commits
-  (unsafe on a shared branch), guards `stop_hook_active`, fails open. CLI:
-  `--check` (live tree), `--selftest` (logic). A second `Stop` hook,
-  `.agents/hooks/check_token_burn.py`, warns (advisory, exit 0) when one turn's
-  input context crosses a rung (200k warn / 500k alarm) — the quadratic-burn
-  leading indicator. Reinstall = re-add both `Stop` hooks in
-  `.claude/settings.json`, then restart the session.
-
-These put the "edit the repo map -> commit it immediately, explicit-path" norm on
-the substrate, not a heavy resident banner. The per-edit repo-map interrupt
-blocks; the Stop backstop only warns. Neither auto-commits.
-
-**Session-start lane capsule (SessionStart).** `.agents/hooks/session_context_capsule.py --hook`
-(a `SessionStart` hook in `.claude/settings.json`; fires on startup/resume/clear/compact)
-prints a compact, report-only lane-state capsule — repo root, branch, HEAD, last 3 commit
-subjects, dirty/untracked counts, config-surface dirt, doctrine state vs last-fetched
-`origin/main`, and pointers to the two source-loading entry artifacts (this map and the
-overlay README) — so a new or re-oriented lane does not re-derive mechanical state turn by
-turn. Observed git state only; loads no doctrine, asserts nothing beyond git output; exit 0,
-fails open. Reinstall = re-add the `SessionStart` entry, then restart the session.
-
-**Scan artifact checker (portable + CI diff-scoped).** `.agents/hooks/check_csb_scanning_artifact.py`
-checks future CSB-first scanning artifacts for minimum reviewable receipt shape:
-source context, caps, broad-scout accounting, CSB-row accountability, exact-query
-accounting, venue/hidden-venue accounting, observations, negatives/access notes,
-capture-request accounting including the Creator Registry preflight block,
-candidate closeout, and obvious recency/Capture overclaim leakage. It also
-verifies cited Creator Registry match-preflight receipt JSON content for detected
-`docs/research/` scan artifacts carrying `creator_registry_match_preflight`
-markers or for explicit checker paths. CI runs `--diff origin/main --strict`
-forward-only over changed `docs/research/` artifacts that look like CSB-first or
-Creator Registry preflight scan outputs; explicit paths remain available when
-producing or reviewing scan artifacts. It is not wired as an automatic
-PostToolUse hook. Fixtures live under
-`forseti-harness/tests/fixtures/csb_scanning_artifacts/`; focused tests live at
-`forseti-harness/tests/unit/test_csb_scanning_artifact_validator.py`. A pass is
-receipt-shape/receipt-content consistency only, never scan-quality validation,
-buyer proof, candidate approval, or Capture route authorization.
-
-**Doctrine-change receipt-shape gate (EP-09) + retrieval-header forbidden-field
-scan (EP-07).** Two further substrates built under owner authorization, following
-this pattern:
-
-- `.agents/hooks/check_dcp_receipt.py` — diff-scoped, forward-only CI gate
-  (registered in `.github/workflows/ci.yml`, a sibling to the deletion-evidence
-  gate): validates the SHAPE of any real `direction_change_propagation` receipt
-  or `direction_change_propagation_blocker` in changed `.md` files — required
-  keys, `trigger`/`related_triggers` drawn only from the seven controlled trigger
-  values, `non_claims` non-empty — referencing `source-of-truth.md` (Doctrine
-  Change Propagation Contract). It skips contract templates and non-receipt
-  note-markers, never requires a receipt to be *present* (doctrine-ness is
-  judgment), and never asserts a listed surface was truly updated/checked. The
-  inline-cap / archive-pointer / no-standalone rules are intentionally not gated
-  (not born-green). `--audit` = whole-repo advisory backlog; `--selftest` present.
-- `.agents/hooks/check_retrieval_header.py` — its shared predicate
-  (`header_problems_for_lines`) now also rejects status-leak header keys
-  (approval / validation / readiness / lifecycle / deployment / install /
-  resolver / publication / source-of-truth), flowing through both the write-time
-  `--hook` and the `header_index.py --strict` CI gate. Born-green;
-  `edit_permission` / `verdict` / `status` are intentionally allowed (review and
-  prompt frontmatter use them). `--selftest` present.
-
-Both enforce shape, never truth; a clean run is not validation, readiness, or
-approval.
-
-**Review-routing disposition gate (EP-35).** `.agents/hooks/check_review_routing.py`
-— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`)
-plus a local `.githooks/commit-msg` advisory: a change touching code roots
-(`forseti-harness/`, `.agents/hooks/`) must add a review artifact under
-`docs/prompts/reviews/` / `docs/review-outputs/` in the same change, or carry a
-shape-valid `review_routing_status:` commit-message line
-(`routed <existing path>` / `blocked -- reason` / `not_needed -- reason`).
-Rule owner: `.agents/workflow-overlay/validation-gates.md` (Review-routing
-disposition gate). Disposition presence/shape only — never review quality,
-reason truth, or whether review should have been recommended (resident
-judgment). `--audit` = per-commit advisory history view; `--selftest` present.
-
-**Local pre-push doc-gate mirror.** `.agents/hooks/pre_push_guard.py` (the
-policy behind the tracked `.githooks/pre-push` adapter, installed via
-`.github/scripts/install-local-hooks.ps1`) blocks pushes targeting `main`,
-branch deletes, and non-fast-forward updates, and — for allowed lane pushes —
-mirrors the strict CI doc gates (`check_map_links.py --strict`,
-`header_index.py --strict`, `check_review_routing.py --strict`; diff-scoped
-base `origin/main`, same as CI) so a durable-doc gate miss (e.g. a headerless
-`docs/review-outputs/` report, PR #613) fails at the push boundary instead of
-costing a red CI round. Blocks on any gate failure; the checkers' infra-gap
-fail-opens are unchanged; bypassable with `--no-verify`; CI stays the
-authoritative gate. `python .agents/hooks/pre_push_guard.py --selftest`
-checks the decision logic. Rule owner:
-`.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement"
-(Local pre-push doc-gate mirror).
-
-**Handoff-pointer resolution gate (EP-36).** `.agents/hooks/check_handoff_pointers.py`
-— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`):
-handoff-packet paths (`docs/workflows/*handoff*.md`, `docs/prompts/handoffs/*.md`)
-referenced in changed durable `.md` files must resolve in the same tree, or the
-pointer line must carry an explicit pin (`branch` / `PR #N` / `origin/<ref>`)
-or exemption marker (`does not exist yet`, `nonresolving:`, superseded/removed
-wording). Practical consequence: a handoff packet merges no later than the
-first main-bound artifact that points at it, or the pointer pins the authoring
-branch — cold receiving lanes resolve required reads from `origin/main`. No
-write-time hook by design (the defect is merge topology, invisible at the
-write boundary). Rule owner: `.agents/workflow-overlay/validation-gates.md`
-(Handoff-pointer resolution gate). Pointer shape only — never packet content
-freshness, pin truth, or source-choice correctness. `--audit` = whole-corpus
-backlog view (never gated); `--selftest` present.
-
-**Full-GT claim tripwire.** `.agents/hooks/check_full_gt_claims.py` — diff-scoped,
-forward-only CI gate (registered in `.github/workflows/ci.yml` as
-`--changed --strict`): ADDED lines of changed `.md` files must not carry
-unballasted "full God Tier" claim language outside the claim-owning/record
-surfaces (the two Bronze declarations, data_lake README + spine workflows,
-repo map, DCP archive, `docs/review-outputs/**`, `docs/prompts/**`,
-`docs/hygiene/**`). A line passes with bounding ballast (negation / ceiling /
-fixture / claim-tier wording) or the deliberate `full-gt-claim-ack` token.
-Rule authority: the Bronze full-GT declaration's Erosion Guards (claim
-inflation), referenced never restated. Shape only — never claim truth. `.py`
-surfaces out of scope (tests + declaration govern). PostToolUse `--hook` mode
-exists; registration in `.claude/settings.json` is owner-gated. `--selftest`
-present. Companion tier-2 schema gate:
-`forseti-harness/tests/contract/test_data_lake_core_field_gate.py` pins the
-lake-core field/key sets per the write-boundary contract's No-New-Core-Field
-Enforcement (any drift fails; update the pin only with the cited owner
-decision).
-
-**Review-output provenance gate.** `.agents/hooks/check_review_output_provenance.py`
-— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`
-as `--diff origin/main --strict`): changed/added `docs/review-outputs/*.md`
-must carry a valid retrieval header, non-blank `reviewed_by`/`authored_by`
-(value `unrecorded` allowed, never blank/absent), and a review-use-boundary
-statement (findings are decision input, not approval/validation/readiness).
-Rule owners: `.agents/workflow-overlay/review-lanes.md` +
-`.agents/workflow-overlay/retrieval-metadata.md` (referenced, never restated).
-Shape only — never review quality, provenance truth, or de-correlation truth.
-`--changed`/`--staged` are working-tree modes for local use; `--diff` is the
-CI mode (a CI checkout's working tree is always clean). `--selftest` present
-(fixtures under `forseti-harness/tests/fixtures/review_outputs/`).
-
-**Future agents: reuse this pattern.** To enforce the next load-bearing,
-deterministically-checkable rule, do not add another instruction -- add a
-sibling checker under `.agents/hooks/` that references the rule's authority
-(never restates it), advisory + forward-only with a `--strict` gate, wire a
-PostToolUse hook the same way, and document it here. See
-`.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement".
-
-This note is navigation and discoverability only; the hook and checker are
-advisory tooling, not validation, readiness, or source-of-truth promotion.
+Tracked configuration is the activation evidence; documentation is discovery and
+operating guidance. A passing checker proves only its documented shape boundary,
+never validation, readiness, approval, source authority, or semantic truth.
+Keep commands, reinstall steps, and checker-specific detail in the owning
+surfaces above so this T1 map remains a compact router.
 
 ## Reddit CloakBrowser / Proxy Allowance Quick Route
 
@@ -604,13 +212,16 @@ nickname: "crawling graph." The runner is
 | `docs/migration/forseti_backtest_specimen_filename_migration_v0/moved_paths_index.md` | Retrieval-only moved-path index resolving old Unity backtest specimen filenames to their Forseti successors. |
 | `docs/workflows/forseti_rename_residual_inventory_v0.md` | Current-main census and sampled classification of residual Orca/ORCA/orca_start_preflight hits after the authority rename; inventory only, not final validation. |
 | `docs/workflows/forseti_rename_stale_reference_audit_v0.md` | Final Step 5 classified stale-reference audit for the Forseti rename continuation; records the bounded runtime/tooling label repair and remaining residual classes without claiming path/package migration. |
+| `docs/workflows/forseti_data_lake_physical_rename_runbook_v0.md` | Runbook and executed-receipt record for the physical data-lake root rename `F:\orca-data-lake` -> `F:\forseti-data-lake` (executed 2026-07-10): baseline, gates, marker promotion preserving the root UUID, env migration, tombstone, fail-closed verification, rollback map, and the filled Execution Receipt. Receipt is observed-fact record only; not validation or lake-health proof. |
+| `docs/workflows/forseti_data_lake_rename_execution_closeout_handoff_v0.md` | Closeout handoff for the rename lane: what the 2026-07-10 rename changed (with receipt pointers), current lake/env state, and the cold handoff of the remaining creator-scanner hardening workstream to a fresh lane. |
+| `docs/workflows/forseti_data_lake_integrity_pass_receipt_v0.md` | Observed-fact receipt for the 2026-07-10 lake integrity pass: relocate_to_sharded moved the 11 flat raw packets to sharded homes, rebuild_availability regenerated the index (599/599), the 12 stale .staging scratch dirs were removed, and the doctor went status=ok. Not validation, readiness, or lake-health proof. |
 | `docs/workflows/forseti_post_harness_migration_status_v0.md` | Current Forseti migration status ledger: product root, repo-map path, harness root, package label, CI check, GitHub repo slug, product-lead skill ID, fresh local `projects/forseti` clone, PR #753/#755/#756/#758/#759/#760/#763/#765/#767/#768/#769/#770/#771/#772/#773/#774/#775/#776/#778/#779/#780/#781/#782/#783 main convergence, shared prompt-template identity migration, all current product-source lowercase `orca_*_v0.md` filename families cleared under `orca` and `forseti/product`, and remaining compatibility units narrowed to legacy active `projects/orca` workspace closeout, `orca_start_preflight`, compatibility-wrapper retirement, plus prompt/review/research/migration/hygiene or legacy workflow provenance surfaces. |
 | `docs/prompts/handoffs/forseti_compatibility_batches_fused_handoff_v0.md` | Fused-ready handoff for Step 4 runtime/tooling bounded repair and Step 5 stale-reference audit under the compatibility boundary; explicitly forbids broad path/package migration and the prior stalled registration-integrity selftest retry. |
 | `repo-structure.yaml` | Machine structure map (router only): homes + scratch/tolerance declarations consumed by `check_placement.py` and agents. Placement authority stays in `.agents/workflow-overlay/artifact-folders.md`; binding/parameters in `docs/decisions/forseti_repo_structure_binding_v0.md`. |
 | `.github/` | GitHub Actions workflows and local operational scripts for lane setup, merge-when-green, lane health, and local hook installation. Local automation only; not validation, readiness, or server-side branch protection. |
 | `.githooks/` | Tracked local Git hook adapters installed via `.github/scripts/install-local-hooks.ps1`; catches local Git push/commit boundaries where enabled. Bypassable with `--no-verify`; not a server-side lock. |
 | `.agents/workflow-overlay/` | Forseti overlay authority for project facts, folders, source rules, prompt rules, validation, safety, and review lanes. |
-| `.agents/hooks/` | Portable enforcement/checker scripts for protected actions, retrieval headers, repo-map freshness, CSB-first scanning artifact receipt shape, and local Git pre-push policy. Harness adapters invoke some scripts; passing checks are not validation or readiness. |
+| `.agents/hooks/` | Portable enforcement/checker scripts for protected actions, retrieval headers, repo-map freshness, CSB-first scanning artifact receipt shape, source-input hash freshness, and local Git pre-push policy. Harness adapters invoke some scripts; passing checks are not validation or readiness. |
 | `forseti-harness/` | Bounded authorized implementation backing Data Capture source acquisition and the v0.14 Judgment Harness (capture adapters, source-observability, schemas, scoring, runners, fixtures, tests). Navigation context only; not runtime, acceptance, or readiness. See the Forseti Harness section. |
 | `forseti/` | Declared top-level product-tree root. Product substance lives under `forseti/product/`; runtime remains under `forseti-harness/`. Historical `orca/product/` paths resolve through `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md`. |
 | `forseti/product/` | Spine-first product tree: product contracts, Core Spine artifacts, proof plans, source/evidence standards, offer, buyer-proof, demand-signal method/surface docs, satellites, case families, and shared product registries. Historical `docs/product/` references resolve through `docs/migration/repo_structure_spine_first_v0/moved_paths_index.md`; historical `orca/product/` references resolve through `docs/migration/forseti_product_root_migration_v0/moved_paths_index.md`. |
@@ -621,13 +232,13 @@ nickname: "crawling graph." The runner is
 | `forseti/product/spines/foundation/` | Foundation spine: product contract, IPF/evidence standard, ontology (backbone + SSOT + cards + fragrance reference data), demand-read taxonomy, vertical-exploration. For fragrance FACT lookup go straight to `ontology/fragrance_reference_v0.yaml` (self-describing: facts + per-fact provenance + extension pattern in-file; see the Decisive-File Quick Index). |
 | `forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md` | Adopted ontology backbone prose/rationale authority: type roster rationale, ID grammar, links, dimensions, action gates, and dated amendments. For machine-readable SSOT open `ontology.yaml`; for old filename resolution use `docs/migration/forseti_ontology_filename_migration_v0/moved_paths_index.md`. |
 | `docs/decisions/forseti_ontology_gt_foundation_ladder_v0.md` | Ontology foundation GT ladder and trigger-gated infrastructure roadmap; records R0 done and R1-R7 triggers/non-claims. Old filename resolves through `docs/migration/forseti_ontology_filename_migration_v0/moved_paths_index.md`. |
-| `forseti/product/spines/scanning/` | Scanning (discovery-side) spine: open `forseti/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, default CSB broad-scout phase, recency/current-state frontier priority, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. |
-| `forseti/product/spines/capture/` | Capture (acquisition-side) spine: `core/` reusable acquisition layer containing source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families. Open `forseti/product/spines/capture/core/source_families/README.md` for known source-family capture-to-lake route homes (`fragrance_native_database`, `retail_pdp`, `social_media/{instagram,tiktok,youtube,reddit}`, creator_registry, and cross-archive pointers). Dense - open the Data Capture submap. |
+| `forseti/product/spines/scanning/` | Scanning (discovery-side) spine: open `forseti/product/spines/scanning/README.md` first. It routes to the MGT intelligent-walk model, default CSB broad-scout phase, recency/current-state frontier priority, proposed scan-core schema, admissibility/checkability surfaces, and source-family adapters. For answer-engine/search-interest/AEO work, continue from the README to `source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`, then to `docs/research/answer_engine/` evidence. |
+| `forseti/product/spines/capture/` | Capture (acquisition-side) spine: open `forseti/product/spines/capture/README.md` first. It orients across the `core/` acquisition layer (source-access/candidate/corpus/obligation contracts, operating_model, packet_schema, Source Capture Toolbox, demand_durability_indicators, and source_families) and routes to the Data Capture submap for deep routing. For known source-family capture-to-lake route homes (`fragrance_native_database`, `retail_pdp`, `social_media/{instagram,tiktok,youtube,reddit}`, creator_registry, and cross-archive pointers) open `forseti/product/spines/capture/core/source_families/README.md`. |
 | `forseti/product/spines/creator_signal/` | Creator Signal product/signal spine (promotion-bound 2026-06-28). Owns product-facing creator intelligence surfaces: profile IA, aggregate influence display, ideal/content-fit audience display, freshness, limitations, and source drill-back over Capture-owned creator records. Binding: `docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md`. |
 | `forseti/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver, now deprecated/dormant as default pre-Judgment layer). |
 | `forseti/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
 | `forseti/product/spines/judgment/` | Judgment spine: conductor, claim_ladder, demand_read (core/c2_weighting/c3_verdict_action/grading), learning_loops (near_half/far_half), source_side_receipts, toolkit_gaps. Demand-read C2 treats recency/currentness as qualitative attention/relevance, not proof or scoring. Dense — submap candidate. |
-| `forseti/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge, growth (Sleipnir research/CI-decisions-as-a-service direction exploration, EXPLORATORY / owner-gated). |
+| `forseti/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge, gtm (demand-signal GTM design), growth (Sleipnir research/CI-decisions-as-a-service direction exploration, EXPLORATORY / owner-gated). |
 | `forseti/product/spines/commission_signal_board/` | Commission Signal Board pilot spine: authority, dispatch_rules, harness + tests + migrations + prompts + workflows (#261); prompt rows carry recency/currentness as attention metadata, not proof. |
 | `forseti/product/satellites/beauty/` | Beauty satellite: domain venue/card assets. |
 | `forseti/product/satellites/fragrance/` | Fragrance satellite: Level-1 judgment organizers (casebook_admission, named_case_screens, reconciliation, satellite_skeleton). |
@@ -677,7 +288,7 @@ nickname: "crawling graph." The runner is
 | `docs/workflows/orca_repo_map_v0.md` | Legacy compatibility pointer to the live Forseti repo map; kept so older links resolve. |
 | `docs/workflows/creator_registry_cold_agent_preflight_rehearsal_v0.md` | Cold-agent rehearsal of Creator Registry match preflight behavior: known account blocks duplicate `new_capture`, exact-unmatched row clears via `can_start_new_capture`, mixed batches exit nonzero when any requested action is blocked. |
 | `docs/workflows/creator_registry_operational_next_steps_handoff_v0.md` | Cold-reader handoff for continuing the Creator Registry operational lane after PR #669 merged: use the cold creator discovery scan handoff prompt on a real target, keep scan/capture/registry boundaries intact, and route the receipt-provenance checker gap to an explicit decision. |
-| `docs/workflows/aphrodite_silver_metric_monitoring_docs_handoff_v0.md` | Fresh-lane handoff for documenting Aphrodite-linked Silver/Vault and Creator Registry metric monitoring: inventory current emitted observations, rollups, freshness checks, and runner touchpoints; separate proposed recipes such as moving average, EMA, velocity, spike, and breakout state from implemented fields; and forbid runtime or lake mutation in the docs lane. |
+| `docs/workflows/aphrodite_silver_metric_monitoring_docs_handoff_v0.md` | DELIVERED (2026-07-10) historical handoff — the commissioned inventory shipped as `docs/research/aphrodite_silver_metric_monitoring_inventory_v0.md` (capture surfaces + metric families: current/deferred/proposed/forbidden). Read the inventory for the current metric-family picture; this packet records the original ask only. |
 | `forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md` | Creator Ledger operational evolution contract: migration-stable additive upgrade rule, capability routing matrix, and upgrade-intake shape for registry/linkage/observation/metric/profile-current layers, with efficacy-first God Tier criteria and Mini God Tier accepted residuals. |
 | `docs/workflows/creator_ledger_first_operational_proof_checkpoint_v0.md` | First operational proof-loop checkpoint for the Creator Ledger: applies the efficacy-first, migration-stable proof loop to the first public YouTube fragrance creator scan, preserved preflight receipt, and current receipt-content checker state. |
 | `docs/workflows/creator_ledger_known_account_preflight_checkpoint_v0.md` | Second operational proof-loop checkpoint for the Creator Ledger: known-account preflight proof that allows update-existing routing, blocks duplicate new capture, preserves a receipt, and avoids registry/capture/Silver mutation. |
@@ -922,6 +533,8 @@ Unity runtime-fee specimen:
 | `docs/prompts/handoffs/` | Handoff prompt drafts. |
 | `docs/prompts/reviews/` | Review prompts, including the delegated adversarial review-patch prompt for the Bronze full-GT A-D scoping artifact. |
 | `docs/prompts/reviews/creator_registry_operational_sequence_delegated_review_patch_prompt_v0.md` | Filed prompt for independent delegated adversarial review-and-patch of the Creator Registry operational sequence across merged PRs #654/#660/#667 and open PR #669; patch scope is limited to the named usage, runbook, scan, checker, rehearsal, map, and handoff-prompt surfaces and all findings remain CA-adjudicated decision input. |
+| `docs/prompts/reviews/tiktok_scanner_hardening_delegated_adversarial_code_review_patch_prompt_v0.md` | Filed commission prompt for a cross-vendor delegated adversarial code review-and-patch of the TikTok scanner hardening diff (link-hub outcome contract, scan-receipt v1 schema bump, CDP session probe, frontier lake writer + runner, registry preflight gates) on claude/tiktok-scanner-hardening; findings and any bounded patch remain CA-adjudicated decision input. |
+| `docs/review-outputs/tiktok_scanner_hardening_delegated_adversarial_code_review_v0.md` | Cross-vendor (GPT-family) delegated adversarial code review return for the scanner-hardening branch: 7 findings, NEEDS_ARCHITECTURE_PASS verdict with no partial patch retained; adjudicated by the commissioning lane with fixes landed on the same branch. Decision input only; not acceptance, validation, or readiness. |
 | `docs/prompts/reviews/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_delegated_adversarial_review_patch_prompt_v0.md` | Filed prompt for independent delegated adversarial review-and-patch of the Bronze full-GT A-D scoping artifact; patch scope is limited to the scoping artifact and all findings remain CA-adjudicated decision input. |
 | `docs/prompts/reviews/core_spine_v0_data_lake_bronze_full_gt_physicalization_decision_brief_delegated_adversarial_review_patch_prompt_v0.md` | Filed prompt for cross-vendor delegated adversarial review-and-patch of the landed physicalization decision brief (PR #557) before Gate 1/Gate 2 ADR authoring relies on it; patch scope is the brief only and all findings remain CA-adjudicated decision input. |
 | `docs/prompts/reruns/` | Rerun prompts. |
@@ -930,20 +543,26 @@ Unity runtime-fee specimen:
 | `docs/prompts/templates/` | Local prompt templates. |
 | `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` | Live shared repo-constant prompt preflight defaults for new or materially touched Forseti prompts; old `orca_preflight_defaults_v0.md` is a compatibility pointer. |
 | `docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md` | Live shared behavior contract included by Forseti prompt templates; old `orca_prompt_behavior_contract_v0.md` is a compatibility pointer. |
-| `docs/prompts/architecture/` | Architecture prompt family. |
-| `docs/prompts/advisory/` | Advisory prompt family. |
-| `docs/prompts/hygiene-queue/` | Drift/parking area (created on first artifact; does not exist yet); not listed as an accepted prompt-family folder in the overlay. |
 
-A few Data Capture pressure-test prompts currently sit unfiled at the
-`docs/prompts/` root rather than in a typed family folder; treat them as drift
-pending hygiene triage.
+Retained prompt exceptions below are navigation labels, not accepted prompt
+families and not new write destinations. Use the accepted folders above for new
+prompt artifacts unless the owning overlay or a later owner decision says
+otherwise.
+
+| Retained location | Navigation rule |
+| --- | --- |
+| `docs/prompts/architecture/` | Retained nonstandard architecture-prompt bucket with live references and review provenance; not an accepted prompt family in `.agents/workflow-overlay/artifact-folders.md` or prompt-orchestration.md. Do not move or promote without reverse-ref proof and owner decision. |
+| `docs/prompts/advisory/` | Retained Daimler advisory prompt exception; path/hash-pinned per `docs/hygiene/queue.md` ORCA-HYGIENE-005. Not an accepted prompt family and not a default destination. |
+| `docs/prompts/` root prompt files | Retained Data Capture / Judgment prompt exceptions and pinned checker prompts. New prompts should go to a typed accepted family; moving retained root files requires a reference-aware pass. |
+| `docs/research/judgment-spine/harness/v0_14/review_prompts/` | Spec-bundled v0.14 review prompts retained with the harness spec; not a `docs/prompts/` family and not moved in this navigation pass. |
+| `docs/prompts/hygiene-queue/` | Dead resolved path; does not exist yet after ORCA-HYGIENE-001 consolidated it to `docs/hygiene/` and removed the directory. Do not recreate as a prompt family. |
 
 ## Research And Review Areas
 
 | Path | Use for |
 | --- | --- |
 | `docs/research/consulting-judgment-corpus/` | Consulting-judgment corpus, prompts, lane outputs, synthesis, candidate screens, backtestability, and reject patterns. |
-| `docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md` | AEO Phase-0 feasibility probe evidence rehomed from the scanning product spine; use as research evidence for the answer-engine source-class spec, not as product-spine authority. |
+| `docs/research/answer_engine/` | Answer-engine/AEO research evidence, including `aeo_capture_feasibility_probe_phase0_v0.md` and its JSON sidecar. Use as research evidence for the answer-engine source-class spec, not as product-spine authority, gate-recordable method, validation, readiness, product proof, or capture authorization. |
 | `docs/research/orca_discovery_candidate_scan_imaginary_authors_demand_origin_discovery_v0.md` | Fresh CSB-first Imaginary Authors discovery follow-up focused on public buyer-origin venue value, exact-query negatives, capture-preservation triage, and no-candidate closeout. |
 | `docs/research/orca_discovery_candidate_scan_imaginary_authors_buyer_language_rerun_v0.md` | Bounded buyer-language rerun for the Imaginary Authors CSB-first scan; records Parfumo as a high-value public community/review venue, two low-commitment candidate entries, and a preservation-only capture_request. |
 | `docs/research/orca_discovery_candidate_scan_imaginary_authors_broad_scout_deep_scan_v0.md` | Fresh CSB broad-scout plus main deep-scan artifact for Imaginary Authors; confirms Parfumo as the high-value public buyer-language venue, carries two hold-low-commitment candidate entries, and records preservation-only capture requests. |
@@ -954,7 +573,7 @@ pending hygiene triage.
 | `docs/research/daimler_advisory_001_source_registry_v0.md` | Manual Daimler source-unit registry separating participant-safe candidates, date ambiguity, missing evidence, and reveal-only material before any packet rebuild or judgment-quality claim. |
 | `docs/research/packing-phase/` | Boundary note for decision-packet construction between cleaned evidence and Judgment Harness inputs. |
 | `docs/decisions/judgment_spine_pre_sale_execution_evidence_tier_policy_v0.md` | Decision record on pre-sale Judgment Spine model-execution evidence tiers (subscription/manual/chat default; raw API/harness as optional gate-bearing plumbing) and how to read no-case smoke-test / raw-API runner artifacts relative to buyer proof. |
-| `docs/review-outputs/` (root) | Flat collection of harness implementation/code-review outputs (source-capture adapters, source-observability helper, no-tools probe and execution-foundation); advisory findings only, co-located at the folder root rather than a typed subfolder. |
+| `docs/review-outputs/` (root) | Retained flat collection of harness implementation/code-review outputs (source-capture adapters, source-observability helper, no-tools probe and execution-foundation); advisory findings only, retained in place by ORCA-HYGIENE-004 because path/hash pins make relocation provenance-risky. New adversarial reports default to the typed child folder. |
 | `docs/review-outputs/adversarial-artifact-reviews/` | Adversarial artifact review reports, including the Daimler advisory and Canoo/Walmart Judgment Spine fixture-review families. |
 | `docs/review-outputs/method-validation/` | Method-validation review outputs. |
 | `docs/review-outputs/proof/` | Proof review outputs (currently a README placeholder). |
@@ -1170,7 +789,7 @@ status field. Open the owning doc for authority; this table is navigation only.
 | Signal content | `forseti/product/spines/ecr/signal_content/core_spine_v0_signal_content_record_architecture_v0.md` | `OWNER_DECIDED_DIRECTION`; `DEPRECATED_AS_STANDALONE_PRE_JUDGMENT_LAYER` |
 | Source capture toolbox | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | `SOURCE_CAPTURE_ARMORY_README_V0` |
 | Core spine | `forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md` | `PROPOSED_FREEZE` |
-| Search lane | `docs/decisions/forseti_search_product_lane_binding_v0.md` | owner-authorized v0; demand-signal intelligence (search-led): search/answer-engine surfaces + demand-scan/read/gate method |
+| Search lane | `docs/decisions/forseti_search_product_lane_binding_v0.md` | historical/governance record for the superseded search lane; current answer-engine/search execution routes through `forseti/product/spines/scanning/README.md` -> `source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md` -> `docs/research/answer_engine/` |
 | Spine-first target structure | `docs/decisions/forseti_spine_first_target_structure_binding_v0.md` | executed by spine-first migration; current product tree routes through `forseti/product/` |
 | Spine-first blocker authorization | `docs/decisions/forseti_spine_first_blocker_authorization_v0.md` | B1-B7 execution settlement consumed by the spine-first migration |
 | Aphrodite fragrance sub-ontology | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` | `DATED_DATA_2026-07-04` |

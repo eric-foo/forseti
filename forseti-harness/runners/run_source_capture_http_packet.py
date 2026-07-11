@@ -27,6 +27,19 @@ from source_capture.cli_support import (
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from source_capture.adapters import DirectHttpCaptureFailure, fetch_direct_http_capture
+from source_capture.retail_capture_profiles import (
+    RetailCaptureProfile,
+    get_retail_capture_profile,
+    retail_capture_profile_names,
+    validate_retail_capture_profile_route,
+)
+from source_capture.source_detail_sufficiency import (
+    SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
+    evaluate_source_detail_sufficiency,
+    source_detail_sufficiency_failure_message,
+    source_detail_sufficiency_limitation,
+    source_detail_sufficiency_mode_change,
+)
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -68,6 +81,7 @@ def run_source_capture_http_packet(
     re_capture_relationship,
     warnings: Sequence[str],
     limitations: Sequence[str],
+    retail_capture_profile: RetailCaptureProfile | None = None,
     timeout_seconds: float,
     max_bytes: int,
     session_visibility_pin=None,
@@ -79,6 +93,19 @@ def run_source_capture_http_packet(
     pre_coverage_history_posture=None,
     intended_cadence: dict[str, object] | None = None,
 ) -> tuple[int, str]:
+    if retail_capture_profile is not None:
+        if retail_capture_profile.source_surface != "direct_http":
+            raise ValueError(
+                f"retail capture profile {retail_capture_profile.name} belongs to "
+                f"{retail_capture_profile.source_surface}; use the matching capture runner"
+            )
+        validate_retail_capture_profile_route(
+            retail_capture_profile,
+            url=url,
+            source_family=source_family,
+            source_surface=source_surface,
+        )
+
     capture_result = fetch_direct_http_capture(
         url=url,
         timeout_seconds=timeout_seconds,
@@ -87,8 +114,29 @@ def run_source_capture_http_packet(
     if isinstance(capture_result, DirectHttpCaptureFailure):
         return 3, capture_result.message
 
+    if retail_capture_profile is not None:
+        capture_result.metadata["retail_capture_profile"] = retail_capture_profile.metadata()
+    decoded_body = capture_result.body.decode("utf-8", errors="replace")
+    sufficiency_result = evaluate_source_detail_sufficiency(
+        requirements=(
+            retail_capture_profile.requirements if retail_capture_profile is not None else None
+        ),
+        access_block_reason=(
+            None if 200 <= capture_result.status < 300 else f"HTTP {capture_result.status}"
+        ),
+        visible_text=decoded_body,
+        rendered_dom=decoded_body,
+    )
+
     packet_warnings = list(warnings) + capture_result.warning_notes
     packet_limitations = list(limitations) + capture_result.limitation_notes
+    sufficiency_limitation = source_detail_sufficiency_limitation(sufficiency_result)
+    if sufficiency_limitation is not None:
+        packet_limitations.append(sufficiency_limitation)
+    packet_visible_mode_changes = list(visible_mode_changes)
+    sufficiency_mode_change = source_detail_sufficiency_mode_change(sufficiency_result)
+    if sufficiency_mode_change is not None:
+        packet_visible_mode_changes.append(sufficiency_mode_change)
 
     if 200 <= capture_result.status < 300:
         access_posture = known_fact(
@@ -162,7 +210,7 @@ def run_source_capture_http_packet(
         capture_mode=capture_mode,
         operator_category=operator_category,
         session_identity=session_id,
-        visible_mode_changes=visible_mode_changes,
+        visible_mode_changes=packet_visible_mode_changes,
         source_publication_or_event=timing.source_publication_or_event,
         source_edit_or_version=timing.source_edit_or_version,
         cutoff_posture=timing.cutoff_posture,
@@ -183,6 +231,11 @@ def run_source_capture_http_packet(
         ),
         receipt_non_claims=DIRECT_HTTP_NON_CLAIMS,
     )
+    if sufficiency_result.enabled and not sufficiency_result.passed:
+        return SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE, source_detail_sufficiency_failure_message(
+            output_directory=result.output_directory,
+            result=sufficiency_result,
+        )
     return 0, result.output_directory
 
 
@@ -213,6 +266,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--timeout-seconds", type=float, default=20.0)
     parser.add_argument("--max-bytes", type=int, default=5_000_000)
+    parser.add_argument(
+        "--retail-capture-profile",
+        choices=retail_capture_profile_names(),
+        default=None,
+        help=(
+            "Apply a named direct-HTTP retailer/page-kind profile through the existing "
+            "post-capture source-detail sufficiency gate."
+        ),
+    )
     parser.add_argument("--actor-audience-context", default=None)
     parser.add_argument("--actor-audience-context-unknown-reason", default=None)
     parser.add_argument("--visible-mode-change", action="append", default=[])
@@ -237,6 +299,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         require_series_identity(args)
+        retail_capture_profile = (
+            get_retail_capture_profile(args.retail_capture_profile)
+            if args.retail_capture_profile is not None
+            else None
+        )
         data_root = None
         output_directory = args.output
         if output_directory is not None and args.data_root is not None:
@@ -301,6 +368,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             ),
             warnings=args.warning,
             limitations=args.limitation,
+            retail_capture_profile=retail_capture_profile,
             timeout_seconds=args.timeout_seconds,
             max_bytes=args.max_bytes,
             session_visibility_pin=build_optional_fact(

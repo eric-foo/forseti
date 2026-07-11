@@ -5,6 +5,7 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import fields
 from typing import Any
+from urllib.parse import urlparse
 
 from capture_spine.tiktok_creator_discovery_frontier.models import (
     TIKTOK_CREATOR_DISCOVERY_FRONTIER_REGISTER_SCHEMA_VERSION,
@@ -15,6 +16,7 @@ from capture_spine.tiktok_creator_discovery_frontier.models import (
     FrontierEdgeType,
     FrontierNode,
     FrontierNodeType,
+    LinkHubOutcome,
     NextRunEnvelope,
     ProjectionDecision,
     RefreshOutcome,
@@ -65,6 +67,7 @@ _ALLOWED_NODE_TYPES = frozenset(item.value for item in FrontierNodeType)
 _ALLOWED_EDGE_TYPES = frozenset(item.value for item in FrontierEdgeType)
 _ALLOWED_PROJECTION_DECISIONS = frozenset(item.value for item in ProjectionDecision)
 _ALLOWED_REFRESH_OUTCOMES = frozenset(item.value for item in RefreshOutcome)
+_ALLOWED_LINK_HUB_OUTCOMES = frozenset(item.value for item in LinkHubOutcome)
 _REQUIRED_SCAN_RECEIPT_CAP_KEYS = (
     "root_profiles",
     "suggested_accounts_observed",
@@ -76,6 +79,22 @@ _REQUIRED_SCAN_RECEIPT_EXCLUSION_MARKERS = (
     "no_registry_mutation",
     "no_follow_unfollow",
     "no_screenshot",
+)
+_SUGGESTED_ACCOUNTS_NOT_ATTEMPTED_MARKERS = (
+    "not_started",
+    "not_attempted",
+    "deferred",
+    "skipped",
+)
+# A PROMOTE decision needs preflight that actually ran: these markers name
+# known not-run/negative statuses that must not clear the PROMOTE gate.
+_PREFLIGHT_NOT_ATTEMPTED_MARKERS = (
+    "not_run",
+    "not_started",
+    "not_attempted",
+    "pending",
+    "deferred",
+    "skipped",
 )
 
 _REQUIRED_NON_CLAIM_CATEGORIES = (
@@ -183,6 +202,8 @@ def validate_tiktok_creator_discovery_scan_receipt(receipt: Mapping[str, Any]) -
             "source_packet_path_or_none",
             "parent_profile_capture_status",
             "suggested_accounts_capture_status",
+            "link_hub_capture_status",
+            "link_hub_url_or_none",
             "browser_closed_by_runner",
             "refresh_attempt_count",
             "refresh_outcome",
@@ -219,6 +240,8 @@ def validate_tiktok_creator_discovery_scan_receipt(receipt: Mapping[str, Any]) -
                 "missing_source_packet_pointer",
                 "suggested-account packet-available status requires source packet pointer",
             )
+    _validate_cloakbrowser_parent_capture_attempted_suggested_accounts(receipt)
+    _validate_link_hub_outcome(receipt)
     if receipt.get("browser_closed_by_runner") is not False:
         _fail("browser_close_forbidden", "scan receipt must not close the browser by runner")
 
@@ -251,8 +274,12 @@ def validate_tiktok_creator_discovery_scan_receipt(receipt: Mapping[str, Any]) -
         _require_non_negative_int(receipt.get(field_name), field_name)
     if receipt.get("candidate_profiles_opened") != 0:
         _fail("candidate_profile_open_forbidden", "scan receipt must not open candidate profiles")
-    if receipt.get("follow_unfollow_actions_taken") != 0:
-        _fail("follow_unfollow_forbidden", "scan receipt must not take follow/unfollow actions")
+    follow_unfollow_actions_taken = int(receipt.get("follow_unfollow_actions_taken"))
+    if follow_unfollow_actions_taken > 1:
+        _fail(
+            "follow_unfollow_limit_exceeded",
+            "scan receipt may record at most one owner-authorized root follow action",
+        )
     if receipt.get("screenshots_emitted_to_chat") != 0:
         _fail("screenshot_chat_output_forbidden", "scan receipt must not emit screenshots to chat")
 
@@ -338,7 +365,7 @@ def validate_tiktok_creator_discovery_frontier_register(register: Mapping[str, A
     for decision in wrapper.get("frontier_decisions", []):
         if not isinstance(decision, Mapping):
             _fail("invalid_frontier_decision", "frontier decisions must be mappings")
-        _validate_decision(decision, set(node_by_id))
+        _validate_decision(decision, node_by_id)
 
     for envelope in wrapper.get("next_run_envelopes"):
         if not isinstance(envelope, Mapping):
@@ -442,6 +469,67 @@ def _validate_packet_pair(value: Mapping[str, Any], prefix: str) -> None:
     if packet_path and not packet_id:
         _fail("missing_packet_id", f"{id_key} is required when {path_key} is present")
 
+def _validate_cloakbrowser_parent_capture_attempted_suggested_accounts(
+    receipt: Mapping[str, Any]
+) -> None:
+    """Require the suggested-account hop after parent capture on the intended surface."""
+    if not receipt.get("parent_grid_packet_id_or_none"):
+        return
+    surface_fingerprint = " ".join(
+        str(receipt.get(field_name) or "").lower()
+        for field_name in (
+            "source_surface",
+            "method_mode",
+            "access_mode",
+            "browser_session_label_or_none",
+        )
+    )
+    if "cloakbrowser" not in surface_fingerprint:
+        return
+    suggested_status = str(receipt.get("suggested_accounts_capture_status") or "").lower()
+    if any(marker in suggested_status for marker in _SUGGESTED_ACCOUNTS_NOT_ATTEMPTED_MARKERS):
+        _fail(
+            "suggested_accounts_required_after_cloakbrowser_parent_grid",
+            "CloakBrowser parent profile/grid capture must attempt Following/Followers Suggested graphing or record blocked/empty outcome",
+        )
+
+
+def _validate_link_hub_outcome(receipt: Mapping[str, Any]) -> None:
+    """Require an explicit link-hub outcome; captured requires the hub URL.
+
+    Mirrors the suggested-accounts guard's intent for the sibling surface that
+    the Charlie Frags scan silently skipped: a visible bio link hub must end
+    the scan as captured, blocked, deferred_not_authorized, or none_visible --
+    silence is not representable and a captured claim must name its URL.
+    """
+    status = receipt.get("link_hub_capture_status")
+    if status not in _ALLOWED_LINK_HUB_OUTCOMES:
+        _fail(
+            "invalid_link_hub_capture_status",
+            "link_hub_capture_status must be one of "
+            f"{sorted(_ALLOWED_LINK_HUB_OUTCOMES)}",
+        )
+    url = receipt.get("link_hub_url_or_none")
+    if url is not None:
+        if not isinstance(url, str) or not url.strip():
+            _fail("invalid_link_hub_url", "link_hub_url_or_none must be a non-empty string or null")
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            _fail(
+                "invalid_link_hub_url",
+                "link_hub_url_or_none must be an absolute http(s):// URL",
+            )
+    if status == LinkHubOutcome.CAPTURED.value and not url:
+        _fail(
+            "missing_link_hub_url",
+            "captured link-hub outcome requires link_hub_url_or_none",
+        )
+    if status == LinkHubOutcome.NONE_VISIBLE.value and url:
+        _fail(
+            "link_hub_url_contradicts_none_visible",
+            "none_visible link-hub outcome must not carry a link hub URL",
+        )
+
 
 def _validate_node(node: Mapping[str, Any], provenance: Mapping[str, Any]) -> None:
     _reject_unknown_keys(node, _ALLOWED_NODE_KEYS, "node")
@@ -512,7 +600,7 @@ def _validate_edge(edge: Mapping[str, Any], node_ids: set[str]) -> None:
     _validate_non_claims(edge.get("non_claims"), "edge")
 
 
-def _validate_decision(decision: Mapping[str, Any], node_ids: set[str]) -> None:
+def _validate_decision(decision: Mapping[str, Any], node_by_id: Mapping[str, Mapping[str, Any]]) -> None:
     _reject_unknown_keys(decision, _ALLOWED_DECISION_KEYS, "frontier_decision")
     _require(
         decision,
@@ -527,10 +615,27 @@ def _validate_decision(decision: Mapping[str, Any], node_ids: set[str]) -> None:
         ),
         "frontier_decision",
     )
-    if decision.get("selected_node_id") not in node_ids:
+    selected_node = node_by_id.get(str(decision.get("selected_node_id")))
+    if selected_node is None:
         _fail("frontier_decision_points_to_missing_node", "frontier decision must point to a known node")
     if decision.get("projection_decision") not in _ALLOWED_PROJECTION_DECISIONS:
         _fail("invalid_projection_decision", "frontier decision projection_decision is invalid")
+    if decision.get("projection_decision") == ProjectionDecision.PROMOTE.value:
+        preflight = selected_node.get("registry_preflight_status_or_none")
+        if not isinstance(preflight, str) or not preflight.strip():
+            _fail(
+                "promote_requires_registry_preflight",
+                "a PROMOTE frontier decision requires the selected node to carry a "
+                "non-empty string registry_preflight_status_or_none (exact-match "
+                "preflight before any onboarding decision)",
+            )
+        lowered_preflight = preflight.lower()
+        if any(marker in lowered_preflight for marker in _PREFLIGHT_NOT_ATTEMPTED_MARKERS):
+            _fail(
+                "promote_registry_preflight_not_attempted",
+                "a PROMOTE frontier decision requires preflight that actually ran; "
+                f"status {preflight!r} names a not-run/negative marker",
+            )
     _validate_non_claims(decision.get("non_claims"), "frontier_decision")
 
 

@@ -4,18 +4,20 @@
 retrieval_header_version: 1
 artifact_role: Forseti decision record
 scope: >
-  Binds `search/` as a docs/product/ lane: Forseti's search / answer-engine
-  surfaces PLUS the demand-signal discovery method (scan, read-grammar, gates)
-  those surfaces feed. Holds the lane inclusion test + precedence rule and
-  references the migration package that physically co-locates the member docs.
-  Extends the docs/product/ by-lane parameter bound in
-  docs/decisions/forseti_repo_structure_binding_v0.md.
+  Historical/governance record for the superseded `docs/product/search/` lane:
+  Forseti's search / answer-engine surfaces PLUS the demand-signal discovery
+  method (scan, read-grammar, gates) those surfaces fed during the search-lane
+  migration. Retained for lineage, migration audit, and historical inclusion
+  rationale; not the current execution route after spine-first placement.
 use_when:
-  - Deciding whether a doc belongs in docs/product/search/ versus a spine lane.
+  - Auditing why legacy search-lane references exist.
+  - Resolving historical `docs/product/search/` paths through the spine-first migration.
   - Authoring or revising repo-structure.yaml product_lanes or artifact-folders.
-  - Planning or executing the search-lane migration.
+  - Planning or executing search-lane migration archaeology, not current answer-engine work.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/scanning/README.md
+  - forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
   - docs/decisions/forseti_spine_first_blocker_authorization_v0.md
   - docs/decisions/forseti_repo_structure_binding_v0.md
   - .agents/workflow-overlay/artifact-folders.md
@@ -37,10 +39,17 @@ then directed completing the migration to the demand-signal discovery method
 expanding the move by +6 demand-scan/read/gate docs and excluding 3 non-search
 docs. Reached through deep-think -> assumption-gate -> re-scope ->
 implementation-scoping -> micro-decision-lock, each step owner-confirmed. This
-binds the lane as Orca doctrine; it is not validation, readiness, or product
-proof.
+bound the lane as then-current governance; it is not validation,
+readiness, product proof, or the current execution route.
 
-Spine-first supersession note (2026-06-18): the lane remains the current
+Current-route supersession (2026-07-08): for answer-engine/search-interest/AEO
+work, start at `forseti/product/spines/scanning/README.md`, continue to
+`forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`,
+then open research evidence under `docs/research/answer_engine/`. Treat this
+record as historical/governance and migration lineage unless the task is
+explicitly auditing the retired search lane.
+
+Spine-first supersession note (2026-06-18): at that time, the lane remained the current
 physical home until the spine-first migration executes, but
 `docs/decisions/forseti_spine_first_blocker_authorization_v0.md` confirms that
 future spine-first placement supersedes this record's physical
@@ -62,13 +71,16 @@ carried over. Recorded as a search-dissolution line item; handled in Wave C/E.
 
 ## Decision
 
-`docs/product/search/` is a bound second-level lane under `docs/product/`,
+This section records the historical v0 search-lane decision. Read it as
+lineage/governance, not as the current execution route for answer-engine work.
+
+Within that historical record, `docs/product/search/` was a bound second-level lane under `docs/product/`,
 extending the by-lane axis bound in
-`docs/decisions/forseti_repo_structure_binding_v0.md`. It is Orca's **demand-signal
+`docs/decisions/forseti_repo_structure_binding_v0.md`. It was the then-current **demand-signal
 intelligence (search-led)** vertical, holding two coherent things:
 
-1. **Search / answer-engine surfaces** - how Orca captures, reads, and
-   source-classes search-surface and answer-engine signal (web search / SERP,
+1. **Search / answer-engine surfaces** - how the historical lane captured, read, and
+   source-classed search-surface and answer-engine signal (web search / SERP,
    Google AI Overviews and other answer engines, zero-click, AEO/GEO,
    search-interest / "trends").
 2. **The demand-signal discovery method** those surfaces feed - the scan method,
@@ -86,8 +98,8 @@ search-only; their cross-spine references resolve into `docs/product/search/`.
 
 A doc belongs in `docs/product/search/` when its reason-to-exist is either:
 
-- (a) the **search / answer-engine surface** itself - how Orca captures it, what
-  it exposes, or its source-class; OR
+- (a) the **search / answer-engine surface** itself - how the historical lane captured it, what
+  it exposed, or its source-class; OR
 - (b) the **demand-signal discovery method** that drives those reads - the scan
   method, the demand-read grammar/taxonomy, or the demand gates that adjudicate
   discovered signal.
@@ -175,7 +187,9 @@ spines during the window; `repo-structure.yaml` carries `search` at
 - `.agents/workflow-overlay/artifact-folders.md` - search-lane accepted-folder entry + lane-subfolder list + the direction-change-propagation receipt.
 - `docs/decisions/forseti_repo_structure_binding_v0.md` - bound-lanes bullet notes `search/`.
 - `docs/product/README.md` - lane list includes `search/`.
-- `docs/product/search/README.md` - lane front-door index.
+- `docs/product/search/README.md` - lane front-door index *(since retired
+  without successor — nonresolving; see this doc's header note and resolve via
+  the spine-first moved-paths index)*.
 - `docs/workflows/orca_repo_map_v0.md` - Workstream Status Pointers row.
 - `docs/migration/repo_structure_search_lane_v0/` - the migration package (manifest, apply/reverse script, runbook, reference inventory, moved-paths index).
 - The 10 moved docs (search / answer-engine surfaces + demand-signal method) and the ~19 live referencing files whose paths the apply rewrites.

@@ -1,13 +1,11 @@
 name: main-red-alert
 
-# Fast backstop for the up-to-date-merge MGT (Decision item 12 in
-# docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md). When the
-# push:main CI run goes red, open (or keep) a single tracking issue so a break
-# landed via an unenforced merge path is fixed in minutes, not discovered by the
-# next lane. When main CI goes green again, the alert auto-closes. This is
-# DETECTIVE, not preventive (it does not stop the bad merge); the preventive,
-# unbypassable, all-paths gate remains the deferred server-side option (O1).
-#
+# Detective defense-in-depth for a red `main`. Active branch protection requires
+# strict `forseti-harness-tests`, an up-to-date PR head, and includes admins, so
+# ordinary red/behind merges are prevented server-side. This workflow still
+# surfaces a post-merge CI failure caused by an environment change, an emergency
+# administrative policy change, or another path not represented by the PR run.
+# It detects and reports; it does not prove the root cause.
 # Channel = a deduplicated GitHub issue (zero external dependency). One open
 # "main CI is red" issue at a time, updated while red, closed when green.
 
@@ -64,7 +62,7 @@ jobs:
               gh issue create --repo "$REPO" --title "$TITLE" --body \
           "push:main CI is failing at \`$sha\`. Run: $run_url
 
-          Up-to-date-merge backstop (doctrine item 12). A break likely landed via a merge path that does not enforce up-to-date (human/CLI \`gh pr merge\` of a behind PR). Fix forward with a small PR; this issue auto-closes when main CI next passes."
+          Branch protection was active at this run's trigger. Investigate the linked run for environment drift, an emergency policy change, or a defect not represented by the PR check. Fix forward with a small PR; this issue auto-closes when main CI next passes."
               echo "Opened main-red alert."
             else
               gh issue comment "$existing" --repo "$REPO" --body "Still red at \`$sha\`. Run: $run_url"

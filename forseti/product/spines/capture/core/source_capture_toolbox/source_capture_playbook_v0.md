@@ -110,7 +110,10 @@ solves; the diagnosis selects the route. Blind climbing wastes probes and can mi
 2. **Two-axis bar.** "Did we get through?" is the necessary **gate**; "is what we grabbed the real
    thing?" is the **win**. GO requires *checkable* source-native evidence (see Step 3) — reachable
    -but-paraphrase (WebFetch on M&I/BIWS) is **PARTIAL, not GO**. Never let the foot-in-the-door, or
-   an asserted-but-unverifiable capture, pass as the real grab.
+   an asserted-but-unverifiable capture, pass as the real grab. Packet creation, HTTP 200,
+   preserved screenshots/DOM, and a generic detail-sufficiency flag are not source-useful success
+   by themselves: the caller must name the required visible/DOM details for the run, and extraction
+   may use the packet only when those named details are present and recorded.
 3. **The receipt.** Every run logs the full receipt (see Step 3) — access classification, routes
    tried *and skipped-with-reason*, evidence locators, fidelity evidence, why it stopped, the
    verdict, and the routes now forbidden without a new fact. An honest NO-GO records *what failed*.
@@ -216,7 +219,7 @@ menu.** Cheapest fit wins.
 | visible browser + user action | headless-detected 403; user-gated download (PDF) | med-high | real bytes via the real UI path | public; own entitled access if gated |
 | progressive / incremental scroll | lazy-load / IntersectionObserver content (reviews) | med | first-party-rendered bytes | public |
 | rendered social item deep-capture (transient media handle) | source item where comments and/or audio handle live in rendered DOM, especially when a standalone media resolver returns empty/unavailable | med-high | visible comments plus immediate ASR from a route-native transient handle; signed media URL is redacted and not durable evidence | public browser render; no auth-gate defeat; human-rate |
-| anti-bot / cloakbrowser + proxy/geo | anti-bot challenge on public content; geo friction | high | rendered bytes *(expected, not yet demonstrated — see route maturity)* | public; authorized under Risk posture; human-rate; no secrets/exit-IP |
+| anti-bot / cloakbrowser + proxy/geo | anti-bot challenge on public content; geo friction | high | rendered bytes *(bounded evidence exists for persistent-profile Quora; proxy/geo remains unproven — see route maturity)* | public; authorized under Risk posture; human-rate; no secrets/exit-IP |
 | vendor-API first-party render | reviews/widgets a vendor API renders into the DOM (Bazaarvoice) | low-med | the API's real values | public via the page |
 | embedded-state / internal-API extract | signal in `__APOLLO_STATE__` / `__NEXT_DATA__` / a JSON blob / a public page's own internal API | low | exact embedded values (cite field+value) | public via the page (not an auth-gated private API) |
 | operator-supplied | owner provides the bytes (entitled docs/PDF) | n/a | as-supplied (verify hash / magic bytes) | entitled |
@@ -229,9 +232,14 @@ route (under the Guardrail 4 bound, human-rate). If **no row matches**, stop as 
 which is NO-GO. Reach NO-GO only after the matching routes are exhausted, with the receipt.
 
 **Route maturity (faithful to the recon index).** Progressive-scroll is *capture-proven* (Sephora
-reviews; worktree-pending). The `anti-bot / cloakbrowser + proxy/geo` route is *setup/architecture-
-ready, not yet end-to-end capture-proven* — treat its fidelity as **expected, not demonstrated**,
-until a probe proves it. Don't cite an unproven route as evidence of capturability.
+reviews; worktree-pending). CloakBrowser persistent-profile capture has one source-specific
+end-to-end success for a Quora B2B search packet after lower-rung pressure, with a local ignored
+profile, no proxy, and caller-bound detail sufficiency recorded in
+`docs/workflows/quora_b2b_postmerge_capture_calibration_v0.md`; treat that as bounded Quora
+evidence, not broad Quora reliability, session durability, buyer proof, or proof that the
+proxy/geo variant works. The `anti-bot / cloakbrowser + proxy/geo` route remains
+setup/architecture-ready where proxy/geo behavior is concerned. Don't cite an unproven route as
+evidence of capturability.
 
 **IG live media-route diagnostic (2026-06-29).** For public Instagram Reels, a standalone
 anonymous `yt-dlp` media fetch can fail before ASR with Instagram's empty-media response even when
@@ -317,9 +325,9 @@ as source facts, not proof.
   route for the substrate/problem (e.g. mobile/app-only). Record the missing-route candidate; do
   **not** call it NO-GO.
 - **Receipt (every run):** access classification · routes tried · routes considered-but-skipped and
-  why · evidence locator for each attempt · fidelity evidence · request rate / volume · why it
-  stopped · current/recent state preserved when relevant · verdict · routes now forbidden without a
-  new fact.
+  why · caller-bound detail requirements and sufficiency result · evidence locator for each attempt
+  · fidelity evidence · request rate / volume · why it stopped · current/recent state preserved when
+  relevant · verdict · routes now forbidden without a new fact.
 
 ## The output: a recipe card (the growing tail — authored by probes, not here)
 
@@ -361,6 +369,56 @@ capture-spine spec slice F, pending build).
 - **Recipe cards are not yet authored.** This MVP is the method only.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Quora PR #825 lesson is installed: source-useful capture requires named
+    caller-bound detail requirements recorded in the receipt, not just a 200,
+    packet directory, rendered artifact, or generic sufficiency flag. The route
+    maturity note now distinguishes one bounded CloakBrowser persistent-profile
+    Quora B2B search success from unproven broad Quora reliability, session
+    durability, buyer proof, and proxy/geo behavior.
+  trigger: workflow_authority
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/workflows/quora_b2b_postmerge_capture_calibration_v0.md
+    - docs/review-outputs/adversarial-artifact-reviews/quora_b2b_postmerge_capture_calibration_delegated_adversarial_review_patch_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading already binds capture-spine work to this playbook and
+        recon index; the Quora lesson changes method content, not the read-pack
+        rule.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map routes to this playbook at file level; no new artifact home
+        or anchor is needed.
+  stale_language_search: >
+    rg -n "packet success is not content success|source_detail_sufficiency_passed|Quora B2B|CloakBrowser persistent-profile|proxy/geo"
+    forseti/product/spines/capture/core/source_capture_toolbox
+    docs/workflows/quora_b2b_postmerge_capture_calibration_v0.md
+    docs/review-outputs/adversarial-artifact-reviews/quora_b2b_postmerge_capture_calibration_delegated_adversarial_review_patch_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits. Hits are the Quora calibration record, its
+    delegated review report, the new recon-index row, this updated route-maturity
+    and DCP text, and existing generic proxy/geo route mentions. No checked
+    routing surface keeps the stale packet-alone-success or proxy/geo-proof wording.
+  non_claims:
+    - not validation
+    - not readiness
+    - not capture authorization
+    - not Quora reliability proof
+    - not session durability proof
+    - not buyer proof
+    - not proxy/geo proof
+```
 
 ```yaml
 direction_change_propagation:

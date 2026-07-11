@@ -16,11 +16,11 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/commission_signal_board/README.md
   - forseti/product/spines/scanning/README.md
-  - docs/workflows/data_capture_spine_consolidation_map_v0.md
+  - forseti/product/spines/capture/README.md
 stale_if:
   - A spine joins or leaves the CSB -> Scanning -> Capture extraction group, or one of them is renamed/retired.
   - The Capture -> ECR handoff stops being the boundary between extraction and downstream provenance/cleaning/judgment.
-  - Capture gains its own spine-level README (repoint the Capture front door from the Data Capture submap to it).
+  - Any spine's front-door README below moves or is renamed.
 ```
 
 > **What this is.** A colloquial grouping label, not a spine and not authority.
@@ -60,7 +60,7 @@ engine.
 | --- | --- | --- |
 | **Commission Signal Board (CSB)** | Decides what to look for. An evidence/signals-only board that supplies the starting source-family and signal-route board a scan works from. Does not emit gate verdicts. | `forseti/product/spines/commission_signal_board/README.md` |
 | **Scanning** | Discovery side. Tests which venues are actually valuable for the commissioned decision, finds hidden venues, runs bounded exact-query discovery, and emits candidates + `capture_request`s. Cites route state; does not bind capture routes. | `forseti/product/spines/scanning/README.md` |
-| **Capture** | Acquisition side. Turns public/external signals into preserved, contextualized packets safe to hand to ECR. Owns route binding, the Source Capture Armory (anti-block toolbox), source families, and packet schema. | `docs/workflows/data_capture_spine_consolidation_map_v0.md` (current orientation; a spine-level `capture/README.md` matching CSB/Scanning is inbound from a separate lane) |
+| **Capture** | Acquisition side. Turns public/external signals into preserved, contextualized packets safe to hand to ECR. Owns route binding, the Source Capture Armory (anti-block toolbox), source families, and packet schema. | `forseti/product/spines/capture/README.md` |
 
 ## What Is Deliberately Not In The Group
 

@@ -53,6 +53,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterator, Mapping
 
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_id_from_subject_ref as _platform_account_id_from_subject_ref,
+)
 from data_lake.canonical_json import canonical_record_bytes
 
 if TYPE_CHECKING:
@@ -116,15 +119,22 @@ def revalidate_creator_metric_rollups(
         if platform is not None and observation.get("platform_scope") != platform:
             continue
         failures = _revalidate_one_rollup(rollup, observations_by_record_id)
+        try:
+            account_id = _platform_account_id_from_subject_ref(
+                observation.get("subject", {}).get("ref", {}),
+                what="rollup subject ref",
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            # A malformed/missing subject ref is a per-record FAILURE, not a
+            # walk-ending crash: raising here is reserved for an unreadable
+            # lake, not a failed check (module docstring above).
+            account_id = ""
+            failures = [*failures, f"rollup subject ref account id unresolved: {exc}"]
         findings.append(
             RollupRevalidationFinding(
                 record_id=str(rollup.get("record_id")),
                 raw_anchor=str(rollup.get("raw_anchor")),
-                account_id=str(
-                    observation.get("subject", {})
-                    .get("ref", {})
-                    .get("orca_platform_account_id", "")
-                ),
+                account_id=account_id,
                 recipe_version=str(observation.get("calculation_recipe_version")),
                 failures=tuple(failures),
             )

@@ -289,10 +289,14 @@ def run_session(
         if max_creators is not None:
             selected_rows = selected_rows[:max_creators]
 
-        session_roster_path = day_dir / f"session_{bucket}_roster.json"
-        receipt_jsonl = day_dir / f"heartbeat_receipts_session_{bucket}.jsonl"
-        summary_path = day_dir / f"session_{bucket}_summary.json"
-        _write_session_roster(session_roster_path, plan=plan, bucket=bucket, rows=selected_rows)
+        # Per-(bucket, lane) session artifacts so two lanes in the same bucket cannot clobber each
+        # other's roster/receipts/summary (APH-IMPL-1: these were keyed by bucket only). The
+        # bucket-scoped session lock above -- i.e. whether lanes in a bucket may run concurrently --
+        # stays the deferred F2 concurrency decision, unchanged here.
+        session_roster_path = day_dir / f"session_{bucket}_{lane_id}_roster.json"
+        receipt_jsonl = day_dir / f"heartbeat_receipts_session_{bucket}_{lane_id}.jsonl"
+        summary_path = day_dir / f"session_{bucket}_{lane_id}_summary.json"
+        _write_session_roster(session_roster_path, plan=plan, bucket=bucket, lane_id=lane_id, rows=selected_rows)
         for row in selected_rows:
             append_attempt(
                 attempts_path,
@@ -352,6 +356,7 @@ def run_session(
                     plan=plan,
                     row=row,
                     receipt=receipt,
+                    receipt_jsonl=receipt_jsonl,
                     session_id=session_id,
                     bucket=bucket,
                     now_func=now_func,
@@ -487,6 +492,7 @@ def _attempt_row_from_receipt(
     plan: Mapping[str, Any],
     row: Mapping[str, Any],
     receipt: Mapping[str, Any],
+    receipt_jsonl: Path,
     session_id: str,
     bucket: int,
     now_func: NowFunc,
@@ -494,7 +500,10 @@ def _attempt_row_from_receipt(
     attempt = _attempt_row(plan=plan, row=row, session_id=session_id, bucket=bucket, status=str(receipt["status"]), now_func=now_func)
     attempt["run_id"] = receipt.get("run_id")
     attempt["receipt_status"] = receipt.get("status")
-    attempt["receipt_pointer"] = receipt.get("receipt_pointer")
+    # Point at the session's receipt file (the receipt dict carries no self-pointer; the run_id
+    # above locates the line). Previously read receipt.get("receipt_pointer") -- a key the receipt
+    # never carries -- so this field was always null (APH-IMPL-3).
+    attempt["receipt_pointer"] = str(receipt_jsonl)
     attempt["packet_pointer"] = receipt.get("packet_pointer")
     if receipt.get("access_gap_reason") is not None:
         attempt["access_gap_reason"] = receipt.get("access_gap_reason")
@@ -542,7 +551,14 @@ def _session_summary(
     }
 
 
-def _write_session_roster(path: Path, *, plan: Mapping[str, Any], bucket: int, rows: Sequence[Mapping[str, Any]]) -> None:
+def _write_session_roster(
+    path: Path,
+    *,
+    plan: Mapping[str, Any],
+    bucket: int,
+    lane_id: str,
+    rows: Sequence[Mapping[str, Any]],
+) -> None:
     roster_rows = []
     for row in rows:
         roster_rows.append(
@@ -559,7 +575,7 @@ def _write_session_roster(path: Path, *, plan: Mapping[str, Any], bucket: int, r
     _write_json(
         path,
         {
-            "roster_snapshot_id": f"{plan['plan_id']}_bucket_{bucket}",
+            "roster_snapshot_id": f"{plan['plan_id']}_bucket_{bucket}_{lane_id}",
             "plan_id": plan["plan_id"],
             "plan_date": plan["plan_date"],
             "bucket": bucket,

@@ -18,6 +18,9 @@ from pathlib import Path
 from capture_spine.creator_profile_current.silver_metric_reader import (
     discover_creator_metric_rollup_records,
 )
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_id_from_subject_ref,
+)
 from data_lake.root import DataLakeRoot
 from runners.run_youtube_creator_metric_rollup_producer import (
     DEFAULT_ACCOUNT_LEDGER,
@@ -29,7 +32,9 @@ from runners.run_youtube_creator_metric_rollup_producer import (
 
 
 def _account_of(record: dict) -> str:
-    return record["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+    return platform_account_id_from_subject_ref(
+        record["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+    )
 
 
 def _yt_discovery_ledger(*account_ids: str) -> dict:

@@ -1,0 +1,170 @@
+{
+  "tiktok_creator_discovery_frontier_register": {
+    "accepted_residuals": [
+      "Literal seed handle noelsmells resolved to a wrong_or_low_confidence low-follower account; graph root uses source-backed Noel Smells handle noeldeyzel_fragrance.",
+      "Chrome session was not logged into TikTok; logged-in-only surfaces were not verified.",
+      "Suggested accounts were visible but generic/global in logged-out Chrome and were intentionally not graphed as fragrance frontier candidates.",
+      "No source-visible IG, YouTube, or link-hub link was observed in the light DOM read.",
+      "Public contact text was visible in bio but intentionally not persisted as graph or registry evidence."
+    ],
+    "edges": [
+      {
+        "confidence": "seed_surface_observed",
+        "edge_id": "edge_run_to_seed_run_tiktok_creator_discovery_noeldeyzel_fragrance_20260708_01_seed_tiktok_noeldeyzel_fragrance",
+        "edge_type": "discovered_from_run",
+        "from_node_id": "run_tiktok_creator_discovery_noeldeyzel_fragrance_20260708_01",
+        "method_mode": "existing_chrome_light_dom_read_packetized_after_capture",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ],
+        "observed_sections": [
+          "seed_profile"
+        ],
+        "run_id": "tiktok_creator_discovery_noeldeyzel_fragrance_20260708_01",
+        "source_packet_id_or_none": "01KX13YSB6V0Y49D1H7Z3EAZ1K",
+        "source_surface": "tiktok_profile_grid_light_dom_existing_chrome_logged_out",
+        "stop_reason": "seed_profile_observed",
+        "timestamp": "2026-07-08T15:01:18Z",
+        "to_node_id": "seed_tiktok_noeldeyzel_fragrance"
+      }
+    ],
+    "frontier_decisions": [],
+    "next_run_envelopes": [],
+    "nodes": [
+      {
+        "access_mode": "public_profile_visible_login_prompt_present_no_authenticated_action",
+        "caps_applied": {
+          "candidate_profiles_opened": 0,
+          "root_profiles": 1,
+          "screenshots_emitted_to_chat": 0,
+          "suggested_accounts_observed": 0
+        },
+        "cross_platform_graph_status": "not_started",
+        "display_name_or_none": null,
+        "exclusions": [
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_follow_unfollow",
+          "no_screenshot",
+          "no_contact_enrichment",
+          "no_candidate_profile_open",
+          "no_same_run_snowball"
+        ],
+        "handle_or_none": null,
+        "method_mode": "existing_chrome_light_dom_read_packetized_after_capture",
+        "node_id": "run_tiktok_creator_discovery_noeldeyzel_fragrance_20260708_01",
+        "node_type": "run",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ],
+        "platform": "tiktok",
+        "platform_capture_status": "tiktok_parent_profile_grid_packet_available_logged_out_limited",
+        "registry_preflight_status_or_none": null,
+        "run_id": "tiktok_creator_discovery_noeldeyzel_fragrance_20260708_01",
+        "source_surface": "tiktok_profile_grid_light_dom_existing_chrome_logged_out",
+        "source_url_or_locator": "https://www.tiktok.com/@noeldeyzel_fragrance",
+        "stop_reason": "parent_profile_grid_packetized_suggestions_not_graphed_due_logged_out_generic_surface",
+        "timestamp": "2026-07-08T15:01:18Z"
+      },
+      {
+        "access_mode": "public_profile_visible_login_prompt_present_no_authenticated_action",
+        "caps_applied": {
+          "candidate_profiles_opened": 0,
+          "root_profiles": 1,
+          "screenshots_emitted_to_chat": 0,
+          "suggested_accounts_observed": 0
+        },
+        "cross_platform_graph_status": "not_started",
+        "display_name_or_none": null,
+        "exclusions": [
+          "no_metric_rollup",
+          "no_registry_mutation",
+          "no_follow_unfollow",
+          "no_screenshot",
+          "no_contact_enrichment",
+          "no_candidate_profile_open",
+          "no_same_run_snowball"
+        ],
+        "handle_or_none": "noeldeyzel_fragrance",
+        "method_mode": "existing_chrome_light_dom_read_packetized_after_capture",
+        "node_id": "seed_tiktok_noeldeyzel_fragrance",
+        "node_type": "tiktok_creator_seed",
+        "non_claims": [
+          "not Creator Registry identity proof",
+          "not follower graph",
+          "not following graph",
+          "not endorsement proof",
+          "not country/region evidence",
+          "not metric rollup",
+          "not capture execution authorization",
+          "not source-access authorization",
+          "not standing crawler or monitor",
+          "not account completeness proof"
+        ],
+        "platform": "tiktok",
+        "platform_capture_status": "tiktok_parent_profile_grid_packet_available_logged_out_limited",
+        "registry_preflight_status_or_none": null,
+        "run_id": "tiktok_creator_discovery_noeldeyzel_fragrance_20260708_01",
+        "source_surface": "tiktok_profile_grid_light_dom_existing_chrome_logged_out",
+        "source_url_or_locator": "https://www.tiktok.com/@noeldeyzel_fragrance",
+        "stop_reason": "seed_profile_observed_and_suggested_accounts_extracted",
+        "timestamp": "2026-07-08T15:01:18Z"
+      }
+    ],
+    "non_claims": [
+      "not Creator Registry identity proof",
+      "not follower graph",
+      "not following graph",
+      "not endorsement proof",
+      "not country/region evidence",
+      "not metric rollup",
+      "not capture execution authorization",
+      "not source-access authorization",
+      "not standing crawler or monitor",
+      "not account completeness proof"
+    ],
+    "provenance": {
+      "access_mode": "public_profile_visible_login_prompt_present_no_authenticated_action",
+      "caps_applied": {
+        "candidate_profiles_opened": 0,
+        "root_profiles": 1,
+        "screenshots_emitted_to_chat": 0,
+        "suggested_accounts_observed": 0
+      },
+      "captured_at_utc": "2026-07-08T15:01:18Z",
+      "method_mode": "existing_chrome_light_dom_read_packetized_after_capture",
+      "parent_grid_packet_id_or_none": "01KX13YSB6V0Y49D1H7Z3EAZ1K",
+      "parent_grid_packet_path_or_none": "F:/orca-data-lake/raw/8cc/01KX13YSB6V0Y49D1H7Z3EAZ1K",
+      "source_packet_id_or_none": null,
+      "source_packet_path_or_none": null,
+      "source_surface": "tiktok_profile_grid_light_dom_existing_chrome_logged_out",
+      "stop_reason": "parent_profile_grid_packetized_suggestions_not_graphed_due_logged_out_generic_surface"
+    },
+    "register_id": "tiktok_creator_discovery_frontier_noeldeyzel_fragrance_20260708",
+    "root_seed": {
+      "handle": "noeldeyzel_fragrance",
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@noeldeyzel_fragrance"
+    },
+    "schema_version": "tiktok_creator_discovery_frontier_register_v0",
+    "source_run_id": "tiktok_creator_discovery_noeldeyzel_fragrance_20260708_01"
+  }
+}

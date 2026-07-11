@@ -6,12 +6,11 @@
 
 .DESCRIPTION
     The strict doc-gate hooks in .github/workflows/ci.yml run in CI only. The
-    local pre-push guard (pre_push_guard.py) mirrors just a 3-gate subset
-    (check_map_links, header_index, check_review_routing), so a doc change that
-    trips any OTHER gate -- e.g. check_ontology_tag_validity flagging a prose
-    parenthetical like "(Capture)" -- passes pre-push and fails ~3 minutes later
-    in CI. This runner executes the SAME hook commands CI runs, locally, in one
-    shot, so that class of failure is caught before the push leaves your machine.
+    local pre-push guard (pre_push_guard.py) mirrors nine selected strict gates,
+    so CI still has additional registered hook commands that can fail after a
+    push. This runner executes every `python .agents/hooks/...` command CI runs,
+    including commands inside multiline `run: |` blocks, so that class of failure
+    is caught before the push leaves your machine.
 
     SINGLE SOURCE OF TRUTH: the gate list is PARSED FROM ci.yml, not duplicated
     here. When CI's gate set changes, this runner stays in sync automatically. It
@@ -52,16 +51,19 @@ if (-not (Test-Path -LiteralPath $ciPath)) {
     exit 2
 }
 
-# Derive the gate commands from ci.yml: every `run:` step that invokes a hook
-# under .agents/hooks/. Multi-line `run: |` blocks and `python -m pytest` do not
-# match this pattern, so they are naturally excluded. Order is preserved; the
-# duplicate review-output-provenance step is de-duplicated.
+# Derive the gate commands from ci.yml: every one-line `run:` step and every
+# command inside a multiline `run: |` block that invokes .agents/hooks/. Non-hook
+# commands such as `python -m pytest` and `.github/scripts/*` stay excluded.
+# Order is preserved and exact duplicate commands are de-duplicated.
 $gates = [System.Collections.Generic.List[string]]::new()
 foreach ($line in Get-Content -LiteralPath $ciPath) {
+    $cmd = $null
     if ($line -match 'run:\s+(python\s+\.agents/hooks/.+)$') {
         $cmd = $Matches[1].Trim()
-        if (-not $gates.Contains($cmd)) { $gates.Add($cmd) }
+    } elseif ($line -match '^\s+(python\s+\.agents/hooks/.+)$') {
+        $cmd = $Matches[1].Trim()
     }
+    if ($cmd -and -not $gates.Contains($cmd)) { $gates.Add($cmd) }
 }
 
 if ($gates.Count -eq 0) {
@@ -80,6 +82,8 @@ if ($List) {
 Write-Host "Running $($gates.Count) doc-gate(s) from ${ciRel} (repo root: $root)"
 Write-Host ""
 
+$localDiffBase = if ($env:FORSETI_DIFF_BASE) { $env:FORSETI_DIFF_BASE } else { 'origin/main' }
+
 $failed = [System.Collections.Generic.List[string]]::new()
 Push-Location $root
 try {
@@ -87,7 +91,8 @@ try {
     foreach ($cmd in $gates) {
         $i++
         Write-Host ("[{0}/{1}] {2}" -f $i, $gates.Count, $cmd) -ForegroundColor Cyan
-        $tokens = $cmd -split '\s+'
+        $expandedCmd = $cmd.Replace('"$FORSETI_DIFF_BASE"', $localDiffBase).Replace('$FORSETI_DIFF_BASE', $localDiffBase)
+        $tokens = $expandedCmd -split '\s+'
         $exe = $tokens[0]
         $restArgs = @($tokens[1..($tokens.Count - 1)])
         & $exe @restArgs

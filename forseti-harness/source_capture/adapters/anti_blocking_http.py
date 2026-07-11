@@ -140,6 +140,25 @@ def fetch_anti_blocking_http_capture(
             message=f"anti_blocking_http request failed: {exc.reason}",
             impersonation_profile=profile,
         )
+    except TimeoutError as exc:
+        # A read-phase timeout (socket.timeout, aliased to TimeoutError on 3.10+) fires during
+        # response.read() AFTER urlopen returned, so it is NOT a URLError and was previously
+        # uncaught -- it propagated and aborted the whole capture. Mirrors the direct_http sibling.
+        return AntiBlockingHttpCaptureFailure(
+            requested_url=normalized_url,
+            failure_kind=AntiBlockingHttpCaptureFailureKind.TIMEOUT,
+            message=f"anti_blocking_http response read timed out: {exc}",
+            impersonation_profile=profile,
+        )
+    except OSError as exc:
+        # Other read-phase socket errors (connection reset, etc.) also fire after urlopen and are
+        # not URLError (handled above, itself an OSError subclass); record an honest network failure.
+        return AntiBlockingHttpCaptureFailure(
+            requested_url=normalized_url,
+            failure_kind=AntiBlockingHttpCaptureFailureKind.NETWORK_ERROR,
+            message=f"anti_blocking_http response read failed: {exc}",
+            impersonation_profile=profile,
+        )
 
 
 def _capture_response(

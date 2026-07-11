@@ -35,7 +35,8 @@ SCOPE (forward-only, low false-positive by design)
     code (forseti-harness/). These mirror the contract's own exclusions. Folders
     the contract does not enumerate (e.g. docs/research/, which carries embedded
     evidence units) are intentionally NOT in scope to keep false positives near
-    zero; widen IN_SCOPE_PREFIXES if the contract's applicability list grows.
+    zero; widen the shared DURABLE_DOC_PREFIXES base in _hooklib.py if the
+    contract's applicability list grows (this checker consumes it as-is).
   - The structural check is deliberately shallow: it trips on a missing
     retrieval header, a non-`1` version, or an `authority_boundary` that is
     absent or not `retrieval_only`. It does not validate `artifact_role`,
@@ -63,36 +64,30 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    EXCLUDED_DOC_PREFIXES,
+    DURABLE_DOC_PREFIXES,
+    git_lines,
+    repo_root,
+    to_relposix,
+)
 
 # Authority this checker references (it does not restate the rule).
 RULE_AUTHORITY = ".agents/workflow-overlay/retrieval-metadata.md"
 PRINCIPLE = ".agents/workflow-overlay/validation-gates.md (Enforcement Placement)"
 
-# Durable folders the contract enumerates under "Applicability". Forward slashes;
-# matching is done on a POSIX-style repo-relative path.
-IN_SCOPE_PREFIXES = (
-    ".agents/workflow-overlay/",
-    "docs/decisions/",
-    "docs/product/",
-    "docs/prompts/",
-    "docs/review-inputs/",
-    "docs/review-outputs/",
-    "docs/workflows/",
-    "docs/migration/",
-    "docs/hygiene/",
-)
+# Durable folders the contract enumerates under "Applicability": exactly the
+# shared base vocabulary in _hooklib (this checker IS the retrieval-metadata
+# applicability list's enforcement). Matching is on repo-relative POSIX paths.
+IN_SCOPE_PREFIXES = DURABLE_DOC_PREFIXES
 
 # Subtrees excluded even when nested under an in-scope prefix (mirrors the
 # contract's own exclusions: scratch, skill copies, project config, code).
-EXCLUDED_PREFIXES = (
-    "docs/_inbox/",
-    ".agents/skills/",
-    ".claude/",
-    "forseti-harness/",
-)
+EXCLUDED_PREFIXES = EXCLUDED_DOC_PREFIXES
 
 HEAD_LINES = 80  # the header sits near the top, just after the H1 title
 
@@ -123,28 +118,6 @@ FORBIDDEN_HEADER_KEYS = frozenset({
     "publication", "publication_status", "published",
     "source_of_truth", "source_of_truth_status", "sot_status",
 })
-
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
-
-
-def to_relposix(target: str, root: Path) -> str | None:
-    """Repo-relative POSIX path for a target, or None if outside the repo."""
-    p = Path(target)
-    if p.is_absolute():
-        try:
-            rel = p.resolve().relative_to(root)
-        except (ValueError, OSError):
-            return None
-        return rel.as_posix()
-    # Already relative -> assume relative to the repo root. Strip only a literal
-    # leading "./" prefix; do NOT use lstrip("./"), which would also eat the
-    # leading dot of paths like ".agents/..." (a character-set strip, not a
-    # prefix strip) and silently drop overlay files out of scope.
-    s = Path(target).as_posix()
-    return s[2:] if s.startswith("./") else s
 
 
 def scope_folder(relposix: str) -> str | None:
@@ -289,20 +262,6 @@ def warning_for(relposix: str, problems: list[str]) -> str:
         f"If this artifact is excluded by that contract (scratch/_inbox, a "
         f"directory README, a skill copy, or code), no action is needed."
     )
-
-
-def git_lines(root: Path, args: list[str]) -> list[str]:
-    try:
-        out = subprocess.run(
-            ["git", "-C", str(root), *args],
-            capture_output=True,
-            text=True,
-        )
-    except (FileNotFoundError, OSError):
-        return []
-    if out.returncode != 0:
-        return []
-    return [ln.strip() for ln in out.stdout.splitlines() if ln.strip()]
 
 
 def staged_paths(root: Path) -> list[str]:
