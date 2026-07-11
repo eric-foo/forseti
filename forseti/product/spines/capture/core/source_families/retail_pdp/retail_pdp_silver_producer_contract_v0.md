@@ -44,6 +44,9 @@ deployment readiness, or product proof.
 - Identity: a `retail_variant_offer` must expose a retailer-local `product_id`
   or `sku`; the entity key is
   `(namespace=retail_pdp:<retailer>, kind=retailer_product, native_id=<id>)`.
+  When both exist, `product_id` owns product identity and `sku` remains the
+  variant-offer discriminator; `sku` is the identity fallback only when
+  `product_id` is absent.
 - Payload split: `ProductEntity`, `RetailOfferObservation`, and
   `RetailReviewAggregateObservation`.
 - Evidence: selected rows carry hash-checkable raw file refs and exact derived
@@ -84,6 +87,11 @@ Silver lineage builder.
 
 - `ProductEntity` contains stable retailer-local identity only. Mutable name,
   price, availability, review, rank, and text fields do not enter the entity.
+- Distinct SKUs under one retailer `product_id` intentionally remain offer
+  observations on the same `ProductEntity`; their SKU and variant fields stay
+  source-visible in `RetailOfferObservation`. A future consumer that requires
+  SKU-level entities needs an explicit variant-entity/relationship contract and
+  must not reinterpret this v0 product key silently.
 - `RetailOfferObservation` preserves the selected variant row's
   `source_visible_fields` and residuals without normalization or inference.
 - `RetailReviewAggregateObservation` preserves the selected review row's
@@ -141,9 +149,10 @@ proof.
 direction_change_propagation:
   doctrine_changed: >
     Added the first generic Retail/PDP Silver producer contract: exact
-    projection-record consumption, retailer-local ProductEntity identity,
-    source-visible offer/review observations, and fail-closed raw plus derived
-    lineage, with Amazon as proof rather than schema boundary.
+    projection-record consumption, product-id-first retailer-local ProductEntity
+    identity with SKU fallback and variant-offer preservation, source-visible
+    offer/review observations, and fail-closed raw plus derived lineage, with
+    Amazon as proof rather than schema boundary.
   trigger: product_doctrine
   related_triggers:
     - architecture_doctrine

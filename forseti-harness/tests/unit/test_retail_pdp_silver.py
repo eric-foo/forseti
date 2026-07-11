@@ -199,3 +199,115 @@ def test_projection_without_variant_refuses_empty_success(tmp_path: Path) -> Non
     assert not root.lane_dir(
         subtree="derived", raw_anchor=packet_id, lane=RETAIL_PDP_SILVER_LANE
     ).exists()
+
+
+def test_duplicate_variant_identity_fails_before_any_silver_write(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    packet_id, projection_path = _capture_and_project(root, tmp_path)
+    projection = json.loads(projection_path.read_text(encoding="utf-8"))
+    variant_rows = [row for row in projection["rows"] if row["row_kind"] == "retail_variant_offer"]
+    duplicate = json.loads(json.dumps(variant_rows[0]))
+    duplicate["row_id"] = f"{duplicate['row_id']}:dup"
+    projection["rows"].append(duplicate)
+    projection["loss_ledger"]["preserved_evidence_rows"] = len(projection["rows"])
+    duplicated = root.append_record(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_RETAIL_PDP_LANE,
+        record_id="duplicate-variant.json",
+        data=(json.dumps(projection, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+    )
+
+    with pytest.raises(RetailPdpSilverError, match="ambiguous"):
+        derive_retail_pdp_silver_from_projection(
+            data_root=root,
+            packet_id=packet_id,
+            projection_record_id=duplicated.name,
+        )
+
+    assert not root.lane_dir(
+        subtree="derived", raw_anchor=packet_id, lane=RETAIL_PDP_SILVER_LANE
+    ).exists()
+
+
+def test_orphan_review_substrate_fails_before_any_silver_write(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    packet_id, projection_path = _capture_and_project(root, tmp_path)
+    projection = json.loads(projection_path.read_text(encoding="utf-8"))
+    for row in projection["rows"]:
+        if row["row_kind"] == "retail_review_substrate":
+            row["retailer"] = "sephora"
+    orphaned = root.append_record(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=PROJECTION_RETAIL_PDP_LANE,
+        record_id="orphan-review.json",
+        data=(json.dumps(projection, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+    )
+
+    with pytest.raises(RetailPdpSilverError, match="no matching retailer-local product identity"):
+        derive_retail_pdp_silver_from_projection(
+            data_root=root,
+            packet_id=packet_id,
+            projection_record_id=orphaned.name,
+        )
+
+    assert not root.lane_dir(
+        subtree="derived", raw_anchor=packet_id, lane=RETAIL_PDP_SILVER_LANE
+    ).exists()
+
+
+def test_product_id_identity_groups_distinct_sephora_sku_offers(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    packet_id, projection_path = _capture_and_project(root, tmp_path)
+    projection = json.loads(projection_path.read_text(encoding="utf-8"))
+
+    results = []
+    for sku in ("SKU-RED", "SKU-BLUE"):
+        candidate = json.loads(json.dumps(projection))
+        for row in candidate["rows"]:
+            if row["row_kind"] in {
+                "retail_pdp_product",
+                "retail_variant_offer",
+                "retail_review_substrate",
+            }:
+                row["retailer"] = "sephora"
+            if row["row_kind"] == "retail_variant_offer":
+                row["source_visible_fields"]["product_id"] = "PRODUCT-GROUP-1"
+                row["source_visible_fields"]["sku"] = sku
+                row["source_visible_fields"]["variant_name"] = sku
+        candidate_path = root.append_record(
+            subtree="derived",
+            raw_anchor=packet_id,
+            lane=PROJECTION_RETAIL_PDP_LANE,
+            record_id=f"sephora-{sku.lower()}.json",
+            data=(json.dumps(candidate, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+        )
+        results.append(
+            derive_retail_pdp_silver_from_projection(
+                data_root=root,
+                packet_id=packet_id,
+                projection_record_id=candidate_path.name,
+            )
+        )
+
+    entity_keys = [
+        result.records[0]["payload"]["entity"]["entity_key"] for result in results
+    ]
+    assert entity_keys == [
+        {
+            "namespace": "retail_pdp:sephora",
+            "kind": "retailer_product",
+            "native_id": "PRODUCT-GROUP-1",
+        },
+        {
+            "namespace": "retail_pdp:sephora",
+            "kind": "retailer_product",
+            "native_id": "PRODUCT-GROUP-1",
+        },
+    ]
+    offer_skus = [
+        result.records[1]["payload"]["observation"]["source_visible_fields"]["sku"]
+        for result in results
+    ]
+    assert offer_skus == ["SKU-RED", "SKU-BLUE"]
