@@ -4094,3 +4094,159 @@ direction_change_propagation:
     - not source promotion
     - not implementation authorization
 ```
+
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-11, pre-push/ontology gate rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Forseti validation doctrine adds two gates and hardens one: a
+    review-summary shape gate (changed docs/review-outputs/ files carrying a
+    real review_summary block must keep the communication-style.md shape --
+    no forbidden process keys, a resolving report_path, the bound
+    failed-write shape, non-blank recommendation; full recommendation
+    vocabulary membership stays advisory-only pending an owner decision on
+    the delegated-review-patch extended vocabulary), a hash-pin freshness
+    gate (markdown freshness pins -- labeled path+sha256 bullet pairs and
+    source_captures receipt.md preserved-file bullets -- must match current
+    CRLF-normalized target bytes when the pin doc or target changed;
+    provenance-style tables and ledgers deliberately unparsed), and
+    substrate enforcement of the existing Output-mode gate's checkable shell
+    (declaration presence plus at least one closed-set token; exactly-one
+    and role-scoping stay resident). Enforced by
+    .agents/hooks/check_review_summary.py, check_hash_pin_freshness.py, and
+    check_prompt_output_mode.py as diff-scoped forward-only CI --strict
+    gates (hash-pin also mirrored in the local pre-push guard), built under
+    the EP-10/EP-11/EP-15 rows of
+    docs/decisions/overlay_enforcement_placement_classification_v0.md with
+    the EP-11 row corrected SUBSTRATE->PARTIAL from build-time corpus
+    measurement.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_prompt_output_mode.py
+    - .agents/hooks/check_review_summary.py
+    - .agents/hooks/check_hash_pin_freshness.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/pre_push_guard.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/README.md
+    - .agents/workflow-overlay/skill-adoption.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .claude/settings.json
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Routes validation and enforcement-placement doctrine to this overlay
+        file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        It owns the review_summary shape being enforced; the checker
+        references it, and the known delegated-review-patch extended
+        recommendation vocabulary is flagged for a separate owner decision
+        rather than silently widening the bound enum here.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        It owns the closed output-mode set; per the enforcement-placement
+        principle the substrate references the owner (and the checker
+        selftest asserts against the owning section), so no restatement is
+        added.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its lanes' extended recommendation vocabulary is the flagged owner
+        gap; binding or renaming that vocabulary is a doctrine decision this
+        gate deliberately does not make.
+    - path: .claude/settings.json
+      reason: >
+        No new write-time hooks: prompt writes already receive the
+        check_prompt_provenance.py reminder, review outputs are frequently
+        authored by other harnesses that never fire this harness's hooks,
+        and hash drift is a cross-file property best caught at push/CI.
+  stale_language_search: >
+    rg -in "output-mode gate|review_summary|hash-pin|check_prompt_output_mode|check_review_summary|check_hash_pin_freshness"
+    AGENTS.md .agents docs/workflows/forseti_repo_map_v0.md docs/decisions/overlay_enforcement_placement_classification_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits over the declared scope: hits are the new
+    gate bullets and Enforcement Placement registry text in this file, the
+    three checkers' own docstrings/selftests, the hooks README rows, the
+    pre_push_guard mirror entry, the repo-map Active Hooks notes, the
+    classification-doc update and corrected EP-11 row, the skill-adoption pin
+    pointer, and pre-existing reference text in communication-style.md (the
+    review_summary shape source), review-lanes.md, delegated-review-patch.md
+    (hash-pinned protected-path language), and one hash-pinned mention in
+    check_handoff_pointers.py; AGENTS.md has zero hits. No surface carries a
+    conflicting output-mode, review-summary, or hash-pin enforcement rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not review quality, finding truth, or severity authority
+    - not prompt quality or mode-choice correctness
+    - not semantic validity, source quality, or capture freshness
+    - a green run is shape/freshness only, never approval
+```
+
+## From docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md (archived 2026-07-11, server-gate activation rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds PR cadence guidance: lanes should open a focused PR after each major
+    durable point, not after every subpoint; subpoints stay grouped when they
+    share the same reviewable decision, controlling sources, validation, and
+    non-claims. PR bodies should state the decision change, why, stance shifts,
+    changed files, non-claims, and validation.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+    - output_authority
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes landing through this per-lane PR flow. The
+        cadence refinement belongs in the flow record, not the root kernel.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The explicit-authorization rule for commit, push, and PR creation is
+        unchanged; this cadence applies only after authorization.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and propagation mechanics are unchanged; this is a
+        downstream workflow decision amendment.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map already points lane PR flow to this decision record; no
+        new routing surface or file owner was added.
+  stale_language_search: >
+    rg -n "major durable point|every major point|every subpoint|per-lane PR|one focused PR|PR cadence"
+    AGENTS.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-16 after this patch. Hits are the new item 9 cadence
+    language, this receipt, and existing compatible references to per-lane /
+    one-focused-PR flow. No checked surface requires a PR for every subpoint or
+    grants standing PR authority.
+  non_claims:
+    - not validation
+    - not readiness
+    - not blanket commit authorization
+    - not blanket push authorization
+    - not blanket PR authorization
+    - not a merge authorization
+```
