@@ -44,8 +44,9 @@ WHAT THIS GATE DOES *NOT* DO (the over-edge boundary -- PLACEMENT IS NOT AUTHORI
     the fused contract, not here).
 
 DETECTION CONTRACT (mirrors check_dcp_receipt.py / header_index.py --strict)
-  base ref priority: $GITHUB_BASE_REF -> origin/<ref>; else --base <ref>; else
-  origin/main. Diff is three-dot `base...HEAD` (the PR's net change),
+  base ref priority: $FORSETI_DIFF_BASE (exact CI event SHA); else
+  $GITHUB_BASE_REF -> origin/<ref>; else --base <ref>; else origin/main.
+  Diff is three-dot `base...HEAD` (the PR's net change),
   name-status. Rename/copy rows touch BOTH paths -- a rename out of a code
   root is a code-root change (FIND-01, EP-35 delegated review). Commit
   messages come from `git log base..HEAD`. NO HEAD~1 fallback. If the base
@@ -200,6 +201,9 @@ def _git(root: Path, args: list[str], timeout: int = 15) -> tuple[int, str]:
 
 
 def resolve_base_ref(cli_base: str | None) -> str:
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if gh_base:
         return "origin/%s" % gh_base
@@ -409,6 +413,7 @@ def selftest() -> int:
     check("empty reason", _reason_of("  --  "), "")
 
     # --- resolve_base_ref ---
+    saved_ci_base = os.environ.pop("FORSETI_DIFF_BASE", None)
     saved = os.environ.pop("GITHUB_BASE_REF", None)
     try:
         check("base default", resolve_base_ref(None), "origin/main")
@@ -420,6 +425,10 @@ def selftest() -> int:
             os.environ["GITHUB_BASE_REF"] = saved
         else:
             os.environ.pop("GITHUB_BASE_REF", None)
+        if saved_ci_base is not None:
+            os.environ["FORSETI_DIFF_BASE"] = saved_ci_base
+        else:
+            os.environ.pop("FORSETI_DIFF_BASE", None)
 
     print()
     print("SELFTEST", "OK" if ok else "FAILED")

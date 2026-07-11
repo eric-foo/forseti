@@ -46,8 +46,9 @@ WHY PROVENANCE IS NOT IN THE RECORD
   rollback. Single authoritative home per fact; smallest forgeable surface.
 
 DETECTION CONTRACT (mirrors header_index.py --strict)
-  base ref priority: $GITHUB_BASE_REF -> origin/<ref>; else --base <ref>; else
-  origin/main. Diff is three-dot `base...HEAD` (merge-base diff = the PR's net
+  base ref priority: $FORSETI_DIFF_BASE (exact CI event SHA); else
+  $GITHUB_BASE_REF -> origin/<ref>; else --base <ref>; else origin/main.
+  Diff is three-dot `base...HEAD` (merge-base diff = the PR's net
   change). Rename-aware via --find-renames. NO HEAD~1 fallback (which would see
   only the last commit of a multi-commit lane). If the base cannot be resolved
   or git fails, fail OPEN (exit 0, loud warning) -- the universal Forseti infra-gap
@@ -196,10 +197,14 @@ def _git(root: Path, args: list[str], timeout: int = 15) -> tuple[int, str]:
 
 def resolve_base_ref(cli_base: str | None) -> str:
     """Base ref for diff-scoping (mirrors header_index.py):
-    1. $GITHUB_BASE_REF -> "origin/<value>"
-    2. --base <ref> CLI arg
-    3. default "origin/main"
+    1. $FORSETI_DIFF_BASE -> exact CI event SHA
+    2. $GITHUB_BASE_REF -> "origin/<value>"
+    3. --base <ref> CLI arg
+    4. default "origin/main"
     No HEAD~1 fallback -- that would see only the last commit of a multi-commit lane."""
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if gh_base:
         return "origin/%s" % gh_base
