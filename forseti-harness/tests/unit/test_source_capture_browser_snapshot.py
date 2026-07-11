@@ -179,6 +179,7 @@ class _FakeObservationPage:
         self.height = height
         self.url = "https://example.com/source"
         self.response_callback: object | None = None
+        self.route_bindings: list[tuple[str, object]] = []
         self.response_emitted = False
         self.pointer_target = pointer_target
         self.pointer_targets = list(pointer_targets or [])
@@ -196,12 +197,24 @@ class _FakeObservationPage:
         self.marker_match_results = list(marker_match_results or [])
         self.mouse = _FakeObservationMouse(self)
 
-    def route(self, *_args: object, **_kwargs: object) -> None:
+    def route(self, pattern: str, handler: object) -> None:
+        self.route_bindings.append((pattern, handler))
         self.event_log.append("route")
+
+    def unroute(self, pattern: str, handler: object) -> None:
+        assert (pattern, handler) in self.route_bindings
+        self.route_bindings.remove((pattern, handler))
+        self.event_log.append("unroute")
 
     def on(self, event: str, callback: object) -> None:
         assert event == "response"
         self.response_callback = callback
+
+    def remove_listener(self, event: str, callback: object) -> None:
+        assert event == "response"
+        assert self.response_callback is callback
+        self.response_callback = None
+        self.event_log.append("remove_listener")
 
     def goto(self, *_args: object, **_kwargs: object) -> None:
         self.event_log.append("goto")
@@ -282,6 +295,7 @@ class _FakeObservationContext:
         self.page = page
 
     def new_page(self) -> _FakeObservationPage:
+        self.page.event_log.append("new_page")
         return self.page
 
     def close(self) -> None:
@@ -1077,6 +1091,80 @@ def test_page_observation_human_challenge_handoff_after_named_pointer_action(
         }
     ]
     assert event_log.count("human_marker_match") == 2
+
+
+def test_post_action_handoff_stops_remaining_actions_when_challenge_persists(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    target = {
+        "candidate_count": 1,
+        "matched_count": 1,
+        "target_found": True,
+        "target_kind": "button",
+        "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+    }
+    page = _FakeObservationPage(
+        event_log,
+        pointer_targets=[target, target],
+        marker_match_results=[
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "drag the slider",
+                "marker_count": 1,
+            },
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "drag the slider",
+                "marker_count": 1,
+            },
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+    monkeypatch.setattr(
+        browser_snapshot_module,
+        "_show_human_challenge_prompt",
+        lambda _prompt: "test_prompt",
+    )
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        human_challenge_handoff_markers=("drag the slider",),
+        human_challenge_handoff_after_action_names=("first_action",),
+        human_challenge_handoff_timeout_seconds=0,
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="first_action",
+                candidate_selector="button",
+                text_markers=("comments",),
+                wait_after_ms=0,
+            ),
+            BrowserPagePointerAction(
+                action_name="second_action",
+                candidate_selector="button",
+                text_markers=("more",),
+                wait_after_ms=0,
+            ),
+        ),
+    )
+
+    assert result.metadata["pointer_actions_suppressed_by_human_challenge_handoff"] is True
+    assert event_log.count("mouse_click") == 1
+    attempts = result.metadata["human_challenge_handoff_attempts"]
+    assert len(attempts) == 1
+    assert attempts[0]["after_action_name"] == "first_action"
+    assert attempts[0]["cleared"] is False
+    assert attempts[0]["timeout_exceeded"] is True
 
 
 def test_page_load_handoff_suppresses_pointer_actions_until_challenge_clears(
@@ -2851,6 +2939,7 @@ def test_cloakbrowser_page_observation_session_reuses_one_context_and_closes_onc
             dom_extract_arg=None,
             response_url_predicate=lambda _: False,
             browser_backend="cloakbrowser",
+            block_resource_types=("image",),
             engine=engine,
         )
         assert isinstance(result, BrowserPageObservationSuccess)
@@ -2858,11 +2947,17 @@ def test_cloakbrowser_page_observation_session_reuses_one_context_and_closes_onc
     before_close = engine.lifecycle_receipt
     assert before_close["browser_launch_count"] == 1
     assert before_close["context_creation_count"] == 1
+    assert before_close["page_creation_count"] == 1
+    assert before_close["page_reuse_policy"] == "reuse_one_page_until_closed"
     assert before_close["capture_attempt_count"] == 2
     assert before_close["capture_success_count"] == 2
     assert before_close["closed"] is False
     assert "context_close" not in event_log
+    assert event_log.count("new_page") == 1
+    assert event_log.count("remove_listener") == 2
     assert "browser_close" not in event_log
+    assert event_log.count("route") == 2
+    assert event_log.count("unroute") == 2
 
     engine.close()
     engine.close()

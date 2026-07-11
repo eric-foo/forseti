@@ -31,6 +31,7 @@ from source_capture.tiktok.admission import (
 from source_capture.tiktok.grid_video_selection import build_tiktok_grid_video_selection
 from source_capture.tiktok.live_batch_probe import (
     TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+    TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS,
     TIKTOK_CHALLENGE_TEXT_MARKERS,
     TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
     TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME,
@@ -152,8 +153,8 @@ def run_tiktok_creator_onboarding(
     timeout_seconds: float = 30.0,
     settle_seconds: float = 2.0,
     max_grid_scroll_passes: int = DEFAULT_MAX_GRID_SCROLL_PASSES,
-    cadence_min_gap_seconds: float = 75.0,
-    cadence_max_gap_seconds: float = 120.0,
+    cadence_min_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS,
+    cadence_max_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS,
     cadence_window_seconds: float | None = None,
     random_seed: int | None = None,
     engine: BrowserPageObservationEngine | None = None,

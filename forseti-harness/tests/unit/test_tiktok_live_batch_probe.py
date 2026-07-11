@@ -407,6 +407,8 @@ def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
     assert subtitle["attempted"] is False
     assert subtitle["success"] is False
     assert subtitle["reason"] == "unsupported_subtitle_url_host_live_probe_v0"
+    assert subtitle["subtitle_url_host"] == "v16.attacker.example"
+    assert subtitle["subtitle_url_host_supported"] is False
     assert subtitle["subtitle_url_sha256"]
     assert subtitle["subtitle_url_length"] == len(subtitle_url)
     assert subtitle_url not in json.dumps(cadence)
@@ -822,6 +824,11 @@ def test_live_probe_threads_cloakbrowser_and_human_handoff_options(
     )
     assert captured_kwargs["human_challenge_handoff_after_action_names"] == (
         PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
+        TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
+        TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
     )
     assert captured_kwargs["human_challenge_handoff_timeout_seconds"] == 7.0
 
@@ -1290,7 +1297,7 @@ def test_live_probe_filters_non_get_comment_list_responses_when_method_available
     assert row["comment_responses"][0]["body_assessment"]["json_parse_ok"] is True
     assert row["comment_responses"][0]["body_assessment"]["comment_count"] == 1
 
-def test_live_probe_caps_admitted_comment_list_responses(tmp_path: Path) -> None:
+def test_live_probe_keeps_only_platform_default_first_comment_response(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
     response_url = (
         "https://www.tiktok.com/api/comment/list/"
@@ -1344,15 +1351,24 @@ def test_live_probe_caps_admitted_comment_list_responses(tmp_path: Path) -> None
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
     row = cadence["results"][0]
+    assert (
+        cadence["capture_contract"]["comment_selection_policy"]
+        == "platform_default_first_response_only"
+    )
+    assert cadence["capture_contract"]["comment_pagination"] is False
     assert row["capture_receipt"]["response_count"] == 3
     assert row["capture_receipt"]["matched_comment_response_count"] == 3
-    assert row["capture_receipt"]["admitted_comment_response_count"] == 2
-    assert row["capture_receipt"]["comment_response_cap"] == 2
-    assert len(row["comment_responses"]) == 2
+    assert row["capture_receipt"]["admitted_comment_response_count"] == 1
+    assert row["capture_receipt"]["comment_response_cap"] == 1
+    assert (
+        row["capture_receipt"]["comment_selection_policy"]
+        == "platform_default_first_response_only"
+    )
+    assert len(row["comment_responses"]) == 1
     assert [
         response["body_assessment"]["comments"][0]["cid"]
         for response in row["comment_responses"]
-    ] == ["7290", "7291"]
+    ] == ["7290"]
 
 
 
@@ -2937,4 +2953,98 @@ def _hydration(
                 }
             }
         }
+    }
+
+
+def test_live_probe_cli_defaults_to_measured_ten_second_gap() -> None:
+    args = runner.build_parser().parse_args(
+        [
+            "--creator-handle",
+            "funmi",
+            "--creator-profile-url",
+            "https://www.tiktok.com/@funmi",
+            "--video-url",
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "--logged-out",
+            "--output-dir",
+            "out",
+        ]
+    )
+
+    assert args.cadence_min_gap_seconds == 10.0
+    assert args.cadence_max_gap_seconds == 10.0
+
+
+def test_default_cloakbrowser_batch_reuses_one_owned_session(monkeypatch) -> None:
+    instances: list[object] = []
+    seen_engines: list[object] = []
+
+    class FakeSessionEngine:
+        def __init__(self, **_kwargs: object) -> None:
+            self.closed = False
+            instances.append(self)
+
+        def close(self) -> None:
+            self.closed = True
+
+        @property
+        def lifecycle_receipt(self) -> dict[str, object]:
+            return {
+                "engine": "fake_cloakbrowser_page_observation_session",
+                "browser_launch_count": 1,
+                "context_creation_count": 1,
+                "capture_attempt_count": len(seen_engines),
+                "capture_success_count": len(seen_engines),
+                "closed": self.closed,
+            }
+
+    def fake_fetch_browser_page_observation_capture(
+        **kwargs: object,
+    ) -> BrowserPageObservationSuccess:
+        seen_engines.append(kwargs["engine"])
+        video_id = str(kwargs["url"]).rsplit("/", 1)[-1]
+        return _success_observation(
+            video_id=video_id,
+            response=_comment_response(video_id=video_id),
+            subtitle_url="https://v16.tiktokcdn.com/subtitle.webvtt",
+        )
+
+    monkeypatch.setattr(
+        live_batch_probe,
+        "CloakBrowserPageObservationSessionEngine",
+        FakeSessionEngine,
+    )
+    monkeypatch.setattr(
+        live_batch_probe,
+        "fetch_browser_page_observation_capture",
+        fake_fetch_browser_page_observation_capture,
+    )
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        logged_out=True,
+        browser_backend="cloakbrowser",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda _url: (
+            b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n"
+        ),
+    )
+
+    assert len(instances) == 1
+    assert seen_engines == [instances[0], instances[0]]
+    assert instances[0].closed is True
+    assert result["cadence_result"]["browser_lifecycle"] == {
+        "engine": "fake_cloakbrowser_page_observation_session",
+        "browser_launch_count": 1,
+        "context_creation_count": 1,
+        "capture_attempt_count": 2,
+        "capture_success_count": 2,
+        "closed": True,
     }
