@@ -348,6 +348,33 @@ The catalog is a discovery tool, not a per-fetch cost. Distilled cell: `probe-th
 `docs/decisions/distillation_binding_data_capture_v0.md` (held; the automated dispatcher form is
 capture-spine spec slice F, pending build).
 
+### Launch and session economy
+
+Once the target, access classification, authorization, entitled session or
+logged-out posture, working pinned route, output destination, and challenge
+stop/handoff policy are confirmed, the live operation is **ready to launch**.
+Start it then. Branch/PR archaeology, broad repository history, downstream
+ranking, and other non-blocking orientation must not delay the live start. If
+another read is claimed to be blocking, name the launch invariant it verifies;
+otherwise run it after launch, concurrently where safe, or omit it.
+
+A bounded multi-page rendered-browser run leases **one browser, one context, and
+one tab** for the run. Navigate that tab forward and detach per-capture
+listeners or routes between pages; navigation is not a reason to relaunch.
+Per-item
+browser isolation is allowed only when a source-specific safety or correctness
+requirement names why reuse is unsafe; the receipt must record that policy.
+Multi-page receipts record browser-launch count, context-creation count,
+page-creation count, page-reuse policy, capture attempt/success counts, and
+close state. A runner that silently creates one
+browser per item is a lifecycle defect, not a conservative default. Single-page
+runs are unaffected.
+
+Cadence stays source- and route-specific: reuse the measured recipe-card value
+instead of inheriting a slower discovery/probe default. A faster measured
+cadence never weakens challenge stops, owner handoff, access boundaries, or
+failure visibility.
+
 ## Known gaps (honest)
 
 - **No route for mobile/app-only substrate.** If a probe finds the signal lives only in a phone app
