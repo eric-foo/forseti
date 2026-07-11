@@ -91,7 +91,7 @@ At that historical point, this record did not assert that any server-side gate w
 1. **CI.** A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the forseti-harness test suite
    on every `pull_request` and on `push` to `main`: Ubuntu, Python 3.12, `pip install -e .`
    (forseti-harness core dependencies only) plus pinned `pytest` and `pytest-xdist`, then the full
-   suite from `forseti-harness/` with slow-test timing and two file-grouped workers. Single target —
+   suite from `forseti-harness/` with slow-test timing and four file-grouped workers. Single target —
    no version matrix, no path-filter, no dependency caching, and no test-selection reduction.
 2. **Branch protection on `main` — LIVE.** The server gate requires:
    - the `forseti-harness-tests` status check to pass;
@@ -374,10 +374,12 @@ the snapshot tests drive fake engines rather than the real backends. CI therefor
 runtime extras; `pytest-xdist==3.8.0` is a test-runner dependency only. A path-filter is deliberately
 avoided because a filtered required check can strand docs-only PRs in a permanent "pending" state
 and block merges. `pytest==9.0.3` and `pytest-xdist==3.8.0` are pinned so upstream releases cannot
-silently change CI overnight. The full suite remains required: `-n 2 --dist=loadfile` changes only
-scheduling, keeps every file's tests on one worker, and preserves failures; `--durations=50
---durations-min=0.25` makes slow-test evidence visible. The parallel route is not a speedup claim
-until a live Actions run measures it.
+silently change CI overnight. The full suite remains required: `-n 4 --dist=loadfile` matches the
+[four-CPU public `ubuntu-latest` runner](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#choosing-github-hosted-runners),
+changes only scheduling, keeps every file's tests on one worker, and preserves failures.
+`--durations=50 --durations-min=0.25` keeps slow-test evidence visible. PR #876's first parallel
+Actions run measured 98.99s for pytest versus 137.17s serial; that observation does not predict the
+four-worker plus scan-reuse result before its own live run.
 
 ## Explicitly not chosen
 
@@ -598,6 +600,55 @@ direction_change_propagation:
     - not validation or readiness
     - not a reduction in required tests or policy gates
     - not proof of speedup until measured on GitHub Actions
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The required public-repository CI job now uses all four documented ubuntu-latest CPUs while
+    retaining file-grouped isolation; the two measured slow contract gates reuse a single
+    per-process tracked-source snapshot; and silver-lane production discovery excludes gitignored
+    test scratch so concurrent copied-project fixtures cannot contaminate the live-repo gate.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/workflows/ci.yml
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - forseti-harness/tests/contract/test_data_lake_inventory_gate.py
+    - forseti-harness/tests/contract/test_silver_reader_selection_gate.py
+    - .agents/hooks/check_silver_lane_registry.py
+    - forseti-harness/tests/unit/test_silver_lane_registry_guard.py
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/README.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Gate classification, failure behavior, and the required full-suite boundary are unchanged.
+        Excluding already-gitignored generated scratch narrows discovery to production candidates;
+        it does not exempt any tracked production path.
+    - path: .agents/hooks/README.md
+      reason: >
+        Hook command and wiring are unchanged; the scratch exclusion is documented inline in the
+        checker and pinned by its unit regression test.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        The compact map already routes command-level CI configuration to .github/workflows/ci.yml.
+  stale_language_search: >
+    rg -n -- "-n 2|two file-grouped workers|four file-grouped workers|_inventory_snapshot|non_raw_lake_touchpoints|_PRODUCER_DISCOVERY_EXCLUDED_DIRS|_test_runs"
+    .github/workflows/ci.yml docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    forseti-harness/tests/unit/test_ci_hook_wiring.py
+    forseti-harness/tests/contract/test_data_lake_inventory_gate.py
+    forseti-harness/tests/contract/test_silver_reader_selection_gate.py
+    .agents/hooks/check_silver_lane_registry.py
+    forseti-harness/tests/unit/test_silver_lane_registry_guard.py
+  non_claims:
+    - not validation or readiness
+    - not a reduction in required tests or policy gates
+    - not proof of four-worker speedup until measured on GitHub Actions
 ```
 
 Older direction_change_propagation receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
