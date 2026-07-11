@@ -3,23 +3,25 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Forseti overlay authority
-scope: Lightweight Cynefin-based pre-planning router for non-trivial Forseti work.
+scope: Lightweight Cynefin-based pre-planning router for uncertainty-sensitive Forseti work.
 use_when:
-  - Deciding whether to plan, delegate, review, patch, or implement.
-  - Starting substantial, ambiguous, cross-thread, or doctrine-bearing work.
+  - A material uncertainty could change decomposition, authority, source truth, or safe sequencing.
+  - The user explicitly asks for Cynefin or uncertainty-regime classification.
   - Recovering a drifting or messy workstream before more agents act.
 authority_boundary: retrieval_only
 ```
 
-This file owns Forseti's lightweight Cynefin Routing Layer. It prevents agents
-from planning or delegating before they have classified the uncertainty regime,
-named the current constraint, and chosen a safe next move.
+This file owns Forseti's lightweight Cynefin Routing Layer. It regulates work
+when uncertainty about decomposition, authority, source truth, or sequencing
+could materially change the next move.
 
 ## Rule
 
-Run Cynefin routing before planning, delegation, prompt execution, review,
-patching, or infrastructure work when the task is non-trivial and could fail
-because the wrong decomposition strategy is chosen.
+Run the full router only when the task is plausibly `complex`, `chaotic`, or
+`mixed or unclear`, or when a `complicated` task contains a concrete unresolved
+choice that could materially change decomposition, authority, or safe sequence.
+Clear work and ordinary complicated work with a bound outcome, authority, and
+route proceed directly.
 
 Use the smallest complete router. This is not a full Bayesian planning system,
 audit log, review lane, validation gate, or project-management ritual. It is a
@@ -27,55 +29,54 @@ short preflight that constrains the next move.
 
 ## Trigger Conditions
 
-Run the router when any of these are true:
+Run the full router when either condition is true:
 
-- the user asks for architecture, planning, scoping, route selection, or the
-  next move;
-- the user asks to spawn agents, delegate work, execute a prompt, perform
-  review, apply a patch, or commission another lane;
-- the task references another thread as evidence or continuity context;
-- the task touches `AGENTS.md`, the Forseti overlay, prompt templates, review
-  lanes, validation gates, source hierarchy, or durable workflow doctrine;
-- the task would build infrastructure before a material assumption has been
-  proven;
-- the worktree, source map, or ownership boundary is dirty enough that a safe
-  commit, patch, or claim boundary is unclear;
-- the current thread shows drift: many artifacts or actions, unclear
-  bottleneck, weak convergence, or no visible stop condition.
+- the user explicitly invokes Cynefin routing or asks for uncertainty-regime
+  classification; or
+- a material unknown could change the route, such as an unverified assumption
+  that controls architecture or infrastructure, conflicting source/authority,
+  an unclear ownership or dirty-state boundary, competing decompositions with
+  different lock-in, or a drifting workstream with no visible bottleneck or
+  stop condition.
+
+Architecture, planning, scoping, delegation, cross-thread continuity, review,
+patching, doctrine work, and messy worktrees are escalation cues because they
+often contain those unknowns. They are not sufficient triggers by themselves.
+If the outcome, authority, sources, touch points, and validation route are
+already bounded, proceed without a full-router artifact.
 
 ## Bypass Conditions
 
-Do not run the router for narrow, clear, already-scoped work:
+Do not run the full router for clear or ordinary complicated work whose route is
+already bounded, including:
 
 - tiny edits, typo fixes, or mechanical formatting;
 - direct command answers;
 - already accepted implementation steps with bounded touch points and validation;
 - narrow doc cleanup where ownership is obvious;
-- simple bug fixes with an obvious test path and no doctrine or review impact.
+- simple bug fixes with an obvious test path;
+- bounded review, doctrine, delegation, or prompt work whose controlling source,
+  authority, target, and stop condition are already known.
 
-If bypassing could be contested, state a one-line bypass reason before acting.
+Do not emit a bypass receipt. Surface a routing assumption only when it is risky
+or genuinely ambiguous under `AGENTS.md`.
 
 ## Router Output
 
-Use compact headed prose, not YAML. The output should be readable in chat:
+When the full router triggers, use compact headed prose:
 
 ```text
-Smallest complete outcome: What fully satisfies the actual request without extra scope.
-Regime: Clear / Complicated / Complex / Chaotic / Mixed or Unclear.
-Why: One sentence.
-Decomposition: Functional, layer-based, risk-first probe, stabilize first, or split and classify.
-Current bottleneck: The concrete constraint that should govern WIP.
-Riskiest assumption: The assumption most likely to change the route.
+Smallest complete outcome: What fully satisfies the request without extra scope.
+Regime and why: Complex / Chaotic / Mixed or Unclear / materially unresolved Complicated.
+Current bottleneck and riskiest assumption: The constraint and unknown governing WIP.
+Allowed next move: The next probe, source read, decision, or bounded action.
 Stop or pivot condition: The evidence that would make the current route wrong.
-Allowed next move: What may happen next.
 Disallowed next move: What must not happen next.
 ```
 
-When the router is intentionally skipped, use one plain line:
-
-```text
-Cynefin bypass: <why this is narrow, clear, or already scoped>.
-```
+Keep this internal when it only regulates the current actor. Put it in chat or a
+durable prompt when the route itself is decision-bearing, another lane must
+inherit it, or the user asks to see it.
 
 ## Regimes
 
@@ -103,9 +104,9 @@ label when the first safe move is to separate the problem.
 
 ## Execution Contract
 
-The router must produce an allowed next move and a disallowed next move before
-planning continues. The disallowed move is load-bearing: it prevents the agent
-from turning spare capacity into non-bottleneck work.
+When the full router triggers, it must produce an allowed next move and a
+disallowed next move before planning continues. The disallowed move prevents
+spare capacity from becoming non-bottleneck work.
 
 The smallest complete outcome is also load-bearing. It names what would satisfy
 the actual request, so correct classification does not become permission for
@@ -150,9 +151,9 @@ the owner/tooling decision.
 ## Prompt Propagation
 
 Repo-aware prompts, wrappers, handoffs, review prompts, patch prompts, and
-reruns must include Cynefin routing when their task matches the trigger
-conditions. Prompt artifacts should reference this file instead of restating
-the whole router.
+reruns include Cynefin routing only when the full-router conditions above
+trigger. Prompt artifacts should reference this file instead of restating the
+router.
 
 ## Subagent Model Tiering
 
@@ -208,9 +209,8 @@ token math.
 
 ## Non-Claims
 
-Cynefin routing is not validation, readiness, approval, acceptance, review,
-implementation authorization, source-of-truth promotion, or proof that a route
-will work. It is a pre-planning constraint on how the next move is chosen.
+Cynefin routing chooses a safe next-move posture; it does not validate or
+authorize the underlying work.
 
 ## Direction Change Propagation
 
@@ -262,5 +262,4 @@ direction_change_propagation:
     - no token-savings efficacy claim
 ```
 
-Older receipts for this file live verbatim in
-`docs/decisions/dcp_receipts_archive_v0.md`.
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

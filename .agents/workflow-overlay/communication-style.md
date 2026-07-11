@@ -62,8 +62,8 @@ For doctrine-changing file writes or source-changing closeouts, include the
 `direction_change_propagation` receipt or
 `direction_change_propagation_blocker` from
 `.agents/workflow-overlay/source-of-truth.md` in the agent-readable detail or
-compact courier state. Do not present that receipt as validation, readiness,
-approval, acceptance, proof, implementation authorization, or source promotion.
+compact courier state. Present it only as propagation evidence, never as a
+downstream status or authority claim.
 
 ## Readability Rules
 
@@ -126,11 +126,9 @@ reports, preserve this order:
 6. Reviewer verdict or recommendation: the reviewer summary, if one is bound.
 
 Reviewer recommendations in `review_summary` are courier and decision input.
-They are not acceptance, approval, validation, readiness, mandatory
-remediation, or patch authority unless a separate Forseti decision or execution
-lane binds that result. Do not add a synthesis lane by merging multiple review
-reports into a new authority surface; unresolved review disagreement remains
-Chief Architect adjudication unless Forseti later binds another owner.
+Acceptance or execution authority requires a separate binding. Do not create a
+synthesis authority by merging reports; unresolved disagreement stays with the
+Chief Architect unless Forseti binds another owner.
 
 ## Review Adjudication Next Step
 
@@ -154,24 +152,28 @@ Then route the next step by the adjudicated state:
 - Once no unresolved material issue remains, admin/lifecycle steps (commit, push,
   PR, merge) collapse into exactly one batched "land" step, with no
   deep-thinking -- they are rote.
-- After a clean adjudication, material moves get the deep-thinking: the next 1-5
-  substantive steps that need judgment, each named with why it compounds and its
-  main risk. Pure admin never counts as one of those material steps.
+- After a clean adjudication, if a visible active goal,
+  `thread_operating_target`, or accepted next objective exists, material moves
+  get the deep-thinking in the same turn: name the next 1-5 substantive steps
+  that best advance it, with why each compounds and its main risk. Pure admin
+  never counts as a material move.
+- If no such goal or objective is visible, do not invent one and do not spend a
+  follow-up turn asking merely to run the material-move pass. Record
+  `no_visible_active_goal` compactly and stop after the closure or land step.
 
-The tail is a required part of every adjudication closeout, not an optional
-pass: the closeout ends with the one land step (or the closure route when a
-non-self-closable issue blocks) plus the material moves -- 1-5 named steps, or
-an explicit "none" with a one-line reason. A closeout that stops at the verdict
-without this tail is malformed, not merely terse. No material moves means the
-one land step is the whole next step, so the pass stays cheap on every
-adjudication instead of becoming ceremony. It fills the
+The tail remains a required same-turn check: the closeout ends with the one land
+step (or the closure route when a non-self-closable issue blocks) plus either
+1-5 goal-bound material moves or an empty material-moves result with one reason
+(`no_visible_active_goal` or `material_issue_blocks_planning`). A closeout that
+stops at the verdict without this check is malformed. In prose, the empty result
+may be one line; do not turn it into a form. The tail fills the
 closeout's `next_action` (YAML form) or "next authorized step" (prose form);
 `next_action` stays a single string -- unresolved-review closure first when
-needed; otherwise the one land step first, then the material moves when they
-exist. Review prompts and review-return prompts carry this as their next-moves
-tail (see `.agents/workflow-overlay/prompt-orchestration.md`, Review Prompt
-Defaults). This governs an adjudicated review's next step; it does not change the
-failed-write `next_action` routing below.
+needed; otherwise the land step first, then goal-bound material moves when they
+exist. Review prompts and review-return prompts carry this check (see
+`.agents/workflow-overlay/prompt-orchestration.md`, Review Prompt Defaults).
+This governs an adjudicated review's next step; it does not change failed-write
+routing.
 
 ## Adversarial Review Summary Pattern
 
@@ -385,4 +387,4 @@ direction_change_propagation:
     - not runtime model routing
 ```
 
-Receipts cycled out of this inline section move verbatim to `docs/decisions/dcp_receipts_archive_v0.md`.
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

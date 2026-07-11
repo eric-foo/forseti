@@ -20,12 +20,11 @@ prompt authoring.
 
 ## Forseti Prompt Preflight
 
-Routine Forseti prompts apply this core inline — no skill reload. It is the checkable
-distillation of the most load-bearing per-prompt deltas plus the review and
-doctrine bindings below; it is **additive** and narrows nothing — the full
-Required Preflight Fields, Review Prompt Defaults, and Output Modes sections
-remain the complete contract and still govern fused, delegated-review-patch, and
-novel cases. State, per prompt:
+Routine Forseti prompts apply this core inline — no skill reload. For an
+ordinary, already-scoped, single-target prompt, this core is the complete
+preflight contract; it does not inherit the Escalated Preflight Fields or require
+a `forseti_start_preflight` receipt. Review Prompt Defaults and Output Modes still
+govern when their task-specific triggers apply. State, per prompt:
 
 1. **Output mode** — exactly one of `chat-only` · `file-write` · `review-report` · `paste-ready-chat` · `patch-queue`, plus its write/report destination.
 2. **Template kind** — the bound template from `.agents/workflow-overlay/template-registry.md`, or `none`; template targets are prompt-shaping labels, never runtime-model routing.
@@ -36,15 +35,15 @@ novel cases. State, per prompt:
 
 Repo-constant fields (workspace path, required reads, external-source boundary,
 retrieval-header defaults) may be referenced via
-`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`; the per-prompt
-deltas above stay explicit. This core is the routine fast-path; it does not reduce
-the Required Preflight Fields obligation and does not replace the full contract for
-fused, delegated-review-patch, or novel/cross-lane prompts, which author through
-`workflow-prompt-orchestrator`.
+`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` when escalated
+preflight applies. Routine prompts state only the core above; do not add unused
+field placeholders or a start receipt for form completeness. Fused,
+delegated-review-patch, and novel/cross-lane prompts author through
+`workflow-prompt-orchestrator` and use the escalated contract below.
 
 ## Source Boundary
 
-Forseti-specific facts, product constraints, artifact paths, review lanes, validation gates, and safety rules must come from `AGENTS.md`, this overlay, or accepted Forseti docs named in `.agents/workflow-overlay/source-of-truth.md`. Prompt mechanics come from those same sources; see Required Preflight Fields below for the field-level authority list.
+Forseti-specific facts, product constraints, artifact paths, review lanes, validation gates, and safety rules must come from `AGENTS.md`, this overlay, or accepted Forseti docs named in `.agents/workflow-overlay/source-of-truth.md`. Prompt mechanics come from those same sources; see Escalated Preflight Fields below when the routine core is insufficient.
 
 Prompt-policy, handoff, wrapper, review, output-mode, or execution-contract
 changes that alter durable agent behavior are doctrine-changing when they touch
@@ -217,11 +216,9 @@ the surface text looks complete — the defect is the skipped contract, not the
 surface. The contract is applied at two depths:
 
 - **Routine prompts** apply the **Forseti Prompt Preflight** core (above) inline — no
-  skill reload. The core is how a routine prompt *satisfies* the contract without
-  reloading the skill — not a shorter field set: a repo-aware prompt still owes the
-  full Required Preflight Fields (most carried by the core's deltas plus the
-  referenced `forseti_preflight_defaults_v0.md`). Use the routine path only for a
-  prompt that is ordinary, already-scoped, and single-target.
+  skill reload. The core fully satisfies the contract for an ordinary,
+  already-scoped, single-target prompt; it owes no escalated fields or durable
+  start receipt solely because it is repo-aware.
 - **Fused, delegated-review-patch, and novel or cross-lane prompts** author through
   the full **`workflow-prompt-orchestrator`** skill, which owns prompt
   source-loading and the full preflight/routing contract. **A prompt is never
@@ -399,12 +396,15 @@ the smallest complete closure step only for an issue that needs another review
 round, another lane, an architecture pass, or an owner decision; once no
 unresolved material issue remains, batch all admin/lifecycle follow-ups
 (commit, push, PR, merge) into exactly one named land step with no
-deep-thinking, then deep-think the 1-5 material moves that need judgment. The
-land step plus material moves are a required closeout tail, never omitted. This
-is the tail mirror of the deep-thinking-first rule above: it runs after
-adjudication, does not widen review scope or authorize patching, and produces the
-closeout's next step. The exact adjudication-state/admin/material shape is owned
-by `.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
+deep-thinking. If a visible active goal, `thread_operating_target`, or accepted
+next objective exists, deep-think the 1-5 material moves that best advance it in
+the same turn. If none exists, record that compactly and do not invent material
+moves. The closure/land step plus this goal-conditioned material-move check are
+a required closeout tail; do not defer the check to another turn. This is the
+tail mirror of the deep-thinking-first rule above: it runs after adjudication,
+does not widen review scope or authorize patching, and produces the closeout's
+next step. The exact shape is owned by
+`.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
 Step); do not restate it here.
 
 Delegated review-and-patch commissions are repo-mode by default. `no_repo` is
@@ -522,19 +522,19 @@ use `report_path`, name the failed report path, and include enough human-
 readable failure detail to route. Use chat-only review only when write authority
 or report destination is not bound before the review begins.
 
-## Required Preflight Fields
+## Escalated Preflight Fields
 
-Every repo-aware Forseti prompt must include or reference the
-`forseti_start_preflight` receipt owned by
-`.agents/workflow-overlay/source-loading.md`. Prompt authors may record the
-fields in that receipt or in adjacent preflight prose, but the prompt must make
-the start state checkable. Repo-constant fields (workspace path, required reads,
-external source boundary, retrieval header defaults) may be referenced via
-`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` instead of
-restated; required per-prompt deltas listed in that artifact must still be
-stated explicitly in every prompt that references it.
+Fused, delegated-review-patch, novel, cross-lane, source-heavy, multi-target,
+reusable/canonical, patch-queue, or executor-ready prompts include or reference
+the `forseti_start_preflight` receipt owned by
+`.agents/workflow-overlay/source-loading.md`. These cases must make their start
+state portable because another actor or later lane will rely on it. Repo-constant
+fields may be referenced via
+`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`; required
+escalated deltas in that artifact remain explicit. Routine prompts stop at the
+core above.
 
-Every repo-aware Forseti prompt must state:
+Every escalated prompt must state:
 
 - whether `AGENTS.md` and `.agents/workflow-overlay/README.md` were read or
   supplied in the current task context;
@@ -627,16 +627,17 @@ prompt must have applied the prompt contract at the correct depth (see "Author
 Through The Prompt Orchestrator") — the **Forseti Prompt Preflight** core for a
 routine prompt, or the full `workflow-prompt-orchestrator` skill for a fused,
 delegated-review-patch, or novel/cross-lane prompt. An artifact that skipped the
-contract — and therefore source-loading and this preflight/routing contract — is a
-prompt-quality defect; apply the preflight (routine) or reconstruct through the
-orchestrator (novel), and record that, before use.
+applicable contract is a prompt-quality defect; apply the core for a routine
+prompt or reconstruct an escalated prompt through the orchestrator before use.
+A durable start receipt is required only for the escalated cases.
 
 Before using a generated Forseti prompt, apply these gates:
 
-1. Start preflight complete: `AGENTS.md` and
+1. Applicable preflight complete: `AGENTS.md` and
    `.agents/workflow-overlay/README.md` were read or supplied in the current
-   task context; source pack, edit permission, target scope, and dirty-state
-   check are recorded according to `.agents/workflow-overlay/source-loading.md`.
+   task context. Routine prompts carry the six-field core and no start receipt;
+   escalated prompts carry the portable start receipt and fields above.
+   Repository-state fields are stated only when material.
    Modified or untracked controlling sources block strict readiness,
    acceptance, validation, proof, `PASS`, or `ADEQUATE_NOW` claims unless owner
    acceptance or controlling authority is explicit.
@@ -696,36 +697,6 @@ Before using a generated Forseti prompt, apply these gates:
 - Generic layout ideas may be reused only after binding to Forseti paths, artifact roles, output modes, and validation gates.
 
 ## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Review-prompt economy: ordinary single-target read-only reviews may use the
-    routine preflight path when no escalation trigger applies; deep-thinking is
-    required by trigger rather than for every review prompt; delegated route-out
-    delivery follows source-role filing classification, where paste-ready chat is
-    a copy/surface rather than a substitute for required filed or lane-scoped
-    prompt carriage.
-  trigger: workflow_authority
-  related_triggers: [review_authority, output_authority]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/source-loading.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: Operating Economy already says deep-thinking is triggered-only; this patch reconciles subordinate review/prompt doctrine to that kernel.
-    - path: .agents/workflow-overlay/source-loading.md
-      reason: Source-Gated Method Contract and source readiness are unchanged.
-  non_claims:
-    - not validation
-    - not readiness
-    - not runtime model routing
-    - not patch authorization
-```
 
 ```yaml
 direction_change_propagation:

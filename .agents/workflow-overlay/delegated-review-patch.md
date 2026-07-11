@@ -82,12 +82,13 @@ adjudicator's own modify/reject adjudications to the target -- in the same
 turn; route a smallest-complete closure step only for an issue that genuinely
 needs another review round, another lane, an architecture pass, or an owner
 decision; once clean, batch admin/lifecycle follow-ups into exactly one land
-step with no deep-thinking and deep-think the 1-5 material next moves that need
-judgment. The land step plus the material moves are a required tail of the
-adjudication closeout, not an optional pass -- an adjudication that ends at the
-verdict without them is incomplete. This is a prompt-return obligation for the
-adjudicator, not permission for the delegate to decide what is kept or to widen
-review scope.
+step with no deep-thinking; then, when a visible active goal,
+`thread_operating_target`, or accepted next objective exists, deep-think the 1-5
+material next moves that best advance it. When none exists, record
+`no_visible_active_goal` rather than inventing a roadmap. The land/closure step
+plus this goal-conditioned material-move check are a required same-turn tail;
+do not defer the check to another turn. This is an adjudicator obligation, not
+permission for the delegate to decide what is kept or widen review scope.
 
 **Delegated review-output finalization gate.** Any delegated review output
 written under `docs/review-outputs/` blocks final chat closeout until, after the
@@ -340,7 +341,7 @@ delegated_review_patch_overlay_interface:
       hash-confirmable verbatim attachment; assembler/CA runs the target-kind method's freshness gate pre-bundle and records the result. Default package shape: a self-contained bundle (verbatim target attachment(s) + a guardrail-complete README carrying the method/authority/contract) delivered with a thin-wrapper chat prompt pointing at the in-bundle README; the wrapper still carries the cross-vendor who-constraint; inline the method in chat when the reviewer cannot read in-bundle files.
   preflight_schema:
     - forseti_start_preflight (.agents/workflow-overlay/source-loading.md)
-    - Required Preflight Fields (.agents/workflow-overlay/prompt-orchestration.md)
+    - Escalated Preflight Fields (.agents/workflow-overlay/prompt-orchestration.md)
   source_context_fields:
     - Source-Gated Method Contract REFERENCE-LOAD / SOURCE-LOAD / SOURCE_CONTEXT_READY (.agents/workflow-overlay/prompt-orchestration.md)
     - source packs and read budgets (.agents/workflow-overlay/source-loading.md)

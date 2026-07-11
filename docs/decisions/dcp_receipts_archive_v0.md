@@ -3999,3 +3999,98 @@ direction_change_propagation:
     - not source-quality token migration
     - not implementation authorization
 ```
+
+## Archived from .agents/workflow-overlay/prompt-orchestration.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Review-prompt economy: ordinary single-target read-only reviews may use the
+    routine preflight path when no escalation trigger applies; deep-thinking is
+    required by trigger rather than for every review prompt; delegated route-out
+    delivery follows source-role filing classification, where paste-ready chat is
+    a copy/surface rather than a substitute for required filed or lane-scoped
+    prompt carriage.
+  trigger: workflow_authority
+  related_triggers: [review_authority, output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-loading.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: Operating Economy already says deep-thinking is triggered-only; this patch reconciles subordinate review/prompt doctrine to that kernel.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: Source-Gated Method Contract and source readiness are unchanged.
+  non_claims:
+    - not validation
+    - not readiness
+    - not runtime model routing
+    - not patch authorization
+```
+
+
+## Archived from .agents/workflow-overlay/source-of-truth.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Receipt-archiving rule adopted (at most two most-recent receipts inline per
+    controlling file; older receipts move verbatim to the single authorized
+    standalone archive docs/decisions/dcp_receipts_archive_v0.md; inline section
+    ends with one pointer line to the archive; no other standalone receipt files)
+    AND strength-preserving compression of prompt-orchestration.md and
+    source-of-truth.md (duplicate prose collapsed, multi-sentence annotations
+    tightened to one sentence; every must/never/only/required obligation
+    preserved verbatim or in equivalent enumeration).
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-loading.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md is the agent-behavior kernel; it carries no receipt mechanics
+        and does not enumerate inline-vs-archive storage rules. The kernel
+        already routes doctrine-changing work to the overlay.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its gate 12 defers to source-of-truth.md for receipt mechanics and its
+        "standalone receipt file" prohibition refers to unauthorized expansions,
+        not the one authorized archive. No gate logic changes.
+  stale_language_search: >
+    rg -i -n "standalone receipt|inline in the changed artifact|do not create a standalone"
+    .agents docs AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-06-13 in worktree orca-f2-trim-wt (branch f2-doctrine-trim,
+    base origin/main). Hits: .agents/workflow-overlay/validation-gates.md:33
+    ("standalone receipt file" in the prohibition list for unauthorized
+    expansions — consistent with the new rule; the one authorized archive is
+    named in source-of-truth.md and not prohibited).
+    .agents/workflow-overlay/source-of-truth.md:106,109,110 — the amended
+    paragraph introducing the archive rule.
+    .agents/workflow-overlay/artifact-folders.md:203 — DCP contract stores
+    receipts inline, consistent.
+    docs/prompts/handoffs/ecr_jsg01_source_side_receipt_lane_setup_v0.md:87 —
+    unrelated "no standalone receipt file" in a prompt context.
+    review-input and review-output snapshots — contain historical text only.
+    No live surface retains an instruction that contradicts the new archive rule
+    or the removed "Do not create a standalone receipt file" sentence.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```

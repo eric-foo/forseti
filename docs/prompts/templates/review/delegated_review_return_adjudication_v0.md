@@ -30,13 +30,14 @@ Inputs to bind before adjudication:
 - Target path(s) and bounded patch scope.
 - Delegate return: findings, diff or advisory findings, citations, verdict, residuals, and provenance fields when supplied.
 - Current repo/worktree state if repo access exists.
+- Visible active goal, `thread_operating_target`, or accepted next objective, when any.
 
 Adjudication order:
 
 1. Verify scope and provenance. Confirm the delegate stayed within the commissioned access mode, patch scope, protected-path boundary, and output mode. If provenance is missing, record `unrecorded`; never fabricate it. For any saved report under `docs/review-outputs/`, run `python .agents/hooks/check_review_output_provenance.py --strict <report-path>` after the final report write; if it fails, fix the report or block closeout rather than promising a later check.
 2. Adjudicate each finding and each changed hunk as `accept`, `modify`, `reject`, `defer`, or `escalate`. Cite the source basis for the adjudication. Veto changes that add no benefit or create net-negative complexity even if individually defensible.
 3. Decide the material cleanliness state. If a remaining issue is self-closable -- its closure sits inside your own adjudication authority and the commissioned scope, such as applying your own modify/reject adjudications to the target on the lane branch -- close it now, in this same turn, and re-check the state. Stop downstream planning and set `next_action` to the smallest complete closure route only when a remaining issue genuinely needs another review round, another lane, an architecture pass, or an owner decision.
-4. Once no unresolved material issue remains, collapse all admin/lifecycle work into exactly one land step. Then deep-think the next 1-5 material moves that need judgment. Admin does not count as a material move. The land step and `next_material_steps` are a required tail on every closeout: emit 1-5 material steps, or an explicit empty list with `next_material_steps_reason` when a non-self-closable closure route blocks planning or no material move genuinely exists.
+4. Once no unresolved material issue remains, collapse all admin/lifecycle work into exactly one land step. If a visible active goal or accepted objective exists, deep-think the next 1-5 material moves that best advance it; admin does not count. If none exists, do not invent a roadmap or defer the check—return an empty list with `next_material_steps_reason: no_visible_active_goal`. A material issue that blocks planning uses `material_issue_blocks_planning`.
 
 Output shape:
 
@@ -51,14 +52,11 @@ adjudication_closeout:
   residuals: []
   review_output_integrity_check: "<observed command/result for saved docs/review-outputs report; unrecorded when no saved report exists>"
   admin_land_step: "<exactly one step when anything is landable; null only when a non-self-closable issue blocks landing>"
-  next_material_steps:   # REQUIRED on every closeout: 1-5 entries, or [] with next_material_steps_reason
+  next_material_steps:   # REQUIRED check: 1-5 goal-bound entries, or [] with a reason
     - step: "<material step, not admin>"
       why_it_compounds: "<short reason>"
       main_risk: "<short risk>"
-  next_material_steps_reason: "<required only when next_material_steps is []; one line>"
-  next_action: "<closure route only when a non-self-closable material issue remains; otherwise land step first, then material moves if any>"
-  non_claims:
-    - not validation
-    - not readiness
-    - not runtime model routing
+  next_material_steps_reason: "<no_visible_active_goal | material_issue_blocks_planning; required only when []>"
+  next_action: "<closure route when blocked; otherwise land step first, then goal-bound material moves if any>"
+  boundary: "Adjudication output does not validate the target, authorize extra scope, or route a runtime model."
 ```
