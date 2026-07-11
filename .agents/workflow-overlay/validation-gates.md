@@ -38,6 +38,15 @@ inherit this floor.
 ## Current Gates
 
 - Required Forseti files exist before claiming bootstrap completion.
+- Diff-scoped CI gates bind one exact event base SHA: pull requests use
+  `github.event.pull_request.base.sha`; pushes to `main` use
+  `github.event.before`. `.github/workflows/ci.yml` exports that value as
+  `FORSETI_DIFF_BASE` and fails closed before policy gates when it is absent,
+  all-zero, malformed, or unresolvable after full-history checkout. Checker
+  resolution priority is `FORSETI_DIFF_BASE`, then `$GITHUB_BASE_REF`, then
+  an explicit CLI base, then local `origin/main`. The local pre-push mirror
+  deliberately leaves the CI variable unset and scans outgoing
+  `origin/main...HEAD`; this event contract changes CI scope, not hook scope.
 - No software implementation directories are present unless explicitly authorized.
 - `AGENTS.md` and overlay files do not encode `jb` project-specific authority as Forseti rules.
 - Material authority, source-scope, edit-permission, and repository-state checks
@@ -131,7 +140,8 @@ inherit this floor.
   `.agents/hooks/check_hash_pin_freshness.py` (CI `--strict`; local pre-push
   mirror; whole-repo advisory via `--audit`, never gated).
 - Ontology-tag validity gate: changed tracked Markdown files are scanned against
-  the ontology SSOT roster over `origin/main...HEAD`; an additive annotation
+  the ontology SSOT roster over the CI event base (or local pre-push
+  `origin/main...HEAD`); an additive annotation
   that looks like an ontology type but names no roster type fails. Deletions,
   untracked files, scratch, and nested worktrees are outside strict diff scope;
   `--check` retains the explicit whole-tree advisory scan. Enforced by
@@ -348,7 +358,8 @@ Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
   at session start so every lane sees the advisory health count without walking the
   tree itself.
 - `--strict`: **CI gate — diff-scoped, forward-only.** For changed durable `.md`
-  files only (vs `$GITHUB_BASE_REF` or `origin/main`): fails (exit 1) if a
+  files only (vs the CI event base, PR branch fallback, or local
+  `origin/main`): fails (exit 1) if a
   changed doc is MISSING-HEADER or is an ORPHAN (not substring-found in the repo
   map or any submap).  Pre-existing backlog is never gated — only new/changed docs
   are in scope.  Fails OPEN (exit 0) if diff-scoping is unavailable; never falls
@@ -419,8 +430,10 @@ policy behind the `.githooks/pre-push` adapter). For a push whose update lines
 pass the guard's safety checks, the guard runs nine strict CI gates over the
 outgoing `origin/main...HEAD` change: retrieval links and headers, review
 routing and review-output provenance, source-input and markdown hash freshness,
-prompt output mode, handoff-pointer resolution, and ontology tag validity. The
-same commands run in `.github/workflows/ci.yml`; the mirror adds no rule. A
+prompt output mode, handoff-pointer resolution, and ontology tag validity.
+The same checker modes run in `.github/workflows/ci.yml`; CI supplies its
+exact event base while pre-push supplies local `origin/main`; the mirror adds
+no rule. A
 nonzero or unlaunchable gate blocks the push (the GATE FAIL bucket above); the
 checkers' documented infra-gap fail-opens remain loud and unchanged. The four
 gates added 2026-07-11 were selected from observed CI failure frequency and
@@ -538,60 +551,6 @@ markdown sibling of the EP-37 JSON gate. Registered in
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Owner decision recorded (2026-07-10): the EP-10 review-summary gate's
-    narrowed shape is accepted as standing -- full recommendation enum
-    membership stays --audit-only advisory, the delegated-review-patch
-    extended recommendation vocabulary stays unbound, and the
-    communication-style.md 5-value enum remains the canonical target for
-    new review summaries; the pending-decision language on the gate's live
-    surfaces is retired.
-  trigger: validation_philosophy
-  related_triggers:
-    - review_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - .agents/hooks/check_review_summary.py
-  downstream_surfaces_checked:
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/communication-style.md
-      reason: >
-        The 5-value enum stays as-written: this decision keeps enforcement
-        advisory; it does not widen, bind, or endorse the extended
-        vocabulary.
-    - path: .agents/workflow-overlay/delegated-review-patch.md
-      reason: >
-        Its lanes' extended vocabulary stays deliberately unbound under
-        this decision; binding vocabulary there was the rejected
-        alternative.
-    - path: docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
-      reason: >
-        Commissioning-time record; its binding instruction (never gate
-        enum membership) remains true under this decision.
-  stale_language_search: >
-    rg -in "owner-blocked|flagged owner decision|flagged for owner|pending
-    an owner decision|owner decision, not a checker default"
-    .agents/hooks/check_review_summary.py
-    .agents/workflow-overlay/validation-gates.md
-    docs/decisions/overlay_enforcement_placement_classification_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-10 after edits: remaining hits are the prior
-    gate-wave DCP receipt above (an immutable historical record) and
-    unrelated decisions (self-merge interim wording, EP-04 hook wiring);
-    no live EP-10 surface still reads as pending.
-  non_claims:
-    - not validation
-    - not readiness
-    - not approval of any historical out-of-enum recommendation value
-    - not review quality or finding truth
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
     CI and local feedback placement now fail earlier without weakening the
     authoritative CI boundary: four observed fast failure classes (prompt
     output mode, review-output provenance, handoff pointers, ontology tags)
@@ -645,6 +604,60 @@ direction_change_propagation:
     - not review quality or finding truth
     - not ontology correctness or semantic validity
     - a green pre-push or CI run is not approval
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Diff-scoped CI policy gates now bind the exact GitHub event transition base:
+    pull-request base SHA for PRs and the pre-push `before` SHA for pushes to
+    main. The workflow verifies that SHA before any policy gate and fails closed
+    on zero, malformed, or unresolvable event bases; all internal base resolvers
+    give `FORSETI_DIFF_BASE` highest precedence. Local pre-push retains its
+    outgoing `origin/main...HEAD` contract.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .github/workflows/ci.yml
+    - .agents/hooks/
+    - .agents/hooks/README.md
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/safety-rules.md
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  intentionally_not_updated:
+    - path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+      reason: >
+        Branch cadence, required-check identity, and landing authority do not
+        change; this patch repairs the input scope of the existing CI job.
+    - path: .githooks/pre-push
+      reason: >
+        The adapter remains a thin launcher. Local outgoing-diff semantics stay
+        in pre_push_guard.py and deliberately do not consume GitHub event state.
+    - path: .agents/hooks/check_review_output_provenance.py
+      reason: >
+        Its explicit --diff API already accepts an exact SHA; only the CI caller
+        needed to stop passing origin/main.
+  stale_language_search: >
+    rg -n "same base CI|CI resolves for|CI runs --diff origin/main|ontology
+    SSOT roster over origin/main...HEAD" .agents .github
+    docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-11 after edits: the only match is this receipt's own
+    declared stale-search string; no live hook, workflow, validation rule, or
+    repo-map description retains the superseded CI origin/main contract.
+  non_claims:
+    - not validation
+    - not readiness
+    - not approval
+    - not a change to local pre-push scope
+    - not coverage of non-fast-forward push transitions
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

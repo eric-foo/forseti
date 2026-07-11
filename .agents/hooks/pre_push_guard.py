@@ -27,8 +27,9 @@ ZERO = "0" * 40
 MAIN_REFS = {"main", "refs/heads/main"}
 
 # Selected strict gates mirrored from .github/workflows/ci.yml. The diff-scoped
-# checkers default their base to origin/main -- the same base CI resolves for
-# a PR -- so a local result predicts the CI result for these gates. Rule
+# checkers default their base to origin/main for the outgoing lane. CI uses the
+# exact event base SHA instead; for normal fast-forward PR/main history both
+# scopes represent the same net lane change. Rule
 # authority: .agents/workflow-overlay/validation-gates.md ("Enforcement
 # Placement"); each checker references its own rule owner.
 DOC_GATES = (
