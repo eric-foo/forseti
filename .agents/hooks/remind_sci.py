@@ -49,27 +49,24 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Durable artifact folders whose creation/edit warrants the SCI nudge.
-IN_SCOPE_PREFIXES = (
-    "docs/decisions/",
-    "docs/product/",
-    "docs/prompts/",
-    "docs/workflows/",
-    "docs/migration/",
-    "docs/hygiene/",
-    "docs/review-inputs/",
-    "docs/review-outputs/",
-    ".agents/workflow-overlay/",
-    "forseti/product/",
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    EXCLUDED_DOC_PREFIXES,
+    DURABLE_DOC_PREFIXES,
+    GIT_PREFIX,
+    porcelain_paths,
+    repo_root,
+    shell_segments,
+    to_relposix,
 )
 
+# Durable artifact folders whose creation/edit warrants the SCI nudge: the
+# shared durable-docs base plus forseti/product/ (product artifacts also lock
+# scope in, but sit outside the retrieval-metadata applicability list).
+IN_SCOPE_PREFIXES = DURABLE_DOC_PREFIXES + ("forseti/product/",)
+
 # Subtrees excluded even under an in-scope prefix (scratch, skill copies, config, code).
-EXCLUDED_PREFIXES = (
-    "docs/_inbox/",
-    ".agents/skills/",
-    ".claude/",
-    "forseti-harness/",
-)
+EXCLUDED_PREFIXES = EXCLUDED_DOC_PREFIXES
 
 # VERBATIM mirror of the "Smallest Complete Intervention" section of AGENTS.md,
 # inlined (not a pointer) so the full rule rides in the reminder with no fetch.
@@ -102,35 +99,12 @@ REMINDER = (
     + _SCI_VERBATIM
 )
 
-# --- git commit detection (mirrors guard_protected_actions' segment parsing) ---
+# --- git commit detection (shared segment parsing from _hooklib; the hard
+# guard keeps its own copy deliberately -- see _hooklib's standalone exception) ---
 # Self-imposed ceiling on the `git status` call, kept below the hook's settings.json
 # timeout so a slow git never trips a harness-level kill.
 GIT_TIMEOUT = 6
-# `git` invocation allowing -C <path> / -c k=v / global flags before the subcommand.
-_GIT_PREFIX = r"\bgit\b(?:\s+-C\s+\S+|\s+-c\s+\S+|\s+--?\S+)*\s+"
-_COMMIT = re.compile(_GIT_PREFIX + r"commit\b", re.I)
-# Split on shell separators (so `git add -A && git commit` is seen) and drop quoted
-# args first (so a commit MESSAGE -- or an `echo "git commit"` -- is not mistaken
-# for the command itself).
-_SEP = re.compile(r"&&|\|\||[;\n|]")
-_QUOTED = re.compile(r"\"[^\"]*\"|'[^']*'")
-
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
-
-
-def to_relposix(target: str, root: Path) -> str | None:
-    """Repo-relative POSIX path for a target, or None if outside the repo."""
-    p = Path(target)
-    if p.is_absolute():
-        try:
-            return p.resolve().relative_to(root).as_posix()
-        except (ValueError, OSError):
-            return None
-    s = Path(target).as_posix()
-    return s[2:] if s.startswith("./") else s  # strip a literal leading "./"
+_COMMIT = re.compile(GIT_PREFIX + r"commit\b", re.I)
 
 
 def in_scope(relposix: str) -> bool:
@@ -152,22 +126,16 @@ def _is_git_commit(command: str) -> bool:
     """True if any shell segment of `command` is a `git commit` invocation. Quoted
     args are dropped first so a commit message (or an `echo "git commit"`) cannot
     false-match; segments are split so `git add -A && git commit` is still seen."""
-    cmd = _QUOTED.sub(" ", command or "")
-    return any(_COMMIT.search(seg) for seg in _SEP.split(cmd))
+    return any(_COMMIT.search(seg) for seg in shell_segments(command))
 
 
 def _durable_from_porcelain(porcelain: str, root: Path) -> list[str]:
     """Repo-relative durable-artifact paths parsed from `git status --porcelain`.
-    Pure (testable): handles rename/copy `old -> new` (keeps the destination) and
-    reuses the same in_scope filter the write boundary used."""
+    Pure (testable): porcelain parsing is shared (_hooklib.porcelain_paths, which
+    keeps a rename/copy's destination); the same in_scope filter the write
+    boundary used is applied on top."""
     hits = []
-    for line in (porcelain or "").splitlines():
-        if len(line) < 4:
-            continue
-        path = line[3:]
-        if " -> " in path:  # rename/copy: the committed path is the destination
-            path = path.split(" -> ", 1)[1]
-        path = path.strip().strip('"')
+    for path in porcelain_paths(porcelain):
         rel = to_relposix(path, root)
         if rel and in_scope(rel):
             hits.append(rel)
