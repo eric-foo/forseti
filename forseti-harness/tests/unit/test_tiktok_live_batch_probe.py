@@ -81,6 +81,8 @@ class _FakeObservationEngine:
         settle_seconds: float = 0.0,
         lazy_load_scroll_passes: int = 0,
         lazy_load_scroll_step_px: int = 0,
+        lazy_load_response_stop_condition: object = None,
+        dom_extract_after_lazy_load: bool = False,
         block_resource_types: tuple[str, ...] = (),
         proxy_profile: object = None,
         storage_state_path: Path | None = None,
