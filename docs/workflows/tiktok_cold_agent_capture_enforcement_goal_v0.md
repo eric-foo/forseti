@@ -62,7 +62,7 @@ Success signal:
   - Boundary: success is not a live capture guarantee, scale proof, account-safety proof, full-network no-proxy proof, CAPTCHA-solving authorization, or creator-registry promotion.
   - Drift cue: the work is drifting if it adds more prose reminders without moving a mechanically checkable blocker or admission rule into code.
 - Secondary success signals:
-  - The first controlled sessioned probe can run with `cloakbrowser`, `client_provided_session`, `--require-harness-proxy-posture no_proxy_profile_loaded`, named blocker actions, and local `--admit-output` before any bronze write.
+  - The first controlled sessioned probe can resolve `chowdakr_sg_tiktok` to its machine-local CloakBrowser session mode and required harness proxy posture, then use named blocker actions and local `--admit-output` before any bronze write.
   - A failed close, unsupported subtitle host, missing provenance sidecar, or owner-attention condition stops with a typed reason that future agents can act on.
 
 ```yaml
@@ -76,7 +76,7 @@ goal_handoff:
       boundary: Not live capture guarantee, scale proof, account-safety proof, full-network no-proxy proof, CAPTCHA-solving authorization, or creator-registry promotion.
       drift_cue: The work is drifting if it adds more prose reminders without moving a mechanically checkable blocker or admission rule into code.
     secondary_success_signals:
-      - First controlled sessioned probe can run with cloakbrowser, client_provided_session, required harness proxy posture, named blocker actions, and local admit-output before bronze.
+      - First controlled sessioned probe can resolve chowdakr_sg_tiktok to its machine-local CloakBrowser session mode and required harness proxy posture, then use named blocker actions and local admit-output before bronze.
       - Failed close, unsupported subtitle host, missing provenance sidecar, or owner-attention condition stops with a typed reason future agents can act on.
   status: user_stated
 thread_operating_target:
@@ -100,17 +100,21 @@ older handoffs.
 
 Use the sanctioned one-fixture path:
 
-1. Use the TikTok one-creator live runner with `--browser-backend cloakbrowser`
-   unless the run is explicitly diagnostic.
-2. Use a dedicated, non-personal, already-exported auth-state label and
-   `--session-mode client_provided_session`.
-3. Require `--require-harness-proxy-posture no_proxy_profile_loaded` when the
-   lane depends on no harness-loaded proxy posture. This is harness proxy-profile
+1. Use `--session-profile chowdakr_sg_tiktok` with the TikTok
+   one-creator live runner. The machine-local profile binds the dedicated
+   auth-state label, configured session mode and required harness proxy posture,
+   CloakBrowser, and pre-action owner handoff.
+2. Run `check_source_capture_session_profile.py --session-profile
+   chowdakr_sg_tiktok` when cold-start availability is uncertain. Missing,
+   invalid, or provenance-mismatched profile state blocks before browser launch;
+   never downgrade to logged-out capture.
+3. Treat the bound required-posture value as harness proxy-profile
    posture only, not full-network no-proxy proof.
-4. Include `--allow-challenge-close-followthrough` and
-   `--human-challenge-handoff` for the current owner-authorized path. The runner
-   may click only X/Close controls through named pointer actions; it never drags
-   or solves slider/captcha puzzles.
+4. On a visible slider/captcha, prompt the owner before any scripted pointer
+   action. Continue only after the marker clears; otherwise suppress scripted
+   actions and fail closed. X/Close follow-through remains a separate explicit
+   route and is not enabled by `chowdakr_sg_tiktok`. The runner never drags or
+   solves slider/captcha puzzles.
 5. Prefer local `--admit-output` first. Use explicit `--data-root` only when the
    owner asks for immediate bronze/data-lake admission.
 6. Read `tiktok_live_probe_summary_json=` before opening larger JSON. It tells
@@ -189,11 +193,11 @@ Code scope:
 
 Expected behavior:
 
-- Add a TikTok packet-grade/cold-agent preset or equivalent CLI guard that makes `cloakbrowser` the explicit sanctioned route for non-diagnostic capture.
+- Resolve the machine-local `chowdakr_sg_tiktok` profile before browser launch; bind CloakBrowser, auth-state label, session mode, required proxy posture, and challenge policy without exposing secret paths or values.
 - Keep a diagnostic route possible, but require explicit diagnostic intent when using non-CloakBrowser backend for TikTok.
-- Preflight `--require-harness-proxy-posture` before browser launch and surface a typed, cold-readable reason for missing/legacy/mismatched provenance.
-- Add an `owner_attention_required` / `manual_challenge_attention_required` state shape for remaining slider/captcha when owner handoff is needed. If prompting is unavailable or not enabled, fail closed with this reason.
-- Preserve current no-solve/no-drag behavior and no-secret sidecar rules.
+- Fail closed with `BLOCKED_SESSION_PROFILE_UNAVAILABLE` for missing/invalid profile configuration or missing/legacy/mismatched auth-state provenance; never downgrade to logged-out capture.
+- Prompt for owner attention at page load before scripted pointer actions. If the visible challenge does not clear, suppress those actions and preserve owner-attention/source-access-intervention receipt state.
+- Preserve current no-solve/no-drag behavior, no-secret sidecar rules, and explicit-only X/Close follow-through.
 
 Validation target:
 
@@ -361,3 +365,59 @@ direction_change_propagation:
     - not full-network no-proxy proof
     - not CAPTCHA or slider-solving authorization
 ```
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    TikTok cold-agent session pickup now uses the machine-local logical profile
+    chowdakr_sg_tiktok: profile and auth-state provenance validate before browser
+    launch with no logged-out downgrade, and a visible challenge triggers owner
+    handoff before scripted pointer actions while X/Close remains explicit-only.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - docs/workflows/tiktok_cold_agent_capture_enforcement_goal_v0.md
+  downstream_surfaces_checked:
+    - forseti-harness/docs/source_capture_agent_runbook.md
+    - docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+    - docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/safety-rules.md
+  intentionally_not_updated:
+    - path: forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+      reason: >
+        The lane spec already requires authenticated session provenance,
+        fail-closed unresolved challenges, no secret leakage, and no agent
+        CAPTCHA solving; the logical alias and earlier owner prompt narrow cold
+        invocation without changing those lane invariants.
+    - path: docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md
+      reason: >
+        The provenance schema and validation semantics are unchanged; the new
+        profile resolver selects and validates an existing sidecar from stable
+        user-local storage.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The Runner Ladder, bounded implementation, and no-ad-hoc-capture rules
+        are unchanged.
+  stale_language_search: >
+    rg -n "human-challenge-handoff.*requires|fires only after scripted X/Close|storage-state label resolves only|--state-label.*dedicated|--allow-challenge-close-followthrough.*--human-challenge-handoff|client_provided_session.*no_proxy_profile_loaded"
+    forseti-harness/docs/source_capture_agent_runbook.md
+    docs/workflows/tiktok_cold_agent_capture_enforcement_goal_v0.md
+    docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md
+    forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
+    docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-11 after edits. The only hit is this receipt's own quoted
+    query at line 405; no live contract prose retains the stale coupling.
+    Remaining X/Close language is explicitly scoped to the separate route.
+  non_claims:
+    - not validation
+    - not readiness
+    - not live TikTok capture success
+    - not CAPTCHA solving authorization
+    - not full-network proxy or egress proof
+```
+
+Older receipts for this file live verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

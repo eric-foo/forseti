@@ -14,13 +14,16 @@ from urllib.error import URLError
 import pytest
 
 import source_capture.adapters.direct_http as direct_http_module
+from runners import run_source_capture_http_packet as http_runner
 from runners.run_source_capture_http_packet import DIRECT_HTTP_NON_CLAIMS
+from source_capture import CaptureModeCategory
 from source_capture.adapters.direct_http import (
     DirectHttpCaptureFailure,
     DirectHttpCaptureFailureKind,
     DirectHttpCaptureSuccess,
     fetch_direct_http_capture,
 )
+from source_capture.retail_capture_profiles import get_retail_capture_profile
 
 
 @pytest.fixture
@@ -190,6 +193,85 @@ def test_fetch_direct_http_capture_returns_selected_metadata_for_success(http_se
     assert result.metadata["last_modified"] == "Tue, 02 Jun 2026 00:00:00 GMT"
     assert result.metadata["byte_count"] == len(result.body)
     assert "set_cookie" not in result.metadata
+
+
+@pytest.mark.parametrize(
+    ("body", "expected_exit"),
+    [
+        (
+            b'<script id="__NEXT_DATA__">{"averageRating":4.4,"numberOfReviews":41}</script>'
+            b"Vitamasques Cherry Vegan Collagen Lip Mask",
+            0,
+        ),
+        (b"<html><body>navigation shell</body></html>", 4),
+    ],
+)
+def test_direct_http_runner_enforces_walmart_profile_after_packet_write(
+    monkeypatch: pytest.MonkeyPatch,
+    scratch_dir: Path,
+    body: bytes,
+    expected_exit: int,
+) -> None:
+    url = (
+        "https://www.walmart.com/ip/Vitamasques-Cherry-Vegan-Collagen-Lip-Mask-"
+        "Moisturise-Plump-One-Patch/2150828728"
+    )
+
+    def fake_capture(**kwargs: object) -> DirectHttpCaptureSuccess:
+        return DirectHttpCaptureSuccess(
+            requested_url=url,
+            final_url=url,
+            status=200,
+            reason="OK",
+            metadata={
+                "requested_url": url,
+                "final_url": url,
+                "capture_timestamp": "2026-07-11T00:00:00Z",
+            },
+            body=body,
+            warning_notes=[],
+            limitation_notes=[],
+        )
+
+    monkeypatch.setattr(http_runner, "fetch_direct_http_capture", fake_capture)
+    output = scratch_dir / f"walmart_profile_{expected_exit}"
+
+    exit_code, _ = http_runner.run_source_capture_http_packet(
+        url=url,
+        source_family="retail_pdp",
+        source_surface="direct_http",
+        decision_question="Does direct state satisfy the Walmart aggregate profile?",
+        output_directory=output,
+        capture_context="unit test",
+        operator_category="direct_http_cli_operator",
+        capture_mode=CaptureModeCategory.STRUCTURED_ACCESS,
+        session_id=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        retail_capture_profile=get_retail_capture_profile("walmart_pdp_aggregate"),
+        timeout_seconds=20,
+        max_bytes=1024,
+    )
+
+    assert exit_code == expected_exit
+    metadata = json.loads(
+        (output / "raw/02_http_response_metadata.json").read_text(encoding="utf-8")
+    )
+    assert metadata["retail_capture_profile"]["name"] == "walmart_pdp_aggregate"
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    expected_mode = (
+        "source_detail_sufficiency_passed"
+        if expected_exit == 0
+        else "source_detail_sufficiency_failed"
+    )
+    assert expected_mode in manifest["visible_mode_changes"]
 
 
 def test_fetch_direct_http_capture_allows_non_2xx_body(http_server: str) -> None:

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -193,6 +194,67 @@ def markdown_files(root: Path) -> Iterable[Path]:
             continue
 
 
+def parse_name_status(lines: list[str]) -> list[str]:
+    """Return present-in-tree paths from git diff --name-status output."""
+    present: list[str] = []
+    for line in lines:
+        parts = [part.strip() for part in line.split("\t")]
+        if len(parts) < 2:
+            continue
+        status = parts[0]
+        if status.startswith(("R", "C")) and len(parts) >= 3:
+            present.append(parts[2])
+        elif status[:1] in {"A", "M", "T", "U"}:
+            present.append(parts[1])
+    return present
+
+
+def resolve_base_ref(cli_base: str | None) -> str:
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
+    github_base = os.environ.get("GITHUB_BASE_REF", "").strip()
+    if github_base:
+        return f"origin/{github_base}"
+    if cli_base:
+        return cli_base
+    return "origin/main"
+
+
+def _git(root: Path, args: list[str]) -> tuple[int, str]:
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=20,
+        )
+        return result.returncode, result.stdout
+    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
+        return -1, ""
+
+
+def changed_markdown_files(root: Path, base_ref: str) -> list[Path] | None:
+    """Return tracked markdown files changed in base...HEAD; None on infra gaps."""
+    if _git(root, ["rev-parse", "--verify", "--quiet", "HEAD"])[0] != 0:
+        return None
+    if _git(root, ["rev-parse", "--verify", "--quiet", base_ref])[0] != 0:
+        return None
+    code, output = _git(root, ["diff", "--name-status", f"{base_ref}...HEAD"])
+    if code != 0:
+        return None
+
+    paths: list[Path] = []
+    for relpath in parse_name_status(output.splitlines()):
+        if not relpath.lower().endswith(".md"):
+            continue
+        path = root / relpath
+        if path.is_file():
+            paths.append(path)
+    return paths
+
+
 def split_type_parts(token: str) -> set[str]:
     return set(re.findall(r"[A-Z][a-z0-9]*", token))
 
@@ -271,6 +333,13 @@ def scan_file(path: Path, roster: set[str]) -> list[Finding]:
 def scan(root: Path, roster: set[str]) -> list[Finding]:
     findings: list[Finding] = []
     for path in markdown_files(root):
+        findings.extend(scan_file(path, roster))
+    return findings
+
+
+def scan_paths(paths: Iterable[Path], roster: set[str]) -> list[Finding]:
+    findings: list[Finding] = []
+    for path in paths:
         findings.extend(scan_file(path, roster))
     return findings
 
@@ -369,6 +438,41 @@ def run_selftest() -> int:
         ("invalid.md", "Signal"),
         ("invalid.md", "PacketThing"),
     }
+    parse_expected = ["added.md", "modified.md", "renamed.md", "copied.md"]
+    parse_found = parse_name_status(
+        [
+            "A\tadded.md",
+            "M\tmodified.md",
+            "D\tdeleted.md",
+            "R100\told.md\trenamed.md",
+            "C100\tsource.md\tcopied.md",
+        ]
+    )
+    saved_ci_base = os.environ.pop("FORSETI_DIFF_BASE", None)
+    saved_base = os.environ.pop("GITHUB_BASE_REF", None)
+    try:
+        base_defaults_ok = (
+            resolve_base_ref(None) == "origin/main"
+            and resolve_base_ref("custom") == "custom"
+        )
+        os.environ["GITHUB_BASE_REF"] = "develop"
+        base_env_ok = resolve_base_ref("ignored") == "origin/develop"
+    finally:
+        if saved_base is None:
+            os.environ.pop("GITHUB_BASE_REF", None)
+        else:
+            os.environ["GITHUB_BASE_REF"] = saved_base
+        if saved_ci_base is not None:
+            os.environ["FORSETI_DIFF_BASE"] = saved_ci_base
+        else:
+            os.environ.pop("FORSETI_DIFF_BASE", None)
+
+    if parse_found != parse_expected:
+        env_failures.append(
+            f"name-status parse expected {parse_expected!r}, found {parse_found!r}"
+        )
+    if not base_defaults_ok or not base_env_ok:
+        env_failures.append("base-ref precedence did not match the CI contract")
     if env_failures or found != expected:
         print("ontology tag validity selftest: FAILED")
         if env_failures:
@@ -382,23 +486,43 @@ def run_selftest() -> int:
     return 0
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--strict", action="store_true", help="fail on invalid tags")
     mode.add_argument("--check", action="store_true", help="report invalid tags, exit 0")
     mode.add_argument("--selftest", action="store_true", help="run built-in tests")
     parser.add_argument("--root", type=Path, default=REPO_ROOT)
-    args = parser.parse_args()
+    parser.add_argument("--base", help="base ref for strict diff scope")
+    args = parser.parse_args(argv)
 
     if args.selftest:
         return run_selftest()
 
+    root = args.root.resolve()
     roster = load_roster()
-    findings = scan(args.root.resolve(), roster)
-    print_findings(findings, args.root.resolve())
-    if args.strict and findings:
-        return 1
+    if args.strict:
+        base_ref = resolve_base_ref(args.base)
+        paths = changed_markdown_files(root, base_ref)
+        if paths is None:
+            print(
+                "ontology tag validity --strict: WARNING git diff vs "
+                f"{base_ref} unavailable; failing OPEN (infra gap, not a pass)",
+                file=sys.stderr,
+            )
+            return 0
+        findings = scan_paths(paths, roster)
+        print_findings(findings, root)
+        if findings:
+            return 1
+        print(
+            "ontology tag validity --strict: "
+            f"OK ({len(paths)} changed markdown file(s) vs {base_ref})"
+        )
+        return 0
+
+    findings = scan(root, roster)
+    print_findings(findings, root)
     return 0
 
 

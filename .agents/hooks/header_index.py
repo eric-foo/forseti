@@ -25,8 +25,9 @@ WHAT THIS DOES
              or "retrieval health: ok" when both are zero.  Exit 0.
 
   --strict   CI GATE — diff-scoped / forward-only.  Resolves changed .md files
-             vs a base ref (priority: $GITHUB_BASE_REF env var -> origin/<ref>;
-             then --base <ref> CLI arg; then default origin/main).  Computes
+             vs a base ref (priority: $FORSETI_DIFF_BASE exact CI event SHA;
+             then $GITHUB_BASE_REF -> origin/<ref>; then --base <ref>; then
+             default origin/main).  Computes
              the changed set via `git diff --name-only <base>...HEAD`.  For
              ONLY those changed files: fails (exit 1) if a changed durable
              non-exempt doc is MISSING-HEADER or is an ORPHAN.  Prints each
@@ -484,12 +485,16 @@ def resolve_base_ref(root: Path, cli_base: str | None) -> str | None:
     """Resolve the base ref for diff-scoping.
 
     Priority:
-    1. $GITHUB_BASE_REF env var  -> "origin/<value>"
-    2. --base <ref> CLI arg
-    3. default: "origin/main"
+    1. $FORSETI_DIFF_BASE exact CI event SHA
+    2. $GITHUB_BASE_REF env var  -> "origin/<value>"
+    3. --base <ref> CLI arg
+    4. default: "origin/main"
 
     Returns a ref string, or None if none could be resolved.
     """
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if gh_base:
         return "origin/%s" % gh_base
@@ -685,7 +690,8 @@ def selftest() -> int:
     print("--- resolve_base_ref ---")
     import pathlib
     fake_root = pathlib.Path(".")
-    # Clear any GITHUB_BASE_REF for testing
+    # Clear CI and GitHub base variables for deterministic testing
+    saved_ci_base = os.environ.pop("FORSETI_DIFF_BASE", None)
     env_saved = os.environ.pop("GITHUB_BASE_REF", None)
     try:
         r1 = resolve_base_ref(fake_root, None)
@@ -699,6 +705,10 @@ def selftest() -> int:
             os.environ["GITHUB_BASE_REF"] = env_saved
         else:
             os.environ.pop("GITHUB_BASE_REF", None)
+        if saved_ci_base is not None:
+            os.environ["FORSETI_DIFF_BASE"] = saved_ci_base
+        else:
+            os.environ.pop("FORSETI_DIFF_BASE", None)
     base_cases = [
         ("default -> origin/main",  r1, "origin/main"),
         ("cli base",                r2, "some-branch"),

@@ -75,490 +75,38 @@ hierarchy.
 
 ## Active Hooks (IMPORTANT)
 
-Forseti enforces load-bearing, mechanically-checkable rules at **tool
-boundaries**, not by instruction alone. The owning principle is
-`.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement"
-(cross-referenced from `.agents/workflow-overlay/decision-routing.md`); the per-rule classification is
-`docs/decisions/overlay_enforcement_placement_classification_v0.md`.
+The locked repo-map architecture requires active-hook discoverability here, not
+a second operations manual. This map routes to the owning surfaces; it does not
+own hook semantics, wiring, activation state, or validation claims. The boundary
+is set by `docs/decisions/forseti_repo_map_architecture_mgt_v0.md`.
 
-**Retrieval-header check.** A PostToolUse hook (matcher `Write|Edit|MultiEdit`) in the
-tracked `.claude/settings.json` runs:
+| Need | Owning surface |
+| --- | --- |
+| Rule semantics, gate boundaries, and non-claims | `.agents/workflow-overlay/validation-gates.md` -> "Current Gates" and "Enforcement Placement" |
+| Per-rule substrate classification and build authority | `docs/decisions/overlay_enforcement_placement_classification_v0.md` |
+| Portable script behavior, wiring patterns, and self-check commands | `.agents/hooks/README.md` and the named script |
+| Claude activation and tracked permission prompts | `.claude/settings.json`; machine-local protected-path denies stay in `.claude/settings.local.json` |
+| Codex activation | `.codex/hooks.json` and `.codex/hooks/forseti_guard_codex_adapter.py` |
+| CI activation | `.github/workflows/ci.yml` |
+| Local Git activation | `.githooks/` and `.github/scripts/install-local-hooks.ps1` |
 
-```
-python .agents/hooks/check_retrieval_header.py --hook
-```
+Cold-start discovery by enforcement family:
 
-When a newly written or edited `*.md` in a durable in-scope folder (the folders
-`.agents/workflow-overlay/retrieval-metadata.md` enumerates) is missing its
-retrieval header, the hook returns a non-blocking advisory warning. It is
-forward-only (only the file just touched), advisory (never blocks the edit),
-and references the rule authority rather than restating it.
+| Family | Entry points |
+| --- | --- |
+| Retrieval and repo-map health | `.agents/hooks/check_retrieval_header.py`, `.agents/hooks/header_index.py`, `.agents/hooks/check_repo_map_freshness.py`, `.agents/hooks/check_map_links.py`, `.agents/hooks/session_context_capsule.py` |
+| Placement and prompt shape | `.agents/hooks/check_placement.py`, `.agents/hooks/check_prompt_provenance.py`, `.agents/hooks/check_prompt_output_mode.py` |
+| Safety and lifecycle | `.agents/hooks/guard_protected_actions.py`, `.agents/hooks/remind_sci.py`, `.agents/hooks/check_shared_files_dirty.py`, `.agents/hooks/check_token_burn.py`, `.agents/hooks/pre_push_guard.py` |
+| Review, handoff, and provenance | `.agents/hooks/check_review_routing.py`, `.agents/hooks/check_review_output_provenance.py`, `.agents/hooks/check_review_summary.py`, `.agents/hooks/check_handoff_pointers.py`, `.agents/hooks/check_source_input_hashes.py`, `.agents/hooks/check_hash_pin_freshness.py` |
+| Doctrine and claim shape | `.agents/hooks/check_dcp_receipt.py`, `.agents/hooks/check_dcp_receipt_hygiene.py`, `.agents/hooks/check_full_gt_claims.py` |
+| Capture and route shape | `.agents/hooks/check_csb_scanning_artifact.py`, `.agents/hooks/check_search_surface_google_route.py` |
+| Additional specialized checkers | Open `.agents/hooks/README.md`, `.agents/hooks/`, and the tracked CI config; do not infer activation from file presence alone. |
 
-**Portable CLI / commit / CI backstop** (runs outside Claude Code too):
-
-```
-# advisory (exit 0): warn on any changed in-scope file missing its header
-python  .agents/hooks/check_retrieval_header.py --changed          # Windows
-python3 .agents/hooks/check_retrieval_header.py --changed          # POSIX
-# strict gate (exit 1 on violation): for a pre-commit hook or CI
-python3 .agents/hooks/check_retrieval_header.py --staged --strict
-# explicit paths also work:
-python3 .agents/hooks/check_retrieval_header.py path/to/artifact.md
-```
-
-**Reinstall (fresh clone, or if local settings were reset).** The checker
-script is tracked at `.agents/hooks/check_retrieval_header.py`. The hook lives
-in the tracked `.claude/settings.json`; if it is missing (for example only
-present in a gitignored `.claude/settings.local.json`, or settings were reset),
-re-add:
-
-```json
-"hooks": {
-  "PostToolUse": [
-    { "matcher": "Write|Edit|MultiEdit",
-      "hooks": [ { "type": "command",
-                   "command": "python .agents/hooks/check_retrieval_header.py --hook",
-                   "timeout": 10 } ] } ]
-}
-```
-
-Hooks load at session start, so **restart the Claude Code session** after
-editing settings. The command uses a path relative to the project root (where
-Claude Code runs hooks); if your environment runs hooks from another directory,
-use an absolute path or `"$CLAUDE_PROJECT_DIR/.agents/hooks/check_retrieval_header.py"`.
-On POSIX, use `python3` if `python` is unavailable.
-
-**Repo-map freshness check.** A second PostToolUse hook (matcher
-`Write|Edit|MultiEdit` in `.claude/settings.json`; `apply_patch|Edit|Write` in
-`.codex/hooks.json`) runs:
-
-```
-python .agents/hooks/check_repo_map_freshness.py --hook
-```
-
-It reads THIS map as its own spec and, forward-only on the file just touched,
-emits a non-blocking advisory when an edit adds navigable structure this map
-does not yet cover -- the mechanically-detectable subset of the `stale_if:` block
-above: a new top-level area (#1) or a new direct `forseti-harness/` area (#2).
-Individual runner/adapter files under already-mapped harness areas are
-discoverable by directory and do not force map edits.
-When the file just touched IS this repo map and Git still shows it dirty after
-the edit, the hook exits 2 as a blocking commit interrupt with the explicit-path
-commit command. Edits to `.agents/workflow-overlay/source-of-truth.md` get a
-coarser advisory nudge (#5). It stays silent
-on ordinary content in already-mapped folders (a new `docs/decisions/*` is
-reachable by convention, not a map event) and cannot see judgment-shaped
-staleness -- "a spine was reorganized" (#3) or "routing doctrine changed" (#4) --
-which stays with the Doctrine Change Propagation contract in
-`.agents/workflow-overlay/source-of-truth.md` (which already lists this map as a
-downstream surface).
-
-**Portable CLI / commit / CI backstop** (runs outside Claude Code too):
-
-```
-# advisory (exit 0): report structural drift in the working tree
-python  .agents/hooks/check_repo_map_freshness.py --changed          # Windows
-python3 .agents/hooks/check_repo_map_freshness.py --changed          # POSIX
-# strict gate (exit 1): block a commit that adds new structure without
-# updating this map / a submap and without an acknowledgment
-python .agents/hooks/check_repo_map_freshness.py --commit-msg "$1"   # commit-msg hook
-python3 .agents/hooks/check_repo_map_freshness.py --changed --strict --message "$PR_BODY"  # CI
-python .agents/hooks/check_repo_map_freshness.py --selftest          # self-check logic
-```
-
-To acknowledge a legitimate non-map change so the strict gate passes: for a
-one-off, put `repo-map-ack: <reason>` in the commit message; for a recurring
-class (generated scratch), add a backtick'd token to the "Generated/gitignored
-scratch ... do not enumerate" list (this checker reads that list as its exclusion
-source). Updating this map or a submap in the same change also satisfies the
-gate. The check enforces map *shape*, never the truth of a route, and fails OPEN
-on internal error. Reinstall = re-add the second PostToolUse entry beside the
-retrieval-header hook in `.claude/settings.json` and `.codex/hooks.json`, then
-restart the relevant session.
-
-**Placement check (EP-04) — built and wired.** A third substrate,
-`.agents/hooks/check_placement.py`, enforces placement shape at the write
-boundary: it reads `repo-structure.yaml` as its ONLY rule source (authority
-stays in `.agents/workflow-overlay/artifact-folders.md`; binding in
-`docs/decisions/forseti_repo_structure_binding_v0.md`), WARNs on unplaced writes,
-flags writes to the now-retired product-docs role, and
-checks map<->tree consistency in both directions. `_inbox` age and declared legacy
-debt are WARN-only. A pass is placement shape only — never validation,
-readiness, or authority.
-
-```
-python .agents/hooks/check_placement.py --check      # advisory tree report (exit 0)
-python .agents/hooks/check_placement.py --strict     # commit/CI gate (exit 1 on violation or stale map)
-python .agents/hooks/check_placement.py --selftest   # decision-logic self-check
-```
-
-WIRED as a PostToolUse (`Write|Edit|MultiEdit`) entry in `.claude/settings.json`,
-beside the other PostToolUse hooks. Reinstall (if settings were reset) = re-add
-`{ "type": "command", "command": "python .agents/hooks/check_placement.py --hook", "timeout": 10 }`
-to the PostToolUse array, then restart the session (hooks load at session start).
-
-**Prompt-preflight reminder (advisory).** A PostToolUse hook (matcher
-`Write|Edit|MultiEdit` in `.claude/settings.json`,
-`python .agents/hooks/check_prompt_provenance.py --hook`): after a canonical
-prompt-artifact write under `docs/prompts/**`, injects the **Forseti Prompt
-Preflight** (output mode · template kind · edit-permission+targets+branch ·
-reviews findings-first + no runtime-model routing · doctrine-change ->
-propagation receipt · destinations) so a routine prompt applies the contract
-inline with no skill reload; the full non-routine trigger list for
-`workflow-prompt-orchestrator` is owned by
-`.agents/workflow-overlay/prompt-orchestration.md`. Prompt filing is
-source-role classified: canonical, reusable, doctrine-bearing, first-of-kind, or
-standard prompt artifacts file under the accepted `docs/prompts/**` families;
-lane-scoped execution prompts may instead travel in the lane PR/comment or
-ignored `docs/_inbox/` scratch when prompt-orchestration.md classifies them that
-way. For canonical prompts, `paste-ready-chat` is a paste copy of the filed
-artifact; for lane-scoped execution prompts it may be the lane-carried body. The
-hook reminds only, never blocks, exit 0, and cannot verify the contract was
-applied; no new checker/hook is authorized by this navigation note.
-`python .agents/hooks/check_prompt_provenance.py --selftest` checks the decision
-logic.
-
-**Google search-surface route guard (advisory + CI).**
-`.agents/hooks/check_search_surface_google_route.py` checks the parameterized
-Google route shell for changed durable docs: Google Search capture URLs use
-`hl=en&gl=us&pws=0`, route-using artifacts carry the physical-locality
-non-claim, and blocked Google pages with visible exit-IP content are not
-preserved in durable docs. Wired in `.claude/settings.json`,
-`.codex/hooks.json`, and `.github/workflows/ci.yml`. Authority:
-`docs/decisions/search_surface_google_parameterized_us_capture_route_v0.md` plus
-the enforcement-placement principle in `.agents/workflow-overlay/validation-gates.md`.
-Shape only; US-parameterized is not physically US-local. It is not
-physical-locality proof, validation, readiness, demand proof, Judgment evidence, or Product Lead evidence.
-
-**SCI reminder (advisory).** A PreToolUse hook (matcher `Bash|PowerShell`
-in `.claude/settings.json`, gated to `git commit`) runs:
-
-```
-python .agents/hooks/remind_sci.py --hook
-```
-
-RIGHT BEFORE a `git commit` (run through the Bash/PowerShell tool) that has durable-artifact changes pending (the same durable-artifact
-folder set the retrieval-header hook uses -- decisions, product, prompts,
-workflows, migration, hygiene, review-inputs/outputs, the workflow overlay, and
-the product corpus; scratch, inbox, skill copies, project config, and code are
-excluded), it injects the Smallest Complete Intervention rule as non-blocking
-`additionalContext`. The rule is OWNED by `AGENTS.md`; the hook carries that
-section's text INLINE as a verbatim mirror (no fetch round-trip) and must be kept
-in sync with it. Forward-only, advisory, fails open.
-`python .agents/hooks/remind_sci.py --selftest` checks the scope logic. Reinstall
-= re-add the PreToolUse entry (matcher `Bash|PowerShell`) in
-`.claude/settings.json`, then restart the session.
-
-**Permission floor (protected paths + git lifecycle).** A second
-enforcement-placement substrate (EP-01 + EP-03 in
-`docs/decisions/overlay_enforcement_placement_classification_v0.md`), built as
-Claude Code `permissions` rules — no script:
-
-- **`ask` — git lifecycle, shared/tracked in `.claude/settings.json`:**
-  `git push`, `git remote`, `gh pr`, `git reset --hard`, `git clean`, for both
-  the `Bash` and `PowerShell` tools (`git commit` is in `allow` — auto-approved,
-  not prompted). Claude Code prompts for
-  explicit approval; the approval is the authorization (`.agents/workflow-overlay/safety-rules.md`
-  "...unless explicitly authorized"). Travels with the repo.
-- **`deny` — protected paths, machine-local in `.claude/settings.local.json`:**
-  writes/edits to external / installed-skill roots — `agent-workflow`, `jb*`,
-  `~/.codex/{plugins,skills}`, `~/.claude/{plugins,skills}`, `~/.agents/skills`.
-  Hard-blocked. Machine-specific absolute paths, so NOT tracked; a fresh clone
-  re-adds its own external paths.
-- Authority: `.agents/workflow-overlay/safety-rules.md` (the rules) + validation-gates "Enforcement
-  Placement" (the placement principle). Config enforces existing rules; it
-  changes no doctrine. EP-02 (impl-dir blocking) was deliberately excluded.
-- Limits: Claude-Code-only (Codex unaffected — the resident instruction stays);
-  `deny` is machine-local; restart the session to load; not a security boundary.
-
-**Reinstall the permission floor (fresh clone, or if local settings were
-reset).** The `ask` git-lifecycle rules live in the tracked
-`.claude/settings.json`; the `deny` path rules live in the gitignored
-`.claude/settings.local.json`, so a clone does NOT recover them — re-add both
-(adjust the absolute paths to the local machine). In `.claude/settings.json`:
-
-```json
-"permissions": {
-  "allow": [
-    "Bash(git commit*)", "PowerShell(git commit*)"
-  ],
-  "ask": [
-    "Bash(git push*)", "PowerShell(git push*)",
-    "Bash(git remote*)", "PowerShell(git remote*)",
-    "Bash(gh pr*)", "PowerShell(gh pr*)",
-    "Bash(git reset --hard*)", "PowerShell(git reset --hard*)",
-    "Bash(git clean*)", "PowerShell(git clean*)"
-  ]
-}
-```
-
-In `.claude/settings.local.json` (machine-specific absolute paths):
-
-```json
-"permissions": {
-  "deny": [
-    "Edit(//c/Users/vmon7/Desktop/projects/agent-workflow/**)", "Write(//c/Users/vmon7/Desktop/projects/agent-workflow/**)",
-    "Edit(//c/Users/vmon7/Desktop/projects/jb*/**)", "Write(//c/Users/vmon7/Desktop/projects/jb*/**)",
-    "Edit(//c/Users/vmon7/.codex/plugins/**)", "Write(//c/Users/vmon7/.codex/plugins/**)",
-    "Edit(//c/Users/vmon7/.codex/skills/**)", "Write(//c/Users/vmon7/.codex/skills/**)",
-    "Edit(//c/Users/vmon7/.claude/plugins/**)", "Write(//c/Users/vmon7/.claude/plugins/**)",
-    "Edit(//c/Users/vmon7/.claude/skills/**)", "Write(//c/Users/vmon7/.claude/skills/**)",
-    "Edit(//c/Users/vmon7/.agents/skills/**)", "Write(//c/Users/vmon7/.agents/skills/**)"
-  ]
-}
-```
-
-Restart the Claude Code session after editing settings.
-
-**Protected-action guard (PreToolUse) — the auto-mode enforcement.** The `ask`
-config rules above are inert in auto / bypass mode (no human to prompt), so the
-real enforcement of EP-01 + EP-03 is a `PreToolUse` hook that fires in ALL
-permission modes:
-
-- script: `.agents/hooks/guard_protected_actions.py` (tracked); matcher
-  `Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit` in `.claude/settings.json`.
-- blocks (exit 2): writes/edits into protected roots (`agent-workflow`, `jb*`,
-  `~/.codex/{plugins,skills}`, `~/.claude/{plugins,skills}`, `~/.agents/skills`);
-  and main-affecting git — landing a PR to `main` (`gh pr merge`), push to
-  `main`, force-push, bare/ambiguous push — plus `reset --hard` / `clean`, via
-  Bash or PowerShell. **Allows** an explicit non-main, non-force lane push
-  (`git push -u origin <lane>`) so lanes prep PRs (per-lane PR flow in
-  `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`); a
-  human/authorized action lands the PR to `main`. Narrow: `commit`, generic
-  deletion, and *mentions* of these in quoted strings are NOT blocked.
-- references authority (`.agents/workflow-overlay/safety-rules.md`), fails OPEN on internal error, and has
-  a selftest: `python .agents/hooks/guard_protected_actions.py --selftest`.
-- authorized exception: run the action yourself, or temporarily remove the hook.
-
-Reinstall the PreToolUse guard in `.claude/settings.json`:
-
-```json
-"hooks": {
-  "PreToolUse": [
-    { "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
-      "hooks": [ { "type": "command",
-                   "command": "python .agents/hooks/guard_protected_actions.py",
-                   "timeout": 10 } ] } ]
-}
-```
-
-Restart the Claude Code session after editing settings.
-
-**Repo-map commit interrupt + Stop-warn backstop.** Two complementary
-substrates for the high-contention commit-once-whole shared files
-(the repo map, `.claude/settings.json`, `.agents/workflow-overlay/source-of-truth.md`):
-
-- **Per-edit (PostToolUse).** The repo-map-freshness hook
-  (`.agents/hooks/check_repo_map_freshness.py`) exits 2 when the edited file IS
-  the repo map and Git still shows it dirty after the edit. The interrupt tells
-  the agent to commit it immediately, explicit-path
-  (`git commit --only -- docs/workflows/forseti_repo_map_v0.md`), before other
-  lanes' edits interleave. Distinct from its structural/freshness trigger
-  (which fires on OTHER files adding navigation and remains advisory unless run
-  in strict commit/CI mode).
-- **Turn-end (Stop).** `.agents/hooks/check_shared_files_dirty.py` (a `Stop` hook, no matcher)
-  warns when any of the three shared files is left dirty at end of turn, listing
-  them plus the explicit-path commit. Exit 0, never blocks, never auto-commits
-  (unsafe on a shared branch), guards `stop_hook_active`, fails open. CLI:
-  `--check` (live tree), `--selftest` (logic). A second `Stop` hook,
-  `.agents/hooks/check_token_burn.py`, warns (advisory, exit 0) when one turn's
-  input context crosses a rung (200k warn / 500k alarm) — the quadratic-burn
-  leading indicator. Reinstall = re-add both `Stop` hooks in
-  `.claude/settings.json`, then restart the session.
-
-These put the "edit the repo map -> commit it immediately, explicit-path" norm on
-the substrate, not a heavy resident banner. The per-edit repo-map interrupt
-blocks; the Stop backstop only warns. Neither auto-commits.
-
-**Session-start lane capsule (SessionStart).** `.agents/hooks/session_context_capsule.py --hook`
-(a `SessionStart` hook in `.claude/settings.json`; fires on startup/resume/clear/compact)
-prints a compact, report-only lane-state capsule — repo root, branch, HEAD, last 3 commit
-subjects, dirty/untracked counts, config-surface dirt, doctrine state vs last-fetched
-`origin/main`, and pointers to the two source-loading entry artifacts (this map and the
-overlay README) — so a new or re-oriented lane does not re-derive mechanical state turn by
-turn. Observed git state only; loads no doctrine, asserts nothing beyond git output; exit 0,
-fails open. Reinstall = re-add the `SessionStart` entry, then restart the session.
-
-**Scan artifact checker (portable + CI diff-scoped).** `.agents/hooks/check_csb_scanning_artifact.py`
-checks future CSB-first scanning artifacts for minimum reviewable receipt shape:
-source context, caps, broad-scout accounting, CSB-row accountability, exact-query
-accounting, venue/hidden-venue accounting, observations, negatives/access notes,
-capture-request accounting including the Creator Registry preflight block,
-candidate closeout, and obvious recency/Capture overclaim leakage. It also
-verifies cited Creator Registry match-preflight receipt JSON content for detected
-`docs/research/` scan artifacts carrying `creator_registry_match_preflight`
-markers or for explicit checker paths. CI runs `--diff origin/main --strict`
-forward-only over changed `docs/research/` artifacts that look like CSB-first or
-Creator Registry preflight scan outputs; explicit paths remain available when
-producing or reviewing scan artifacts. It is not wired as an automatic
-PostToolUse hook. Fixtures live under
-`forseti-harness/tests/fixtures/csb_scanning_artifacts/`; focused tests live at
-`forseti-harness/tests/unit/test_csb_scanning_artifact_validator.py`. A pass is
-receipt-shape/receipt-content consistency only, never scan-quality validation,
-buyer proof, candidate approval, or Capture route authorization.
-
-**Doctrine-change receipt-shape gate (EP-09) + retrieval-header forbidden-field
-scan (EP-07).** Two further substrates built under owner authorization, following
-this pattern:
-
-- `.agents/hooks/check_dcp_receipt.py` — diff-scoped, forward-only CI gate
-  (registered in `.github/workflows/ci.yml`, a sibling to the deletion-evidence
-  gate): validates the SHAPE of any real `direction_change_propagation` receipt
-  or `direction_change_propagation_blocker` in changed `.md` files — required
-  keys, `trigger`/`related_triggers` drawn only from the seven controlled trigger
-  values, `non_claims` non-empty — referencing `source-of-truth.md` (Doctrine
-  Change Propagation Contract). It skips contract templates and non-receipt
-  note-markers, never requires a receipt to be *present* (doctrine-ness is
-  judgment), and never asserts a listed surface was truly updated/checked. The
-  inline-cap / archive-pointer / no-standalone rules are intentionally not gated
-  (not born-green). `--audit` = whole-repo advisory backlog; `--selftest` present.
-- `.agents/hooks/check_retrieval_header.py` — its shared predicate
-  (`header_problems_for_lines`) now also rejects status-leak header keys
-  (approval / validation / readiness / lifecycle / deployment / install /
-  resolver / publication / source-of-truth), flowing through both the write-time
-  `--hook` and the `header_index.py --strict` CI gate. Born-green;
-  `edit_permission` / `verdict` / `status` are intentionally allowed (review and
-  prompt frontmatter use them). `--selftest` present.
-
-Both enforce shape, never truth; a clean run is not validation, readiness, or
-approval.
-
-**Review-routing disposition gate (EP-35).** `.agents/hooks/check_review_routing.py`
-— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`)
-plus a local `.githooks/commit-msg` advisory: a change touching code roots
-(`forseti-harness/`, `.agents/hooks/`) must add a review artifact under
-`docs/prompts/reviews/` / `docs/review-outputs/` in the same change, or carry a
-shape-valid `review_routing_status:` commit-message line
-(`routed <existing path>` / `blocked -- reason` / `not_needed -- reason`).
-Rule owner: `.agents/workflow-overlay/validation-gates.md` (Review-routing
-disposition gate). Disposition presence/shape only — never review quality,
-reason truth, or whether review should have been recommended (resident
-judgment). `--audit` = per-commit advisory history view; `--selftest` present.
-
-**Source-input hash freshness gate (EP-37).** `.agents/hooks/check_source_input_hashes.py`
-— diff-scoped, forward-only CI gate plus local pre-push mirror: list-style JSON
-`source_inputs[]` records with repo-local `source_pointer` + `sha256` must match
-current file bytes when the artifact or referenced source changed. Born from PR
-#817: a Creator Registry ledger merge changed the ledger hash while the YouTube
-metric seed's source-input hash stayed stale; full pytest caught it late.
-Extended 2026-07-10 to source-capture packet manifests: top-level
-`preserved_files[]` records (`relative_packet_path` + `sha256`) must match
-current raw stored bytes, resolved against the manifest's own directory.
-Provenance freshness only — never semantic generated-artifact validity,
-completeness, readiness, source quality, capture freshness, or metric validity.
-`--audit` = whole-repo advisory view; `--selftest` present.
-
-**Local pre-push selected-gate mirror.** `.agents/hooks/pre_push_guard.py` (the
-policy behind the tracked `.githooks/pre-push` adapter, installed via
-`.github/scripts/install-local-hooks.ps1`) blocks pushes targeting `main`,
-branch deletes, and non-fast-forward updates, and — for allowed lane pushes —
-mirrors selected strict CI gates (`check_map_links.py --strict`,
-`header_index.py --strict`, `check_review_routing.py --strict`,
-`check_source_input_hashes.py --strict`, `check_hash_pin_freshness.py --strict`;
-diff-scoped base `origin/main`, same as CI) so a durable-doc or source-input hash gate miss fails at the push
-boundary instead of costing a red CI round. Blocks on any gate failure; the
-checkers' infra-gap fail-opens are unchanged; bypassable with `--no-verify`;
-CI stays the authoritative gate. `python .agents/hooks/pre_push_guard.py --selftest`
-checks the decision logic. Rule owner:
-`.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement"
-(Local pre-push selected-gate mirror).
-
-**Handoff-pointer resolution gate (EP-36).** `.agents/hooks/check_handoff_pointers.py`
-— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`):
-handoff-packet paths (`docs/workflows/*handoff*.md`, `docs/prompts/handoffs/*.md`)
-referenced in changed durable `.md` files must resolve in the same tree, or the
-pointer line must carry an explicit pin (`branch` / `PR #N` / `origin/<ref>`)
-or exemption marker (`does not exist yet`, `nonresolving:`, superseded/removed
-wording). Practical consequence: a handoff packet merges no later than the
-first main-bound artifact that points at it, or the pointer pins the authoring
-branch — cold receiving lanes resolve required reads from `origin/main`. No
-write-time hook by design (the defect is merge topology, invisible at the
-write boundary). Rule owner: `.agents/workflow-overlay/validation-gates.md`
-(Handoff-pointer resolution gate). Pointer shape only — never packet content
-freshness, pin truth, or source-choice correctness. `--audit` = whole-corpus
-backlog view (never gated); `--selftest` present.
-
-**Full-GT claim tripwire.** `.agents/hooks/check_full_gt_claims.py` — diff-scoped,
-forward-only CI gate (registered in `.github/workflows/ci.yml` as
-`--changed --strict`): ADDED lines of changed `.md` files must not carry
-unballasted "full God Tier" claim language outside the claim-owning/record
-surfaces (the two Bronze declarations, data_lake README + spine workflows,
-repo map, DCP archive, `docs/review-outputs/**`, `docs/prompts/**`,
-`docs/hygiene/**`). A line passes with bounding ballast (negation / ceiling /
-fixture / claim-tier wording) or the deliberate `full-gt-claim-ack` token.
-Rule authority: the Bronze full-GT declaration's Erosion Guards (claim
-inflation), referenced never restated. Shape only — never claim truth. `.py`
-surfaces out of scope (tests + declaration govern). PostToolUse `--hook` mode
-exists; registration in `.claude/settings.json` is owner-gated. `--selftest`
-present. Companion tier-2 schema gate:
-`forseti-harness/tests/contract/test_data_lake_core_field_gate.py` pins the
-lake-core field/key sets per the write-boundary contract's No-New-Core-Field
-Enforcement (any drift fails; update the pin only with the cited owner
-decision).
-
-**Review-output provenance gate.** `.agents/hooks/check_review_output_provenance.py`
-— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`
-as `--diff origin/main --strict`): changed/added `docs/review-outputs/*.md`
-must carry a valid retrieval header, non-blank `reviewed_by`/`authored_by`
-(value `unrecorded` allowed, never blank/absent), and a review-use-boundary
-statement (findings are decision input, not approval/validation/readiness).
-Rule owners: `.agents/workflow-overlay/review-lanes.md` +
-`.agents/workflow-overlay/retrieval-metadata.md` (referenced, never restated).
-Shape only — never review quality, provenance truth, or de-correlation truth.
-`--changed`/`--staged` are working-tree modes for local use; `--diff` is the
-CI mode (a CI checkout's working tree is always clean). `--selftest` present
-(fixtures under `forseti-harness/tests/fixtures/review_outputs/`).
-
-**Prompt output-mode gate (EP-11, shape subset).** `.agents/hooks/check_prompt_output_mode.py`
-— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`):
-changed prompt artifacts under `docs/prompts/**` (templates and READMEs
-excluded) must carry an output-mode declaration naming at least one token from
-the closed set in `.agents/workflow-overlay/prompt-orchestration.md` § Output
-Modes. Presence + token-in-set only — "exactly one, correctly scoped to this
-artifact vs nested dispatch/receiver roles" stays resident judgment (the
-corpus legitimately reuses the field shape), so multi-declaration and
-compound-token shapes are INFO, never gated. Rule owner:
-`.agents/workflow-overlay/validation-gates.md` (Output-mode gate). Shape only
-— never prompt quality or mode-choice correctness. `--audit` = whole-corpus
-backlog view (never gated); `--selftest` present (includes a token-drift
-assertion against the owning section).
-
-**Review-summary shape gate (EP-10, born-green subset).** `.agents/hooks/check_review_summary.py`
-— diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`):
-real (non-template) `review_summary` YAML blocks in changed
-`docs/review-outputs/**` files must carry none of the forbidden process keys,
-a `report_path` that resolves in the tree, the bound failed-write shape when
-`status: failed`, and a non-blank `recommendation` when present. Full
-`recommendation` enum membership is `--audit` advisory only (a known extended
-vocabulary in delegated-review-patch lanes awaits an owner decision). Rule
-owner: `.agents/workflow-overlay/validation-gates.md` (Review-summary shape
-gate); shape source `.agents/workflow-overlay/communication-style.md`.
-Non-overlap: header/provenance/fencing stays with
-`check_review_output_provenance.py`. Shape only — never review quality or
-finding truth. `--selftest` present.
-
-**Hash-pin freshness gate (EP-15, freshness subset).** `.agents/hooks/check_hash_pin_freshness.py`
-— diff-scoped, forward-only CI gate plus local pre-push mirror: markdown
-freshness hash pins — labeled `path:` + `sha256:` bullet pairs (e.g. the
-skill-adoption source pins) and `source_captures/**/receipt.md`
-preserved-file bullets — must match the current CRLF-normalized bytes of
-their repo-local targets when the pin doc or target changed. The markdown
-sibling of the EP-37 JSON gate; provenance-style manifest tables, source-read
-ledgers, and external-path bootstrap tables are deliberately not parsed as
-pins. Rule owner: `.agents/workflow-overlay/validation-gates.md` (Hash-pin
-freshness gate). Pin freshness only — never semantic validity, source
-quality, or skill correctness. `--audit` = whole-repo pin view (never gated);
-`--selftest` present.
-
-**Future agents: reuse this pattern.** To enforce the next load-bearing,
-deterministically-checkable rule, do not add another instruction -- add a
-sibling checker under `.agents/hooks/` that references the rule's authority
-(never restates it), advisory + forward-only with a `--strict` gate, wire a
-PostToolUse hook the same way, and document it here. See
-`.agents/workflow-overlay/validation-gates.md` -> "Enforcement Placement".
-
-This note is navigation and discoverability only; the hook and checker are
-advisory tooling, not validation, readiness, or source-of-truth promotion.
+Tracked configuration is the activation evidence; documentation is discovery and
+operating guidance. A passing checker proves only its documented shape boundary,
+never validation, readiness, approval, source authority, or semantic truth.
+Keep commands, reinstall steps, and checker-specific detail in the owning
+surfaces above so this T1 map remains a compact router.
 
 ## Reddit CloakBrowser / Proxy Allowance Quick Route
 
@@ -690,7 +238,7 @@ nickname: "crawling graph." The runner is
 | `forseti/product/spines/ecr/` | Evidence Candidate Record spine: evidence_candidate_record (SP-1/2/3/6 slices), signal_content (SCR direction + deriver, now deprecated/dormant as default pre-Judgment layer). |
 | `forseti/product/spines/cleaning/` | Cleaning spine: cleaning-layer contracts. |
 | `forseti/product/spines/judgment/` | Judgment spine: conductor, claim_ladder, demand_read (core/c2_weighting/c3_verdict_action/grading), learning_loops (near_half/far_half), source_side_receipts, toolkit_gaps. Demand-read C2 treats recency/currentness as qualitative attention/relevance, not proof or scoring. Dense — submap candidate. |
-| `forseti/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge, growth (Sleipnir research/CI-decisions-as-a-service direction exploration, EXPLORATORY / owner-gated). |
+| `forseti/product/spines/product_lead/` | Product-Lead spine: offer, buyer_proof, proof_charter, icp_wedge, gtm (demand-signal GTM design), growth (Sleipnir research/CI-decisions-as-a-service direction exploration, EXPLORATORY / owner-gated). |
 | `forseti/product/spines/commission_signal_board/` | Commission Signal Board pilot spine: authority, dispatch_rules, harness + tests + migrations + prompts + workflows (#261); prompt rows carry recency/currentness as attention metadata, not proof. |
 | `forseti/product/satellites/beauty/` | Beauty satellite: domain venue/card assets. |
 | `forseti/product/satellites/fragrance/` | Fragrance satellite: Level-1 judgment organizers (casebook_admission, named_case_screens, reconciliation, satellite_skeleton). |
@@ -726,7 +274,7 @@ nickname: "crawling graph." The runner is
 | `.agents/workflow-overlay/communication-style.md` | Forseti response style. |
 | `.agents/workflow-overlay/validation-gates.md` | Validation gate expectations. |
 | `.agents/workflow-overlay/review-lanes.md` | Review lane rules. |
-| `.agents/workflow-overlay/delegated-review-patch.md` | Provisional, opt-in Delegated Review-and-Patch convention for high-stakes authored artifacts (and bounded multi-file code diffs via the `delegated_code_review_and_patch` sibling mode); not a bound review lane. |
+| `.agents/workflow-overlay/delegated-review-patch.md` | Provisional, opt-in Delegated Review-and-Patch convention for high-stakes authored artifacts (and bounded multi-file code diffs via the `delegated_code_review_and_patch` sibling target kind); not a bound review lane. |
 | `.agents/workflow-overlay/safety-rules.md` | Safety and forbidden drift. |
 | `.agents/workflow-overlay/skill-adoption.md` | Skill source and adoption status. |
 

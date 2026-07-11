@@ -79,9 +79,17 @@ import argparse
 import fnmatch
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    candidate_paths as event_candidate_paths,
+    git_lines,
+    read_event,
+    repo_root,
+    to_relposix,
+)
 
 # Authority this checker references (it does not restate the rule).
 MAP = "docs/workflows/forseti_repo_map_v0.md"
@@ -124,58 +132,11 @@ DEFAULT_EXCLUDE_SUBSTR = ("_dry_run", "/scores/", "/__pycache__/", "pytest_")
 IGNORED_ROOT_AREAS = {".git", ".claude", "node_modules"}
 
 _ACK_RE = re.compile(r"repo-map-ack\s*:\s*(.+)", re.I)
-_PATCH_PATH_RE = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$")
-_PATCH_MOVE_RE = re.compile(r"^\*\*\* Move to: (.+)$")
 HEAD_LINES_FOR_HOOK = None  # the map is read in full; it is the spec, not the target
 
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
-
-
-def to_relposix(target: str, root: Path) -> str | None:
-    """Repo-relative POSIX path for a target, or None if outside the repo."""
-    p = Path(target)
-    if p.is_absolute():
-        try:
-            rel = p.resolve().relative_to(root)
-        except (ValueError, OSError):
-            return None
-        return rel.as_posix()
-    s = Path(target).as_posix()
-    return s[2:] if s.startswith("./") else s
-
-
-def event_candidate_paths(data: dict) -> list[str]:
-    """Write-target paths from a Claude/Codex-like tool event.
-
-    Claude-style Write/Edit/MultiEdit payloads carry ``tool_input.file_path``.
-    Codex ``apply_patch`` payloads carry the patch text in ``tool_input.command``;
-    parse patch headers so the same checker can run as a Codex PostToolUse hook.
-    """
-    try:
-        tool_input = data.get("tool_input") or {}
-    except AttributeError:
-        return []
-
-    out: list[str] = []
-    file_path = tool_input.get("file_path")
-    if isinstance(file_path, str) and file_path:
-        out.append(file_path)
-
-    patch_text = tool_input.get("command") or tool_input.get("patch") or ""
-    if isinstance(patch_text, str) and patch_text:
-        for line in patch_text.splitlines():
-            match = _PATCH_PATH_RE.match(line) or _PATCH_MOVE_RE.match(line)
-            if match:
-                out.append(match.group(1).strip())
-
-    deduped: list[str] = []
-    for path in out:
-        if path not in deduped:
-            deduped.append(path)
-    return deduped
+# Event parsing is shared: _hooklib.candidate_paths handles Claude-style
+# tool_input.file_path/.path/.notebook_path AND Codex apply_patch headers in
+# tool_input.command/.patch/.input (imported above as event_candidate_paths).
 
 
 # --- the map is the spec ----------------------------------------------------
@@ -362,18 +323,7 @@ def commit_nudge(relposix: str) -> str | None:
             "interleave: `git commit --only -- " + MAP + "`.")
 
 
-# --- git plumbing -----------------------------------------------------------
-
-def git_lines(root: Path, args: list[str]) -> list[str]:
-    try:
-        out = subprocess.run(["git", "-C", str(root), *args],
-                             capture_output=True, text=True)
-    except (FileNotFoundError, OSError):
-        return []
-    if out.returncode != 0:
-        return []
-    return [ln.strip() for ln in out.stdout.splitlines() if ln.strip()]
-
+# --- git plumbing (shared _hooklib.git_lines) --------------------------------
 
 def map_is_dirty(root: Path) -> bool:
     """True when the repo map is staged or unstaged dirty."""
@@ -439,20 +389,15 @@ def read_ack(commit_msg_file: str | None, message: str | None) -> str | None:
 
 def run_hook(root: Path) -> int:
     """PostToolUse hook: block dirty repo-map edits; otherwise advise."""
-    try:
-        data = json.loads(sys.stdin.read() or "{}")
-    except ValueError:
-        return 0
+    data = read_event()
 
     paths = event_candidate_paths(data)
     if not paths:
         return 0
 
-    map_text = read_map_text(root)
-    extra = map_excludes(map_text)
-
     notes: list[str] = []
     block = False
+    checkable: list[str] = []
     for path in paths:
         rel = to_relposix(path, root)
         if rel is None:
@@ -465,16 +410,25 @@ def run_hook(root: Path) -> int:
                 block = True
                 notes.append("Repo-map commit interrupt (blocking): " + nudge)
             continue
+        # Cheap pre-gate: a path the DEFAULT excludes already rule out can never
+        # trigger or nudge, so it must not cost a full map read. Map-derived
+        # exclusions still apply below for the paths that survive.
+        if not is_excluded(rel, ()):
+            checkable.append(rel)
 
-        msg = structural_trigger(rel, map_text, extra) or advisory_only(rel)
-        if msg:
-            notes.append(
-            "Repo-map freshness (advisory, not blocking): " + msg
-            + " Update " + MAP + " (or the relevant consolidation submap), or record "
-            "a `repo-map-ack: <reason>` in your commit message if it is deliberately "
-            "not a navigation target. Enforced at the write boundary per " + PRINCIPLE
-            + "; judgment-shaped staleness stays with " + DCP + "."
-            )
+    if checkable:
+        map_text = read_map_text(root)  # read once, only when a path needs the spec
+        extra = map_excludes(map_text)
+        for rel in checkable:
+            msg = structural_trigger(rel, map_text, extra) or advisory_only(rel)
+            if msg:
+                notes.append(
+                "Repo-map freshness (advisory, not blocking): " + msg
+                + " Update " + MAP + " (or the relevant consolidation submap), or record "
+                "a `repo-map-ack: <reason>` in your commit message if it is deliberately "
+                "not a navigation target. Enforced at the write boundary per " + PRINCIPLE
+                + "; judgment-shaped staleness stays with " + DCP + "."
+                )
 
     if not notes:
         return 0

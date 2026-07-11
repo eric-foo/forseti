@@ -17,7 +17,7 @@ This overlay is the project authority for Forseti. Skills may provide task-local
 - `project-authority.md`: project identity, boundary, and unknown facts.
 - `source-of-truth.md`: Forseti source hierarchy, conflict rules, and doctrine-change propagation contract.
 - `source-loading.md`: source-loading budgets, read packs, and context-bloat controls.
-- `decision-routing.md`: Cynefin Routing Layer for non-trivial, ambiguous, cross-thread, delegated, doctrine-bearing, or messy-worktree work.
+- `decision-routing.md`: Cynefin Routing Layer for work where uncertainty about decomposition, authority, source truth, or sequencing could materially change the next move.
 - `artifact-folders.md`: accepted Forseti artifact locations.
 - `artifact-roles.md`: role bindings, permissions, freshness markers, and paired artifacts.
 - `retrieval-metadata.md`: lightweight retrieval-header contract for durable human-authored workflow artifacts.
@@ -27,6 +27,7 @@ This overlay is the project authority for Forseti. Skills may provide task-local
 - `communication-style.md`: Forseti response style for Chief Architect sequencing, review closeouts, and prompt handoffs.
 - `validation-gates.md`: checks required before claiming completion.
 - `review-lanes.md`: read-only review lanes, patch/integration execution boundaries, and template retrieval rules.
+- `batch0-process-pilot.md`: temporary four-probe process-improvement pilot, review-economics receipt binding, and tenth-review owner notification boundary.
 - `delegated-review-patch.md`: provisional, opt-in Delegated Review-and-Patch convention for high-stakes authored artifacts, and the overlay-interface fields a future skill implementation may read. Not a bound review lane.
 - `safety-rules.md`: project-specific safety and forbidden drift.
 - `skill-adoption.md`: skill source, shadow, and adoption status.

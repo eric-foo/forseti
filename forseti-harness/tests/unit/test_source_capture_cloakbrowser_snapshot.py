@@ -104,6 +104,30 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
     assert result.metadata["viewport_width"] == 1024
     assert result.metadata["viewport_height"] == 768
     assert result.metadata["screenshot_mode"] == "viewport"
+    assert result.metadata["capture_phase_timing"] == {
+        "schema_version": 2,
+        "measurement_status": "unavailable",
+        "clock": "monotonic",
+        "unit": "milliseconds",
+        "phases_ms": {},
+        "progressive_scroll_steps": [],
+        "scroll_passes": [],
+        "load_more_actions": [],
+        "scroll_target": {
+            "configured": False,
+            "action_ms": None,
+            "condition_wait_ms": None,
+            "reached": None,
+        },
+        "scroll_stop_condition": {
+            "configured": False,
+            "reached": None,
+            "reached_stage": None,
+            "checks": [],
+        },
+        "total_capture_wall_ms": None,
+        "reason": "capture engine did not report phase timings",
+    }
     assert result.metadata["rendered_dom_byte_count"] == len(result.rendered_dom.encode("utf-8"))
     assert result.metadata["visible_text_byte_count"] == len(result.visible_text.encode("utf-8"))
     assert result.metadata["screenshot_byte_count"] == len(result.screenshot_png)
@@ -124,6 +148,8 @@ def test_fetch_cloakbrowser_snapshot_capture_with_fake_engine_records_method_pro
         "load_more_selector": None,
         "load_more_clicks": 0,
         "scroll_step_px": 0,
+        "scroll_stop_condition": None,
+        "scroll_target_selector": None,
         "pre_capture": None,
         "user_data_dir": None,
     }
@@ -1108,6 +1134,49 @@ def test_fetch_cloakbrowser_snapshot_capture_passes_scroll_step_px_to_engine_and
     assert result.metadata["scroll_step_px"] == 700
 
 
+def test_fetch_cloakbrowser_snapshot_capture_passes_scroll_target_to_engine_and_metadata() -> None:
+    engine = _FakeCloakBrowserEngine(
+        _FakeEngineResult(
+            final_url="https://example.com/reviews",
+            title="Reviews",
+            rendered_dom="<html><body>reviews</body></html>",
+            visible_text="reviews",
+            screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+        )
+    )
+
+    result = fetch_cloakbrowser_snapshot_capture(
+        url="https://example.com/reviews",
+        scroll_target_selector="#reviews",
+        scroll_stop_condition=cloakbrowser_snapshot_module.ScrollStopCondition(
+            visible_text_contains=("reviews",)
+        ),
+        engine=engine,
+    )
+
+    assert isinstance(result, CloakBrowserSnapshotSuccess)
+    assert engine.capture_kwargs is not None
+    assert engine.capture_kwargs["scroll_target_selector"] == "#reviews"
+    assert result.metadata["scroll_target_selector"] == "#reviews"
+
+
+def test_fetch_cloakbrowser_snapshot_capture_requires_condition_for_scroll_target() -> None:
+    with pytest.raises(ValueError, match="scroll_target_selector requires scroll_stop_condition"):
+        fetch_cloakbrowser_snapshot_capture(
+            url="https://example.com/reviews",
+            scroll_target_selector="#reviews",
+            engine=_FakeCloakBrowserEngine(
+                _FakeEngineResult(
+                    final_url="https://example.com/reviews",
+                    title="Reviews",
+                    rendered_dom="<html><body>reviews</body></html>",
+                    visible_text="reviews",
+                    screenshot_png=b"\x89PNG\r\n\x1a\ncloakbrowser",
+                )
+            ),
+        )
+
+
 def test_fetch_cloakbrowser_snapshot_capture_rejects_negative_scroll_step_px() -> None:
     with pytest.raises(ValueError, match="scroll_step_px"):
         fetch_cloakbrowser_snapshot_capture(
@@ -1410,6 +1479,53 @@ def test_cloakbrowser_runner_threads_scroll_step_px_to_capture(monkeypatch: pyte
 
     assert exit_code == 3
     assert seen["scroll_step_px"] == 700
+
+
+def test_cloakbrowser_runner_uses_retail_profile_scroll_target(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, object] = {}
+
+    def fake_capture(**kwargs: object) -> CloakBrowserSnapshotFailure:
+        seen.update(kwargs)
+        return CloakBrowserSnapshotFailure(
+            requested_url="https://www.sephora.com/product/lip-sleeping-mask-P420652",
+            failure_kind=CloakBrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="stub failure after recording kwargs",
+        )
+
+    monkeypatch.setattr(cloakbrowser_runner, "fetch_cloakbrowser_snapshot_capture", fake_capture)
+    profile = cloakbrowser_runner.get_retail_capture_profile("sephora_pdp_distribution")
+
+    exit_code, _ = cloakbrowser_runner.run_source_capture_cloakbrowser_packet(
+        url="https://www.sephora.com/product/lip-sleeping-mask-P420652",
+        source_family="retail_pdp",
+        source_surface="cloakbrowser_snapshot",
+        decision_question="does the target selector thread through?",
+        output_directory=Path("unused_no_packet_on_failure"),
+        capture_context="test target-selector threading",
+        operator_category="cloakbrowser_snapshot_cli_operator",
+        capture_mode=CaptureModeCategory.MULTIMODAL,
+        session_id=None,
+        proxy_profile=None,
+        actor_audience_context=None,
+        visible_mode_changes=[],
+        source_publication_or_event=None,
+        source_edit_or_version=None,
+        cutoff_posture=None,
+        recapture_time=None,
+        re_capture_relationship=None,
+        warnings=[],
+        limitations=[],
+        retail_capture_profile=profile,
+        timeout_seconds=20,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        max_artifact_bytes=50_000,
+        block_heavy_assets=False,
+    )
+
+    assert exit_code == 3
+    assert seen["scroll_target_selector"] == "#ratings-reviews-container"
 
 
 def test_fetch_cloakbrowser_snapshot_capture_records_heavy_asset_blocking() -> None:
