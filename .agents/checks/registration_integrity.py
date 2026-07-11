@@ -47,7 +47,7 @@ EXIT CODES
 
 ENFORCEMENT REACH (honesty)
   A non-zero exit fails the PR's check run, and active branch protection requires the
-  strict orseti-harness-tests context before main can merge. This checker proves only
+  strict forseti-harness-tests context before main can merge. This checker proves only
   registration integrity inside that required job; it is not validation or readiness by itself.
 
 USAGE

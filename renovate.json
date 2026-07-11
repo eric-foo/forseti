@@ -21,6 +21,13 @@
         "3. `python verify_fingerprint_v0.py` — confirm it prints a Chrome-class JA3/JA4 distinct from Python's, and that the curl_cffi version reads as current.",
         "Being 1-2 Chrome majors behind is fine; only a long-frozen version is a tell. Background: `forseti-harness/youtube_capture/README.md` -> \"Keeping the Chrome costume fresh\"."
       ]
+    },
+    {
+      "description": "Pinned GitHub Actions (.github/workflows/ci.yml SHA pins) need Renovate coverage to stay current; the blanket disable rule above matches every package name across every enabled manager unless carved out here.",
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["*"],
+      "enabled": true,
+      "labels": ["dependencies", "github-actions"]
     }
   ]
 }

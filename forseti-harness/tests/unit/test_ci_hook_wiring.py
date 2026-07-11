@@ -68,3 +68,26 @@ def test_external_actions_are_sha_pinned_and_renovate_managed() -> None:
         assert re.fullmatch(r"[^@]+@[0-9a-f]{40}\s+#\s+v\d+(?:\.\d+){0,2}", use), use
 
     renovate = json.loads((REPO_ROOT / "renovate.json").read_text(encoding="utf-8"))
+    assert "github-actions" in renovate.get("enabledManagers", [])
+
+    # A blanket wildcard packageRule can silently re-disable every manager it
+    # does not carve back out; assert a later rule actually re-enables the
+    # github-actions manager instead of just declaring it in enabledManagers.
+    rules = renovate.get("packageRules", [])
+    reenabled_at = None
+    for index, rule in enumerate(rules):
+        if rule.get("enabled") is True and "github-actions" in rule.get("matchManagers", []):
+            reenabled_at = index
+    assert reenabled_at is not None, "no packageRule re-enables the github-actions manager"
+
+    disabled_wildcard_indexes = [
+        index
+        for index, rule in enumerate(rules)
+        if rule.get("enabled") is False and rule.get("matchPackageNames") == ["*"]
+    ]
+    assert disabled_wildcard_indexes, "expected the blanket wildcard disable rule to still exist"
+    assert reenabled_at > max(disabled_wildcard_indexes), (
+        "github-actions re-enable rule must come after the blanket wildcard disable "
+        "(Renovate packageRules merge in array order; an earlier re-enable would be "
+        "overridden by the later blanket disable)"
+    )
