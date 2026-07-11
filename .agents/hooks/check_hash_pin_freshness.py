@@ -255,6 +255,9 @@ def _git(root: Path, args: list[str], timeout: int = 20) -> tuple[int, str]:
 
 
 def resolve_base_ref(cli_base: str | None) -> str:
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if gh_base:
         return f"origin/{gh_base}"
@@ -478,6 +481,7 @@ def selftest() -> int:
     check("case13b not relevant on unrelated change", relevant_pins([rel_pin], {"unrelated.md"}), [])
 
     # 14. resolve_base_ref precedence: env wins, then --base, then default.
+    saved_ci_base = os.environ.pop("FORSETI_DIFF_BASE", None)
     saved = os.environ.pop("GITHUB_BASE_REF", None)
     try:
         check("case14 default base", resolve_base_ref(None), "origin/main")
@@ -489,6 +493,10 @@ def selftest() -> int:
             os.environ["GITHUB_BASE_REF"] = saved
         else:
             os.environ.pop("GITHUB_BASE_REF", None)
+        if saved_ci_base is not None:
+            os.environ["FORSETI_DIFF_BASE"] = saved_ci_base
+        else:
+            os.environ.pop("FORSETI_DIFF_BASE", None)
 
     # Regression: repo-local pointer filter (mirror EP-37).
     check("repo-local pointer", is_repo_local_pointer("docs/a.md"), True)

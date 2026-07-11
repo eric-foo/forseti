@@ -511,7 +511,15 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS)
-    parser.add_argument("--wait-until", choices=sorted(ALLOWED_WAIT_UNTIL), default="load")
+    parser.add_argument(
+        "--wait-until",
+        choices=sorted(ALLOWED_WAIT_UNTIL),
+        default=None,
+        help=(
+            "Navigation completion event. Default 'load' without a retail profile; "
+            "otherwise the profile's measured posture."
+        ),
+    )
     parser.add_argument("--viewport-width", type=int, default=DEFAULT_VIEWPORT_WIDTH)
     parser.add_argument("--viewport-height", type=int, default=DEFAULT_VIEWPORT_HEIGHT)
     parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
@@ -699,6 +707,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             if retail_capture_profile is not None
             else 0.0
         )
+        wait_until = (
+            args.wait_until
+            if args.wait_until is not None
+            else retail_capture_profile.wait_until
+            if retail_capture_profile is not None
+            else "load"
+        )
         scroll_passes = (
             args.scroll_passes
             if args.scroll_passes is not None
@@ -833,7 +848,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             source_detail_sufficiency_requirements=build_source_detail_sufficiency_requirements(args),
             retail_capture_profile=retail_capture_profile,
             timeout_seconds=args.timeout_seconds,
-            wait_until=args.wait_until,
+            wait_until=wait_until,
             viewport_width=args.viewport_width,
             viewport_height=args.viewport_height,
             max_artifact_bytes=args.max_artifact_bytes,

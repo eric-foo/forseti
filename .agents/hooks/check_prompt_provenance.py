@@ -34,6 +34,14 @@ HARD BOUNDARY -- remind only, never block, never verdict.
   preflight in the prompt body or PR comment. Canonical prompt artifacts still
   write under docs/prompts/** and fire this hook.
 
+CONTEXT-TOKEN THROTTLE (once-per-session full checklist)
+  The full checklist (~380 tokens) is injected on the FIRST in-scope prompt
+  write of a session; later prompt writes in the same session get a one-line
+  pointer back to it instead (~40 tokens). State is a tempdir marker keyed by
+  the hook payload's session_id (_hooklib.mark_session_once). Fails OPEN to
+  the full checklist: no session_id or any state error -> full reminder, so a
+  throttle bug can only cost tokens, never the nudge.
+
 MODES
   check_prompt_provenance.py --hook      PostToolUse hook (stdin JSON, exit 0)
   check_prompt_provenance.py --selftest  pure-decision cases
@@ -48,6 +56,10 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import mark_session_once  # noqa: E402  (sys.path pin first)
 
 REMINDER = (
     "Prompt preflight (advisory, not blocking) -- this write landed under "
@@ -75,6 +87,26 @@ REMINDER = (
     "verdict that the contract was skipped."
 )
 
+# Injected on later in-scope prompt writes of the same session, once the full
+# checklist above has already been injected (context-token throttle).
+SHORT_REMINDER = (
+    "Prompt preflight (advisory) -- this write landed under docs/prompts/**. "
+    "Re-apply the 6-item Forseti Prompt Preflight injected earlier this session "
+    "(output mode, template kind, edit permission+targets+branch, reviews, "
+    "doctrine change, destinations). Rule owner: "
+    ".agents/workflow-overlay/prompt-orchestration.md."
+)
+
+
+def reminder_for(path: str, first_time: bool) -> str | None:
+    """Pure decision: the reminder text for this write, or None when out of scope.
+
+    First in-scope prompt write of a session -> the full checklist; later ones
+    -> the one-line pointer."""
+    if not is_prompt_path(str(path)):
+        return None
+    return REMINDER if first_time else SHORT_REMINDER
+
 
 def is_prompt_path(path: str) -> bool:
     """True when the path is inside docs/prompts/ (pure function).
@@ -94,9 +126,18 @@ def run_hook() -> int:
         data = {}
     tool_input = data.get("tool_input", {}) if isinstance(data, dict) else {}
     path = tool_input.get("file_path", "") if isinstance(tool_input, dict) else ""
-    if is_prompt_path(str(path)):
+    if not is_prompt_path(str(path)):
+        return 0
+    session_id = data.get("session_id", "") if isinstance(data, dict) else ""
+    # Fail OPEN to the full checklist: without a session_id there is no safe
+    # session bucket (the shared "nosession" bucket would mute every future
+    # session on this machine), so throttle only when the id is present.
+    first_time = (not session_id) or mark_session_once(
+        "prompt_preflight", str(session_id))
+    msg = reminder_for(str(path), first_time)
+    if msg:
         print(json.dumps({"hookSpecificOutput": {
-            "hookEventName": "PostToolUse", "additionalContext": REMINDER}}))
+            "hookEventName": "PostToolUse", "additionalContext": msg}}))
     return 0
 
 
@@ -117,6 +158,24 @@ def selftest() -> int:
         if got != expect:
             ok = False
         print("%s case %02d  expect=%s got=%s  %s" % (status, i, expect, got, path))
+
+    # once-per-session throttle decision (pure)
+    throttle_cases = [
+        ("first write -> full checklist",
+         reminder_for("docs/prompts/reviews/x_v0.md", True) == REMINDER),
+        ("later write -> short pointer",
+         reminder_for("docs/prompts/reviews/x_v0.md", False) == SHORT_REMINDER),
+        ("out of scope -> silent either way",
+         reminder_for("docs/decisions/a_v0.md", True) is None
+         and reminder_for("docs/decisions/a_v0.md", False) is None),
+        ("short pointer stays short",
+         len(SHORT_REMINDER) < len(REMINDER) // 3),
+    ]
+    for label, passed in throttle_cases:
+        if not passed:
+            ok = False
+        print("%s throttle  %s" % ("PASS" if passed else "FAIL", label))
+
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 

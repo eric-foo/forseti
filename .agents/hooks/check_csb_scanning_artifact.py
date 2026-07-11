@@ -1127,6 +1127,9 @@ def changed_paths(root: Path) -> list[str]:
 
 
 def resolve_base_ref(cli_base: str | None) -> str:
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     github_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if github_base:
         return f"origin/{github_base}"

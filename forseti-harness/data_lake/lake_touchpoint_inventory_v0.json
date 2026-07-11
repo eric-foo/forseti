@@ -314,6 +314,18 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "source_capture/retail_pdp_silver.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "source_capture/retail_pdp_silver.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "append_record_set",
       "count": 1,
       "module": "source_capture/transcript/asr_packet.py"
@@ -500,6 +512,15 @@
         },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_tiktok_batch_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "onboarding binds grid metrics to source-visible creator rows and reuses the validated session across selected-video capture, but admitted comment/subtitle artifacts still lack an end-to-end served author identity proof",
+          "status": "unbound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_tiktok_creator_onboarding.py"
       },
       {
         "a2_fork_impact": "manifest_shape",
