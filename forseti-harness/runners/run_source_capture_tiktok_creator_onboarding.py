@@ -24,7 +24,8 @@ from source_capture.tiktok.creator_onboarding import (
     run_tiktok_creator_onboarding,
 )
 from source_capture.tiktok.live_batch_probe import (
-    TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS,
+    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
 )
 
 
@@ -69,12 +70,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--cadence-min-gap-seconds",
         type=float,
-        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS,
+        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     )
     parser.add_argument(
         "--cadence-max-gap-seconds",
         type=float,
-        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS,
+        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     )
     parser.add_argument("--cadence-window-seconds", type=float)
     parser.add_argument("--random-seed", type=int)
