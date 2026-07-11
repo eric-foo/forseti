@@ -4,16 +4,15 @@
 retrieval_header_version: 1
 artifact_role: Preflight defaults (repo-constant prompt preflight bindings)
 scope: >
-  Repo-constant preflight field values that every Forseti repo-aware prompt may
-  reference rather than restate. Does not remove the requirement to state
-  per-prompt deltas.
+  Repo-constant field values that escalated Forseti prompts may reference
+  rather than restate. Routine prompts use the inline preflight core instead.
 use_when:
-  - Authoring a new Forseti repo-aware prompt and referencing constant fields.
-  - Checking which preflight fields are repo-constant vs. per-prompt required.
+  - Authoring a prompt that matches the Full orchestration predicate in `.agents/workflow-overlay/prompt-orchestration.md`; not a lane-scoped prompt merely because it is delegated or patch-authorized.
+  - Checking which escalated preflight fields are constant vs. per-prompt.
 authority_boundary: retrieval_only
 ```
 
-Usage line a prompt includes:
+Usage line an escalated prompt may include:
 
 ```
 preflight_defaults: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md v0 - constants bound; deltas stated below.
@@ -23,12 +22,10 @@ preflight_defaults: docs/prompts/templates/shared/forseti_preflight_defaults_v0.
 
 ## CONSTANTS bound by this artifact (verbatim, single source)
 
-These values are repo-constant and do not need restating per prompt when a
-prompt cites this artifact.
+These values do not need restating when an escalated prompt cites this artifact.
 
 | Field | Value |
 | --- | --- |
-| `workspace_path` | `C:\Users\vmon7\Desktop\projects\forseti` |
 | `agents_md_read` | Required on intake |
 | `overlay_readme_read` | `.agents/workflow-overlay/README.md` — required on intake |
 | `external_source_boundary` | External workflow source is read-only from Forseti work; `jb` is not Forseti authority |
@@ -41,10 +38,16 @@ Source-Gated Method Contract (pointer, not restatement here).
 
 ---
 
-## REQUIRED PER-PROMPT DELTAS
+## REQUIRED ESCALATED DELTAS
 
-A prompt referencing this artifact MUST still state each of the following. They
-are never defaulted by this artifact.
+An escalated prompt referencing this artifact still states the material deltas
+below. Routine prompts do not inherit this list.
+
+- **workspace_or_repo**: commissioned target worktree root or repository
+  identifier when repository state matters; never default to an unrelated
+  parent/launch checkout. Repo-bound review mismatch handling is owned by
+  `.agents/workflow-overlay/prompt-orchestration.md` -> "Repo-Bound Review
+  Target Resolution".
 
 - **authorization_basis**: what authorizes this unit of work (current turn,
   accepted handoff, owner decision, etc.).
@@ -61,8 +64,9 @@ are never defaulted by this artifact.
 - **controlling_source_state**: when strict claims depend on overlay,
   source-loading, repo-map, prompt-policy, validation, or artifact-role files —
   clean, modified, untracked, stale, or not checked.
-- **branch_or_commit_reference**: expected branch, detached revision, or commit
-  hash when source stability matters.
+- **branch_or_commit_reference**: expected branch plus either an exact detached
+  revision/hash pin or required commit ancestry when source stability matters;
+  state which semantics apply.
 - **doctrine_change_decision**: whether this work changes product doctrine,
   architecture doctrine, workflow authority, validation philosophy, review
   authority, output authority, or a lifecycle boundary; if yes, which

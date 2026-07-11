@@ -1,9 +1,9 @@
 """Deterministic reach-first selection for TikTok creator-grid onboarding.
 
-Selection starts with the top quarter by observed view count. An outside video
-may replace an original selection only when it retains at least 80% of that
-incumbent's views and has at least 20% higher like rate. Promotions never become
-new comparison anchors, preventing chained erosion of the reach floor.
+Selection starts with the configured top fraction by observed view count. An
+outside video may replace an original selection only when it retains at least
+80% of that incumbent's views and has at least 20% higher like rate. Range
+overrides never become new comparison anchors, preventing reach-floor erosion.
 """
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ from collections.abc import Sequence
 from fractions import Fraction
 from typing import Any
 
-TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION = "tiktok_grid_video_selection_v0"
-TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION = "tiktok_reach_first_top_quartile_v1"
-_SELECTION_FRACTION = 0.25
+TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION = "tiktok_grid_video_selection_v1"
+TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION = "tiktok_reach_first_top_fraction_v2"
+_DEFAULT_SELECTION_FRACTION = Fraction(1, 4)
 _MINIMUM_VIEW_RETENTION_PERCENT = 80
 _MINIMUM_LIKE_RATE_LIFT_PERCENT = 20
 
@@ -27,13 +27,15 @@ def build_tiktok_grid_video_selection(
     items: Sequence[dict[str, Any]],
     *,
     expected_item_count: int,
+    selection_fraction: float = 0.25,
 ) -> dict[str, Any]:
-    """Select the reach-proven top quarter from one complete creator grid."""
+    """Select the reach-proven top fraction from one complete creator grid."""
 
     if isinstance(expected_item_count, bool) or not isinstance(expected_item_count, int):
         raise TikTokGridVideoSelectionError("expected_item_count must be an integer")
     if expected_item_count <= 0:
         raise TikTokGridVideoSelectionError("expected_item_count must be positive")
+    normalized_selection_fraction = _normalize_selection_fraction(selection_fraction)
     if len(items) != expected_item_count:
         raise TikTokGridVideoSelectionError(
             "complete-grid coverage required: "
@@ -45,7 +47,9 @@ def build_tiktok_grid_video_selection(
     if len(set(video_ids)) != len(video_ids):
         raise TikTokGridVideoSelectionError("duplicate video_id values are not allowed")
 
-    selection_count = max(1, math.ceil(expected_item_count * _SELECTION_FRACTION))
+    selection_count = max(
+        1, math.ceil(expected_item_count * normalized_selection_fraction)
+    )
     reach_order = sorted(
         normalized,
         key=lambda item: (
@@ -57,12 +61,12 @@ def build_tiktok_grid_video_selection(
     )
     baseline_selected = reach_order[:selection_count]
     baseline_cutoff_view_count = baseline_selected[-1]["view_count"]
-    selected, promotions = _apply_boundary_promotions(
+    selected, range_overrides = _apply_boundary_range_overrides(
         baseline_selected=baseline_selected,
         challengers=reach_order[selection_count:],
     )
     selected_ids = {item["video_id"] for item in selected}
-    replaced_ids = {receipt["replaced_video_id"] for receipt in promotions}
+    replaced_ids = {receipt["replaced_video_id"] for receipt in range_overrides}
     review_order = sorted(
         selected,
         key=lambda item: (
@@ -103,11 +107,11 @@ def build_tiktok_grid_video_selection(
         "schema_version": TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION,
         "selection_policy": {
             "policy_version": TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION,
-            "selection_fraction": _SELECTION_FRACTION,
+            "selection_fraction": float(normalized_selection_fraction),
             "selection_count_rounding": "ceil_with_minimum_one",
             "required_metrics": ["playCount", "diggCount"],
             "membership_rule": (
-                "Start with the top ceil(25%) by view_count. An outside video may "
+                "Start with the top configured fraction by view_count. An outside video may "
                 "replace an original view-selected incumbent only when it retains "
                 "at least 80% of that incumbent's views and has at least 20% higher "
                 "like_rate."
@@ -117,14 +121,14 @@ def build_tiktok_grid_video_selection(
                 "view_count descending."
             ),
             "negligible_reach_guard": (
-                "Promotions compare only against original view-selected incumbents; "
-                "a promoted video cannot become a new lower-reach comparison anchor."
+                "Range overrides compare only against original view-selected incumbents; "
+                "an override video cannot become a new lower-reach comparison anchor."
             ),
             "competing_challenger_order_rule": (
                 "When more than one challenger qualifies, challengers are matched "
                 "in like_rate-descending order; each qualifying challenger claims "
                 "the lowest-like_rate remaining incumbent it qualifies against. "
-                "A later, still-qualifying challenger can be left unpromoted if an "
+                "A later qualifying challenger can remain outside the selection if an "
                 "earlier challenger already claimed its only eligible incumbent."
             ),
             "minimum_view_retention_percent": _MINIMUM_VIEW_RETENTION_PERCENT,
@@ -140,8 +144,8 @@ def build_tiktok_grid_video_selection(
             "selection_count": selection_count,
             "baseline_cutoff_view_count": baseline_cutoff_view_count,
             "final_minimum_view_count": min(item["view_count"] for item in selected),
-            "promotion_count": len(promotions),
-            "promotions": promotions,
+            "range_override_count": len(range_overrides),
+            "range_overrides": range_overrides,
             "selected_video_ids_in_reach_order": [
                 item["video_id"] for item in selected
             ],
@@ -158,14 +162,24 @@ def build_tiktok_grid_video_selection(
     }
 
 
-def _apply_boundary_promotions(
+
+def _normalize_selection_fraction(value: float) -> Fraction:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TikTokGridVideoSelectionError("selection_fraction must be numeric")
+    normalized = Fraction(str(value))
+    if normalized <= 0 or normalized > 1:
+        raise TikTokGridVideoSelectionError("selection_fraction must be greater than 0 and at most 1")
+    return normalized
+
+
+def _apply_boundary_range_overrides(
     *,
     baseline_selected: Sequence[dict[str, Any]],
     challengers: Sequence[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     remaining_incumbents = list(baseline_selected)
-    promoted: list[dict[str, Any]] = []
-    promotion_receipts: list[dict[str, Any]] = []
+    override_items: list[dict[str, Any]] = []
+    range_override_receipts: list[dict[str, Any]] = []
     challenger_order = sorted(
         challengers,
         key=lambda item: (
@@ -194,10 +208,10 @@ def _apply_boundary_promotions(
             ),
         )
         remaining_incumbents.remove(incumbent)
-        promoted.append(challenger)
-        promotion_receipts.append(
+        override_items.append(challenger)
+        range_override_receipts.append(
             {
-                "promoted_video_id": challenger["video_id"],
+                "range_override_video_id": challenger["video_id"],
                 "replaced_video_id": incumbent["video_id"],
                 "view_retention_ratio": round(
                     challenger["view_count"] / incumbent["view_count"], 6
@@ -218,7 +232,7 @@ def _apply_boundary_promotions(
         )
 
     final_selected = sorted(
-        [*remaining_incumbents, *promoted],
+        [*remaining_incumbents, *override_items],
         key=lambda item: (
             -item["view_count"],
             -_like_rate_fraction(item),
@@ -226,7 +240,7 @@ def _apply_boundary_promotions(
             item["video_id"],
         ),
     )
-    return final_selected, promotion_receipts
+    return final_selected, range_override_receipts
 
 
 def _within_view_range(

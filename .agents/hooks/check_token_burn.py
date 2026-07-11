@@ -61,27 +61,60 @@ def _turn_context_size(usage):
     )
 
 
-def _latest_context_size(transcript_path):
-    """Prompt size of the most recent main-thread assistant turn; 0 if none."""
+def _scan_transcript_line(raw):
+    """Prompt size for one raw JSONL line, or None to skip it. None covers: blank
+    lines, lines without a usage field, unparseable JSON, non-main-thread or
+    non-assistant turns, and turns whose computed size is 0 (keep looking older)."""
     try:
-        with open(transcript_path, "r", encoding="utf-8") as handle:
-            lines = handle.readlines()
+        line = raw.decode("utf-8").strip()
+    except UnicodeDecodeError:
+        return None  # a corrupt older line is skipped, not fatal to the scan
+    if not line or '"usage"' not in line:
+        return None
+    try:
+        obj = json.loads(line)
+    except ValueError:
+        return None
+    if obj.get("type") != "assistant" or obj.get("isSidechain"):
+        return None  # only the main thread's own turns drive its context
+    size = _turn_context_size((obj.get("message") or {}).get("usage"))
+    return size if size > 0 else None
+
+
+TAIL_BLOCK_SIZE = 65536
+
+
+def _latest_context_size(transcript_path, block_size=TAIL_BLOCK_SIZE):
+    """Prompt size of the most recent main-thread assistant turn; 0 if none.
+
+    Reads the transcript backwards in fixed-size blocks and scans lines
+    newest-first, stopping at the first match, so it never loads a multi-MB
+    transcript in full. Splitting on the ``\\n`` byte (never part of a UTF-8
+    multibyte sequence) makes block boundaries safe; a segment straddling a
+    boundary is carried into the next, older block before being scanned. Fails
+    open (returns 0) on any I/O error."""
+    try:
+        with open(transcript_path, "rb") as handle:
+            handle.seek(0, os.SEEK_END)
+            pos = handle.tell()
+            carry = b""  # leading, possibly-incomplete segment of the last block
+            while pos > 0:
+                read_size = min(block_size, pos)
+                pos -= read_size
+                handle.seek(pos)
+                parts = (handle.read(read_size) + carry).split(b"\n")
+                if pos > 0:
+                    carry = parts[0]  # first segment may span into the older block
+                    complete = parts[1:]
+                else:
+                    complete = parts  # reached start: every segment is complete
+                for raw in reversed(complete):
+                    size = _scan_transcript_line(raw)
+                    if size is not None:
+                        return size
+            return 0
     except OSError:
         return 0
-    for line in reversed(lines):
-        line = line.strip()
-        if not line or '"usage"' not in line:
-            continue
-        try:
-            obj = json.loads(line)
-        except ValueError:
-            continue
-        if obj.get("type") != "assistant" or obj.get("isSidechain"):
-            continue  # only the main thread's own turns drive its context
-        size = _turn_context_size((obj.get("message") or {}).get("usage"))
-        if size > 0:
-            return size
-    return 0
 
 
 def _rungs():
@@ -265,6 +298,31 @@ def _selftest():
                 fails.append("latest_context_size picked wrong turn: %r" % got)
         finally:
             os.unlink(scratch.name)
+
+        # 2b. tail read finds the newest usage line when it sits many blocks back
+        #     from EOF (target line, then filler lines exceeding several blocks).
+        big = tempfile.NamedTemporaryFile(
+            "w", suffix=".jsonl", delete=False, encoding="utf-8"
+        )
+        block = 64
+        try:
+            big.write(json.dumps({"type": "assistant", "isSidechain": False,
+                "message": {"usage": {"input_tokens": 314159,
+                                      "cache_creation_input_tokens": 0,
+                                      "cache_read_input_tokens": 0}}}) + "\n")
+            # ~40 usage-free trailing lines >> block, so the match is many
+            # blocks back from EOF and multi-block traversal is exercised.
+            for i in range(40):
+                big.write(json.dumps({"type": "user",
+                    "message": {"content": "filler line %d padding padding" % i}}) + "\n")
+            big.close()
+            if os.path.getsize(big.name) <= block:
+                fails.append("2b: transcript not larger than one block")
+            got_big = _latest_context_size(big.name, block_size=block)
+            if got_big != 314159:
+                fails.append("2b: tail read missed cross-block usage line: %r" % got_big)
+        finally:
+            os.unlink(big.name)
 
         # 3. rung index boundaries
         rungs = [(200000, "warn"), (500000, "alarm")]

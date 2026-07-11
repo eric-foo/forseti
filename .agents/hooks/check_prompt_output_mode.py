@@ -47,8 +47,9 @@ WHAT THIS DOES *NOT* DO (the over-edge boundary -- PLACEMENT IS NOT AUTHORITY)
     actor's output mode, not this artifact's own.
 
 DETECTION CONTRACT (mirrors check_handoff_pointers.py / check_dcp_receipt.py)
-  base ref priority: $GITHUB_BASE_REF -> origin/<ref>; else --base <ref>; else
-  origin/main. Diff is three-dot `base...HEAD`, name-status; scanned files are
+  base ref priority: $FORSETI_DIFF_BASE (exact CI event SHA); else
+  $GITHUB_BASE_REF -> origin/<ref>; else --base <ref>; else origin/main.
+  Diff is three-dot `base...HEAD`, name-status; scanned files are
   the added/modified/rename-or-copy-destination `.md` paths still present in
   the tree, filtered to the in-scope set (below). NO HEAD~1 fallback. If the
   base cannot be resolved or git fails, fail OPEN (exit 0, loud warning) --
@@ -298,6 +299,9 @@ def _git(root: Path, args: list[str], timeout: int = 15) -> tuple[int, str]:
 
 
 def resolve_base_ref(cli_base: str | None) -> str:
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if gh_base:
         return "origin/%s" % gh_base
@@ -587,6 +591,7 @@ def selftest() -> int:
     # --- resolve_base_ref ---
     print()
     print("--- resolve_base_ref ---")
+    saved_ci_base = os.environ.pop("FORSETI_DIFF_BASE", None)
     saved = os.environ.pop("GITHUB_BASE_REF", None)
     try:
         check("base default", resolve_base_ref(None), "origin/main")
@@ -598,6 +603,10 @@ def selftest() -> int:
             os.environ["GITHUB_BASE_REF"] = saved
         else:
             os.environ.pop("GITHUB_BASE_REF", None)
+        if saved_ci_base is not None:
+            os.environ["FORSETI_DIFF_BASE"] = saved_ci_base
+        else:
+            os.environ.pop("FORSETI_DIFF_BASE", None)
 
     # --- parse_name_status ---
     print()

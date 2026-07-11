@@ -50,6 +50,10 @@ _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
         "projection writer checks exact bronze-catalog proof paths while appending "
         "stable derived records"
     ),
+    "source_capture/retail_pdp_silver.py": (
+        "producer reads one caller-pinned projection record id by key; it never "
+        "selects among or walks a sibling set"
+    ),
 }
 
 def _declared(detection: str) -> set[str]:
@@ -105,11 +109,16 @@ def test_path_based_reader_census_is_declared_or_explicitly_excluded() -> None:
     cannot be classified by the lane_dir detector, so every such touchpoint is
     either hand-declared as a reader posture or explicitly excluded with a reason.
     """
+    touchpoints = non_raw_lake_touchpoints()
+    lane_dir_readers = {
+        file_path
+        for (file_path, call_name) in touchpoints
+        if call_name == "lane_dir"
+    }
     path_based = {
         file_path
-        for (file_path, call_name) in non_raw_lake_touchpoints()
-        if call_name in _PATH_BASED_TOUCHPOINT_CALLS
-        and file_path not in lane_dir_reader_files()
+        for (file_path, call_name) in touchpoints
+        if call_name in _PATH_BASED_TOUCHPOINT_CALLS and file_path not in lane_dir_readers
     }
     expected_declared = (
         path_based - set(_PATH_BASED_TOUCHPOINT_EXCLUSIONS)
