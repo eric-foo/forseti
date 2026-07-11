@@ -146,15 +146,26 @@ ad-reception → momentum → adjacency; niche/indie → adjacency → ad-recept
 purchase-intent → momentum; agency → ad-reception → adjacency →
 purchase-intent → momentum.
 
-## 7. Explicit non-goal (adjudicated as out of scope, kept visible)
+## 7. Analyst recommendation allowed; private economics stay gated
 
-The panels deliberately do NOT answer *"given my product economics,
-creator rate, terms, timing, and legal tolerance, should I buy this placement
-now?"* That final synthesis belongs to the readback conversation and the
-buyer's own judgment; imitation-legality screening stays a per-engagement owner
-call (charter §5); pricing/commercial framing is deferred (register row D-2).
-Setting this expectation with the buyer up front is part of the sprint offer,
-not a gap to quietly fill with a score.
+Per the charter's 2026-07-12 amendment, the panels may support an accountable
+human Signals recommendation for a named brief:
+
+- `reach_out`;
+- `reach_out_only_as_value_play`;
+- `investigate_further`; or
+- `do_not_prioritize`.
+
+The analyst may also make an evidence-backed relative-performance forecast,
+including that one creator should perform better for a named product and why.
+The recommendation must expose evidence, comparative alternatives, freshness,
+material uncertainty, and the condition that would change it. It must not
+collapse the panels into a universal score.
+
+Without the buyer's rate, margin, inventory, timing, channel, and other required
+private economics, Signals does not recommend a spend amount or assert a
+numerical conversion/ROI outcome. Imitation-legality screening remains a
+per-engagement owner call; D-2 commercial framing remains deferred.
 
 ## 8. Accepted residuals (Mini God Tier — the price, named)
 
@@ -166,7 +177,7 @@ not a gap to quietly fill with a score.
 | R4 | Clone/niche-tail mentions (~13%, low-confidence ASR) excluded from roll-ups | Prevents provenance laundering; bias is downward (honest direction) | Undercounts clone-tail attention for exactly the widened-lane buyers | Tail re-verification against the bound fragrance reference |
 | R5 | Pre-launch DTC fit depends on buyer-supplied coordinates | Withhold-not-guess is the doctrine | Thin report if the buyer can't articulate coordinates | Coordinate-intake step at sprint prep (owned by sprint ops, not this record) |
 | R6 | Comparable-brand baseline needs history in the captured corpus | Withheld honestly when absent | Row frequently withheld at current roster depth | Roster depth capture at scale |
-| R7 | The §7 "buy now?" synthesis is out of scope | Readback + owner per-engagement calls own it; D-2 deferred | Buyer expectation mismatch if unstated | D-2 commercial-frame decision |
+| R7 | Spend/rate and numerical conversion/ROI remain gated, not the analyst recommendation itself | Human judgment can rank and recommend now; private economics and calibrated outcomes are still absent | Buyer may overread a directional recommendation as a fully-priced placement decision | State the recommendation scope and obtain required economics before spend/rate advice |
 
 ## Non-claims
 
@@ -214,3 +225,5 @@ direction_change_propagation:
     - not buyer proof
     - not build authorization
 ```
+
+Older receipts for this file are archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
