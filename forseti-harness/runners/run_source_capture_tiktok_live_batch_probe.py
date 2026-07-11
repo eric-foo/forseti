@@ -21,6 +21,8 @@ from source_capture.tiktok.admission import COMPLETE_LANE_NOTE
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
 from source_capture.tiktok.live_batch_probe import (
     TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     write_tiktok_live_batch_probe_outputs,
 )
 
@@ -166,8 +168,16 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=180.0,
     )
-    parser.add_argument("--cadence-min-gap-seconds", type=float, default=75.0)
-    parser.add_argument("--cadence-max-gap-seconds", type=float, default=120.0)
+    parser.add_argument(
+        "--cadence-min-gap-seconds",
+        type=float,
+        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
+    )
+    parser.add_argument(
+        "--cadence-max-gap-seconds",
+        type=float,
+        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+    )
     parser.add_argument("--cadence-window-seconds", type=float)
     parser.add_argument("--random-seed", type=int)
     parser.add_argument(

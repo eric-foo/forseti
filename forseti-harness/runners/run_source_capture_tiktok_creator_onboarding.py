@@ -23,6 +23,10 @@ from source_capture.tiktok.creator_onboarding import (
     TikTokCreatorOnboardingError,
     run_tiktok_creator_onboarding,
 )
+from source_capture.tiktok.live_batch_probe import (
+    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
+)
 
 
 SUMMARY_PREFIX = "tiktok_creator_onboarding_summary_json="
@@ -63,8 +67,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--timeout-seconds", type=float, default=30.0)
     parser.add_argument("--settle-seconds", type=float, default=2.0)
-    parser.add_argument("--cadence-min-gap-seconds", type=float, default=75.0)
-    parser.add_argument("--cadence-max-gap-seconds", type=float, default=120.0)
+    parser.add_argument(
+        "--cadence-min-gap-seconds",
+        type=float,
+        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
+    )
+    parser.add_argument(
+        "--cadence-max-gap-seconds",
+        type=float,
+        default=TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+    )
     parser.add_argument("--cadence-window-seconds", type=float)
     parser.add_argument("--random-seed", type=int)
     admission = parser.add_mutually_exclusive_group()

@@ -258,15 +258,15 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert "div,span,p" in pointer_actions[3].candidate_selector
     assert pointer_actions[3].exact_text_markers == ("more like this", "you may like")
     assert pointer_actions[3].prefer_smallest_match is True
-    assert pointer_actions[4].wait_after_ms == 3500
-    assert pointer_actions[7].wait_after_ms == 3500
+    assert pointer_actions[2].wait_after_ms == 5000
+    assert pointer_actions[4].wait_after_ms == 5000
     for action in pointer_actions:
         if action.action_name in {
             TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
             TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
         }:
             assert action.stop_wait_on_observed_response is True
-            assert action.stop_sequence_on_observed_response is False
+            assert action.stop_sequence_on_observed_response is True
     assert engine.calls[0]["response_predicate_matches_comment_list"] is True
 
     code, message = write_tiktok_batch_packet(
@@ -295,7 +295,7 @@ def test_live_probe_captures_source_native_subtitle_transcript(
 ) -> None:
     auth_root = _auth_state(tmp_path)
     video_id = "7390000000000000001"
-    subtitle_url = "https://v16-webapp.tiktokcdn-us.com/subtitle.webvtt"
+    subtitle_url = "https://v16-webapp.tiktok.com/subtitle.webvtt"
     subtitle_body = (
         b"WEBVTT\n\n"
         b"00:00:00.000 --> 00:00:01.000\n"
@@ -407,6 +407,8 @@ def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
     assert subtitle["attempted"] is False
     assert subtitle["success"] is False
     assert subtitle["reason"] == "unsupported_subtitle_url_host_live_probe_v0"
+    assert subtitle["subtitle_url_host"] == "v16.attacker.example"
+    assert subtitle["subtitle_url_host_supported"] is False
     assert subtitle["subtitle_url_sha256"]
     assert subtitle["subtitle_url_length"] == len(subtitle_url)
     assert subtitle_url not in json.dumps(cadence)
@@ -822,6 +824,11 @@ def test_live_probe_threads_cloakbrowser_and_human_handoff_options(
     )
     assert captured_kwargs["human_challenge_handoff_after_action_names"] == (
         PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
+        TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
+        TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
     )
     assert captured_kwargs["human_challenge_handoff_timeout_seconds"] == 7.0
 
@@ -1290,7 +1297,7 @@ def test_live_probe_filters_non_get_comment_list_responses_when_method_available
     assert row["comment_responses"][0]["body_assessment"]["json_parse_ok"] is True
     assert row["comment_responses"][0]["body_assessment"]["comment_count"] == 1
 
-def test_live_probe_caps_admitted_comment_list_responses(tmp_path: Path) -> None:
+def test_live_probe_keeps_only_platform_default_first_comment_response(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
     response_url = (
         "https://www.tiktok.com/api/comment/list/"
@@ -1344,15 +1351,24 @@ def test_live_probe_caps_admitted_comment_list_responses(tmp_path: Path) -> None
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
     row = cadence["results"][0]
+    assert (
+        cadence["capture_contract"]["comment_selection_policy"]
+        == "platform_default_first_response_only"
+    )
+    assert cadence["capture_contract"]["comment_pagination"] is False
     assert row["capture_receipt"]["response_count"] == 3
     assert row["capture_receipt"]["matched_comment_response_count"] == 3
-    assert row["capture_receipt"]["admitted_comment_response_count"] == 2
-    assert row["capture_receipt"]["comment_response_cap"] == 2
-    assert len(row["comment_responses"]) == 2
+    assert row["capture_receipt"]["admitted_comment_response_count"] == 1
+    assert row["capture_receipt"]["comment_response_cap"] == 1
+    assert (
+        row["capture_receipt"]["comment_selection_policy"]
+        == "platform_default_first_response_only"
+    )
+    assert len(row["comment_responses"]) == 1
     assert [
         response["body_assessment"]["comments"][0]["cid"]
         for response in row["comment_responses"]
-    ] == ["7290", "7291"]
+    ] == ["7290"]
 
 
 
@@ -2319,12 +2335,15 @@ def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
 
 
 
-def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
+def test_live_probe_continues_after_zero_comment_list_response(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
     engine = _FakeObservationEngine(
         outcomes=[
             _success_observation(video_id="7390000000000000001", responses=[]),
-            _success_observation(video_id="7390000000000000002", response=_comment_response()),
+            _success_observation(
+                video_id="7390000000000000002",
+                response=_comment_response(video_id="7390000000000000002"),
+            ),
         ]
     )
 
@@ -2347,14 +2366,19 @@ def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
-    assert cadence["attempted_count"] == 1
-    assert cadence["completed_count"] == 0
+    assert cadence["attempted_count"] == 2
+    assert cadence["completed_count"] == 1
+    assert cadence["partial_count"] == 1
     assert cadence["challenge_count"] == 0
-    assert cadence["results"] == []
+    assert [row["video_id"] for row in cadence["results"]] == [
+        "7390000000000000001",
+        "7390000000000000002",
+    ]
+    assert [row["status"] for row in cadence["results"]] == ["partial_failure", "completed"]
     assert cadence["failures"][0]["reason"] == TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON
     assert cadence["failures"][0]["blocker_triage"] == {
         "blocker_class": "comment_route_zero_yield",
-        "action": "stop",
+        "action": "continue",
         "reason": TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
         "action_mode": "diagnosis_only",
         "action_taken": False,
@@ -2370,7 +2394,7 @@ def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
         "admitted_comment_response_count": 0,
         "dom_visible_comment_candidate_count": 0,
     }
-    assert len(engine.calls) == 1
+    assert len(engine.calls) == 2
 
 
 def test_live_probe_zero_comment_response_reports_missing_comment_route_actions(tmp_path: Path) -> None:
@@ -2497,7 +2521,9 @@ def test_live_probe_rejects_dom_visible_count_badge_as_comment_fallback(
     assert cadence["attempted_count"] == 1
     assert cadence["completed_count"] == 0
     assert cadence["challenge_count"] == 0
-    assert cadence["results"] == []
+    assert cadence["partial_count"] == 1
+    assert cadence["results"][0]["status"] == "partial_failure"
+    assert cadence["results"][0]["dom_visible_comment_candidates"] == []
     failure = cadence["failures"][0]
     assert failure["reason"] == TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON
     triage = failure["blocker_triage"]
@@ -2691,9 +2717,6 @@ def _comment_route_action_names() -> list[str]:
         TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
         TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
         TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
-        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
     ]
 
 
@@ -2857,10 +2880,10 @@ def _benign_overlay_action_receipt() -> dict[str, object]:
 
 
 def _pointer_action_sequence_receipt() -> list[dict[str, object]]:
-    route_once = [
+    return [
         _pointer_action_receipt(
             action_name=TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-            wait_ms=2000,
+            wait_ms=5000,
         ),
         _pointer_action_receipt(
             action_name=TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
@@ -2868,10 +2891,9 @@ def _pointer_action_sequence_receipt() -> list[dict[str, object]]:
         ),
         _pointer_action_receipt(
             action_name=TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
-            wait_ms=3500,
+            wait_ms=5000,
         ),
     ]
-    return [*route_once, *route_once]
 
 
 def _pointer_action_receipt(
@@ -2937,4 +2959,99 @@ def _hydration(
                 }
             }
         }
+    }
+
+
+def test_live_probe_cli_defaults_to_nine_fourteen_second_range() -> None:
+    args = runner.build_parser().parse_args(
+        [
+            "--creator-handle",
+            "funmi",
+            "--creator-profile-url",
+            "https://www.tiktok.com/@funmi",
+            "--video-url",
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "--logged-out",
+            "--output-dir",
+            "out",
+        ]
+    )
+
+    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 11.5
+    assert args.cadence_min_gap_seconds == 9.0
+    assert args.cadence_max_gap_seconds == 14.0
+
+
+def test_default_cloakbrowser_batch_reuses_one_owned_session(monkeypatch) -> None:
+    instances: list[object] = []
+    seen_engines: list[object] = []
+
+    class FakeSessionEngine:
+        def __init__(self, **_kwargs: object) -> None:
+            self.closed = False
+            instances.append(self)
+
+        def close(self) -> None:
+            self.closed = True
+
+        @property
+        def lifecycle_receipt(self) -> dict[str, object]:
+            return {
+                "engine": "fake_cloakbrowser_page_observation_session",
+                "browser_launch_count": 1,
+                "context_creation_count": 1,
+                "capture_attempt_count": len(seen_engines),
+                "capture_success_count": len(seen_engines),
+                "closed": self.closed,
+            }
+
+    def fake_fetch_browser_page_observation_capture(
+        **kwargs: object,
+    ) -> BrowserPageObservationSuccess:
+        seen_engines.append(kwargs["engine"])
+        video_id = str(kwargs["url"]).rsplit("/", 1)[-1]
+        return _success_observation(
+            video_id=video_id,
+            response=_comment_response(video_id=video_id),
+            subtitle_url="https://v16.tiktokcdn.com/subtitle.webvtt",
+        )
+
+    monkeypatch.setattr(
+        live_batch_probe,
+        "CloakBrowserPageObservationSessionEngine",
+        FakeSessionEngine,
+    )
+    monkeypatch.setattr(
+        live_batch_probe,
+        "fetch_browser_page_observation_capture",
+        fake_fetch_browser_page_observation_capture,
+    )
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        logged_out=True,
+        browser_backend="cloakbrowser",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda _url: (
+            b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n"
+        ),
+    )
+
+    assert len(instances) == 1
+    assert seen_engines == [instances[0], instances[0]]
+    assert instances[0].closed is True
+    assert result["cadence_result"]["browser_lifecycle"] == {
+        "engine": "fake_cloakbrowser_page_observation_session",
+        "browser_launch_count": 1,
+        "context_creation_count": 1,
+        "capture_attempt_count": 2,
+        "capture_success_count": 2,
+        "closed": True,
     }
