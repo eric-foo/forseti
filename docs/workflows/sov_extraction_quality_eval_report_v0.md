@@ -9,7 +9,7 @@ scope: >
   resolvability, brand knowledge-leak scan (upper bound), unknown-brand rate,
   and the structural findings a SoV consumer needs (orphaned IG-reels records,
   missing window-timing fields). Produced by the read-only runner
-  orca-harness/runners/run_sov_extraction_quality_eval.py.
+  forseti-harness/runners/run_sov_extraction_quality_eval.py.
 use_when:
   - Deciding how far to trust brand-level SoV readouts over today's evidence.
   - Prioritizing the brand-catalog / canonicalization and cohort-pilot decisions.
@@ -25,8 +25,9 @@ non_claims:
   - leak matching is casefold substring; spelling/diacritic variants count as leaks (upper bound)
 run_provenance: >
   2026-07-03, read-only over F:\orca-data-lake (524 committed packets), runner
-  landed in the same change set as this report; rerun with
-  `python orca-harness/runners/run_sov_extraction_quality_eval.py --root <ORCA_DATA_ROOT>`.
+  landed in the same change set as this report. That root is retained as
+  point-in-time provenance; current reruns use
+  `python forseti-harness/runners/run_sov_extraction_quality_eval.py --root <FORSETI_DATA_ROOT>`.
   ADJUDICATED RERUN (same day, eval_schema_version 2 after the delegated code
   review): under exact-ref discipline (file_id + path + sha256 must match; no
   fallback scanning), all 23 resolved records resolved identically and every
@@ -103,7 +104,7 @@ run_provenance: >
 ## Recheck recipe
 
 ```text
-python orca-harness/runners/run_sov_extraction_quality_eval.py --root <ORCA_DATA_ROOT>
+python forseti-harness/runners/run_sov_extraction_quality_eval.py --root <FORSETI_DATA_ROOT>
 # JSON to stdout; leaked_samples carries clickable refs (anchor/record/mention_id)
 # for spot-checking any leak against its transcript.
 ```

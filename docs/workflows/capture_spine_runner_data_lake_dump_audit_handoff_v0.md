@@ -8,11 +8,12 @@ scope: >
   each intended packet writer commits Source Capture Packet material into the
   Orca data lake correctly.
 use_when:
-  - Starting a parallel audit of capture-runner data-lake write compliance.
-  - Checking which Source Capture runners still write only local output.
-  - Reconciling live lake sharded path evidence with current DataLakeRoot code/tests.
-  - Checking v4.1 forward-epoch lake-write compatibility.
+  - Reading the pre-rename 2026-06-28 audit handoff as historical provenance only.
 authority_boundary: retrieval_only
+status: SUPERSEDED_FOR_EXECUTION
+superseded_by:
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
+  - docs/workflows/forseti_data_lake_rename_execution_closeout_handoff_v0.md
 open_next:
   - .agents/workflow-overlay/source-loading.md
   - docs/workflows/data_capture_spine_consolidation_map_v0.md
@@ -22,11 +23,17 @@ open_next:
   - orca-harness/data_lake/root.py
   - orca-harness/source_capture/writer.py
 stale_if:
+  - Always for execution: the physical root rename was executed on 2026-07-10.
   - Any capture runner gains or loses --data-root / ORCA_DATA_ROOT support.
   - DataLakeRoot raw pathing, availability index shape, or sharding behavior changes.
   - The Silver Vault contract is adopted or patched to settle physical sharding.
   - The v4.1 forward-epoch folder grammar changes.
 ```
+
+> **Do not execute this packet.** It records a pre-rename lane and intentionally
+> retains its point-in-time `F:\orca-data-lake`, `ORCA_DATA_ROOT`, and
+> `orca-harness` evidence. Current work must start from the `superseded_by`
+> sources above and use the Forseti root/harness contract.
 
 ## Load Contract
 
