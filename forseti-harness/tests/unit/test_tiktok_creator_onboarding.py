@@ -181,7 +181,7 @@ def test_grid_window_excludes_unrelated_handle_dom_url() -> None:
         "https://www.tiktok.com/@unrelated/video/1"
     )
 
-    with pytest.raises(TikTokCreatorOnboardingError, match="complete grid window"):
+    with pytest.raises(TikTokCreatorOnboardingError, match="usable grid window"):
         build_tiktok_grid_window(
             creator_handle="creator",
             capture=capture,
@@ -201,7 +201,7 @@ def test_grid_window_excludes_explicit_mismatched_payload_author() -> None:
         ],
     )
 
-    with pytest.raises(TikTokCreatorOnboardingError, match="complete grid window"):
+    with pytest.raises(TikTokCreatorOnboardingError, match="usable grid window"):
         build_tiktok_grid_window(
             creator_handle="creator",
             capture=capture,
@@ -220,7 +220,7 @@ def test_grid_window_does_not_count_nested_item_list_metric_node() -> None:
         items=[creator_item],
     )
 
-    with pytest.raises(TikTokCreatorOnboardingError, match="complete grid window"):
+    with pytest.raises(TikTokCreatorOnboardingError, match="usable grid window"):
         build_tiktok_grid_window(
             creator_handle="creator",
             capture=capture,
@@ -282,7 +282,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         output_dir=tmp_path,
         auth_state_root=tmp_path,
         window_size=4,
-        selection_fraction=0.5,
+        selection_count=2,
         engine=engine,
         deep_capture_fn=deep_capture,
         cadence_min_gap_seconds=0,
@@ -300,12 +300,13 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert receipt["status"] == "complete"
     assert receipt["session_profile"] == "chowdakr_sg_tiktok"
     assert receipt["window_size"] == 4
-    assert receipt["selection_fraction"] == 0.5
+    assert receipt["selection_count"] == 2
+    assert receipt["window_cap"] == 4
     assert receipt["suggested_accounts_status_or_none"] == "captured"
     assert receipt["completed_deep_capture_count"] == 2
 
 
-def test_incomplete_grid_fails_before_selection_or_deep_capture(
+def test_grid_below_fixed_selection_count_fails_before_deep_capture(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -320,11 +321,9 @@ def test_incomplete_grid_fails_before_selection_or_deep_capture(
         [
             _capture(ordered_ids=[], items=[], suggested=[]),
             _capture(
-                ordered_ids=["1", "2", "3", "4"],
+                ordered_ids=["1"],
                 items=[
                     _item("1", 400, 20),
-                    _item("2", 300, 30),
-                    _item("3", 200, 20),
                 ],
             ),
         ]
@@ -336,7 +335,7 @@ def test_incomplete_grid_fails_before_selection_or_deep_capture(
         deep_called = True
         return {}
 
-    with pytest.raises(TikTokCreatorOnboardingError, match="complete grid window"):
+    with pytest.raises(TikTokCreatorOnboardingError, match="usable grid window"):
         run_tiktok_creator_onboarding(
             creator_handle="creator",
             session_profile=_profile(),
@@ -344,6 +343,7 @@ def test_incomplete_grid_fails_before_selection_or_deep_capture(
             auth_state_root=tmp_path,
             window_size=4,
             engine=engine,
+            selection_count=2,
             deep_capture_fn=deep_capture,
         )
 
@@ -357,7 +357,7 @@ def test_incomplete_grid_fails_before_selection_or_deep_capture(
     assert receipt["error_or_none"].startswith("TikTokCreatorOnboardingError:")
 
 
-def test_onboarding_cli_defaults_to_nine_fourteen_second_range() -> None:
+def test_onboarding_cli_defaults_to_fixed_top_eight_and_eight_thirteen_range() -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -367,6 +367,114 @@ def test_onboarding_cli_defaults_to_nine_fourteen_second_range() -> None:
         ]
     )
 
-    assert args.cadence_min_gap_seconds == 9.0
-    assert args.cadence_max_gap_seconds == 14.0
-    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 11.5
+    assert args.window_size == 30
+    assert args.creator_intent == "new_capture"
+    assert not hasattr(args, "selection_fraction")
+    assert args.cadence_min_gap_seconds == 8.0
+    assert args.cadence_max_gap_seconds == 13.0
+    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.5
+
+
+def test_grid_window_accepts_available_rows_below_cap() -> None:
+    capture = _capture(
+        ordered_ids=["1", "2", "3"],
+        items=[
+            _item("1", 300, 30),
+            _item("2", 200, 20),
+            _item("3", 100, 10),
+        ],
+    )
+
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=4,
+        minimum_window_size=2,
+    )
+
+    assert window["window_size"] == 3
+    assert window["window_cap"] == 4
+    assert [item["video_id"] for item in window["items"]] == ["1", "2", "3"]
+
+
+def test_suggested_receipt_preserves_clean_profile_external_links() -> None:
+    capture = _capture(ordered_ids=[], items=[], suggested=[])
+    capture.dom_observation["profile_external_links"] = [
+        {
+            "url": "https://beacons.ai/topfrag",
+            "host": "beacons.ai",
+            "display_text_or_none": "My links",
+        }
+    ]
+
+    receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator", capture=capture
+    )
+
+    assert receipt["profile_external_links_status"] == "captured"
+    assert receipt["profile_external_links"] == [
+        {
+            "url": "https://beacons.ai/topfrag",
+            "host": "beacons.ai",
+            "display_text_or_none": "My links",
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    ("creator_intent", "expected_status", "expected_blocker"),
+    [
+        ("new_capture", "blocked", "new_capture_existing_match"),
+        ("update_existing", "allowed", None),
+    ],
+)
+def test_runner_registry_preflight_enforces_new_vs_existing_intent(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    creator_intent: str,
+    expected_status: str,
+    expected_blocker: str | None,
+) -> None:
+    registry_path = tmp_path / "registry.json"
+    registry_path.write_text("{}", encoding="utf-8")
+    registry_document = {
+        "creator_profile_current_view": {
+            "schema_version": "creator_profile_current_view_v0",
+            "generated_at_utc": "2026-07-12T00:00:00Z",
+            "counts": {"profiles_total": 1},
+            "profiles": [
+                {
+                    "profile_subject_id": "creator_known_001",
+                    "profile_subject_kind": "creator_record",
+                    "platform_accounts": [
+                        {
+                            "platform": "tiktok",
+                            "platform_account_id": "acct_tt_known_001",
+                            "public_handle": "known_creator",
+                            "public_profile_url": "https://www.tiktok.com/@known_creator",
+                            "platform_public_account_id_or_none": None,
+                            "public_display_name_or_none": "Known Creator",
+                        }
+                    ],
+                }
+            ],
+        }
+    }
+    monkeypatch.setattr(
+        runner, "load_creator_profile_current_view", lambda _path: registry_document
+    )
+
+    receipt_path, result = runner._write_creator_registry_preflight(
+        creator_handle="known_creator",
+        creator_intent=creator_intent,
+        registry_path=registry_path,
+        output_dir=tmp_path / "out",
+    )
+
+    assert receipt_path.is_file()
+    assert result["decision"] == "existing_match"
+    assert result["action_status"] == expected_status
+    if expected_blocker is None:
+        assert result["action_blockers"] == []
+    else:
+        assert expected_blocker in result["action_blockers"]
