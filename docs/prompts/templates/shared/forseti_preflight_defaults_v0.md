@@ -43,8 +43,11 @@ Source-Gated Method Contract (pointer, not restatement here).
 An escalated prompt referencing this artifact still states the material deltas
 below. Routine prompts do not inherit this list.
 
-- **workspace_or_repo**: current worktree root or repository identifier when
-  repository state matters; never default to the parent checkout.
+- **workspace_or_repo**: commissioned target worktree root or repository
+  identifier when repository state matters; never default to an unrelated
+  parent/launch checkout. Repo-bound review mismatch handling is owned by
+  `.agents/workflow-overlay/prompt-orchestration.md` -> "Repo-Bound Review
+  Target Resolution".
 
 - **authorization_basis**: what authorizes this unit of work (current turn,
   accepted handoff, owner decision, etc.).
@@ -61,8 +64,9 @@ below. Routine prompts do not inherit this list.
 - **controlling_source_state**: when strict claims depend on overlay,
   source-loading, repo-map, prompt-policy, validation, or artifact-role files —
   clean, modified, untracked, stale, or not checked.
-- **branch_or_commit_reference**: expected branch, detached revision, or commit
-  hash when source stability matters.
+- **branch_or_commit_reference**: expected branch plus either an exact detached
+  revision/hash pin or required commit ancestry when source stability matters;
+  state which semantics apply.
 - **doctrine_change_decision**: whether this work changes product doctrine,
   architecture doctrine, workflow authority, validation philosophy, review
   authority, output authority, or a lifecycle boundary; if yes, which

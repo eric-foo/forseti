@@ -32,13 +32,21 @@ import html
 import json
 import os
 import re
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _hooklib  # noqa: E402  (sys.path pin must precede the import)
+from _hooklib import repo_root, to_relposix  # noqa: E402
 
+
+# Deliberately NOT _hooklib.DURABLE_DOC_PREFIXES: this checker's scope follows
+# where Google capture URLs legitimately land -- it adds docs/research/ and
+# forseti/product/ (capture/evidence surfaces) and omits doc-role folders that
+# never carry capture URLs (docs/product/, docs/migration/, docs/hygiene/, the
+# overlay). Keep the delta explicit here instead of silently drifting the base.
 IN_SCOPE_PREFIXES = (
     "docs/decisions/",
     "docs/prompts/",
@@ -54,10 +62,6 @@ REQUIRED_SEARCH_PARAMS = {"hl": "en", "gl": "us", "pws": "0"}
 _GOOGLE_SEARCH_URL_RE = re.compile(
     r"https?://(?:www\.)?google\.com/search[^\s<>)\"'`\]\*|]*",
     re.IGNORECASE,
-)
-_PATCH_FILE_RE = re.compile(
-    r"^\*\*\* (?:Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$",
-    re.MULTILINE,
 )
 _US_PARAMETERIZED_RE = re.compile(
     r"\b(?:US[- ]parameteri[sz]ed|U\.S\.[- ]parameteri[sz]ed|gl=us)\b",
@@ -99,10 +103,6 @@ class Finding:
     detail: str
 
 
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
 def _to_posix(path: str) -> str:
     # Strip only a LITERAL leading "./" prefix. NOT lstrip("./"), which is a
     # character-set strip that would also eat the leading dot of ".agents/..."
@@ -111,21 +111,10 @@ def _to_posix(path: str) -> str:
     return s[2:] if s.startswith("./") else s
 
 
-def to_relposix(target: str, root: Path) -> str | None:
-    """Repo-relative POSIX path for a target, or None if outside the repo.
-
-    Handles the ABSOLUTE file_path that Claude Code passes in the PostToolUse
-    payload. Without this, in_scope() never matched an in-scope prefix, so the
-    --hook advisory silently no-opped on every edit (CI --changed still worked
-    because git yields repo-relative paths).
-    """
-    p = Path(target)
-    if p.is_absolute():
-        try:
-            return p.resolve().relative_to(root).as_posix()
-        except (ValueError, OSError):
-            return None
-    return _to_posix(target)
+# to_relposix comes from _hooklib: it handles the ABSOLUTE file_path Claude Code
+# passes in the PostToolUse payload (without which the --hook advisory silently
+# no-opped on every edit) and returns None for rooted-but-not-absolute paths
+# ("/docs/..." on Windows -- the FIND-01 class), which analyze_paths drops.
 
 
 def in_scope(relpath: str) -> bool:
@@ -239,16 +228,10 @@ def analyze_file(root: Path, relpath: str) -> list[Finding]:
 
 
 def _git(root: Path, *args: str, timeout: int = 15) -> tuple[int, str]:
-    try:
-        res = subprocess.run(
-            ["git", "-C", str(root), *args],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        return res.returncode, res.stdout
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
-        return -1, ""
+    """Thin varargs adapter over the shared git wrapper (keeps call sites flat).
+    _hooklib.git_out returns (1, "") on launch failure/timeout; callers here only
+    test rc != 0, so the -1/1 distinction does not matter."""
+    return _hooklib.git_out(root, list(args), timeout=timeout)
 
 
 def changed_paths(root: Path) -> list[str] | None:
@@ -301,31 +284,10 @@ def print_findings(findings: list[Finding], *, strict: bool) -> int:
     return 1 if strict else 0
 
 
-def _paths_from_hook_payload(data: dict) -> list[str]:
-    tool_input = data.get("tool_input", {}) if isinstance(data, dict) else {}
-    if not isinstance(tool_input, dict):
-        return []
-    paths: list[str] = []
-    for key in ("file_path", "path", "notebook_path"):
-        value = tool_input.get(key)
-        if isinstance(value, str):
-            paths.append(value)
-    for key in ("command", "patch", "input"):
-        value = tool_input.get(key)
-        if isinstance(value, str):
-            for match in _PATCH_FILE_RE.finditer(value):
-                candidate = match.group(1) or match.group(2)
-                if candidate:
-                    paths.append(candidate.strip())
-    return paths
-
-
 def run_hook(root: Path) -> int:
-    try:
-        data = json.loads(sys.stdin.read() or "{}")
-    except ValueError:
-        data = {}
-    paths = _paths_from_hook_payload(data if isinstance(data, dict) else {})
+    # Event parsing is shared: _hooklib.candidate_paths covers file_path/path/
+    # notebook_path plus Codex apply_patch headers in command/patch/input.
+    paths = _hooklib.candidate_paths(_hooklib.read_event())
     findings = analyze_paths(root, paths)
     if findings:
         msg = (

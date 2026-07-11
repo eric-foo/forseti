@@ -4251,58 +4251,97 @@ direction_change_propagation:
     - not a merge authorization
 ```
 
-## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-11, CI event-base contract rotation)
+## From `.agents/workflow-overlay/prompt-orchestration.md` (archived 2026-07-12, target-worktree resolution rotation)
 
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Owner decision recorded (2026-07-10): the EP-10 review-summary gate's
-    narrowed shape is accepted as standing -- full recommendation enum
-    membership stays --audit-only advisory, the delegated-review-patch
-    extended recommendation vocabulary stays unbound, and the
-    communication-style.md 5-value enum remains the canonical target for
-    new review summaries; the pending-decision language on the gate's live
-    surfaces is retired.
-  trigger: validation_philosophy
+    Prompt filing is now classified by source role: canonical, reusable, or
+    doctrine-bearing prompt artifacts still file under docs/prompts/**, while
+    lane-scoped execution prompts attach to the overall lane PR body/comment or
+    ignored docs/_inbox scratch and must not open standalone prompt-only PRs.
+  trigger: workflow_authority
   related_triggers:
-    - review_authority
+    - output_authority
+    - lifecycle_boundary
   controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - .agents/hooks/check_review_summary.py
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/hooks/check_prompt_provenance.py
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
   downstream_surfaces_checked:
-    - .agents/workflow-overlay/communication-style.md
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/artifact-folders.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - .agents/workflow-overlay/template-registry.md
     - .agents/workflow-overlay/delegated-review-patch.md
-    - docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
+    - .github/workflows/pr-risk-router.yml
   intentionally_not_updated:
-    - path: .agents/workflow-overlay/communication-style.md
+    - path: AGENTS.md
       reason: >
-        The 5-value enum stays as-written: this decision keeps enforcement
-        advisory; it does not widen, bind, or endorse the extended
-        vocabulary.
+        AGENTS.md already routes prompt mechanics to prompt-orchestration.md and
+        still correctly requires every durable prompt, handoff, wrapper, rerun,
+        or patch prompt to apply the prompt contract; no root restatement of the
+        filing classification is needed.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its prompt gates defer output-mode and prompt-mechanics exceptions to
+        prompt-orchestration.md; it did not encode the old file-every-cross-
+        recipient-prompt rule, so no gate wording changes.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading owns read packs and source capsules. This patch changes
+        where lane-scoped prompt text is carried, not the required reads or
+        Source-Gated Method Contract.
+    - path: .agents/workflow-overlay/artifact-folders.md
+      reason: >
+        Existing folder roles already distinguish docs/prompts/** canonical prompt
+        artifacts from docs/_inbox scratch; the prompt owner now classifies when
+        each applies.
+    - path: .agents/workflow-overlay/artifact-roles.md
+      reason: >
+        Existing role bindings already define Full prompt artifact and Inbox
+        scratch separately; this patch changes the routing rule, not the role
+        table.
+    - path: .agents/workflow-overlay/template-registry.md
+      reason: >
+        Template rows that use paste-ready-chat describe template delivery modes,
+        not whether a lane-scoped execution prompt opens a standalone PR.
     - path: .agents/workflow-overlay/delegated-review-patch.md
       reason: >
-        Its lanes' extended vocabulary stays deliberately unbound under
-        this decision; binding vocabulary there was the rejected
-        alternative.
-    - path: docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
+        Its paste-ready route-out remains governed by prompt-orchestration.md;
+        route-out prompts may now be lane-scoped when they only fill the current
+        commission lane, or canonical when promoted as reusable artifacts.
+    - path: .github/workflows/pr-risk-router.yml
       reason: >
-        Commissioning-time record; its binding instruction (never gate
-        enum membership) remains true under this decision.
+        It should continue treating docs/prompts/** as manual-risk for canonical
+        prompt artifacts; the fix is to stop creating standalone tracked prompt
+        files for lane-scoped execution prompts, not to loosen PR risk routing.
   stale_language_search: >
-    rg -in "owner-blocked|flagged owner decision|flagged for owner|pending
-    an owner decision|owner decision, not a checker default"
-    .agents/hooks/check_review_summary.py
-    .agents/workflow-overlay/validation-gates.md
-    docs/decisions/overlay_enforcement_placement_classification_v0.md
+    rg -i -n "Durable and cross-recipient|paste-ready-chat prompt that never touches disk|not a substitute for filing|filed artifact|standalone prompt PR|prompt-only PR|prompt artifact path"
+    .agents AGENTS.md docs/workflows docs/prompts/templates .github/workflows/pr-risk-router.yml docs/decisions/dcp_receipts_archive_v0.md;
+    rg -i -n "authored as a FILE-WRITE under docs/prompts|requires durable.*cross-recipient.*touch disk|not an accepted authoring path|never touch disk|durable prompt.*docs/prompts|cross-recipient prompt.*docs/prompts|file-every-cross"
+    .agents AGENTS.md docs/workflows docs/prompts/templates .github/workflows/pr-risk-router.yml;
+    rg -i -n "lane-scoped|overall lane PR|prompt-only PR|standalone prompt PR|canonical prompt"
+    .agents AGENTS.md docs/workflows docs/prompts/templates .github/workflows/pr-risk-router.yml
   stale_language_search_result: >
-    Executed 2026-07-10 after edits: remaining hits are the prior
-    gate-wave DCP receipt above (an immutable historical record) and
-    unrelated decisions (self-merge interim wording, EP-04 hook wiring);
-    no live EP-10 surface still reads as pending.
+    Executed 2026-06-30 after edits. The broad old-language query hits only the
+    new canonical/lane-scoped rule in prompt-orchestration.md plus historical
+    archived receipts in docs/decisions/dcp_receipts_archive_v0.md; the stricter
+    old-mandate query hits only this receipt reason text ("file-every-cross-");
+    and the lane-scoped query hits the new owner rule plus the updated hook and
+    repo-map notes. docs/workflows/orca_major_move_folder_integrity_ca_discussion_v0.md
+    says canonical prompt destinations remain unchanged, which is consistent.
+    No live surface checked retains an unqualified durable/cross-recipient
+    docs/prompts/** filing mandate or a standalone prompt-PR requirement.
   non_claims:
     - not validation
     - not readiness
-    - not approval of any historical out-of-enum recommendation value
-    - not review quality or finding truth
+    - not source promotion
+    - not implementation authorization
+    - not a cleanup decision for existing prompt PRs
 ```

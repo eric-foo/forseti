@@ -42,9 +42,15 @@ import argparse
 import json
 import os
 import re
-import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    git_out as _git,
+    repo_root,
+    to_relposix as _hook_relposix,
+)
 
 RULE_AUTHORITY = (
     "forseti/product/spines/data_lake/authority/"
@@ -118,21 +124,6 @@ def classify_added_line(relposix: str, line: str) -> str | None:
         "to a claim-owning record, or mark a deliberate exception with "
         f"`{ACK_TOKEN}`. Rule authority: {RULE_AUTHORITY}."
     )
-
-
-def _git(root: Path, args: list[str]) -> tuple[int, str]:
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(root), *args], capture_output=True, text=True,
-            encoding="utf-8", errors="replace",
-        )
-    except (FileNotFoundError, OSError):
-        return 1, ""
-    return result.returncode, result.stdout
-
-
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
 
 
 def resolve_base_ref(cli_base: str | None) -> str:
@@ -224,22 +215,6 @@ def scan_whole_files(root: Path, paths: list[str]) -> list[str]:
             if message:
                 findings.append(f"{relposix}:{lineno}: {message}")
     return findings
-
-
-def _hook_relposix(target: str, root: Path) -> str | None:
-    p = Path(target)
-    if p.is_absolute():
-        try:
-            return p.resolve().relative_to(root).as_posix()
-        except (ValueError, OSError):
-            return None
-    s = p.as_posix()
-    s = s[2:] if s.startswith("./") else s
-    if s.startswith("/"):
-        # Rooted but not resolvable under the repo (e.g. POSIX-style "/docs/..."
-        # payload on Windows): never treat as repo-relative (FIND-01 class).
-        return None
-    return s
 
 
 def _uncommitted_added_lines(root: Path, relposix: str) -> list[tuple[int, str]]:
