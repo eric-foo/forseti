@@ -3,38 +3,38 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Planning handoff prompt
-scope: Non-interactive Codex prompt for extracting pending IG Reel fragrance mentions into the Orca data lake silver lane.
+scope: Non-interactive Codex prompt for extracting pending IG Reel fragrance mentions into the Forseti data lake silver lane.
 use_when:
   - The local IG Reels polling wrapper finds pending transcripts with no completed product-mentions set.
   - A non-interactive Codex run needs the bounded extraction contract for the external lake.
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/prompt-orchestration.md
-  - orca-harness/runners/run_ig_reels_product_extract.py
+  - forseti-harness/runners/run_ig_reels_product_extract.py
 ```
 
-preflight_defaults: `docs/prompts/templates/shared/orca_preflight_defaults_v0.md` v0 - constants bound; deltas stated below.
+preflight_defaults: `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` v0 - constants bound; deltas stated below.
 
-orca_start_preflight:
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom
   edit_permission: implementation-authorized
-  target_scope: external Orca data lake derived IG product-mentions records only; repo is read-only
+  target_scope: external Forseti data lake derived IG product-mentions records only; repo is read-only
   dirty_state_checked: yes
-  blocked_if_missing: ORCA_DATA_ROOT, PYTHONPATH including orca-harness, readable prompt file, writable mounted lake
+  blocked_if_missing: FORSETI_DATA_ROOT, PYTHONPATH including forseti-harness, readable prompt file, writable mounted Forseti lake
 
 Output mode: file-write to the mounted external lake only, plus concise chat/terminal status. Do not write repo files.
 
-Template kind: handoff. Template source: user task plus Orca prompt contract; no runtime model recommendation is made.
+Template kind: handoff. Template source: user task plus Forseti prompt contract; no runtime model recommendation is made.
 
 Authorization basis: current owner task explicitly authorizes this bounded recurring local extraction routine and the extraction pass for IG Reels transcripts already present in the lake.
 
 Edit permission, targets, branch:
 - Permission: implementation-authorized for data-lake derived writes only.
-- Allowed target: `ORCA_DATA_ROOT/derived/**/silver__cleaning__product_mentions*` via `extract_products_into_lake`.
+- Allowed target: `FORSETI_DATA_ROOT/derived/**/silver__cleaning__product_mentions*` via `extract_products_into_lake`.
 - Forbidden targets: repo files, raw lake packets, capture lanes, YouTube-lane files, shared lake/schema/extractor code, deletes or cleanup on the external drive.
-- Branch/revision: run in the wrapper-supplied Orca worktree. Dirty repo state is not relevant because repo edits are forbidden.
+- Branch/revision: run in the wrapper-supplied Forseti worktree. Dirty repo state is not relevant because repo edits are forbidden.
 
 Doctrine change: no product, architecture, workflow, validation, review, output, or lifecycle doctrine change is authorized by this run.
 
@@ -45,11 +45,11 @@ Destinations:
 - Output artifact path: no repo artifact. The only durable output is lake silver records written by code.
 
 Task:
-Run the IG Reels fragrance product extraction pass for every transcript in the mounted Orca data lake that lacks a completed product-mentions set for model `codex-extraction-v0`.
+Run the IG Reels fragrance product extraction pass for every transcript in the mounted Forseti data lake that lacks a completed product-mentions set for model `codex-extraction-v0`.
 
 Required preflight in this non-interactive run:
-1. Verify `ORCA_DATA_ROOT` is set and points to a mounted Orca data root.
-2. Verify `PYTHONPATH` includes `orca-harness` or set it for the shell commands you run.
+1. Verify `FORSETI_DATA_ROOT` is set and resolves to the mounted Forseti data root through the current `.forseti-data-root` identity contract. If only `ORCA_DATA_ROOT` or `F:\orca-data-lake` is available, stop with `blocked_legacy_data_root_only`; do not use the compatibility fallback or recreate the old path.
+2. Verify `PYTHONPATH` includes `forseti-harness` or set it for the shell commands you run.
 3. Run `python -m runners.run_ig_reels_product_extract --check --model codex-extraction-v0`.
 4. If the count is `0`, stop with status `skipped_done` and do not call extraction code.
 

@@ -18,6 +18,17 @@ authority_boundary: retrieval_only
 - Bounded implementation authorization is not blanket runtime authority. Stay inside the named scope, preserve the bounded third-tranche scope for anti-detect/proxy/JS-challenge work, and preserve separate gates for commercial fetch services, storage, dashboards, deployment, ECR, Cleaning, Judgment, commits, pushes, and PRs.
 - Do not mutate external reference folders during import planning.
 - Do not edit installed global skills, user-level skills, plugin cache files, or external workflow source unless a later turn explicitly authorizes it.
+- For current data-lake work, resolve the operational root through the canonical
+  Forseti locator (`FORSETI_DATA_ROOT`, or an explicit root verified by the
+  current Forseti root contract). `F:\orca-data-lake`, `ORCA_DATA_ROOT`,
+  `.orca-*` markers, and `orca-harness` commands found in dated prompts,
+  handoffs, reviews, or receipts are legacy provenance or compatibility
+  vocabulary, not executable current-root instructions. If a routed artifact
+  supplies only a legacy locator, stop before any lake read or write and reload
+  `docs/workflows/forseti_data_lake_rename_execution_closeout_handoff_v0.md`
+  plus `forseti-harness/data_lake/root.py`; do not silently target or recreate
+  the old physical root. Compatibility handling inside current Forseti code is
+  unchanged by this agent-facing rule.
 - Forseti-local candidate skill drafting or iteration may proceed only through the
   controlled lane in `.agents/workflow-overlay/skill-adoption.md`. That lane
   does not authorize global, user-level, plugin, installed, or external workflow
