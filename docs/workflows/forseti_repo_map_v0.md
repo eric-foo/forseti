@@ -387,7 +387,7 @@ capture-request accounting including the Creator Registry preflight block,
 candidate closeout, and obvious recency/Capture overclaim leakage. It also
 verifies cited Creator Registry match-preflight receipt JSON content for detected
 `docs/research/` scan artifacts carrying `creator_registry_match_preflight`
-markers or for explicit checker paths. CI runs `--diff origin/main --strict`
+markers or for explicit checker paths. CI runs `--diff "$FORSETI_DIFF_BASE" --strict`
 forward-only over changed `docs/research/` artifacts that look like CSB-first or
 Creator Registry preflight scan outputs; explicit paths remain available when
 producing or reviewing scan artifacts. It is not wired as an automatic
@@ -455,8 +455,8 @@ branch deletes, and non-fast-forward updates, and — for allowed lane pushes �
 mirrors nine strict CI gates over `origin/main...HEAD`: retrieval links and
 headers, review routing and review-output provenance, source-input and markdown
 hash freshness, prompt output mode, handoff-pointer resolution, and ontology
-tag validity. The same commands run in CI, so a durable-doc, provenance,
-handoff, or ontology-tag miss fails at the push
+tag validity. CI runs the same gate modes against the exact event base SHA,
+so a durable-doc, provenance, handoff, or ontology-tag miss fails at the push
 boundary instead of costing a red CI round. Blocks on any gate failure; the
 checkers' infra-gap fail-opens are unchanged; bypassable with `--no-verify`;
 CI stays the authoritative gate. `python .agents/hooks/pre_push_guard.py --selftest`
@@ -499,7 +499,7 @@ decision).
 
 **Review-output provenance gate.** `.agents/hooks/check_review_output_provenance.py`
 — diff-scoped, forward-only CI gate (registered in `.github/workflows/ci.yml`
-as `--diff origin/main --strict`): changed/added `docs/review-outputs/*.md`
+as `--diff "$FORSETI_DIFF_BASE" --strict`): changed/added `docs/review-outputs/*.md`
 must carry a valid retrieval header, non-blank `reviewed_by`/`authored_by`
 (value `unrecorded` allowed, never blank/absent), and a review-use-boundary
 statement (findings are decision input, not approval/validation/readiness).

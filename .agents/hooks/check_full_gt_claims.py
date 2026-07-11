@@ -17,8 +17,9 @@ WHAT THIS DOES
       `full-gt-claim-ack`.
 
 CHANGED-FILE SCOPE
-  Committed net change `base...HEAD` (GITHUB_BASE_REF -> origin/main, or
-  --base), .md files, added lines only (forward-looking; no backfill of
+  Committed net change `base...HEAD` (`FORSETI_DIFF_BASE` exact CI event
+  SHA; else GITHUB_BASE_REF -> origin/<ref>; else --base; else origin/main),
+  .md files, added lines only (forward-looking; no backfill of
   historical docs). NO HEAD~1 fallback. If the base cannot be resolved or git
   fails, fail OPEN (exit 0, loud warning) -- the universal Forseti infra-gap
   stance; in CI the base is always present (fetch-depth: 0).
@@ -135,6 +136,9 @@ def repo_root() -> Path:
 
 
 def resolve_base_ref(cli_base: str | None) -> str:
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     if cli_base:
         return cli_base
     github_base = os.environ.get("GITHUB_BASE_REF", "").strip()

@@ -4250,3 +4250,59 @@ direction_change_propagation:
     - not blanket PR authorization
     - not a merge authorization
 ```
+
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-11, CI event-base contract rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Owner decision recorded (2026-07-10): the EP-10 review-summary gate's
+    narrowed shape is accepted as standing -- full recommendation enum
+    membership stays --audit-only advisory, the delegated-review-patch
+    extended recommendation vocabulary stays unbound, and the
+    communication-style.md 5-value enum remains the canonical target for
+    new review summaries; the pending-decision language on the gate's live
+    surfaces is retired.
+  trigger: validation_philosophy
+  related_triggers:
+    - review_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - .agents/hooks/check_review_summary.py
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        The 5-value enum stays as-written: this decision keeps enforcement
+        advisory; it does not widen, bind, or endorse the extended
+        vocabulary.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its lanes' extended vocabulary stays deliberately unbound under
+        this decision; binding vocabulary there was the rejected
+        alternative.
+    - path: docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
+      reason: >
+        Commissioning-time record; its binding instruction (never gate
+        enum membership) remains true under this decision.
+  stale_language_search: >
+    rg -in "owner-blocked|flagged owner decision|flagged for owner|pending
+    an owner decision|owner decision, not a checker default"
+    .agents/hooks/check_review_summary.py
+    .agents/workflow-overlay/validation-gates.md
+    docs/decisions/overlay_enforcement_placement_classification_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits: remaining hits are the prior
+    gate-wave DCP receipt above (an immutable historical record) and
+    unrelated decisions (self-merge interim wording, EP-04 hook wiring);
+    no live EP-10 surface still reads as pending.
+  non_claims:
+    - not validation
+    - not readiness
+    - not approval of any historical out-of-enum recommendation value
+    - not review quality or finding truth
+```
