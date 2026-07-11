@@ -6,8 +6,9 @@ WHAT THIS DOES
   Preflight core (output mode · template kind · edit-permission+targets+branch ·
   reviews findings-first + no runtime-model routing · doctrine-change ->
   propagation receipt · destinations) so a routine prompt applies the prompt
-  contract INLINE with no skill reload. Fused / delegated-review-patch / novel
-  prompts still author through workflow-prompt-orchestrator.
+  contract INLINE with no skill reload. An eligible lane-scoped delegated patch
+  prompt uses the compact pointer-first default; prompts matching the project
+  owner's Full orchestration predicate use the full orchestrator.
 
   This is the real, agent-agnostic enforcement that replaces the invoke-ritual:
   the boundary nudge carries the checklist itself, not a bare "go reload the
@@ -80,9 +81,10 @@ REMINDER = (
     "direction_change_propagation receipt or blocker (source-of-truth.md).\n"
     "  6. Destinations -- the input prompt-artifact path, and the exact "
     "output-artifact path written when the mode writes a durable artifact.\n"
-    "Routine prompts apply this core inline -- no skill reload. Fused, "
-    "delegated-review-patch, and novel/cross-lane prompts author through "
-    "workflow-prompt-orchestrator. Rule owner: "
+    "Routine prompts apply this core inline -- no skill reload. An eligible "
+    "lane-scoped delegated review-and-patch prompt uses the compact "
+    "pointer-first default. Prompts matching the Full orchestration predicate "
+    "use workflow-prompt-orchestrator. Rule owner: "
     ".agents/workflow-overlay/prompt-orchestration.md. Advisory only -- not a "
     "verdict that the contract was skipped."
 )
