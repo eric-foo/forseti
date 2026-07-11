@@ -19,7 +19,16 @@ stale_if:
   - The receiver completes the confirm-don't-trust load and continues (packet becomes historical).
   - origin/main moves such that the source-ledger blob SHAs below no longer match (reread required).
 authority_boundary: retrieval_only
+status: SUPERSEDED_FOR_EXECUTION
+superseded_by:
+  - docs/workflows/creator_registry_operational_next_steps_handoff_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md
 ```
+
+> **Do not execute this packet.** It records the pre-rename foundation lane and
+> intentionally retains point-in-time Orca paths and locator vocabulary. Start
+> current Creator Registry work from the `superseded_by` sources above and use
+> the Forseti repository, harness, and data-root contracts.
 
 ## Load Contract
 
