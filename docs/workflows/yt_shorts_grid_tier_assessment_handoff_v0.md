@@ -17,7 +17,15 @@ stale_if:
     (packet becomes consumed history).
   - origin/main moves such that the source-ledger blob SHAs below no longer match.
 authority_boundary: retrieval_only
+status: SUPERSEDED_FOR_EXECUTION
+superseded_by:
+  - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_grid_tier_assessment_v0.md
 ```
+
+> **Do not execute this packet.** The commissioned assessment landed and this
+> packet is now point-in-time provenance. Start from the `superseded_by`
+> assessment above; any fresh probe must use current Forseti paths and the
+> canonical Forseti data-root contract.
 
 ## Load Contract
 

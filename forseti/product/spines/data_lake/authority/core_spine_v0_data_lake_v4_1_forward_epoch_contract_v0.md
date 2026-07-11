@@ -19,7 +19,7 @@ open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-  - docs/workflows/capture_spine_runner_data_lake_dump_audit_handoff_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
   - forseti-harness/data_lake/root.py
 stale_if:
   - The owner rejects the clean v4.1 epoch reset.
