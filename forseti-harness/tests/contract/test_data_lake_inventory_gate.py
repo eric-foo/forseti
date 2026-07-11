@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import copy
 import json
+from functools import cache
 
 from data_lake.inventory import (
     INVENTORY_PATH,
@@ -23,13 +24,23 @@ from data_lake.inventory import (
     serialize_inventory,
 )
 
+@cache
+def _inventory_snapshot_text() -> str:
+    """Scan tracked source once; the test process observes one immutable tree."""
+    return serialize_inventory(build_inventory())
+
+
+def _inventory_snapshot() -> dict:
+    """Return a fresh mutable copy so seeded tests cannot contaminate siblings."""
+    return json.loads(_inventory_snapshot_text())
+
 
 def test_inventory_record_matches_fresh_discovery_byte_identical() -> None:
     declared_text = INVENTORY_PATH.read_text(encoding="utf-8")
-    discovered_text = serialize_inventory(build_inventory())
+    discovered_text = _inventory_snapshot_text()
 
     if declared_text != discovered_text:
-        violations = inventory_violations(json.loads(declared_text), build_inventory())
+        violations = inventory_violations(json.loads(declared_text), _inventory_snapshot())
         raise AssertionError(
             "Checked-in lake touchpoint inventory drifted from fresh discovery. "
             "Classify each change (declare, exclude with a reason, or record an "
@@ -39,12 +50,12 @@ def test_inventory_record_matches_fresh_discovery_byte_identical() -> None:
 
 
 def test_inventory_regeneration_is_deterministic() -> None:
-    assert serialize_inventory(build_inventory()) == serialize_inventory(build_inventory())
+    assert _inventory_snapshot_text() == serialize_inventory(build_inventory())
 
 
 def test_declared_inventory_has_no_gate_violations() -> None:
     declared = load_declared_inventory()
-    assert inventory_violations(declared, build_inventory()) == []
+    assert inventory_violations(declared, _inventory_snapshot()) == []
 
 
 def test_gate_fails_on_seeded_undeclared_writer() -> None:
@@ -77,7 +88,7 @@ def test_gate_fails_on_seeded_stale_declared_entry() -> None:
         }
     )
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "stale" in violation and "does_not_exist.py" in violation for violation in violations
@@ -88,7 +99,7 @@ def test_gate_fails_on_seeded_reasonless_exclusion() -> None:
     declared = copy.deepcopy(load_declared_inventory())
     declared["exclusions"].append({"target": "seeded/reasonless", "reason": "   "})
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "exclusion without a reason" in violation and "seeded/reasonless" in violation
@@ -102,7 +113,7 @@ def test_gate_fails_on_seeded_reasoned_exclusion_drift() -> None:
         {"target": "seeded/reasoned_but_not_generated", "reason": "plausible but stale"}
     )
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "stale exclusions entry" in violation
@@ -116,7 +127,7 @@ def test_gate_fails_on_seeded_runner_seam_missing_identity_binding() -> None:
     entry = declared["raw_packet_writers"]["runner_seams"][0]
     del entry["identity_binding"]
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "runner seam without an identity_binding" in violation and entry["runner"] in violation
@@ -132,7 +143,7 @@ def test_gate_fails_on_seeded_undeclared_identity_binding_status() -> None:
     entry = declared["raw_packet_writers"]["runner_seams"][0]
     entry["identity_binding"] = {"status": "undeclared"}
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "invalid identity_binding status" in violation
@@ -147,7 +158,7 @@ def test_gate_fails_on_seeded_bound_identity_binding_without_mechanism() -> None
     entry = declared["raw_packet_writers"]["runner_seams"][0]
     entry["identity_binding"] = {"status": "bound", "mechanism": "   "}
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "requires a non-empty 'mechanism'" in violation and entry["runner"] in violation
@@ -160,7 +171,7 @@ def test_gate_fails_on_seeded_not_applicable_identity_binding_without_reason() -
     entry = declared["raw_packet_writers"]["runner_seams"][0]
     entry["identity_binding"] = {"status": "not_applicable"}
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "requires a non-empty 'reason'" in violation and entry["runner"] in violation
@@ -173,7 +184,7 @@ def test_gate_fails_on_seeded_identity_binding_with_unexpected_fields() -> None:
     entry = declared["raw_packet_writers"]["runner_seams"][0]
     entry["identity_binding"] = {"status": "bound", "mechanism": "real check", "reason": "stray"}
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "unexpected fields ['reason']" in violation and entry["runner"] in violation
@@ -191,7 +202,7 @@ def test_gate_fails_on_seeded_undispositioned_unknown() -> None:
         }
     )
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "unknown without a resolved owner disposition" in violation
@@ -210,7 +221,7 @@ def test_gate_fails_on_seeded_resolved_unknown_missing_disposition_detail() -> N
         }
     )
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert any(
         "resolved unknown without a concrete disposition" in violation
@@ -238,7 +249,7 @@ def test_resolved_unknown_clears_without_weakening_other_checks() -> None:
         }
     )
 
-    violations = inventory_violations(declared, build_inventory())
+    violations = inventory_violations(declared, _inventory_snapshot())
 
     assert not any("seeded/classified_touchpoint" in violation for violation in violations), (
         violations
