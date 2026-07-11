@@ -927,7 +927,9 @@ class _PlaywrightBrowserSnapshotEngine:
                                 observed_response_count=observed_response_count,
                             )
                             pointer_action_receipts.append(pointer_action_receipt)
-                            maybe_run_handoff(post_load_pointer_action.action_name)
+                            pointer_actions_suppressed = maybe_run_handoff(
+                                post_load_pointer_action.action_name
+                            )
                         for pointer_action in post_load_pointer_actions:
                             pointer_action_receipt = _run_pointer_action(
                                 page,
@@ -935,7 +937,9 @@ class _PlaywrightBrowserSnapshotEngine:
                                 observed_response_count=observed_response_count,
                             )
                             pointer_action_receipts.append(pointer_action_receipt)
-                            maybe_run_handoff(pointer_action.action_name)
+                            if maybe_run_handoff(pointer_action.action_name):
+                                pointer_actions_suppressed = True
+                                break
                             if _should_stop_pointer_action_sequence(
                                 pointer_action, pointer_action_receipt
                             ):
@@ -1346,7 +1350,9 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                             observed_response_count=observed_response_count,
                         )
                         pointer_action_receipts.append(pointer_action_receipt)
-                        maybe_run_handoff(post_load_pointer_action.action_name)
+                        pointer_actions_suppressed = maybe_run_handoff(
+                            post_load_pointer_action.action_name
+                        )
                     for pointer_action in post_load_pointer_actions:
                         pointer_action_receipt = _run_pointer_action(
                             page,
@@ -1354,7 +1360,9 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                             observed_response_count=observed_response_count,
                         )
                         pointer_action_receipts.append(pointer_action_receipt)
-                        maybe_run_handoff(pointer_action.action_name)
+                        if maybe_run_handoff(pointer_action.action_name):
+                            pointer_actions_suppressed = True
+                            break
                         if _should_stop_pointer_action_sequence(
                             pointer_action, pointer_action_receipt
                         ):
@@ -1509,17 +1517,20 @@ class CloakBrowserPageObservationSessionEngine(_CloakBrowserPageObservationEngin
     The first observation fixes launch and context settings. Later observations
     must use the same settings, so a caller cannot silently change identity,
     storage state, viewport, or proxy posture inside one supervised session.
-    Each observation gets a fresh page; ``close`` owns the single terminal
-    context/browser close and is idempotent.
+    Observations reuse one page and navigate it forward; per-capture listeners
+    and routes are detached between observations. ``close`` owns the single
+    terminal context/browser close and is idempotent.
     """
 
     def __init__(self, **kwargs: object) -> None:
         super().__init__(**kwargs)
         self._real_browser: object | None = None
         self._real_context: object | None = None
+        self._real_page: object | None = None
         self._launch_settings: tuple[ProxyProfile | None, bool, str | None] | None = None
         self._context_settings: dict[str, object] | None = None
         self._closed = False
+        self._page_creation_count = 0
         self._capture_attempt_count = 0
         self._capture_success_count = 0
 
@@ -1574,7 +1585,19 @@ class CloakBrowserPageObservationSessionEngine(_CloakBrowserPageObservationEngin
             raise ValueError(
                 "CloakBrowser page-observation context settings changed mid-session"
             )
-        return _SessionContextProxy(self._real_context)
+        return _SessionContextProxy(self)
+
+    def _get_or_create_page(self) -> object:
+        if self._real_context is None:
+            raise RuntimeError("CloakBrowser page-observation context was not created")
+        if self._real_page is not None:
+            is_closed = getattr(self._real_page, "is_closed", None)
+            if callable(is_closed) and is_closed():
+                self._real_page = None
+        if self._real_page is None:
+            self._real_page = self._real_context.new_page()  # type: ignore[attr-defined]
+            self._page_creation_count += 1
+        return self._real_page
 
     @property
     def lifecycle_receipt(self) -> dict[str, object]:
@@ -1582,6 +1605,8 @@ class CloakBrowserPageObservationSessionEngine(_CloakBrowserPageObservationEngin
             "engine": "cloakbrowser_page_observation_session",
             "browser_launch_count": 1 if self._real_browser is not None else 0,
             "context_creation_count": 1 if self._real_context is not None else 0,
+            "page_creation_count": self._page_creation_count,
+            "page_reuse_policy": "reuse_one_page_until_closed",
             "capture_attempt_count": self._capture_attempt_count,
             "capture_success_count": self._capture_success_count,
             "closed": self._closed,
@@ -1613,21 +1638,55 @@ class _SessionBrowserProxy:
 
 
 class _SessionContextProxy:
-    def __init__(self, context: object) -> None:
-        self._context = context
-        self._pages: list[object] = []
+    def __init__(self, owner: CloakBrowserPageObservationSessionEngine) -> None:
+        self._owner = owner
+        self._page_proxy: _SessionPageProxy | None = None
 
     def new_page(self) -> object:
-        page = self._context.new_page()  # type: ignore[attr-defined]
-        self._pages.append(page)
-        return page
+        self._page_proxy = _SessionPageProxy(self._owner._get_or_create_page())
+        return self._page_proxy
 
     def close(self) -> None:
-        for page in reversed(self._pages):
-            close = getattr(page, "close", None)
-            if callable(close):
-                close()
-        self._pages.clear()
+        if self._page_proxy is not None:
+            self._page_proxy.detach_capture_bindings()
+            self._page_proxy = None
+
+
+class _SessionPageProxy:
+    def __init__(self, page: object) -> None:
+        self._page = page
+        self._listeners: list[tuple[str, object]] = []
+        self._routes: list[tuple[str, object]] = []
+
+    def __getattr__(self, name: str) -> object:
+        return getattr(self._page, name)
+
+    def on(self, event: str, callback: object) -> object:
+        self._listeners.append((event, callback))
+        return self._page.on(event, callback)  # type: ignore[attr-defined]
+
+    def route(self, pattern: str, handler: object) -> object:
+        self._routes.append((pattern, handler))
+        return self._page.route(pattern, handler)  # type: ignore[attr-defined]
+
+    def detach_capture_bindings(self) -> None:
+        remove_listener = getattr(self._page, "remove_listener", None)
+        if not callable(remove_listener):
+            remove_listener = getattr(self._page, "off", None)
+        if self._listeners and not callable(remove_listener):
+            raise RuntimeError(
+                "persistent page cannot detach per-capture response listeners"
+            )
+        for event, callback in reversed(self._listeners):
+            remove_listener(event, callback)
+        self._listeners.clear()
+
+        unroute = getattr(self._page, "unroute", None)
+        if self._routes and not callable(unroute):
+            raise RuntimeError("persistent page cannot detach per-capture routes")
+        for pattern, handler in reversed(self._routes):
+            unroute(pattern, handler)
+        self._routes.clear()
 
 
 @dataclass(frozen=True)
