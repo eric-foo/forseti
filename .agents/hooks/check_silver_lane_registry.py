@@ -281,12 +281,17 @@ def _scan_tree(
 
 # --- file discovery + drivers ---------------------------------------------
 
+_PRODUCER_DISCOVERY_EXCLUDED_DIRS = frozenset(
+    {"tests", "__pycache__", "_test_runs", "_scratch"}
+)
+
+
 def _producer_files(root: Path) -> list[Path]:
     harness = root / "forseti-harness"
     out: list[Path] = []
     for path in sorted(harness.rglob("*.py")):
-        parts = set(path.parts)
-        if "tests" in parts or "__pycache__" in parts:
+        relative_parts = set(path.relative_to(harness).parts)
+        if relative_parts.intersection(_PRODUCER_DISCOVERY_EXCLUDED_DIRS):
             continue
         out.append(path)
     return out
