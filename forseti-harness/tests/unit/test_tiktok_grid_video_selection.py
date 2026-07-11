@@ -191,6 +191,93 @@ def test_promotions_cannot_chain_the_reach_floor_downward() -> None:
     ]
 
 
+def test_incumbent_with_zero_like_rate_is_replaced_with_no_lift_ratio() -> None:
+    items = [
+        _item("locked", 1_200, 120),
+        _item("incumbent", 1_000, 0),
+        _item("challenger", 900, 5),
+        _item("four", 700, 7),
+        _item("five", 600, 6),
+        _item("six", 500, 5),
+        _item("seven", 400, 4),
+        _item("eight", 300, 3),
+    ]
+
+    selection = build_tiktok_grid_video_selection(items, expected_item_count=8)
+
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == [
+        "locked",
+        "challenger",
+    ]
+    assert selection["selection_summary"]["promotions"] == [
+        {
+            "promoted_video_id": "challenger",
+            "replaced_video_id": "incumbent",
+            "view_retention_ratio": 0.9,
+            "like_rate_lift_ratio": None,
+            "incumbent_like_rate_was_zero": True,
+        }
+    ]
+
+
+def test_challenger_processing_order_can_leave_a_qualifying_challenger_unpromoted() -> None:
+    # Documents (does not endorse) the greedy assignment order recorded in
+    # selection_policy.competing_challenger_order_rule: challengers are matched
+    # in like_rate-descending order, and each claims the lowest-like_rate
+    # remaining eligible incumbent. Here "c1" (higher like_rate) is processed
+    # first and claims "b" -- the only incumbent shared with "c2" -- even
+    # though a different pairing (c1<->a, c2<->b) would have promoted both
+    # challengers. "c2" individually satisfies the 80%/20% thresholds against
+    # "b" but is left unpromoted solely because of processing order.
+    items = [
+        _item("a", 1_000, 10),
+        _item("b", 1_000, 5),
+        _item("c1", 900, 15),
+        _item("c2", 850, 7),
+        _item("d", 700, 0),
+        _item("e", 600, 0),
+        _item("f", 500, 0),
+        _item("g", 400, 0),
+    ]
+
+    selection = build_tiktok_grid_video_selection(items, expected_item_count=8)
+
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == [
+        "a",
+        "c1",
+    ]
+    assert selection["selection_summary"]["promotion_count"] == 1
+    c2 = next(
+        item for item in selection["ranked_items"] if item["video_id"] == "c2"
+    )
+    assert c2["selected"] is False
+    assert c2["exclusion_reason_or_none"] == "not_selected_after_boundary_comparison"
+
+
+def test_runner_reads_bare_list_input(tmp_path: Path) -> None:
+    input_path = tmp_path / "bare_list.json"
+    output_path = tmp_path / "selection.json"
+    input_path.write_text(
+        json.dumps(
+            [
+                {"id": "one", "playCount": 400, "diggCount": 20},
+                {"id": "two", "playCount": 300, "diggCount": 30},
+                {"id": "three", "playCount": 200, "diggCount": 20},
+                {"id": "four", "playCount": 100, "diggCount": 10},
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    selection = run_tiktok_grid_video_selection(
+        input_path=input_path,
+        expected_item_count=4,
+        output_path=output_path,
+    )
+
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == ["one"]
+
+
 @pytest.mark.parametrize(
     ("items", "expected_count", "message"),
     [

@@ -120,6 +120,13 @@ def build_tiktok_grid_video_selection(
                 "Promotions compare only against original view-selected incumbents; "
                 "a promoted video cannot become a new lower-reach comparison anchor."
             ),
+            "competing_challenger_order_rule": (
+                "When more than one challenger qualifies, challengers are matched "
+                "in like_rate-descending order; each qualifying challenger claims "
+                "the lowest-like_rate remaining incumbent it qualifies against. "
+                "A later, still-qualifying challenger can be left unpromoted if an "
+                "earlier challenger already claimed its only eligible incumbent."
+            ),
             "minimum_view_retention_percent": _MINIMUM_VIEW_RETENTION_PERCENT,
             "minimum_like_rate_lift_percent": _MINIMUM_LIKE_RATE_LIFT_PERCENT,
             "like_rate_recipe": "diggCount / playCount",
