@@ -56,7 +56,7 @@ final resonance weight, and Action Ceiling.
 
 The executable validator remains at
 `.agents/hooks/check_commission_signal_board_output.py`. The executable tests
-and fixtures remain under `orca-harness/tests/`.
+and fixtures remain under `forseti-harness/tests/`.
 
 ## Old Paths
 

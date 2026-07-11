@@ -40,8 +40,9 @@ uses one `/reels/` page load, no hover/click/item-page fan-out, no OCR, and pass
 joined by shortcode. The old calls runner remains a legacy calibration or fallback route when
 item-page OG metadata is explicitly needed.
 
-The optimized runner supports `--output` for scratch packets and `--data-root` / `ORCA_DATA_ROOT`
-for data-lake raw packet admission. As of the current implementation, the grid runner still exposes
+The optimized runner supports `--output` for scratch packets and `--data-root` /
+`FORSETI_DATA_ROOT` (legacy `ORCA_DATA_ROOT` accepted as fallback) for data-lake
+raw packet admission. As of the current implementation, the grid runner still exposes
 heavy-asset blocking as an implementation behavior. Current daily-heartbeat operating policy is
 owned by `ig_daily_heartbeat_operating_policy_v0.md`, which prefers ordinary browser asset loading
 for supervised daily heartbeat and treats heavy-asset blocking as an explicit bandwidth mode. Do not
@@ -75,7 +76,7 @@ The optimized `/reels/` capture lane has two kinds of rules. Code should enforce
 
 Code-enforceable in this lane:
 
-- Exactly one output target: scratch `--output` or data-lake `--data-root` / `ORCA_DATA_ROOT`; ambient `ORCA_DATA_ROOT` must not silently override an explicit `--output`.
+- Exactly one output target: scratch `--output` or data-lake `--data-root` / `FORSETI_DATA_ROOT` (legacy `ORCA_DATA_ROOT` fallback); an ambient data-root env var must not silently override an explicit `--output`.
 - One optimized `/reels/` page-load path for the high-cadence runner; no hover, click, OCR, comment-text capture, media-byte preservation, or item-page fan-out in that runner.
 - Response preservation is limited to known passive JSON source surfaces with response-size caps.
 - Cookie / `set-cookie` headers, proxy endpoint, proxy credentials, proxy exit IP, proxy store path, and stored browser state are not serialized into packets.
