@@ -23,6 +23,8 @@ RETAIL_PDP_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; n
 # Append-only derived lane namespace for the Retail/PDP projection's Silver record.
 PROJECTION_RETAIL_PDP_LANE = "projection_retail_pdp"
 
+Retailer = Literal["amazon", "sephora", "ulta", "walmart", "target", "unknown"]
+
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
     {
         "action_ceiling",
@@ -76,7 +78,7 @@ class RetailPdpProjectionRow(StrictModel):
         "retail_embedded_structured_json",
         "retail_carried_module",
     ]
-    retailer: Literal["amazon", "sephora", "ulta", "unknown"]
+    retailer: Retailer
     raw_ref: RetailProjectionRawRef
     raw_anchor: RetailProjectionRawAnchor
     source_visible_fields: dict[str, Any | None] = Field(default_factory=dict)
@@ -315,7 +317,7 @@ class _ProjectedRetailHtml(StrictModel):
 
 
 class _StructuredJsonEntry(StrictModel):
-    kind: Literal["ld_json", "apollo_state"]
+    kind: Literal["ld_json", "apollo_state", "next_data"]
     index: int
     raw_text: str
     parsed: object | None
@@ -331,7 +333,7 @@ def _project_retail_html(
     source_slice: SourceCaptureSlice,
     raw_ref: RetailProjectionRawRef,
     raw_anchor: RetailProjectionRawAnchor,
-    retailer: Literal["amazon", "sephora", "ulta", "unknown"],
+    retailer: Retailer,
 ) -> _ProjectedRetailHtml:
     rows: list[RetailPdpProjectionRow] = []
     bindings: list[RetailPdpProjectionBinding] = []
@@ -428,6 +430,10 @@ def _project_retail_html(
                         "sku": variant_fields.get("sku"),
                         "variant_name": variant_fields.get("variant_name"),
                         "availability": variant_fields.get("availability"),
+                        "shipping_availability": variant_fields.get("shipping_availability"),
+                        "pickup_availability": variant_fields.get("pickup_availability"),
+                        "delivery_availability": variant_fields.get("delivery_availability"),
+                        "seller": variant_fields.get("seller"),
                     },
                 ),
                 RetailPdpProjectionBinding(
@@ -478,7 +484,12 @@ def _project_retail_html(
                     "product_row_id": product_row_id,
                     "review_substrate_source": review_fields.get("review_substrate_source"),
                     "review_count": review_fields.get("review_count"),
+                    "rating_count": review_fields.get("rating_count"),
+                    "written_review_count": review_fields.get("written_review_count"),
+                    "filtered_review_count": review_fields.get("filtered_review_count"),
                     "rating": review_fields.get("rating"),
+                    "rating_distribution_basis": review_fields.get("rating_distribution_basis"),
+                    "rating_distribution_buckets": review_fields.get("rating_distribution_buckets"),
                 },
             )
         )
@@ -541,12 +552,23 @@ def _extract_structured_json_entries(html: str, *, raw_anchor: RetailProjectionR
                 raw_anchor=_with_anchor(raw_anchor, "script_index", "window.__APOLLO_STATE__"),
             )
         )
+    next_data_text = _extract_next_data_text(html)
+    if next_data_text is not None:
+        entries.append(
+            _StructuredJsonEntry(
+                kind="next_data",
+                index=0,
+                raw_text=next_data_text,
+                parsed=_safe_json_loads(next_data_text),
+                raw_anchor=_with_anchor(raw_anchor, "script_index", "__NEXT_DATA__"),
+            )
+        )
     return entries
 
 
 def _variant_offer_fields(
     *,
-    retailer: Literal["amazon", "sephora", "ulta", "unknown"],
+    retailer: Retailer,
     html: str,
     visible_text: str,
     packet: SourceCapturePacket,
@@ -563,6 +585,20 @@ def _variant_offer_fields(
             else []
         )
         return fields, _with_anchor(fallback_anchor, "html_selector", "#ASIN/#corePrice_feature_div/#availability"), amazon_residuals
+
+    if retailer == "walmart":
+        fields = _walmart_variant_offer_fields(
+            html=html, visible_text=visible_text, packet=packet, source_slice=source_slice, structured_entries=structured_entries
+        )
+        residuals.extend(_retail_commerce_absence_residuals(retailer, fields))
+        return fields, _with_anchor(fallback_anchor, "html_selector", "#__NEXT_DATA__"), residuals
+
+    if retailer == "target":
+        fields = _target_variant_offer_fields(
+            html=html, visible_text=visible_text, packet=packet, source_slice=source_slice
+        )
+        residuals.extend(_retail_commerce_absence_residuals(retailer, fields))
+        return fields, _with_anchor(fallback_anchor, "html_selector", "#ratingReviewId"), residuals
 
     sephora_dom_fields = _sephora_dom_offer_fields(html) if retailer == "sephora" else {}
     selected_sku = _string_or_none(sephora_dom_fields.get("dom_sku"))
@@ -620,7 +656,7 @@ def _variant_offer_fields(
 
 def _review_substrate_fields(
     *,
-    retailer: Literal["amazon", "sephora", "ulta", "unknown"],
+    retailer: Retailer,
     html: str,
     visible_text: str,
     structured_entries: list[_StructuredJsonEntry],
@@ -659,6 +695,12 @@ def _review_substrate_fields(
     if retailer == "ulta":
         fields, residuals = _ulta_review_fields(structured_entries)
         return fields, _with_anchor(fallback_anchor, "script_index", "ld_json/apollo_state review modules"), residuals
+    if retailer == "walmart":
+        return _walmart_review_fields(visible_text), _with_anchor(fallback_anchor, "html_selector", "#__NEXT_DATA__"), []
+    if retailer == "target":
+        fields = _target_review_fields(visible_text)
+        residuals = [] if fields.get("written_review_count") is not None else ["target_written_review_count_not_observed"]
+        return fields, _with_anchor(fallback_anchor, "html_selector", "#ratingReviewId"), residuals
     return {}, fallback_anchor, []
 
 
@@ -708,6 +750,240 @@ def _amazon_variant_offer_fields(
         "variant_pin": _fact_value(source_slice.variant_pin),
         "variant_binding_source": "amazon_dom_js",
     }
+
+
+def _walmart_variant_offer_fields(
+    *,
+    html: str,
+    visible_text: str,
+    packet: SourceCapturePacket,
+    source_slice: SourceCaptureSlice,
+    structured_entries: list[_StructuredJsonEntry],
+) -> dict[str, Any | None]:
+    product_id = _retail_product_id(packet=packet, source_slice=source_slice, retailer="walmart")
+    product = _walmart_next_data_product(structured_entries, product_id) or {}
+    if not product and product_id is None:
+        return {}
+    price_info = product.get("priceInfo") if isinstance(product.get("priceInfo"), dict) else {}
+    current_price = (
+        price_info.get("currentPrice")
+        if isinstance(price_info.get("currentPrice"), dict)
+        else {}
+    )
+    line_price = (
+        _string_or_none(price_info.get("linePrice"))
+        or _string_or_none(price_info.get("linePriceDisplay"))
+        or _string_or_none(current_price.get("priceString"))
+        or _string_or_none(current_price.get("priceDisplay"))
+    )
+    price = _string_or_none(product.get("price")) or _string_or_none(current_price.get("price")) or line_price
+    if price and price.startswith("$"):
+        price = price[1:]
+    availability_v2 = product.get("availabilityStatusV2") if isinstance(product.get("availabilityStatusV2"), dict) else {}
+    channels = _fulfillment_channel_fields(visible_text)
+    seller = _string_or_none(product.get("sellerName")) or _first_regex(visible_text, (r"Sold and shipped by\s+([^\n]+)",))
+    return {
+        "product_id": product_id or _string_or_none(product.get("usItemId")),
+        "sku": product_id or _string_or_none(product.get("usItemId")),
+        "product_name": _string_or_none(product.get("name")) or _meta_content(html, "property", "og:title"),
+        "variant_name": _walmart_selected_variant(product, product_id) or _fact_value(source_slice.variant_pin),
+        "price": price,
+        "price_isolation": "walmart_next_data_product" if price else "absent",
+        "price_currency": _fact_value(source_slice.currency_pin)
+        or _string_or_none(current_price.get("currencyUnit"))
+        or ("USD" if line_price and line_price.startswith("$") else None),
+        "availability": _string_or_none(availability_v2.get("display")) or _string_or_none(product.get("availabilityStatus")) or _availability_summary(channels),
+        **channels,
+        "seller": seller,
+        "location_context": _location_context(visible_text, "walmart"),
+        "series_id": packet.series_id,
+        "locale_pin": _fact_value(source_slice.locale_pin),
+        "currency_pin": _fact_value(source_slice.currency_pin),
+        "variant_pin": _fact_value(source_slice.variant_pin),
+        "exact_inventory_quantity": None,
+        "exact_inventory_quantity_posture": "not_observed",
+        "sold_units": None,
+        "sold_units_posture": "not_observed",
+        "variant_binding_source": "walmart_next_data_and_rendered_dom",
+    }
+
+
+def _target_variant_offer_fields(
+    *,
+    html: str,
+    visible_text: str,
+    packet: SourceCapturePacket,
+    source_slice: SourceCaptureSlice,
+) -> dict[str, Any | None]:
+    product_id = _retail_product_id(packet=packet, source_slice=source_slice, retailer="target")
+    if product_id is None:
+        return {}
+    price = _first_regex(
+        html,
+        (r'data-test=["\'](?:current-price|product-price)["\'][\s\S]*?\$([\d,.]+)',),
+    ) or _first_regex(visible_text, (r"^\$([\d,.]+)$",))
+    channels = _fulfillment_channel_fields(visible_text)
+    return {
+        "product_id": product_id,
+        "sku": product_id,
+        "product_name": _meta_content(html, "property", "og:title") or _title_text(html),
+        "variant_name": _fact_value(source_slice.variant_pin),
+        "price": price,
+        "price_isolation": "target_rendered_dom_current_price" if price else "absent",
+        "price_currency": _fact_value(source_slice.currency_pin) or ("USD" if price else None),
+        "availability": _availability_summary(channels),
+        **channels,
+        "seller": "Target" if "Target" in html else None,
+        "location_context": _location_context(visible_text, "target"),
+        "series_id": packet.series_id,
+        "locale_pin": _fact_value(source_slice.locale_pin),
+        "currency_pin": _fact_value(source_slice.currency_pin),
+        "variant_pin": _fact_value(source_slice.variant_pin),
+        "exact_inventory_quantity": None,
+        "exact_inventory_quantity_posture": "not_observed",
+        "sold_units": None,
+        "sold_units_posture": "not_observed",
+        "variant_binding_source": "target_rendered_dom",
+    }
+
+
+def _retail_commerce_absence_residuals(retailer: Retailer, fields: Mapping[str, object]) -> list[str]:
+    if not fields:
+        return []
+    residuals = [f"{retailer}_exact_inventory_quantity_not_observed", f"{retailer}_sold_units_not_observed"]
+    if not _string_or_none(fields.get("location_context")):
+        residuals.append(f"{retailer}_location_pin_absent")
+    return residuals
+
+
+def _walmart_next_data_product(structured_entries: Sequence[_StructuredJsonEntry], product_id: str | None) -> dict[str, object] | None:
+    if product_id is None:
+        return None
+    candidates = [
+        item
+        for entry in structured_entries
+        if entry.kind == "next_data"
+        for item in _walk_dicts(entry.parsed)
+        if item.get("name") and item.get("usItemId")
+        and _string_or_none(item.get("usItemId")) == product_id
+    ]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda item: sum(value is not None for value in (item.get("price"), item.get("priceInfo"), item.get("averageRating"), item.get("availabilityStatusV2"), item.get("sellerName"))))
+
+
+def _walmart_selected_variant(product: Mapping[str, object], product_id: str | None) -> str | None:
+    variants = product.get("variantList")
+    if not isinstance(variants, list):
+        return None
+    for variant in variants:
+        if isinstance(variant, dict) and (product_id is None or _string_or_none(variant.get("usItemId")) == product_id):
+            return _string_or_none(variant.get("displayName")) or _string_or_none(variant.get("name"))
+    return None
+
+
+def _target_review_fields(visible_text: str) -> dict[str, Any | None]:
+    match = re.search(r"(\d+(?:\.\d+)?) out of 5 stars with ([\d,]+) reviews", visible_text, flags=re.IGNORECASE)
+    rating = match.group(1) if match else None
+    rating_count = match.group(2) if match else None
+    filtered = _first_regex(visible_text, (r"We found ([\d,]+) matching reviews",))
+    buckets = _rating_distribution_buckets(visible_text, basis="percent")
+    if not any((rating, rating_count, filtered, buckets)):
+        return {}
+    return {
+        "review_substrate_source": "target_rendered_review_widget",
+        "rating": rating,
+        "rating_count": rating_count,
+        "review_count": None,
+        "written_review_count": None,
+        "filtered_review_count": filtered,
+        "rating_distribution_basis": "percent" if buckets else None,
+        "rating_distribution_buckets": buckets,
+    }
+
+
+def _walmart_review_fields(visible_text: str) -> dict[str, Any | None]:
+    rating = _first_regex(visible_text, (r"Customer ratings & reviews\s+(\d+(?:\.\d+)?) out of 5",))
+    counts = re.search(r"([\d,]+) ratings\|([\d,]+) reviews", visible_text, flags=re.IGNORECASE)
+    rating_count = counts.group(1) if counts else _first_regex(visible_text, (r"([\d,]+) ratings",))
+    written = counts.group(2) if counts else _first_regex(visible_text, (r"View all reviews \(([\d,]+)\)",))
+    buckets = _rating_distribution_buckets(visible_text, basis="count")
+    if not any((rating, rating_count, written, buckets)):
+        return {}
+    return {
+        "review_substrate_source": "walmart_rendered_review_widget",
+        "rating": rating,
+        "rating_count": rating_count,
+        "review_count": written,
+        "written_review_count": written,
+        "filtered_review_count": None,
+        "rating_distribution_basis": "count" if buckets else None,
+        "rating_distribution_buckets": buckets,
+    }
+
+
+def _rating_distribution_buckets(visible_text: str, *, basis: Literal["count", "percent"]) -> list[dict[str, int]]:
+    buckets: list[dict[str, int]] = []
+    for stars in range(5, 0, -1):
+        if basis == "count":
+            match = re.search(rf"{stars} stars?\s+(\d+)%\s*\(([\d,]+)\)", visible_text, flags=re.IGNORECASE)
+            if match:
+                buckets.append({"stars": stars, "value": int(match.group(2).replace(",", "")), "source_percent": int(match.group(1))})
+        else:
+            match = re.search(rf"{stars} stars?\s+(\d+)%", visible_text, flags=re.IGNORECASE)
+            if match:
+                buckets.append({"stars": stars, "value": int(match.group(1))})
+    return buckets
+
+
+def _fulfillment_channel_fields(visible_text: str) -> dict[str, str | None]:
+    return {
+        "shipping_availability": _line_after_heading(visible_text, "Shipping"),
+        "pickup_availability": _line_after_heading(visible_text, "Pickup"),
+        "delivery_availability": _line_after_heading(visible_text, "Delivery"),
+    }
+
+
+def _line_after_heading(text: str, heading: str) -> str | None:
+    lines = [line.strip() for line in text.splitlines()]
+    for index, line in enumerate(lines):
+        if line.lower() == heading.lower():
+            return next((candidate for candidate in lines[index + 1 : index + 4] if candidate), None)
+    return None
+
+
+def _availability_summary(channels: Mapping[str, object]) -> str | None:
+    parts = [f"{name.removesuffix('_availability')}={value}" for name, value in channels.items() if isinstance(value, str) and value.strip()]
+    return "; ".join(parts) or None
+
+
+def _location_context(visible_text: str, retailer: Retailer) -> str | None:
+    if retailer == "walmart":
+        return _first_regex(visible_text, (r"([A-Za-z .'-]+,\s*\d{5})",))
+    if retailer == "target":
+        return _first_regex(visible_text, (r"(Ship to\s+\d{5})",))
+    return None
+
+
+def _retail_product_id(*, packet: SourceCapturePacket, source_slice: SourceCaptureSlice, retailer: Retailer) -> str | None:
+    locator = _fact_value(source_slice.locator) or _fact_value(packet.source_locator) or ""
+    if retailer == "target":
+        return _first_regex(locator, (r"/A-(\d+)",))
+    if retailer == "walmart":
+        return _first_regex(locator, (r"/(\d+)(?:[/?#]|$)",))
+    return None
+
+
+def _meta_content(html: str, attr_name: str, attr_value: str) -> str | None:
+    for match in re.finditer(r"<meta\b[^>]*>", html, flags=re.IGNORECASE):
+        tag = match.group(0)
+        if (_html_attr_value(tag, attr_name) or "").lower() == attr_value.lower():
+            return _html_attr_value(tag, "content")
+    return None
+
+
+def _title_text(html: str) -> str | None:
+    return _first_regex(html, (r"<title[^>]*>(.*?)</title>",))
 
 
 def _structured_variant_offer_fields(
@@ -851,7 +1127,7 @@ def _sephora_dom_offer_fields(html: str) -> dict[str, Any | None]:
 
 def _structured_price_residuals(
     *,
-    retailer: Literal["amazon", "sephora", "ulta", "unknown"],
+    retailer: Retailer,
     structured_fields: Mapping[str, object],
 ) -> list[str]:
     if (
@@ -1052,7 +1328,7 @@ def _ulta_review_fields(structured_entries: list[_StructuredJsonEntry]) -> tuple
 
 def _carried_module_fields(
     *,
-    retailer: Literal["amazon", "sephora", "ulta", "unknown"],
+    retailer: Retailer,
     html: str,
     visible_text_files: Sequence[tuple[PreservedFile, str]],
     raw_anchor: RetailProjectionRawAnchor,
@@ -1060,7 +1336,7 @@ def _carried_module_fields(
     modules: list[dict[str, Any]] = []
     module_specs = [
         ("shipping", ("FREE delivery", "standard shipping", "same day delivery", "deliveryBlock")),
-        ("loyalty", ("Beauty Insider", "points", "Store Card", "Rewards")),
+        ("loyalty", ("Beauty Insider", "earn points", "Store Card", "Rewards")),
         ("recommendations", ("data-cnstrc-item=\"recommendation\"", "customers bought together", "Make it a routine")),
     ]
     anchorable_texts = [
@@ -1140,7 +1416,7 @@ def _product_context_fields(
     }
 
 
-def _detect_retailer(packet: SourceCapturePacket) -> Literal["amazon", "sephora", "ulta", "unknown"]:
+def _detect_retailer(packet: SourceCapturePacket) -> Retailer:
     haystack = " ".join(
         item
         for item in [
@@ -1156,6 +1432,10 @@ def _detect_retailer(packet: SourceCapturePacket) -> Literal["amazon", "sephora"
         return "sephora"
     if "ulta." in haystack or "ulta_" in haystack or "ulta " in haystack:
         return "ulta"
+    if "walmart." in haystack or "walmart_" in haystack or "walmart " in haystack:
+        return "walmart"
+    if "target." in haystack or "target_" in haystack or "target " in haystack:
+        return "target"
     return "unknown"
 
 
@@ -1169,6 +1449,13 @@ def _extract_ld_json_texts(html: str) -> list[str]:
         )
         if re.search(r"type\s*=\s*['\"]application/ld\+json['\"]", match.group("attrs"), flags=re.IGNORECASE)
     ]
+
+
+def _extract_next_data_text(html: str) -> str | None:
+    for match in re.finditer(r"<script\b(?P<attrs>[^>]*)>(?P<body>.*?)</script>", html, flags=re.IGNORECASE | re.DOTALL):
+        if re.search(r"\bid\s*=\s*['\"]__NEXT_DATA__['\"]", match.group("attrs"), flags=re.IGNORECASE):
+            return match.group("body").strip()
+    return None
 
 
 def _extract_apollo_state_text(html: str) -> str | None:
@@ -1429,6 +1716,7 @@ __all__ = [
     "RETAIL_PDP_PROJECTION_METHOD",
     "RETAIL_PDP_PROJECTION_VERSION",
     "PROJECTION_RETAIL_PDP_LANE",
+    "Retailer",
     "RetailPdpProjectionInputError",
     "RetailPdpProjectionBinding",
     "RetailPdpProjectionLossEntry",

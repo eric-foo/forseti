@@ -81,6 +81,8 @@ class _FakeObservationEngine:
         settle_seconds: float = 0.0,
         lazy_load_scroll_passes: int = 0,
         lazy_load_scroll_step_px: int = 0,
+        lazy_load_response_stop_condition: object = None,
+        dom_extract_after_lazy_load: bool = False,
         block_resource_types: tuple[str, ...] = (),
         proxy_profile: object = None,
         storage_state_path: Path | None = None,
@@ -839,6 +841,26 @@ def test_live_probe_runner_required_proxy_posture_choices_exclude_unknown() -> N
         item for item in parser._actions if item.dest == "require_harness_proxy_posture"
     )
     assert action.choices == ["no_proxy_profile_loaded", "proxy_profile_loaded"]
+
+
+def test_live_probe_runner_admission_targets_stay_mutually_exclusive() -> None:
+    parser = runner.build_parser()
+    mutually_exclusive_option_sets = [
+        {
+            option
+            for action in group._group_actions
+            for option in action.option_strings
+        }
+        for group in parser._mutually_exclusive_groups
+    ]
+
+    assert any(
+        {"--admit-output", "--data-root"} <= options
+        for options in mutually_exclusive_option_sets
+    ), (
+        "--admit-output and --data-root must remain in one argparse "
+        "mutually-exclusive group"
+    )
 
 
 def test_live_probe_runner_defaults_to_cloakbrowser_packet_grade(

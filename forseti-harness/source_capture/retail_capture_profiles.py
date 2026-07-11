@@ -86,6 +86,83 @@ _PROFILES = {
     profile.name: profile
     for profile in (
         RetailCaptureProfile(
+            name="amazon_grid_aggregate",
+            retailer="amazon",
+            page_kind="grid_aggregate",
+            hostname="www.amazon.com",
+            source_surface="cloakbrowser_snapshot",
+            ordinary_operation=True,
+            wait_until="domcontentloaded",
+            settle_seconds=0.0,
+            requirements=_requirements(
+                visible_text_contains=("LANEIGE Lip Sleeping Mask", "New York 10001"),
+                visible_text_regexes=(
+                    r"1-\d+ of \d+ results",
+                    r"\d(?:\.\d)? out of 5 stars\s+\([\d.]+[KM]?\)",
+                    r"\$\d+(?:\.\d{2})?",
+                    r"\d+(?:\.\d+)?[KM]?\+ bought in past month",
+                ),
+                rendered_dom_regexes=(r"B07XXPHQZK",),
+            ),
+        ),
+        RetailCaptureProfile(
+            name="amazon_pdp_aggregate",
+            retailer="amazon",
+            page_kind="pdp_aggregate",
+            hostname="www.amazon.com",
+            source_surface="cloakbrowser_snapshot",
+            ordinary_operation=True,
+            wait_until="domcontentloaded",
+            settle_seconds=0.0,
+            requirements=_requirements(
+                visible_text_contains=("LANEIGE Lip Sleeping Mask", "New York 10001"),
+                visible_text_regexes=(
+                    r"\d(?:\.\d)? out of 5 stars",
+                    r"\$\d+(?:\.\d{2})?",
+                    r"\d+(?:\.\d+)?[KM]?\+ bought in past month",
+                    r"[\d,]+ global ratings",
+                    r"(?:In Stock|Currently unavailable|Temporarily out of stock"
+                    r"|Only \d+ left in stock)",
+                ),
+                rendered_dom_contains=(
+                    'name="currencyOfPreference" value="USD"',
+                    "/gp/customer-reviews/",
+                ),
+                rendered_dom_regexes=(r"B07XXPHQZK",),
+            ),
+        ),
+        RetailCaptureProfile(
+            name="amazon_pdp_distribution",
+            retailer="amazon",
+            page_kind="pdp_distribution",
+            hostname="www.amazon.com",
+            source_surface="cloakbrowser_snapshot",
+            ordinary_operation=True,
+            wait_until="domcontentloaded",
+            settle_seconds=0.0,
+            requirements=_requirements(
+                visible_text_contains=("LANEIGE Lip Sleeping Mask", "New York 10001"),
+                visible_text_regexes=(
+                    r"\d(?:\.\d)? out of 5 stars",
+                    r"\$\d+(?:\.\d{2})?",
+                    r"\d+(?:\.\d+)?[KM]?\+ bought in past month",
+                    r"[\d,]+ global ratings",
+                    r"(?:In Stock|Currently unavailable|Temporarily out of stock"
+                    r"|Only \d+ left in stock)",
+                    r"(?s)5 star\s+\d+%\s+4 star\s+\d+%\s+3 star\s+\d+%"
+                    r"\s+2 star\s+\d+%\s+1 star\s+\d+%",
+                ),
+                rendered_dom_contains=(
+                    'name="currencyOfPreference" value="USD"',
+                    "/gp/customer-reviews/",
+                ),
+                rendered_dom_regexes=(
+                    r"B07XXPHQZK",
+                    r"[\d,]+ customers mention",
+                ),
+            ),
+        ),
+        RetailCaptureProfile(
             name="sephora_grid_aggregate",
             retailer="sephora",
             page_kind="grid_aggregate",

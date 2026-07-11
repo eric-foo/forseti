@@ -45,6 +45,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    porcelain_paths,
+    repo_root,
+)
+
 # The three commit-once-whole shared files (repo-relative POSIX).
 SHARED = (
     "docs/workflows/forseti_repo_map_v0.md",
@@ -53,27 +59,13 @@ SHARED = (
 )
 
 
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
-
-
 def dirty_shared(porcelain: str) -> list[str]:
     """Given `git status --porcelain` output, return which SHARED files are dirty.
 
-    Pure function (testable). Porcelain v1: 2-char status, a space, then the path
-    (rename shown as 'old -> new'). Paths use forward slashes, matching SHARED."""
-    out: list[str] = []
-    for line in porcelain.splitlines():
-        if len(line) < 4:
-            continue
-        path = line[3:]
-        if " -> " in path:  # rename: take the destination
-            path = path.split(" -> ", 1)[1]
-        path = path.strip().strip('"')
-        if path in SHARED and path not in out:
-            out.append(path)
-    return out
+    Pure function (testable). Porcelain parsing is shared
+    (_hooklib.porcelain_paths, which keeps a rename's destination); paths use
+    forward slashes, matching SHARED."""
+    return [p for p in porcelain_paths(porcelain) if p in SHARED]
 
 
 def git_porcelain(root: Path) -> str:

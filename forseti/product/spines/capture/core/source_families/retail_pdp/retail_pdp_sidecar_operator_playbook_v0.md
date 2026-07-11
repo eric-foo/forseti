@@ -52,7 +52,7 @@ not Cleaning, not Judgment, and not merge approval.
 | --- | --- | --- | --- |
 | Sephora | `https://www.sephora.com/product/lip-sleeping-mask-P420652` | `--settle-seconds 5 --scroll-step-px 350 --scroll-passes 1` | ProductPage DOM price, Bazaarvoice config, target review widget. A visible `sephora_ld_json_review_count_differs_from_target_dom` residual is acceptable when JSON-LD and target DOM review counts disagree. |
 | Ulta | `https://www.ulta.com/p/night-shift-overnight-lip-mask-pimprod2046225?sku=2645443` | `--settle-seconds 5 --scroll-passes 1` | JSON-LD plus `window.__APOLLO_STATE__`, with requested SKU matching projected SKU. |
-| Amazon | `https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK` | `--settle-seconds 4 --delivery-zip 10001 --delivery-zip-setup-timeout-seconds 30` | ASIN, DOM target price input, review nodes, and a packet limitation confirming declared ZIP `10001` when the US storefront pin succeeds. |
+| Amazon | `https://www.amazon.com/Laneige-Sleeping-Berry/dp/B07XXPHQZK` | `--retail-capture-profile amazon_pdp_distribution --delivery-zip 10001 --delivery-zip-setup-timeout-seconds 30` | ASIN, DOM target price input, review nodes, histogram, and a packet limitation confirming declared ZIP `10001` when the US storefront pin succeeds. |
 
 ## Command Pattern
 
@@ -113,7 +113,7 @@ python runners/run_source_capture_cloakbrowser_packet.py `
   --output _test_runs/retail_pdp_sidecar_smoke_YYYYMMDD/amazon/packet `
   --capture-context "bounded Retail/PDP sidecar smoke capture for Amazon public PDP with declared US delivery ZIP 10001; no ECR, Cleaning, Judgment, source discovery, proxy, or credential use" `
   --timeout-seconds 80 `
-  --settle-seconds 4 `
+  --retail-capture-profile amazon_pdp_distribution `
   --delivery-zip 10001 `
   --delivery-zip-setup-timeout-seconds 30 `
   --retail-pdp-projection-output _test_runs/retail_pdp_sidecar_smoke_YYYYMMDD/amazon/retail_pdp_projection.json

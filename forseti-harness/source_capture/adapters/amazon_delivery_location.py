@@ -29,11 +29,9 @@ from source_capture.adapters.cloakbrowser_snapshot import (
 # separate PDP; this navigation happens BEFORE it, inside the plugin's bounded setup window.
 _AMAZON_HOMEPAGE_URL = "https://www.amazon.com/"
 
-# Settle after opening the popover / submitting, so the widget can render/apply.
-_DELIVERY_LOCATION_SETTLE_MS = 1500
-# Short PROBE timeout for each click/fill on a candidate selector. FIX #4: a missing element
-# now fails in ~2.5s on the probe itself, instead of the old 2s is_visible pre-check PLUS an
-# 8s click timeout. We do NOT use the long click timeout for these widget probes.
+# Short bounded probes replace fixed sleeps: browser actions already wait for their target,
+# while the post-apply poll returns as soon as Amazon renders the requested ZIP.
+_POST_APPLY_POLL_MS = 100
 _WIDGET_PROBE_TIMEOUT_MS = 2500
 
 # Widget selectors, probed on amazon.com 2026-06-16; subject to Amazon DOM changes.
@@ -88,8 +86,11 @@ class AmazonDeliveryLocationPlugin:
 
         # Step 1: homepage navigation (bounded by the setup timeout, not the main timeout).
         try:
-            page.goto(_AMAZON_HOMEPAGE_URL, wait_until="load", timeout=setup_timeout_ms)  # type: ignore[union-attr]
-            _wait_for_settle(page, setup_deadline)
+            page.goto(
+                _AMAZON_HOMEPAGE_URL,
+                wait_until="domcontentloaded",
+                timeout=setup_timeout_ms,
+            )  # type: ignore[union-attr]
         except Exception as exc:
             warning_notes.append(
                 f"delivery_zip_setup: homepage navigation failed ({exc}); "
@@ -110,7 +111,6 @@ class AmazonDeliveryLocationPlugin:
                 break
             try:
                 page.locator(selector).first.click(timeout=probe_ms)  # type: ignore[union-attr]
-                _wait_for_settle(page, setup_deadline)
                 widget_clicked = True
                 break
             except Exception:
@@ -162,7 +162,6 @@ class AmazonDeliveryLocationPlugin:
                 break
             try:
                 page.locator(selector).first.click(timeout=probe_ms)  # type: ignore[union-attr]
-                _wait_for_settle(page, setup_deadline)
                 apply_clicked = True
                 break
             except Exception:
@@ -171,7 +170,6 @@ class AmazonDeliveryLocationPlugin:
             return_pressed = False
             try:
                 page.keyboard.press("Return")  # type: ignore[union-attr]
-                _wait_for_settle(page, setup_deadline)
                 return_pressed = True
             except Exception as exc:
                 warning_notes.append(
@@ -190,6 +188,12 @@ class AmazonDeliveryLocationPlugin:
                 warning_notes=warning_notes,
             )
 
+        if not _wait_for_delivery_zip(page, self.delivery_zip, setup_deadline):
+            warning_notes.append(
+                "delivery_zip_setup: Apply click completed but requested ZIP was not observed "
+                "before main navigation; post-capture storefront confirmation remains authoritative"
+            )
+
         return PreCaptureOutcome(
             attempted=True,
             steps_completed=True,
@@ -198,7 +202,7 @@ class AmazonDeliveryLocationPlugin:
         )
 
     def confirm(self, rendered_dom: str) -> PinConfirmation:
-        return confirm_us_storefront(rendered_dom)
+        return confirm_us_storefront_with_zip(rendered_dom, delivery_zip=self.delivery_zip)
 
     def describe(self) -> dict[str, object]:
         return {
@@ -218,7 +222,7 @@ class AmazonDeliveryLocationPlugin:
             return (
                 f"declared_delivery_zip: Amazon US delivery location set to "
                 f"{self.delivery_zip!r} and CONFIRMED "
-                f"(currencyOfPreference=USD observed in rendered DOM)"
+                f"({confirmation.detail})"
             )
         if not outcome.steps_completed and outcome.reason is not None:
             reason = f"widget step failed: {outcome.reason}; {confirmation.detail}"
@@ -256,6 +260,30 @@ def confirm_us_storefront(rendered_dom: str) -> PinConfirmation:
     )
 
 
+def confirm_us_storefront_with_zip(
+    rendered_dom: str, *, delivery_zip: str
+) -> PinConfirmation:
+    """Confirm a US target surface using currency or a ZIP-bound marketplace anchor."""
+    currency_confirmation = confirm_us_storefront(rendered_dom)
+    if currency_confirmation.confirmed:
+        return currency_confirmation
+    if _has_us_delivery_zip_dom_signal(rendered_dom or "", delivery_zip):
+        return PinConfirmation(
+            confirmed=True,
+            detail=(
+                f"delivery ZIP {delivery_zip!r} and amazon.com US-marketplace markers "
+                "observed in rendered DOM"
+            ),
+        )
+    return PinConfirmation(
+        confirmed=False,
+        detail=(
+            'no US storefront signal (currencyOfPreference="USD" or delivery ZIP '
+            f"{delivery_zip!r} absent from recognized rendered-DOM anchors)"
+        ),
+    )
+
+
 def _has_us_currency_dom_signal(dom: str) -> bool:
     """Return True only for a rendered input carrying currencyOfPreference=USD."""
     for input_tag in _INPUT_TAG_PATTERN.findall(dom):
@@ -271,6 +299,28 @@ def _has_us_currency_dom_signal(dom: str) -> bool:
     return False
 
 
+def _has_us_delivery_zip_dom_signal(dom: str, delivery_zip: str) -> bool:
+    location_anchor = re.search(
+        (
+            r'id=["\'](?:glow-ingress-line2|glow-ingress-block)["\'][^>]*>'
+            rf'.{{0,1000}}?{re.escape(delivery_zip)}'
+        ),
+        dom,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if location_anchor is None:
+        return False
+    normalized = dom.lower()
+    return any(
+        marker in normalized
+        for marker in (
+            "ue_sn = 'www.amazon.com'",
+            "retail:prod:www.amazon.com",
+            "assoc_handle=usflex",
+        )
+    )
+
+
 def _remaining_ms(deadline: float) -> float:
     return max(0.0, (deadline - time.monotonic()) * 1000)
 
@@ -279,7 +329,22 @@ def _remaining_probe_timeout_ms(deadline: float) -> float:
     return min(_WIDGET_PROBE_TIMEOUT_MS, _remaining_ms(deadline))
 
 
-def _wait_for_settle(page: object, deadline: float) -> None:
-    settle_ms = min(_DELIVERY_LOCATION_SETTLE_MS, _remaining_ms(deadline))
-    if settle_ms > 0:
-        page.wait_for_timeout(settle_ms)  # type: ignore[union-attr]
+def _wait_for_delivery_zip(page: object, delivery_zip: str, deadline: float) -> bool:
+    poll_deadline = min(
+        deadline,
+        time.monotonic() + (_WIDGET_PROBE_TIMEOUT_MS / 1000),
+    )
+    while time.monotonic() < poll_deadline:
+        remaining_ms = max(0.0, (poll_deadline - time.monotonic()) * 1000)
+        try:
+            visible_text = page.locator("body").inner_text(
+                timeout=min(500, remaining_ms)
+            )
+            if delivery_zip in visible_text:
+                return True
+        except Exception:
+            pass
+        pause_ms = min(_POST_APPLY_POLL_MS, max(0.0, remaining_ms))
+        if pause_ms > 0:
+            page.wait_for_timeout(pause_ms)  # type: ignore[union-attr]
+    return False

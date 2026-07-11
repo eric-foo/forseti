@@ -213,6 +213,192 @@ def _single_row(projection, row_kind: str) -> RetailPdpProjectionRow:
     return rows[0]
 
 
+def test_walmart_projection_preserves_review_distribution_and_channel_availability() -> None:
+    packet = _packet(
+        retailer="walmart",
+        locator="https://www.walmart.com/ip/Vitamasques-Lip-Mask/2150828728",
+        series_id="walmart_vitamasques_lipmask_us_v0",
+    )
+    next_data = json.dumps(
+        {
+            "props": {
+                "pageProps": {
+                    "items": [
+                        {
+                            "__typename": "Product",
+                            "usItemId": "2150828728",
+                            "name": "Vitamasques Cherry Vegan Collagen Lip Mask",
+                            "priceInfo": {
+                                "currentPrice": {
+                                    "price": 2.97,
+                                    "priceString": "$2.97",
+                                    "currencyUnit": "USD",
+                                }
+                            },
+                            "availabilityStatusV2": {"display": "In stock", "value": "IN_STOCK"},
+                            "sellerName": "Walmart.com",
+                            "variantList": [{"usItemId": "2150828728", "displayName": "Single"}],
+                        }
+                    ]
+                }
+            }
+        },
+        separators=(",", ":"),
+    )
+    html = f'<html><head><script id="__NEXT_DATA__" type="application/json">{next_data}</script></head></html>'
+    visible_text = """Customer ratings & reviews
+4.4 out of 5
+180 ratings|41 reviews
+5 stars
+71% (128)
+4 stars
+10% (18)
+3 stars
+7% (13)
+2 stars
+4% (7)
+1 star
+8% (14)
+Shipping
+Out of stock
+Pickup
+As soon as 12pm
+Delivery
+As soon as 13 mins
+Sacramento, 95829
+Sold and shipped by Walmart.com
+"""
+
+    projection = _projection(packet=packet, html=html, visible_text=visible_text)
+
+    variant = _single_row(projection, "retail_variant_offer")
+    assert variant.retailer == "walmart"
+    assert variant.source_visible_fields["product_id"] == "2150828728"
+    assert variant.source_visible_fields["price"] == "2.97"
+    assert variant.source_visible_fields["shipping_availability"] == "Out of stock"
+    assert variant.source_visible_fields["pickup_availability"] == "As soon as 12pm"
+    assert variant.source_visible_fields["delivery_availability"] == "As soon as 13 mins"
+    assert variant.source_visible_fields["seller"] == "Walmart.com"
+    assert "walmart_exact_inventory_quantity_not_observed" in variant.residuals
+    assert "walmart_sold_units_not_observed" in variant.residuals
+
+    review = _single_row(projection, "retail_review_substrate")
+    assert review.source_visible_fields["rating"] == "4.4"
+    assert review.source_visible_fields["rating_count"] == "180"
+    assert review.source_visible_fields["written_review_count"] == "41"
+    assert review.source_visible_fields["rating_distribution_basis"] == "count"
+    assert [bucket["value"] for bucket in review.source_visible_fields["rating_distribution_buckets"]] == [128, 18, 13, 7, 14]
+    assert projection.loss_ledger.structure_preserved is True
+
+
+def test_walmart_projection_does_not_bind_arbitrary_product_when_locator_has_no_id() -> None:
+    packet = _packet(
+        retailer="walmart",
+        locator="https://www.walmart.com/ip/product-without-numeric-id",
+        series_id="walmart_missing_target_id_us_v0",
+    )
+    next_data = json.dumps(
+        {
+            "props": {
+                "pageProps": {
+                    "items": [
+                        {
+                            "__typename": "Product",
+                            "usItemId": "1111111111",
+                            "name": "Target-shaped product candidate",
+                            "priceInfo": {"linePrice": "$11.11"},
+                            "availabilityStatusV2": {"display": "In stock"},
+                        },
+                        {
+                            "__typename": "Product",
+                            "usItemId": "2222222222",
+                            "name": "Recommendation product candidate",
+                            "priceInfo": {"linePrice": "$22.22"},
+                            "availabilityStatusV2": {"display": "In stock"},
+                            "sellerName": "Recommendation seller",
+                        },
+                    ]
+                }
+            }
+        },
+        separators=(",", ":"),
+    )
+    html = (
+        '<html><head><script id="__NEXT_DATA__" type="application/json">'
+        f"{next_data}</script></head></html>"
+    )
+
+    projection = _projection(packet=packet, html=html, visible_text="")
+
+    assert not any(row.row_kind == "retail_variant_offer" for row in projection.rows)
+    assert "cloakbrowser_snapshot_01:walmart:variant_offer_absent" in projection.residuals
+    assert projection.loss_ledger.structure_preserved is False
+
+
+def test_target_projection_keeps_percent_histogram_and_matching_reviews_separate() -> None:
+    packet = _packet(
+        retailer="target",
+        locator="https://www.target.com/p/byoma-liptide-lip-mask/-/A-94631382",
+        series_id="target_byoma_liptide_lipmask_us_v0",
+    )
+    html = """
+    <html><head>
+      <meta property="og:title" content="BYOMA Liptide Lip Mask - 0.2 fl oz">
+    </head><body>
+      <div data-test="product-price"><span>$10.99</span></div>
+      <a id="ratingReviewId">ratings</a>
+      <svg><polygon class="starFill" points="18.3 17.5 3.5 17.5"></polygon></svg>
+    </body></html>
+    """
+    visible_text = """Ship to 52404
+BYOMA Liptide Lip Mask - 0.2 fl oz
+3.82 out of 5 stars with 145 reviews
+Pickup
+Ready by July 10
+Delivery
+Check availability
+Shipping
+Arrives by Tue, Jul 14
+Guest ratings & reviews
+5 stars
+53%
+4 stars
+16%
+3 stars
+9%
+2 stars
+3%
+1 star
+19%
+We found 127 matching reviews
+"""
+
+    projection = _projection(packet=packet, html=html, visible_text=visible_text)
+
+    variant = _single_row(projection, "retail_variant_offer")
+    assert variant.retailer == "target"
+    assert variant.source_visible_fields["product_id"] == "94631382"
+    assert variant.source_visible_fields["price"] == "10.99"
+    assert variant.source_visible_fields["shipping_availability"] == "Arrives by Tue, Jul 14"
+    assert variant.source_visible_fields["pickup_availability"] == "Ready by July 10"
+    assert variant.source_visible_fields["delivery_availability"] == "Check availability"
+
+    review = _single_row(projection, "retail_review_substrate")
+    assert review.source_visible_fields["rating"] == "3.82"
+    assert review.source_visible_fields["rating_count"] == "145"
+    assert review.source_visible_fields["written_review_count"] is None
+    assert review.source_visible_fields["filtered_review_count"] == "127"
+    assert review.source_visible_fields["rating_distribution_basis"] == "percent"
+    assert [bucket["value"] for bucket in review.source_visible_fields["rating_distribution_buckets"]] == [53, 16, 9, 3, 19]
+    assert "target_written_review_count_not_observed" in review.residuals
+    assert not any(
+        row.row_kind == "retail_carried_module"
+        and row.source_visible_fields["module_type"] == "loyalty"
+        for row in projection.rows
+    )
+    assert projection.loss_ledger.structure_preserved is True
+
+
 def test_amazon_projection_pins_dom_js_review_and_asin_without_ld_json() -> None:
     packet = _packet(
         retailer="amazon",

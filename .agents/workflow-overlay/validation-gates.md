@@ -27,25 +27,39 @@ Validation reports must preserve failure visibility by bucket:
   `INFO`. A future wrapper may encode this policy, but bucket membership is owned here; any wrapper
   script that encodes it must exit nonzero iff any `GATE FAIL` exists.
 
+Throughout Forseti workflow doctrine, a `status claim` asserts acceptance or
+approval; validation, readiness, or completion (including `PASS` or
+`ADEQUATE_NOW`); implementation, deployment, installation, or resolver state;
+source-of-truth promotion; or buyer pull / willingness to pay. A `strict status
+claim` uses one of those states to clear a gate or authorize movement. Domain
+owners may bind narrower tokens, but compressed references to status claims
+inherit this floor.
+
 ## Current Gates
 
 - Required Forseti files exist before claiming bootstrap completion.
+- Diff-scoped CI gates bind one exact event base SHA: pull requests use
+  `github.event.pull_request.base.sha`; pushes to `main` use
+  `github.event.before`. `.github/workflows/ci.yml` exports that value as
+  `FORSETI_DIFF_BASE` and fails closed before policy gates when it is absent,
+  all-zero, malformed, or unresolvable after full-history checkout. Checker
+  resolution priority is `FORSETI_DIFF_BASE`, then `$GITHUB_BASE_REF`, then
+  an explicit CLI base, then local `origin/main`. The local pre-push mirror
+  deliberately leaves the CI variable unset and scans outgoing
+  `origin/main...HEAD`; this event contract changes CI scope, not hook scope.
 - No software implementation directories are present unless explicitly authorized.
 - `AGENTS.md` and overlay files do not encode `jb` project-specific authority as Forseti rules.
-- Repo-aware prompt use, review setup, handoff creation, docs-write or overlay
-  maintenance, source-changing work, and completion claims include or report
-  the `forseti_start_preflight` receipt from
-  `.agents/workflow-overlay/source-loading.md`. Missing preflight evidence is a
-  blocker for the claim or handoff, not proof that the artifact body is false
-  and not authority for broad cleanup.
+- Material authority, source-scope, edit-permission, and repository-state checks
+  occur before repo-aware work. A `forseti_start_preflight` receipt is required
+  only at the durable/cross-lane and portable strict-claim boundaries in
+  `.agents/workflow-overlay/source-loading.md`; missing receipt evidence blocks
+  that portable handoff or claim, not ordinary interactive work.
 - Doctrine-changing source work must include an inline
   `direction_change_propagation` receipt or explicit
   `direction_change_propagation_blocker` under
   `.agents/workflow-overlay/source-of-truth.md` before claiming completion.
-  Missing propagation evidence blocks strict completion, readiness, validation,
-  `PASS`, `ADEQUATE_NOW`, acceptance, or alignment-complete claims; it does not
-  authorize a broad template sweep, automation, new skill, registry, or
-  standalone receipt file.
+  Missing propagation evidence blocks strict success or status claims that
+  depend on the changed doctrine; it authorizes no adjacent cleanup or tooling.
 - Review-routing disposition gate: a change that touches code roots
   (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`
@@ -125,6 +139,16 @@ Validation reports must preserve failure visibility by bucket:
   Enforced diff-scoped and forward-only by
   `.agents/hooks/check_hash_pin_freshness.py` (CI `--strict`; local pre-push
   mirror; whole-repo advisory via `--audit`, never gated).
+- Ontology-tag validity gate: changed tracked Markdown files are scanned against
+  the ontology SSOT roster over the CI event base (or local pre-push
+  `origin/main...HEAD`); an additive annotation
+  that looks like an ontology type but names no roster type fails. Deletions,
+  untracked files, scratch, and nested worktrees are outside strict diff scope;
+  `--check` retains the explicit whole-tree advisory scan. Enforced by
+  `.agents/hooks/check_ontology_tag_validity.py` in CI and the local pre-push
+  mirror. An unresolvable diff base fails open with a loud infrastructure-gap
+  warning, never a pass claim. Tag-shape only: not ontology correctness,
+  semantic validity, validation, readiness, or approval.
 - Receipt-field provenance gate (non-self-certification): a gate, predicate,
   acceptance check, or completion claim must not clear on a self-asserted field
   value. A field clears only when it is owner-produced and provenance-bound or
@@ -159,19 +183,19 @@ Validation reports must preserve failure visibility by bucket:
 ## Prompt Orchestration Gates
 
 - Overlay authority gate: `AGENTS.md` and `.agents/workflow-overlay/README.md`
-  must be read before prompt-orchestration work, and repo-aware prompts must
-  carry the start-preflight fields owned by
-  `.agents/workflow-overlay/source-loading.md`.
+  must be read before prompt-orchestration work. Routine prompts carry the
+  complete inline core; escalated prompts carry the portable start receipt and
+  fields owned by `.agents/workflow-overlay/source-loading.md` and
+  `.agents/workflow-overlay/prompt-orchestration.md`.
 - Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Forseti overlay file.
 - Source-resolution gate: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy must not be imported.
-- Worktree preflight gate: repository-aware prompts must state workspace, revision or hash when needed, dirty-state allowance, target scope, and edit permission.
+- Worktree preflight gate: prompts state workspace, revision or hash, dirty-state allowance, target scope, and edit permission only when repository state matters.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Forseti
   sources as clean, modified, untracked, stale, or not checked when those
   sources affect strict claims. Modified or untracked controlling sources may
-  support advisory work, but strict `PASS`, `ADEQUATE_NOW`, readiness,
-  acceptance, source-of-truth, validation, or proof claims remain blocked unless
-  owner acceptance or controlling authority is explicit.
+  support advisory work, but strict status claims remain blocked unless owner
+  acceptance or controlling authority is explicit.
 - Output-mode gate: prompts must name exactly one output mode from `.agents/workflow-overlay/prompt-orchestration.md`.
   The mechanically checkable shell — an output-mode declaration naming at
   least one closed-set token in a changed `docs/prompts/**` artifact
@@ -334,7 +358,8 @@ Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
   at session start so every lane sees the advisory health count without walking the
   tree itself.
 - `--strict`: **CI gate — diff-scoped, forward-only.** For changed durable `.md`
-  files only (vs `$GITHUB_BASE_REF` or `origin/main`): fails (exit 1) if a
+  files only (vs the CI event base, PR branch fallback, or local
+  `origin/main`): fails (exit 1) if a
   changed doc is MISSING-HEADER or is an ORPHAN (not substring-found in the repo
   map or any submap).  Pre-existing backlog is never gated — only new/changed docs
   are in scope.  Fails OPEN (exit 0) if diff-scoping is unavailable; never falls
@@ -402,20 +427,23 @@ gate). Registered in `.github/workflows/ci.yml` and `.githooks/commit-msg`;
 
 **Local pre-push selected-gate mirror** (`.agents/hooks/pre_push_guard.py`, the
 policy behind the `.githooks/pre-push` adapter). For a push whose update lines
-pass the guard's safety checks, the guard also runs selected strict CI gates —
-`check_map_links.py --strict`, `header_index.py --strict`,
-`check_review_routing.py --strict`, `check_source_input_hashes.py --strict`
-(diff-scoped checkers default to base `origin/main`, the same base CI resolves
-for a PR) — so a forward-only durable-doc or source-input hash gate miss fails
-at the push boundary instead of costing a CI round. Same checkers, same rule
-owners; the mirror adds no rule. A nonzero or unlaunchable gate blocks the
-push (the GATE FAIL bucket above); the checkers' own infra-gap fail-opens are
-unchanged. Write-time note: the EP-06 retrieval-header advisory already covers
-`docs/review-outputs/**` writes at the Claude Code write boundary; this mirror
-is the harness-agnostic catch for writes that advisory cannot see or that
-ignored it. Local Git hook only: bypassable with `--no-verify`; CI remains the
-authoritative boundary; a green pre-push is not validation, readiness, or
-approval.
+pass the guard's safety checks, the guard runs nine strict CI gates over the
+outgoing `origin/main...HEAD` change: retrieval links and headers, review
+routing and review-output provenance, source-input and markdown hash freshness,
+prompt output mode, handoff-pointer resolution, and ontology tag validity.
+The same checker modes run in `.github/workflows/ci.yml`; CI supplies its
+exact event base while pre-push supplies local `origin/main`; the mirror adds
+no rule. A
+nonzero or unlaunchable gate blocks the push (the GATE FAIL bucket above); the
+checkers' documented infra-gap fail-opens remain loud and unchanged. The four
+gates added 2026-07-11 were selected from observed CI failure frequency and
+measured locally before adoption: prompt output mode, review provenance, and
+handoff pointers completed in under 0.2 seconds each; ontology tag validity was
+first converted from an 18-second whole-worktree walk that captured untracked
+nested worktrees to a tracked, diff-scoped gate. Local Git hook only: bypassable
+with `--no-verify`; it does not see GitHub API merges; CI remains the
+authoritative boundary. A green pre-push is not validation, readiness, approval,
+or proof that every CI step will pass.
 
 **Source-input hash freshness gate** (`.agents/hooks/check_source_input_hashes.py`,
 EP-37). Diff-scoped, forward-only CI gate plus local pre-push mirror for the
@@ -523,152 +551,113 @@ markdown sibling of the EP-37 JSON gate. Registered in
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Forseti validation doctrine adds two gates and hardens one: a
-    review-summary shape gate (changed docs/review-outputs/ files carrying a
-    real review_summary block must keep the communication-style.md shape --
-    no forbidden process keys, a resolving report_path, the bound
-    failed-write shape, non-blank recommendation; full recommendation
-    vocabulary membership stays advisory-only pending an owner decision on
-    the delegated-review-patch extended vocabulary), a hash-pin freshness
-    gate (markdown freshness pins -- labeled path+sha256 bullet pairs and
-    source_captures receipt.md preserved-file bullets -- must match current
-    CRLF-normalized target bytes when the pin doc or target changed;
-    provenance-style tables and ledgers deliberately unparsed), and
-    substrate enforcement of the existing Output-mode gate's checkable shell
-    (declaration presence plus at least one closed-set token; exactly-one
-    and role-scoping stay resident). Enforced by
-    .agents/hooks/check_review_summary.py, check_hash_pin_freshness.py, and
-    check_prompt_output_mode.py as diff-scoped forward-only CI --strict
-    gates (hash-pin also mirrored in the local pre-push guard), built under
-    the EP-10/EP-11/EP-15 rows of
-    docs/decisions/overlay_enforcement_placement_classification_v0.md with
-    the EP-11 row corrected SUBSTRATE->PARTIAL from build-time corpus
-    measurement.
+    CI and local feedback placement now fail earlier without weakening the
+    authoritative CI boundary: four observed fast failure classes (prompt
+    output mode, review-output provenance, handoff pointers, ontology tags)
+    join the pre-push mirror; ontology strict mode is tracked/diff-scoped
+    before local adoption; the CI job keeps its required name while moving
+    policy gates before pytest, cancelling obsolete PR runs, removing a
+    duplicate gate, and pinning external Actions by SHA with Renovate coverage.
   trigger: validation_philosophy
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_prompt_output_mode.py
-    - .agents/hooks/check_review_summary.py
-    - .agents/hooks/check_hash_pin_freshness.py
-    - .github/workflows/ci.yml
+    - .agents/hooks/check_ontology_tag_validity.py
     - .agents/hooks/pre_push_guard.py
-    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - docs/workflows/forseti_repo_map_v0.md
     - .agents/hooks/README.md
-    - .agents/workflow-overlay/skill-adoption.md
+    - .github/workflows/ci.yml
+    - .github/scripts/install-local-hooks.ps1
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - renovate.json
+    - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/delegated-review-patch.md
     - .agents/workflow-overlay/source-of-truth.md
-    - .claude/settings.json
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/review-lanes.md
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
   intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Routes validation and enforcement-placement doctrine to this overlay
-        file; a kernel restatement would fork the owner.
-    - path: .agents/workflow-overlay/communication-style.md
-      reason: >
-        It owns the review_summary shape being enforced; the checker
-        references it, and the known delegated-review-patch extended
-        recommendation vocabulary is flagged for a separate owner decision
-        rather than silently widening the bound enum here.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        It owns the closed output-mode set; per the enforcement-placement
-        principle the substrate references the owner (and the checker
-        selftest asserts against the owning section), so no restatement is
-        added.
-    - path: .agents/workflow-overlay/delegated-review-patch.md
-      reason: >
-        Its lanes' extended recommendation vocabulary is the flagged owner
-        gap; binding or renaming that vocabulary is a doctrine decision this
-        gate deliberately does not make.
     - path: .claude/settings.json
       reason: >
-        No new write-time hooks: prompt writes already receive the
-        check_prompt_provenance.py reminder, review outputs are frequently
-        authored by other harnesses that never fire this harness's hooks,
-        and hash drift is a cross-file property best caught at push/CI.
+        No write-time hook changed; the new mirror is harness-agnostic at the
+        Git pre-push boundary.
+    - path: .codex/hooks.json
+      reason: >
+        Retrieval-header and prompt-provenance hooks do not parse Codex
+        apply_patch payloads; wiring them now would create fake parity. Correct
+        apply-patch support remains a separate complete change if justified.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        Its dated inventory explicitly defers the live registry to CI, the repo
+        map, and this file; no classification changed.
   stale_language_search: >
-    rg -in "output-mode gate|review_summary|hash-pin|check_prompt_output_mode|check_review_summary|check_hash_pin_freshness"
-    AGENTS.md .agents docs/workflows/forseti_repo_map_v0.md docs/decisions/overlay_enforcement_placement_classification_v0.md
+    rg -n "selected strict CI gates|five gate|check_ontology_tag_validity|pre-push" AGENTS.md .agents .github docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-10 after edits over the declared scope: hits are the new
-    gate bullets and Enforcement Placement registry text in this file, the
-    three checkers' own docstrings/selftests, the hooks README rows, the
-    pre_push_guard mirror entry, the repo-map Active Hooks notes, the
-    classification-doc update and corrected EP-11 row, the skill-adoption pin
-    pointer, and pre-existing reference text in communication-style.md (the
-    review_summary shape source), review-lanes.md, delegated-review-patch.md
-    (hash-pinned protected-path language), and one hash-pinned mention in
-    check_handoff_pointers.py; AGENTS.md has zero hits. No surface carries a
-    conflicting output-mode, review-summary, or hash-pin enforcement rule.
+    Executed 2026-07-11 after the edits: live pre-push descriptions point to
+    the nine-gate mirror; ontology strict scope is bound here and in the
+    checker; remaining selected-gate language is compatible and no live
+    surface retains the five-gate list.
   non_claims:
     - not validation
     - not readiness
-    - not review quality, finding truth, or severity authority
-    - not prompt quality or mode-choice correctness
-    - not semantic validity, source quality, or capture freshness
-    - a green run is shape/freshness only, never approval
+    - not review quality or finding truth
+    - not ontology correctness or semantic validity
+    - a green pre-push or CI run is not approval
 ```
 
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Owner decision recorded (2026-07-10): the EP-10 review-summary gate's
-    narrowed shape is accepted as standing -- full recommendation enum
-    membership stays --audit-only advisory, the delegated-review-patch
-    extended recommendation vocabulary stays unbound, and the
-    communication-style.md 5-value enum remains the canonical target for
-    new review summaries; the pending-decision language on the gate's live
-    surfaces is retired.
+    Diff-scoped CI policy gates now bind the exact GitHub event transition base:
+    pull-request base SHA for PRs and the pre-push `before` SHA for pushes to
+    main. The workflow verifies that SHA before any policy gate and fails closed
+    on zero, malformed, or unresolvable event bases; all internal base resolvers
+    give `FORSETI_DIFF_BASE` highest precedence. Local pre-push retains its
+    outgoing `origin/main...HEAD` contract.
   trigger: validation_philosophy
   related_triggers:
-    - review_authority
+    - workflow_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - .agents/hooks/check_review_summary.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/
+    - .agents/hooks/README.md
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
   downstream_surfaces_checked:
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
+    - AGENTS.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/safety-rules.md
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
   intentionally_not_updated:
-    - path: .agents/workflow-overlay/communication-style.md
+    - path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
       reason: >
-        The 5-value enum stays as-written: this decision keeps enforcement
-        advisory; it does not widen, bind, or endorse the extended
-        vocabulary.
-    - path: .agents/workflow-overlay/delegated-review-patch.md
+        Branch cadence, required-check identity, and landing authority do not
+        change; this patch repairs the input scope of the existing CI job.
+    - path: .githooks/pre-push
       reason: >
-        Its lanes' extended vocabulary stays deliberately unbound under
-        this decision; binding vocabulary there was the rejected
-        alternative.
-    - path: docs/prompts/reviews/enforcement_gate_wave_ep10_ep11_ep15_repo_delegated_adversarial_code_review_patch_commission_prompt_v0.md
+        The adapter remains a thin launcher. Local outgoing-diff semantics stay
+        in pre_push_guard.py and deliberately do not consume GitHub event state.
+    - path: .agents/hooks/check_review_output_provenance.py
       reason: >
-        Commissioning-time record; its binding instruction (never gate
-        enum membership) remains true under this decision.
+        Its explicit --diff API already accepts an exact SHA; only the CI caller
+        needed to stop passing origin/main.
   stale_language_search: >
-    rg -in "owner-blocked|flagged owner decision|flagged for owner|pending
-    an owner decision|owner decision, not a checker default"
-    .agents/hooks/check_review_summary.py
-    .agents/workflow-overlay/validation-gates.md
-    docs/decisions/overlay_enforcement_placement_classification_v0.md
+    rg -n "same base CI|CI resolves for|CI runs --diff origin/main|ontology
+    SSOT roster over origin/main...HEAD" .agents .github
+    docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-10 after edits: remaining hits are the prior
-    gate-wave DCP receipt above (an immutable historical record) and
-    unrelated decisions (self-merge interim wording, EP-04 hook wiring);
-    no live EP-10 surface still reads as pending.
+    Executed 2026-07-11 after edits: the only match is this receipt's own
+    declared stale-search string; no live hook, workflow, validation rule, or
+    repo-map description retains the superseded CI origin/main contract.
   non_claims:
     - not validation
     - not readiness
-    - not approval of any historical out-of-enum recommendation value
-    - not review quality or finding truth
+    - not approval
+    - not a change to local pre-push scope
+    - not coverage of non-fast-forward push transitions
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

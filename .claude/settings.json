@@ -43,8 +43,8 @@
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_retrieval_header.py\" --hook",
             "timeout": 10
-          },          
-{
+          },
+          {
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_full_gt_claims.py\" --hook",
             "timeout": 10

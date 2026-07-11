@@ -67,14 +67,21 @@ if (-not $VerifyOnly) {
 }
 
 $configured = git config --local --get core.hooksPath 2>$null
-if ($VerifyOnly -and $configured -ne $hookPath) {
+if ([System.IO.Path]::IsPathRooted($configured)) {
+    $configuredResolved = [System.IO.Path]::GetFullPath($configured)
+} else {
+    $configuredResolved = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $configured))
+}
+$expectedResolved = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $hookPath))
+
+if ($VerifyOnly -and $configuredResolved -ne $expectedResolved) {
     Stop-WithError "core.hooksPath is '$configured', expected '$hookPath'."
 }
-if (-not $VerifyOnly -and $configured -ne $hookPath) {
+if (-not $VerifyOnly -and $configuredResolved -ne $expectedResolved) {
     Stop-WithError "core.hooksPath readback is '$configured', expected '$hookPath'."
 }
 
 Write-Host "Forseti local hooks path: $configured"
 Write-Host "Tracked hooks present: $($requiredHooks -join ', ')"
-Write-Host "Boundary: local Git hooks are bypassable with --no-verify; server-side branch protection remains the unbypassable target."
+Write-Host "Boundary: local Git hooks are bypassable with --no-verify; active server-side branch protection is the unbypassable merge gate."
 Write-Host "Linked-worktree note: core.hooksPath is clone-local unless worktreeConfig is enabled; check out .githooks in each active worktree that should enforce it."
