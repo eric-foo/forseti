@@ -1,9 +1,12 @@
 # Agent enforcement hooks — and how to wire them in any harness
 
 These scripts enforce a few Forseti rules at the agent's **tool boundary**. They are
-**standalone** — plain Python that reads a tool event as JSON on stdin and signals
-via exit code — so they are **harness-portable**: the *logic* runs anywhere; only the
-*wiring* (how your agent harness invokes them) is harness-specific.
+**self-contained as a directory** — plain stdlib Python (plus PyYAML for the
+placement checker) that reads a tool event as JSON on stdin and signals via exit
+code; shared helpers live in the sibling `_hooklib.py`, so port the whole
+`.agents/hooks/` directory, not single files. That makes them **harness-portable**:
+the *logic* runs anywhere; only the *wiring* (how your agent harness invokes them)
+is harness-specific.
 
 > **If you are an agent in a harness other than Claude Code:** these hooks are
 > **inert until you wire them into your harness's own config.** Read "Wiring per
@@ -35,17 +38,27 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 | `header_index.py` | manual + **CI** (`--strict`) + session capsule | Generates the on-demand retrieval index, advisory health/backlog views, and the diff-scoped forward-only header/orphan gate. Inventory and shape only; never readiness or source authority. |
 | `check_map_links.py` | manual + **CI** (`--strict`) | Checks map/submap paths, `open_next` targets, folder reachability, and inline path shape under the locked repo-map architecture. Reachability only; never route truth or completeness proof. |
 | `check_dcp_receipt.py` | **CI** (diff-scoped `--strict`) | Validates the deterministic shape of changed doctrine-change receipts and blockers. It cannot decide whether a receipt is required or whether listed propagation work actually happened. |
-| `check_full_gt_claims.py` | **CI** (diff-scoped `--changed --strict`) | Rejects newly added unbounded top-tier claim wording outside allowed claim-owning/history surfaces. Claim-language shape only; never claim truth. `full-gt-claim-ack`: checker filename, not a product claim. |
-| `check_placement.py` | **post-tool** + manual/CI `--strict` | Checks writes and tree structure against `repo-structure.yaml`, including map/tree consistency. Placement shape only; never artifact authority or readiness. |
-| `check_prompt_provenance.py` | **post-tool** (after canonical prompt writes) | Advisory reminder that injects the Forseti Prompt Preflight for prompt artifacts. It cannot prove the prompt contract was applied. |
-| `check_shared_files_dirty.py` | **stop hook** + manual `--check` | Warns when high-contention shared files remain dirty at turn end and names the explicit-path commit; never auto-commits or blocks. |
-| `check_token_burn.py` | **stop hook** | Advisory warning when one turn's input context crosses the configured burn rung; a context-cost signal only. |
-| `session_context_capsule.py` | **session-start hook** + manual `--check` | Emits observed lane/git state, retrieval health, and source-loading entry pointers on startup/resume/clear/compact. Report-only; loads no doctrine. |
+| `check_placement.py` | **post-tool** (after a write) + `--strict` for commit/CI | Advisory WARN when a written path has no declared home in `repo-structure.yaml` (EP-04); `--strict` is the full-tree gate. Placement shape only; never authority, validation, or readiness. |
+| `check_full_gt_claims.py` | **post-tool** (after a write) + **CI** (`--changed --strict`) | Flags added `.md` lines whose full-GT claim language is not bounded by ballast wording and does not sit in a claim-owning surface. Shape/placement only; never claim truth. |
+| `check_prompt_provenance.py` | **post-tool** (after a write under `docs/prompts/**`) | Advisory (exit 0): injects the Forseti Prompt Preflight checklist. Once-per-session throttle: the full checklist fires on the FIRST in-scope prompt write of a session; later writes get a one-line pointer (fails open to the full checklist). |
+| `check_shared_files_dirty.py` | **Stop** (turn end) | Advisory (exit 0): warns when a commit-once-whole shared file (repo map, `.claude/settings.json`, source-of-truth) is left dirty at end of turn. Never blocks, never auto-commits. |
+| `check_token_burn.py` | **Stop** (turn end) | Advisory (exit 0): warns when one turn's prompt size crosses a rung (200K warn / 500K alarm, env-overridable); escalation-throttled so it never nags every turn. |
+| `session_context_capsule.py` | **SessionStart** | Prints the lane-state capsule (branch, tree dirt, config-surface dirt, doctrine drift, entry points) into session context. Observed git state only; not doctrine or lane authority. |
 
-Most checker scripts expose `--selftest`; use the named script's help or the
-verification lists below for the supported command. Each script names its own
-rule authority in its module header and references that source instead of
-restating it.
+Each has a `--selftest`. Each script names its own rule authority in its module
+header and references that source instead of restating it.
+
+**Shared helpers:** `_hooklib.py` (same directory) owns the helpers the wired
+checkers share -- repo-root/path normalization, tool-event parsing (incl. Codex
+`apply_patch` headers), the git wrapper, porcelain parsing, shell-segment
+splitting, the durable-docs scope base, and the once-per-session marker. The
+scripts pin their own directory onto `sys.path` before importing it, so they
+still run from any cwd; a harness port must copy the whole `.agents/hooks/`
+directory, not individual scripts. **Deliberate exception:**
+`guard_protected_actions.py` stays import-free -- an ImportError in an advisory
+checker costs one advisory, but in the hard guard it would disable the gate
+(including its fail-closed merge path). Do not refactor the guard onto
+`_hooklib`.
 
 ## The contract (harness-agnostic)
 
@@ -65,19 +78,32 @@ restating it.
 ## Wiring per harness
 
 ### Claude Code (current)
-Register in the repo's tracked `.claude/settings.json`:
+Register in the repo's tracked `.claude/settings.json`. The live wiring (see
+that file for the authoritative registration) is:
+
+- **PreToolUse** `Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit` →
+  `guard_protected_actions.py`; **PreToolUse** `Bash|PowerShell` →
+  `remind_sci.py --hook`.
+- **PostToolUse** `Write|Edit|MultiEdit` → `check_retrieval_header.py`,
+  `check_full_gt_claims.py`, `check_repo_map_freshness.py`,
+  `check_placement.py`, `check_prompt_provenance.py`,
+  `check_search_surface_google_route.py` (each `--hook`, timeout 10).
+  NotebookEdit is deliberately pre-tool-guarded but NOT post-tool-checked:
+  the post checkers target `.md`/placement surfaces, not notebooks.
+- **Stop** (no matcher) → `check_shared_files_dirty.py --hook`,
+  `check_token_burn.py`.
+- **SessionStart** (no matcher) → `session_context_capsule.py --hook`.
+
+Entry shape per hook:
 ```json
-"hooks": {
-  "PreToolUse":  [ { "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
-                     "hooks": [ { "type": "command", "command": "python .agents/hooks/guard_protected_actions.py", "timeout": 10 } ] } ],
-  "PostToolUse": [ { "matcher": "Write|Edit|MultiEdit",
-                     "hooks": [ { "type": "command", "command": "python .agents/hooks/check_retrieval_header.py --hook",   "timeout": 10 },
-                                { "type": "command", "command": "python .agents/hooks/check_repo_map_freshness.py --hook", "timeout": 10 } ] } ]
-}
+{ "type": "command",
+  "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/<script>.py\" --hook",
+  "timeout": 10 }
 ```
 Hooks load at session start — **restart the session** after editing settings.
 Verify:
 ```powershell
+python .agents/hooks/_hooklib.py --selftest
 python .agents/hooks/guard_protected_actions.py --selftest
 python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
 python .agents/hooks/check_registry_list_sync.py --selftest
@@ -95,6 +121,14 @@ python .agents/hooks/check_hash_pin_freshness.py --strict
 python .agents/hooks/check_repo_map_freshness.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --strict --base main
+python .agents/hooks/check_retrieval_header.py --selftest
+python .agents/hooks/check_placement.py --selftest
+python .agents/hooks/check_full_gt_claims.py --selftest
+python .agents/hooks/check_prompt_provenance.py --selftest
+python .agents/hooks/check_shared_files_dirty.py --selftest
+python .agents/hooks/check_token_burn.py --selftest
+python .agents/hooks/session_context_capsule.py --selftest
+python .agents/hooks/remind_sci.py --selftest
 ```
 
 ### Codex (tracked project hook)

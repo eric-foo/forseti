@@ -561,6 +561,38 @@ Every escalated prompt must state:
 - required validation gates and where evidence is recorded;
 - external source boundary, including the rule that external workflow source is read-only from Forseti work and `jb` is not Forseti authority.
 
+### Repo-Bound Review Target Resolution
+
+Repo-bound review and delegated-review prompts must treat a mismatch in the
+receiver's launch checkout as a routing condition, not an immediate review
+blocker. The prompt states the target identity as either an exact revision/hash
+pin or required commit ancestry; exact pins remain exact, while an advancing
+lane head may continue only when the prompt explicitly uses ancestry semantics.
+
+Receiving preflight follows this order:
+
+1. Check the launch checkout against the commissioned target.
+2. On mismatch, inspect registered worktrees (`git worktree list --porcelain`
+   or a harness-equivalent registry) for the named branch, detached revision, or
+   required ancestry before returning a blocker.
+3. When exactly one accessible worktree satisfies target identity, evaluate
+   cleanliness, untracked-file allowance, target paths, and required validation
+   in that worktree. Dirt in the unrelated launch/parent checkout is out of
+   scope and does not fail the target's clean-tree gate.
+4. Continue in the resolved worktree when the runtime can safely operate there.
+   Patch-authorized work must use the harness's worktree-rooted/reroot mechanism
+   before editing when cross-worktree writes are guarded; if safe rerooting is
+   unavailable, return the nearest blocker with the resolved path and required
+   reroot action instead of reviewing or patching a substitute checkout.
+5. Block only when the target worktree is absent, ambiguous, inaccessible, has
+   disallowed dirt, fails the exact revision or required-ancestry check, fails a
+   pinned target hash, or cannot be safely rerooted for authorized writes.
+
+This resolver is discovery of the commissioned source, not permission to use an
+alternate branch, recreated copy, context pack, or summary as review evidence.
+It does not weaken exact hash/revision pins or dirty-state rules; it prevents an
+unrelated launch checkout from being mistaken for the commissioned target.
+
 Rerun and patch prompts must also name the prior artifact, prior hash or revision, frozen decisions, mutable fields, and unresolved finding being retried.
 
 ## Source-Heavy Prompt Economy
@@ -643,7 +675,7 @@ Before using a generated Forseti prompt, apply these gates:
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
-4. Worktree preflight present: workspace, revision, dirty-state allowance, target scope, and edit permission are explicit when repository state matters.
+4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters; a launch-checkout mismatch routes through registered-worktree resolution before it can become a blocker.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source-capsule budget satisfied: source capsules stay within
@@ -699,96 +731,6 @@ Before using a generated Forseti prompt, apply these gates:
 ## Direction Change Propagation
 
 ```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Prompt filing is now classified by source role: canonical, reusable, or
-    doctrine-bearing prompt artifacts still file under docs/prompts/**, while
-    lane-scoped execution prompts attach to the overall lane PR body/comment or
-    ignored docs/_inbox scratch and must not open standalone prompt-only PRs.
-  trigger: workflow_authority
-  related_triggers:
-    - output_authority
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/hooks/check_prompt_provenance.py
-    - docs/workflows/orca_repo_map_v0.md
-    - docs/decisions/dcp_receipts_archive_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/artifact-folders.md
-    - .agents/workflow-overlay/artifact-roles.md
-    - .agents/workflow-overlay/template-registry.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .github/workflows/pr-risk-router.yml
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        AGENTS.md already routes prompt mechanics to prompt-orchestration.md and
-        still correctly requires every durable prompt, handoff, wrapper, rerun,
-        or patch prompt to apply the prompt contract; no root restatement of the
-        filing classification is needed.
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        Its prompt gates defer output-mode and prompt-mechanics exceptions to
-        prompt-orchestration.md; it did not encode the old file-every-cross-
-        recipient-prompt rule, so no gate wording changes.
-    - path: .agents/workflow-overlay/source-loading.md
-      reason: >
-        Source-loading owns read packs and source capsules. This patch changes
-        where lane-scoped prompt text is carried, not the required reads or
-        Source-Gated Method Contract.
-    - path: .agents/workflow-overlay/artifact-folders.md
-      reason: >
-        Existing folder roles already distinguish docs/prompts/** canonical prompt
-        artifacts from docs/_inbox scratch; the prompt owner now classifies when
-        each applies.
-    - path: .agents/workflow-overlay/artifact-roles.md
-      reason: >
-        Existing role bindings already define Full prompt artifact and Inbox
-        scratch separately; this patch changes the routing rule, not the role
-        table.
-    - path: .agents/workflow-overlay/template-registry.md
-      reason: >
-        Template rows that use paste-ready-chat describe template delivery modes,
-        not whether a lane-scoped execution prompt opens a standalone PR.
-    - path: .agents/workflow-overlay/delegated-review-patch.md
-      reason: >
-        Its paste-ready route-out remains governed by prompt-orchestration.md;
-        route-out prompts may now be lane-scoped when they only fill the current
-        commission lane, or canonical when promoted as reusable artifacts.
-    - path: .github/workflows/pr-risk-router.yml
-      reason: >
-        It should continue treating docs/prompts/** as manual-risk for canonical
-        prompt artifacts; the fix is to stop creating standalone tracked prompt
-        files for lane-scoped execution prompts, not to loosen PR risk routing.
-  stale_language_search: >
-    rg -i -n "Durable and cross-recipient|paste-ready-chat prompt that never touches disk|not a substitute for filing|filed artifact|standalone prompt PR|prompt-only PR|prompt artifact path"
-    .agents AGENTS.md docs/workflows docs/prompts/templates .github/workflows/pr-risk-router.yml docs/decisions/dcp_receipts_archive_v0.md;
-    rg -i -n "authored as a FILE-WRITE under docs/prompts|requires durable.*cross-recipient.*touch disk|not an accepted authoring path|never touch disk|durable prompt.*docs/prompts|cross-recipient prompt.*docs/prompts|file-every-cross"
-    .agents AGENTS.md docs/workflows docs/prompts/templates .github/workflows/pr-risk-router.yml;
-    rg -i -n "lane-scoped|overall lane PR|prompt-only PR|standalone prompt PR|canonical prompt"
-    .agents AGENTS.md docs/workflows docs/prompts/templates .github/workflows/pr-risk-router.yml
-  stale_language_search_result: >
-    Executed 2026-06-30 after edits. The broad old-language query hits only the
-    new canonical/lane-scoped rule in prompt-orchestration.md plus historical
-    archived receipts in docs/decisions/dcp_receipts_archive_v0.md; the stricter
-    old-mandate query hits only this receipt reason text ("file-every-cross-");
-    and the lane-scoped query hits the new owner rule plus the updated hook and
-    repo-map notes. docs/workflows/orca_major_move_folder_integrity_ca_discussion_v0.md
-    says canonical prompt destinations remain unchanged, which is consistent.
-    No live surface checked retains an unqualified durable/cross-recipient
-    docs/prompts/** filing mandate or a standalone prompt-PR requirement.
-  non_claims:
-    - not validation
-    - not readiness
-    - not source promotion
-    - not implementation authorization
-    - not a cleanup decision for existing prompt PRs
 # same-turn self-closure and required next-moves tail 2026-07-02 (CA decision).
 direction_change_propagation:
   doctrine_changed: >
@@ -844,6 +786,56 @@ direction_change_propagation:
     - not readiness
     - not a bound/mandatory/machine-routable review lane
     - not runtime model routing
+
+# resolve-first repo-bound review target routing 2026-07-12 (owner-requested process improvement).
+direction_change_propagation:
+  doctrine_changed: "Repo-bound review and delegated-review preflight now resolves a launch-checkout mismatch against registered target worktrees before blocking, while preserving exact revision pins, target cleanliness rules, and the protected-path reroot guard."
+  trigger: "workflow_authority"
+  related_triggers:
+    - "review_authority"
+  controlling_sources_updated:
+    - ".agents/workflow-overlay/prompt-orchestration.md"
+    - "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md"
+    - "docs/prompts/templates/wrappers/thin_wrapper_v0.md"
+    - "docs/decisions/dcp_receipts_archive_v0.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/delegated-review-patch.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - ".agents/workflow-overlay/safety-rules.md"
+    - ".agents/workflow-overlay/review-lanes.md"
+    - ".agents/workflow-overlay/template-registry.md"
+    - ".agents/hooks/README.md"
+    - ".codex/hooks/forseti_guard_codex_adapter.py"
+    - "docs/workflows/forseti_repo_map_v0.md"
+  intentionally_not_updated:
+    - surface: "AGENTS.md"
+      reason: "Its generic fresh-read lifecycle stop remains compatible, and it delegates prompt mechanics to the overlay."
+    - surface: ".agents/workflow-overlay/delegated-review-patch.md"
+      reason: "It already points to Escalated Preflight Fields; copying the resolver here would fork ownership."
+    - surface: ".agents/workflow-overlay/source-loading.md"
+      reason: "Its named-worktree targeted-read fast path is compatible; this change owns review target routing."
+    - surface: ".agents/workflow-overlay/safety-rules.md and .codex/hooks/forseti_guard_codex_adapter.py"
+      reason: "Non-current-worktree writes still reroot or fail closed; the resolver explicitly preserves that enforcement."
+    - surface: ".agents/workflow-overlay/review-lanes.md"
+      reason: "Review authority and destinations are unchanged; preflight mechanics belong to prompt orchestration."
+    - surface: ".agents/workflow-overlay/template-registry.md"
+      reason: "Template paths and lifecycle status are unchanged; registered templates were edited in place."
+    - surface: "docs/workflows/forseti_repo_map_v0.md"
+      reason: "No path or owner was added; the existing prompt-orchestration route remains authoritative."
+    - surface: "installed workflow-prompt-orchestrator skill"
+      reason: "The installed generic deployment copy is outside Forseti authority; the active project overlay owns target resolution."
+    - surface: "historical executed prompts under docs/prompts/reviews"
+      reason: "They are execution records, not reusable control surfaces, so they are not rewritten retroactively."
+  stale_language_search: "rg -n -i 'mismatch.*(?:stop|block)|wrong revision|alternate checkout|clean tree required|launch checkout|registered worktree|exact-revision|required-ancestry|exact revision.*ancestry' AGENTS.md .agents/workflow-overlay docs/prompts/templates docs/workflows/forseti_repo_map_v0.md .codex/hooks.json .codex/hooks .agents/hooks/README.md"
+  stale_language_search_result: "Executed 2026-07-12. Hits were the compatible AGENTS lifecycle line, the new owner and template pointers, and guard reroot enforcement; no live surface retained an immediate blocker before registered-worktree discovery. Historical executed prompts were intentionally excluded."
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not permission to weaken exact revision or hash pins"
+    - "not permission to edit a non-current worktree"
+    - "not substitute-source authority"
+    - "not a retroactive rewrite of historical prompts"
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
