@@ -407,6 +407,8 @@ def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
     assert subtitle["attempted"] is False
     assert subtitle["success"] is False
     assert subtitle["reason"] == "unsupported_subtitle_url_host_live_probe_v0"
+    assert subtitle["subtitle_url_host"] == "v16.attacker.example"
+    assert subtitle["subtitle_url_host_supported"] is False
     assert subtitle["subtitle_url_sha256"]
     assert subtitle["subtitle_url_length"] == len(subtitle_url)
     assert subtitle_url not in json.dumps(cadence)
@@ -822,6 +824,11 @@ def test_live_probe_threads_cloakbrowser_and_human_handoff_options(
     )
     assert captured_kwargs["human_challenge_handoff_after_action_names"] == (
         PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
+        TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
+        TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
     )
     assert captured_kwargs["human_challenge_handoff_timeout_seconds"] == 7.0
 
@@ -1290,7 +1297,7 @@ def test_live_probe_filters_non_get_comment_list_responses_when_method_available
     assert row["comment_responses"][0]["body_assessment"]["json_parse_ok"] is True
     assert row["comment_responses"][0]["body_assessment"]["comment_count"] == 1
 
-def test_live_probe_caps_admitted_comment_list_responses(tmp_path: Path) -> None:
+def test_live_probe_keeps_only_platform_default_first_comment_response(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
     response_url = (
         "https://www.tiktok.com/api/comment/list/"
@@ -1344,15 +1351,24 @@ def test_live_probe_caps_admitted_comment_list_responses(tmp_path: Path) -> None
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
     row = cadence["results"][0]
+    assert (
+        cadence["capture_contract"]["comment_selection_policy"]
+        == "platform_default_first_response_only"
+    )
+    assert cadence["capture_contract"]["comment_pagination"] is False
     assert row["capture_receipt"]["response_count"] == 3
     assert row["capture_receipt"]["matched_comment_response_count"] == 3
-    assert row["capture_receipt"]["admitted_comment_response_count"] == 2
-    assert row["capture_receipt"]["comment_response_cap"] == 2
-    assert len(row["comment_responses"]) == 2
+    assert row["capture_receipt"]["admitted_comment_response_count"] == 1
+    assert row["capture_receipt"]["comment_response_cap"] == 1
+    assert (
+        row["capture_receipt"]["comment_selection_policy"]
+        == "platform_default_first_response_only"
+    )
+    assert len(row["comment_responses"]) == 1
     assert [
         response["body_assessment"]["comments"][0]["cid"]
         for response in row["comment_responses"]
-    ] == ["7290", "7291"]
+    ] == ["7290"]
 
 
 

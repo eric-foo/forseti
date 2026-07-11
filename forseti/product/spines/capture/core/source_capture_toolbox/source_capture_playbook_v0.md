@@ -358,8 +358,10 @@ ranking, and other non-blocking orientation must not delay the live start. If
 another read is claimed to be blocking, name the launch invariant it verifies;
 otherwise run it after launch, concurrently where safe, or omit it.
 
-A bounded multi-page rendered-browser run leases **one browser and one context**
-for the run. Navigating between pages is not a reason to relaunch. Per-item
+A bounded multi-page rendered-browser run leases **one browser, one context, and
+one tab** for the run. Navigate that tab forward and detach per-capture
+listeners or routes between pages; navigation is not a reason to relaunch.
+Per-item
 browser isolation is allowed only when a source-specific safety or correctness
 requirement names why reuse is unsafe; the receipt must record that policy.
 Multi-page receipts record browser-launch count, context-creation count, capture

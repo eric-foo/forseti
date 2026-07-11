@@ -157,7 +157,8 @@ TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT = (
     "marker clears; the receipt will mark human_challenge_handoff and the "
     "agent does not drag or solve the puzzle."
 )
-TIKTOK_COMMENT_LIST_RESPONSE_CAP = 2
+TIKTOK_COMMENT_LIST_RESPONSE_CAP = 1
+TIKTOK_COMMENT_SELECTION_POLICY = "platform_default_first_response_only"
 TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON = "comment_list_response_absent"
 TIKTOK_LOGGED_OUT_SESSION_MODE = "public_logged_out"
 TIKTOK_DOM_VISIBLE_COMMENT_CANDIDATE_CAP = 12
@@ -1106,7 +1107,14 @@ def _interleave_challenge_diagnostic_actions(
     return tuple(interleaved)
 
 def _tiktok_human_challenge_handoff_after_action_names() -> tuple[str, ...]:
-    return (PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,)
+    return (
+        PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
+        TIKTOK_RETRY_VISIBLE_ERROR_POINTER_ACTION_NAME,
+        TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
+        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
+        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
+    )
 
 
 def _tiktok_comment_route_pointer_actions(
@@ -1467,6 +1475,7 @@ def _cadence_row_from_capture(
         "matched_comment_response_count": matched_comment_response_count,
         "admitted_comment_response_count": len(comment_list_responses),
         "comment_response_cap": comment_response_cap,
+        "comment_selection_policy": TIKTOK_COMMENT_SELECTION_POLICY,
         "dom_visible_comment_candidate_count": len(dom_visible_comments),
         "warning_count": len(capture_result.warning_notes),
         "limitation_count": len(capture_result.limitation_notes),
@@ -2028,14 +2037,18 @@ def _subtitle_capture_from_item_struct(
             "success": False,
             "reason": "no_subtitle_url_in_hydration_v0",
         }
+    subtitle_url_host = (urlparse(subtitle_url).hostname or "").lower().rstrip(".")
+    subtitle_url_host_supported = _is_supported_subtitle_url(subtitle_url)
     url_sha256 = _sha256_text(subtitle_url)
     base: JsonObject = {
         "attempted": False,
         "success": False,
+        "subtitle_url_host": subtitle_url_host or None,
+        "subtitle_url_host_supported": subtitle_url_host_supported,
         "subtitle_url_sha256": url_sha256,
         "subtitle_url_length": len(subtitle_url),
     }
-    if not _is_supported_subtitle_url(subtitle_url):
+    if not subtitle_url_host_supported:
         base["reason"] = "unsupported_subtitle_url_host_live_probe_v0"
         assert_no_sensitive_tiktok_material(base)
         return base
@@ -2254,6 +2267,8 @@ def _capture_contract(
         "direct_forged_api_calls": False,
         "dom_visible_comment_fallback": True,
         "page_owned_comment_list_response": True,
+        "comment_selection_policy": TIKTOK_COMMENT_SELECTION_POLICY,
+        "comment_pagination": False,
         "page_owned_video_navigation": True,
         "raw_comment_response_bodies_persisted": False,
         "raw_endpoint_urls_persisted": False,
