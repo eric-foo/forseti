@@ -50,6 +50,10 @@ enforcement placement:
    (the original review commission is preserved on closed PR #866):
    `docs/review-outputs/adversarial-artifact-reviews/process_improvement_batch1_decision_gate_economics_pilot_delegated_adversarial_artifact_review_v0.md`
    and `docs/review-outputs/adversarial-artifact-reviews/process_improvement_batch1_decision_gate_economics_pilot_adjudication_v0.md`.
+   PR #873 was open and unmerged at this decision's commission time; if it
+   closes or its branch is deleted before merging, this citation becomes
+   unresolvable from `main` and would need re-pinning to wherever the
+   evidence lands.
 
 ```yaml
 batch2_enforcement_placement:
@@ -75,7 +79,7 @@ Their only established common class is an actor-carried closeout obligation.
 | Option | Decision | Basis |
 | --- | --- | --- |
 | Add another template, reminder, or resident copy | reject | The governing rules already existed; duplicating prose repeats the mechanism that missed. |
-| Extend `.agents/hooks/check_dcp_receipt.py` strictly now | reject | EP-09 and EP-29 bind shape to substrate and receipt truth to judgment. `source-of-truth.md` does not state the proposed invariant that every branch-changed downstream file must appear under `controlling_sources_updated`. |
+| Extend `.agents/hooks/check_dcp_receipt.py` strictly now, or add a non-gating `--audit`-only variant | reject for now | EP-09 and EP-29 bind shape to substrate and receipt truth to judgment. `source-of-truth.md` does not state the proposed invariant that every branch-changed downstream file must appear under `controlling_sources_updated`, so a strict check would overclaim. An audit-only heuristic could surface a candidate mismatch without deciding truth, but this evidence contains one DCP event and does not yet prove enough recurring decision value to justify another maintained surface. |
 | Add a write-time hook | reject | Both events depend on closeout or commit-diff state; a second hook would duplicate the existing CI boundary and still invent semantic truth. |
 | Record a no-build decision and probe feasibility | keep | It preserves the evidence and exact reversal conditions without greenwashing an unbound judgment as deterministic enforcement. |
 
@@ -92,7 +96,9 @@ Re-open substrate implementation only when at least one of these becomes true:
   doctrine-changing or whether a semantic check was truthful; or
 - material-review completion and CA adjudication gain an independently
   verifiable durable marker from which a temporary measurement receipt can be
-  derived without self-certification.
+  derived without self-certification. No current source names an owning
+  surface for creating that marker; establishing one is itself a future
+  decision, not assumed here.
 
 If the first condition clears, extend the existing diff-scoped DCP checker
 rather than add a competing hook. If the second clears, prefer derivation at
