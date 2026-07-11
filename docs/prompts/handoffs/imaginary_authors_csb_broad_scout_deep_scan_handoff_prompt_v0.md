@@ -18,9 +18,9 @@ open_next:
   - docs/research/orca_discovery_candidate_scan_imaginary_authors_core_satellite_csb_v0.md
   - docs/research/orca_discovery_candidate_scan_imaginary_authors_demand_origin_discovery_v0.md
   - docs/research/orca_discovery_candidate_scan_imaginary_authors_buyer_language_rerun_v0.md
-  - orca/product/spines/scanning/README.md
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
-  - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
+  - forseti/product/spines/scanning/README.md
+  - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md
 stale_if:
   - Any named source artifact changes after this prompt is launched.
   - The owner changes the task from scanning/venue discovery to Capture, ECR, Cleaning, Judgment, outreach, or candidate execution.
@@ -31,8 +31,8 @@ stale_if:
 
 ```yaml
 orchestrator_mode: filed_handoff_prompt_plus_paste_ready_copy
-preflight_defaults: docs/prompts/templates/shared/orca_preflight_defaults_v0.md v0 - constants bound; deltas stated below.
-orca_start_preflight:
+preflight_defaults: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md v0 - constants bound; deltas stated below.
+forseti_start_preflight:
   agents_read: yes - AGENTS.md supplied in current task context
   overlay_read: yes - .agents/workflow-overlay/README.md read in current task context
   source_pack: custom_scanning_csb_broad_scout_deep_scan_handoff
@@ -47,7 +47,7 @@ controlling_source_state: not claimed; receiving lane must fresh-read sources in
 output_mode: paste-ready-chat
 downstream_output_artifact: docs/research/orca_discovery_candidate_scan_imaginary_authors_broad_scout_deep_scan_v0.md
 template_kind: handoff
-template_source: direct Orca handoff prompt under prompt-orchestration contract
+template_source: direct Forseti handoff prompt under prompt-orchestration contract
 workflow_sequence_policy: overlay_owned
 workflow_sequence_source: active_overlay plus current user instruction
 workflow_sequence_status: bound
@@ -87,7 +87,7 @@ This goal and signal are review axes to attack, not a pass-if-matches bar.
 ````markdown
 # Imaginary Authors CSB Broad-Scout + Deep-Scan Scanning Commission
 
-You are opening a **fresh Orca scanning lane** for Imaginary Authors.
+You are opening a **fresh Forseti scanning lane** for Imaginary Authors.
 
 The purpose is to test a proposed scanning structure:
 
@@ -129,10 +129,10 @@ Commission and CSB/scanning sources:
 
 - `docs/research/orca_commission_signal_board_imaginary_authors_forward_v0.md`
 - `docs/research/orca_discovery_candidate_scan_imaginary_authors_core_satellite_csb_v0.md`
-- `orca/product/spines/scanning/README.md`
-- `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
-- `orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md`
-- `orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md` targeted to Walker Equipment Kit / public-source and access-note boundaries
+- `forseti/product/spines/scanning/README.md`
+- `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
+- `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md`
+- `forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md` targeted to Walker Equipment Kit / public-source and access-note boundaries
 
 Comparison artifacts, read after the required sources:
 
@@ -281,7 +281,7 @@ docs/research/orca_discovery_candidate_scan_imaginary_authors_broad_scout_deep_s
 The artifact must include:
 
 - retrieval header;
-- `orca_start_preflight`;
+- `forseti_start_preflight`;
 - source loading ledger;
 - CSB rows consumed;
 - run caps;
@@ -388,6 +388,6 @@ If you commit/push/PR, verify durable state with fresh reads before claiming it.
 
 This scan is CA input only. It is not buyer proof, demand proof, validation,
 readiness, candidate admission, material-action approval, Capture authorization,
-or executor-ready work unless a separate Orca decision or execution lane accepts
+or executor-ready work unless a separate Forseti decision or execution lane accepts
 it.
 ````

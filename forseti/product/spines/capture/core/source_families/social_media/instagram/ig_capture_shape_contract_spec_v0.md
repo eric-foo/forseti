@@ -135,6 +135,43 @@ status: PROPOSED — IG capture-shape contract (advisory review AR-01..AR-05 CA-
   and from one **out of window**, because the packet declares its claimed/attempted post boundary (not only
   per-metric `coverage_window`).
 
+## View-count source-surface provenance (added 2026-07-08, owner-directed)
+
+Extends **Required behavior** for the `view_count` metric. IG exposes the same
+`view_count` from surfaces that **disagree**, so a bare typed value + posture is not
+enough: each `view_count` observation must carry its **`source_surface` provenance**,
+and the same metric captured from different surfaces is **never merged** — every
+number is tagged by `source_surface` and disagreements are **recorded, not silently
+resolved to one pick**.
+
+- **Authoritative current-view = the reels-tab pair:** grid DOM view text +
+  `/api/v1/clips/user/`. They agree, and match what IG shows the viewer.
+- **`web_profile_info` = a separate provenance-tagged candidate AND the deep-history
+  source** — the only surface that paginates back years logged-out — but it
+  **under-reports current view**. Use it for old reels reachable only there, flagged
+  **lower-trust / cumulative-at-capture**; **never mix it into current-view.**
+- **Worked disagreement (record, don't pick):** reel `DZ4Stb5MVPB` (@jeremyfragrance)
+  — DOM/clips `2,984` vs `web_profile_info` `655`.
+
+**Acceptance addition:** a reel captured from more than one surface records each
+`view_count` tagged by `source_surface`; a DOM/clips-vs-`web_profile_info`
+disagreement is preserved as two provenance-tagged observations, never collapsed; a
+downstream current-view series composes the reels-tab pair only.
+
+**Open question — cheap convergence probe (defer to build):** capture ~10 reels' DOM
+vs clips vs `web_profile_info` counts **twice, ~a day apart**. If `web_profile_info`
+**converges** toward DOM/clips → it is a laggy cache (a usable lower-trust fallback);
+if it **stays off** → it is a **different metric** (cumulative-at-capture) and must
+never be mixed into current-view. *Safe to defer:* this contract fixes the
+never-merge / tag-by-surface rule; the probe only tunes `web_profile_info`'s fallback
+trust.
+
+This addition extends the contract's required behavior after its AR-01..AR-05
+adjudication; it **changes no prior decision** (capture-shape (b), the `MetricPosture`
+enum, the identity/conflict policy) and **authorizes no build**. Per the contract's
+own review-timing advisory (adversarial review before the build bakes the lock-in),
+this source-surface addition is a candidate for the same pre-build review.
+
 ## Later attachment-boundary update
 
 `forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md`

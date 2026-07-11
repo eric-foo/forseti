@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca Capture source-family README
+artifact_role: Forseti Capture source-family README
 scope: >
   Directory entrypoint for Retail/PDP source-family artifacts under the Capture
   core acquisition layer.
@@ -13,7 +13,9 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/README.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/amazon_demand_signal_route_candidates_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_projection_contract_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_silver_producer_contract_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_site_registry_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/fragrance_purchase_review_row_contract_v0.md
@@ -38,8 +40,9 @@ cross-pointer here and in the Scanning family entrypoint.
 | Layer | Current home | What to confirm |
 | --- | --- | --- |
 | Access / method | `retail_pdp_projection_contract_v0.md`, `retail_pdp_projection_playbook_v0.md`, `retail_pdp_sidecar_operator_playbook_v0.md` | Retailer-specific capture inputs, residual vocabulary, target DOM price/SKU binding posture, and the no-ECR/Cleaning/Judgment boundary. |
-| Retail/PDP packet/projection | `orca-harness/runners/run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>`; `run_retail_pdp_projection.py`; `orca-harness/source_capture/retail_pdp_projection.py` | Packet-directory projection and optional sidecar only; no live broad crawl, scheduler, ECR, Cleaning, or Judgment. |
-| Fragrance purchase-review row capture | `fragrance_purchase_review_*` docs in this folder; `run_fragrance_review_coverage.py`; `run_fragrance_review_discovery.py`; `run_fragrance_review_lake_packet.py`; `orca-harness/source_capture/fragrance_review_lake.py` | Retailer review-positive PDP discovery, rendered/widget companion preservation, focused coverage, and preserved-body lake tee boundaries. |
+| Retail/PDP packet/projection | `forseti-harness/runners/run_source_capture_cloakbrowser_packet.py --source-family retail_pdp --retail-pdp-projection-output <path>`; `run_retail_pdp_projection.py`; `forseti-harness/source_capture/retail_pdp_projection.py` | Packet-directory projection and optional sidecar only; no live broad crawl, scheduler, ECR, Cleaning, or Judgment. |
+| Retail/PDP Silver | `retail_pdp_silver_producer_contract_v0.md`; `run_retail_pdp_silver_producer.py`; `forseti-harness/source_capture/retail_pdp_silver.py` | Exact projection record, retailer-local identity, raw plus derived lineage, and source-visible offer/review observations only. |
+| Fragrance purchase-review row capture | `fragrance_purchase_review_*` docs in this folder; `run_fragrance_review_coverage.py`; `run_fragrance_review_discovery.py`; `run_fragrance_review_lake_packet.py`; `forseti-harness/source_capture/fragrance_review_lake.py` | Retailer review-positive PDP discovery, rendered/widget companion preservation, focused coverage, and preserved-body lake tee boundaries. |
 | Data Lake authority | `forseti/product/spines/data_lake/README.md` -> `authority/` | Raw admission, path grammar, derived layout, and Silver semantics. The family index does not own them. |
 
 ## Non-Claims

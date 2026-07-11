@@ -31,6 +31,9 @@ from capture_spine.creator_profile_current.rollup_formula_revalidation import (
     revalidate_creator_metric_rollups,
 )
 from capture_spine.creator_profile_current.silver_metric_snapshot import SNAPSHOT_WRAPPER_KEY
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_id_from_subject_ref,
+)
 from data_lake.root import DataLakeRoot
 from runners.run_creator_metric_rollup_snapshot import run_snapshot
 from runners.run_youtube_watch_packet_metric_rollup_producer import run_watch_packet_producer
@@ -322,7 +325,9 @@ def test_operator_exclusions_flow_into_silver_rollup_limitations(tmp_path: Path)
     alpha = next(
         r
         for r in result.rollup_records
-        if r["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+        if platform_account_id_from_subject_ref(
+            r["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+        )
         == "acct_yt_alpha"
     )
     joined = " ".join(alpha["payload"]["observation"]["limitations"])

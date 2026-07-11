@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import StrEnum
 from importlib import import_module
-from typing import Protocol, TypeAlias
+from pathlib import Path
+from time import monotonic_ns
+from typing import Callable, Protocol, TypeAlias
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from harness_utils import utc_now_z
@@ -29,8 +32,11 @@ _PROGRESSIVE_SCROLL_PAUSE_MS = 1500
 # Safety cap on progressive scroll steps so an infinite-scroll page (whose
 # scrollHeight keeps growing) cannot loop unbounded.
 _MAX_PROGRESSIVE_SCROLL_STEPS = 40
+_SCROLL_TARGET_CONDITION_TIMEOUT_MS = 5000
+_SCROLL_TARGET_POLL_MS = 100
 CLOAKBROWSER_METHOD_CATEGORY = "anti_blocking_browser"
 CLOAKBROWSER_BACKEND = "playwright"
+CAPTURE_PHASE_TIMING_SCHEMA_VERSION = 2
 HEAVY_RESOURCE_TYPES = frozenset({"font", "image", "media"})
 SECRET_LIKE_QUERY_KEYS = {
     "access_token",
@@ -122,6 +128,37 @@ class PinConfirmation:
     detail: str
 
 
+@dataclass(frozen=True)
+class ScrollStopCondition:
+    """Generic visible-text condition that may stop further lazy-load actions.
+
+    Reaching this condition is only an interaction hint. Post-capture source-detail
+    sufficiency still decides whether the preserved artifacts satisfy the goal.
+    """
+
+    visible_text_contains: tuple[str, ...] = ()
+    visible_text_regexes: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not self.visible_text_contains and not self.visible_text_regexes:
+            raise ValueError("scroll stop condition requires at least one visible-text marker")
+        for value in self.visible_text_contains:
+            if not value.strip():
+                raise ValueError("scroll stop condition literals must not be blank")
+        for pattern in self.visible_text_regexes:
+            if not pattern.strip():
+                raise ValueError("scroll stop condition regexes must not be blank")
+            try:
+                re.compile(pattern)
+            except re.error as exc:
+                raise ValueError(f"scroll stop condition regex is not valid: {pattern!r}") from exc
+
+    def reached(self, visible_text: str) -> bool:
+        return all(value in visible_text for value in self.visible_text_contains) and all(
+            re.search(pattern, visible_text) is not None for pattern in self.visible_text_regexes
+        )
+
+
 class PreCapturePlugin(Protocol):
     """A site-specific pre-capture step the generic adapter runs without knowing the site.
 
@@ -156,6 +193,7 @@ class CloakBrowserSnapshotEngineResult(Protocol):
     visible_text: str
     screenshot_png: bytes
     warning_notes: list[str]
+    capture_phase_timing: dict[str, object]
     # Recorded by the engine when a pre-capture plugin ran ``before`` the main goto; None
     # when no plugin was supplied. ``fetch_...`` reads it via getattr so engines that predate
     # the seam (or fakes) without the attribute degrade to "no plugin ran".
@@ -178,7 +216,10 @@ class CloakBrowserSnapshotEngine(Protocol):
         load_more_selector: str | None,
         load_more_clicks: int,
         scroll_step_px: int,
+        scroll_stop_condition: ScrollStopCondition | None,
+        scroll_target_selector: str | None,
         pre_capture: PreCapturePlugin | None,
+        user_data_dir: Path | None = None,
     ) -> CloakBrowserSnapshotEngineResult:
         ...
 
@@ -198,7 +239,10 @@ def fetch_cloakbrowser_snapshot_capture(
     load_more_selector: str | None = None,
     load_more_clicks: int = 0,
     scroll_step_px: int = 0,
+    scroll_stop_condition: ScrollStopCondition | None = None,
+    scroll_target_selector: str | None = None,
     pre_capture: PreCapturePlugin | None = None,
+    user_data_dir: Path | None = None,
     engine: CloakBrowserSnapshotEngine | None = None,
 ) -> CloakBrowserSnapshotResult:
     normalized_url = _validate_http_url(url)
@@ -216,6 +260,15 @@ def fetch_cloakbrowser_snapshot_capture(
         raise ValueError("load_more_clicks must be zero or greater")
     if load_more_clicks > 0 and not load_more_selector:
         raise ValueError("load_more_selector is required when load_more_clicks is greater than zero")
+    if scroll_target_selector is not None and scroll_stop_condition is None:
+        raise ValueError("scroll_target_selector requires scroll_stop_condition")
+    if user_data_dir is not None and proxy_profile is not None:
+        raise ValueError(
+            "CloakBrowser persistent-context capture (user_data_dir) does not apply proxy_profile; "
+            "the persistent-context launch path never receives the proxy, so combining them would "
+            "record proxy_used/proxy_category in packet metadata while no proxy was actually used. "
+            "Supply only one of user_data_dir or proxy_profile."
+        )
     if wait_until not in ALLOWED_WAIT_UNTIL:
         allowed = ", ".join(sorted(ALLOWED_WAIT_UNTIL))
         raise ValueError(f"wait_until must be one of: {allowed}")
@@ -235,7 +288,10 @@ def fetch_cloakbrowser_snapshot_capture(
             load_more_selector=load_more_selector,
             load_more_clicks=load_more_clicks,
             scroll_step_px=scroll_step_px,
+            scroll_stop_condition=scroll_stop_condition,
+            scroll_target_selector=scroll_target_selector,
             pre_capture=pre_capture,
+            user_data_dir=user_data_dir,
         )
     except _CloakBrowserSnapshotDependencyUnavailable as exc:
         return CloakBrowserSnapshotFailure(
@@ -349,6 +405,33 @@ def fetch_cloakbrowser_snapshot_capture(
         limitation_notes.append(pre_capture.note(pre_capture_outcome, confirmation))
         pre_capture_metadata = dict(pre_capture.describe())
 
+    capture_phase_timing = getattr(engine_result, "capture_phase_timing", None)
+    if not isinstance(capture_phase_timing, dict):
+        capture_phase_timing = {
+            "schema_version": CAPTURE_PHASE_TIMING_SCHEMA_VERSION,
+            "measurement_status": "unavailable",
+            "clock": "monotonic",
+            "unit": "milliseconds",
+            "phases_ms": {},
+            "progressive_scroll_steps": [],
+            "scroll_passes": [],
+            "load_more_actions": [],
+            "scroll_target": {
+                "configured": scroll_target_selector is not None,
+                "action_ms": None,
+                "condition_wait_ms": None,
+                "reached": None,
+            },
+            "scroll_stop_condition": {
+                "configured": scroll_stop_condition is not None,
+                "reached": None,
+                "reached_stage": None,
+                "checks": [],
+            },
+            "total_capture_wall_ms": None,
+            "reason": "capture engine did not report phase timings",
+        }
+
     metadata = {
         "requested_url": normalized_url,
         "final_url": final_url,
@@ -361,13 +444,16 @@ def fetch_cloakbrowser_snapshot_capture(
         "scroll_step_px": scroll_step_px,
         "load_more_selector": load_more_selector,
         "load_more_clicks": load_more_clicks,
+        "scroll_stop_condition_configured": scroll_stop_condition is not None,
+        "scroll_target_selector": scroll_target_selector,
         "viewport_width": viewport_width,
         "viewport_height": viewport_height,
         "screenshot_mode": "viewport",
         "method_category": CLOAKBROWSER_METHOD_CATEGORY,
         "browser_engine": "cloakbrowser",
         "cloakbrowser_backend": CLOAKBROWSER_BACKEND,
-        "profile_persistence": "none",
+        "profile_persistence": "local_ignored_profile" if user_data_dir is not None else "none",
+        "persistent_profile_loaded": user_data_dir is not None,
         "storage_state_loaded": False,
         "proxy_used": proxy_profile is not None,
         "proxy_category": proxy_profile.proxy_category.value if proxy_profile is not None else None,
@@ -380,6 +466,7 @@ def fetch_cloakbrowser_snapshot_capture(
         "extension_paths_loaded": False,
         "heavy_assets_blocked": block_heavy_assets,
         "blocked_resource_types": sorted(HEAVY_RESOURCE_TYPES) if block_heavy_assets else [],
+        "capture_phase_timing": capture_phase_timing,
         "access_blocked": access_block_reason is not None,
         "access_block_reason": access_block_reason,
         "rendered_access_classification": rendered_access.classification.value,
@@ -421,6 +508,9 @@ def fetch_cloakbrowser_snapshot_capture(
 
 
 class _CloakBrowserSnapshotEngine:
+    def __init__(self, *, clock_ns: Callable[[], int] = monotonic_ns) -> None:
+        self._clock_ns = clock_ns
+
     def capture(
         self,
         *,
@@ -436,8 +526,21 @@ class _CloakBrowserSnapshotEngine:
         load_more_selector: str | None = None,
         load_more_clicks: int = 0,
         scroll_step_px: int = 0,
+        scroll_stop_condition: ScrollStopCondition | None = None,
+        scroll_target_selector: str | None = None,
         pre_capture: PreCapturePlugin | None = None,
+        user_data_dir: Path | None = None,
     ) -> CloakBrowserSnapshotEngineResult:
+        clock_ns = self._clock_ns
+        capture_started_ns = clock_ns()
+        phase_ms: dict[str, float] = {}
+        progressive_scroll_steps: list[dict[str, float | int]] = []
+        scroll_pass_timings: list[dict[str, float | int]] = []
+        load_more_timings: list[dict[str, float | int]] = []
+
+        def elapsed_ms(started_ns: int) -> float:
+            return round((clock_ns() - started_ns) / 1_000_000, 3)
+
         humanize = pre_capture.humanize if pre_capture is not None else False
         # The pre-capture flow is bounded by its OWN timeout (the plugin carries it, set from
         # the writer's --delivery-zip-setup-timeout-seconds), separate from the main capture
@@ -445,6 +548,7 @@ class _CloakBrowserSnapshotEngine:
         setup_timeout_ms = float(
             getattr(pre_capture, "setup_timeout_ms", None) or (timeout_seconds * 1000)
         )
+        launch_started_ns = clock_ns()
         try:
             cloakbrowser = import_module("cloakbrowser")
         except ModuleNotFoundError as exc:
@@ -453,27 +557,54 @@ class _CloakBrowserSnapshotEngine:
                 "running CloakBrowser snapshots."
             ) from exc
 
-        launch = getattr(cloakbrowser, "launch", None)
-        if not callable(launch):
-            raise _CloakBrowserSnapshotDependencyUnavailable(
-                "CloakBrowser is installed but does not expose cloakbrowser.launch. "
-                "Install a compatible cloakbrowser package before running CloakBrowser snapshots."
-            )
-
         timeout_ms = timeout_seconds * 1000
+        browser = None
         try:
-            browser = launch(
-                headless=True,
-                proxy=proxy_profile.proxy_endpoint if proxy_profile is not None else None,
-                args=None,
-                stealth_args=True,
-                timezone=proxy_profile.timezone if proxy_profile is not None else None,
-                locale=proxy_profile.locale if proxy_profile is not None else None,
-                geoip=proxy_profile.geoip_enabled if proxy_profile is not None else False,
-                backend=CLOAKBROWSER_BACKEND,
-                humanize=humanize,
-                extension_paths=None,
-            )
+            if user_data_dir is not None:
+                profile_launcher = getattr(cloakbrowser, "launch_" + "persistent_context", None)
+                if not callable(profile_launcher):
+                    raise _CloakBrowserSnapshotDependencyUnavailable(
+                        "CloakBrowser is installed but does not expose the required "
+                        "persistent profile launch API. Install a compatible cloakbrowser "
+                        "package before running profile-backed snapshots."
+                    )
+                context = profile_launcher(
+                    user_data_dir,
+                    headless=True,
+                    stealth_args=True,
+                    humanize=humanize,
+                )
+            else:
+                launch = getattr(cloakbrowser, "launch", None)
+                if not callable(launch):
+                    raise _CloakBrowserSnapshotDependencyUnavailable(
+                        "CloakBrowser is installed but does not expose cloakbrowser.launch. "
+                        "Install a compatible cloakbrowser package before running CloakBrowser snapshots."
+                    )
+                browser = launch(
+                    headless=True,
+                    proxy=proxy_profile.proxy_endpoint if proxy_profile is not None else None,
+                    args=None,
+                    stealth_args=True,
+                    timezone=proxy_profile.timezone if proxy_profile is not None else None,
+                    locale=proxy_profile.locale if proxy_profile is not None else None,
+                    geoip=proxy_profile.geoip_enabled if proxy_profile is not None else False,
+                    humanize=humanize,
+                    extension_paths=None,
+                )
+                phase_ms["dependency_import_browser_launch"] = elapsed_ms(launch_started_ns)
+                context_started_ns = clock_ns()
+                context = browser.new_context(
+                    viewport={
+                        "width": viewport_width,
+                        "height": viewport_height,
+                    }
+                )
+                phase_ms["context_creation"] = elapsed_ms(context_started_ns)
+            if user_data_dir is not None:
+                phase_ms["dependency_import_browser_launch"] = elapsed_ms(launch_started_ns)
+                # A persistent-context launch creates the browser context atomically.
+                phase_ms["context_creation"] = 0.0
         except Exception as exc:
             if _looks_like_cloakbrowser_dependency_failure(exc):
                 raise _CloakBrowserSnapshotDependencyUnavailable(
@@ -482,14 +613,14 @@ class _CloakBrowserSnapshotEngine:
             raise
 
         try:
-            context = browser.new_context(
-                viewport={
-                    "width": viewport_width,
-                    "height": viewport_height,
-                }
-            )
             try:
+                page_started_ns = clock_ns()
                 page = context.new_page()
+                set_viewport_size = getattr(page, "set_viewport_size", None)
+                if callable(set_viewport_size):
+                    set_viewport_size({"width": viewport_width, "height": viewport_height})
+                phase_ms["page_creation"] = elapsed_ms(page_started_ns)
+                asset_route_started_ns = clock_ns()
                 if block_heavy_assets:
                     page.route(
                         "**/*",
@@ -499,52 +630,186 @@ class _CloakBrowserSnapshotEngine:
                             else route.continue_()
                         ),
                     )
+                phase_ms["asset_route_setup"] = elapsed_ms(asset_route_started_ns)
                 warning_notes: list[str] = []
+                scroll_stop_reached = False
+                scroll_stop_reached_stage: str | None = None
+                scroll_stop_checks: list[dict[str, object]] = []
+
+                def check_scroll_stop(*, stage: str, index: int | None = None) -> bool:
+                    nonlocal scroll_stop_reached, scroll_stop_reached_stage
+                    if scroll_stop_condition is None:
+                        return False
+                    check_started_ns = clock_ns()
+                    try:
+                        condition_text = page.locator("body").inner_text(timeout=timeout_ms)
+                        reached = scroll_stop_condition.reached(condition_text)
+                    except Exception as exc:
+                        reached = False
+                        warning_notes.append(
+                            f"cloakbrowser_snapshot scroll stop condition check failed: {exc}"
+                        )
+                    check: dict[str, object] = {
+                        "stage": stage,
+                        "check_ms": elapsed_ms(check_started_ns),
+                        "reached": reached,
+                    }
+                    if index is not None:
+                        check["index"] = index
+                    scroll_stop_checks.append(check)
+                    if reached:
+                        scroll_stop_reached = True
+                        scroll_stop_reached_stage = stage
+                    return reached
                 # A pre-capture plugin (e.g. a storefront delivery-location pin) runs AFTER page
                 # creation but BEFORE the main goto. ``setup_timeout_ms`` bounds the plugin's own
                 # navigation/widget steps separately from the main capture ``timeout_ms`` (which is
                 # unchanged below). The plugin records an attempt outcome; it never claims success.
                 pre_capture_outcome: PreCaptureOutcome | None = None
+                pre_capture_started_ns = clock_ns()
                 if pre_capture is not None:
                     pre_capture_outcome = pre_capture.before(
                         page, setup_timeout_ms=setup_timeout_ms
                     )
                     warning_notes.extend(pre_capture_outcome.warning_notes)
+                phase_ms["pre_capture_plugin"] = elapsed_ms(pre_capture_started_ns)
+                navigation_started_ns = clock_ns()
                 page.goto(url, wait_until=wait_until, timeout=timeout_ms)
+                phase_ms["navigation_wait_until"] = elapsed_ms(navigation_started_ns)
+                settle_started_ns = clock_ns()
                 if settle_seconds > 0:
                     page.wait_for_timeout(settle_seconds * 1000)
-                if scroll_step_px > 0:
+                phase_ms["configured_settle"] = elapsed_ms(settle_started_ns)
+                check_scroll_stop(stage="after_configured_settle")
+                scroll_target_timing: dict[str, object] = {
+                    "configured": scroll_target_selector is not None,
+                    "action_ms": None,
+                    "condition_wait_ms": None,
+                    "reached": scroll_stop_reached,
+                }
+                if scroll_target_selector is not None and not scroll_stop_reached:
+                    target_action_started_ns = clock_ns()
+                    target_activated = False
+                    try:
+                        target = page.locator(scroll_target_selector)
+                        if target.count() == 0:
+                            warning_notes.append(
+                                "cloakbrowser_snapshot scroll target selector matched no elements"
+                            )
+                        else:
+                            target.scroll_into_view_if_needed(
+                                timeout=min(timeout_ms, _SCROLL_TARGET_CONDITION_TIMEOUT_MS)
+                            )
+                            target_activated = True
+                    except Exception as exc:
+                        warning_notes.append(
+                            f"cloakbrowser_snapshot scroll target activation failed: {exc}"
+                        )
+                    scroll_target_timing["action_ms"] = elapsed_ms(target_action_started_ns)
+                    if target_activated and scroll_stop_condition is not None:
+                        target_wait_started_ns = clock_ns()
+                        for _ in range(
+                            _SCROLL_TARGET_CONDITION_TIMEOUT_MS // _SCROLL_TARGET_POLL_MS
+                        ):
+                            if check_scroll_stop(stage="scroll_target"):
+                                break
+                            page.wait_for_timeout(_SCROLL_TARGET_POLL_MS)
+                        scroll_target_timing["condition_wait_ms"] = elapsed_ms(
+                            target_wait_started_ns
+                        )
+                    scroll_target_timing["reached"] = scroll_stop_reached
+                if scroll_step_px > 0 and not scroll_stop_reached:
                     position = 0
-                    for _ in range(_MAX_PROGRESSIVE_SCROLL_STEPS):
+                    for index in range(_MAX_PROGRESSIVE_SCROLL_STEPS):
+                        action_started_ns = clock_ns()
                         height = page.evaluate("() => document.body.scrollHeight")
                         if position >= height:
                             break
                         position += scroll_step_px
                         page.evaluate("(y) => window.scrollTo(0, y)", position)
+                        action_ms = elapsed_ms(action_started_ns)
+                        action_settle_started_ns = clock_ns()
                         page.wait_for_timeout(_PROGRESSIVE_SCROLL_PAUSE_MS)
-                for _ in range(scroll_passes):
-                    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                    page.wait_for_timeout(_SCROLL_PASS_SETTLE_MS)
-                if load_more_selector and load_more_clicks > 0:
-                    for _ in range(load_more_clicks):
+                        progressive_scroll_steps.append(
+                            {
+                                "index": index + 1,
+                                "action_ms": action_ms,
+                                "post_action_settle_ms": elapsed_ms(action_settle_started_ns),
+                            }
+                        )
+                        if check_scroll_stop(stage="progressive_scroll", index=index + 1):
+                            break
+                if not scroll_stop_reached:
+                    for index in range(scroll_passes):
+                        action_started_ns = clock_ns()
+                        page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                        action_ms = elapsed_ms(action_started_ns)
+                        action_settle_started_ns = clock_ns()
+                        page.wait_for_timeout(_SCROLL_PASS_SETTLE_MS)
+                        scroll_pass_timings.append(
+                            {
+                                "index": index + 1,
+                                "action_ms": action_ms,
+                                "post_action_settle_ms": elapsed_ms(action_settle_started_ns),
+                            }
+                        )
+                        if check_scroll_stop(stage="scroll_pass", index=index + 1):
+                            break
+                if load_more_selector and load_more_clicks > 0 and not scroll_stop_reached:
+                    for index in range(load_more_clicks):
                         if page.locator(load_more_selector).count() == 0:
                             break
+                        action_started_ns = clock_ns()
                         try:
                             page.locator(load_more_selector).first.click(timeout=_LOAD_MORE_CLICK_TIMEOUT_MS)
                         except Exception:
                             break
+                        action_ms = elapsed_ms(action_started_ns)
+                        action_settle_started_ns = clock_ns()
                         page.wait_for_timeout(_SCROLL_PASS_SETTLE_MS)
+                        load_more_timings.append(
+                            {
+                                "index": index + 1,
+                                "action_ms": action_ms,
+                                "post_action_settle_ms": elapsed_ms(action_settle_started_ns),
+                            }
+                        )
+                        if check_scroll_stop(stage="load_more", index=index + 1):
+                            break
+                dom_started_ns = clock_ns()
                 rendered_dom = page.content()
+                phase_ms["dom_serialization"] = elapsed_ms(dom_started_ns)
+                visible_text_started_ns = clock_ns()
                 try:
                     visible_text = page.locator("body").inner_text(timeout=timeout_ms)
                 except Exception as exc:
                     visible_text = ""
                     warning_notes.append(f"cloakbrowser_snapshot visible_text extraction failed: {exc}")
+                phase_ms["visible_text_extraction"] = elapsed_ms(visible_text_started_ns)
+                screenshot_started_ns = clock_ns()
                 screenshot_png = page.screenshot(
                     type="png",
                     full_page=False,
                     timeout=timeout_ms,
                 )
+                phase_ms["screenshot"] = elapsed_ms(screenshot_started_ns)
+                capture_phase_timing: dict[str, object] = {
+                    "schema_version": CAPTURE_PHASE_TIMING_SCHEMA_VERSION,
+                    "measurement_status": "measured",
+                    "clock": "monotonic",
+                    "unit": "milliseconds",
+                    "phases_ms": phase_ms,
+                    "progressive_scroll_steps": progressive_scroll_steps,
+                    "scroll_passes": scroll_pass_timings,
+                    "load_more_actions": load_more_timings,
+                    "scroll_target": scroll_target_timing,
+                    "scroll_stop_condition": {
+                        "configured": scroll_stop_condition is not None,
+                        "reached": scroll_stop_reached,
+                        "reached_stage": scroll_stop_reached_stage,
+                        "checks": scroll_stop_checks,
+                    },
+                }
                 return _LiveEngineResult(
                     final_url=page.url,
                     title=page.title(),
@@ -553,11 +818,23 @@ class _CloakBrowserSnapshotEngine:
                     screenshot_png=screenshot_png,
                     warning_notes=warning_notes,
                     pre_capture_outcome=pre_capture_outcome,
+                    capture_phase_timing=capture_phase_timing,
                 )
             finally:
+                close_started_ns = clock_ns()
                 context.close()
+                phase_ms["context_browser_close"] = elapsed_ms(close_started_ns)
         finally:
-            browser.close()
+            if browser is not None:
+                browser_close_started_ns = clock_ns()
+                browser.close()
+                phase_ms["context_browser_close"] = round(
+                    phase_ms.get("context_browser_close", 0.0)
+                    + elapsed_ms(browser_close_started_ns),
+                    3,
+                )
+            if "capture_phase_timing" in locals():
+                capture_phase_timing["total_capture_wall_ms"] = elapsed_ms(capture_started_ns)
 
 
 @dataclass(frozen=True)
@@ -569,6 +846,7 @@ class _LiveEngineResult:
     screenshot_png: bytes
     warning_notes: list[str] = field(default_factory=list)
     pre_capture_outcome: PreCaptureOutcome | None = None
+    capture_phase_timing: dict[str, object] = field(default_factory=dict)
 
 
 class _CloakBrowserSnapshotDependencyUnavailable(RuntimeError):

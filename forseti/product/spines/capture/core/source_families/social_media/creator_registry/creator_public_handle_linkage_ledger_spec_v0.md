@@ -181,6 +181,27 @@ Strong evidence types:
 - `mutual_profile_link`
 - `official_link_hub`
 
+For creator channel graphing, any public creator profile surface, bio, about
+section, or channel link area that links to an official public link hub, and
+that hub links to Instagram, YouTube, TikTok, or
+other public creator accounts, is `official_link_hub` evidence for candidate
+public-handle linkage. It may also create candidate platform-account rows for
+exact-match preflight. It does not by itself create a final creator record,
+person identity claim, metric rollup, outreach authorization, or registry
+mutation.
+
+Public bio text may carry region evidence when the text is source-visible, such
+as `NYC`. Store that as source-visible region text with the source pointer. Do
+not convert it into private demographic, legal identity, residence, or contact
+enrichment.
+
+For Linktree-style public link hubs, prefer a direct HTTP source capture and
+parse public structured page data such as JSON-LD `sameAs` when present. This is
+lower latency and lower browser-session churn than opening and clicking each
+social icon. Browser DOM inspection is the fallback when direct HTTP does not
+expose the outbound account URLs; keep one persistent browser session open for
+the lane rather than repeatedly opening and closing profile windows.
+
 Weak evidence types:
 
 - `handle_similarity`

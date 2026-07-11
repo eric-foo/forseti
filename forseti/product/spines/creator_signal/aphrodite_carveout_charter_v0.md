@@ -317,8 +317,12 @@ or a dry bounded batch. Every claim in this charter's scope is capped at
 foundation-stage capture, with the commercial-use/data-rights flag carried to
 Phase 1). Gate 3 is defined (ratified 2026-07-05, D-1) and has not yet
 fired — the rehearsal has not run. The depth-layer build itself is
-packaged in `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v0.md`
-and stays gated on explicit owner build-authorization.
+packaged in `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v1.md`
+(supersedes the v0 packet) and stays gated on explicit owner build-authorization.
+
+**Gate status update (2026-07-10):** the rehearsal has since completed, so the
+preceding 2026-07-05 gate snapshot remains historical and the v1 handoff is no
+longer a live gate under its own `stale_if`.
 
 ## 8. Decision register
 

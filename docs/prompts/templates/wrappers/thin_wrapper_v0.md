@@ -49,8 +49,12 @@ Target scope:
 Preflight:
 Before acting, verify the wrapped source path, hash when supplied, workspace,
 target scope, output mode, edit permission, and any launch-specific blocker.
-If a required binding is missing, stale, or mismatched, return `BLOCKED_PREFLIGHT`
-before editing, validating, executing, or claiming readiness.
+For repo-bound review or delegated-review work, resolve a launch-checkout
+mismatch through `.agents/workflow-overlay/prompt-orchestration.md` ->
+"Repo-Bound Review Target Resolution" before treating it as a blocker. If a
+required binding remains missing, stale, or mismatched after any applicable
+resolution, return `BLOCKED_PREFLIGHT` before editing, validating, executing, or
+claiming readiness.
 
 Prompt:
 Use the wrapped source as the task authority. Preserve its intent. Do not

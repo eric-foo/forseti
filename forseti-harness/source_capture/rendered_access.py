@@ -34,6 +34,13 @@ _CLOUDFLARE_CHALLENGE_ONLY_VISIBLE_MARKERS = (
     "performance & security by cloudflare",
 )
 
+_VISIBLE_TIKTOK_CHALLENGE_MARKERS = (
+    "drag the slider to fit the puzzle",
+    "drag the slider",
+    "verify to continue",
+    "complete the puzzle",
+)
+
 
 def classify_rendered_access(
     *,
@@ -46,6 +53,14 @@ def classify_rendered_access(
     dom_probe = rendered_dom[:20_000].lower()
     visible_probe = f"{title_text}\n{body_text}"
     combined_probe = f"{visible_probe}\n{dom_probe}"
+    if any(marker in visible_probe for marker in _VISIBLE_TIKTOK_CHALLENGE_MARKERS):
+        return RenderedAccessClassification(
+            classification=RenderedAccessClass.ACCESS_BLOCKED,
+            signal="tiktok_slider_or_captcha",
+            detail="rendered visible text matches a TikTok slider or captcha challenge",
+        )
+
+
 
     if _looks_like_cloudflare_interstitial(
         title_text=title_text,
@@ -79,6 +94,15 @@ def classify_rendered_access(
             detail=(
                 "rendered DOM still contains Cloudflare challenge markers, but the rendered "
                 "title/text do not match an access-block interstitial"
+            ),
+        )
+    if any(marker in dom_probe for marker in _VISIBLE_TIKTOK_CHALLENGE_MARKERS):
+        return RenderedAccessClassification(
+            classification=RenderedAccessClass.RESIDUAL_CHALLENGE_MARKER,
+            signal="residual_tiktok_challenge_marker",
+            detail=(
+                "rendered DOM contains TikTok challenge markers, but visible text "
+                "does not show the challenge"
             ),
         )
     return RenderedAccessClassification(

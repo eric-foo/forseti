@@ -13,6 +13,7 @@ use_when:
   - Checking what code can enforce for low-footprint capture and visible failure handling.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_daily_heartbeat_operating_policy_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_findings_consolidated_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_reel_viewcount_capture_feasibility_recon_v0.md
   - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
@@ -32,17 +33,20 @@ It is limited to public Instagram `/reels/` grid observations and safe route met
 
 ## Runner Binding
 
-`orca-harness/runners/run_source_capture_ig_reels_grid_packet.py` is the optimized default
+`forseti-harness/runners/run_source_capture_ig_reels_grid_packet.py` is the optimized default
 Source Capture Armory runner for public IG creator monitoring. It supersedes
-`orca-harness/runners/run_source_capture_ig_calls_packet.py` for steady-state monitoring because it
+`forseti-harness/runners/run_source_capture_ig_calls_packet.py` for steady-state monitoring because it
 uses one `/reels/` page load, no hover/click/item-page fan-out, no OCR, and passive JSON capture
 joined by shortcode. The old calls runner remains a legacy calibration or fallback route when
 item-page OG metadata is explicitly needed.
 
-The optimized runner supports `--output` for scratch packets and `--data-root` / `ORCA_DATA_ROOT`
-for data-lake raw packet admission. It defaults to blocking image/media/font requests as a
-bandwidth-control mode while leaving scripts and JSON/XHR intact; that is a data-cost control, not a
-content sufficiency, stealth, or human-likeness claim.
+The optimized runner supports `--output` for scratch packets and `--data-root` /
+`FORSETI_DATA_ROOT` (legacy `ORCA_DATA_ROOT` accepted as fallback) for data-lake
+raw packet admission. As of the current implementation, the grid runner still exposes
+heavy-asset blocking as an implementation behavior. Current daily-heartbeat operating policy is
+owned by `ig_daily_heartbeat_operating_policy_v0.md`, which prefers ordinary browser asset loading
+for supervised daily heartbeat and treats heavy-asset blocking as an explicit bandwidth mode. Do not
+claim code alignment with that policy until a runner patch changes and verifies the default.
 
 ## Static Comparison Policy
 
@@ -51,6 +55,10 @@ because reels expose views plus likes/comments and usually carry the clearest pu
 Static image/carousel capture is a lower-cadence companion surface for onboarding, periodic refresh,
 and escalation because static posts can carry captions, tags, paid-partnership/product hints, likes,
 and comments. They lack view count and must not be mixed into the reels traction series.
+
+Daily steady-state heartbeat is separate from onboarding. The daily heartbeat policy governs
+registered-creator first-visible-grid monitoring only; onboarding top-band or static/profile-grid
+intake rules stay in their own lane.
 
 Static capture must remain a separate thin source surface, not an expansion of the reels runner. Policy:
 
@@ -68,7 +76,7 @@ The optimized `/reels/` capture lane has two kinds of rules. Code should enforce
 
 Code-enforceable in this lane:
 
-- Exactly one output target: scratch `--output` or data-lake `--data-root` / `ORCA_DATA_ROOT`; ambient `ORCA_DATA_ROOT` must not silently override an explicit `--output`.
+- Exactly one output target: scratch `--output` or data-lake `--data-root` / `FORSETI_DATA_ROOT` (legacy `ORCA_DATA_ROOT` fallback); an ambient data-root env var must not silently override an explicit `--output`.
 - One optimized `/reels/` page-load path for the high-cadence runner; no hover, click, OCR, comment-text capture, media-byte preservation, or item-page fan-out in that runner.
 - Response preservation is limited to known passive JSON source surfaces with response-size caps.
 - Cookie / `set-cookie` headers, proxy endpoint, proxy credentials, proxy exit IP, proxy store path, and stored browser state are not serialized into packets.

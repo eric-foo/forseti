@@ -7,10 +7,11 @@ Reads Git pre-push updates from stdin:
 
 Blocks pushes targeting main, branch deletions, non-fast-forward updates, and
 updates whose fast-forward safety cannot be verified. For allowed lane pushes
-it then mirrors the strict doc gates CI runs (DOC_GATES below) so a
-forward-only gate miss -- e.g. a reviewer-authored docs/review-outputs report
-missing its retrieval header (PR #613) -- fails at the push boundary instead
-of costing a red CI round. Same checkers, same rule owners; the mirror adds no
+it then mirrors selected strict CI gates (DOC_GATES below) so a forward-only
+gate miss -- e.g. a reviewer-authored docs/review-outputs report missing its
+retrieval header (PR #613), or a stale JSON source-input hash after a source
+ledger edit -- fails at the push boundary instead of costing a red CI round.
+Same checkers, same rule owners; the mirror adds no
 rule. This is a Git-bound local adapter, not a Claude/Codex tool hook. It is
 bypassable with --no-verify, does not see GitHub API actions such as
 `gh pr merge`, and CI remains the authoritative gate.
@@ -25,15 +26,25 @@ from pathlib import Path
 ZERO = "0" * 40
 MAIN_REFS = {"main", "refs/heads/main"}
 
-# Strict doc gates mirrored from .github/workflows/ci.yml. The diff-scoped
-# checkers default their base to origin/main -- the same base CI resolves for
-# a PR -- so a local result predicts the CI result for these gates. Rule
+# Selected strict gates mirrored from .github/workflows/ci.yml. The diff-scoped
+# checkers default their base to origin/main for the outgoing lane. CI uses the
+# exact event base SHA instead; for normal fast-forward PR/main history both
+# scopes represent the same net lane change. Rule
 # authority: .agents/workflow-overlay/validation-gates.md ("Enforcement
 # Placement"); each checker references its own rule owner.
 DOC_GATES = (
     ("retrieval link check", (".agents/hooks/check_map_links.py", "--strict")),
     ("retrieval header index", (".agents/hooks/header_index.py", "--strict")),
     ("review-routing disposition", (".agents/hooks/check_review_routing.py", "--strict")),
+    ("source-input hash freshness", (".agents/hooks/check_source_input_hashes.py", "--strict")),
+    ("hash-pin freshness", (".agents/hooks/check_hash_pin_freshness.py", "--strict")),
+    ("prompt output-mode", (".agents/hooks/check_prompt_output_mode.py", "--strict")),
+    (
+        "review-output provenance",
+        (".agents/hooks/check_review_output_provenance.py", "--diff", "origin/main", "--strict"),
+    ),
+    ("handoff-pointer resolution", (".agents/hooks/check_handoff_pointers.py", "--strict")),
+    ("ontology tag validity", (".agents/hooks/check_ontology_tag_validity.py", "--strict")),
 )
 
 GATE_TIMEOUT_SECONDS = 120  # generous; the gates run in ~5s combined
@@ -198,7 +209,7 @@ def main(argv: list[str]) -> int:
         gate_reasons = doc_gate_reasons(repo_root())
         if gate_reasons:
             return block(gate_reasons, authority=DOC_GATE_AUTHORITY)
-        print(f"pre-push doc gates: OK ({len(DOC_GATES)} gate(s))", file=sys.stderr)
+        print(f"pre-push gates: OK ({len(DOC_GATES)} gate(s))", file=sys.stderr)
     return 0
 
 

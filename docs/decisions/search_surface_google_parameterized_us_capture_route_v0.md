@@ -2,10 +2,10 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Orca decision record
+artifact_role: Forseti decision record
 scope: Google Search-surface capture route binding for US-parameterized logged-out research.
 use_when:
-  - Commissioning or reviewing Google Search / SERP / search-surface capture for Orca search-surface intelligence.
+  - Commissioning or reviewing Google Search / SERP / search-surface capture for Forseti search-surface intelligence.
   - Deciding whether a search-surface artifact can claim US-parameterized versus physically US-local locality.
   - Checking the default route for Search-Surface MGT and capture-efficacy pilots.
 authority_boundary: retrieval_only
@@ -13,9 +13,9 @@ open_next:
   - .agents/hooks/check_search_surface_google_route.py
   - .agents/workflow-overlay/validation-gates.md
   - .agents/workflow-overlay/prompt-orchestration.md
-  - orca/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
 stale_if:
-  - Orca adds a dedicated Google search-surface runner or source-capture adapter.
+  - Forseti adds a dedicated Google search-surface runner or source-capture adapter.
   - A future accepted source binds a physically US-local Google Search capture route.
   - Google Search route parameters or personalization controls materially change.
   - The search-surface pilot graduates from capture-efficacy to Judgment, Product Lead, or durable-demand proof.
@@ -23,7 +23,7 @@ stale_if:
 
 ## Decision
 
-Default Google Search-surface capture for the current Orca pilot uses the
+Default Google Search-surface capture for the current Forseti pilot uses the
 US-parameterized, logged-out-visible route:
 
 - Google Search URL parameters: `hl=en`, `gl=us`, and `pws=0`.
@@ -63,7 +63,7 @@ physical locality is not asserted.
 Proxy, VPN, or cloud-US browser use is an explicit escalation, not a default.
 Use it only when the owner or accepted commission says the decision requires
 physical locality. If the route returns a Google block page with visible exit-IP
-or account-sensitive material, do not preserve that page in durable Orca docs;
+or account-sensitive material, do not preserve that page in durable Forseti docs;
 quarantine, redact, or leave it as scratch according to the capture lane's
 source-handling rules.
 
@@ -82,7 +82,7 @@ The checkable shell is enforced by
 
 The checker enforces only shape:
 
-- Google Search URLs in durable Orca docs carry `hl=en`, `gl=us`, and `pws=0`;
+- Google Search URLs in durable Forseti docs carry `hl=en`, `gl=us`, and `pws=0`;
 - US-parameterized Google search-surface artifacts include the physical-locality
   non-claim;
 - Google unusual-traffic block pages with visible exit-IP content are not

@@ -11,7 +11,7 @@
       "forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md",
       "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json"
     ],
-    "source_policy_posture": "Populated pre-SQLite public_handle_ledger seed with real YouTube platform_account rows from the source-backed YouTube Shorts fragrance creator observation ledger, real Instagram platform_account rows from IG reels-grid projection artifacts, and identity-only TikTok platform_account rows from logged-out profile browser packets. Public_handle values are source/capture labels, not guaranteed current platform handles and not public-handle stitching evidence. creator_records and account_link_evidence stay empty until source-backed cross-platform public-handle evidence exists; no non-public-handle joins; no contact, outreach, audience, follower graph, or person-identity surface.",
+    "source_policy_posture": "Populated pre-SQLite public_handle_ledger seed with real YouTube platform_account rows from the source-backed YouTube Shorts fragrance creator observation ledger, real Instagram platform_account rows from IG reels-grid projection artifacts, identity-only TikTok platform_account rows from logged-out profile browser packets, and a first source-backed public link-hub account cluster for Fragranceknowledge. Public_handle values are source/capture labels, not guaranteed current platform handles. creator_records require source-backed cross-platform public-handle evidence; no non-public-handle joins; no contact, outreach, audience, follower graph, or person-identity surface.",
     "platform_accounts": [
       {
         "platform_account_id": "acct_yt_fragrance_001",
@@ -444,10 +444,148 @@
         "public_display_name_or_none": "IG: perfumerism",
         "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\c30\\01KWKJ8VXNDNE28DK234QB462Y\\raw\\02_browser_visible_text.txt#L1",
         "display_name_source_field_or_none": "browser_visible_text.line_1"
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_004",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "fragranceknowledge",
+        "public_profile_url": "https://www.tiktok.com/@fragranceknowledge",
+        "handle_source_pointer": "docs/review-inputs/fragranceknowledge_creator_graph_evidence_v0.json#/link_hub_same_as/2",
+        "handle_observed_at": "2026-07-07T15:01:16Z",
+        "public_display_name_or_none": "Fragrance knowledge",
+        "display_name_source_pointer_or_none": "docs/review-inputs/fragranceknowledge_creator_graph_evidence_v0.json#/source_visible_region_evidence/source_pointer",
+        "display_name_source_field_or_none": "persistent_browser_visible_text.title"
+      },
+      {
+        "platform_account_id": "acct_ig_fragrance_005",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "Fragranceknowledge",
+        "public_profile_url": "https://instagram.com/Fragranceknowledge",
+        "handle_source_pointer": "docs/review-inputs/fragranceknowledge_creator_graph_evidence_v0.json#/link_hub_same_as/1",
+        "handle_observed_at": "2026-07-07T15:01:16Z",
+        "public_display_name_or_none": null,
+        "display_name_source_pointer_or_none": null,
+        "display_name_source_field_or_none": null
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_005",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.tiktok.com/@noeldeyzel_fragrance",
+        "handle_source_pointer": "docs/review-inputs/noeldeyzel_fragrance_tiktok_creator_discovery_frontier_register_20260708.json#/tiktok_creator_discovery_frontier_register/root_seed/handle",
+        "handle_observed_at": "2026-07-08T15:01:18Z",
+        "public_display_name_or_none": "Noel Smells",
+        "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\8cc\\01KX13YSB6V0Y49D1H7Z3EAZ1K\\raw\\01_noeldeyzel_fragrance_tiktok_profile_grid_observation_20260708.json#/profile_observation/display_name",
+        "display_name_source_field_or_none": "profile_observation.display_name"
+      },
+      {
+        "platform_account_id": "acct_ig_fragrance_006",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.instagram.com/noeldeyzel_fragrance/",
+        "handle_source_pointer": "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/profile_observation/handle",
+        "handle_observed_at": "2026-07-08T15:11:47Z",
+        "public_display_name_or_none": "Noel Deyzel",
+        "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/profile_observation/display_name",
+        "display_name_source_field_or_none": "profile_observation.display_name"
       }
     ],
-    "account_link_evidence": [],
-    "creator_records": [],
+    "account_link_evidence": [
+      {
+        "evidence_id": "ev_linkhub_fragranceknowledge_20260707_001",
+        "evidence_type": "official_link_hub",
+        "evidence_strength": "strong",
+        "account_ids": [
+          "acct_yt_fragrance_007",
+          "acct_tiktok_fragrance_004",
+          "acct_ig_fragrance_005"
+        ],
+        "source_pointer": "docs/review-inputs/fragranceknowledge_creator_graph_evidence_v0.json#/link_hub_same_as",
+        "source_field": "application/ld+json ProfilePage mainEntity.sameAs",
+        "observed_at": "2026-07-07T15:01:16Z",
+        "review_actor": "owner_authorized_codex_capture_lane",
+        "llm_assisted": true,
+        "independence_key": "linktree_official_link_hub:EvanHalI",
+        "notes": "Public Linktree profile at https://linktr.ee/EvanHalI lists Instagram, TikTok, and YouTube Fragranceknowledge public accounts in JSON-LD sameAs; TikTok bio source-visible profile text linked to linktr.ee/EvanHalI during the creator graphing probe."
+      },
+      {
+        "evidence_id": "ev_candidate_noeldeyzel_fragrance_20260708_001",
+        "evidence_type": "bio_text_overlap",
+        "evidence_strength": "weak",
+        "account_ids": [
+          "acct_tiktok_fragrance_005",
+          "acct_ig_fragrance_006"
+        ],
+        "source_pointer": "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/linkage_observation/candidate_same_creator_accounts/0/basis",
+        "source_field": "linkage_observation.candidate_same_creator_accounts[0].basis",
+        "observed_at": "2026-07-08T15:11:47Z",
+        "review_actor": "owner_authorized_codex_capture_lane",
+        "llm_assisted": true,
+        "independence_key": "noeldeyzel_fragrance_bio_topic_overlap_20260708",
+        "notes": "TikTok and Instagram accounts share the noeldeyzel_fragrance public handle and source-visible fragrance/cologne profile topic; preserve as candidate linkage pending review, not final identity."
+      }
+    ],
+    "creator_records": [
+      {
+        "creator_record_id": "creator_fragranceknowledge_001",
+        "link_state": "candidate_public_account_link",
+        "platform_account_ids": [
+          "acct_yt_fragrance_007",
+          "acct_tiktok_fragrance_004",
+          "acct_ig_fragrance_005"
+        ],
+        "evidence_ids": [
+          "ev_linkhub_fragranceknowledge_20260707_001"
+        ],
+        "review_state": "candidate_needs_review",
+        "link_rationale": "Official public Linktree linked from the TikTok profile lists Fragranceknowledge TikTok, Instagram, and YouTube public accounts in sameAs; preserve as candidate pending non-LLM human review promotion.",
+        "limitations": "Candidate public-handle linkage only pending non-LLM human review; no private identity, contact enrichment, region enrichment, metric aggregation, outreach authorization, final creator identity, or current-handle guarantee.",
+        "created_at": "2026-07-07T15:25:00Z",
+        "updated_at": "2026-07-07T15:25:00Z",
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not cross-platform metric rollup",
+          "not current handle guarantee"
+        ]
+      },
+      {
+        "creator_record_id": "creator_noeldeyzel_fragrance_001",
+        "link_state": "candidate_public_account_link",
+        "platform_account_ids": [
+          "acct_tiktok_fragrance_005",
+          "acct_ig_fragrance_006"
+        ],
+        "evidence_ids": [
+          "ev_candidate_noeldeyzel_fragrance_20260708_001"
+        ],
+        "review_state": "candidate_needs_review",
+        "link_rationale": "Owner-supplied Instagram profile and bounded TikTok/Instagram profile observations share the noeldeyzel_fragrance public handle and fragrance/cologne public bio topic; preserve as candidate pending stronger non-LLM review evidence.",
+        "limitations": "Candidate public-handle linkage only; no official link hub or reciprocal link was observed in this pass, YouTube is intentionally not linked, and no private identity, contact enrichment, region enrichment, metric aggregation, outreach authorization, final creator identity, or current-handle guarantee is claimed.",
+        "created_at": "2026-07-08T15:11:47Z",
+        "updated_at": "2026-07-08T15:11:47Z",
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not cross-platform metric rollup",
+          "not current handle guarantee"
+        ]
+      }
+    ],
     "non_claims": [
       "not real-world identity proof",
       "not non-public-handle join",
@@ -455,7 +593,6 @@
       "not follower or audience graph",
       "not public person-level product surface",
       "not SQLite migration",
-      "not cross-platform account linkage",
       "not public-handle stitching evidence",
       "not verified current YouTube @handle registry",
       "not row admission without source-backed public-handle evidence"

@@ -6,7 +6,7 @@ overlay in `.agents/workflow-overlay/` remains authoritative when there is a
 conflict.
 
 - `decisions/`: decision records.
-- `product/`: product contracts, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, and executive-deck shape drafts.
+- `../forseti/product/`: spine-first product tree for product contracts, core-spine notes, satellite notes, evidence standards, source maps, decision artifacts, memo substrates, evidence appendices, and executive-deck shape drafts.
 - `prompts/`: prompt artifacts, wrappers, reruns, reviews, and local templates.
 - `research/`: public/source research artifacts, evidence-only lane outputs, synthesis reports, candidate screens, backtestability notes, and rejected-source maps.
 - `review-inputs/`: artifacts prepared for review.

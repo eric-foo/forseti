@@ -82,12 +82,33 @@ def test_creator_registry_index_counts_and_contract() -> None:
     assert registry["schema_version"] == "creator_registry_index_v0"
     assert registry["index_mode"] == "static_known_public_account_dedupe_index"
     assert registry["counts"] == {
-        "platform_accounts_total": 36,
-        "creator_records_total": 0,
-        "known_account_rows_total": 36,
-        "platform_accounts_by_platform": {"instagram": 3, "tiktok": 3, "youtube": 30},
+        "platform_accounts_total": 40,
+        "creator_records_total": 2,
+        "known_account_rows_total": 40,
+        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 5, "youtube": 30},
     }
-    assert registry["creator_records"] == []
+    assert [record["creator_record_id"] for record in registry["creator_records"]] == [
+        "creator_fragranceknowledge_001",
+        "creator_noeldeyzel_fragrance_001",
+    ]
+    creator_record = registry["creator_records"][0]
+    assert creator_record["link_state"] == "candidate_public_account_link"
+    assert creator_record["review_state"] == "candidate_needs_review"
+    assert creator_record["platform_account_ids"] == [
+        "acct_yt_fragrance_007",
+        "acct_tiktok_fragrance_004",
+        "acct_ig_fragrance_005",
+    ]
+    assert creator_record["evidence_ids"] == ["ev_linkhub_fragranceknowledge_20260707_001"]
+    assert creator_record["routing_decision"] == "route_to_linkage_review_before_cross_platform_rollup_or_final_identity_use"
+    noel_record = registry["creator_records"][1]
+    assert noel_record["link_state"] == "candidate_public_account_link"
+    assert noel_record["review_state"] == "candidate_needs_review"
+    assert noel_record["platform_account_ids"] == [
+        "acct_tiktok_fragrance_005",
+        "acct_ig_fragrance_006",
+    ]
+    assert noel_record["evidence_ids"] == ["ev_candidate_noeldeyzel_fragrance_20260708_001"]
     assert "not metric authority" in registry["non_claims"]
     assert "not public person identity proof" in registry["non_claims"]
 
@@ -105,6 +126,34 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
         for account in ledger["platform_accounts"]
     }
 
+    linked_account_ids = {
+        "acct_yt_fragrance_007",
+        "acct_tiktok_fragrance_004",
+        "acct_ig_fragrance_005",
+        "acct_tiktok_fragrance_005",
+        "acct_ig_fragrance_006",
+    }
+    linked_creator_by_account = {
+        "acct_yt_fragrance_007": "creator_fragranceknowledge_001",
+        "acct_tiktok_fragrance_004": "creator_fragranceknowledge_001",
+        "acct_ig_fragrance_005": "creator_fragranceknowledge_001",
+        "acct_tiktok_fragrance_005": "creator_noeldeyzel_fragrance_001",
+        "acct_ig_fragrance_006": "creator_noeldeyzel_fragrance_001",
+    }
+    profile_packet_account_ids = {
+        "acct_ig_reels_001",
+        "acct_ig_reels_002",
+        "acct_ig_reels_004",
+        "acct_tiktok_fragrance_001",
+        "acct_tiktok_fragrance_002",
+        "acct_tiktok_fragrance_003",
+        "acct_tiktok_fragrance_004",
+        "acct_ig_fragrance_005",
+        "acct_tiktok_fragrance_005",
+        "acct_ig_fragrance_006",
+    }
+
+
     for source_account in ledger["platform_accounts"]:
         indexed = registry_by_id[source_account["platform_account_id"]]
         normalized_handle = source_account["public_handle"].lstrip("@").lower()
@@ -113,15 +162,23 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
         assert indexed["public_handle"] == source_account["public_handle"]
         assert indexed["normalized_public_handle"] == normalized_handle
         assert indexed["public_profile_url"] == source_account["public_profile_url"]
-        assert indexed["creator_record_id_or_none"] is None
-        assert indexed["identity_state"] == "single_platform_observed"
         assert indexed["discovery_state"] == "known_account"
-        if source_account["platform"] == "tiktok":
+
+        if source_account["platform_account_id"] in linked_account_ids:
+            assert indexed["creator_record_id_or_none"] == linked_creator_by_account[source_account["platform_account_id"]]
+            assert indexed["identity_state"] == "candidate_public_account_link"
+            assert indexed["linkage_state"] == "candidate_needs_review"
+            assert indexed["routing_decision"] == "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use"
+        else:
+            assert indexed["creator_record_id_or_none"] is None
+            assert indexed["identity_state"] == "single_platform_observed"
+            assert indexed["linkage_state"] == "single_platform_observed"
+
+        if source_account["platform_account_id"] in profile_packet_account_ids:
             assert indexed["capture_state"] == "identity_observed_profile_packet_available"
             assert indexed["freshness"]["metrics_freshness_state_or_none"] is None
         else:
             assert indexed["capture_state"] == "identity_observed_metric_seed_available"
-        assert indexed["linkage_state"] == "single_platform_observed"
         assert indexed["freshness"]["identity_observed_at"] == source_account["handle_observed_at"]
         assert f"platform:{source_account['platform']}:handle:{normalized_handle}" in indexed["lookup_keys"]
         if source_account["platform_public_account_id_or_none"] is not None:

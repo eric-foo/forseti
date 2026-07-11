@@ -22,6 +22,12 @@ stale_if:
   - The frozen corpus this slice was built from is superseded.
 ```
 
+> **STATUS (2026-07-10): first `stale_if` fired.** A real fragrance ontology
+> artifact now exists —
+> `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml`.
+> This hand slice remains a historical rehearsal record; new resolution work
+> should target the reference data, not this slice.
+
 ## Build rule
 
 An entity enters this slice only if it appears in the frozen corpus

@@ -315,6 +315,9 @@ def classify_ig_fetch_failure(stderr: str) -> str:
     return "unavailable"
 
 
+_YTDLP_AUDIO_TIMEOUT_SECONDS = 300
+
+
 def download_ig_reel_audio(shortcode: str) -> IgAudioFetch:
     """Download a public Reel's bestaudio ANONYMOUSLY via yt-dlp (no login, no proxy). Returns a
     typed `IgAudioFetch`. Validates the shortcode BEFORE building any URL / touching the network
@@ -325,10 +328,15 @@ def download_ig_reel_audio(shortcode: str) -> IgAudioFetch:
     with tempfile.TemporaryDirectory(prefix="orca_ig_audio_") as tmp:
         out_tmpl = os.path.join(tmp, "%(id)s.%(ext)s")
         # bestaudio/best, anonymous (no cookies, no proxy) — the route the 2026-06-25 probe proved.
-        proc = subprocess.run(
-            [sys.executable, "-m", "yt_dlp", "-f", "ba/b", "-o", out_tmpl, url],
-            capture_output=True, text=True,
-        )
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "yt_dlp", "-f", "ba/b", "-o", out_tmpl, url],
+                capture_output=True, text=True, timeout=_YTDLP_AUDIO_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            return IgAudioFetch(
+                "unavailable", None, None, f"download_timeout: yt-dlp exceeded {_YTDLP_AUDIO_TIMEOUT_SECONDS}s"
+            )
         files = [hit for hit in glob.glob(os.path.join(tmp, "*")) if os.path.isfile(hit)]
         if proc.returncode != 0 or not files:
             return IgAudioFetch(

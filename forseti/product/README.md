@@ -1,7 +1,7 @@
 # Forseti Product
 
 Product substance for Forseti lives here, organized **spine-first**. This is the
-product-facing tree; runtime stays in `orca-harness/`.
+product-facing tree; runtime stays in `forseti-harness/`.
 
 ## Structure
 
@@ -48,6 +48,6 @@ Keep the split explicit:
 - New product artifacts go in the matching spine folder (forward-only).
 - Decisions, prompts, reviews, research, and migration records stay under `docs/`,
   not here.
-- Runtime code and tests stay in `orca-harness/`.
+- Runtime code and tests stay in `forseti-harness/`.
 - Do not treat Client 0 `jb` material as core product authority unless a product
   artifact explicitly promotes the concept as generalizable.

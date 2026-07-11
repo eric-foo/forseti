@@ -3,8 +3,8 @@
     "schema_version": "creator_registry_index_v0",
     "index_id": "creator_registry_index_v0",
     "index_mode": "static_known_public_account_dedupe_index",
-    "generated_at_utc": "2026-07-03T09:04:50Z",
-    "source_policy_posture": "Static creator-registry index generated from the public-handle linkage ledger. It is a Discovery/Capture dedupe and routing surface over known public platform accounts, including identity-only TikTok rows whose metrics remain unavailable until separate source-backed metric observations exist. It is not metric authority, not raw capture storage, and not final cross-platform identity proof.",
+    "generated_at_utc": "2026-07-07T15:30:00Z",
+    "source_policy_posture": "Static creator-registry index generated from the public-handle linkage ledger. It is a Discovery/Capture dedupe and routing surface over known public platform accounts, including identity-only TikTok and Instagram rows whose metrics remain unavailable until separate source-backed metric observations exist. It is not metric authority, not raw capture storage, and not final cross-platform identity proof.",
     "authority_pointers": [
       "forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md",
       "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md",
@@ -14,7 +14,7 @@
     "source_inputs": [
       {
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "5a78c433289ca0536384c534dc76a5e5b74c1a11f45018390f52b65432b57bbf",
+        "sha256": "e4dd8e773c3d0ed94a73b1d378ee92bfeb79d7ea9c3e2cf5d4f4512a6c1af0c9",
         "role": "source-backed known public platform accounts and linkage state"
       }
     ],
@@ -29,13 +29,13 @@
       "capture_preflight_rule": "Capture should use registry freshness/routing state to avoid duplicate work, then rely on Capture/Silver records for facts and metrics."
     },
     "counts": {
-      "platform_accounts_total": 36,
-      "creator_records_total": 0,
-      "known_account_rows_total": 36,
+      "platform_accounts_total": 40,
+      "creator_records_total": 2,
+      "known_account_rows_total": 40,
       "platform_accounts_by_platform": {
-        "instagram": 3,
-        "tiktok": 3,
-        "youtube": 30
+        "youtube": 30,
+        "instagram": 5,
+        "tiktok": 5
       }
     },
     "platform_accounts": [
@@ -262,12 +262,12 @@
         "public_handle": "FragranceKnowledge",
         "normalized_public_handle": "fragranceknowledge",
         "public_profile_url": "https://www.youtube.com/channel/UCzH0Tal9pApj-F6KSGZHo4Q",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
+        "creator_record_id_or_none": "creator_fragranceknowledge_001",
+        "identity_state": "candidate_public_account_link",
         "discovery_state": "known_account",
         "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "linkage_state": "candidate_needs_review",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
         "freshness": {
           "identity_observed_at": "2026-06-27T18:23:26Z",
           "last_discovery_observed_at_or_none": null,
@@ -1129,14 +1129,14 @@
         "creator_record_id_or_none": null,
         "identity_state": "single_platform_observed",
         "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
+        "capture_state": "identity_observed_profile_packet_available",
         "linkage_state": "single_platform_observed",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "freshness": {
           "identity_observed_at": "2026-06-29T13:47:06Z",
           "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-29T14:50:03Z",
-          "metrics_freshness_state_or_none": "partial"
+          "last_capture_observed_at_or_none": "2026-06-29T13:47:06Z",
+          "metrics_freshness_state_or_none": null
         },
         "lookup_keys": [
           "platform_account_id:acct_ig_reels_001",
@@ -1164,14 +1164,14 @@
         "creator_record_id_or_none": null,
         "identity_state": "single_platform_observed",
         "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
+        "capture_state": "identity_observed_profile_packet_available",
         "linkage_state": "single_platform_observed",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "freshness": {
           "identity_observed_at": "2026-06-29T13:47:50Z",
           "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-29T14:50:03Z",
-          "metrics_freshness_state_or_none": "partial"
+          "last_capture_observed_at_or_none": "2026-06-29T13:47:50Z",
+          "metrics_freshness_state_or_none": null
         },
         "lookup_keys": [
           "platform_account_id:acct_ig_reels_002",
@@ -1199,14 +1199,14 @@
         "creator_record_id_or_none": null,
         "identity_state": "single_platform_observed",
         "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
+        "capture_state": "identity_observed_profile_packet_available",
         "linkage_state": "single_platform_observed",
         "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
         "freshness": {
           "identity_observed_at": "2026-06-30T12:33:04Z",
           "last_discovery_observed_at_or_none": null,
           "last_capture_observed_at_or_none": "2026-06-30T12:33:04Z",
-          "metrics_freshness_state_or_none": "partial"
+          "metrics_freshness_state_or_none": null
         },
         "lookup_keys": [
           "platform_account_id:acct_ig_reels_004",
@@ -1328,15 +1328,217 @@
           "not audience authority",
           "not contact or outreach authorization"
         ]
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_004",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "fragranceknowledge",
+        "normalized_public_handle": "fragranceknowledge",
+        "public_profile_url": "https://www.tiktok.com/@fragranceknowledge",
+        "creator_record_id_or_none": "creator_fragranceknowledge_001",
+        "identity_state": "candidate_public_account_link",
+        "discovery_state": "known_account",
+        "capture_state": "identity_observed_profile_packet_available",
+        "linkage_state": "candidate_needs_review",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "freshness": {
+          "identity_observed_at": "2026-07-07T15:01:16Z",
+          "last_discovery_observed_at_or_none": null,
+          "last_capture_observed_at_or_none": "2026-07-07T15:01:16Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_004",
+          "platform:tiktok:handle:fragranceknowledge",
+          "platform:tiktok:url:https://www.tiktok.com/@fragranceknowledge"
+        ],
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/36"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ]
+      },
+      {
+        "platform_account_id": "acct_ig_fragrance_005",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "Fragranceknowledge",
+        "normalized_public_handle": "fragranceknowledge",
+        "public_profile_url": "https://instagram.com/Fragranceknowledge",
+        "creator_record_id_or_none": "creator_fragranceknowledge_001",
+        "identity_state": "candidate_public_account_link",
+        "discovery_state": "known_account",
+        "capture_state": "identity_observed_profile_packet_available",
+        "linkage_state": "candidate_needs_review",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "freshness": {
+          "identity_observed_at": "2026-07-07T15:01:16Z",
+          "last_discovery_observed_at_or_none": null,
+          "last_capture_observed_at_or_none": "2026-07-07T15:01:16Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "lookup_keys": [
+          "platform_account_id:acct_ig_fragrance_005",
+          "platform:instagram:handle:fragranceknowledge",
+          "platform:instagram:url:https://instagram.com/fragranceknowledge"
+        ],
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/37"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ]
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_005",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "normalized_public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.tiktok.com/@noeldeyzel_fragrance",
+        "creator_record_id_or_none": "creator_noeldeyzel_fragrance_001",
+        "identity_state": "candidate_public_account_link",
+        "discovery_state": "known_account",
+        "capture_state": "identity_observed_profile_packet_available",
+        "linkage_state": "candidate_needs_review",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "freshness": {
+          "identity_observed_at": "2026-07-08T15:01:18Z",
+          "last_discovery_observed_at_or_none": "2026-07-08T15:01:18Z",
+          "last_capture_observed_at_or_none": "2026-07-08T15:01:18Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_005",
+          "platform:tiktok:handle:noeldeyzel_fragrance",
+          "platform:tiktok:url:https://www.tiktok.com/@noeldeyzel_fragrance"
+        ],
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/38",
+          "docs/review-inputs/noeldeyzel_fragrance_tiktok_creator_discovery_frontier_register_20260708.json",
+          "F:\\orca-data-lake\\raw\\8cc\\01KX13YSB6V0Y49D1H7Z3EAZ1K"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ]
+      },
+      {
+        "platform_account_id": "acct_ig_fragrance_006",
+        "platform": "instagram",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "normalized_public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.instagram.com/noeldeyzel_fragrance/",
+        "creator_record_id_or_none": "creator_noeldeyzel_fragrance_001",
+        "identity_state": "candidate_public_account_link",
+        "discovery_state": "known_account",
+        "capture_state": "identity_observed_profile_packet_available",
+        "linkage_state": "candidate_needs_review",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "freshness": {
+          "identity_observed_at": "2026-07-08T15:11:47Z",
+          "last_discovery_observed_at_or_none": null,
+          "last_capture_observed_at_or_none": "2026-07-08T15:11:47Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "lookup_keys": [
+          "platform_account_id:acct_ig_fragrance_006",
+          "platform:instagram:handle:noeldeyzel_fragrance",
+          "platform:instagram:url:https://www.instagram.com/noeldeyzel_fragrance/"
+        ],
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/39",
+          "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ]
       }
     ],
-    "creator_records": [],
+    "creator_records": [
+      {
+        "creator_record_id": "creator_fragranceknowledge_001",
+        "link_state": "candidate_public_account_link",
+        "review_state": "candidate_needs_review",
+        "platform_account_ids": [
+          "acct_yt_fragrance_007",
+          "acct_tiktok_fragrance_004",
+          "acct_ig_fragrance_005"
+        ],
+        "evidence_ids": [
+          "ev_linkhub_fragranceknowledge_20260707_001"
+        ],
+        "discovery_state": "known_candidate_linkage",
+        "routing_decision": "route_to_linkage_review_before_cross_platform_rollup_or_final_identity_use",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/creator_records/0"
+        ],
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not cross-platform metric rollup",
+          "not current handle guarantee"
+        ]
+      },
+      {
+        "creator_record_id": "creator_noeldeyzel_fragrance_001",
+        "link_state": "candidate_public_account_link",
+        "review_state": "candidate_needs_review",
+        "platform_account_ids": [
+          "acct_tiktok_fragrance_005",
+          "acct_ig_fragrance_006"
+        ],
+        "evidence_ids": [
+          "ev_candidate_noeldeyzel_fragrance_20260708_001"
+        ],
+        "discovery_state": "known_candidate_linkage",
+        "routing_decision": "route_to_linkage_review_before_cross_platform_rollup_or_final_identity_use",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/creator_records/1",
+          "docs/review-inputs/noeldeyzel_registry_match_preflight_receipt_20260708.json"
+        ],
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not cross-platform metric rollup",
+          "not current handle guarantee"
+        ]
+      }
+    ],
     "accepted_residuals": [
       "Current registry rows are platform-account rows from source-backed YouTube, Instagram, and identity-only TikTok seeds.",
       "TikTok rows currently carry identity/profile evidence only; no TikTok metric rollup or comment-body capture is admitted from logged-out challenge-limited runs.",
       "Discovery repeat-observation events are not yet stored as their own append-only event family.",
       "Capture freshness is a routing hint copied from current static source-backed rows, not a live recency SLA.",
-      "Candidate or promoted cross-platform creator records remain absent until public-handle linkage evidence is admitted."
+      "Candidate cross-platform creator records may exist as linkage-review rows; profile-current still remains platform-account scoped until promotion/materializer support exists."
     ],
     "non_claims": [
       "not raw capture storage",

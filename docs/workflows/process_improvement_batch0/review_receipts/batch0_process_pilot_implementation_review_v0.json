@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "review_id": "batch0-process-pilot-implementation-adversarial-review-v0",
+  "review_report_path": "docs/review-outputs/adversarial-artifact-reviews/batch0_process_pilot_implementation_adversarial_review_v0.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "claude-sonnet-5",
+  "authored_by": "unrecorded",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "OpenAI Codex / GPT-5",
+  "accepted_net_new_material_findings": 3,
+  "decision_changed": "yes",
+  "closure_state": "partially_closed",
+  "report_lines": 283,
+  "turn_count": "unknown",
+  "evidence_pointers": [
+    "docs/review-outputs/adversarial-artifact-reviews/batch0_process_pilot_implementation_adversarial_review_v0.md",
+    "docs/review-outputs/adversarial-artifact-reviews/batch0_process_pilot_implementation_adjudication_v0.md",
+    "docs/prompts/reviews/batch0_process_pilot_implementation_adversarial_review_prompt_v0.md"
+  ],
+  "completed_at": "2026-07-11"
+}

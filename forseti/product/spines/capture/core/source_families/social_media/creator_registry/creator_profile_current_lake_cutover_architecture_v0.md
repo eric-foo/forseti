@@ -72,8 +72,10 @@ identity-only. The write half (`silver_metric_producer.py`) and read half
 (`silver_metric_reader.py`) are merged and proven no-drift, but nothing in
 production uses the reader. Hard constraints:
 
-1. The real lake is **external** (`F:\orca-data-lake`, `ORCA_DATA_ROOT`,
-   fail-closed outside the repo). **CI has no lake.**
+1. The real lake is **external** (`F:\forseti-data-lake`, `FORSETI_DATA_ROOT`;
+   legacy `ORCA_DATA_ROOT` accepted as compatibility fallback; fail-closed
+   outside the repo — physical root renamed from `F:\orca-data-lake`
+   2026-07-10). **CI has no lake.**
 2. The view is a **committed git artifact**, CI-verified deterministically.
    Determinism must hold with no lake present.
 3. The seed carries metadata **not** in the Silver records — the seed file
@@ -238,7 +240,8 @@ API, no producer change):
   fail-closed key.
 - **Instagram** (packet-anchored): `list_available(source_family="instagram_creator")`
   → packet ids → `lane_dir(subtree="derived", raw_anchor=<packet_id>, lane="creator_metric_rollup_silver")`;
-  map each rollup to its account via `subject.ref.orca_platform_account_id`. (Mirrors
+  map each rollup to its account via `subject.ref.forseti_platform_account_id`
+  with legacy `subject.ref.orca_platform_account_id` read fallback. (Mirrors
   the `ig_reels_behavioral_lake.py:123` precedent.)
 - **YouTube** (account-anchored): for each expected YT account id,
   `lane_dir(subtree="derived", raw_anchor=<platform_account_id>, lane="creator_metric_rollup_silver")`.

@@ -79,9 +79,9 @@ def test_product_public_handle_ledger_seed_loads_and_validates() -> None:
 
     wrapper = _wrapper(loaded)
     assert wrapper["ledger_mode"] == "public_handle_ledger"
-    assert len(wrapper["platform_accounts"]) == 36
-    assert wrapper["account_link_evidence"] == []
-    assert wrapper["creator_records"] == []
+    assert len(wrapper["platform_accounts"]) == 40
+    assert len(wrapper["account_link_evidence"]) == 2
+    assert len(wrapper["creator_records"]) == 2
     assert "not populated creator ledger" not in wrapper["non_claims"]
     assert {account["platform"] for account in wrapper["platform_accounts"]} == {"youtube", "instagram", "tiktok"}
     assert all("synthetic_fixture" not in account for account in wrapper["platform_accounts"])
@@ -92,12 +92,30 @@ def test_product_public_handle_ledger_seed_loads_and_validates() -> None:
     assert first_account["public_handle"] == "BowTieFragranceGuy"
 
     ig_accounts = [account for account in wrapper["platform_accounts"] if account["platform"] == "instagram"]
-    assert [account["public_handle"] for account in ig_accounts] == ["hyram", "jeremyfragrance", "milanscents"]
+    assert [account["public_handle"] for account in ig_accounts] == ["hyram", "jeremyfragrance", "milanscents", "Fragranceknowledge", "noeldeyzel_fragrance"]
     assert all(account["platform_public_account_id_or_none"] is None for account in ig_accounts)
 
     tiktok_accounts = [account for account in wrapper["platform_accounts"] if account["platform"] == "tiktok"]
-    assert [account["public_handle"] for account in tiktok_accounts] == ["funmimonet", "redolessence", "perfumerism"]
+    assert [account["public_handle"] for account in tiktok_accounts] == ["funmimonet", "redolessence", "perfumerism", "fragranceknowledge", "noeldeyzel_fragrance"]
     assert all(account["platform_public_account_id_or_none"] is None for account in tiktok_accounts)
+
+    creator_record = wrapper["creator_records"][0]
+    assert creator_record["creator_record_id"] == "creator_fragranceknowledge_001"
+    assert creator_record["link_state"] == "candidate_public_account_link"
+    assert creator_record["review_state"] == "candidate_needs_review"
+    assert creator_record["platform_account_ids"] == [
+        "acct_yt_fragrance_007",
+        "acct_tiktok_fragrance_004",
+        "acct_ig_fragrance_005",
+    ]
+    noel_record = wrapper["creator_records"][1]
+    assert noel_record["creator_record_id"] == "creator_noeldeyzel_fragrance_001"
+    assert noel_record["link_state"] == "candidate_public_account_link"
+    assert noel_record["review_state"] == "candidate_needs_review"
+    assert noel_record["platform_account_ids"] == [
+        "acct_tiktok_fragrance_005",
+        "acct_ig_fragrance_006",
+    ]
 
 
 def test_unknown_top_level_sibling_key_raises() -> None:
