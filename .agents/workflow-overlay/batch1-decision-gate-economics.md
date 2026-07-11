@@ -161,6 +161,9 @@ direction_change_propagation:
   controlling_sources_updated:
     - .agents/workflow-overlay/batch1-decision-gate-economics.md
     - .agents/workflow-overlay/README.md
+    - docs/decisions/forseti_doctrine_index_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/workflows/process_improvement_batch1/README.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/source-loading.md
@@ -168,9 +171,6 @@ direction_change_propagation:
     - .agents/workflow-overlay/review-lanes.md
     - .agents/workflow-overlay/prompt-orchestration.md
     - .agents/workflow-overlay/batch0-process-pilot.md
-    - docs/decisions/forseti_doctrine_index_v0.md
-    - docs/workflows/forseti_repo_map_v0.md
-    - docs/workflows/process_improvement_batch1/README.md
   intentionally_not_updated:
     - path: AGENTS.md
       reason: >
