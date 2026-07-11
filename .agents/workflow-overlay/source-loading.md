@@ -172,13 +172,16 @@ materially change the current claim, route, blocker, or edit boundary.
 - `.agents/workflow-overlay/prompt-orchestration.md` — routine prompt
   authoring (per the `AGENTS.md` routine-vs-full authoring split) reads
   "Forseti Prompt Preflight" plus the single section for the prompt family at
-  hand. Full read: fused, delegated-review-patch, and novel or cross-lane
-  authoring.
+  hand. Eligible lane-scoped delegated review-and-patch prompt authoring also
+  reads "Lane-Scoped Delegated Patch Prompt Default" plus the targeted
+  commissioning sections below. Full read: the **Full orchestration** predicate
+  in prompt-orchestration.md applies, or the prompt contract itself is being
+  edited.
 - `.agents/workflow-overlay/delegated-review-patch.md` — commissioning reads
   "When it applies", "The loop", "Access selection rule", "De-correlation",
   and the "Overlay Interface" block; code-diff commissioning also reads
-  "Code-diff target kind — the `delegated_code_review_and_patch` sibling
-  mode"; return adjudication reads "Adjudication closeout". Full read:
+  "Code-diff target kind — `delegated_code_review_and_patch`"; return
+  adjudication reads "Adjudication closeout". Full read:
   editing the convention or resolving a novel dispute about it.
 - `.agents/workflow-overlay/review-lanes.md` — routine review work reads
   "Current Lanes" plus the one section the task touches ("Review Doctrine"
