@@ -83,6 +83,9 @@ EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
     "run_source_capture_tiktok_live_batch_probe.py": (
         "live acquisition stages first; durable lake admission requires explicit --data-root"
     ),
+    "run_source_capture_tiktok_creator_onboarding.py": (
+        "supervised live onboarding stages first; durable lake admission requires explicit --data-root"
+    ),
 }
 # Orchestrator runners that forward data_root into raw-packet sub-runners
 # instead of calling a packet writer directly. Declared, not auto-discovered.
@@ -277,6 +280,14 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "only sanitized page-owned staging through the TikTok batch gate, but the "
             "resulting packet is still attributed to the requested creator/video without "
             "an end-to-end served author identity proof"
+        ),
+    },
+    "run_source_capture_tiktok_creator_onboarding.py": {
+        "status": "unbound",
+        "reason": (
+            "onboarding binds grid metrics to source-visible creator rows and reuses the "
+            "validated session across selected-video capture, but admitted comment/subtitle "
+            "artifacts still lack an end-to-end served author identity proof"
         ),
     },
     "run_source_capture_tiktok_video_packet.py": {

@@ -51,72 +51,69 @@ This is an observed operating-cost signal, not proof of the cause.
 | Cleanup is actor/instruction carried | firing unknown | doctrine item 10 and current counts | Audit invocation and refusal reasons before adding automation. |
 | Dirty/open/unpushed/sealed lanes may legitimately resist cleanup | mixed legitimate residue | doctrine item 10 guards | Classify before removing; count alone cannot authorize deletion. |
 
-## Recurrence observation — 2026-07-11
+## Next bounded read-only step
 
-A fresh fetched-main/live-PR run at `2026-07-11T08:03:52.4552234Z`
-observed:
+Classify every linked worktree into: open PR, merged/gone and clean, merged/gone
+but dirty, closed-unmerged, ahead/unpushed, sealed/protected, or unknown. Do not
+remove anything in this audit. A later cleanup lane must re-derive live state,
+use non-force removal, and preserve all doctrine guards.
+
+## Read-only classification — 2026-07-12
+
+The bounded lifecycle-latency lane extended
+`.github/scripts/lane-health-check.ps1` with a read-only classifier and ran it
+from an isolated clean worktree after `git fetch --prune origin` plus one
+repository-wide GitHub PR-state read. The run classified all linked worktrees
+without deleting, moving, staging, committing, pushing, or changing a branch.
+
+Fresh observed summary (`2026-07-11T16:56:56.4081582Z`):
 
 ```text
-origin_main_ref=fetched
-worktrees_total=55
-linked_worktrees=54
-local_branches=132
-branches_merged_into_origin_main=18
-stale_over_48h=11
-unknown_age=0
-unknown_guards=3
-classifications=ahead_or_unpushed:5, merged_or_gone_dirty:1, closed_unmerged:2, unknown:3
-commands_started=29
-commands_completed=29
-commands_timed_out=0
-commands_failed=0
-commands_not_started=0
-termination_failures=0
-containment_complete=true
-wall_seconds=31.337
+linked_worktrees=71
+elapsed_seconds=7.356
+open_pr=14
+merged_gone_clean=8
+merged_gone_dirty=6
+closed_unmerged=3
+ahead_unpushed=6
+unknown=34
+cleanup_candidates=8
 ```
 
-The run used the detector's measured default budgets:
+The earlier 211-linked-worktree baseline and this 71-linked-worktree observation
+were taken at different times while other lanes were active. This lane performed
+no cleanup, so it does not claim to have caused the reduction.
 
-```powershell
-pwsh -NoProfile -File .github/scripts/lane-health-check.ps1 -Json `
-  -Fetch -QueryPullRequests
-```
+A first classifier run identified 12 candidates. Fresh inspection exposed a
+missing safety condition: `[gone]` alone cannot prove that the local branch did
+not move after its PR. Requiring the local worktree HEAD to equal the latest
+merged PR head reduced the candidate set to eight and reclassified the mismatches
+as `ahead_unpushed`. The guard is now covered by the script selftest.
 
-The 45-second monotonic whole-run budget and four-second worker budget returned
-in 31.337 seconds. All 29 requested commands completed, with no timeout,
-not-started command, failure, or termination failure.
+Independent review added two further fail-closed conditions: a gone upstream
+must be exactly `origin/<branch>`, and only PRs whose head belongs to the
+origin repository participate in classification. Any open or closed-unmerged PR
+history takes precedence over merged history, and classification refuses when the
+2,000-row query boundary makes completeness unproven.
 
-GitHub PR evidence was available and complete, and `origin/main` was freshly
-fetched. No lane retained unknown age evidence. Three stale records retained
-incomplete guard evidence, so the command exited 1: incomplete guards remain a
-warning and never become cleanup authorization.
+Fresh guarded candidate set from that observation:
 
-The self-test proved timeout classification and two previously missed process
-shapes on the current Windows PowerShell 7.6.3 runtime: an early-exiting parent
-with a live child, and a child holding inherited output pipes. The coordinator
-assigns a blocked supervisor to a kill-on-close Windows Job Object before release,
-terminates residual job members on timeout or normal root exit, and confirms the
-active job-process count reaches zero before closing the handle. A post-run
-command-line census found no live `lane-health-check.ps1`,
-`InternalWorktreeProbe`, or lane `status --porcelain` process. Unrelated Codex
-background Git reads were not touched.
+| Branch | Worktree | Merged PR |
+| --- | --- | --- |
+| `claude/repo-map-assessment-a24aa2` | `C:/Users/vmon7/Desktop/projects/orca/.claude/worktrees/repo-map-assessment-a24aa2` | #856 |
+| `codex/amazon-capture-latency-session` | `C:/tmp/orca-amazon-capture-latency-session` | #865 |
+| `codex/batch0-pr860-receipt` | `C:/Users/vmon7/Desktop/projects/orca/worktrees/batch0-pr860-receipt` | #863 |
+| `codex/behavioral-ceremony-reduction` | `C:/Users/vmon7/Desktop/projects/orca/worktrees/behavioral-ceremony-reduction` | #871 |
+| `codex/forseti-data-root-default` | `C:/Users/vmon7/Desktop/projects/orca/worktrees/forseti-data-root-default` | #860 |
+| `codex/problem-integrity-compression` | `C:/Users/vmon7/Desktop/projects/orca/worktrees/problem-integrity-compression` | #861 |
+| `codex/retail-walmart-target-projection-ecr-cleaning-reroot` | `C:/Users/vmon7/.codex/worktrees/2d1c/orca` | #859 |
+| `codex/tiktok-grid-video-selection` | `C:/Users/vmon7/Desktop/projects/orca/orca-worktrees/tiktok-grid-video-selection` | #867 |
 
-This is an **observed, volatile recurrence snapshot**. Concurrent lanes can
-change every count. It does not attribute the difference from the intake baseline
-to cleanup or prove that a stale classification is safe to act on.
-
-## Current bounded read-only route
-
-`.github/scripts/lane-health-check.ps1` now emits the classification above. On
-Windows it uses one coordinator, one sequential owned worker per old lane, a
-45-second monotonic subprocess budget, a four-second worker execution budget, and
-bounded containment/drain inside the whole-run budget. Every internal worker
-proves membership in the coordinator's named Job Object before Git or filesystem
-work. A timeout, process failure, future timestamp beyond tolerance, missing path,
-failed parse, unavailable PR snapshot, or exhausted budget remains explicitly
-unknown. Non-Windows execution aborts before the first telemetry subprocess. The
-output never names cleanup candidates or grants cleanup authority.
-
-Any later cleanup lane must re-derive live state, use non-force removal, and
-preserve every doctrine item 10 guard. This audit grants no cleanup authority.
+This table is volatile evidence, not cleanup authority. Any later cleanup must
+re-run the classifier, use non-force `git worktree remove`, and preserve every
+doctrine guard. This patch does not execute doctrine item 10's lane-start sweep
+or branch-only cleanup; those remain actor-carried behavioral rules. The
+classifier only prepares live evidence for a separately guarded action. The
+same patch removes the unsafe `--force` instruction from
+`.github/scripts/spin-up-lane.ps1`; that implementation is not durable on
+`main` until its lane PR lands.
