@@ -75,6 +75,14 @@ _SCI_VERBATIM = """`Complete` is load-bearing. Do not underfix to minimize diff,
 visible change; a slightly larger fix is correct when required for durable,
 coherent, non-fragile completion.
 
+Prefer the biggest COMPLETE move you can still fully verify and the owner
+can still steer in one pass -- not a thin smoke-test slice that proves
+plumbing and defers the real capability. Over-slicing is its own
+compounding cost: the deferrals pile up and rot, and each slice burns a
+full plan/review/steer cycle. Slice deliberately only when the move is
+high-lock-in or irreversible (probe first) or you genuinely need real
+output to design the rest (harvest before cook) -- never just to look safe.
+
 `Smallest` is also load-bearing. Do not add unrelated cleanup, speculative
 abstractions, broad rewrites, extra workflow ceremony, or nice-to-have
 improvements.
@@ -191,6 +199,22 @@ def run_hook(root: Path) -> int:
 def selftest() -> int:
     ok = True
     root = repo_root()
+
+    # The reminder promises a verbatim mirror of the owning SCI section. Keep
+    # that promise mechanically fail-capable when AGENTS.md changes again.
+    try:
+        agents_text = (root / "AGENTS.md").read_text(encoding="utf-8")
+        sci_source = (
+            agents_text.split("## Smallest Complete Intervention", 1)[1]
+            .split("### Problem Integrity", 1)[0]
+            .strip()
+        )
+        mirror_ok = _SCI_VERBATIM.strip() == sci_source
+    except (OSError, IndexError):
+        mirror_ok = False
+    if not mirror_ok:
+        ok = False
+    print(("PASS" if mirror_ok else "FAIL") + "  sci-verbatim mirror")
 
     scope_cases = [
         ("decision doc in scope", "docs/decisions/foo_v0.md", True),

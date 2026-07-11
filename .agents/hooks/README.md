@@ -124,6 +124,7 @@ python .agents/hooks/check_full_gt_claims.py --selftest
 python .agents/hooks/check_prompt_provenance.py --selftest
 python .agents/hooks/check_shared_files_dirty.py --selftest
 python .agents/hooks/check_token_burn.py --selftest
+python .agents/hooks/session_context_capsule.py --selftest
 python .agents/hooks/remind_sci.py --selftest
 ```
 
