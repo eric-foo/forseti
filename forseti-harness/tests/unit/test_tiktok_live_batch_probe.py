@@ -2938,3 +2938,97 @@ def _hydration(
             }
         }
     }
+
+
+def test_live_probe_cli_defaults_to_measured_ten_second_gap() -> None:
+    args = runner.build_parser().parse_args(
+        [
+            "--creator-handle",
+            "funmi",
+            "--creator-profile-url",
+            "https://www.tiktok.com/@funmi",
+            "--video-url",
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "--logged-out",
+            "--output-dir",
+            "out",
+        ]
+    )
+
+    assert args.cadence_min_gap_seconds == 10.0
+    assert args.cadence_max_gap_seconds == 10.0
+
+
+def test_default_cloakbrowser_batch_reuses_one_owned_session(monkeypatch) -> None:
+    instances: list[object] = []
+    seen_engines: list[object] = []
+
+    class FakeSessionEngine:
+        def __init__(self, **_kwargs: object) -> None:
+            self.closed = False
+            instances.append(self)
+
+        def close(self) -> None:
+            self.closed = True
+
+        @property
+        def lifecycle_receipt(self) -> dict[str, object]:
+            return {
+                "engine": "fake_cloakbrowser_page_observation_session",
+                "browser_launch_count": 1,
+                "context_creation_count": 1,
+                "capture_attempt_count": len(seen_engines),
+                "capture_success_count": len(seen_engines),
+                "closed": self.closed,
+            }
+
+    def fake_fetch_browser_page_observation_capture(
+        **kwargs: object,
+    ) -> BrowserPageObservationSuccess:
+        seen_engines.append(kwargs["engine"])
+        video_id = str(kwargs["url"]).rsplit("/", 1)[-1]
+        return _success_observation(
+            video_id=video_id,
+            response=_comment_response(video_id=video_id),
+            subtitle_url="https://v16.tiktokcdn.com/subtitle.webvtt",
+        )
+
+    monkeypatch.setattr(
+        live_batch_probe,
+        "CloakBrowserPageObservationSessionEngine",
+        FakeSessionEngine,
+    )
+    monkeypatch.setattr(
+        live_batch_probe,
+        "fetch_browser_page_observation_capture",
+        fake_fetch_browser_page_observation_capture,
+    )
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        logged_out=True,
+        browser_backend="cloakbrowser",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda _url: (
+            b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n"
+        ),
+    )
+
+    assert len(instances) == 1
+    assert seen_engines == [instances[0], instances[0]]
+    assert instances[0].closed is True
+    assert result["cadence_result"]["browser_lifecycle"] == {
+        "engine": "fake_cloakbrowser_page_observation_session",
+        "browser_launch_count": 1,
+        "context_creation_count": 1,
+        "capture_attempt_count": 2,
+        "capture_success_count": 2,
+        "closed": True,
+    }
