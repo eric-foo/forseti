@@ -12,7 +12,7 @@ open_next:
   - docs/research/search_surface_mgt_pilot_p1_decision_source_triage_v0.md
   - docs/research/search_surface_mgt_pilot_p1_direct_source_capture_v0/capture_manifest.json
   - docs/research/search_surface_mgt_pilot_p1_direct_source_capture_v0/hashes_sha256.txt
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
 stale_if:
   - The five Priority A source URLs are recaptured through a different route.
   - Reddit access becomes packet-grade locally available and supersedes the screen-light web/browser read.

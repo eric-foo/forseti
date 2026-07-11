@@ -21,6 +21,14 @@ from capture_spine.tiktok_creator_discovery_frontier.validation import (
 )
 
 
+
+SUGGESTED_ACCOUNT_FRONTIER_SCOPE_LIMIT_RESIDUAL = (
+    "Suggested-account frontier registers capture source-visible recommendation "
+    "targets only; candidate account sizes, regions, sibling channels, and quality "
+    "are not established unless a later authorized candidate-profile run captures "
+    "them."
+)
+
 def build_tiktok_creator_discovery_frontier_register(
     *,
     scan_receipt: Mapping[str, Any],
@@ -31,7 +39,8 @@ def build_tiktok_creator_discovery_frontier_register(
     """Return a validated frontier register from receipt-backed suggested rows.
 
     The builder is intentionally network-free. It turns already-observed public
-    rows into weak TikTok discovery nodes/edges and unauthorized next-run
+    rows into weak TikTok discovery nodes/edges, an explicit scope-limit
+    residual about uncaptured candidate facts, and unauthorized next-run
     envelopes. It does not inspect TikTok, mutate Creator Registry, infer
     country, or produce metrics.
     """
@@ -49,6 +58,7 @@ def build_tiktok_creator_discovery_frontier_register(
     seed_url = _required_str(root_seed, "url")
     run_node_id = _node_id("run", run_id)
     seed_node_id = _node_id("seed_tiktok", seed_handle)
+    residuals = _frontier_residuals(accepted_residuals)
 
     nodes: list[dict[str, Any]] = [
         FrontierNode(
@@ -219,13 +229,22 @@ def build_tiktok_creator_discovery_frontier_register(
             "edges": edges,
             "frontier_decisions": [],
             "next_run_envelopes": next_run_envelopes,
-            "accepted_residuals": list(accepted_residuals),
+            "accepted_residuals": residuals,
             "non_claims": list(DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS),
         }
     }
     validate_tiktok_creator_discovery_frontier_register(register)
     return register
 
+
+
+def _frontier_residuals(accepted_residuals: Sequence[str]) -> list[str]:
+    residuals = [SUGGESTED_ACCOUNT_FRONTIER_SCOPE_LIMIT_RESIDUAL]
+    for residual in accepted_residuals:
+        residual_text = str(residual)
+        if residual_text not in residuals:
+            residuals.append(residual_text)
+    return residuals
 
 def _observation_dict(value: Mapping[str, Any] | SuggestedAccountObservation) -> Mapping[str, Any]:
     if isinstance(value, SuggestedAccountObservation):

@@ -109,17 +109,14 @@ docs/_inbox/).
   `known_top_level`.
 - `docs/` axis: role grammar exactly as bound in
   `.agents/workflow-overlay/artifact-folders.md` (unchanged by this binding).
-- `docs/product/` second-level axis: by lane. Bound lanes: `core_spine/`,
+- Historical `docs/product/` second-level axis: by lane during the pre-spine-first product-docs era. Bound lanes included `core_spine/`,
   `data_capture_spine/`, `judgment_spine/`, `signal_content/`, `ecr/`,
   `product_lead/`, plus the `search/` topic lane added by
-  `docs/decisions/forseti_search_product_lane_binding_v0.md` (a deliberate topic
-  vertical beside the function lanes; see that record for the inclusion test and
-  the invariant-#1 note). Existing bound subfolders (e.g.
-  `source_capture_toolbox/`) are unchanged. Files matching no lane may remain at `docs/product/` root
-  (bounded residual). Product lanes are bound here. Their `repo-structure.yaml`
-  status must match the actual migration state: `planned` before the Phase-2
-  apply, `current` only after the apply has run (the apply ran 2026-06-11).
-  New product artifacts should use the lane folders immediately (forward-only).
+  `docs/decisions/forseti_search_product_lane_binding_v0.md`. This is retained
+  for migration lineage and historical path resolution only. Current product
+  artifacts route through `forseti/product/`; `repo-structure.yaml` currently
+  has `product_lanes: []`, and current answer-engine/search work routes through
+  the scanning spine, not `docs/product/search/`.
 - `docs/decisions/`: stays flat in v0; its naming grammar plus this binding's
   map entry are the navigation aid. Revisit only by a later decision.
 - Archive mechanism: supersede banners and `superseded_by` header fields

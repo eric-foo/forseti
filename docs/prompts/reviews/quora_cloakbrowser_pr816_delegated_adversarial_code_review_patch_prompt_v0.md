@@ -28,6 +28,9 @@ forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom PR-review prompt pack
+  output_mode: review-report
+  output_destination: docs/review-outputs/quora_cloakbrowser_pr816_delegated_adversarial_code_review_patch_v0.md
+  template_kind: review plus bounded patch commission
   edit_permission: docs-write for this prompt artifact only; delegated reviewer receives bounded patch authority as stated below
   target_scope: PR #816 review prompt for Quora source-capture profile-backed CloakBrowser and source-detail sufficiency-gate patch
   dirty_state_checked: yes - prompt authored in a separate prompt-only worktree off main; target PR worktree observed clean except untracked _test_runs/

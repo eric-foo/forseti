@@ -46,6 +46,9 @@ from typing import Any, Mapping, Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from capture_spine.creator_profile_current.silver_subject_ref import (
+    platform_account_id_from_subject_ref as _platform_account_id_from_subject_ref,
+)
 from capture_spine.creator_profile_current.tiktok_metric_seed import (
     TIKTOK_BATCH_METRIC_RECIPE_VERSION,
     build_tiktok_batch_creator_metric_seed_document,
@@ -166,7 +169,9 @@ def resolve_account_map(
 
 def _account_of(record: Mapping[str, Any]) -> str | None:
     try:
-        return record["payload"]["observation"]["subject"]["ref"]["orca_platform_account_id"]
+        return _platform_account_id_from_subject_ref(
+            record["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+        )
     except (KeyError, TypeError):
         return None
 

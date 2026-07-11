@@ -118,11 +118,15 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/transcript/audio_asr.py": (
         ("transcriber_policy envelope defaults (model/compute/decode params are CLI-enveloped)",),
-        "1b74a9d9df8e111edee05f3350edca1de75f422cdb95715de310c43652a047d6",
+        # Pin bumped: added a bounded yt-dlp subprocess timeout (liveness guard). NOT output-shaping
+        # -- only the hang-failure path changes; a successful bestaudio download derives identically.
+        "9e778b107a3e3deec7fee83c0dc06b5cb7dc5a36e71e4d8c48393564abb98b09",
     ),
     "source_capture/transcript/ig_reels_audio_packet.py": (
         ("transcriber_policy envelope (run_asr_transcript_catchup)", "TRANSCRIPT_ASR_RECORD_SCHEMA_VERSION (record-shape token, shared from asr_packet.py; weak-envelope residual closed)"),
-        "e28bafa6c049d42fb115c52518c6a11d2d666bed386f518964b402589585502a",
+        # Pin bumped: added a bounded yt-dlp subprocess timeout (liveness guard). NOT output-shaping
+        # -- only the hang-failure path changes; a successful Reel bestaudio download derives identically.
+        "3f2bcd15d3f201fc30fe066d4ebfd0e6b2c592e7e7a85ad9209253095204ee57",
     ),
 }
 

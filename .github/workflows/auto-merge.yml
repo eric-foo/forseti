@@ -1,10 +1,10 @@
 name: auto-merge
 
-# Lands clean + green lane PRs that opt in via the `agent-automerge` label AND
-# pass the deterministic low-risk router (`risk/auto-merge-eligible`), without
-# the human merge step — within this repo's reality that native auto-merge and
-# branch protection are 403-blocked (private repo on a free plan). See
-# docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md.
+# Lands clean + green lane PRs that opt in via `agent-automerge` and pass the
+# deterministic low-risk router. Active `main` branch protection independently
+# requires the strict `forseti-harness-tests` check and an up-to-date head; this
+# workflow adds risk routing, serialization, and head pinning. Native repository
+# `allow_auto_merge` remains off. See the dev-workflow doctrine.
 #
 # The interactive-agent EP-03 gate (.agents/hooks/guard_protected_actions.py) is
 # UNCHANGED: it blocks in-session `gh pr merge` and direct push-to-main attempts.

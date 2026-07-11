@@ -81,7 +81,8 @@ extraction shortfall.
    houses/10 products from one creator-week, but price tiers and note families
    required operator market knowledge; canonical reference data (sourcing and
    licensing posture: owner decision) is what makes the fit panel's
-   distributions derivable instead of asserted.
+   distributions derivable instead of asserted. *(Update 2026-07-10: since
+   built — `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml`.)*
 4. **ASR-aware entity resolution** — observed manglings ("Jim Fraganz",
    "Savage", "Jean Procté", "Parfumse de male", 2 unresolvable niche entities)
    mean exact-match resolution will silently drop the tail; the extractor

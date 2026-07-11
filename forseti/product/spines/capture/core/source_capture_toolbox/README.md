@@ -723,18 +723,18 @@ limitations visible.
 Use this folder for product-facing Source Capture Armory docs:
 
 ```text
-docs/product/source_capture_toolbox/
+forseti/product/spines/capture/core/source_capture_toolbox/
   README.md
-  <future scoped specs and gap notes>
+  <scoped specs, recon closeouts, and gap notes>
 ```
 
 Use the harness for implementation:
 
 ```text
-orca-harness/source_capture/
-orca-harness/runners/run_source_capture_packet.py
-orca-harness/docs/<implementation usage docs>
-orca-harness/tests/<unit and contract tests>
+forseti-harness/source_capture/
+forseti-harness/runners/run_source_capture_packet.py
+forseti-harness/docs/<implementation usage docs>
+forseti-harness/tests/<unit and contract tests>
 ```
 
 Do not move existing controlling product or decision artifacts into this folder

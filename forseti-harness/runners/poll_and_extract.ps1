@@ -13,7 +13,7 @@ $Model = "codex-extraction-v0"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $HarnessPath = Join-Path $RepoRoot "forseti-harness"
 $PromptPath = Join-Path $RepoRoot "docs\prompts\handoffs\ig_reels_product_extract_codex_exec_prompt_v0.md"
-$PromptSha256 = "68243EF7DC57A8B3C08DF4D6A918453CAA5A98B61F2A3C1C5A0873E962B7A332"
+$PromptSha256 = "7D8CAC53DC4F4AA80A53907B50FD3DC1F81FF2B2DE6B3726C0A8CC03F574F1CB"
 $LogDir = Join-Path ([System.IO.Path]::GetTempPath()) "forseti_ig_reels_extract_routine"
 
 function Get-ForsetiDriveLetters {

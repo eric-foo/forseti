@@ -29,12 +29,12 @@ requested_skill: workflow-delegated-review-patch
 lane_mode: provisional_opt_in_route_out
 terminal_output_mode: filed_prompt_plus_paste_ready_copy
 why_not_bound_delegated_patch: >
-  Orca delegated review-and-patch is provisional and single-target for patch
+  Forseti delegated review-and-patch is provisional and single-target for patch
   authority. The inferred target here is a multi-file docs/product-spine change
   packet, so this prompt routes to read-only adversarial artifact review. It does
   not authorize patching.
-preflight_defaults: docs/prompts/templates/shared/orca_preflight_defaults_v0.md v0 - constants bound; deltas stated below.
-orca_start_preflight:
+preflight_defaults: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md v0 - constants bound; deltas stated below.
+forseti_start_preflight:
   agents_read: yes
   overlay_read: yes
   source_pack: custom_change_packet_review
@@ -89,7 +89,7 @@ The goal and signal are review axes to attack, not a pass-if-matches bar.
 ````markdown
 # Adversarial Review Prompt: Scanning Spine Bloat Cut + Precursor Vocab
 
-You are performing a read-only adversarial artifact review for Orca.
+You are performing a read-only adversarial artifact review for Forseti.
 
 Do not patch files. Do not commit, stage, push, merge, or open a PR. If the right
 fix requires patching, report the finding and the minimum closure condition only.
@@ -135,17 +135,17 @@ Changed files in scope:
 - `docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md`
 - `docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0_evidence.json`
 - `docs/workflows/orca_repo_map_v0.md`
-- `orca/product/spines/scanning/README.md`
-- `orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md`
-- `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
-- `orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`
-- `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md`
-- `orca/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md`
-- `orca/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md`
+- `forseti/product/spines/scanning/README.md`
+- `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md`
+- `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
+- `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`
+- `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_discovery_planning_lane_architecture_v0.md`
+- `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md`
+- `forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md`
 
 ## Delegated Review-Patch Route-Out Boundary
 
-The request came through `workflow-delegated-review-patch`, but Orca's current
+The request came through `workflow-delegated-review-patch`, but Forseti's current
 delegated review-and-patch convention is provisional and patch-authorized only
 for a single Chief-Architect-named target artifact. This target is a multi-file
 docs/product-spine change packet. Therefore:
@@ -182,7 +182,7 @@ Attack these axes:
 - whether repo-map and migration resolver edits are sufficient, or whether live
   stale references remain outside historical migration/review snapshots;
 - whether the direction-change propagation receipt in
-  `orca/product/spines/scanning/README.md` is complete enough for future agents;
+  `forseti/product/spines/scanning/README.md` is complete enough for future agents;
 - whether validation evidence is accurately characterized, especially the
   placement checker's exit-0 advisory debt.
 
@@ -217,10 +217,10 @@ Then read the review target diff and only the target files or targeted sections
 needed to support findings. Prefer the commit diff over full-file loading. If a
 full-file read is needed, prioritize:
 
-- `orca/product/spines/scanning/README.md`
-- `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
-- `orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md`
-- `orca/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`
+- `forseti/product/spines/scanning/README.md`
+- `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
+- `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md`
+- `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`
 
 Available but not default-loaded unless material:
 

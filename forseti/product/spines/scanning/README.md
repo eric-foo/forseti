@@ -17,6 +17,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
   - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md
+  - forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md
   - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
 stale_if:
   - The MGT intelligent-walk operating model changes its shared vocabulary or hard boundaries.
@@ -38,7 +39,10 @@ stale_if:
 3. Open the Demand Scan-Core Spec only when the work needs rich promoted
    observation schema, gate preparation, or backward/forward scan-mode detail.
 4. Open source-family adapters only for local restrictions: Reddit, LinkedIn,
-   answer-engine/search, or future families.
+   answer-engine/search, or future families. For answer-engine/search-interest or
+   AEO work, continue from this README to
+   `source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`,
+   then to research evidence under `docs/research/answer_engine/`.
 5. Open Capture sources only when a `capture_request` or source-access wall is
    present. Scanning cites route state; Capture owns route binding.
 
@@ -51,6 +55,24 @@ stale_if:
 | Adjudication / support | `admissibility_checkability/*.md` | Gate-definition and scan-core decision surfaces. |
 | Source-family adapters | `source_families/*/*.md` | Local guardrails mapped into shared scanning vocabulary. |
 | Research / probe evidence | `docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md` | AEO feasibility evidence; not product-spine authority. |
+
+## Answer-Engine / Search Current Route
+
+For answer-engine, AEO, or search-interest work, use this
+current route:
+
+1. Start here, at the scanning spine front door.
+2. Open
+   `forseti/product/spines/scanning/source_families/answer_engine/demand_search_interest_sourcing_and_gate_delta_spec_v0.md`
+   as the proposed product-method source-family spec.
+3. Open `docs/research/answer_engine/` only as research/probe evidence for that
+   spec.
+
+Do not use `docs/product/search/` or the search-lane binding record as the
+current execution route. Those surfaces are historical/governance and migration
+context. This route does not ratify the AEO method, authorize source capture,
+scraping, scaling, schema hardening, or implementation, or convert AEO evidence
+into product authority or a gate-recordable method.
 
 ## Shared Output Vocabulary
 
