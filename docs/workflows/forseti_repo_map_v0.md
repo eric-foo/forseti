@@ -71,6 +71,7 @@ hierarchy.
 | "Research engine" grouping: what CSB + Scanning + Capture are as one data-extraction group | `docs/workflows/forseti_research_engine_map_v0.md` | Colloquial cross-spine grouping map over the three extraction spines; states the Capture->ECR boundary. Label + navigation only, not a spine or authority. |
 | Source-capture access routes / anti-blocking playbook | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` | Armory index over the tested per-source capture routes. |
 | Known source capture-to-lake route (TikTok, YouTube, Instagram, Reddit, fragrance-native database, Retail/PDP, vendor pricing page) | `forseti/product/spines/capture/core/source_families/README.md` | Source-family lane catalog routes from the generic playbook/Armory into the owning family index and onward to runners/projection/lake/cleaning seams without duplicating lake doctrine. |
+| Current terminal-capability thesis / candidate-universe reset | `docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md` | Controlling product direction: institutional evidence adjudication and decision learning; decision-relative evidence weighting is the epistemic heart; no terminal market, first wedge, buyer, or product form selected. |
 | Instruct a model to weight presented evidence / how much a source counts for a decision (evidence weighting; source credibility/quality as a decision-relative judgment question, not capture access) | `forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md` | Owning doctrine for the C2 in-case merits basis: decision-relative fitness, merits axes, model-facing Instruction Core, weighting failure modes; mirrors the Judgment consolidation map's Fast Route row. |
 
 ## Active Hooks (IMPORTANT)
@@ -392,10 +393,11 @@ Use these before broad product architecture or CA setup:
 
 | Path | Use for |
 | --- | --- |
-| `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` | Forseti thesis (consumer-demand decision intelligence, beauty first; owner-ratified 2026-06-12; supersedes `docs/decisions/turn_08_product_thesis_v0.md`), value proposition, strategic center, product boundary. |
-| `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md` | Offer hypothesis, buyer-facing language, first proof offer, ICP boundary. |
-| `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` | First buyer-proof packet, proof gates, pull signals, kill/graduation criteria. |
-| `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` | Current first-proof ICP wedge (beauty operator door; owner co-ratified 2026-06-12; supersedes pricing-first) and decision-family focus. |
+| `docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md` | **Current thesis.** Terminal-capability direction, evidence-weighting center, human/AI judgment boundary, public-information assumption, factual-input keep set, discard set, and candidate-universe reset contract. |
+| `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` | Superseded consumer-demand / beauty-first thesis; historical product input only. |
+| `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md` | Suspended buyer-specific offer binding; broad offer mechanics are reusable only after a new candidate/wedge rebinds them. |
+| `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` | Suspended consumer-demand buyer binding; generic proof, pull, trust, kill, and graduation grammar remains reusable after rebind. |
+| `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` | Superseded beauty-first wedge; historical candidate input only. |
 | `forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md` | Product proof lead role and proof execution boundary. |
 | `forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md` | Operative external-claims policy (owner-signed 2026-06-11): built-to vs proven-at, per-tier wording table, debunking triage. Read before any externally visible sentence about Forseti's judgment evidence. |
 
@@ -648,11 +650,13 @@ map versions unless the task is explicitly reviewing that older state.
 
 Start with:
 
-- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
-- `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`
-- `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
-- `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md`
+- `docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md`
 - `.agents/workflow-overlay/product-proof.md`
+
+During candidate-universe regeneration, do not treat the suspended offer,
+consumer-demand buyer-proof packet, or beauty-first wedge as current authority.
+Open them only for generic proof mechanics or historical candidate evidence,
+then rebind any reused rule to the newly selected buyer and decision.
 
 ### Core Spine Evidence Standard Work
 

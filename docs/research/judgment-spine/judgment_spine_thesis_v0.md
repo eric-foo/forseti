@@ -10,7 +10,9 @@ use_when:
   - Distinguishing the parent Judgment Spine goal from the v0.14 Judgment Harness spec.
 authority_boundary: retrieval_only
 open_next:
+  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
   - docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md
+  - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md
   - docs/research/judgment-spine/README.md
   - docs/research/judgment-spine/harness/v0_14/index.md
   - orca/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
@@ -168,6 +170,64 @@ direction_change_propagation:
     - mints no claim-tier or scoring vocabulary; target stays qualitative (no numeric EV/regret)
 ```
 
+## Amendment — 2026-07-12: Evidence Weighting Is The Epistemic Heart
+
+Owner direction adopts decision-relative evidence weighting as the epistemic
+heart of the Judgment Spine: the central discipline for deciding what each
+evidence item can support for a particular claim and decision frame. It does not
+replace framing, action selection, uncertainty, counterfactuals, reveal, or
+outcome memory.
+
+The same source may be load-bearing for one claim and weak for another. Weight
+belongs to `(evidence item, claim, decision frame)`, never to a permanent
+source-class ladder. The detailed merits axes and instruction behavior remain
+owned by the C2 in-case evidence-weighting doctrine; this amendment adopts the
+strategic principle without silently accepting every proposed implementation
+detail.
+
+Humans remain capable of valuable evidence-backed judgment and may produce
+commercial recommendations before autonomous Judgment maturity. AI's advantage
+hypothesis is high-dimensional, consistent, traceable reweighting across more
+evidence and changing frames than a human can reliably hold in working memory.
+That advantage is not a claim that an emitted numerical weight is calibrated.
+Current Judgment remains qualitative; a marginal item can tip a close decision
+by changing the weakest load-bearing basis without being assigned a fabricated
+"5%".
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Judgment Spine now names decision-relative evidence weighting as its
+    epistemic heart while preserving the complete frame-to-action-to-reveal
+    loop; human judgment remains commercially admissible before autonomous
+    Judgment maturity, AI advantage is framed as high-dimensional traceable
+    reweighting rather than magical numeric precision, and detailed C2
+    implementation doctrine remains proposed.
+  trigger: product_doctrine
+  controlling_sources_updated:
+    - docs/research/judgment-spine/judgment_spine_thesis_v0.md
+    - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
+    - forseti/product/spines/judgment/judgment_current_state_and_decomposition_v0.md
+  downstream_surfaces_checked:
+    - docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md
+    - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md
+    - forseti/product/spines/judgment/learning_loops/near_half/near_half_signal_reliability_ledger_v0.md
+  intentionally_not_updated:
+    - path: docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md
+      reason: >
+        Its optimization target and operating boundaries remain compatible;
+        this amendment changes the named epistemic center, not the accepted
+        highest-EV / decision-regret target.
+  stale_language_search: >
+    rg -n "static source ladder|source-class.*weight|numeric.*weight|human judgment"
+    docs/research/judgment-spine forseti/product/spines/judgment
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof or Judgment-quality evidence
+    - not adoption of every proposed C2 implementation detail
+```
+
 ## What The Spine Trains
 
 The Judgment Spine does not train model weights. It trains the surrounding judgment system:
@@ -308,3 +368,5 @@ This thesis does not claim Judgment Spine validation, buyer validation, product 
 It does not authorize implementation, runtime design, source maps, schemas, scrapers, automation, tests, deployment, commits, pushes, PRs, or CA execution.
 
 It is a north-star artifact for future Judgment Spine architecture and CA setup.
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

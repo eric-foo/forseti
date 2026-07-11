@@ -2,9 +2,9 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Decision record (wedge direction lock — owner co-ratified)
+artifact_role: Historical decision record (superseded wedge direction)
 scope: >
-  The first-proof wedge decision: consumer-demand decision intelligence,
+  The former first-proof wedge decision: consumer-demand decision intelligence,
   beauty/personal-care first, operator-brand first door, under the owner's
   no-warm-leads reachability constraint. Prepared 2026-06-11; co-ratified by
   the owner 2026-06-12 (see Status). Supersedes the pricing-first record as
@@ -14,10 +14,12 @@ scope: >
   input.
 supersedes:
   - docs/decisions/forseti_icp_wedge_pricing_first_v0.md
+superseded_by:
+  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
 use_when:
-  - Owner sign-off on the first ICP/wedge for the consumer-demand/beauty direction.
-  - Checking how the proposed wedge reconciles with the pricing-first lock.
-  - Planning the post-ratification product-doc cascade.
+  - Reviewing the historical consumer-demand / beauty-first wedge.
+  - Harvesting buyer, data, incumbent, or proof constraints after fresh verification.
+  - Comparing prior wedge logic with the regenerated candidate universe.
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_icp_wedge_pricing_first_v0.md
@@ -31,17 +33,12 @@ stale_if:
 
 ## Status
 
-`OWNER_LOCKED_DIRECTION` — co-ratified by the owner 2026-06-12, in-thread
-(owner words: "co-ratify ok"; thesis ask 2). This record is now the wedge
-direction lock and supersedes
-`docs/decisions/forseti_icp_wedge_pricing_first_v0.md` as first-proof wedge
-authority. The executed `direction_change_propagation` receipt for the
-ratification event (one receipt covering thesis + wedge cascades) lives in
-`docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
-("Doctrine-Change Propagation — Executed"). The owner's ask-1 amendment
-(measured-ToS-risk capture posture) is recorded there and in the decision
-memo; it changes this record's org-motion route citations from hard walls to
-capture-lane-owned bindings (see the dated notes below).
+`SUPERSEDED_AS_CURRENT_WEDGE` — co-ratified by the owner on 2026-06-12 and
+controlling until the 2026-07-12 candidate-universe reset in
+`docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md`. The
+beauty-first buyer and decision-family selection no longer control. This record
+remains historical input; its factual buyer, data, capture, incumbent, and proof
+constraints require fresh verification before reuse.
 
 Historical: proposed as `PROPOSED_PENDING_OWNER_SIGNOFF` by the product-lead
 lane 2026-06-11; until ratification the pricing-first record was the current
@@ -467,3 +464,5 @@ and is retained as history:
   corpus cascade ran at ratification (2026-06-12) per the runbook; further
   edits need their own authorization.
 - Mints no evidence-ladder vocabulary and changes no overlay rule.
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

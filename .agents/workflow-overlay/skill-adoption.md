@@ -150,13 +150,11 @@ skill-governance action under the Protected Skill Boundary.
   the old command/path remains as a thin compatibility wrapper for one
   transition window.
   - Source path: `.agents/skills/forseti-product-lead/SKILL.md` (Forseti-local).
-  - Source sha256: `c8b38c9bcb991b30dd13baeda9d420fe02bc412a8dae9b6a56ac59a9f2cec58c`
-    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-10 so the pin
-    is checkout-independent, superseding the raw-CRLF Get-FileHash value
-    observed 2026-07-08; `.agents` source and `.claude` deployment copy are
-    byte-identical; git content blob
-    `b4e05b63c86ca793418409821a94e27519525e28` on both copies, re-verified
-    2026-07-10).
+  - Source sha256: `dd258da3989118d4bceed4da326197c0e6cfcf9d5aecadfca5dc5fb5eb09f50a`
+    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-12 after the
+    controlling-thesis route was refreshed; `.agents` source and `.claude`
+    deployment copy were byte-identical at verification. Commit blob is
+    reread-required after closeout).
     Reread-required if the file changes; pin freshness enforced by
     `.agents/hooks/check_hash_pin_freshness.py`.
   - Compatibility wrapper path: `.agents/skills/orca-product-lead/SKILL.md` with

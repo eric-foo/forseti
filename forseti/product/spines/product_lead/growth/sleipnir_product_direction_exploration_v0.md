@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Product-direction exploration (EXPLORATORY — owner-gated; not ratified doctrine; authorizes nothing)
+artifact_role: Historical product-direction exploration (stale after 2026-07-12 thesis reset)
 scope: >
   Phase-0 exploration of a SIBLING product lane to Aphrodite: monetizing Forseti's
   research engine by selling its OUTPUT — research / competitive-intelligence decisions
@@ -13,12 +13,12 @@ scope: >
   path, and name/phase posture. Decides nothing; positions relative to the ratified records
   and restates none of them.
 use_when:
-  - Entering the research/CI-decisions-as-a-service exploration and needing the current frame.
-  - Checking how "Sleipnir" positions relative to the parent consumer-demand thesis and Aphrodite.
-  - Preparing the owner sign-off decision on whether/how to open this lane.
+  - Reviewing the former CI-decisions-as-a-service exploration as candidate input.
+  - Harvesting factual CI competitor, buyer, or product-form observations after fresh verification.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md            # controlling thesis (org-level-only default; buyer ladder; A1 carve; "sell the decision not the plumbing")
+  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md      # controlling thesis; candidate universe reopened
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md            # superseded historical thesis
   - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md   # the broad decisions-as-a-service offer this lane gives an identity to
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md  # pull/kill/graduation grammar (reuse; demand gate does NOT transfer)
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
@@ -34,7 +34,13 @@ stale_if:
 
 ## Status — EXPLORATORY, owner-gated (nothing decided or built)
 
-Phase-0 product-direction exploration **prepared for owner sign-off**. It decides
+`STALE_PENDING_CANDIDATE_UNIVERSE_RESET`. The 2026-07-12 thesis reset removed
+the parent consumer-demand authority and forbids carrying this exploration's
+product identity, buyer ladder, or recommendation into the new universe as an
+anchor. Its factual CI market and competitor observations remain candidate
+input after fresh verification.
+
+Historical phase-0 product-direction exploration **prepared for owner sign-off**. It decides
 nothing and authorizes no build, capture, outreach, publishing, or buyer contact.
 Every claim here is `product_learning`-capped: not validation, willingness-to-pay,
 buyer proof, or readiness of any kind.

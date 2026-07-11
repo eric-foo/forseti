@@ -10,10 +10,11 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
+  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md # controlling thesis and candidate-universe reset (2026-07-12)
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # superseded — historical beauty-first wedge
   - forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md  # superseded — historical (path updated 2026-06-12; phase-2 migration)
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md  # path updated 2026-06-12 (phase-2 migration); owns the Demand-Substrate Hard Gate
-  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # superseded — historical consumer-demand thesis
 input_hashes:
   - path: docs/decisions/turn_08_product_thesis_v0.md
     sha256: 822653A241CF84675A3F07F695BA0ED3BFACC230F7F13AA47A4649B5DB2CD7E6
@@ -27,17 +28,26 @@ input_hashes:
 
 ## Status And Boundary
 
-Status: `PROPOSED_PRODUCT_PROOF_CHARTER_V0`
+Status: `GENERIC_ROLE_REUSABLE_FIRST_PROOF_BINDING_SUSPENDED`
 
-Product planning verdict: `NEEDS_CUSTOMER_DISCOVERY`.
+Product planning verdict: `NEEDS_CANDIDATE_AND_BUYER_REBIND`.
 
-Readiness verdict: `ready for product-fit testing`; not buyer-validated, not feature-ready, not implementation-ready, and not commercially ready.
+Readiness verdict: not currently routed to product-fit testing; not
+buyer-validated, feature-ready, implementation-ready, or commercially ready.
 
 This charter defines a bounded Forseti Product Proof Lead. It is not a full Product Lead role. It does not own roadmap, feature planning, implementation, product readiness, commercial readiness, or validation claims.
 
 This artifact is docs-first only. It does not authorize software implementation, automation, packages, tests, dashboards, source maps, data-spine designs, commits, pushes, PRs, collection pipelines, or feature planning.
 
-## Consumer-Demand Refinement (2026-06-12, ratified cascade)
+## Candidate-Universe Reset (2026-07-12)
+
+The bounded Product Proof Lead role, proof discipline, pull standard, and
+kill/graduation mechanics remain reusable. The consumer-demand first-proof
+assignment below is suspended. A newly selected buyer, decision family, and
+proof object must explicitly rebind the role before proof execution or market
+contact.
+
+## Historical Consumer-Demand Refinement (2026-06-12, ratified cascade)
 
 This charter's first-proof framing is RE-TARGETED by the owner-ratified
 consumer-demand direction. Controlling authority:
@@ -79,7 +89,7 @@ direction_change_propagation:
   date: 2026-06-15
 ```
 
-## Commercial Target Selection Update (2026-06-16)
+## Historical Commercial Target Selection Update (2026-06-16)
 
 Owner direction confirms the first commercial target for the proof loop as
 US-market tractioned indie/DTC beauty or personal-care operators with a named
@@ -353,3 +363,5 @@ This charter does not prove:
 - Commercial readiness.
 - Core Spine v0 validation.
 - Source-system feasibility, data rights, or runtime feasibility.
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
