@@ -364,8 +364,9 @@ listeners or routes between pages; navigation is not a reason to relaunch.
 Per-item
 browser isolation is allowed only when a source-specific safety or correctness
 requirement names why reuse is unsafe; the receipt must record that policy.
-Multi-page receipts record browser-launch count, context-creation count, capture
-attempt/success counts, and close state. A runner that silently creates one
+Multi-page receipts record browser-launch count, context-creation count,
+page-creation count, page-reuse policy, capture attempt/success counts, and
+close state. A runner that silently creates one
 browser per item is a lifecycle defect, not a conservative default. Single-page
 runs are unaffected.
 
