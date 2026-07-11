@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "review_id": "behavioral-ceremony-reduction-pr871-adversarial-review-v0",
+  "review_report_path": "docs/review-outputs/adversarial-artifact-reviews/behavioral_ceremony_reduction_pr871_adversarial_review_v0.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "claude-sonnet-5",
+  "authored_by": "unrecorded",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "OpenAI Codex / GPT-5",
+  "accepted_net_new_material_findings": 4,
+  "decision_changed": "yes",
+  "closure_state": "closed",
+  "report_lines": 254,
+  "turn_count": "unknown",
+  "evidence_pointers": [
+    "docs/review-outputs/adversarial-artifact-reviews/behavioral_ceremony_reduction_pr871_adversarial_review_v0.md",
+    "docs/review-outputs/adversarial-artifact-reviews/behavioral_ceremony_reduction_pr871_adjudication_v0.md",
+    ".agents/workflow-overlay/communication-style.md",
+    ".agents/workflow-overlay/validation-gates.md"
+  ],
+  "completed_at": "2026-07-11"
+}

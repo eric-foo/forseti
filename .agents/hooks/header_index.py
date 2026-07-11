@@ -25,8 +25,9 @@ WHAT THIS DOES
              or "retrieval health: ok" when both are zero.  Exit 0.
 
   --strict   CI GATE — diff-scoped / forward-only.  Resolves changed .md files
-             vs a base ref (priority: $GITHUB_BASE_REF env var -> origin/<ref>;
-             then --base <ref> CLI arg; then default origin/main).  Computes
+             vs a base ref (priority: $FORSETI_DIFF_BASE exact CI event SHA;
+             then $GITHUB_BASE_REF -> origin/<ref>; then --base <ref>; then
+             default origin/main).  Computes
              the changed set via `git diff --name-only <base>...HEAD`.  For
              ONLY those changed files: fails (exit 1) if a changed durable
              non-exempt doc is MISSING-HEADER or is an ORPHAN.  Prints each
@@ -289,7 +290,7 @@ def load_map_text(root: Path) -> str:
         return _load_map_text_cml(map_files)
     # Fallback: local logic (used only when check_map_links import failed)
     parts: list[str] = []
-    map_path = root / "docs" / "workflows" / "orca_repo_map_v0.md"
+    map_path = root / "docs" / "workflows" / "forseti_repo_map_v0.md"
     if map_path.exists():
         try:
             parts.append(map_path.read_text(encoding="utf-8", errors="replace"))
@@ -484,12 +485,16 @@ def resolve_base_ref(root: Path, cli_base: str | None) -> str | None:
     """Resolve the base ref for diff-scoping.
 
     Priority:
-    1. $GITHUB_BASE_REF env var  -> "origin/<value>"
-    2. --base <ref> CLI arg
-    3. default: "origin/main"
+    1. $FORSETI_DIFF_BASE exact CI event SHA
+    2. $GITHUB_BASE_REF env var  -> "origin/<value>"
+    3. --base <ref> CLI arg
+    4. default: "origin/main"
 
     Returns a ref string, or None if none could be resolved.
     """
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if gh_base:
         return "origin/%s" % gh_base
@@ -685,7 +690,8 @@ def selftest() -> int:
     print("--- resolve_base_ref ---")
     import pathlib
     fake_root = pathlib.Path(".")
-    # Clear any GITHUB_BASE_REF for testing
+    # Clear CI and GitHub base variables for deterministic testing
+    saved_ci_base = os.environ.pop("FORSETI_DIFF_BASE", None)
     env_saved = os.environ.pop("GITHUB_BASE_REF", None)
     try:
         r1 = resolve_base_ref(fake_root, None)
@@ -699,6 +705,10 @@ def selftest() -> int:
             os.environ["GITHUB_BASE_REF"] = env_saved
         else:
             os.environ.pop("GITHUB_BASE_REF", None)
+        if saved_ci_base is not None:
+            os.environ["FORSETI_DIFF_BASE"] = saved_ci_base
+        else:
+            os.environ.pop("FORSETI_DIFF_BASE", None)
     base_cases = [
         ("default -> origin/main",  r1, "origin/main"),
         ("cli base",                r2, "some-branch"),
@@ -725,15 +735,15 @@ def run_report_orca(root: Path) -> int:
 
     Measures retrieval-header PRESENCE/validity using the SAME structural predicate
     as the live header gate (header_problems_for_lines), applied directly so the
-    orca/ corpus is not masked by the live IN_SCOPE_PREFIXES scope (check_relpath
+    forseti/ corpus is not masked by the live IN_SCOPE_PREFIXES scope (check_relpath
     returns [] for out-of-scope paths). Frozen predicate = strict-minus-exit-0; the
     Phase-3 flip changes the exit only, not the predicate.
 
-    Orphan / folder-coverage over orca/ is intentionally NOT reported here: it
+    Orphan / folder-coverage over forseti/ is intentionally NOT reported here: it
     depends on check_map_links.dir_is_covered, which is currently vacuous (F2), so
     any count would falsely imply coverage. Coverage is the W-map / coverage-gate piece.
     """
-    spines_root = root / "orca" / "product" / "spines"
+    spines_root = root / "forseti" / "product" / "spines"
     if not spines_root.is_dir():
         print("header_index --report-orca: no forseti/product/spines/ tree; nothing to report")
         return 0

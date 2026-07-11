@@ -16,10 +16,10 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/orca_commission_signal_board_imaginary_authors_forward_v0.md
-  - orca/product/spines/scanning/README.md
-  - orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
-  - orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md
-  - orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md
+  - forseti/product/spines/scanning/README.md
+  - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
+  - forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md
+  - forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md
   - docs/research/orca_discovery_candidate_scan_imaginary_authors_mgt_v0.md
 stale_if:
   - The CSB board is superseded, rejected, or re-run.
@@ -28,7 +28,7 @@ stale_if:
   - The owner changes the target from Imaginary Authors or rejects a fresh rerun.
 ```
 
-## Orca Prompt Preflight
+## Forseti Prompt Preflight
 
 ```yaml
 output_mode: file-write
@@ -83,7 +83,7 @@ scan_date: current run date
 
 This commission **explicitly declares** the run as an MGT bounded intelligent
 walk under
-`orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
+`forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
 and invokes its branch-aware dry rule. The declaration lives here in the
 authorizing commission; the scan must not self-declare MGT at runtime.
 
@@ -113,13 +113,13 @@ Start with:
 1. `AGENTS.md`
 2. `.agents/workflow-overlay/README.md`
 3. `docs/research/orca_commission_signal_board_imaginary_authors_forward_v0.md`
-4. `orca/product/spines/scanning/README.md`
-5. `orca/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md`
-6. `orca/product/spines/foundation/vertical_exploration/orca_vertical_exploration_guide_v0.md`
+4. `forseti/product/spines/scanning/README.md`
+5. `forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md`
+6. `forseti/product/spines/foundation/vertical_exploration/forseti_vertical_exploration_guide_v0.md`
 
 Then read only targeted sources needed for this commission:
 
-- `orca/product/spines/scanning/scan_core/orca_demand_scan_core_spec_v0.md`
+- `forseti/product/spines/scanning/scan_core/forseti_demand_scan_core_spec_v0.md`
   sections for targeted forward mode, candidate promotion, and capture_request.
 - `docs/research/orca_discovery_candidate_scan_imaginary_authors_mgt_v0.md`
   only as prior-run context and anti-repeat evidence. Do not edit it. Do not

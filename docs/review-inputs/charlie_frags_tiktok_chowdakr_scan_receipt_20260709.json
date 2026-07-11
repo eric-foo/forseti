@@ -1,6 +1,6 @@
 {
   "tiktok_creator_discovery_scan_receipt": {
-    "schema_version": "tiktok_creator_discovery_scan_receipt_v0",
+    "schema_version": "tiktok_creator_discovery_scan_receipt_v1",
     "receipt_id": "receipt_charlie_frags_tiktok_chowdakr_suggested_view_all_20260709",
     "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
     "register_id": "tiktok_creator_discovery_frontier_charlie_frags_chowdakr_20260709",
@@ -21,6 +21,8 @@
     "source_packet_path_or_none": "F:/orca-data-lake/raw/4d7/01KX3YWZTDEE59G1HJ4FYNBHF1",
     "parent_profile_capture_status": "tiktok_parent_profile_grid_packet_available",
     "suggested_accounts_capture_status": "tiktok_suggested_accounts_view_all_packet_available",
+    "link_hub_capture_status": "deferred_not_authorized",
+    "link_hub_url_or_none": null,
     "browser_closed_by_runner": false,
     "refresh_attempt_count": 0,
     "refresh_outcome": "not_needed",

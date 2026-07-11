@@ -27,8 +27,9 @@ ZERO = "0" * 40
 MAIN_REFS = {"main", "refs/heads/main"}
 
 # Selected strict gates mirrored from .github/workflows/ci.yml. The diff-scoped
-# checkers default their base to origin/main -- the same base CI resolves for
-# a PR -- so a local result predicts the CI result for these gates. Rule
+# checkers default their base to origin/main for the outgoing lane. CI uses the
+# exact event base SHA instead; for normal fast-forward PR/main history both
+# scopes represent the same net lane change. Rule
 # authority: .agents/workflow-overlay/validation-gates.md ("Enforcement
 # Placement"); each checker references its own rule owner.
 DOC_GATES = (
@@ -36,6 +37,14 @@ DOC_GATES = (
     ("retrieval header index", (".agents/hooks/header_index.py", "--strict")),
     ("review-routing disposition", (".agents/hooks/check_review_routing.py", "--strict")),
     ("source-input hash freshness", (".agents/hooks/check_source_input_hashes.py", "--strict")),
+    ("hash-pin freshness", (".agents/hooks/check_hash_pin_freshness.py", "--strict")),
+    ("prompt output-mode", (".agents/hooks/check_prompt_output_mode.py", "--strict")),
+    (
+        "review-output provenance",
+        (".agents/hooks/check_review_output_provenance.py", "--diff", "origin/main", "--strict"),
+    ),
+    ("handoff-pointer resolution", (".agents/hooks/check_handoff_pointers.py", "--strict")),
+    ("ontology tag validity", (".agents/hooks/check_ontology_tag_validity.py", "--strict")),
 )
 
 GATE_TIMEOUT_SECONDS = 120  # generous; the gates run in ~5s combined

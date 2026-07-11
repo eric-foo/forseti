@@ -42,7 +42,7 @@ Preserved compatibility identifiers are not rename defects:
 - `orca-harness/`
 - `docs/workflows/orca_repo_map_v0.md`
 - `orca-product-lead`
-- `orca_start_preflight`
+- `orca_start_preflight` — forward-primary retiring per `docs/decisions/forseti_skill_preflight_identity_migration_plan_v0.md` Amendment 2026-07-10: adopt `forseti_start_preflight` on any file being edited; broad sweep still gated
 - lowercase `orca_*` filenames, package/import paths, and external identifiers
 - CI/check identifiers such as `orca-harness-tests`
 
@@ -68,7 +68,7 @@ The right long-term state may still include deeper path/package migration, but i
 | `docs/workflows/orca_repo_map_v0.md` | No longer the live repo-map path after the successor migration; retain only as a compatibility pointer to `docs/workflows/forseti_repo_map_v0.md`. |
 | `forseti-product-lead` | Primary accepted/deployed Forseti-local product-lead skill command/path after the governed skill identity migration. |
 | `orca-product-lead` | Preserve as a thin compatibility wrapper for one transition window; it loads sibling `forseti-product-lead` and carries no product method of its own. |
-| `orca_start_preflight` | Preserve as a legacy alias. New live prompts and reports prefer `forseti_start_preflight`. |
+| `orca_start_preflight` | Legacy alias, **forward-primary retiring** (see `docs/decisions/forseti_skill_preflight_identity_migration_plan_v0.md` Amendment 2026-07-10): new prompts/reports and any file being edited adopt `forseti_start_preflight` (adopt-on-touch); broad word-match sweep and historical/frozen-snapshot provenance still deferred. |
 | `orca-harness-tests` | Preserve unless branch protection, auto-merge, and CI dependency impacts are checked and accepted. |
 | `docs/_inbox/**` | Leave by default. Triage only when promoted or used as source. |
 

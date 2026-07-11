@@ -335,6 +335,88 @@ def test_run_session_leases_only_requested_lane_within_bucket(tmp_path: Path) ->
     summary = _read_json(result.session_summary_path)
     assert summary["skipped_by_lane_in_bucket_count"] == 1
 
+
+def test_run_session_isolates_session_artifacts_per_lane_within_bucket(tmp_path: Path) -> None:
+    # Two lanes in the same bucket run sequentially (bucket-scoped lock) but must NOT clobber each
+    # other's session roster/receipts/summary. Regression for APH-IMPL-1 (files were keyed by bucket
+    # only) + APH-IMPL-3 (receipt_pointer was always null).
+    lane_one = _planned_row_for_lane("lane_1", "lane_one")
+    lane_two = _planned_row_for_lane("lane_2", "lane_two")
+    day_dir = control.day_directory(tmp_path / "lake", "2026-07-09")
+    _write_json(
+        day_dir / "daily_plan.json",
+        {
+            "schema_version": control.PLAN_SCHEMA_VERSION,
+            "run_control_version": control.RUN_CONTROL_VERSION,
+            "plan_id": "plan_lanes",
+            "plan_date": "2026-07-09",
+            "bucket_count": 4,
+            "creators": [lane_one, lane_two],
+        },
+    )
+
+    def make_fake(handle: str):
+        def fake_heartbeat_runner(**kwargs: object) -> _FakeHeartbeatResult:
+            Path(kwargs["receipt_jsonl"]).write_text(
+                json.dumps(
+                    {
+                        "run_id": f"run_{handle}",
+                        "status": "succeeded",
+                        "creator": {"handle": handle},
+                        "packet_pointer": f"packet_{handle}",
+                    },
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            return _FakeHeartbeatResult()
+
+        return fake_heartbeat_runner
+
+    common = dict(
+        run_control_root=tmp_path / "lake",
+        plan_date="2026-07-09",
+        bucket=1,
+        lane_count=2,
+        output_root=tmp_path / "packets",
+        now_func=lambda: "2026-07-09T02:00:00Z",
+    )
+    result_one = control.run_session(
+        lane_id="lane_1", heartbeat_runner=make_fake("lane_one"), session_id="session_lane_one", **common
+    )
+    result_two = control.run_session(
+        lane_id="lane_2", heartbeat_runner=make_fake("lane_two"), session_id="session_lane_two", **common
+    )
+
+    # Distinct per-lane files -- lane_2 did not overwrite lane_1's session artifacts.
+    assert result_one.session_roster_path != result_two.session_roster_path
+    assert result_one.session_summary_path != result_two.session_summary_path
+    assert result_one.receipt_jsonl != result_two.receipt_jsonl
+    assert "lane_1" in result_one.session_summary_path.name
+    assert "lane_2" in result_two.session_summary_path.name
+    assert result_one.session_roster_path.exists()
+    assert result_two.session_roster_path.exists()
+
+    # Each lane's roster survived intact (no clobber), including its receipt-carried snapshot id.
+    roster_one = _read_json(result_one.session_roster_path)
+    roster_two = _read_json(result_two.session_roster_path)
+    assert [row["handle"] for row in roster_one["creators"]] == ["lane_one"]
+    assert [row["handle"] for row in roster_two["creators"]] == ["lane_two"]
+    assert roster_one["roster_snapshot_id"] == "plan_lanes_bucket_1_lane_1"
+    assert roster_two["roster_snapshot_id"] == "plan_lanes_bucket_1_lane_2"
+
+    # receipt_pointer is populated (APH-IMPL-3): points at a lane's receipt file, never null.
+    succeeded_pointers = [
+        row.get("receipt_pointer")
+        for row in _read_jsonl(result_two.attempts_path)
+        if row["attempt_status"] == "succeeded"
+    ]
+    assert succeeded_pointers, "expected at least one succeeded attempt row"
+    assert all(pointer is not None for pointer in succeeded_pointers)
+    assert str(result_two.receipt_jsonl) in succeeded_pointers
+
+
 def test_run_session_refuses_unexpired_bucket_lock(tmp_path: Path) -> None:
     day_dir = control.day_directory(tmp_path / "lake", "2026-07-09")
     _write_json(

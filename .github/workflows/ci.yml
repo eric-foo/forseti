@@ -8,19 +8,38 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   forseti-harness-tests:
     name: forseti-harness-tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      FORSETI_DIFF_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
     defaults:
       run:
         working-directory: forseti-harness
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0   # full history needed for git diff ...HEAD diff-scoping in header_index --strict
-      - uses: actions/setup-python@v5
+      - name: Verify event-aware diff base
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: |
+          if [[ ! "$FORSETI_DIFF_BASE" =~ ^[0-9a-fA-F]{40}$ ]] || [[ "$FORSETI_DIFF_BASE" =~ ^0+$ ]]; then
+            echo "::error::CI diff base is missing, zero, or malformed for event '$GITHUB_EVENT_NAME'"
+            exit 1
+          fi
+          if ! git cat-file -e "${FORSETI_DIFF_BASE}^{commit}" 2>/dev/null; then
+            echo "::error::CI diff base $FORSETI_DIFF_BASE is not resolvable after full-history checkout"
+            exit 1
+          fi
+          echo "CI diff base: $FORSETI_DIFF_BASE"
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.12"
       - name: Install forseti-harness (core) + pytest
@@ -29,12 +48,16 @@ jobs:
           # pyyaml is pinned explicitly (not left transitive) so the strict
           # yaml-backed gates (ontology SSOT/drift, deletion-evidence) cannot
           # silently fail-open if a dependency edit drops it.
-          python -m pip install -e . "pytest==9.0.3" pyyaml
+          python -m pip install -e . "pytest==9.0.3" "pytest-xdist==3.8.0" pyyaml
       - name: source-input hash freshness (source pointers stay current)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_source_input_hashes.py --strict
-      - name: Run tests
-        run: python -m pytest
+      - name: Batch 0 process tracker self-test
+        working-directory: ${{ github.workspace }}
+        run: python .github/scripts/batch0_process_tracker.py --self-test
+      - name: Validate Batch 0 review receipts
+        working-directory: ${{ github.workspace }}
+        run: python .github/scripts/batch0_process_tracker.py --json
       - name: retrieval link check
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_map_links.py --strict
@@ -46,13 +69,15 @@ jobs:
         run: python .agents/hooks/check_search_surface_google_route.py --strict
       - name: CSB-first scanning artifact check
         working-directory: ${{ github.workspace }}
-        run: python .agents/hooks/check_csb_scanning_artifact.py --diff origin/main --strict
+        run: python .agents/hooks/check_csb_scanning_artifact.py --diff "$FORSETI_DIFF_BASE" --strict
       - name: ontology SSOT integrity
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_ontology_ssot.py --strict
       - name: ontology tag validity
         working-directory: ${{ github.workspace }}
-        run: python .agents/hooks/check_ontology_tag_validity.py --strict
+        run: |
+          python .agents/hooks/check_ontology_tag_validity.py --selftest
+          python .agents/hooks/check_ontology_tag_validity.py --strict
       - name: ontology<->runtime drift check
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_ontology_drift.py --strict
@@ -73,13 +98,21 @@ jobs:
         run: python .agents/hooks/check_review_routing.py --strict
       - name: review-output provenance and integrity
         working-directory: ${{ github.workspace }}
-        run: python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
+        run: python .agents/hooks/check_review_output_provenance.py --diff "$FORSETI_DIFF_BASE" --strict
       - name: handoff-pointer resolution (packets resolve where referenced)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_handoff_pointers.py --strict
+      - name: prompt output-mode gate (changed prompts name a recognized output mode)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_prompt_output_mode.py --strict
+      - name: review-summary shape gate (changed review closeouts keep the bound shape)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_review_summary.py --strict
+      - name: hash-pin freshness (markdown sha256 pins stay current)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_hash_pin_freshness.py --strict
       - name: full-GT claim tripwire (new md claims stay bounded)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_full_gt_claims.py --changed --strict
-      - name: review-output provenance (changed reports carry header + provenance + use boundary)
-        working-directory: ${{ github.workspace }}
-        run: python .agents/hooks/check_review_output_provenance.py --diff origin/main --strict
+      - name: Run tests
+        run: python -m pytest --durations=50 --durations-min=0.25 -n 2 --dist=loadfile

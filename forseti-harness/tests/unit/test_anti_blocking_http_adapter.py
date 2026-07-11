@@ -3,6 +3,7 @@ import json
 import pytest
 
 import runners.run_source_capture_antiblock_http_packet as antiblock_runner
+import source_capture.adapters.anti_blocking_http as anti_blocking_http_module
 from source_capture import CaptureModeCategory
 from source_capture.adapters.anti_blocking_http import (
     ANTI_BLOCKING_HTTP_METHOD_CATEGORY,
@@ -12,6 +13,7 @@ from source_capture.adapters.anti_blocking_http import (
     AntiBlockingHttpCaptureSuccess,
     _capture_response,
     _validate_http_url,
+    fetch_anti_blocking_http_capture,
     header_complete_profile,
 )
 
@@ -249,3 +251,58 @@ def test_capture_response_size_cap_via_content_length():
     )
     assert isinstance(result, AntiBlockingHttpCaptureFailure)
     assert result.failure_kind is AntiBlockingHttpCaptureFailureKind.SIZE_CAP_EXCEEDED
+
+
+class _ReadRaises:
+    """urlopen() context-manager stand-in whose body read() raises after the response opened."""
+
+    def __init__(self, exc):
+        self._exc = exc
+        self.reason = "OK"
+        self.headers: dict[str, str] = {}
+
+    def getcode(self):
+        return 200
+
+    def geturl(self):
+        return "https://example.test/slow"
+
+    def read(self, *_args, **_kwargs):
+        raise self._exc
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_exc):
+        return False
+
+
+def test_read_phase_timeout_is_honest_timeout_failure(monkeypatch: pytest.MonkeyPatch):
+    # A read-phase timeout fires during response.read() AFTER urlopen returned, so it is not a
+    # URLError. It must surface as AntiBlockingHttpCaptureFailure(TIMEOUT), never an uncaught crash.
+    monkeypatch.setattr(
+        anti_blocking_http_module,
+        "urlopen",
+        lambda request, timeout=None: _ReadRaises(TimeoutError("The read operation timed out")),
+    )
+    result = fetch_anti_blocking_http_capture(
+        url="https://example.test/slow", timeout_seconds=5, max_bytes=1024
+    )
+    assert isinstance(result, AntiBlockingHttpCaptureFailure)
+    assert result.failure_kind is AntiBlockingHttpCaptureFailureKind.TIMEOUT
+    assert "timed out" in result.message.lower()
+
+
+def test_read_phase_oserror_is_network_failure(monkeypatch: pytest.MonkeyPatch):
+    # A non-timeout read-phase socket error (connection reset, etc.) likewise fires after urlopen and
+    # is not a URLError; record an honest NETWORK_ERROR failure rather than crashing the caller.
+    monkeypatch.setattr(
+        anti_blocking_http_module,
+        "urlopen",
+        lambda request, timeout=None: _ReadRaises(ConnectionResetError("connection reset by peer")),
+    )
+    result = fetch_anti_blocking_http_capture(
+        url="https://example.test/reset", timeout_seconds=5, max_bytes=1024
+    )
+    assert isinstance(result, AntiBlockingHttpCaptureFailure)
+    assert result.failure_kind is AntiBlockingHttpCaptureFailureKind.NETWORK_ERROR

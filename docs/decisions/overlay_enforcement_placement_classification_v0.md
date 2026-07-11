@@ -29,6 +29,121 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-10: EP-10 + EP-11 + EP-15 built and wired (receipt-shape gate wave)
+
+Three rows from the original EP-01..EP-31 table — EP-10, EP-11, EP-15 — built
+and wired under explicit current-turn owner authorization (the approved
+"receipt-shape gate wave" plan, 2026-07-10). All three follow the EP-36/EP-37
+house pattern: diff-scoped forward-only checkers with `--strict` CI mode,
+`--audit` advisory backlog (never gated), `--selftest`,
+`--force-internal-error`, infra-gap fail-open, GATE FAIL on internal error in
+gating modes.
+
+- **EP-11 (`check_prompt_output_mode.py`) — classification CORRECTED:
+  SUBSTRATE → PARTIAL.** Build-time corpus measurement falsified the row's
+  literal "token-in-set ∧ count == 1" claim: the `output_mode:` field shape
+  is legitimately reused for receiver/reviewer/dispatch roles within one
+  prompt (13/370 corpus files carry two keys), and legitimate compound
+  two-token values exist ("file-write (this artifact) + paste-ready-chat
+  (courier prompt)"). The checkable shell is declaration presence plus
+  at-least-one closed-set token in changed `docs/prompts/**` files
+  (templates/READMEs excluded); exactly-one and role-scoping stay resident.
+  Born-green: 8/10 most-recently-changed prompt files pass; whole-corpus
+  `--audit` at build: 357 in-scope files — 242 pass, 97 no-declaration, 18
+  legacy/no-valid-token (forward-only backlog, surfaced, never gated).
+  Selftest 24/24, including a token-drift assertion parsing the owning
+  prompt-orchestration § Output Modes section. The EP-11 table row below is
+  amended in place and moved out of the "clear SUBSTRATE wins" list.
+- **EP-10 (`check_review_summary.py`) — built as the born-green subset.**
+  Strict: the six forbidden process keys, `report_path` resolution, the
+  bound failed-write shape, non-blank `recommendation`. NOT strict: the
+  5-value `recommendation` enum — measured ~40% failure across one recent
+  week's real closeouts (an undocumented extended vocabulary in
+  delegated-review-patch lanes), so enum membership runs `--audit`-only.
+  **Owner decision 2026-07-10 (follow-up, same day): the narrowed gate is
+  accepted as the standing shape.** Enum membership stays `--audit`-only
+  advisory; the delegated-review-patch extended vocabulary stays unbound
+  (no `communication-style.md` widening); the 5-value enum remains the
+  canonical target vocabulary for new review summaries, with conformance
+  resident judgment — the acceptance covers enforcement placement, it does
+  not endorse drift. Drift is tracked by `--audit` (23 advisories at
+  decision time, re-measured at decision), never gated. Re-opening later is
+  cheap: bind a widened vocabulary in `communication-style.md` (DCP owed)
+  and flip the checker's enum sub-check from drift-advisory to a strict
+  finding. The EP-10 table row below is annotated in place; it stays a
+  SUBSTRATE win for its strict core, unlike EP-11's falsified-claim
+  correction. Build `--audit`: 306 in-scope files, 0 strict findings
+  (whole-corpus green), 23 template blocks skipped, 23 enum-drift
+  advisories. Selftest 44/44. One corpus-driven refinement:
+  `report_path: null` (YAML null, "no path") is recognized rather than read
+  as a dead path. Non-overlap: header/provenance/fencing stays with
+  `check_review_output_provenance.py`.
+- **EP-15 (`check_hash_pin_freshness.py`) — built for the freshness families
+  only.** Corpus survey found six markdown sha256 grammars; only the two
+  freshness grammars are parsed: labeled `path:` + `sha256:` bullet pairs
+  (the skill-adoption source pins) and `source_captures/**/receipt.md`
+  preserved-file bullets. Manifest tables, source-read ledgers, and the
+  external-path bootstrap-record table are provenance records and
+  deliberately unparsed (gating them would false-block working-as-intended
+  history). Hashes compare CRLF-normalized, case-insensitive. Shipping
+  prerequisite landed in the same change: the two `skill-adoption.md` pins
+  were raw-CRLF Get-FileHash values — passing on CRLF checkouts, permanently
+  failing on LF CI checkouts — re-pinned to the normalized convention. Build
+  `--audit`: 1733 md files scanned, 266 pins (2 grammar-1 + 264 grammar-2),
+  266 pass, 0 missing, 0 mismatch, 4 non-repo-local pointers skipped.
+  Selftest 31/31. Mirrored into `pre_push_guard.py` (EP-37 parity). The
+  markdown sibling of EP-37 — file-extension partition, zero overlap.
+- Wired: three `ci.yml` steps (single-line `run:` format, discoverable by
+  the PR #815 local doc-gate runner), three
+  `test_hook_internal_error_gating.py` CASES rows, the `pre_push_guard.py`
+  mirror (EP-15 only), hooks README rows, repo-map Active Hooks notes, and
+  validation-gates Current Gates bullets + Enforcement Placement registry +
+  inline DCP receipt (the two prior inline receipts rotated verbatim to
+  `docs/decisions/dcp_receipts_archive_v0.md` under the ≤2-inline rule).
+
+This trips `stale_if` (further substrates built). PLACEMENT IS NOT AUTHORITY:
+green runs are shape/freshness only — never validation, readiness, review
+quality, prompt quality, or approval.
+
+## Update — 2026-07-10: EP-37 extended to source-capture packet preserved_files[]
+
+Not a new EP handle — a matched-shape extension of the already-built EP-37
+substrate, landed under the current-turn owner instruction to close the
+`preserved_files[]` coverage gap.
+
+- **Gap provenance:** the EP-15 build survey (PR #842, open at authoring time,
+  branch `claude/sub-agent-spawning-plan-2dc064`) and that PR's owner-flag
+  list: source-capture packet manifests at
+  `forseti-harness/cases/**/source_captures/**/manifest.json` record preserved
+  raw files under `preserved_files[]` (`relative_packet_path` + `sha256`), a
+  shape matched by neither EP-37 (JSON `source_inputs[]` with
+  `source_pointer`) nor EP-15 (markdown pin grammars only; the sibling
+  `receipt.md` bullets ARE covered there).
+- **What it enforces now:** a JSON document with a top-level
+  `manifest_version` string has its top-level `preserved_files[]` records
+  checked: `relative_packet_path` resolves against the manifest's own
+  directory and the recorded `sha256` must match current **raw stored bytes**
+  (the manifests' `hash_basis: raw_stored_bytes`; `.gitattributes` pins
+  `**/source_captures/** -text`) — unlike the CRLF-normalized `source_inputs[]`
+  basis. Non-packet-local paths (absolute, drive, parent traversal) fail loud
+  as `preserved_file_path_not_packet_local`. Nested `preserved_files` blocks
+  (review-input fixtures describing machine-local packets outside the repo)
+  are deliberately not matched — they would false-positive as missing.
+- **Born-green measurement first:** `--audit` green over all 281 records
+  (17 `source_inputs[]` + 264 `preserved_files[]` across 88 manifests; 0
+  missing, 0 raw-basis mismatches). Live probes: one flipped byte in a
+  preserved `.bin` → `preserved_file_hash_mismatch` in `--audit`, and the same
+  drift committed on a temp branch → `--strict` exit 1 via the real diff
+  scope.
+- **Wiring unchanged:** rides EP-37's existing `.github/workflows/ci.yml`
+  step, `.agents/hooks/pre_push_guard.py` mirror, and
+  `test_hook_internal_error_gating.py` CASES row; selftest grown to 32 cases.
+
+Same classification and boundary as EP-37 (PARTIAL/SUBSTRATE shell). PLACEMENT
+IS NOT AUTHORITY: a green run is provenance hash freshness, never archive
+completeness, source-state truth, capture freshness, validation, or readiness.
+The DCP receipt lives in `validation-gates.md`.
+
 ## Update — 2026-07-10: EP-37 (source-input hash freshness gate) built and wired
 
 A new Enforcement Placement handle — **EP-37, beyond the EP-01..EP-36 set** —
@@ -603,8 +718,8 @@ IDs are stable handles for later owner gating. Where a rule appears in several o
 | EP-07 | Header well-formed: `retrieval_header_version: 1`, `authority_boundary: retrieval_only` exact, no forbidden fields, core ≤5 unless justified (`retrieval-metadata`) | header block | **SUBSTRATE** (exact-value + forbidden-key + count) / PARTIAL ("triggered field justified") · Win | `lint`/`test`. **Sampled, App B.** |
 | EP-08 | `orca_start_preflight` receipt present + required fields on repo-aware / docs-write / source-change / completion (`source-loading`; also `validation-gates`, `prompt-orchestration`) | prompt / closeout | **PARTIAL** | `schema` presence/shape. Truth of `agents_read`/`overlay_read` → resident (non-self-cert, EP-29). |
 | EP-09 | `direction_change_propagation` receipt or blocker present on doctrine-changing edits (`source-of-truth` DCP contract; also `validation-gates`, `prompt-orchestration` gate 12, `communication-style`) | doctrine-change closeout | **PARTIAL** · OVER-EDGE | `schema` receipt presence/shape; the `stale_language_search` field is a literal `rg` → re-runnable by `test`. But "is this edit doctrine-changing?" and "are downstream surfaces really checked?" stay resident — a hook must **not** decide doctrine-ness. |
-| EP-10 | `review_summary` shape + forbidden-keys + `recommendation` enum + `report_path` valid only if the file exists (`communication-style`) | review summary YAML | **SUBSTRATE** · Win | `schema`/`lint`; `report_path` existence is a real file check. |
-| EP-11 | Exactly one output mode from the closed set (`prompt-orchestration`; `validation-gates` output-mode gate) | prompt artifact | **SUBSTRATE** · Win | `schema`: token-in-set ∧ count == 1. |
+| EP-10 | `review_summary` shape + forbidden-keys + `recommendation` enum + `report_path` valid only if the file exists (`communication-style`) | review summary YAML | **SUBSTRATE** · Win — enum sub-check accepted `--audit`-only (owner decision 2026-07-10; see the EP-10/11/15 Update) | Built: `check_review_summary.py` — forbidden keys, `report_path` existence (real file check), failed-write shape, non-blank `recommendation` are strict; enum membership is advisory by owner acceptance, never gated. |
+| EP-11 | Exactly one output mode from the closed set (`prompt-orchestration`; `validation-gates` output-mode gate) | prompt artifact | **PARTIAL** — corrected 2026-07-10 (see the EP-10/11/15 Update) | Built: `check_prompt_output_mode.py` — declaration presence + token-in-set is SUBSTRATE; exactly-one / role-scoping is resident (the field shape is legitimately reused for dispatch/receiver roles). |
 | EP-12 | Typed tokens valid: `BLOCKED_*`, `SOURCE_CONTEXT_READY`, prompt verdicts, `access` enum (`artifact-roles` failure states; `prompt-orchestration`; `delegated-review-patch`) | artifact | **PARTIAL** | `schema` token-spelling / enum membership; correct application → resident. |
 | EP-13 | Every prompt role bound in `artifact-roles` (`validation-gates` artifact-role gate; `prompt-orchestration` gate 2) | prompt | **SUBSTRATE** (existence lookup) / PARTIAL ("right role") | `test`/`schema` role-table lookup → `BLOCKED_UNBOUND_ARTIFACT_ROLE`. |
 | EP-14 | Default path assignment: versioned filename in accepted folder; collision → next version (`prompt-orchestration`) | write path | **PARTIAL** | `hook`/`test` exists-check + folder allowlist; "narrowest / descriptive" → judgment. |
@@ -626,7 +741,7 @@ IDs are stable handles for later owner gating. Where a rule appears in several o
 | EP-30 | Chat-output topology / communication style: human-summary-first, decision-first, readability (`communication-style`) | chat output | **JUDGMENT** | resident; owes VERIFY FIRING. |
 | EP-31 | Checkpoint-artifact lifecycle: non-authoritative; single-consumption/burn; one live instance per lane; point-don't-copy (`source-of-truth`) | checkpoint files | **PARTIAL** | `test` can detect "one live instance / no `_v2`/`_v3`"; "re-confirm volatile claims / burn after consumption" → judgment/behavioral. |
 
-Distribution: **clear SUBSTRATE wins** — EP-01, EP-02, EP-03, EP-05, EP-06, EP-07, EP-10, EP-11, EP-13, EP-15, EP-20. **PARTIAL (shape→substrate, core→resident)** — EP-04, EP-08, EP-09, EP-12, EP-14, EP-16, EP-17, EP-18, EP-19, EP-21, EP-22, EP-29(corollary), EP-31. **JUDGMENT (resident, owes VERIFY FIRING)** — EP-23, EP-24, EP-25, EP-26, EP-27, EP-28, EP-29(core), EP-30.
+Distribution: **clear SUBSTRATE wins** — EP-01, EP-02, EP-03, EP-05, EP-06, EP-07, EP-10 (enum sub-check accepted `--audit`-only, owner decision 2026-07-10), EP-13, EP-15, EP-20. **PARTIAL (shape→substrate, core→resident)** — EP-04, EP-08, EP-09, EP-11 (corrected 2026-07-10), EP-12, EP-14, EP-16, EP-17, EP-18, EP-19, EP-21, EP-22, EP-29(corollary), EP-31. **JUDGMENT (resident, owes VERIFY FIRING)** — EP-23, EP-24, EP-25, EP-26, EP-27, EP-28, EP-29(core), EP-30.
 
 ## The clear code-enforceable wins (proposed, prioritized)
 

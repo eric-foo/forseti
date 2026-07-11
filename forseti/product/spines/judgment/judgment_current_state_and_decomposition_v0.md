@@ -19,6 +19,7 @@ open_next:
   - docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md
   - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
   - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_ledger_read_contract_v0.md
+  - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md
   - forseti/product/spines/judgment/demand_read/c3_verdict_action/judgment_spine_c3_verdict_action_ceiling_contract_v0.md
   - forseti/product/satellites/fragrance/judgment_level1/reconciliation/fragrance_level1_product_learning_reconciliation_v0.md
   - forseti/product/satellites/fragrance/judgment_level1/satellite_skeleton/fragrance_level1_product_learning_satellite_skeleton_v0.md
@@ -77,6 +78,7 @@ market-agnostic.
 | Case-finder | Gap | Post-cutoff/prospective case sourcing | Fragrance casebook remains proposed until admitted |
 | Demand-read core C0-C4 | Product-learning design/input surface | Frame, allow, qualitative weight, verdict/action ceiling, counterfactual | Design input/product-learning; no scoring engine, no conductor edit |
 | C2 ledger read contract | Proposed consumer-side contract | Qualitative ledger read, caveat travel, direction plus reasoning, no numeric weight | Product-learning; no row/query/build |
+| C2 in-case evidence weighting doctrine | Proposed merits-basis instruction contract | Decision-relative fitness, merits axes, load-bearing partition, model-facing instruction core, weighting failure modes | Product-learning; no numeric weight, no prompt artifact, no run |
 | C3 verdict/action ceiling contract | Proposed binding-side contract | Two-axis demand-state verdict and action ceiling vocabulary | Product-learning; no numeric ceiling or live loop |
 | Near-half backtest shell | Proposed target architecture | Adversarial postmortem, validated-lesson cell, promotion gate, ledger emission | Product-learning; validates no lesson yet |
 | Signal-reliability ledger | Proposed schema and discipline | K-of-N report-all signal reliability record, product-learning cap, staleness/provenance | No real rows or source-family admission |
@@ -147,7 +149,7 @@ The fragrance satellite must not own:
 | Commission gate / evidence plan | Current-state/decomposition backtesting route plus future prompt-orchestrated gate artifact | Fragrance decision type, playbook, source priorities, creator slices, confirmation/counterevidence, forecast targets | Gate brief is not final recommendation, source authority, or run authorization |
 | Evidence capture / source plan | Source-capture owners plus C1 allow gate by pointer | Fragrance source registry, public venues, beauty venue card-set consumption | Venue hints are not source authority or captured evidence |
 | Evidence object / packet | JSG-01, ECR, packing/finalization, packet construction | Fragrance graph-family artifact, evidence object schema, contradictions, timeline, and provenance plan | No JSG-01 clearance without authorized run evaluation |
-| Weighting | C2 ledger read contract and signal-reliability ledger | Qualitative fragrance weighting rubric, caveat travel, signal IDs | No numeric weight, formula, or scoring engine |
+| Weighting | C2 ledger read contract, C2 in-case evidence weighting doctrine, and signal-reliability ledger | Qualitative fragrance weighting rubric, caveat travel, signal IDs | No numeric weight, formula, or scoring engine |
 | Forecast / expected outcome | Level 1 forecast-record contract plus far-half decision object and product-learning evaluation surfaces | Raw forecast probabilities, probability bucket, horizon, due date | Outcome prediction is not a Judgment Spine claim; forecast records are learning inputs only |
 | Decision / action ceiling | C3 verdict/action ceiling contract and Level 1 utility/action schema | Fragrance utility/action recommendation with target, trigger, stop condition, next action, and crux | No passive monitor, new action vocabulary, or unconstrained live action |
 | Reveal / evaluation | JSG-08 reveal/calibration owner contract and near-half learning shell | Fragrance outcome labels, benchmark comparison, regret/error labels, and reveal comparison | Reveal comparison does not by itself create calibration, buyer proof, or judgment quality |

@@ -158,9 +158,14 @@ For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 - `client_provided_session`
 - `consenting_coworker_session`
 
-The storage-state label resolves only under `forseti-harness/_auth_state/`. Do not
-paste, print, stage, commit, or copy storage-state JSON, cookies, credentials, or
-session values into a packet or report.
+Manual auth-state labels retain the legacy worktree-local
+`forseti-harness/_auth_state/` default. A logical `--session-profile` instead
+resolves auth state from the explicit runner root, then
+`FORSETI_AUTH_STATE_ROOT`, then the stable user-local Forseti root
+(`%LOCALAPPDATA%\Forseti\auth_state` on Windows), so profile-backed state does
+not depend on the current worktree. Do not paste, print, stage, commit, or copy
+storage-state JSON, cookies, credentials, or session values into a packet or
+report.
 
 For TikTok sessioned live probes that need a source-access provenance check,
 use the CloakBrowser user-data warmup/export path so the local ignored
@@ -176,25 +181,29 @@ For cold-agent TikTok work, open
 `docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md` before
 patching or re-diagnosing blockers. The runner already owns the current setup
 actions: benign intro/OK prompts, one visible retry, the comments -> `You may
-like` / `More like this` -> comments route, challenge kind receipts, X/Close
-follow-through, owner handoff, and fail-closed admission. If a slider/captcha
-remains, ping/hand off to the owner when `--human-challenge-handoff` is enabled;
-otherwise fail closed. The agent must not drag or solve the puzzle, and any
-manual owner action is source-access intervention rather than clean capture.
+like` / `More like this` -> comments route, challenge kind receipts, pre-action
+owner handoff, optional explicitly requested X/Close follow-through, and
+fail-closed admission. Under the `chowdakr_sg_tiktok` session profile, a visible
+slider/captcha opens the owner prompt before any scripted pointer action. If the
+marker does not clear, scripted actions stay suppressed and capture fails closed.
+The agent must not drag or solve the puzzle, and any manual owner action is
+source-access intervention rather than clean capture.
 
-Recommended one-fixture sessioned TikTok command for a cold agent with an
-already-exported dedicated auth-state label:
+Validate the machine-local alias without opening a browser:
+
+```powershell
+python runners/check_source_capture_session_profile.py `
+  --session-profile "chowdakr_sg_tiktok"
+```
+
+Recommended one-fixture sessioned TikTok command for a cold agent:
 
 ```powershell
 python runners/run_source_capture_tiktok_live_batch_probe.py `
   --creator-handle "<handle>" `
   --creator-profile-url "https://www.tiktok.com/@<handle>" `
   --video-url "https://www.tiktok.com/@<handle>/video/<video-id>" `
-  --state-label "<dedicated-tiktok-auth-state-label>" `
-  --session-mode client_provided_session `
-  --require-harness-proxy-posture no_proxy_profile_loaded `
-  --allow-challenge-close-followthrough `
-  --human-challenge-handoff `
+  --session-profile "chowdakr_sg_tiktok" `
   --output-dir ".\_test_runs\tiktok_live_<handle>" `
   --admit-output ".\_test_runs\tiktok_live_<handle>_packet"
 ```

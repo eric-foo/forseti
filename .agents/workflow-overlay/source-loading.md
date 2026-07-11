@@ -53,13 +53,19 @@ implementation authority.
 
 ## Forseti Start Preflight
 
-Before repo-aware Forseti prompt authoring, review setup, handoff creation,
-docs-write or overlay maintenance, source-changing work, or completion claims,
-record a compact start-preflight receipt. The receipt proves only that the
-entrypoint and source-loading route were declared; it does not prove cognition,
-validation, approval, readiness, implementation authorization, deployment,
-resolver behavior, source-of-truth promotion, or edit permission beyond the
-permission value stated in the receipt.
+Preflight is the act of checking authority, source scope, edit permission, and
+material repository state before work. A receipt is required only when that
+start state must survive the current interaction:
+
+- a durable or cross-lane prompt, handoff, wrapper, rerun, or patch prompt;
+- a source capsule or lane transfer another actor will consume; or
+- a portable strict lifecycle/readiness claim intended to survive outside the
+  current chat and whose consumer cannot inspect the originating lane state.
+
+Interactive source reads, reviews, bounded edits, source-changing work, and
+ordinary closeouts do not owe a receipt merely because they are repo-aware. Run
+the material checks, surface a risky assumption or blocker, and proceed. Current
+chat and fresh repository evidence carry the state; do not manufacture a form.
 
 Start-route cue: when `target_scope` would change product doctrine,
 architecture doctrine, workflow authority, validation philosophy, review
@@ -67,11 +73,10 @@ authority, output authority, or a lifecycle boundary, route through the
 Doctrine Change Propagation Contract in
 `.agents/workflow-overlay/source-of-truth.md`. If more than one doctrine
 dimension applies, use the source-of-truth primary `trigger` plus
-`related_triggers` grammar. The start preflight may name the expected
-propagation surfaces, but it is not a substitute for the required
+`related_triggers` grammar. Start preflight never substitutes for the required
 `direction_change_propagation` receipt or blocker at closeout.
 
-Minimum receipt fields:
+When a durable receipt is required, use:
 
 ```text
 forseti_start_preflight:
@@ -84,7 +89,9 @@ forseti_start_preflight:
   blocked_if_missing:
 ```
 
-`orca_start_preflight` is accepted only as a legacy compatibility alias for historical, pre-rename, or provenance artifacts during the Forseti rename migration. New or materially touched live prompts and reports must use `forseti_start_preflight`; do not broad-rewrite historical receipt bodies.
+`orca_start_preflight` is a legacy compatibility alias for historical,
+pre-rename, or provenance artifacts. New or materially touched artifacts that
+require a receipt use `forseti_start_preflight`; do not rewrite history.
 
 Use the smallest source pack that can support the task. `agents_read: yes`
 means `AGENTS.md` was read or supplied in the current task context.
@@ -93,30 +100,27 @@ supplied in the current task context. If either field is `no` for a task that
 requires Forseti project authority, stop and load the missing source before
 continuing.
 
-Do not require the receipt for tiny chat-only answers that do not create or
-materially touch artifacts, route another agent, make completion/readiness
-claims, depend on repository state, or change source. If a lightweight answer
-turns into one of those tasks, record the receipt before continuing.
+The receipt records the declared start route only. Evidence and the owning gates
+still decide whether later claims are supportable.
 
-### Ordinary-Start Quick Path
+### Ordinary Interactive Path
 
-For tiny, non-doctrine Forseti work, use the direct path:
+For bounded work that stays in the current interaction:
 
 1. Read the current user instruction.
 2. Use `AGENTS.md` and `.agents/workflow-overlay/README.md` only when project
    authority is needed for the answer or edit.
 3. Skip the repo map unless choosing among multiple possible source files would
    otherwise require broad search.
-4. Skip Cynefin routing when `.agents/workflow-overlay/decision-routing.md`
-   bypass conditions apply.
-5. Stop and upgrade to the normal start preflight when the task becomes
-   repo-aware prompt authoring, review setup, handoff creation, docs-write or
-   overlay maintenance, source-changing work, completion/readiness claims,
-   doctrine change, cross-thread work, delegation, or messy-worktree routing.
+4. Run the full Cynefin router only when
+   `.agents/workflow-overlay/decision-routing.md` triggers it.
+5. Check repository state, isolation, and validation only to the depth material
+   to the task and its claims.
+6. Add a durable start receipt only when the work crosses one of the receipt
+   boundaries above.
 
-This quick path changes startup cost only. It does not weaken source hierarchy,
-strict-claim rules, validation gates, implementation authorization, doctrine
-propagation, or repo-map authority boundaries.
+This path changes reporting ceremony, not source hierarchy, validation,
+implementation authorization, doctrine propagation, or failure visibility.
 
 ## Default Read Order
 
@@ -585,12 +589,9 @@ Use the repo map to select a narrow source pack instead.
 
 ## Not-Proven Boundaries
 
-Source loading does not prove acceptance, readiness, validation, buyer pull,
-implementation authorization, deployment, resolver behavior, or source-of-truth
-promotion.
-
-If a claim needs one of those statuses, load the controlling authority or mark
-the claim `not proven`.
+Source loading supplies context, not status or authority. A status claim, as
+defined in `.agents/workflow-overlay/validation-gates.md`, requires its
+controlling source and evidence; otherwise mark it `not proven`.
 
 ## Direction Change Propagation
 

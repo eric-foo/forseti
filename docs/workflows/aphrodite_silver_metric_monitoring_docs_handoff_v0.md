@@ -31,6 +31,10 @@ stale_if:
   - Moving-average, EMA, velocity, or breakout-state recipes are implemented before this handoff is consumed.
 ```
 
+> **STATUS (2026-07-10): DELIVERED.** The commissioned inventory shipped as
+> `docs/research/aphrodite_silver_metric_monitoring_inventory_v0.md`; this
+> packet is a historical record of the ask, not an open handoff.
+
 ## Objective
 
 Produce a documentation update, not a runtime change.
