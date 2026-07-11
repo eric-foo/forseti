@@ -32,9 +32,20 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 | `check_repo_map_freshness.py` | **post-tool** (after a write) | Reports structural drift vs the repo map as advisory output; exits 2 when the repo map itself is dirty after edit so the next action is an explicit-path commit; has a `--strict` gate for commit/CI use. |
 | `check_search_surface_google_route.py` | **post-tool** (after a write) + CI | Advisory on live writes and strict in CI for the checkable Google search-surface route shell: Google Search URLs use `hl=en&gl=us&pws=0`, US-parameterized artifacts carry the physical-locality non-claim, and Google sorry/IP pages are not preserved in durable docs. |
 | `remind_sci.py` | **pre-tool** (before a `git commit`) | Advisory (exit 0): when the commit includes durable-artifact changes, re-injects the Smallest Complete Intervention rule (verbatim from AGENTS.md) as a nudge before scope is locked in. Never blocks; silent for code/scratch/config-only commits. |
+| `header_index.py` | manual + **CI** (`--strict`) + session capsule | Generates the on-demand retrieval index, advisory health/backlog views, and the diff-scoped forward-only header/orphan gate. Inventory and shape only; never readiness or source authority. |
+| `check_map_links.py` | manual + **CI** (`--strict`) | Checks map/submap paths, `open_next` targets, folder reachability, and inline path shape under the locked repo-map architecture. Reachability only; never route truth or completeness proof. |
+| `check_dcp_receipt.py` | **CI** (diff-scoped `--strict`) | Validates the deterministic shape of changed doctrine-change receipts and blockers. It cannot decide whether a receipt is required or whether listed propagation work actually happened. |
+| `check_full_gt_claims.py` | **CI** (diff-scoped `--changed --strict`) | Trips on newly added unballasted full-GT claim language outside allowed claim-owning/history surfaces. Claim-language shape only; never claim truth. |
+| `check_placement.py` | **post-tool** + manual/CI `--strict` | Checks writes and tree structure against `repo-structure.yaml`, including map/tree consistency. Placement shape only; never artifact authority or readiness. |
+| `check_prompt_provenance.py` | **post-tool** (after canonical prompt writes) | Advisory reminder that injects the Forseti Prompt Preflight for prompt artifacts. It cannot prove the prompt contract was applied. |
+| `check_shared_files_dirty.py` | **stop hook** + manual `--check` | Warns when high-contention shared files remain dirty at turn end and names the explicit-path commit; never auto-commits or blocks. |
+| `check_token_burn.py` | **stop hook** | Advisory warning when one turn's input context crosses the configured burn rung; a context-cost signal only. |
+| `session_context_capsule.py` | **session-start hook** + manual `--check` | Emits observed lane/git state, retrieval health, and source-loading entry pointers on startup/resume/clear/compact. Report-only; loads no doctrine. |
 
-Each has a `--selftest`. Each script names its own rule authority in its module
-header and references that source instead of restating it.
+Most checker scripts expose `--selftest`; use the named script's help or the
+verification lists below for the supported command. Each script names its own
+rule authority in its module header and references that source instead of
+restating it.
 
 ## The contract (harness-agnostic)
 
