@@ -46,10 +46,9 @@ EXIT CODES
   2  misuse or internal error (unknown/empty --checks, unreadable settings)
 
 ENFORCEMENT REACH (honesty)
-  A non-zero exit fails the PR's check run. Without server-side required-status-checks
-  (Forseti branch protection is 403-blocked on a private/free repo), that is a STRONG
-  signal under merge-when-green / structure-B discipline, NOT a server-enforced merge
-  gate. It does not, by itself, block a merge.
+  A non-zero exit fails the PR's check run, and active branch protection requires the
+  strict orseti-harness-tests context before main can merge. This checker proves only
+  registration integrity inside that required job; it is not validation or readiness by itself.
 
 USAGE
   python .agents/checks/registration_integrity.py                      # all checks

@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "enabledManagers": ["pep621"],
+  "enabledManagers": ["pep621", "github-actions"],
   "packageRules": [
     {
       "description": "Intentionally scoped: this repo only auto-tracks curl_cffi (fingerprint freshness). Everything else is disabled so enabling Renovate does not flood the harness with dependency PRs. To broaden later, relax this rule.",

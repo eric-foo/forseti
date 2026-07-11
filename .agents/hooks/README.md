@@ -16,7 +16,7 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) irreversible / main-affecting actions: an agent's `gh pr merge` → main, push-to-main, force-push, `reset --hard`, `git clean`, and writes into protected external roots. **Allows** a benign lane-branch push. Fires in **all** permission modes. **Fails OPEN** on internal error. |
 | `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, and blocks raw shell durable-write primitives for repo source/docs files. |
-| `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it then mirrors selected strict CI gates (`check_map_links.py --strict`, `header_index.py --strict`, `check_review_routing.py --strict`, `check_source_input_hashes.py --strict`, `check_hash_pin_freshness.py --strict`; diff-scoped base `origin/main`, same as CI) so durable-doc or source-input hash gate misses fail before push instead of in CI. Bypassable with `--no-verify`; misses GitHub API merges; CI stays the authoritative gate. |
+| `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it mirrors nine strict CI gates over `origin/main...HEAD`: retrieval links/headers, review routing/provenance, source-input and markdown hash freshness, prompt output mode, handoff pointers, and ontology tag validity. A gate failure or launch error blocks the push. Bypassable with `--no-verify`; misses GitHub API merges; CI stays authoritative. |
 | `check_source_input_hashes.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: list-style JSON `source_inputs[]` records with repo-local `source_pointer` + `sha256` must match current file bytes (CRLF-normalized), and source-capture packet manifests (top-level `manifest_version`) must have top-level `preserved_files[]` records whose `relative_packet_path` + `sha256` match current raw stored bytes resolved against the manifest's own directory, when the artifact or referenced file changed. Provenance freshness only; never semantic validation, generated-artifact completeness, readiness, or source quality. Backlog via `--audit`; `--selftest` present. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
 | `check_dcp_receipt_hygiene.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on deterministic DCP receipt storage defects in changed durable docs: more than two inline receipts, missing archive pointer, or unauthorized standalone DCP receipt files. Shape only; never receipt truth, validation, readiness, or acceptance. |
@@ -203,10 +203,10 @@ These hooks enforce **only where they are wired.** A harness without them wired 
 - the **protected-path protection (EP-01)** is tuned to a machine's external layout, so
   it stays **per-machine** — other clones adjust their own externals.
 
-The only **harness-agnostic, unbypassable** gate is **server-side branch protection**,
-which is the deferred target (currently **403-blocked** on this private/free repo; see
-the dev-workflow doctrine). Until then, structure-B enforcement is **per-harness**: live
-wherever these hooks are wired, absent everywhere else.
+The only **harness-agnostic, unbypassable** gate is the active **server-side branch
+protection** on main (see the dev-workflow doctrine). Per-harness and local Git hooks
+remain defense in depth: they fail earlier and cover destructive local actions, but they
+do not weaken or replace the server gate.
 
 ---
 *Navigation / setup doc only. These are advisory + enforcement tooling, not validation,

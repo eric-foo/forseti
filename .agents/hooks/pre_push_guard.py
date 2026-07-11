@@ -37,6 +37,13 @@ DOC_GATES = (
     ("review-routing disposition", (".agents/hooks/check_review_routing.py", "--strict")),
     ("source-input hash freshness", (".agents/hooks/check_source_input_hashes.py", "--strict")),
     ("hash-pin freshness", (".agents/hooks/check_hash_pin_freshness.py", "--strict")),
+    ("prompt output-mode", (".agents/hooks/check_prompt_output_mode.py", "--strict")),
+    (
+        "review-output provenance",
+        (".agents/hooks/check_review_output_provenance.py", "--diff", "origin/main", "--strict"),
+    ),
+    ("handoff-pointer resolution", (".agents/hooks/check_handoff_pointers.py", "--strict")),
+    ("ontology tag validity", (".agents/hooks/check_ontology_tag_validity.py", "--strict")),
 )
 
 GATE_TIMEOUT_SECONDS = 120  # generous; the gates run in ~5s combined

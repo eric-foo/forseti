@@ -452,10 +452,11 @@ completeness, readiness, source quality, capture freshness, or metric validity.
 policy behind the tracked `.githooks/pre-push` adapter, installed via
 `.github/scripts/install-local-hooks.ps1`) blocks pushes targeting `main`,
 branch deletes, and non-fast-forward updates, and — for allowed lane pushes —
-mirrors selected strict CI gates (`check_map_links.py --strict`,
-`header_index.py --strict`, `check_review_routing.py --strict`,
-`check_source_input_hashes.py --strict`, `check_hash_pin_freshness.py --strict`;
-diff-scoped base `origin/main`, same as CI) so a durable-doc or source-input hash gate miss fails at the push
+mirrors nine strict CI gates over `origin/main...HEAD`: retrieval links and
+headers, review routing and review-output provenance, source-input and markdown
+hash freshness, prompt output mode, handoff-pointer resolution, and ontology
+tag validity. The same commands run in CI, so a durable-doc, provenance,
+handoff, or ontology-tag miss fails at the push
 boundary instead of costing a red CI round. Blocks on any gate failure; the
 checkers' infra-gap fail-opens are unchanged; bypassable with `--no-verify`;
 CI stays the authoritative gate. `python .agents/hooks/pre_push_guard.py --selftest`

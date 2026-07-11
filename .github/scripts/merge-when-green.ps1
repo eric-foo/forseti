@@ -14,8 +14,8 @@
     guard blocks an agent's `gh pr merge` -> main; this helper merely wraps that merge,
     so running it from an agent would bypass the guard - which structure B forbids.
 
-    Convenience, not a server-side gate (branch protection is 403-blocked on this
-    private/free repo). It merges only when the required check is present and passing
+    Convenience, not a server-side gate. Active branch protection independently requires
+    the strict CI check and an up-to-date PR. This helper merges only when the check is passing
     AND no check is failing or pending. Use -DryRun to evaluate read-only.
 
     Requires: GitHub CLI (gh) authenticated with repo access (recent enough to
