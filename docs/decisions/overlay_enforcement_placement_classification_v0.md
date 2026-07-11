@@ -40,9 +40,9 @@ enforcement placement:
    `docs/workflows/process_improvement_batch0/resident_rule_firing_audit_v0.md`
    and
    `docs/workflows/process_improvement_batch0/review_receipts/forseti_data_root_runner_enforcement_review_v0.json`.
-2. **WU-03 / PR #866, clean replacement PR #873 — DCP accounting ambiguity.** The Batch 1 branch
-   changed
-   the doctrine index, repo map, and case ledger while its DCP recorded those
+2. **WU-03 / PR #866, clean replacement PR #873 — DCP accounting ambiguity.** The
+   Batch 1 branch changed the doctrine index, repo map, and case ledger while
+   its DCP recorded those
    files only under `downstream_surfaces_checked`. Delegated review recovered
    their local disposition; CA kept the clarity patch but rejected the
    reviewer's stronger universal partition inference. Evidence is pinned to
