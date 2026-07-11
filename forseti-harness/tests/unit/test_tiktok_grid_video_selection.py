@@ -23,11 +23,11 @@ def test_selects_top_view_quartile_and_excludes_negligible_reach() -> None:
     items = [
         _item("high", 1_000, 10),
         _item("second", 900, 90),
-        _item("third", 800, 80),
-        _item("fourth", 700, 70),
-        _item("fifth", 600, 60),
-        _item("sixth", 500, 50),
-        _item("seventh", 400, 40),
+        _item("third", 800, 8),
+        _item("fourth", 700, 7),
+        _item("fifth", 600, 6),
+        _item("sixth", 500, 5),
+        _item("seventh", 400, 4),
         _item("negligible", 10, 10),
     ]
 
@@ -43,19 +43,19 @@ def test_selects_top_view_quartile_and_excludes_negligible_reach() -> None:
     )
     assert negligible["like_rate"] == 1.0
     assert negligible["selected"] is False
-    assert negligible["exclusion_reason_or_none"] == "outside_top_view_quartile"
+    assert negligible["exclusion_reason_or_none"] == "not_selected_after_boundary_comparison"
 
 
-def test_like_rate_orders_review_only_inside_proven_reach_set() -> None:
+def test_like_rate_orders_review_priority_inside_selected_set() -> None:
     items = [
         _item("more_reach", 1_000, 10),
         _item("more_resonance", 900, 90),
-        _item("three", 800, 80),
-        _item("four", 700, 70),
-        _item("five", 600, 60),
-        _item("six", 500, 50),
-        _item("seven", 400, 40),
-        _item("eight", 300, 30),
+        _item("three", 800, 8),
+        _item("four", 700, 7),
+        _item("five", 600, 6),
+        _item("six", 500, 5),
+        _item("seven", 400, 4),
+        _item("eight", 300, 3),
     ]
 
     selection = build_tiktok_grid_video_selection(items, expected_item_count=8)
@@ -75,11 +75,11 @@ def test_like_rate_breaks_equal_view_boundary_tie() -> None:
         _item("first", 1_000, 10),
         _item("tie_low_rate", 900, 9),
         _item("tie_high_rate", 900, 90),
-        _item("four", 800, 80),
-        _item("five", 700, 70),
-        _item("six", 600, 60),
-        _item("seven", 500, 50),
-        _item("eight", 400, 40),
+        _item("four", 800, 8),
+        _item("five", 700, 7),
+        _item("six", 600, 6),
+        _item("seven", 500, 5),
+        _item("eight", 400, 4),
     ]
 
     selection = build_tiktok_grid_video_selection(items, expected_item_count=8)
@@ -87,6 +87,107 @@ def test_like_rate_breaks_equal_view_boundary_tie() -> None:
     assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == [
         "first",
         "tie_high_rate",
+    ]
+
+
+def test_boundary_challenger_can_replace_at_exact_thresholds() -> None:
+    items = [
+        _item("locked", 1_200, 120),
+        _item("incumbent", 1_000, 100),
+        _item("challenger", 800, 96),
+        _item("four", 700, 7),
+        _item("five", 600, 6),
+        _item("six", 500, 5),
+        _item("seven", 400, 4),
+        _item("eight", 300, 3),
+    ]
+
+    selection = build_tiktok_grid_video_selection(items, expected_item_count=8)
+
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == [
+        "locked",
+        "challenger",
+    ]
+    assert selection["selection_summary"]["promotion_count"] == 1
+    incumbent = next(
+        item for item in selection["ranked_items"] if item["video_id"] == "incumbent"
+    )
+    assert incumbent["exclusion_reason_or_none"] == (
+        "replaced_by_within_range_higher_like_rate"
+    )
+    assert selection["selection_summary"]["promotions"] == [
+        {
+            "promoted_video_id": "challenger",
+            "replaced_video_id": "incumbent",
+            "view_retention_ratio": 0.8,
+            "like_rate_lift_ratio": 1.2,
+            "incumbent_like_rate_was_zero": False,
+        }
+    ]
+
+
+def test_boundary_challenger_fails_when_views_are_more_than_twenty_percent_lower() -> None:
+    items = [
+        _item("locked", 1_000, 10),
+        _item("incumbent", 900, 9),
+        _item("challenger", 700, 70),
+        _item("four", 600, 6),
+        _item("five", 500, 5),
+        _item("six", 400, 4),
+        _item("seven", 300, 3),
+        _item("eight", 200, 2),
+    ]
+
+    selection = build_tiktok_grid_video_selection(items, expected_item_count=8)
+
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == [
+        "locked",
+        "incumbent",
+    ]
+    assert selection["selection_summary"]["promotion_count"] == 0
+
+
+def test_boundary_challenger_fails_without_twenty_percent_like_rate_lift() -> None:
+    items = [
+        _item("locked", 1_000, 100),
+        _item("incumbent", 900, 90),
+        _item("challenger", 850, 95),
+        _item("four", 700, 70),
+        _item("five", 600, 60),
+        _item("six", 500, 50),
+        _item("seven", 400, 40),
+        _item("eight", 300, 30),
+    ]
+
+    selection = build_tiktok_grid_video_selection(items, expected_item_count=8)
+
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == [
+        "locked",
+        "incumbent",
+    ]
+    assert selection["selection_summary"]["promotion_count"] == 0
+
+
+def test_promotions_cannot_chain_the_reach_floor_downward() -> None:
+    items = [
+        _item("locked", 1_000, 10),
+        _item("incumbent", 900, 9),
+        _item("qualifying", 750, 150),
+        _item("would_chain", 610, 610),
+        _item("five", 500, 5),
+        _item("six", 400, 4),
+        _item("seven", 300, 3),
+        _item("eight", 200, 2),
+    ]
+
+    selection = build_tiktok_grid_video_selection(items, expected_item_count=8)
+
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == [
+        "locked",
+        "qualifying",
+    ]
+    assert "would_chain" not in selection["selection_summary"][
+        "selected_video_ids_in_reach_order"
     ]
 
 
