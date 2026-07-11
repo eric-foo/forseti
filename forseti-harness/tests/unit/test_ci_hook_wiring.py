@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import importlib.util
 import json
 import re
@@ -12,6 +13,23 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CI_PATH = REPO_ROOT / ".github" / "workflows" / "ci.yml"
 PRE_PUSH_PATH = REPO_ROOT / ".agents" / "hooks" / "pre_push_guard.py"
+HOOKS_DIR = REPO_ROOT / ".agents" / "hooks"
+EVENT_BASE_SHA = "1" * 40
+DIFF_BASE_RESOLVERS = (
+    ("check_source_input_hashes.py", "resolve_base_ref", False),
+    ("header_index.py", "resolve_base_ref", True),
+    ("check_search_surface_google_route.py", "resolve_base", False),
+    ("check_csb_scanning_artifact.py", "resolve_base_ref", False),
+    ("check_ontology_tag_validity.py", "resolve_base_ref", False),
+    ("check_deletion_evidence.py", "resolve_base_ref", False),
+    ("check_dcp_receipt.py", "resolve_base_ref", False),
+    ("check_review_routing.py", "resolve_base_ref", False),
+    ("check_handoff_pointers.py", "resolve_base_ref", False),
+    ("check_prompt_output_mode.py", "resolve_base_ref", False),
+    ("check_review_summary.py", "resolve_base_ref", False),
+    ("check_hash_pin_freshness.py", "resolve_base_ref", False),
+    ("check_full_gt_claims.py", "resolve_base_ref", False),
+)
 
 
 def _load_pre_push_guard():
@@ -41,7 +59,10 @@ def test_ci_has_no_duplicate_python_commands() -> None:
 
 def test_every_pre_push_gate_is_the_same_command_ci_runs() -> None:
     guard = _load_pre_push_guard()
-    ci_commands = set(_ci_python_commands())
+    ci_commands = {
+        command.replace('"$FORSETI_DIFF_BASE"', "origin/main")
+        for command in _ci_python_commands()
+    }
     mirrored = {
         "python " + " ".join((script, *args))
         for _name, (script, *args) in guard.DOC_GATES
@@ -58,6 +79,53 @@ def test_observed_fast_failure_classes_are_mirrored_pre_push() -> None:
         "handoff-pointer resolution",
         "ontology tag validity",
     } <= names
+
+
+def test_ci_derives_and_verifies_exact_event_base_sha() -> None:
+    ci_text = CI_PATH.read_text(encoding="utf-8")
+    assert "github.event.pull_request.base.sha" in ci_text
+    assert "github.event.before" in ci_text
+    assert '[[ "$FORSETI_DIFF_BASE" =~ ^0+$ ]]' in ci_text
+    assert 'git cat-file -e "${FORSETI_DIFF_BASE}^{commit}"' in ci_text
+    assert ci_text.count('--diff "$FORSETI_DIFF_BASE" --strict') == 2
+
+
+def test_ci_uses_public_runner_cpu_capacity_without_splitting_test_files() -> None:
+    ci_text = CI_PATH.read_text(encoding="utf-8")
+    assert '"pytest-xdist==3.8.0"' in ci_text
+    assert (
+        "python -m pytest --durations=50 --durations-min=0.25 "
+        "-n 4 --dist=loadfile"
+    ) in ci_text
+
+
+
+def test_event_base_sha_precedes_github_branch_and_cli(
+    monkeypatch,
+) -> None:
+    monkeypatch.syspath_prepend(str(HOOKS_DIR))
+    monkeypatch.setenv("FORSETI_DIFF_BASE", EVENT_BASE_SHA)
+    monkeypatch.setenv("GITHUB_BASE_REF", "main")
+
+    for filename, function_name, needs_root in DIFF_BASE_RESOLVERS:
+        module = importlib.import_module(Path(filename).stem)
+        resolver = getattr(module, function_name)
+        args = (REPO_ROOT, "cli-base") if needs_root else ("cli-base",)
+        assert resolver(*args) == EVENT_BASE_SHA, filename
+
+
+def test_github_pr_base_precedes_cli_when_event_sha_absent(
+    monkeypatch,
+) -> None:
+    monkeypatch.syspath_prepend(str(HOOKS_DIR))
+    monkeypatch.delenv("FORSETI_DIFF_BASE", raising=False)
+    monkeypatch.setenv("GITHUB_BASE_REF", "develop")
+
+    for filename, function_name, needs_root in DIFF_BASE_RESOLVERS:
+        module = importlib.import_module(Path(filename).stem)
+        resolver = getattr(module, function_name)
+        args = (REPO_ROOT, "cli-base") if needs_root else ("cli-base",)
+        assert resolver(*args) == "origin/develop", filename
 
 
 def test_external_actions_are_sha_pinned_and_renovate_managed() -> None:

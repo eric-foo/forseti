@@ -210,6 +210,9 @@ def parse_name_status(lines: list[str]) -> list[str]:
 
 
 def resolve_base_ref(cli_base: str | None) -> str:
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     github_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if github_base:
         return f"origin/{github_base}"
@@ -445,6 +448,7 @@ def run_selftest() -> int:
             "C100\tsource.md\tcopied.md",
         ]
     )
+    saved_ci_base = os.environ.pop("FORSETI_DIFF_BASE", None)
     saved_base = os.environ.pop("GITHUB_BASE_REF", None)
     try:
         base_defaults_ok = (
@@ -458,6 +462,10 @@ def run_selftest() -> int:
             os.environ.pop("GITHUB_BASE_REF", None)
         else:
             os.environ["GITHUB_BASE_REF"] = saved_base
+        if saved_ci_base is not None:
+            os.environ["FORSETI_DIFF_BASE"] = saved_ci_base
+        else:
+            os.environ.pop("FORSETI_DIFF_BASE", None)
 
     if parse_found != parse_expected:
         env_failures.append(

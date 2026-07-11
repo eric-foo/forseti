@@ -68,6 +68,7 @@ def _init_repo(tmp_path: Path) -> Path:
         "check_review_output_provenance.py",
         "check_review_summary.py",
         "check_retrieval_header.py",
+        "_hooklib.py",  # shared helper sibling; hooks are ported as a directory
     ):
         shutil.copy2(REPO_ROOT / ".agents" / "hooks" / name, hooks / name)
 
