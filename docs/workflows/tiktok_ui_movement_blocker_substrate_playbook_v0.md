@@ -63,11 +63,12 @@ not on re-proving pointer delivery.
 
 For an ordinary sessioned TikTok capture attempt, do not start by re-diagnosing
 Chrome, Playwright, or blocker targetability. Use the runbook command for
-`run_source_capture_tiktok_live_batch_probe.py` with CloakBrowser, a dedicated
-exported auth-state label, `--require-harness-proxy-posture
-no_proxy_profile_loaded`, `--allow-challenge-close-followthrough`,
-`--human-challenge-handoff`, and local `--admit-output`. Then classify the
-result from `tiktok_live_probe_summary_json=` before opening larger JSON files.
+`run_source_capture_tiktok_live_batch_probe.py` with
+`--session-profile chowdakr_sg_tiktok` and local `--admit-output`. The profile
+binds CloakBrowser, the machine-local auth state and required harness proxy
+posture, and owner handoff before scripted pointer actions; it does not enable
+X/Close. Then classify the result from `tiktok_live_probe_summary_json=` before
+opening larger JSON files.
 
 Treat these blocker classes as setup or owner-attention states, not generic
 stops:
@@ -120,18 +121,24 @@ browser surface. The observed surfaces are materially different:
 
 Use this pin as routing evidence, not admission evidence. The runner surface is
 `--browser-backend cloakbrowser`; do not combine it with `--browser-channel`.
-For TikTok slider/captcha handoff, `--human-challenge-handoff` requires
-`--allow-challenge-close-followthrough` and fires only after scripted X/Close
-actions. Any manual solve is source-access intervention in the receipt, not
-clean capture. CloakBrowser `0.4.7` removed the old `backend=` launch argument;
+For TikTok slider/captcha handoff, `--human-challenge-handoff` fires at
+page load before scripted pointer actions. If the marker remains after the owner
+handoff window, the runner suppresses those actions and fails closed. The
+`chowdakr_sg_tiktok` profile enables this policy without enabling X/Close.
+Any manual solve is source-access intervention in the receipt, not clean
+capture. CloakBrowser `0.4.7` removed the old `backend=` launch argument;
 adapter smoke-test `--browser-backend cloakbrowser` after wrapper upgrades before
 spending TikTok probe budget. This does not prove cross-creator durability,
 page-owned `/api/comment/list` response capture, subtitle transcript capture
 across creators, account safety at volume, or creator-registry promotion.
 
-Current owner source-access redirect: for public TikTok content, an X-able
-slider/captcha/security modal is no longer a hard capture blocker when the
-current lane explicitly uses `--allow-challenge-close-followthrough`. The runner
+Current owner default: use `--session-profile chowdakr_sg_tiktok`. A visible
+slider/captcha/security marker triggers owner handoff before scripted pointer
+actions; the agent does not close, drag, or solve it, and uncleared markers
+suppress the remaining action sequence.
+
+The explicit X/Close route remains available only when the current lane
+separately uses `--allow-challenge-close-followthrough`. The runner
 may attempt the X/Close control, then attempt the page-owned comment route only
 if post-click verification proves the close was accepted. `clicked=true` means
 only that a pointer click was delivered; accepted follow-through requires
@@ -181,6 +188,7 @@ The substrate is:
 | Benign TikTok onboarding/app prompt such as `Got it`, `OK`, `Not now`, `Continue in browser` | `tiktok_dismiss_benign_overlay_pointer_v0` | Yes | Setup action only; excluded from comment-action count; `OK` is matched as an exact button/control target, not as a broad page-text blocker marker. |
 | Logged-out login upsell modal with a dismiss/close control and no challenge/security text | `tiktok_dismiss_benign_overlay_pointer_v0` or a named logged-out dismiss action if added later | Yes for logged-out limit mapping only | Setup action only; record the receipt and continue measuring public access. Do not enter credentials. |
 | Comment surface does not load comments until tab shuffle | `comment_surface_toggle_pointer_sequence_v0`: `tiktok_open_comments_pointer_v0` -> `tiktok_open_more_like_this_pointer_v0` (`You may like` / `More like this`) -> `tiktok_reopen_comments_pointer_v0`, repeated once before zero-yield classification | Yes | Clean response-tier capture if at least one page-owned `/api/comment/list` response is admitted; lower-tier fallback if bounded DOM-visible comment candidates are captured after the route. First-pass zero response is not terminal; zero response and zero DOM-visible candidates after the repeated bounded route remains zero evidence, not success. |
+| Visible slider/captcha under `chowdakr_sg_tiktok` | `human_challenge_handoff_v0` at `page_load_before_pointer_actions_v0` | Owner-only source-access intervention; never clean by itself | Keep the browser open and prompt the owner before any scripted pointer action. Continue only when the marker clears; otherwise record the handoff and suppress the pointer-action sequence. |
 | DOM-exposed slider/captcha close control | `tiktok_challenge_modal_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic flag remains stop-only | Attempt X/Close, do not solve/drag, then continue only if post-click verification plus final blocker triage accepts the close (`challenge_close_accepted=true`) and page-owned comments or DOM-visible comment candidates are captured; carry `source_access_intervention`. |
 | Screenshot-visible but DOM-invisible slider/captcha X | `tiktok_challenge_modal_visual_close_followthrough_pointer_v0` for follow-through; `tiktok_challenge_modal_visual_close_diagnostic_pointer_v0` for diagnosis | Yes only with `--allow-challenge-close-followthrough`; diagnostic visual-X remains visible-challenge-text gated and stop-only | Follow-through visual-X may run before comment routing even when TikTok exposes the challenge marker only as hidden/residual DOM text. Continue only if post-click text/visual verification plus final blocker triage accepts the close and page-owned comments or DOM-visible comment candidates are captured, with the intervention preserved. |
 | Slider/captcha puzzle itself | None | Never | Do not drag, solve, or attempt puzzle interaction. |

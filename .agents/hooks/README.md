@@ -1,9 +1,12 @@
 # Agent enforcement hooks — and how to wire them in any harness
 
 These scripts enforce a few Forseti rules at the agent's **tool boundary**. They are
-**standalone** — plain Python that reads a tool event as JSON on stdin and signals
-via exit code — so they are **harness-portable**: the *logic* runs anywhere; only the
-*wiring* (how your agent harness invokes them) is harness-specific.
+**self-contained as a directory** — plain stdlib Python (plus PyYAML for the
+placement checker) that reads a tool event as JSON on stdin and signals via exit
+code; shared helpers live in the sibling `_hooklib.py`, so port the whole
+`.agents/hooks/` directory, not single files. That makes them **harness-portable**:
+the *logic* runs anywhere; only the *wiring* (how your agent harness invokes them)
+is harness-specific.
 
 > **If you are an agent in a harness other than Claude Code:** these hooks are
 > **inert until you wire them into your harness's own config.** Read "Wiring per
@@ -16,7 +19,7 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) irreversible / main-affecting actions: an agent's `gh pr merge` → main, push-to-main, force-push, `reset --hard`, `git clean`, and writes into protected external roots. **Allows** a benign lane-branch push. Fires in **all** permission modes. **Fails OPEN** on internal error. |
 | `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, and blocks raw shell durable-write primitives for repo source/docs files. |
-| `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it then mirrors selected strict CI gates (`check_map_links.py --strict`, `header_index.py --strict`, `check_review_routing.py --strict`, `check_source_input_hashes.py --strict`, `check_hash_pin_freshness.py --strict`; diff-scoped base `origin/main`, same as CI) so durable-doc or source-input hash gate misses fail before push instead of in CI. Bypassable with `--no-verify`; misses GitHub API merges; CI stays the authoritative gate. |
+| `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it mirrors nine strict CI gates over `origin/main...HEAD`: retrieval links/headers, review routing/provenance, source-input and markdown hash freshness, prompt output mode, handoff pointers, and ontology tag validity. A gate failure or launch error blocks the push. Bypassable with `--no-verify`; misses GitHub API merges; CI stays authoritative. |
 | `check_source_input_hashes.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: list-style JSON `source_inputs[]` records with repo-local `source_pointer` + `sha256` must match current file bytes (CRLF-normalized), and source-capture packet manifests (top-level `manifest_version`) must have top-level `preserved_files[]` records whose `relative_packet_path` + `sha256` match current raw stored bytes resolved against the manifest's own directory, when the artifact or referenced file changed. Provenance freshness only; never semantic validation, generated-artifact completeness, readiness, or source quality. Backlog via `--audit`; `--selftest` present. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
 | `check_dcp_receipt.py` | **CI** (`--strict`) + manual maintenance | Diff-scoped strict gate validates the shape of real DCP receipts/blockers present in changed Markdown files and reports changed-file/receipt counts. `--audit` is maintenance-only for checker/contract changes or explicit legacy-corpus repair. Shape only; never receipt need, truth, validation, readiness, or acceptance. |
@@ -33,9 +36,30 @@ via exit code — so they are **harness-portable**: the *logic* runs anywhere; o
 | `check_repo_map_freshness.py` | **post-tool** (after a write) | Reports structural drift vs the repo map as advisory output; exits 2 when the repo map itself is dirty after edit so the next action is an explicit-path commit; has a `--strict` gate for commit/CI use. |
 | `check_search_surface_google_route.py` | **post-tool** (after a write) + CI | Advisory on live writes and strict in CI for the checkable Google search-surface route shell: Google Search URLs use `hl=en&gl=us&pws=0`, US-parameterized artifacts carry the physical-locality non-claim, and Google sorry/IP pages are not preserved in durable docs. |
 | `remind_sci.py` | **pre-tool** (before a `git commit`) | Advisory (exit 0): when the commit includes durable-artifact changes, re-injects the Smallest Complete Intervention rule (verbatim from AGENTS.md) as a nudge before scope is locked in. Never blocks; silent for code/scratch/config-only commits. |
+| `header_index.py` | manual + **CI** (`--strict`) + session capsule | Generates the on-demand retrieval index, advisory health/backlog views, and the diff-scoped forward-only header/orphan gate. Inventory and shape only; never readiness or source authority. |
+| `check_map_links.py` | manual + **CI** (`--strict`) | Checks map/submap paths, `open_next` targets, folder reachability, and inline path shape under the locked repo-map architecture. Reachability only; never route truth or completeness proof. |
+| `check_dcp_receipt.py` | **CI** (diff-scoped `--strict`) | Validates the deterministic shape of changed doctrine-change receipts and blockers. It cannot decide whether a receipt is required or whether listed propagation work actually happened. |
+| `check_placement.py` | **post-tool** (after a write) + `--strict` for commit/CI | Advisory WARN when a written path has no declared home in `repo-structure.yaml` (EP-04); `--strict` is the full-tree gate. Placement shape only; never authority, validation, or readiness. |
+| `check_full_gt_claims.py` | **post-tool** (after a write) + **CI** (`--changed --strict`) | Flags added `.md` lines whose full-GT claim language is not bounded by ballast wording and does not sit in a claim-owning surface. Shape/placement only; never claim truth. |
+| `check_prompt_provenance.py` | **post-tool** (after a write under `docs/prompts/**`) | Advisory (exit 0): injects the Forseti Prompt Preflight checklist. Once-per-session throttle: the full checklist fires on the FIRST in-scope prompt write of a session; later writes get a one-line pointer (fails open to the full checklist). |
+| `check_shared_files_dirty.py` | **Stop** (turn end) | Advisory (exit 0): warns when a commit-once-whole shared file (repo map, `.claude/settings.json`, source-of-truth) is left dirty at end of turn. Never blocks, never auto-commits. |
+| `check_token_burn.py` | **Stop** (turn end) | Advisory (exit 0): warns when one turn's prompt size crosses a rung (200K warn / 500K alarm, env-overridable); escalation-throttled so it never nags every turn. |
+| `session_context_capsule.py` | **SessionStart** | Prints the lane-state capsule (branch, tree dirt, config-surface dirt, doctrine drift, entry points) into session context. Observed git state only; not doctrine or lane authority. |
 
 Each has a `--selftest`. Each script names its own rule authority in its module
 header and references that source instead of restating it.
+
+**Shared helpers:** `_hooklib.py` (same directory) owns the helpers the wired
+checkers share -- repo-root/path normalization, tool-event parsing (incl. Codex
+`apply_patch` headers), the git wrapper, porcelain parsing, shell-segment
+splitting, the durable-docs scope base, and the once-per-session marker. The
+scripts pin their own directory onto `sys.path` before importing it, so they
+still run from any cwd; a harness port must copy the whole `.agents/hooks/`
+directory, not individual scripts. **Deliberate exception:**
+`guard_protected_actions.py` stays import-free -- an ImportError in an advisory
+checker costs one advisory, but in the hard guard it would disable the gate
+(including its fail-closed merge path). Do not refactor the guard onto
+`_hooklib`.
 
 ## The contract (harness-agnostic)
 
@@ -55,19 +79,32 @@ header and references that source instead of restating it.
 ## Wiring per harness
 
 ### Claude Code (current)
-Register in the repo's tracked `.claude/settings.json`:
+Register in the repo's tracked `.claude/settings.json`. The live wiring (see
+that file for the authoritative registration) is:
+
+- **PreToolUse** `Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit` →
+  `guard_protected_actions.py`; **PreToolUse** `Bash|PowerShell` →
+  `remind_sci.py --hook`.
+- **PostToolUse** `Write|Edit|MultiEdit` → `check_retrieval_header.py`,
+  `check_full_gt_claims.py`, `check_repo_map_freshness.py`,
+  `check_placement.py`, `check_prompt_provenance.py`,
+  `check_search_surface_google_route.py` (each `--hook`, timeout 10).
+  NotebookEdit is deliberately pre-tool-guarded but NOT post-tool-checked:
+  the post checkers target `.md`/placement surfaces, not notebooks.
+- **Stop** (no matcher) → `check_shared_files_dirty.py --hook`,
+  `check_token_burn.py`.
+- **SessionStart** (no matcher) → `session_context_capsule.py --hook`.
+
+Entry shape per hook:
 ```json
-"hooks": {
-  "PreToolUse":  [ { "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
-                     "hooks": [ { "type": "command", "command": "python .agents/hooks/guard_protected_actions.py", "timeout": 10 } ] } ],
-  "PostToolUse": [ { "matcher": "Write|Edit|MultiEdit",
-                     "hooks": [ { "type": "command", "command": "python .agents/hooks/check_retrieval_header.py --hook",   "timeout": 10 },
-                                { "type": "command", "command": "python .agents/hooks/check_repo_map_freshness.py --hook", "timeout": 10 } ] } ]
-}
+{ "type": "command",
+  "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/<script>.py\" --hook",
+  "timeout": 10 }
 ```
 Hooks load at session start — **restart the session** after editing settings.
 Verify:
 ```powershell
+python .agents/hooks/_hooklib.py --selftest
 python .agents/hooks/guard_protected_actions.py --selftest
 python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
 python .agents/hooks/check_registry_list_sync.py --selftest
@@ -85,6 +122,14 @@ python .agents/hooks/check_hash_pin_freshness.py --strict
 python .agents/hooks/check_repo_map_freshness.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --strict --base main
+python .agents/hooks/check_retrieval_header.py --selftest
+python .agents/hooks/check_placement.py --selftest
+python .agents/hooks/check_full_gt_claims.py --selftest
+python .agents/hooks/check_prompt_provenance.py --selftest
+python .agents/hooks/check_shared_files_dirty.py --selftest
+python .agents/hooks/check_token_burn.py --selftest
+python .agents/hooks/session_context_capsule.py --selftest
+python .agents/hooks/remind_sci.py --selftest
 ```
 
 ### Codex (tracked project hook)
@@ -204,10 +249,10 @@ These hooks enforce **only where they are wired.** A harness without them wired 
 - the **protected-path protection (EP-01)** is tuned to a machine's external layout, so
   it stays **per-machine** — other clones adjust their own externals.
 
-The only **harness-agnostic, unbypassable** gate is **server-side branch protection**,
-which is the deferred target (currently **403-blocked** on this private/free repo; see
-the dev-workflow doctrine). Until then, structure-B enforcement is **per-harness**: live
-wherever these hooks are wired, absent everywhere else.
+The only **harness-agnostic, unbypassable** gate is the active **server-side branch
+protection** on main (see the dev-workflow doctrine). Per-harness and local Git hooks
+remain defense in depth: they fail earlier and cover destructive local actions, but they
+do not weaken or replace the server gate.
 
 ---
 *Navigation / setup doc only. These are advisory + enforcement tooling, not validation,

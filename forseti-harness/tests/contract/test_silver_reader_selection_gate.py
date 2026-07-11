@@ -50,6 +50,10 @@ _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
         "projection writer checks exact bronze-catalog proof paths while appending "
         "stable derived records"
     ),
+    "source_capture/retail_pdp_silver.py": (
+        "producer reads one caller-pinned projection record id by key; it never "
+        "selects among or walks a sibling set"
+    ),
 }
 
 def _declared(detection: str) -> set[str]:

@@ -249,7 +249,7 @@ Legacy receipts #1–#13 remain frozen in `docs/decisions/dcp_receipts_archive_v
 - `.agents/workflow-overlay/README.md`: overlay entrypoint.
 - `.agents/workflow-overlay/artifact-roles.md`: Forseti artifact role bindings, permissions, freshness markers, and paired artifacts.
 - `.agents/workflow-overlay/source-loading.md`: Forseti source-loading budgets, read packs, and context-bloat controls.
-- `.agents/workflow-overlay/decision-routing.md`: Forseti Cynefin Routing Layer for non-trivial, ambiguous, cross-thread, delegated, doctrine-bearing, or messy-worktree work.
+- `.agents/workflow-overlay/decision-routing.md`: Forseti Cynefin Routing Layer for work where uncertainty about decomposition, authority, source truth, or sequencing could materially change the next move.
 - `.agents/workflow-overlay/retrieval-metadata.md`: Forseti retrieval-header contract for durable human-authored workflow artifacts.
 - `.agents/workflow-overlay/prompt-orchestration.md`: Forseti prompt artifact, wrapper, preflight, output mode, validation, and rerun bindings.
 - `.agents/workflow-overlay/template-registry.md`: Forseti-owned prompt template registry for project-local templates.

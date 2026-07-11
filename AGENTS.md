@@ -44,70 +44,36 @@ intervention rule above.**
 ### Problem Integrity
 
 Before planning or expanding a non-trivial task, bind the owner-requested
-outcome and the condition under which it must hold. Completeness is measured
-against that bound outcome, not every adjacent risk surfaced during analysis.
-Do not silently substitute a broader problem, capability ambition, or
-architecture for the stated problem.
+outcome and the condition under which it must hold. Measure completeness
+against that outcome. Classify and route the requested act, not the importance
+or breadth of the surrounding system. Context, importance, risk, and adjacent
+weaknesses may change the evidence threshold; invoked lenses may deepen
+reasoning. None of these may replace or expand the requested act.
 
-Separate the owner-requested outcome from the context that motivated it.
-Importance, reliance, risk, uncertainty, or a discovered adjacent weakness may
-change the evidence or decision threshold; they do not become a second outcome
-unless the owner asks to solve them.
+For a narrow decision, give the decision and only the decisive rationale; if
+materially useful, add one reversal condition. Do not design an alternative,
+roadmap, policy, fallback, checklist, or operating model unless requested.
+Once the decision is adequately supported, stop.
 
-This boundary applies to analysis, recommendations, and plans as well as edits.
-A decision request does not authorize designing the downstream system: answer
-the decision, include only the minimum rationale needed to keep it true, and
-name a reversal condition only when it materially helps owner steering. Do not
-turn adjacent risks into recommended infrastructure merely because it could be
-useful.
-
-In the maintenance-surface test below, "false or materially fragile" refers to
-the bound outcome itself, not to a safer or more resilient downstream posture
-the agent could design after answering it. Once a decision request is adequately
-supported, stop. A reversal condition may identify when the decision should be
-revisited; it must not become a roadmap, operating model, fallback design, or
-improvement program unless the owner requested one.
-
-Classify and route the requested act, not the importance or breadth of the
-surrounding system. A narrow read-only decision remains narrow even when its
-subject is critical, heavily relied upon, or architecturally consequential.
-For such a yes/no decision, a negative recommendation does not authorize
-designing the alternative. Give the decision and only the decisive supporting
-reasons, then stop. If materially useful, state one compact fact pattern that
-would reverse the decision; do not add an ownership model, policy, operating
-posture, checklist, fallback, allowed next move, or substitute improvement
-program unless the owner asked for it.
-
-A skill, method, or architecture lens may deepen reasoning within the bound
-outcome. It does not redefine the outcome or import its full option space as
-scope.
-
-Before proposing or adding an abstraction, repository, automation, lifecycle,
-fallback, or other standing maintenance surface, name what part of the bound
-outcome would become false or materially fragile without it. If none, exclude
-it from the proposed or executed scope and retain at most a deferred risk with
-an upgrade trigger. This test does not prohibit
-necessary supporting work: include that work when omitting it would make the
-outcome false or materially fragile. If necessary supporting work materially
-increases lock-in, surface the tradeoff for owner steering; do not underfix.
+Before proposing a standing maintenance surface--such as an abstraction,
+repository, automation, or lifecycle--state what part of the bound outcome
+would become false or materially fragile without it, judged against that
+outcome rather than a safer or more resilient downstream posture. If none,
+exclude it; at most note a deferred risk and upgrade trigger. Include necessary
+supporting work, and surface the tradeoff when it materially increases lock-in.
 
 ## Decision Priority
 
-When design options conflict and each already passes the always-on rules
-above (real failure visibility / no fake success, and smallest complete),
-break the tie in this order:
+When multiple options already satisfy real failure visibility and Smallest
+Complete Intervention, break the tie in this order:
 
-1. **Least compounded risk** -- prefer the reversible, contained,
-   low-lock-in option that fails loud and local; surface irreversible,
-   high-lock-in, or doctrine-changing forks to the owner rather than
-   auto-deciding (this is the lock-in tiebreaker in Smallest Complete
-   Intervention, applied first).
-2. **Structural integrity** -- model reality as it is and teach the next
-   agent the truth: name a limitation over faking a fit; prefer one true
-   rule over a clever special-case.
+1. **Least compounded risk** -- prefer the reversible, contained, low-lock-in
+   option that fails loud and local; surface irreversible, high-lock-in, or
+   doctrine-changing choices to the owner.
+2. **Structural integrity** -- model reality truthfully; name a limitation
+   instead of faking a fit, and prefer one true rule over a clever special case.
 
-When 1 and 2 pull apart, default to 1 and surface the tradeoff --
-recoverability beats elegance when the owner cannot easily course-correct.
+If these priorities conflict, choose recoverability and surface the tradeoff.
 
 ## Mini God Tier
 
@@ -158,7 +124,7 @@ Before project work, read `.agents/workflow-overlay/README.md` and follow the Fo
 
 Keep Forseti project facts, source hierarchy, source-loading rules, artifact folders, review lanes, validation gates, safety rules, prompt rules, and lifecycle boundaries in `.agents/workflow-overlay/` or another Forseti-owned source named there.
 
-For substantial, ambiguous, cross-thread, delegated, doctrine-changing, review/patch-affecting, infrastructure-building, or messy-worktree work, run the Forseti Cynefin Routing Layer before planning or delegation; the owning rule is `.agents/workflow-overlay/decision-routing.md`.
+Run the Forseti Cynefin Routing Layer before planning or delegation when uncertainty about decomposition, authority, source truth, or safe sequencing could materially change the next move. Substantial, cross-thread, delegated, doctrine-changing, review/patch-affecting, infrastructure-building, and messy-worktree work are escalation cues, not automatic full-router triggers; bounded work with a clear outcome, authority, and route proceeds directly. The owning rule is `.agents/workflow-overlay/decision-routing.md`.
 
 Every durable prompt, handoff, wrapper, rerun, or patch prompt applies the prompt contract; do not author one that skips it. Routine prompts apply the **Forseti Prompt Preflight** core inline (the ~12-line core in `.agents/workflow-overlay/prompt-orchestration.md`) -- no skill reload; fused, delegated-review-patch, and novel or cross-lane prompts author through the full `workflow-prompt-orchestrator` skill, which owns prompt source-loading and the full preflight/routing contract. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain governed by this contract. The owning rule is `.agents/workflow-overlay/prompt-orchestration.md`.
 
