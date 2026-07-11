@@ -73,12 +73,13 @@ Write-Host "Base:     origin/$Base"
 
 if ($DryRun) {
     Write-Host "DryRun - would run:" -ForegroundColor Yellow
-    Write-Host "  git fetch origin"
+    Write-Host "  git fetch --prune origin"
     Write-Host "  git worktree add -b $Lane `"$Path`" origin/$Base"
     exit 0
 }
 
-git fetch origin 2>&1 | Out-Null
+git fetch --prune origin 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) { Stop-WithError 'git fetch --prune origin failed.' }
 git worktree add -b $Lane "$Path" "origin/$Base"
 if ($LASTEXITCODE -ne 0) { Stop-WithError 'git worktree add failed.' }
 
@@ -88,7 +89,10 @@ Write-Host "Work in it:  cd `"$Path`""
 Write-Host "Land it:     commit (explicit paths) -> push -> PR off main -> merge-when-green"
 Write-Host "             (docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md)"
 Write-Host ""
-Write-Host "Clean up at close (deliberate - not automatic):" -ForegroundColor Cyan
-Write-Host "  git -C `"$repoRoot`" worktree remove --force `"$Path`""
-Write-Host "  git -C `"$repoRoot`" branch -D $Lane"
-Write-Host "  git -C `"$repoRoot`" push origin --delete $Lane   # only if pushed and already merged"
+Write-Host "Classify before cleanup (read-only; re-derive live):" -ForegroundColor Cyan
+Write-Host "  pwsh `"$repoRoot/.github/scripts/lane-health-check.ps1`" -RepoPath `"$Path`" -Fetch -ClassifyWorktrees -Json"
+Write-Host "This helper does not execute the doctrine item-10 lane-start sweep or cleanup."
+Write-Host "After the PR is merged and the fresh classifier marks this lane merged_gone_clean:"
+Write-Host "  git -C `"$repoRoot`" worktree remove `"$Path`"   # non-force; refuses dirty/untracked"
+Write-Host "  git -C `"$repoRoot`" branch -D $Lane              # only after all classifier/doctrine guards pass"
+Write-Host "Remote branch deletion is normally handled by the merged PR. Never delete from a cached classification."
