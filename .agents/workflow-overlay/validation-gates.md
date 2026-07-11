@@ -27,25 +27,30 @@ Validation reports must preserve failure visibility by bucket:
   `INFO`. A future wrapper may encode this policy, but bucket membership is owned here; any wrapper
   script that encodes it must exit nonzero iff any `GATE FAIL` exists.
 
+Throughout Forseti workflow doctrine, a `status claim` asserts acceptance or
+approval; validation, readiness, or completion (including `PASS` or
+`ADEQUATE_NOW`); implementation, deployment, installation, or resolver state;
+source-of-truth promotion; or buyer pull / willingness to pay. A `strict status
+claim` uses one of those states to clear a gate or authorize movement. Domain
+owners may bind narrower tokens, but compressed references to status claims
+inherit this floor.
+
 ## Current Gates
 
 - Required Forseti files exist before claiming bootstrap completion.
 - No software implementation directories are present unless explicitly authorized.
 - `AGENTS.md` and overlay files do not encode `jb` project-specific authority as Forseti rules.
-- Repo-aware prompt use, review setup, handoff creation, docs-write or overlay
-  maintenance, source-changing work, and completion claims include or report
-  the `forseti_start_preflight` receipt from
-  `.agents/workflow-overlay/source-loading.md`. Missing preflight evidence is a
-  blocker for the claim or handoff, not proof that the artifact body is false
-  and not authority for broad cleanup.
+- Material authority, source-scope, edit-permission, and repository-state checks
+  occur before repo-aware work. A `forseti_start_preflight` receipt is required
+  only at the durable/cross-lane and portable strict-claim boundaries in
+  `.agents/workflow-overlay/source-loading.md`; missing receipt evidence blocks
+  that portable handoff or claim, not ordinary interactive work.
 - Doctrine-changing source work must include an inline
   `direction_change_propagation` receipt or explicit
   `direction_change_propagation_blocker` under
   `.agents/workflow-overlay/source-of-truth.md` before claiming completion.
-  Missing propagation evidence blocks strict completion, readiness, validation,
-  `PASS`, `ADEQUATE_NOW`, acceptance, or alignment-complete claims; it does not
-  authorize a broad template sweep, automation, new skill, registry, or
-  standalone receipt file.
+  Missing propagation evidence blocks strict success or status claims that
+  depend on the changed doctrine; it authorizes no adjacent cleanup or tooling.
 - Review-routing disposition gate: a change that touches code roots
   (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`
@@ -159,19 +164,19 @@ Validation reports must preserve failure visibility by bucket:
 ## Prompt Orchestration Gates
 
 - Overlay authority gate: `AGENTS.md` and `.agents/workflow-overlay/README.md`
-  must be read before prompt-orchestration work, and repo-aware prompts must
-  carry the start-preflight fields owned by
-  `.agents/workflow-overlay/source-loading.md`.
+  must be read before prompt-orchestration work. Routine prompts carry the
+  complete inline core; escalated prompts carry the portable start receipt and
+  fields owned by `.agents/workflow-overlay/source-loading.md` and
+  `.agents/workflow-overlay/prompt-orchestration.md`.
 - Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Forseti overlay file.
 - Source-resolution gate: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy must not be imported.
-- Worktree preflight gate: repository-aware prompts must state workspace, revision or hash when needed, dirty-state allowance, target scope, and edit permission.
+- Worktree preflight gate: prompts state workspace, revision or hash, dirty-state allowance, target scope, and edit permission only when repository state matters.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Forseti
   sources as clean, modified, untracked, stale, or not checked when those
   sources affect strict claims. Modified or untracked controlling sources may
-  support advisory work, but strict `PASS`, `ADEQUATE_NOW`, readiness,
-  acceptance, source-of-truth, validation, or proof claims remain blocked unless
-  owner acceptance or controlling authority is explicit.
+  support advisory work, but strict status claims remain blocked unless owner
+  acceptance or controlling authority is explicit.
 - Output-mode gate: prompts must name exactly one output mode from `.agents/workflow-overlay/prompt-orchestration.md`.
   The mechanically checkable shell — an output-mode declaration naming at
   least one closed-set token in a changed `docs/prompts/**` artifact

@@ -1,0 +1,333 @@
+"""Deterministic reach-first selection for TikTok creator-grid onboarding.
+
+Selection starts with the top quarter by observed view count. An outside video
+may replace an original selection only when it retains at least 80% of that
+incumbent's views and has at least 20% higher like rate. Promotions never become
+new comparison anchors, preventing chained erosion of the reach floor.
+"""
+from __future__ import annotations
+
+import math
+from collections.abc import Sequence
+from fractions import Fraction
+from typing import Any
+
+TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION = "tiktok_grid_video_selection_v0"
+TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION = "tiktok_reach_first_top_quartile_v1"
+_SELECTION_FRACTION = 0.25
+_MINIMUM_VIEW_RETENTION_PERCENT = 80
+_MINIMUM_LIKE_RATE_LIFT_PERCENT = 20
+
+
+class TikTokGridVideoSelectionError(ValueError):
+    """Raised when a complete, trustworthy selection cannot be produced."""
+
+
+def build_tiktok_grid_video_selection(
+    items: Sequence[dict[str, Any]],
+    *,
+    expected_item_count: int,
+) -> dict[str, Any]:
+    """Select the reach-proven top quarter from one complete creator grid."""
+
+    if isinstance(expected_item_count, bool) or not isinstance(expected_item_count, int):
+        raise TikTokGridVideoSelectionError("expected_item_count must be an integer")
+    if expected_item_count <= 0:
+        raise TikTokGridVideoSelectionError("expected_item_count must be positive")
+    if len(items) != expected_item_count:
+        raise TikTokGridVideoSelectionError(
+            "complete-grid coverage required: "
+            f"expected {expected_item_count} items, received {len(items)}"
+        )
+
+    normalized = [_normalize_item(item, index=index) for index, item in enumerate(items)]
+    video_ids = [item["video_id"] for item in normalized]
+    if len(set(video_ids)) != len(video_ids):
+        raise TikTokGridVideoSelectionError("duplicate video_id values are not allowed")
+
+    selection_count = max(1, math.ceil(expected_item_count * _SELECTION_FRACTION))
+    reach_order = sorted(
+        normalized,
+        key=lambda item: (
+            -item["view_count"],
+            -_like_rate_fraction(item),
+            -item["like_count"],
+            item["video_id"],
+        ),
+    )
+    baseline_selected = reach_order[:selection_count]
+    baseline_cutoff_view_count = baseline_selected[-1]["view_count"]
+    selected, promotions = _apply_boundary_promotions(
+        baseline_selected=baseline_selected,
+        challengers=reach_order[selection_count:],
+    )
+    selected_ids = {item["video_id"] for item in selected}
+    replaced_ids = {receipt["replaced_video_id"] for receipt in promotions}
+    review_order = sorted(
+        selected,
+        key=lambda item: (
+            -_like_rate_fraction(item),
+            -item["view_count"],
+            -item["like_count"],
+            item["video_id"],
+        ),
+    )
+    review_ranks = {
+        item["video_id"]: index for index, item in enumerate(review_order, start=1)
+    }
+
+    ranked_items: list[dict[str, Any]] = []
+    for reach_rank, item in enumerate(reach_order, start=1):
+        is_selected = item["video_id"] in selected_ids
+        ranked_items.append(
+            {
+                **item,
+                "reach_rank": reach_rank,
+                "selected": is_selected,
+                "review_priority_rank_or_none": (
+                    review_ranks[item["video_id"]] if is_selected else None
+                ),
+                "exclusion_reason_or_none": (
+                    None
+                    if is_selected
+                    else (
+                        "replaced_by_within_range_higher_like_rate"
+                        if item["video_id"] in replaced_ids
+                        else "not_selected_after_boundary_comparison"
+                    )
+                ),
+            }
+        )
+
+    return {
+        "schema_version": TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION,
+        "selection_policy": {
+            "policy_version": TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION,
+            "selection_fraction": _SELECTION_FRACTION,
+            "selection_count_rounding": "ceil_with_minimum_one",
+            "required_metrics": ["playCount", "diggCount"],
+            "membership_rule": (
+                "Start with the top ceil(25%) by view_count. An outside video may "
+                "replace an original view-selected incumbent only when it retains "
+                "at least 80% of that incumbent's views and has at least 20% higher "
+                "like_rate."
+            ),
+            "review_priority_rule": (
+                "Within the selected set only, order like_rate descending, then "
+                "view_count descending."
+            ),
+            "negligible_reach_guard": (
+                "Promotions compare only against original view-selected incumbents; "
+                "a promoted video cannot become a new lower-reach comparison anchor."
+            ),
+            "competing_challenger_order_rule": (
+                "When more than one challenger qualifies, challengers are matched "
+                "in like_rate-descending order; each qualifying challenger claims "
+                "the lowest-like_rate remaining incumbent it qualifies against. "
+                "A later, still-qualifying challenger can be left unpromoted if an "
+                "earlier challenger already claimed its only eligible incumbent."
+            ),
+            "minimum_view_retention_percent": _MINIMUM_VIEW_RETENTION_PERCENT,
+            "minimum_like_rate_lift_percent": _MINIMUM_LIKE_RATE_LIFT_PERCENT,
+            "like_rate_recipe": "diggCount / playCount",
+        },
+        "coverage": {
+            "expected_item_count": expected_item_count,
+            "observed_item_count": len(normalized),
+            "complete": True,
+        },
+        "selection_summary": {
+            "selection_count": selection_count,
+            "baseline_cutoff_view_count": baseline_cutoff_view_count,
+            "final_minimum_view_count": min(item["view_count"] for item in selected),
+            "promotion_count": len(promotions),
+            "promotions": promotions,
+            "selected_video_ids_in_reach_order": [
+                item["video_id"] for item in selected
+            ],
+            "selected_video_ids_in_review_priority_order": [
+                item["video_id"] for item in review_order
+            ],
+        },
+        "ranked_items": ranked_items,
+        "non_claims": [
+            "not a prediction of future virality",
+            "not proof of creative causality",
+            "not Creator Registry truth",
+        ],
+    }
+
+
+def _apply_boundary_promotions(
+    *,
+    baseline_selected: Sequence[dict[str, Any]],
+    challengers: Sequence[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    remaining_incumbents = list(baseline_selected)
+    promoted: list[dict[str, Any]] = []
+    promotion_receipts: list[dict[str, Any]] = []
+    challenger_order = sorted(
+        challengers,
+        key=lambda item: (
+            -_like_rate_fraction(item),
+            -item["view_count"],
+            -item["like_count"],
+            item["video_id"],
+        ),
+    )
+
+    for challenger in challenger_order:
+        replaceable = [
+            incumbent
+            for incumbent in remaining_incumbents
+            if _within_view_range(challenger, incumbent)
+            and _has_required_like_rate_lift(challenger, incumbent)
+        ]
+        if not replaceable:
+            continue
+        incumbent = min(
+            replaceable,
+            key=lambda item: (
+                _like_rate_fraction(item),
+                item["view_count"],
+                item["video_id"],
+            ),
+        )
+        remaining_incumbents.remove(incumbent)
+        promoted.append(challenger)
+        promotion_receipts.append(
+            {
+                "promoted_video_id": challenger["video_id"],
+                "replaced_video_id": incumbent["video_id"],
+                "view_retention_ratio": round(
+                    challenger["view_count"] / incumbent["view_count"], 6
+                ),
+                "like_rate_lift_ratio": (
+                    round(
+                        float(
+                            _like_rate_fraction(challenger)
+                            / _like_rate_fraction(incumbent)
+                        ),
+                        6,
+                    )
+                    if incumbent["like_count"] > 0
+                    else None
+                ),
+                "incumbent_like_rate_was_zero": incumbent["like_count"] == 0,
+            }
+        )
+
+    final_selected = sorted(
+        [*remaining_incumbents, *promoted],
+        key=lambda item: (
+            -item["view_count"],
+            -_like_rate_fraction(item),
+            -item["like_count"],
+            item["video_id"],
+        ),
+    )
+    return final_selected, promotion_receipts
+
+
+def _within_view_range(
+    challenger: dict[str, Any], incumbent: dict[str, Any]
+) -> bool:
+    return (
+        challenger["view_count"] * 100
+        >= incumbent["view_count"] * _MINIMUM_VIEW_RETENTION_PERCENT
+    )
+
+
+def _has_required_like_rate_lift(
+    challenger: dict[str, Any], incumbent: dict[str, Any]
+) -> bool:
+    if challenger["like_count"] == 0:
+        return False
+    if incumbent["like_count"] == 0:
+        return True
+    return (
+        challenger["like_count"]
+        * incumbent["view_count"]
+        * 100
+        >= incumbent["like_count"]
+        * challenger["view_count"]
+        * (100 + _MINIMUM_LIKE_RATE_LIFT_PERCENT)
+    )
+
+
+def _like_rate_fraction(item: dict[str, Any]) -> Fraction:
+    return Fraction(item["like_count"], item["view_count"])
+
+
+def _normalize_item(item: dict[str, Any], *, index: int) -> dict[str, Any]:
+    if not isinstance(item, dict):
+        raise TikTokGridVideoSelectionError(f"item {index} must be an object")
+    stats = item.get("stats")
+    metric_source = stats if isinstance(stats, dict) else item
+
+    raw_video_id = _first_present(item, "video_id", "id", "item_id")
+    if isinstance(raw_video_id, bool) or not isinstance(raw_video_id, (str, int)):
+        raise TikTokGridVideoSelectionError(f"item {index} video_id is missing or invalid")
+    video_id = str(raw_video_id).strip()
+    if not video_id:
+        raise TikTokGridVideoSelectionError(f"item {index} video_id is blank")
+
+    view_count = _required_count(
+        metric_source,
+        index=index,
+        metric_name="playCount",
+        keys=("playCount", "play_count", "view_count"),
+    )
+    like_count = _required_count(
+        metric_source,
+        index=index,
+        metric_name="diggCount",
+        keys=("diggCount", "digg_count", "like_count"),
+    )
+    if view_count == 0:
+        raise TikTokGridVideoSelectionError(
+            f"item {index} playCount must be positive to compute like_rate"
+        )
+    if like_count > view_count:
+        raise TikTokGridVideoSelectionError(
+            f"item {index} diggCount exceeds playCount"
+        )
+
+    return {
+        "video_id": video_id,
+        "view_count": view_count,
+        "like_count": like_count,
+        "like_rate": round(like_count / view_count, 6),
+    }
+
+
+def _required_count(
+    payload: dict[str, Any],
+    *,
+    index: int,
+    metric_name: str,
+    keys: tuple[str, ...],
+) -> int:
+    value = _first_present(payload, *keys)
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TikTokGridVideoSelectionError(
+            f"item {index} {metric_name} is missing or not an integer"
+        )
+    if value < 0:
+        raise TikTokGridVideoSelectionError(f"item {index} {metric_name} is negative")
+    return value
+
+
+def _first_present(payload: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        if key in payload:
+            return payload[key]
+    return None
+
+
+__all__ = [
+    "TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION",
+    "TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION",
+    "TikTokGridVideoSelectionError",
+    "build_tiktok_grid_video_selection",
+]
