@@ -109,11 +109,16 @@ def test_path_based_reader_census_is_declared_or_explicitly_excluded() -> None:
     cannot be classified by the lane_dir detector, so every such touchpoint is
     either hand-declared as a reader posture or explicitly excluded with a reason.
     """
+    touchpoints = non_raw_lake_touchpoints()
+    lane_dir_readers = {
+        file_path
+        for (file_path, call_name) in touchpoints
+        if call_name == "lane_dir"
+    }
     path_based = {
         file_path
-        for (file_path, call_name) in non_raw_lake_touchpoints()
-        if call_name in _PATH_BASED_TOUCHPOINT_CALLS
-        and file_path not in lane_dir_reader_files()
+        for (file_path, call_name) in touchpoints
+        if call_name in _PATH_BASED_TOUCHPOINT_CALLS and file_path not in lane_dir_readers
     }
     expected_declared = (
         path_based - set(_PATH_BASED_TOUCHPOINT_EXCLUSIONS)
