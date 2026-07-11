@@ -17,7 +17,7 @@ This overlay is the project authority for Forseti. Skills may provide task-local
 - `project-authority.md`: project identity, boundary, and unknown facts.
 - `source-of-truth.md`: Forseti source hierarchy, conflict rules, and doctrine-change propagation contract.
 - `source-loading.md`: source-loading budgets, read packs, and context-bloat controls.
-- `decision-routing.md`: Cynefin Routing Layer for non-trivial, ambiguous, cross-thread, delegated, doctrine-bearing, or messy-worktree work.
+- `decision-routing.md`: Cynefin Routing Layer for work where uncertainty about decomposition, authority, source truth, or sequencing could materially change the next move.
 - `artifact-folders.md`: accepted Forseti artifact locations.
 - `artifact-roles.md`: role bindings, permissions, freshness markers, and paired artifacts.
 - `retrieval-metadata.md`: lightweight retrieval-header contract for durable human-authored workflow artifacts.

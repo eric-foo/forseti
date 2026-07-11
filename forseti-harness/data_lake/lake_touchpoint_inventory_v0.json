@@ -314,6 +314,18 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "source_capture/retail_pdp_silver.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "source_capture/retail_pdp_silver.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "append_record_set",
       "count": 1,
       "module": "source_capture/transcript/asr_packet.py"

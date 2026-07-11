@@ -14,6 +14,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_sidecar_operator_playbook_v0.md
+  - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_silver_producer_contract_v0.md
   - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/demand_durability_multi_retailer_rendered_capture_spec_v0.md
   - orca-harness/runners/run_source_capture_cloakbrowser_packet.py
@@ -278,3 +279,5 @@ direction_change_propagation:
     - not capture execution
     - not ECR, Cleaning, Judgment, buyer proof, or source completeness proof
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
