@@ -159,10 +159,15 @@ This record does not assert that any server-side gate is active. It is not.
    hard block. A read-only detector, `.github/scripts/lane-health-check.ps1` (PR #11), surfaces drift
    before it compounds: (a) uncommitted pile-up on a shared base, (b) worktree sprawl, and (c)
    machine-local enforcement — any `.agents/hooks/*.py` present in the working tree but not tracked on
-   `origin/main` (a hook that enforces only on this machine). A non-zero exit is a **nudge**
-   (operator- or periodic-run), never an unattended block — early detection chosen over a hard
-   SessionStart reminder, which was considered and not taken. The detector is read-only with respect
-   to the working tree, index, and local branches; `-Fetch` is its only network action.
+   `origin/main` (a hook that enforces only on this machine), and (d) bounded stale-over-48-hour
+   worktree classification with independent open-PR, dirty, ahead/unpushed, sealed/locked, and unknown
+   guards. A non-zero exit is a **nudge** (operator- or periodic-run), never an unattended block —
+   early detection chosen over a hard SessionStart reminder, which was considered and not taken. The
+   detector is read-only with respect to the working tree, index, and local branches. Stale-worktree
+   subprocess telemetry currently requires Windows Job Object containment and aborts before the first
+   telemetry subprocess on other runtimes. Its two network actions are both opt-in and read-only:
+   `-Fetch` refreshes remote-tracking refs, while `-QueryPullRequests` reads PR state through
+   `gh pr list`; neither grants cleanup authority.
 9. **Unattended auto-merge bot (extends structure B′).** `.github/workflows/auto-merge.yml` is the
    **unattended** extension of item 7: where structure B′ lets the **in-session** agent self-merge a
    CLEAN + green + `agent-automerge`-labeled PR via the guard, this workflow lands the **same** opt-in
