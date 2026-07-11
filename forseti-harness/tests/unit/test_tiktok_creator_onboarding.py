@@ -157,6 +157,77 @@ def test_grid_window_preserves_source_visible_order_and_complete_metrics() -> No
     assert window["collection_receipt"]["scroll_stop_reason"] == "response_target_reached"
 
 
+def test_grid_window_accepts_missing_author_with_exact_creator_url() -> None:
+    capture = _capture(
+        ordered_ids=["1"],
+        items=[{"id": "1", "stats": {"playCount": 100, "diggCount": 10}}],
+    )
+
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=1,
+    )
+
+    assert [item["video_id"] for item in window["items"]] == ["1"]
+
+
+def test_grid_window_excludes_unrelated_handle_dom_url() -> None:
+    capture = _capture(
+        ordered_ids=["1"],
+        items=[_item("1", 100, 10)],
+    )
+    capture.dom_observation["ordered_videos"][0]["video_url"] = (
+        "https://www.tiktok.com/@unrelated/video/1"
+    )
+
+    with pytest.raises(TikTokCreatorOnboardingError, match="complete grid window"):
+        build_tiktok_grid_window(
+            creator_handle="creator",
+            capture=capture,
+            window_size=1,
+        )
+
+
+def test_grid_window_excludes_explicit_mismatched_payload_author() -> None:
+    capture = _capture(
+        ordered_ids=["1"],
+        items=[
+            {
+                "id": "1",
+                "author": {"uniqueId": "unrelated"},
+                "stats": {"playCount": 100, "diggCount": 10},
+            }
+        ],
+    )
+
+    with pytest.raises(TikTokCreatorOnboardingError, match="complete grid window"):
+        build_tiktok_grid_window(
+            creator_handle="creator",
+            capture=capture,
+            window_size=1,
+        )
+
+
+def test_grid_window_does_not_count_nested_item_list_metric_node() -> None:
+    creator_item = _item("1", 100, 10)
+    creator_item["duetInfo"] = {
+        "id": "999",
+        "stats": {"playCount": 99999, "diggCount": 9999},
+    }
+    capture = _capture(
+        ordered_ids=["1", "999"],
+        items=[creator_item],
+    )
+
+    with pytest.raises(TikTokCreatorOnboardingError, match="complete grid window"):
+        build_tiktok_grid_window(
+            creator_handle="creator",
+            capture=capture,
+            window_size=2,
+        )
+
+
 def test_onboarding_writes_selection_before_same_engine_deep_capture(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -219,6 +290,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     )
 
     assert len(engine.calls) == 2
+    assert engine.calls[1]["dom_extract_arg"] == {"creator_handle": "creator"}
     assert len(deep_calls) == 1
     assert deep_calls[0]["video_urls"] == [
         "https://www.tiktok.com/@creator/video/2",

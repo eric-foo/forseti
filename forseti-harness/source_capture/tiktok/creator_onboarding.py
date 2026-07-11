@@ -49,13 +49,22 @@ DEFAULT_SELECTION_FRACTION = 0.25
 DEFAULT_MAX_GRID_SCROLL_PASSES = 40
 
 TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
-() => {
+(arg) => {
+  const creator = String((arg && arg.creator_handle) || '')
+    .trim()
+    .replace(/^@/, '')
+    .toLowerCase();
   const seen = new Set();
   const videos = [];
   for (const anchor of Array.from(document.querySelectorAll('a[href*="/video/"]'))) {
     const href = String(anchor.href || anchor.getAttribute('href') || '');
     const match = href.match(/\/@([^/]+)\/video\/(\d+)/);
-    if (!match || seen.has(match[2])) continue;
+    if (
+      !creator ||
+      !match ||
+      match[1].toLowerCase() !== creator ||
+      seen.has(match[2])
+    ) continue;
     seen.add(match[2]);
     videos.push({video_id: match[2], video_url: href});
   }
@@ -400,7 +409,7 @@ def _capture_creator_grid(
     return fetch_browser_page_observation_capture(
         url=profile_url,
         dom_extract_script=TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT,
-        dom_extract_arg=None,
+        dom_extract_arg={"creator_handle": creator_handle},
         response_url_predicate=is_tiktok_profile_item_list_url,
         timeout_seconds=timeout_seconds,
         wait_until="domcontentloaded",
@@ -442,7 +451,16 @@ def build_tiktok_grid_window(
             continue
         video_id = str(row.get("video_id") or "").strip()
         video_url = str(row.get("video_url") or "").strip()
-        if not video_id or video_id in seen or video_id not in by_id:
+        if (
+            not video_id
+            or video_id in seen
+            or video_id not in by_id
+            or not _is_creator_video_url(
+                video_url=video_url,
+                creator_handle=creator_handle,
+                video_id=video_id,
+            )
+        ):
             continue
         seen.add(video_id)
         frozen.append({**by_id[video_id], "video_url": video_url})
@@ -567,6 +585,37 @@ def _metric_items_from_payload(
     creator_handle: str,
 ) -> list[dict[str, Any]]:
     found: list[dict[str, Any]] = []
+    normalized_handle = _normalize_handle(creator_handle)
+
+    def consider(node: dict[str, Any]) -> None:
+        stats = node.get("stats")
+        raw_id = node.get("id")
+        if not isinstance(stats, dict) or not isinstance(raw_id, (str, int)):
+            return
+        play_count = stats.get("playCount")
+        digg_count = stats.get("diggCount")
+        author = node.get("author")
+        author_handle = (
+            str(author.get("uniqueId") or "").lstrip("@").lower()
+            if isinstance(author, dict)
+            else ""
+        )
+        if (
+            isinstance(play_count, int)
+            and not isinstance(play_count, bool)
+            and play_count > 0
+            and isinstance(digg_count, int)
+            and not isinstance(digg_count, bool)
+            and 0 <= digg_count <= play_count
+            and (not author_handle or author_handle == normalized_handle)
+        ):
+            found.append(
+                {
+                    "video_id": str(raw_id),
+                    "playCount": play_count,
+                    "diggCount": digg_count,
+                }
+            )
 
     def visit(node: object) -> None:
         if isinstance(node, list):
@@ -575,33 +624,16 @@ def _metric_items_from_payload(
             return
         if not isinstance(node, dict):
             return
-        stats = node.get("stats")
-        raw_id = node.get("id")
-        if isinstance(stats, dict) and isinstance(raw_id, (str, int)):
-            play_count = stats.get("playCount")
-            digg_count = stats.get("diggCount")
-            author = node.get("author")
-            author_handle = (
-                str(author.get("uniqueId") or "").lstrip("@").lower()
-                if isinstance(author, dict)
-                else ""
-            )
-            if (
-                isinstance(play_count, int)
-                and not isinstance(play_count, bool)
-                and play_count > 0
-                and isinstance(digg_count, int)
-                and not isinstance(digg_count, bool)
-                and 0 <= digg_count <= play_count
-                and (not author_handle or author_handle == creator_handle.lower())
-            ):
-                found.append(
-                    {
-                        "video_id": str(raw_id),
-                        "playCount": play_count,
-                        "diggCount": digg_count,
-                    }
-                )
+        item_list = node.get("itemList")
+        if isinstance(item_list, list):
+            for item in item_list:
+                if isinstance(item, dict):
+                    consider(item)
+            for key, value in node.items():
+                if key != "itemList":
+                    visit(value)
+            return
+        consider(node)
         for value in node.values():
             visit(value)
 
@@ -619,6 +651,22 @@ def _dedupe_metric_items(items: Sequence[dict[str, Any]]) -> list[dict[str, Any]
         seen.add(video_id)
         deduped.append(item)
     return deduped
+
+
+def _is_creator_video_url(
+    *,
+    video_url: str,
+    creator_handle: str,
+    video_id: str,
+) -> bool:
+    parsed = urlparse(video_url)
+    host = parsed.hostname.lower() if parsed.hostname else ""
+    expected_path = f"/@{_normalize_handle(creator_handle)}/video/{video_id}"
+    return (
+        parsed.scheme in {"http", "https"}
+        and (host == "tiktok.com" or host.endswith(".tiktok.com"))
+        and parsed.path.rstrip("/").lower() == expected_path.lower()
+    )
 
 
 def _output_paths(output_dir: Path) -> TikTokCreatorOnboardingOutputPaths:
