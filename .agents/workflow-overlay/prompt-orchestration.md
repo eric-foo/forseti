@@ -14,9 +14,12 @@ This file defines Forseti's lightweight prompt-orchestration layer: Forseti-owne
 
 **Routine read shape** (owned by `.agents/workflow-overlay/source-loading.md`,
 Targeted Read Protocol): for routine prompt authoring, read the "Forseti Prompt
-Preflight" section below plus the single section for your prompt family; a
-full-file read is for fused, delegated-review-patch, and novel or cross-lane
-prompt authoring.
+Preflight" section below plus the single section for your prompt family.
+Lane-scoped delegated review-and-patch prompt authoring also reads "Lane-Scoped
+Delegated Patch Prompt Default" below and the targeted commissioning sections
+named in `delegated-review-patch.md`; delegation alone is not a full-file-read
+trigger. A full-file read is for a prompt matching the **Full orchestration**
+predicate below, and for editing this contract.
 
 ## Forseti Prompt Preflight
 
@@ -37,9 +40,11 @@ Repo-constant fields (workspace path, required reads, external-source boundary,
 retrieval-header defaults) may be referenced via
 `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` when escalated
 preflight applies. Routine prompts state only the core above; do not add unused
-field placeholders or a start receipt for form completeness. Fused,
-delegated-review-patch, and novel/cross-lane prompts author through
-`workflow-prompt-orchestrator` and use the escalated contract below.
+field placeholders or a start receipt for form completeness. Fused and
+genuinely escalated prompt work author through `workflow-prompt-orchestrator`
+and use the escalated contract below. A lane-scoped delegated review-and-patch
+prompt uses the compact default below when its eligibility conditions hold;
+delegation or patch authorization alone does not escalate it.
 
 ## Source Boundary
 
@@ -71,8 +76,15 @@ All Forseti prompt-orchestrator work must use the source-loading policy above; d
 
 ## Source-Gated Method Contract
 
-Repo-aware prompts that combine workflow methods with task sources must separate
-method reference loading from method application.
+Repo-aware prompts that orchestrate one or more workflow methods as an explicit
+reasoning pipeline over task sources must separate method reference loading from
+method application. An eligible **Lane-Scoped Delegated Patch Prompt Default**
+may point to its already-bound review lane or skill as routing shorthand: the
+receiver still reads the operating instructions and real target sources before
+forming findings, but the prompt need not require the named
+`REFERENCE-LOAD`/`APPLY` phases or a `SOURCE_CONTEXT_READY` phrase. Adding a
+multi-method pipeline, Mini God Tier, or another full-orchestration condition
+re-enables this contract.
 
 Use these terms precisely:
 
@@ -89,7 +101,7 @@ Use these terms precisely:
   evaluate, synthesize, decide, recommend, or produce findings from the loaded
   source context.
 
-Required sequence for repo-aware prompts:
+Required sequence when this contract triggers:
 
 1. Read authority and operating instructions.
 2. `REFERENCE-LOAD` required method or skill instructions.
@@ -116,11 +128,11 @@ loaded and SOURCE_CONTEXT_READY is declared, APPLY the methods to the loaded
 source context.
 ```
 
-Subagents, model-facing prompts, and blind contestant prompts must satisfy the
-same contract. Do not send a subagent only the method and question when the task
-requires source-backed reasoning; provide the same source pack or a bounded
-source capsule, or require the subagent to perform its own source-readiness
-gate.
+Subagents, model-facing prompts, and blind contestant prompts for which this
+contract triggers must satisfy the same sequence. Do not send such a subagent
+only the method and question when the task requires source-backed reasoning;
+provide the same source pack or a bounded source capsule, or require the
+subagent to perform its own source-readiness gate.
 
 For an orientation or research subagent whose output returns to an agent, bind
 the return shape, not just the source side. Require a terse, schema-bound verdict
@@ -213,21 +225,100 @@ agent, thread, or worktree.
 Every durable Forseti prompt, handoff, wrapper, rerun, or patch prompt applies the
 prompt contract; authoring one that skips it is a prompt-quality defect even when
 the surface text looks complete — the defect is the skipped contract, not the
-surface. The contract is applied at two depths:
+surface. The contract is applied at two depths, with the compact delegated path
+as an unnamed specialization of routine depth:
 
 - **Routine prompts** apply the **Forseti Prompt Preflight** core (above) inline — no
   skill reload. The core fully satisfies the contract for an ordinary,
   already-scoped, single-target prompt; it owes no escalated fields or durable
   start receipt solely because it is repo-aware.
-- **Fused, delegated-review-patch, and novel or cross-lane prompts** author through
-  the full **`workflow-prompt-orchestrator`** skill, which owns prompt
-  source-loading and the full preflight/routing contract. **A prompt is never
-  routine — always use the full skill — when it is doctrine-changing,
-  delegated-review-patch, patch-queue or executor-ready, source-heavy,
-  multi-target, cross-lane, reusable/canonical, or first-of-kind for its task.**
-  Ordinary single-target read-only review prompts may use the routine path when
-  they satisfy the Forseti Prompt Preflight core and Review Prompt Defaults and
-  none of those escalation triggers apply.
+- **Lane-scoped delegated review-and-patch prompts** use the compact default
+  below when eligible. Delegation, adversarial wording, patch authorization,
+  executor-ready wording, multiple named files in one bounded technical diff,
+  or a high-stakes label alone is not an escalation trigger.
+- **Full orchestration** applies when the prompt is fused, reusable/canonical,
+  novel or genuinely cross-lane, no-repo/portable, source-heavy,
+  doctrine-changing, materially ambiguous or dirty, complex-output-routing,
+  first-of-kind, or owner-invoked Mini God Tier. These are routing conditions,
+  not user-facing modes. A missing eligibility fact routes to the full
+  `workflow-prompt-orchestrator` contract or the nearest honest blocker; do not
+  invent it.
+
+**Forseti precedence bridge.** A resolver-loaded generic prompt or
+delegated-review skill supplies task-local method mechanics, not Forseti routing
+authority. Its generic requirement to render every strict controller prompt
+through the full orchestrator is satisfied, for an eligible Forseti lane, by the
+compact renderer below. The skill's review, de-correlation, scope, validation,
+and adjudication safeguards still apply. If a receiver cannot honor this
+project binding, return a visible routing blocker instead of silently taking the
+generic heavy route. This bridge changes no installed skill artifact and makes
+no deployment claim.
+
+### Lane-Scoped Delegated Patch Prompt Default
+
+This is the unnamed default, not a mode selector. Use it only when all of these
+conditions hold:
+
+- the deliverable is one current-lane, operator-couriered, paste-ready prompt;
+- the delegate has `repo` access;
+- the visible request supplies or safely determines a goal and success signal,
+  one matching target worktree, branch/revision, dirty-state allowance, named
+  file set, bounded patch authority, and validation route;
+- none of the **Full orchestration** routing conditions immediately above apply;
+  and
+- there is no unresolved authority, target, state, or scope conflict.
+
+The dispatcher performs exactly one fresh target-state read: worktree path,
+branch and HEAD, dirty state, named or changed files, and the material validation
+commands or evidence already bound to the lane. It does not pre-load the
+receiver's target sources, reconstruct the receiver's source ledger, traverse
+the template registry, or prove the delegated lane execution-ready.
+
+Render one compact pointer-first prompt containing:
+
+1. the plain goal and what done looks like;
+2. the exact worktree, branch/revision, dirty-state allowance, named targets,
+   and patch scope;
+3. the different-vendor controller constraint plus author/home family and
+   delegate family, using `operator_to_fill` only for an inferable but genuinely
+   operator-owned value;
+4. pointers to `AGENTS.md`, `.agents/workflow-overlay/README.md`, the targeted
+   sections of `.agents/workflow-overlay/delegated-review-patch.md`, and the
+   relevant review skill or lane;
+5. named validation expectations with real failure and not-run reporting;
+6. the controller return: findings, bounded diff, neutral citations, validation
+   evidence, verdict, and residual risk;
+7. Chief Architect adjudication before any returned change is kept, plus
+   `NEEDS_ARCHITECTURE_PASS` for design-level blockers; and
+8. the delegate hard stop: no commit, push, PR, merge, stash, reset, worktree
+   cleanup, or repository-hygiene action.
+
+The default receiving output is chat or the lane PR/comment. Do not require a
+durable review report, `review_summary` courier, provenance checker, full source
+pack receipt, template-registry traversal, or `SOURCE_CONTEXT_READY` phrase
+solely because the task is delegated, adversarial, or patch-authorized. The
+receiver still reads the actual target diff and sources, performs the real
+review, and runs relevant validation. Pointer over copy: if an eligibility
+condition fails, use full orchestration or block on the missing authority.
+
+### Owner-Invoked Mini God Tier Uplift
+
+Mini God Tier is the only named assurance uplift for this prompt family. It is
+owner-invoked only and never inferred. It selects the bounded capability target
+defined by `docs/decisions/forseti_mini_god_tier_doctrine_v0.md`; it does not
+widen scope, establish readiness, or create a claim tier. Use full orchestration
+and add deep-thinking, source-gated method sequencing, durable reporting, and
+provenance evidence only to the degree necessary for that target, remaining
+pointer-first and naming every accepted residual.
+
+The compact default deliberately retains four residuals: the receiver must
+still read the real diff and sources and run validation; genuine no-repo,
+canonical, doctrine-changing, source-heavy, ambiguous, or cross-lane cases
+still take the full route; eligibility remains a judgment rather than new
+standing infrastructure; and Mini God Tier cannot guarantee cross-vendor
+availability or prove quality. Revisit the first two if repeated work shows
+duplicate receiver reads, the third after three confirmed misroutes or omitted
+guards, and the fourth if an actor treats the label as validation.
 
 **Prompt filing is classified by source role, not by recipient count.** A
 prompt, handoff, wrapper, rerun, review request, or patch prompt must still apply
@@ -257,8 +348,10 @@ The `docs/prompts/**` PostToolUse hook (`check_prompt_provenance.py`) fires only
 for canonical filed prompt writes and injects the preflight — output mode, edit
 permission, source pack / required reads, the Source-Gated Method Contract, and
 the doctrine-change receipt. Lane-scoped prompts use an accepted PR-carried or
-scratch-carried path, so the author must carry the same preflight fields in the
-prompt body or PR comment; missing preflight remains a prompt-quality defect.
+scratch-carried path, so an eligible delegated review-and-patch prompt carries
+the compact default above rather than the escalated receipt. Other lane-scoped
+prompts carry the applicable routine or full fields; missing applicable
+preflight remains a prompt-quality defect.
 
 If `workflow-prompt-orchestrator` is not resolver-available when a case needs it,
 apply this file's full contract or return a visible blocker; this routing default
@@ -367,12 +460,14 @@ no`, and not the alignment-axis-not-pass-bar guardrail.
 
 ## Review Prompt Defaults
 
-Forseti review prompts must include `workflow-deep-thinking` before the
-relevant review skill when the review is adversarial, formal-verdict,
-doctrine- or authority-changing, delegated, patch-authorized, source-heavy,
-high-ambiguity, high-stakes, or otherwise likely to fail from weak failure-mode
-framing. Routine single-target read-only reviews may omit deep-thinking when the
-commission is already scoped, non-doctrine, and technical-consistency judged.
+Forseti review prompts include `workflow-deep-thinking` before the relevant
+review skill when the owner explicitly invokes it or Mini God Tier, or when the
+review is doctrine- or authority-changing, source-heavy, materially ambiguous,
+or carries substantial seam risk whose framing could change the review route.
+Adversarial wording, a formal-verdict request, delegation, patch authorization,
+multiple named files in one bounded technical diff, or a high-stakes label alone
+does not trigger deep-thinking. A bounded technical review with an exact
+revision, file scope, authority, and validation route may omit it.
 
 When deep-thinking is invoked, the reviewer may `REFERENCE-LOAD` the methods
 before source loading, but must not `APPLY` deep-thinking or the review method
@@ -382,7 +477,7 @@ widen review scope, authorize patching, or turn a narrow review into product
 planning.
 
 Review prompts should still return the requested review output shape. The final
-answer remains a review report with findings, non-findings, not-proven
+answer remains a review result with findings, non-findings, not-proven
 boundaries, and next authorized step whether deep-thinking was triggered or
 explicitly omitted.
 
@@ -524,8 +619,7 @@ or report destination is not bound before the review begins.
 
 ## Escalated Preflight Fields
 
-Fused, delegated-review-patch, novel, cross-lane, source-heavy, multi-target,
-reusable/canonical, patch-queue, or executor-ready prompts include or reference
+Prompts matching the **Full orchestration** predicate above include or reference
 the `forseti_start_preflight` receipt owned by
 `.agents/workflow-overlay/source-loading.md`. These cases must make their start
 state portable because another actor or later lane will rely on it. Repo-constant
@@ -533,6 +627,12 @@ fields may be referenced via
 `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`; required
 escalated deltas in that artifact remain explicit. Routine prompts stop at the
 core above.
+
+An eligible lane-scoped delegated review-and-patch prompt instead uses the
+compact default above: core prompt fields plus one fresh target-state read and
+the eight pointer-first commission fields. It does not inherit this escalated
+receipt solely from delegation, adversarial wording, patch authorization,
+executor-ready wording, or a bounded multi-file target.
 
 Every escalated prompt must state:
 
@@ -657,18 +757,21 @@ The general human-summary / agent-detail / optional courier-state chat shape is 
 Authoring-route precondition: the prompt, handoff, wrapper, rerun, or patch
 prompt must have applied the prompt contract at the correct depth (see "Author
 Through The Prompt Orchestrator") — the **Forseti Prompt Preflight** core for a
-routine prompt, or the full `workflow-prompt-orchestrator` skill for a fused,
-delegated-review-patch, or novel/cross-lane prompt. An artifact that skipped the
-applicable contract is a prompt-quality defect; apply the core for a routine
-prompt or reconstruct an escalated prompt through the orchestrator before use.
-A durable start receipt is required only for the escalated cases.
+routine prompt, the **Lane-Scoped Delegated Patch Prompt Default** for an
+eligible current-lane commission, or the full `workflow-prompt-orchestrator`
+contract for a prompt matching the **Full orchestration** predicate above. An
+artifact that skipped the applicable contract is a prompt-quality
+defect; reconstruct it at the correct depth before use. A durable start receipt
+is required only for the full-orchestration cases.
 
 Before using a generated Forseti prompt, apply these gates:
 
 1. Applicable preflight complete: `AGENTS.md` and
    `.agents/workflow-overlay/README.md` were read or supplied in the current
    task context. Routine prompts carry the six-field core and no start receipt;
-   escalated prompts carry the portable start receipt and fields above.
+   eligible compact delegated prompts carry that core, one fresh target-state
+   read, and the eight commission fields above; escalated prompts carry the
+   portable start receipt and fields above.
    Repository-state fields are stated only when material.
    Modified or untracked controlling sources block strict readiness,
    acceptance, validation, proof, `PASS`, or `ADEQUATE_NOW` claims unless owner
@@ -681,10 +784,14 @@ Before using a generated Forseti prompt, apply these gates:
 7. Source-capsule budget satisfied: source capsules stay within
    `.agents/workflow-overlay/source-loading.md` budgets, or the prompt narrows
    the task, splits the source-loading unit, or moves to a new-thread handoff.
-8. Source-gated method sequencing satisfied: prompts that mention workflow
-   methods or skills distinguish `REFERENCE-LOAD` from `APPLY`, include a
-   `SOURCE_CONTEXT_READY` / `SOURCE_CONTEXT_INCOMPLETE` gate, and do not ask for
-   method-derived conclusions before source readiness.
+8. Source-gated method sequencing satisfied when triggered: prompts that
+   orchestrate workflow methods as an explicit reasoning pipeline distinguish
+   `REFERENCE-LOAD` from `APPLY`, include a `SOURCE_CONTEXT_READY` /
+   `SOURCE_CONTEXT_INCOMPLETE` gate, and do not ask for method-derived
+   conclusions before source readiness. An eligible lane-scoped delegated patch
+   prompt may use its targeted review-lane or skill pointer without the magic
+   phrase, while still requiring the receiver to read the real target sources
+   before findings.
 9. Thread operating target continuity satisfied: when a same-workstream prompt
    chain has a visible active `thread_operating_target`, the generated prompt
    either carries it forward verbatim with continuity disclosure or explains a
@@ -731,62 +838,6 @@ Before using a generated Forseti prompt, apply these gates:
 ## Direction Change Propagation
 
 ```yaml
-# same-turn self-closure and required next-moves tail 2026-07-02 (CA decision).
-direction_change_propagation:
-  doctrine_changed: >
-    Review adjudication closeout is hardened for one-turn completion: a
-    self-closable material issue (closure within the adjudicator's own authority
-    and the commissioned scope, such as applying the adjudicator's own
-    modify/reject adjudications to the target) is closed in the same turn
-    instead of ending the turn on a closure route; the material-move deep-think
-    widens from 1-3 to 1-5; and the land-step plus material-moves tail becomes a
-    required closeout element (1-5 named steps, or an explicit "none" with a
-    one-line reason), so an adjudication that stops at the verdict is malformed.
-  trigger: review_authority
-  related_triggers: [output_authority, workflow_authority]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
-  downstream_surfaces_checked:
-    - path: .agents/workflow-overlay/review-lanes.md
-      note: >
-        Lane authority, findings-first defaults, and the head deep-thinking-first
-        rule are unchanged; this edit tightens the adjudicator's closeout
-        mechanics only and stays deferred here for shape.
-    - path: AGENTS.md
-      note: >
-        Already routes delegated-review-patch and review/prompt doctrine to the
-        owning overlay files; no root restatement added.
-    - path: docs/workflows/orca_repo_map_v0.md
-      note: >
-        Index lines for the overlay files and the template stay accurate; this
-        is an in-file doctrine edit, not a structural or navigation change.
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/review-lanes.md
-      reason: >
-        Its findings fields and lane rules already defer the closeout tail to
-        communication-style.md; dual-homing the tail would fork the owner.
-  stale_language_search: >
-    rg -n "1-3 material|until the review is clean|only after a clean adjudication|only if no unresolved material issue|only when status is clean"
-    .agents docs/prompts/templates AGENTS.md docs/workflows
-  stale_language_search_result: >
-    Executed 2026-07-02 after edits. In the declared scope the remaining hits
-    are the retained non-self-closable bullet in communication-style.md, the
-    historical 2026-06-30 inline receipt in delegated-review-patch.md, and the
-    quoted search literals inside these receipts; no live doctrine or template
-    surface still gates the material-moves tail on a pre-closure clean state,
-    caps material moves at 1-3, or leaves the tail optional. A wider sweep of
-    docs/prompts/reviews and docs/prompts/patches found the old wording only in
-    three already-executed commission dispatch prompts, kept as historical lane
-    records and not rewritten.
-  non_claims:
-    - not validation
-    - not readiness
-    - not a bound/mandatory/machine-routable review lane
-    - not runtime model routing
-
 # resolve-first repo-bound review target routing 2026-07-12 (owner-requested process improvement).
 direction_change_propagation:
   doctrine_changed: "Repo-bound review and delegated-review preflight now resolves a launch-checkout mismatch against registered target worktrees before blocking, while preserving exact revision pins, target cleanliness rules, and the protected-path reroot guard."
@@ -836,6 +887,82 @@ direction_change_propagation:
     - "not permission to edit a non-current worktree"
     - "not substitute-source authority"
     - "not a retroactive rewrite of historical prompts"
+
+# lane-scoped delegated patch prompt economy 2026-07-12 (owner-requested process improvement).
+direction_change_propagation:
+  doctrine_changed: >
+    Lane-scoped, operator-couriered delegated review-and-patch prompts now use
+    one unnamed pointer-first default with one fresh target-state read instead
+    of automatically invoking the full prompt orchestrator, escalated preflight,
+    deep-thinking, source-ready ceremony, durable report, and provenance courier.
+    Full orchestration remains for real routing complexity and owner-invoked
+    Mini God Tier; the delegate retains cross-vendor discovery, exact scope,
+    real review and validation, CA adjudication, architecture escalation, and an
+    explicit no-lifecycle hard stop.
+  trigger: workflow_authority
+  related_triggers: [review_authority, output_authority, lifecycle_boundary]
+  controlling_sources_updated:
+    - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/hooks/check_prompt_provenance.py
+    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/template-registry.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        The actual code/artifact review methods, findings authority, and
+        two-bar de-correlation rule are unchanged; this edit removes dispatch
+        ceremony rather than weakening review.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Validation remains mandatory and real failures remain visible; prompt
+        routing depth is owned by prompt-orchestration.md.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        Chief Architect adjudication and the same-turn land/next-move tail remain
+        unchanged; only the delegate's prompt and return ceremony is right-sized.
+    - path: .agents/workflow-overlay/template-registry.md
+      reason: >
+        No template path or lifecycle status changed. The compact default is an
+        in-contract pointer shape, not a new standing template surface.
+    - path: installed workflow-prompt-orchestrator and workflow-delegated-review-patch skills
+      reason: >
+        Installed generic/plugin copies are outside Forseti authority; the
+        project overlay owns Forseti routing and now carries an explicit
+        precedence bridge for the generic always-full default. Revisit upstream
+        after three confirmed off-project repetitions.
+    - path: historical executed prompts and review reports
+      reason: >
+        They remain evidence of completed lanes and are not rewritten as live
+        control surfaces.
+  stale_language_search: >
+    rg -n -i "Fused, delegated-review-patch|delegated-review-patch.{0,80}(always use|full skill|Escalated Preflight)|commissioned.{0,80}deep-thinking|deep-thinking first|sibling mode|SOURCE_CONTEXT_READY.{0,80}delegat|delegat.{0,80}SOURCE_CONTEXT_READY|mandatory.{0,80}durable review report"
+    AGENTS.md .agents/workflow-overlay .agents/hooks docs/prompts/templates
+    docs/workflows/forseti_repo_map_v0.md --glob '!docs/prompts/reviews/**'
+    --glob '!docs/prompts/patches/**'
+  stale_language_search_result: >
+    Executed 2026-07-12 after the live-authority edits. The only hit was the
+    quoted search literal in this receipt; no live rule retained the old blanket
+    escalation. Historical executed prompts, review outputs, and the DCP archive
+    were intentionally excluded from live-control-surface cleanup.
+  non_claims:
+    - not validation or readiness
+    - not permission to skip reading the real diff or target sources
+    - not permission to skip relevant validation or mask failures
+    - not permission for the delegate to commit, push, merge, or clean up
+    - Mini God Tier is not a claim tier or cross-vendor availability guarantee
+    - not deployment or adoption of an external installed skill
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
