@@ -355,3 +355,17 @@ def test_incomplete_grid_fails_before_selection_or_deep_capture(
     assert receipt["status"] == "failed"
     assert receipt["terminal_stage"] == "freeze_window"
     assert receipt["error_or_none"].startswith("TikTokCreatorOnboardingError:")
+
+
+def test_onboarding_cli_defaults_to_measured_ten_second_gap() -> None:
+    args = runner.build_parser().parse_args(
+        [
+            "--creator-handle",
+            "creator",
+            "--output-dir",
+            "out",
+        ]
+    )
+
+    assert args.cadence_min_gap_seconds == 10.0
+    assert args.cadence_max_gap_seconds == 10.0
