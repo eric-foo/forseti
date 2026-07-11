@@ -18,8 +18,8 @@ stale_if:
 ## Operating state
 
 - `pilot_status`: `active`
-- `comparable_cases_observed`: `2`
-- `count_basis`: fresh 2026-07-11 re-derivation from DG-01 and DG-02 exact pointers
+- `comparable_cases_observed`: `1`
+- `count_basis`: fresh 2026-07-11 re-derivation; DG-02 qualifies and DG-01 does not have source-backed method-use evidence
 - `closeout_eligible_at`: `8`
 - `hard_stop_at`: `12`
 - `authority`:
@@ -51,8 +51,8 @@ gate_method_use:
     status: unknown
     evidence_pointer: unknown
   assumption_gate:
-    status: used
-    evidence_pointer: docs/decisions/overlay_enforcement_placement_classification_v0.md:311
+    status: unknown
+    evidence_pointer: unknown
   fused_entry:
     status: unknown
     evidence_pointer: unknown
@@ -78,11 +78,12 @@ exact_evidence_pointers:
   - docs/decisions/overlay_enforcement_placement_classification_v0.md:318
   - docs/decisions/overlay_enforcement_placement_classification_v0.md:323
 comparability:
-  status: comparable
+  status: not_comparable
   reason: >
-    The proposed build, false substrate assumption, assumption-gate use, and
-    blocked-build outcome are all explicit; time and later reversal remain
-    unknown without defeating comparability.
+    The proposed build, false substrate assumption, and blocked-build outcome
+    are explicit, but the cited source does not identify use of the measured
+    workflow-assumption-gate method. With all method-use fields unknown, this
+    case does not satisfy comparability criterion 3.
 ```
 
 ## DG-02 — LinkedIn live-envelope route
