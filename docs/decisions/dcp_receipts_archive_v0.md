@@ -13,6 +13,66 @@ authority_boundary: retrieval_only
 
 This file is the single authorized standalone archive for Orca direction_change_propagation receipts that have been moved out of controlling overlay files under the receipt-archiving rule (at most two most-recent receipts inline per controlling file; older receipts move here verbatim). The rule that governs receipt archiving lives in `.agents/workflow-overlay/source-of-truth.md`, Doctrine Change Propagation Contract section. This file carries no source authority, validation evidence, readiness, approval, or lifecycle claims.
 
+## From `.agents/workflow-overlay/prompt-orchestration.md` (archived 2026-07-12, delegated-prompt fast-path rotation)
+
+```yaml
+# same-turn self-closure and required next-moves tail 2026-07-02 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Review adjudication closeout is hardened for one-turn completion: a
+    self-closable material issue (closure within the adjudicator's own authority
+    and the commissioned scope, such as applying the adjudicator's own
+    modify/reject adjudications to the target) is closed in the same turn
+    instead of ending the turn on a closure route; the material-move deep-think
+    widens from 1-3 to 1-5; and the land-step plus material-moves tail becomes a
+    required closeout element (1-5 named steps, or an explicit "none" with a
+    one-line reason), so an adjudication that stops at the verdict is malformed.
+  trigger: review_authority
+  related_triggers: [output_authority, workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        Lane authority, findings-first defaults, and the head deep-thinking-first
+        rule are unchanged; this edit tightens the adjudicator's closeout
+        mechanics only and stays deferred here for shape.
+    - path: AGENTS.md
+      note: >
+        Already routes delegated-review-patch and review/prompt doctrine to the
+        owning overlay files; no root restatement added.
+    - path: docs/workflows/orca_repo_map_v0.md
+      note: >
+        Index lines for the overlay files and the template stay accurate; this
+        is an in-file doctrine edit, not a structural or navigation change.
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Its findings fields and lane rules already defer the closeout tail to
+        communication-style.md; dual-homing the tail would fork the owner.
+  stale_language_search: >
+    rg -n "1-3 material|until the review is clean|only after a clean adjudication|only if no unresolved material issue|only when status is clean"
+    .agents docs/prompts/templates AGENTS.md docs/workflows
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. In the declared scope the remaining hits
+    are the retained non-self-closable bullet in communication-style.md, the
+    historical 2026-06-30 inline receipt in delegated-review-patch.md, and the
+    quoted search literals inside these receipts; no live doctrine or template
+    surface still gates the material-moves tail on a pre-closure clean state,
+    caps material moves at 1-3, or leaves the tail optional. A wider sweep of
+    docs/prompts/reviews and docs/prompts/patches found the old wording only in
+    three already-executed commission dispatch prompts, kept as historical lane
+    records and not rewritten.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane
+    - not runtime model routing
+```
+
 ## From .agents/workflow-overlay/source-of-truth.md
 
 ```yaml
@@ -3570,4 +3630,778 @@ direction_change_propagation:
     - not review quality, severity, or verdict authority
     - not a bound or mandatory review lane
     - a green run is disposition shape only, never proof a review happened or was sufficient
+```
+
+## From forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Commission Signal Board rows now carry recency/currentness as source-route
+    attention metadata: same-strength newer/current URL-backed signals normally
+    deserve more downstream scan attention than older context, without becoming
+    proof, classifier mapping, or graph weight.
+  trigger: product_doctrine
+  related_triggers:
+    - output_authority
+  controlling_sources_updated:
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - orca-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - orca-harness/tests/fixtures/commission_signal_board_outputs/
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - forseti/product/spines/judgment/demand_read/core/judgment_spine_demand_read_machinery_architecture_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - forseti/product/spines/scanning/README.md
+    - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        The CSB validator remains a manual/local checker, not a CI, pre-commit,
+        or write-hook gate. The existing enforcement-placement rule already
+        covers why mechanically checkable output shape lives in the checker.
+  stale_language_search: >
+    rg -n "recency|recent|current-state|currentness|optional board metadata|validator only requires existing core row columns|proof|graph weight|classifier mapping"
+    forseti/product/spines/commission_signal_board forseti/product/spines/scanning docs/workflows/orca_repo_map_v0.md
+    (run 2026-06-23)
+  stale_language_search_result: >
+    Hits were accepted recency/currentness attention language, repo-map routing
+    summaries, existing scanning safeguards, historical CSB source-family
+    references, or explicit no-proof/no-classifier/no-graph-weight boundaries.
+    No controlling CSB/scanning surface was found that turns recency/currentness
+    into buyer proof, demand classification, classifier mapping, or graph weight;
+    the old optional-validator wording produced only receipt search-string hits,
+    not live instructional hits, after the CSB validator began requiring recency
+    fields and enum values.
+    Capture and Judgment surfaces carry their own DCP receipts for the same
+    propagation, and the follow-up adversarial review ran a cross-spine leakage
+    search with no proof, scoring, route-binding, or gate-clearance leakage found.
+  non_claims:
+    - not validation
+    - not readiness
+    - not demand classification
+    - not buyer proof
+    - not source-access authorization
+```
+
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-10, EP-10/11/15 gate-wave rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Orca validation doctrine adds a handoff-pointer resolution gate: a changed
+    durable .md file must not reference a handoff-packet path
+    (docs/workflows/*handoff*.md, docs/prompts/handoffs/*.md) that does not
+    resolve in the same tree, unless the pointer line carries an explicit
+    resolution pin (branch / PR # / origin ref vocabulary) or an exemption
+    marker -- enforced diff-scoped and forward-only by
+    .agents/hooks/check_handoff_pointers.py (EP-36) as a CI --strict gate.
+    Born from repeated cold-agent resolution failures where handoff packets
+    lived only on unmerged authoring branches while filed prompts referencing
+    them landed on main, so receiving agents and delegated reviewers starting
+    cold from main could not resolve their required reads.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_handoff_pointers.py
+    - .github/workflows/ci.yml
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/orca_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .claude/settings.json
+    - .agents/hooks/check_map_links.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already routes validation and enforcement-placement changes to this
+        overlay file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Per the enforcement-placement principle a substrate-enforced rule is
+        not also carried as a resident instruction; prompt authors hit the CI
+        gate mechanically, and the existing worktree-preflight and
+        input-prompt-source rules already carry the judgment side (which
+        branch, which source) that stays resident.
+    - path: .claude/settings.json
+      reason: >
+        No PostToolUse wiring: the defect is a merge-topology property
+        (packet on a different unmerged branch), invisible at the write
+        boundary where the packet usually exists in the author's own tree;
+        the enforcing boundary is CI on the landing PR.
+    - path: .agents/hooks/check_map_links.py
+      reason: >
+        Its C1/C2/C4 checks gate map files, open_next headers, and inline
+        markdown links whole-corpus; the new gate covers prose/backtick
+        handoff pointers diff-scoped with pin/exemption vocabulary --
+        different scope and exemption grammar, kept as a sibling checker.
+  stale_language_search: >
+    rg -in "handoff.*resolv|resolve.*handoff|unmerged.*handoff|check_handoff_pointers"
+    AGENTS.md .agents docs/workflows/orca_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-03 after edits: hits are this gate's own rule text,
+    checker, README row, and registration surfaces, plus unrelated generic
+    mentions (the AGENTS.md jb-handoffs boundary sentence and skill-adoption
+    skill-name rows); no other surface carries a conflicting handoff-pointer
+    resolution rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not packet content freshness, pin truth, or source-choice correctness
+    - not a courier-delivery guarantee for prompts that never land in the repo
+    - a green run is pointer shape only, never proof the right packet was cited
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Forseti validation doctrine adds a source-input hash freshness gate:
+    repo-local JSON list-style source_inputs[] records with source_pointer +
+    sha256 must match current file bytes when the artifact or referenced
+    source changed, enforced by .agents/hooks/check_source_input_hashes.py
+    (EP-37) as a diff-scoped CI --strict gate plus a local pre-push mirror.
+    Born from PR #817, where a Creator Registry ledger merge changed the
+    ledger hash while the YouTube metric seed still carried the old
+    source-input hash and full pytest caught it late.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_source_input_hashes.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/pre_push_guard.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md routes validation and enforcement-placement doctrine to the
+        overlay; restating this narrow gate there would fork the owner.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Its DCP storage rule governs receipt rotation; the gate changes
+        validation placement, not source hierarchy or receipt mechanics.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading budgets and source packs are unchanged; this is
+        post-change provenance freshness, not source-loading procedure.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        This path is a compatibility pointer whose open_next is the live
+        Forseti repo map; duplicating active hook content there would fork the
+        current retrieval surface.
+    - path: forseti-harness/tests/unit/test_youtube_creator_metric_seed.py
+      reason: >
+        The existing semantic/generated-artifact test remains; the new hook
+        catches the broader hash-drift class earlier without weakening that
+        test.
+  stale_language_search: >
+    rg -in "source-input hash|source_inputs.*sha256|check_source_input_hashes|strict CI doc gates"
+    .agents docs .github forseti-harness
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits: intended hits are this gate's owner text,
+    checker, CI/pre-push wiring, hook README, live Forseti repo-map note,
+    enforcement-placement classification, and historical/source-input ledger
+    references; the stale phrase "strict CI doc gates" appears only in this
+    receipt's search query/result provenance text, and no conflicting
+    source-input hash rule remains.
+  non_claims:
+    - not validation
+    - not readiness
+    - not semantic generated-artifact completeness
+    - not source quality, capture freshness, or metric validity
+    - a green run is provenance hash freshness only
+```
+
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-10, EP-10/11/15 gate-wave rotation, round 2)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The source-input hash freshness gate (EP-37) extends to source-capture
+    packet manifests: a JSON document with a top-level manifest_version string
+    must have top-level preserved_files[] records (relative_packet_path +
+    sha256) that match current raw stored bytes, with the path resolved
+    against the manifest's own directory, when the manifest or the preserved
+    file changed -- same diff-scoped, forward-only CI --strict gate plus local
+    pre-push mirror in .agents/hooks/check_source_input_hashes.py. Gap
+    surfaced by the EP-15 build survey (PR #842): the packet-manifest shape
+    was matched by neither the source_inputs[] JSON gate nor the markdown
+    pin-grammar gate, leaving preserved raw capture bytes ungated.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_source_input_hashes.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - .github/workflows/ci.yml
+    - .agents/hooks/pre_push_guard.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - .gitattributes
+  intentionally_not_updated:
+    - path: .github/workflows/ci.yml
+      reason: >
+        The extension rides the already-registered EP-37 --strict step; there
+        is no new gate to register.
+    - path: .agents/hooks/pre_push_guard.py
+      reason: >
+        The local mirror already invokes check_source_input_hashes.py
+        --strict; the extended record family is picked up unchanged.
+    - path: forseti-harness/tests/unit/test_hook_internal_error_gating.py
+      reason: >
+        The hook's CASES row already pins internal-error gating; the
+        extension changes matched record shapes, not error or exit semantics.
+    - path: .gitattributes
+      reason: >
+        Its **/source_captures/** -text rule already pins the raw-bytes
+        invariant this extension verifies; the gate consumes that invariant,
+        it does not amend it.
+  stale_language_search: >
+    rg -in "preserved_files|relative_packet_path|source-input hash|source_inputs.*sha256"
+    .agents docs/workflows/forseti_repo_map_v0.md
+    docs/decisions/overlay_enforcement_placement_classification_v0.md .github
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits: hits are this gate's own rule text and
+    receipt, the checker and its selftest, CI/pre-push wiring, the hook README
+    rows, the enforcement-placement decision record, and the repo-map gate
+    entry plus its generic .agents/hooks folder description; no other surface
+    carries a conflicting source-input or preserved-file hash rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not archive completeness or source-state truth
+    - not capture freshness, source quality, or packet content correctness
+    - a green run is provenance hash freshness only
+```
+
+## From docs/decisions/forseti_mini_god_tier_doctrine_v0.md (archived 2026-07-11, problem-bound target rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Mini God Tier doctrine renames the mandatory visible-limitations requirement
+    to accepted residuals: residuals are named, bounded, justified, and carry
+    remaining risk plus an upgrade trigger after pushing to the diminishing-
+    returns edge; source-quality "visible limitations" vocabulary remains
+    operational reporting vocabulary, not the doctrine-level name.
+  trigger: product_doctrine
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - AGENTS.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/safety-rules.md
+    - docs/workflows/orca_repo_map_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/README.md
+  intentionally_not_updated:
+    - path: CLAUDE.md
+      reason: >
+        Claude shim imports AGENTS.md and must not duplicate Orca project rules.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        Overlay index does not own Mini God Tier vocabulary; AGENTS.md points to
+        this decision record as the full statement.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading owns read-pack mechanics and does not restate the Mini God
+        Tier lens.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Safety rules reference the separate Source Capture Armory Mini God-Tier
+        source-quality discipline; that operating profile is intentionally not
+        renamed by this doctrine-level vocabulary patch.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        Repo map routes Source Capture Armory source-quality surfaces. The
+        global Mini God Tier trigger remains AGENTS.md -> this decision record;
+        no path or read-pack destination changed.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+      reason: >
+        The source-quality profile owns operating result tokens and the
+        visible_limitations report field. Those are lower-level source/capture
+        reporting vocabulary and remain valid; changing them would rewrite
+        historical tokens and exceed this owner vocabulary patch.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/README.md
+      reason: >
+        The README indexes the source-quality operating profile and closeouts,
+        whose visible-limitations terminology remains intentionally unchanged.
+  stale_language_search: >
+    rg -n "mini god tier|Mini God Tier|Mini God-Tier|visible limitations|accepted residual|source_quality_mini_god_tier"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
+    docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/README.md
+  stale_language_search_result: >
+    Executed 2026-06-21 in branch codex/mgt-accepted-residuals-v2 after the patch.
+    Remaining "visible limitations" hits in the checked source-quality surfaces
+    are operating/reporting vocabulary by design. AGENTS.md now uses accepted
+    residuals for the global trigger binding, and this record now separates
+    doctrine-level accepted residuals from source-quality visible-limit reporting.
+  non_claims:
+    - not validation
+    - not readiness
+    - not proof
+    - not source-quality token migration
+    - not source-of-truth promotion
+```
+
+## From docs/decisions/forseti_mini_god_tier_doctrine_v0.md (archived 2026-07-11, context-bound SCI follow-up rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Mini God Tier doctrine now sets the default owner-invoked target at roughly
+    90-95% of practical maximal capability value, explicitly rejecting an 80/20
+    shortcut interpretation while preserving Smallest Complete Intervention,
+    accepted residuals, lock-in guards, and the non-claim boundary.
+  trigger: product_doctrine
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/orca_repo_map_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+    - orca/product/spines/capture/core/source_capture_toolbox/README.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md intentionally points to this decision record as the full Mini
+        God Tier statement; duplicating the 90-95% target there would fork the
+        doctrine surface.
+    - path: CLAUDE.md
+      reason: >
+        Claude shim imports AGENTS.md and must not duplicate Orca project rules.
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        Overlay index does not own Mini God Tier vocabulary; AGENTS.md points to
+        this decision record as the full statement.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and DCP mechanics are unchanged; this patch changes the
+        product-doctrine target bar inside the existing controlling decision.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading owns read-pack mechanics and does not restate the Mini God
+        Tier lens.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        No path, route, source-pack, or index destination changed; the existing
+        AGENTS.md -> decision-record binding remains the discovery route.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+      reason: >
+        The source-quality profile owns a specific capture operating profile and
+        its visible_limitations report field. This patch changes the global
+        owner-invoked MGT doctrine lens without rewriting source-quality
+        operating tokens.
+    - path: orca/product/spines/capture/core/source_capture_toolbox/README.md
+      reason: >
+        The README indexes the source-quality operating profile and closeouts;
+        no route or source-quality profile name changed.
+  stale_language_search: >
+    rg -n "80/20|90-95|90%|95%|fraction of its cost|cheap or obvious|Mini God Tier|mini god tier|Mini God-Tier"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
+    docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md
+    orca/product/spines/capture/core/source_capture_toolbox/README.md
+  stale_language_search_result: >
+    Executed 2026-06-30 in branch codex/mgt-90-95-doctrine after the patch.
+    Hits outside this decision record are route/binding mentions or
+    source-quality profile mentions that do not define the global MGT target
+    percentage. No checked downstream surface states an 80/20 target or a lower
+    default bar for the global Mini God Tier doctrine.
+  non_claims:
+    - not validation
+    - not readiness
+    - not proof
+    - not a numeric achievement claim
+    - not source-quality token migration
+    - not implementation authorization
+```
+
+## Archived from .agents/workflow-overlay/prompt-orchestration.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Review-prompt economy: ordinary single-target read-only reviews may use the
+    routine preflight path when no escalation trigger applies; deep-thinking is
+    required by trigger rather than for every review prompt; delegated route-out
+    delivery follows source-role filing classification, where paste-ready chat is
+    a copy/surface rather than a substitute for required filed or lane-scoped
+    prompt carriage.
+  trigger: workflow_authority
+  related_triggers: [review_authority, output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-loading.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: Operating Economy already says deep-thinking is triggered-only; this patch reconciles subordinate review/prompt doctrine to that kernel.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: Source-Gated Method Contract and source readiness are unchanged.
+  non_claims:
+    - not validation
+    - not readiness
+    - not runtime model routing
+    - not patch authorization
+```
+
+
+## Archived from .agents/workflow-overlay/source-of-truth.md
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Receipt-archiving rule adopted (at most two most-recent receipts inline per
+    controlling file; older receipts move verbatim to the single authorized
+    standalone archive docs/decisions/dcp_receipts_archive_v0.md; inline section
+    ends with one pointer line to the archive; no other standalone receipt files)
+    AND strength-preserving compression of prompt-orchestration.md and
+    source-of-truth.md (duplicate prose collapsed, multi-sentence annotations
+    tightened to one sentence; every must/never/only/required obligation
+    preserved verbatim or in equivalent enumeration).
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-loading.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md is the agent-behavior kernel; it carries no receipt mechanics
+        and does not enumerate inline-vs-archive storage rules. The kernel
+        already routes doctrine-changing work to the overlay.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its gate 12 defers to source-of-truth.md for receipt mechanics and its
+        "standalone receipt file" prohibition refers to unauthorized expansions,
+        not the one authorized archive. No gate logic changes.
+  stale_language_search: >
+    rg -i -n "standalone receipt|inline in the changed artifact|do not create a standalone"
+    .agents docs AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-06-13 in worktree orca-f2-trim-wt (branch f2-doctrine-trim,
+    base origin/main). Hits: .agents/workflow-overlay/validation-gates.md:33
+    ("standalone receipt file" in the prohibition list for unauthorized
+    expansions — consistent with the new rule; the one authorized archive is
+    named in source-of-truth.md and not prohibited).
+    .agents/workflow-overlay/source-of-truth.md:106,109,110 — the amended
+    paragraph introducing the archive rule.
+    .agents/workflow-overlay/artifact-folders.md:203 — DCP contract stores
+    receipts inline, consistent.
+    docs/prompts/handoffs/ecr_jsg01_source_side_receipt_lane_setup_v0.md:87 —
+    unrelated "no standalone receipt file" in a prompt context.
+    review-input and review-output snapshots — contain historical text only.
+    No live surface retains an instruction that contradicts the new archive rule
+    or the removed "Do not create a standalone receipt file" sentence.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+```
+
+## From .agents/workflow-overlay/validation-gates.md (archived 2026-07-11, pre-push/ontology gate rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Forseti validation doctrine adds two gates and hardens one: a
+    review-summary shape gate (changed docs/review-outputs/ files carrying a
+    real review_summary block must keep the communication-style.md shape --
+    no forbidden process keys, a resolving report_path, the bound
+    failed-write shape, non-blank recommendation; full recommendation
+    vocabulary membership stays advisory-only pending an owner decision on
+    the delegated-review-patch extended vocabulary), a hash-pin freshness
+    gate (markdown freshness pins -- labeled path+sha256 bullet pairs and
+    source_captures receipt.md preserved-file bullets -- must match current
+    CRLF-normalized target bytes when the pin doc or target changed;
+    provenance-style tables and ledgers deliberately unparsed), and
+    substrate enforcement of the existing Output-mode gate's checkable shell
+    (declaration presence plus at least one closed-set token; exactly-one
+    and role-scoping stay resident). Enforced by
+    .agents/hooks/check_review_summary.py, check_hash_pin_freshness.py, and
+    check_prompt_output_mode.py as diff-scoped forward-only CI --strict
+    gates (hash-pin also mirrored in the local pre-push guard), built under
+    the EP-10/EP-11/EP-15 rows of
+    docs/decisions/overlay_enforcement_placement_classification_v0.md with
+    the EP-11 row corrected SUBSTRATE->PARTIAL from build-time corpus
+    measurement.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_prompt_output_mode.py
+    - .agents/hooks/check_review_summary.py
+    - .agents/hooks/check_hash_pin_freshness.py
+    - .github/workflows/ci.yml
+    - .agents/hooks/pre_push_guard.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/README.md
+    - .agents/workflow-overlay/skill-adoption.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .claude/settings.json
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Routes validation and enforcement-placement doctrine to this overlay
+        file; a kernel restatement would fork the owner.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        It owns the review_summary shape being enforced; the checker
+        references it, and the known delegated-review-patch extended
+        recommendation vocabulary is flagged for a separate owner decision
+        rather than silently widening the bound enum here.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        It owns the closed output-mode set; per the enforcement-placement
+        principle the substrate references the owner (and the checker
+        selftest asserts against the owning section), so no restatement is
+        added.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its lanes' extended recommendation vocabulary is the flagged owner
+        gap; binding or renaming that vocabulary is a doctrine decision this
+        gate deliberately does not make.
+    - path: .claude/settings.json
+      reason: >
+        No new write-time hooks: prompt writes already receive the
+        check_prompt_provenance.py reminder, review outputs are frequently
+        authored by other harnesses that never fire this harness's hooks,
+        and hash drift is a cross-file property best caught at push/CI.
+  stale_language_search: >
+    rg -in "output-mode gate|review_summary|hash-pin|check_prompt_output_mode|check_review_summary|check_hash_pin_freshness"
+    AGENTS.md .agents docs/workflows/forseti_repo_map_v0.md docs/decisions/overlay_enforcement_placement_classification_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits over the declared scope: hits are the new
+    gate bullets and Enforcement Placement registry text in this file, the
+    three checkers' own docstrings/selftests, the hooks README rows, the
+    pre_push_guard mirror entry, the repo-map Active Hooks notes, the
+    classification-doc update and corrected EP-11 row, the skill-adoption pin
+    pointer, and pre-existing reference text in communication-style.md (the
+    review_summary shape source), review-lanes.md, delegated-review-patch.md
+    (hash-pinned protected-path language), and one hash-pinned mention in
+    check_handoff_pointers.py; AGENTS.md has zero hits. No surface carries a
+    conflicting output-mode, review-summary, or hash-pin enforcement rule.
+  non_claims:
+    - not validation
+    - not readiness
+    - not review quality, finding truth, or severity authority
+    - not prompt quality or mode-choice correctness
+    - not semantic validity, source quality, or capture freshness
+    - a green run is shape/freshness only, never approval
+```
+
+## From docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md (archived 2026-07-11, server-gate activation rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Adds PR cadence guidance: lanes should open a focused PR after each major
+    durable point, not after every subpoint; subpoints stay grouped when they
+    share the same reviewable decision, controlling sources, validation, and
+    non-claims. PR bodies should state the decision change, why, stance shifts,
+    changed files, non-claims, and validation.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+    - output_authority
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - docs/workflows/orca_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes landing through this per-lane PR flow. The
+        cadence refinement belongs in the flow record, not the root kernel.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The explicit-authorization rule for commit, push, and PR creation is
+        unchanged; this cadence applies only after authorization.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Source hierarchy and propagation mechanics are unchanged; this is a
+        downstream workflow decision amendment.
+    - path: docs/workflows/orca_repo_map_v0.md
+      reason: >
+        The repo map already points lane PR flow to this decision record; no
+        new routing surface or file owner was added.
+  stale_language_search: >
+    rg -n "major durable point|every major point|every subpoint|per-lane PR|one focused PR|PR cadence"
+    AGENTS.md .agents/workflow-overlay docs/workflows/orca_repo_map_v0.md
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  stale_language_search_result: >
+    Executed 2026-06-16 after this patch. Hits are the new item 9 cadence
+    language, this receipt, and existing compatible references to per-lane /
+    one-focused-PR flow. No checked surface requires a PR for every subpoint or
+    grants standing PR authority.
+  non_claims:
+    - not validation
+    - not readiness
+    - not blanket commit authorization
+    - not blanket push authorization
+    - not blanket PR authorization
+    - not a merge authorization
+```
+
+## From `.agents/workflow-overlay/prompt-orchestration.md` (archived 2026-07-12, target-worktree resolution rotation)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Prompt filing is now classified by source role: canonical, reusable, or
+    doctrine-bearing prompt artifacts still file under docs/prompts/**, while
+    lane-scoped execution prompts attach to the overall lane PR body/comment or
+    ignored docs/_inbox scratch and must not open standalone prompt-only PRs.
+  trigger: workflow_authority
+  related_triggers:
+    - output_authority
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/hooks/check_prompt_provenance.py
+    - docs/workflows/orca_repo_map_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/artifact-folders.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .github/workflows/pr-risk-router.yml
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        AGENTS.md already routes prompt mechanics to prompt-orchestration.md and
+        still correctly requires every durable prompt, handoff, wrapper, rerun,
+        or patch prompt to apply the prompt contract; no root restatement of the
+        filing classification is needed.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its prompt gates defer output-mode and prompt-mechanics exceptions to
+        prompt-orchestration.md; it did not encode the old file-every-cross-
+        recipient-prompt rule, so no gate wording changes.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Source-loading owns read packs and source capsules. This patch changes
+        where lane-scoped prompt text is carried, not the required reads or
+        Source-Gated Method Contract.
+    - path: .agents/workflow-overlay/artifact-folders.md
+      reason: >
+        Existing folder roles already distinguish docs/prompts/** canonical prompt
+        artifacts from docs/_inbox scratch; the prompt owner now classifies when
+        each applies.
+    - path: .agents/workflow-overlay/artifact-roles.md
+      reason: >
+        Existing role bindings already define Full prompt artifact and Inbox
+        scratch separately; this patch changes the routing rule, not the role
+        table.
+    - path: .agents/workflow-overlay/template-registry.md
+      reason: >
+        Template rows that use paste-ready-chat describe template delivery modes,
+        not whether a lane-scoped execution prompt opens a standalone PR.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its paste-ready route-out remains governed by prompt-orchestration.md;
+        route-out prompts may now be lane-scoped when they only fill the current
+        commission lane, or canonical when promoted as reusable artifacts.
+    - path: .github/workflows/pr-risk-router.yml
+      reason: >
+        It should continue treating docs/prompts/** as manual-risk for canonical
+        prompt artifacts; the fix is to stop creating standalone tracked prompt
+        files for lane-scoped execution prompts, not to loosen PR risk routing.
+  stale_language_search: >
+    rg -i -n "Durable and cross-recipient|paste-ready-chat prompt that never touches disk|not a substitute for filing|filed artifact|standalone prompt PR|prompt-only PR|prompt artifact path"
+    .agents AGENTS.md docs/workflows docs/prompts/templates .github/workflows/pr-risk-router.yml docs/decisions/dcp_receipts_archive_v0.md;
+    rg -i -n "authored as a FILE-WRITE under docs/prompts|requires durable.*cross-recipient.*touch disk|not an accepted authoring path|never touch disk|durable prompt.*docs/prompts|cross-recipient prompt.*docs/prompts|file-every-cross"
+    .agents AGENTS.md docs/workflows docs/prompts/templates .github/workflows/pr-risk-router.yml;
+    rg -i -n "lane-scoped|overall lane PR|prompt-only PR|standalone prompt PR|canonical prompt"
+    .agents AGENTS.md docs/workflows docs/prompts/templates .github/workflows/pr-risk-router.yml
+  stale_language_search_result: >
+    Executed 2026-06-30 after edits. The broad old-language query hits only the
+    new canonical/lane-scoped rule in prompt-orchestration.md plus historical
+    archived receipts in docs/decisions/dcp_receipts_archive_v0.md; the stricter
+    old-mandate query hits only this receipt reason text ("file-every-cross-");
+    and the lane-scoped query hits the new owner rule plus the updated hook and
+    repo-map notes. docs/workflows/orca_major_move_folder_integrity_ca_discussion_v0.md
+    says canonical prompt destinations remain unchanged, which is consistent.
+    No live surface checked retains an unqualified durable/cross-recipient
+    docs/prompts/** filing mandate or a standalone prompt-PR requirement.
+  non_claims:
+    - not validation
+    - not readiness
+    - not source promotion
+    - not implementation authorization
+    - not a cleanup decision for existing prompt PRs
 ```

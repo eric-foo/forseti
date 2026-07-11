@@ -41,23 +41,39 @@ phrases like **smallest complete fix, patch, edit, rewrite, refactor, review,
 or answer** -- interpret it as **X performed under the Smallest complete
 intervention rule above.**
 
+### Problem Integrity
+
+Before planning or expanding a non-trivial task, bind the owner-requested
+outcome and the condition under which it must hold. Measure completeness
+against that outcome. Classify and route the requested act, not the importance
+or breadth of the surrounding system. Context, importance, risk, and adjacent
+weaknesses may change the evidence threshold; invoked lenses may deepen
+reasoning. None of these may replace or expand the requested act.
+
+For a narrow decision, give the decision and only the decisive rationale; if
+materially useful, add one reversal condition. Do not design an alternative,
+roadmap, policy, fallback, checklist, or operating model unless requested.
+Once the decision is adequately supported, stop.
+
+Before proposing a standing maintenance surface--such as an abstraction,
+repository, automation, or lifecycle--state what part of the bound outcome
+would become false or materially fragile without it, judged against that
+outcome rather than a safer or more resilient downstream posture. If none,
+exclude it; at most note a deferred risk and upgrade trigger. Include necessary
+supporting work, and surface the tradeoff when it materially increases lock-in.
+
 ## Decision Priority
 
-When design options conflict and each already passes the always-on rules
-above (real failure visibility / no fake success, and smallest complete),
-break the tie in this order:
+When multiple options already satisfy real failure visibility and Smallest
+Complete Intervention, break the tie in this order:
 
-1. **Least compounded risk** -- prefer the reversible, contained,
-   low-lock-in option that fails loud and local; surface irreversible,
-   high-lock-in, or doctrine-changing forks to the owner rather than
-   auto-deciding (this is the lock-in tiebreaker in Smallest Complete
-   Intervention, applied first).
-2. **Structural integrity** -- model reality as it is and teach the next
-   agent the truth: name a limitation over faking a fit; prefer one true
-   rule over a clever special-case.
+1. **Least compounded risk** -- prefer the reversible, contained, low-lock-in
+   option that fails loud and local; surface irreversible, high-lock-in, or
+   doctrine-changing choices to the owner.
+2. **Structural integrity** -- model reality truthfully; name a limitation
+   instead of faking a fit, and prefer one true rule over a clever special case.
 
-When 1 and 2 pull apart, default to 1 and surface the tradeoff --
-recoverability beats elegance when the owner cannot easily course-correct.
+If these priorities conflict, choose recoverability and surface the tradeoff.
 
 ## Mini God Tier
 
@@ -108,9 +124,9 @@ Before project work, read `.agents/workflow-overlay/README.md` and follow the Fo
 
 Keep Forseti project facts, source hierarchy, source-loading rules, artifact folders, review lanes, validation gates, safety rules, prompt rules, and lifecycle boundaries in `.agents/workflow-overlay/` or another Forseti-owned source named there.
 
-For substantial, ambiguous, cross-thread, delegated, doctrine-changing, review/patch-affecting, infrastructure-building, or messy-worktree work, run the Forseti Cynefin Routing Layer before planning or delegation; the owning rule is `.agents/workflow-overlay/decision-routing.md`.
+Run the Forseti Cynefin Routing Layer before planning or delegation when uncertainty about decomposition, authority, source truth, or safe sequencing could materially change the next move. Substantial, cross-thread, delegated, doctrine-changing, review/patch-affecting, infrastructure-building, and messy-worktree work are escalation cues, not automatic full-router triggers; bounded work with a clear outcome, authority, and route proceeds directly. The owning rule is `.agents/workflow-overlay/decision-routing.md`.
 
-Every durable prompt, handoff, wrapper, rerun, or patch prompt applies the prompt contract; do not author one that skips it. Routine prompts apply the **Forseti Prompt Preflight** core inline (the ~12-line core in `.agents/workflow-overlay/prompt-orchestration.md`) -- no skill reload; fused, delegated-review-patch, and novel or cross-lane prompts author through the full `workflow-prompt-orchestrator` skill, which owns prompt source-loading and the full preflight/routing contract. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain governed by this contract. The owning rule is `.agents/workflow-overlay/prompt-orchestration.md`.
+Every durable prompt, handoff, wrapper, rerun, or patch prompt applies the prompt contract; do not author one that skips it. Routine prompts apply the **Forseti Prompt Preflight** core inline (the ~12-line core in `.agents/workflow-overlay/prompt-orchestration.md`) -- no skill reload. A lane-scoped, operator-couriered delegated review-and-patch prompt whose goal, clean target worktree, revision, named file scope, patch authority, and validation route are already bound uses that same pointer-first core plus one fresh target-state read; delegation or patch authorization alone does not trigger the full `workflow-prompt-orchestrator`. Use the full orchestrator only when the **Full orchestration** predicate in `.agents/workflow-overlay/prompt-orchestration.md` applies, including owner-invoked Mini God Tier. In Forseti, a resolver-loaded generic prompt or delegated-review skill must defer to this project-owned routing depth: its generic always-orchestrate default does not override an eligible compact route, while its review mechanics and safeguards still apply. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain governed by this contract. The owning rule, eligibility test, required compact fields, MGT expansion, and fallback blockers are in `.agents/workflow-overlay/prompt-orchestration.md`.
 
 When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`. When a repo-changing work unit completes verified on its own lane branch or worktree, proceed to commit, push, and PR preparation without waiting for a typed instruction; the `settings.json` permission prompts on push and PR actions are the owner gate. Landing to `main` stays human-gated, except an agent may self-merge its **own** PR under the protected-action guard's verified exception (else it fails closed to a human merge). See `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
 

@@ -72,7 +72,9 @@ Owner direction recorded 2026-06-21:
   separate operator-configured external data root.
 - The pointer is generalized: `FORSETI_DATA_ROOT=<operator-configured external data
   root>`. Legacy `ORCA_DATA_ROOT` remains accepted as a compatibility fallback.
-  The owner's current local example is `F:\orca-data` (a portable drive);
+  The owner's current local example is `F:\forseti-data-lake` (a portable drive;
+  the physical root was renamed from the legacy path on 2026-07-10 -- see
+  `docs/workflows/forseti_data_lake_physical_rename_runbook_v0.md`);
   the drive letter and medium are deployment choices, not part of the contract.
 - The v0 directory grammar is accepted as a logical grammar, with `indexes/` split
   into a content-free `availability/` subslot and a rebuildable, non-authoritative
@@ -215,7 +217,7 @@ second source of truth.
 ## Configuration Contract
 
 - One required primary resolvable pointer: `FORSETI_DATA_ROOT` -> an external absolute path. Legacy `ORCA_DATA_ROOT` remains accepted as a compatibility fallback during migration.
-  The contract names no drive letter; the local example is `F:\orca-data`.
+  The contract names no drive letter; the local example is `F:\forseti-data-lake`.
 - Resolution precedence (contract shape, not loader implementation): production
   precedence is explicit / per-run override -> environment variable -> optional
   config-file fallback. A test root is injected only in test mode as an explicit test
@@ -363,6 +365,49 @@ Resolution status (updated as blocker-resolution decisions land 2026-06-21):
    Contract physicalization decision explicitly selects or supersedes them.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Local-example refresh after the owner-approved physical root rename
+    executed 2026-07-10 (runbook PR #834; execution receipt in
+    docs/workflows/forseti_data_lake_physical_rename_runbook_v0.md): the two
+    "local example" mentions now name F:\forseti-data-lake instead of the
+    pre-rename F:\orca-data example. No boundary, invariant, precedence,
+    fail-closed, or grammar rule changed; the contract still names no drive
+    letter and the pointer stays FORSETI_DATA_ROOT with legacy ORCA_DATA_ROOT
+    compatibility.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/data_lake/README.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+    - forseti-harness/data_lake/root.py
+    - docs/workflows/forseti_data_lake_physical_rename_runbook_v0.md
+  intentionally_not_updated:
+    - path: historical receipts, decisions, review bundles, and committed capture JSON referencing F:\orca-data-lake
+      reason: >
+        Point-in-time provenance preserved by design; the rename runbook's
+        reference audit classified them and the rename deliberately does not
+        rewrite history.
+    - path: forseti-harness legacy ORCA_DATA_ROOT / .orca-* compatibility fallback code
+      reason: >
+        Intentional compatibility surface; removing it is a separate future
+        decision, not implied by the physical rename.
+  stale_language_search: >
+    rg -n "F:.orca-data\b|current local example" forseti/product/spines/data_lake
+  stale_language_search_result: >
+    Executed 2026-07-10 after edits; remaining old-path mentions in the spine
+    are historical fold-in receipts and workflow provenance records, not live
+    current-example claims.
+  non_claims:
+    - not validation
+    - not readiness
+    - not lake-health proof
+    - not a boundary, precedence, or grammar change
+    - not removal of legacy compatibility fallback
+```
 
 ```yaml
 direction_change_propagation:

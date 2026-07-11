@@ -19,7 +19,7 @@ authority_boundary: retrieval_only
 Targeted Read Protocol): commissioning reads "When it applies", "The loop",
 "Access selection rule", "De-correlation", and the "Overlay Interface" block;
 code-diff commissioning also reads "Code-diff target kind — the
-`delegated_code_review_and_patch` sibling mode"; return adjudication reads
+`delegated_code_review_and_patch` sibling target kind"; return adjudication reads
 "Adjudication closeout"; a full-file read is for editing this convention or
 resolving a novel dispute about it.
 
@@ -71,6 +71,12 @@ Architect reserves final authority over what is kept and may veto any change it
 judges to add no benefit or net-negative value, even when individually
 defensible.
 
+**Delegate lifecycle hard stop.** The delegate may make only the commissioned
+working-tree edits inside the named patch scope. It does not commit, push, open
+or update a PR, merge, stash, reset, clean up a worktree, run repository hygiene,
+or otherwise advance lifecycle state. Those actions remain with the Chief
+Architect after adjudication. A prompt that omits this stop is incomplete.
+
 **Adjudication closeout.** The delegated return is not complete merely because
 it names a verdict, diff, findings, or residual risk. The return/courier prompt
 must instruct the commissioning Chief Architect to close the adjudication with
@@ -82,12 +88,13 @@ adjudicator's own modify/reject adjudications to the target -- in the same
 turn; route a smallest-complete closure step only for an issue that genuinely
 needs another review round, another lane, an architecture pass, or an owner
 decision; once clean, batch admin/lifecycle follow-ups into exactly one land
-step with no deep-thinking and deep-think the 1-5 material next moves that need
-judgment. The land step plus the material moves are a required tail of the
-adjudication closeout, not an optional pass -- an adjudication that ends at the
-verdict without them is incomplete. This is a prompt-return obligation for the
-adjudicator, not permission for the delegate to decide what is kept or to widen
-review scope.
+step with no deep-thinking; then, when a visible active goal,
+`thread_operating_target`, or accepted next objective exists, deep-think the 1-5
+material next moves that best advance it. When none exists, record
+`no_visible_active_goal` rather than inventing a roadmap. The land/closure step
+plus this goal-conditioned material-move check are a required same-turn tail;
+do not defer the check to another turn. This is an adjudicator obligation, not
+permission for the delegate to decide what is kept or widen review scope.
 
 **Delegated review-output finalization gate.** Any delegated review output
 written under `docs/review-outputs/` blocks final chat closeout until, after the
@@ -176,29 +183,28 @@ convention creates none of them.
 the commission is missing operator-owned fields (for example delegate vendor,
 controller identity, access mode, report destination, or provenance values),
 do not end on an inert blocker if the target and review purpose are inferable.
-Route the request through `workflow-prompt-orchestrator` under
-`.agents/workflow-overlay/prompt-orchestration.md`'s source-role filing
-classification: a canonical/reusable route-out is filed under `docs/prompts/**`
-with `paste-ready-chat` only as a copy, while a lane-scoped route-out is carried
-in the lane PR/comment or ignored scratch with the same preflight fields. In both
-cases, the missing operator fields are clearly marked `operator_to_fill`. Block
-instead only when the target or review purpose cannot be inferred, when
-prompt-orchestrator cannot be applied under
-`.agents/workflow-overlay/prompt-orchestration.md`,
-or when the user asks for strict execution or patching without a bound
-commission. If the inferred target
+Route under `.agents/workflow-overlay/prompt-orchestration.md`: an eligible
+current-lane, operator-couriered prompt uses **Lane-Scoped Delegated Patch Prompt
+Default** and is carried in the lane PR/comment or ignored scratch; a prompt
+matching the **Full orchestration** predicate in
+`.agents/workflow-overlay/prompt-orchestration.md` uses the full
+`workflow-prompt-orchestrator` contract. Missing
+operator-owned values are clearly marked `operator_to_fill`; delegation or patch
+authorization alone does not trigger the full route. Block only when the target,
+review purpose, patch authority, or safe target state cannot be inferred, or
+when the applicable prompt contract cannot be applied. If the inferred target
 is a multi-file implementation/code diff rather than a single authored artifact,
-do not force it into the default authored-artifact mode: route it to the
-**`delegated_code_review_and_patch`** sibling mode below, which keeps the code
+do not force it into the authored-artifact target kind: route it to the
+**`delegated_code_review_and_patch`** sibling target kind below, which keeps the code
 review lane as its review method and bounds the patch to an explicitly named
 file set. When no patch authority is commissioned, route via prompt-orchestrator
 to read-only implementation/code review instead; patch authority is never
 assumed from the target category.
 
-**Code-diff target kind — the `delegated_code_review_and_patch` sibling mode.**
+**Code-diff target kind — `delegated_code_review_and_patch`.**
 The default loop above targets a single *authored* artifact and uses the
 delegate's own adversarial analysis as the review. A bounded multi-file
-implementation/code diff is handled by this **sibling mode**: the same
+implementation/code diff is handled by this **sibling target kind**: the same
 commissioned convention with exactly two binding deltas. Everything else —
 explicit commission, the de-correlation who-constraint and two-bar rule, the
 `repo` / `no_repo` access-mode obligations, CA adjudication of the returned diff
@@ -209,10 +215,13 @@ changes repository access and patch authorship.
 
 1. **The review method is the code review lane, not artifact review.** The
    delegate's review portion is `workflow-code-review` run under the Review
-   Prompt Defaults. Because this sibling mode is commissioned, adversarial, and
-   patch-authorized, it includes `workflow-deep-thinking` before the Source-Gated
-   Method Contract in `.agents/workflow-overlay/prompt-orchestration.md` — not the
-   `portable-adversarial-artifact-review-method`. The code review lane stays the
+   Prompt Defaults. Commissioning, adversarial wording, patch authorization, or
+   a bounded multi-file target alone does not add `workflow-deep-thinking` or
+   the Source-Gated Method Contract. Those apply only when their independent
+   triggers in `.agents/workflow-overlay/prompt-orchestration.md` fire — for
+   example owner invocation or Mini God Tier, doctrine/authority change,
+   source-heavy or materially ambiguous work, or substantial seam risk whose
+   framing could change the route. The code review lane stays the
    review method for code; this convention only adds commissioned bounded patch
    authorship plus CA adjudication on top of it, and never replaces, weakens, or
    relabels code review, nor merges it with artifact review (those remain
@@ -238,10 +247,10 @@ Two obligations are stated explicitly here because code carries them:
   visibility holds exactly as under the executor rule.
 - **Patch authority stays subordinate to implementation authorization.** A
   commissioned code patch is an explicit bounded source-changing authorization
-  under `.agents/workflow-overlay/safety-rules.md` and `AGENTS.md`; this mode
+  under `.agents/workflow-overlay/safety-rules.md` and `AGENTS.md`; this target kind
   supplies the *shape*, never a standing authorization, and never bypasses the
   implementation-authorization boundary. By commission, not by category — the
-  code-diff category alone never triggers this mode; an un-commissioned diff
+  code-diff category alone never triggers this target kind; an un-commissioned diff
   routes to read-only code review.
 
 **Repo-mode discovery discharges a downstream independent-review gate.** When a
@@ -274,16 +283,31 @@ and do not fork or restate it.
 delegated_review_patch_overlay_interface:
   status: provisional_opt_in   # available only by explicit CA commission; not a bound review lane; not mandatory
   operating_contract_pointer: .agents/workflow-overlay/delegated-review-patch.md
+  project_prompt_routing_binding: >
+    Forseti prompt-routing depth is owned by prompt-orchestration.md. A
+    resolver-loaded generic skill's always-full-orchestrator default is replaced
+    by Lane-Scoped Delegated Patch Prompt Default when that predicate is
+    satisfied; all review, de-correlation, scope, validation, escalation,
+    adjudication, and lifecycle safeguards remain binding.
+  prompt_orchestrator_available:
+    full_renderer: workflow-prompt-orchestrator
+    compact_renderer: .agents/workflow-overlay/prompt-orchestration.md#lane-scoped-delegated-patch-prompt-default
+    selection_rule: >
+      Use compact_renderer when its project predicate is satisfied; otherwise
+      use full_renderer. Either renderer satisfies the strict commission prompt
+      availability field without changing the installed skill artifact.
   target_kinds:
     authored_artifact: >
-      Default mode; a single CA-named authored artifact (doctrine, operating
+      Default target kind; a single CA-named authored artifact (doctrine, operating
       contract, eval/scoring/validation instrument). Review method is the
       delegate's own adversarial analysis (portable-adversarial-artifact-review-method
       in no_repo). Single-file patch bound.
     delegated_code_review_and_patch: >
-      Sibling mode for a bounded multi-file implementation/code diff. Review
-      method is the code review lane (workflow-code-review, deep-thinking first,
-      source-gated), NOT artifact review and never a merge of the two. Target is
+      Sibling target kind for a bounded multi-file implementation/code diff.
+      Review method is the code review lane (workflow-code-review), NOT artifact
+      review and never a merge of the two. Deep-thinking and source-gated
+      sequencing apply only when independently triggered by prompt-orchestration.
+      Target is
       an explicitly named file set (one or more) that CANNOT silently widen;
       everything outside it is read-only / flag-only. Validation/test obligations
       are named and can fail. Patch authority is an explicit commission
@@ -294,22 +318,27 @@ delegated_review_patch_overlay_interface:
       no runtime-model recommendation) is inherited unchanged. no_repo changes
       repository access and patch authorship, not the code-review method.
   incomplete_commission_route_out:
-    owner: workflow-prompt-orchestrator
+    owner: .agents/workflow-overlay/prompt-orchestration.md
     output_mode: paste-ready-chat
     use_when: >
       Target and review purpose are inferable, but operator-owned route fields
       are missing; emit an operator-fill route-out prompt instead of an inert
       blocker.
+    default_route: >
+      Eligible current-lane operator-couriered prompts use Lane-Scoped Delegated
+      Patch Prompt Default: one fresh target-state read and a compact pointer-first
+      commission. Full workflow-prompt-orchestrator applies only when an escalation
+      condition or owner-invoked Mini God Tier is present.
     code_diff_target_routing: >
       A multi-file implementation/code diff is handled by the
-      delegated_code_review_and_patch sibling mode (target_kinds above) when patch
+      delegated_code_review_and_patch sibling target kind (target_kinds above) when patch
       authority is commissioned; an un-commissioned diff routes to read-only code
       review. Patch authority is never assumed from the target category.
   protected_path_list:
     authority: .agents/workflow-overlay/safety-rules.md   # defer to it; do not fork or restate the forbidden-edit set
     rule: >
       The delegate may patch ONLY the CA-named target — the single authored file
-      in the default mode, or the explicitly named multi-file set in
+      in the authored-artifact target kind, or the explicitly named multi-file set in
       delegated_code_review_and_patch (which cannot silently widen). Everything
       else is read-only / flag-only: all other Forseti sources; canonical, frozen,
       or hash-pinned decisions, product contracts, manifests, and
@@ -317,6 +346,11 @@ delegated_review_patch_overlay_interface:
       `AGENTS.md` and `CLAUDE.md` when they are not the named target; and every
       path the safety rules forbid editing (`jb`, external workflow source,
       installed / user-level / plugin skills, and external reference folders).
+  delegate_lifecycle_hard_stop: >
+    Delegate may edit only the commissioned named target set. No commit, push,
+    PR creation/update, merge, stash, reset, worktree cleanup, repository hygiene,
+    or other lifecycle action; the CA owns all keep and land decisions after
+    adjudication.
   model_ladder:
     ownership: operator_and_commission   # NOT Forseti review-lane authority; review-lane model-neutrality preserved
     rungs: author -> de_correlated_controller -> cheap_executor
@@ -352,22 +386,27 @@ delegated_review_patch_overlay_interface:
       discovery pass and is required to claim the no-new-seam standard; review target shipped as a
       hash-confirmable verbatim attachment; assembler/CA runs the target-kind method's freshness gate pre-bundle and records the result. Default package shape: a self-contained bundle (verbatim target attachment(s) + a guardrail-complete README carrying the method/authority/contract) delivered with a thin-wrapper chat prompt pointing at the in-bundle README; the wrapper still carries the cross-vendor who-constraint; inline the method in chat when the reviewer cannot read in-bundle files.
   preflight_schema:
-    - forseti_start_preflight (.agents/workflow-overlay/source-loading.md)
-    - Required Preflight Fields (.agents/workflow-overlay/prompt-orchestration.md)
+    default: >
+      Forseti Prompt Preflight core plus one fresh target-state read and
+      Lane-Scoped Delegated Patch Prompt Default
+      (.agents/workflow-overlay/prompt-orchestration.md).
+    escalated: >
+      forseti_start_preflight plus Escalated Preflight Fields only when a full
+      orchestration condition or owner-invoked Mini God Tier applies.
   source_context_fields:
-    - Source-Gated Method Contract REFERENCE-LOAD / SOURCE-LOAD / SOURCE_CONTEXT_READY (.agents/workflow-overlay/prompt-orchestration.md)
-    - source packs and read budgets (.agents/workflow-overlay/source-loading.md)
+    - Default commission points to the targeted convention and relevant review lane; the receiver reads the real diff and target sources.
+    - Source-Gated Method Contract and source packs/read budgets apply only when their independent triggers fire.
   output_destinations:
     delegate_return: >
       unified diff + neutral source citations + verdict + residual-risk note,
       plus an adjudicator next-moves tail that points the commissioning Chief
       Architect to communication-style.md -> Review Adjudication Next Step
       (paste-ready courier; delegate does not decide what is kept)
-    prompt_orchestrator_route_out: >
-      filed canonical prompt artifact or lane-scoped prompt carriage, with
-      paste-ready copy when needed and operator_to_fill fields when
-      target/purpose are inferable but commission fields are unbound
-    durable_review_report: docs/review-outputs/ or docs/review-outputs/adversarial-artifact-reviews/ when a durable report is commissioned
+    commission_route_out: >
+      lane-scoped prompt carriage by default; filed canonical prompt artifact or
+      full-orchestrator output only when its routing conditions apply; use
+      operator_to_fill for inferable but genuinely operator-owned values
+    durable_review_report: optional only when separately commissioned or required by the owner-invoked Mini God Tier target; otherwise chat or lane PR/comment is the return
     patch_application: the CA-named target in-repo — single authored file, or the named multi-file set in delegated_code_review_and_patch — under the commission (patch / integration execution authority per .agents/workflow-overlay/review-lanes.md)
 ```
 

@@ -32,13 +32,21 @@ import html
 import json
 import os
 import re
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _hooklib  # noqa: E402  (sys.path pin must precede the import)
+from _hooklib import repo_root, to_relposix  # noqa: E402
 
+
+# Deliberately NOT _hooklib.DURABLE_DOC_PREFIXES: this checker's scope follows
+# where Google capture URLs legitimately land -- it adds docs/research/ and
+# forseti/product/ (capture/evidence surfaces) and omits doc-role folders that
+# never carry capture URLs (docs/product/, docs/migration/, docs/hygiene/, the
+# overlay). Keep the delta explicit here instead of silently drifting the base.
 IN_SCOPE_PREFIXES = (
     "docs/decisions/",
     "docs/prompts/",
@@ -54,10 +62,6 @@ REQUIRED_SEARCH_PARAMS = {"hl": "en", "gl": "us", "pws": "0"}
 _GOOGLE_SEARCH_URL_RE = re.compile(
     r"https?://(?:www\.)?google\.com/search[^\s<>)\"'`\]\*|]*",
     re.IGNORECASE,
-)
-_PATCH_FILE_RE = re.compile(
-    r"^\*\*\* (?:Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$",
-    re.MULTILINE,
 )
 _US_PARAMETERIZED_RE = re.compile(
     r"\b(?:US[- ]parameteri[sz]ed|U\.S\.[- ]parameteri[sz]ed|gl=us)\b",
@@ -99,12 +103,18 @@ class Finding:
     detail: str
 
 
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
 def _to_posix(path: str) -> str:
-    return path.replace("\\", "/").lstrip("./")
+    # Strip only a LITERAL leading "./" prefix. NOT lstrip("./"), which is a
+    # character-set strip that would also eat the leading dot of ".agents/..."
+    # paths (silently dropping overlay files out of scope).
+    s = path.replace("\\", "/")
+    return s[2:] if s.startswith("./") else s
+
+
+# to_relposix comes from _hooklib: it handles the ABSOLUTE file_path Claude Code
+# passes in the PostToolUse payload (without which the --hook advisory silently
+# no-opped on every edit) and returns None for rooted-but-not-absolute paths
+# ("/docs/..." on Windows -- the FIND-01 class), which analyze_paths drops.
 
 
 def in_scope(relpath: str) -> bool:
@@ -218,16 +228,10 @@ def analyze_file(root: Path, relpath: str) -> list[Finding]:
 
 
 def _git(root: Path, *args: str, timeout: int = 15) -> tuple[int, str]:
-    try:
-        res = subprocess.run(
-            ["git", "-C", str(root), *args],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        return res.returncode, res.stdout
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
-        return -1, ""
+    """Thin varargs adapter over the shared git wrapper (keeps call sites flat).
+    _hooklib.git_out returns (1, "") on launch failure/timeout; callers here only
+    test rc != 0, so the -1/1 distinction does not matter."""
+    return _hooklib.git_out(root, list(args), timeout=timeout)
 
 
 def changed_paths(root: Path) -> list[str] | None:
@@ -252,6 +256,9 @@ def changed_paths_vs_base(root: Path, base_ref: str) -> list[str] | None:
 
 
 def resolve_base(cli_base: str | None) -> str:
+    ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
+    if ci_base:
+        return ci_base
     gh_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if gh_base:
         return f"origin/{gh_base}"
@@ -260,7 +267,8 @@ def resolve_base(cli_base: str | None) -> str:
 
 def analyze_paths(root: Path, paths: list[str]) -> list[Finding]:
     findings: list[Finding] = []
-    for relpath in sorted(set(_to_posix(path) for path in paths)):
+    relpaths = {rel for path in paths if (rel := to_relposix(path, root)) is not None}
+    for relpath in sorted(relpaths):
         findings.extend(analyze_file(root, relpath))
     return findings
 
@@ -276,31 +284,10 @@ def print_findings(findings: list[Finding], *, strict: bool) -> int:
     return 1 if strict else 0
 
 
-def _paths_from_hook_payload(data: dict) -> list[str]:
-    tool_input = data.get("tool_input", {}) if isinstance(data, dict) else {}
-    if not isinstance(tool_input, dict):
-        return []
-    paths: list[str] = []
-    for key in ("file_path", "path", "notebook_path"):
-        value = tool_input.get(key)
-        if isinstance(value, str):
-            paths.append(value)
-    for key in ("command", "patch", "input"):
-        value = tool_input.get(key)
-        if isinstance(value, str):
-            for match in _PATCH_FILE_RE.finditer(value):
-                candidate = match.group(1) or match.group(2)
-                if candidate:
-                    paths.append(candidate.strip())
-    return paths
-
-
 def run_hook(root: Path) -> int:
-    try:
-        data = json.loads(sys.stdin.read() or "{}")
-    except ValueError:
-        data = {}
-    paths = _paths_from_hook_payload(data if isinstance(data, dict) else {})
+    # Event parsing is shared: _hooklib.candidate_paths covers file_path/path/
+    # notebook_path plus Codex apply_patch headers in command/patch/input.
+    paths = _hooklib.candidate_paths(_hooklib.read_event())
     findings = analyze_paths(root, paths)
     if findings:
         msg = (
@@ -365,6 +352,17 @@ def selftest() -> int:
         if not passed:
             ok = False
         print(f"{'PASS' if passed else 'FAIL'}  {label}  expect={expected!r} got={got!r}")
+
+    _root = repo_root()
+    check("absolute payload path -> repo-relative (was the --hook no-op bug)",
+          to_relposix(str(_root / "docs" / "decisions" / "x.md"), _root),
+          "docs/decisions/x.md")
+    check("to_posix keeps a leading dot (no lstrip corruption)",
+          _to_posix(".agents/workflow-overlay/x.md"),
+          ".agents/workflow-overlay/x.md")
+    check("outside-repo absolute path -> None",
+          to_relposix(str(_root.parent / "definitely_outside_x.md"), _root),
+          None)
 
     good = (
         "Google Search capture URL: "
@@ -439,6 +437,36 @@ def selftest() -> int:
     check("scope docs decisions", in_scope("docs/decisions/x.md"), True)
     check("scope excludes inbox", in_scope("docs/_inbox/x.md"), False)
     check("scope excludes code", in_scope(".agents/hooks/x.md"), False)
+    root = repo_root()
+    rel_win = to_relposix("C:/elsewhere/docs/decisions/x.md", root)
+    check(
+        "windows-drive path outside the repo never lands in scope",
+        rel_win is None or not in_scope(rel_win),
+        True,
+    )
+    rel_rooted = to_relposix("/docs/decisions/x.md", root)
+    check(
+        "posix-rooted path outside the repo never lands in scope",
+        rel_rooted is None or not in_scope(rel_rooted),
+        True,
+    )
+    rel_unc = to_relposix("//server/share/docs/decisions/x.md", root)
+    check(
+        "unc path outside the repo never lands in scope",
+        rel_unc is None or not in_scope(rel_unc),
+        True,
+    )
+    check(
+        "production path: analyze_paths on rooted out-of-repo path yields nothing",
+        analyze_paths(root, ["/docs/decisions/x.md"]),
+        [],
+    )
+    if os.name == "nt":
+        check(
+            "production path: backslash windows payload under root is in scope",
+            in_scope(to_relposix(str(root) + "\\docs\\decisions\\x.md", root) or ""),
+            True,
+        )
 
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1

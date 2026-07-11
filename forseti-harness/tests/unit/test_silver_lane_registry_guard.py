@@ -56,6 +56,23 @@ def test_live_repo_has_no_silver_lane_write_violations() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+def test_producer_discovery_ignores_generated_test_scratch(tmp_path: Path) -> None:
+    guard = _load_hook()
+    harness = tmp_path / "forseti-harness"
+    production = harness / "source_capture" / "producer.py"
+    generated = harness / "_test_runs" / "run_123" / "copied_producer.py"
+    scratch = harness / "_scratch" / "probe" / "scratch_producer.py"
+    for path in (production, generated, scratch):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("def produce():\n    return None\n", encoding="utf-8")
+
+    discovered = guard._producer_files(tmp_path)
+
+    assert discovered == [production]
+
+
+
+
 def test_strict_mode_fails_unresolved_lane_arguments() -> None:
     result = _run(
         "--strict",

@@ -46,6 +46,13 @@ from source_capture.cli_support import (
     require_series_identity,
 )
 from source_capture.proxy_profiles import ProxyCategory, ProxyProfile, load_proxy_profile
+from source_capture.retail_capture_profiles import (
+    RetailCaptureProfile,
+    get_retail_capture_profile,
+    merge_source_detail_sufficiency_requirements,
+    retail_capture_profile_names,
+    validate_retail_capture_profile_route,
+)
 from source_capture.retail_pdp_projection import write_retail_pdp_projection
 from source_capture.source_detail_sufficiency import (
     SOURCE_DETAIL_SUFFICIENCY_EXIT_CODE,
@@ -104,6 +111,7 @@ def run_source_capture_cloakbrowser_packet(
     warnings: Sequence[str],
     limitations: Sequence[str],
     source_detail_sufficiency_requirements: SourceDetailSufficiencyRequirements | None = None,
+    retail_capture_profile: RetailCaptureProfile | None = None,
     timeout_seconds: float,
     wait_until: str,
     viewport_width: int,
@@ -115,6 +123,7 @@ def run_source_capture_cloakbrowser_packet(
     load_more_selector: str | None = None,
     load_more_clicks: int = 0,
     scroll_step_px: int = 0,
+    scroll_target_selector: str | None = None,
     delivery_zip: str | None = None,
     delivery_zip_setup_timeout_seconds: float = 30.0,
     session_visibility_pin=None,
@@ -135,6 +144,25 @@ def run_source_capture_cloakbrowser_packet(
             "browser_user_data_dir requires browser_user_data_label and browser_user_data_session_mode "
             "so the packet's visible-mode-change and non-claims provenance reflects the persistent "
             "profile load; a caller must not load a stored profile without disclosing it in the packet"
+        )
+
+    if retail_capture_profile is not None:
+        if retail_capture_profile.source_surface != "cloakbrowser_snapshot":
+            raise ValueError(
+                f"retail capture profile {retail_capture_profile.name} belongs to "
+                f"{retail_capture_profile.source_surface}; use the matching capture runner"
+            )
+        validate_retail_capture_profile_route(
+            retail_capture_profile,
+            url=url,
+            source_family=source_family,
+            source_surface=source_surface,
+        )
+        source_detail_sufficiency_requirements = (
+            merge_source_detail_sufficiency_requirements(
+                source_detail_sufficiency_requirements,
+                retail_capture_profile.requirements,
+            )
         )
 
     # The US-storefront pin is an Amazon-specific pre-capture plugin (FIX #6): the generic
@@ -162,11 +190,26 @@ def run_source_capture_cloakbrowser_packet(
         load_more_selector=load_more_selector,
         load_more_clicks=load_more_clicks,
         scroll_step_px=scroll_step_px,
+        scroll_stop_condition=(
+            retail_capture_profile.scroll_stop_condition()
+            if retail_capture_profile is not None
+            else None
+        ),
+        scroll_target_selector=(
+            scroll_target_selector
+            if scroll_target_selector is not None
+            else retail_capture_profile.scroll_target_selector
+            if retail_capture_profile is not None
+            else None
+        ),
         pre_capture=pre_capture,
         user_data_dir=browser_user_data_dir,
     )
     if isinstance(capture_result, CloakBrowserSnapshotFailure):
         return 3, f"{_failure_report_token(capture_result.failure_kind)}: {capture_result.message}"
+
+    if retail_capture_profile is not None:
+        capture_result.metadata["retail_capture_profile"] = retail_capture_profile.metadata()
 
     packet_warnings = list(warnings) + capture_result.warning_notes
     packet_limitations = list(limitations) + capture_result.limitation_notes
@@ -468,27 +511,45 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--session-id", default=None)
     parser.add_argument("--timeout-seconds", type=float, default=DEFAULT_TIMEOUT_SECONDS)
-    parser.add_argument("--wait-until", choices=sorted(ALLOWED_WAIT_UNTIL), default="load")
+    parser.add_argument(
+        "--wait-until",
+        choices=sorted(ALLOWED_WAIT_UNTIL),
+        default=None,
+        help=(
+            "Navigation completion event. Default 'load' without a retail profile; "
+            "otherwise the profile's measured posture."
+        ),
+    )
     parser.add_argument("--viewport-width", type=int, default=DEFAULT_VIEWPORT_WIDTH)
     parser.add_argument("--viewport-height", type=int, default=DEFAULT_VIEWPORT_HEIGHT)
     parser.add_argument("--max-artifact-bytes", type=int, default=DEFAULT_MAX_ARTIFACT_BYTES)
     parser.add_argument(
+        "--retail-capture-profile",
+        choices=retail_capture_profile_names(),
+        default=None,
+        help=(
+            "Compile a named retailer/page-kind success profile into the existing post-capture "
+            "source-detail sufficiency gate and record its expected route flags."
+        ),
+    )
+    parser.add_argument(
         "--settle-seconds",
         type=float,
-        default=0.0,
+        default=None,
         help=(
             "Seconds to wait after the load event before capturing, so client-rendered (SPA) "
-            "content (e.g. a search/listing grid) can populate. Default 0 (capture at load)."
+            "content (e.g. a search/listing grid) can populate. Default 0 without a retail "
+            "profile; otherwise the profile's measured posture."
         ),
     )
     parser.add_argument(
         "--scroll-passes",
         type=int,
-        default=0,
+        default=None,
         help=(
             "After the settle, scroll to the bottom this many times (pausing between) so "
             "lazy-loaded / 'load more' / infinite-scroll content (e.g. product reviews) "
-            "populates. Default 0 (no scrolling)."
+            "populates. Default 0 without a retail profile; otherwise the profile posture."
         ),
     )
     parser.add_argument(
@@ -511,11 +572,22 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--scroll-step-px",
         type=int,
-        default=0,
+        default=None,
         help=(
             "Before any scroll-to-bottom passes, scroll down incrementally by this many pixels "
             "(pausing between steps), so content that lazy-loads when its section enters the "
-            "viewport (e.g. a reviews widget) is triggered. Default 0 (off)."
+            "viewport (e.g. a reviews widget) is triggered. Default 0 without a retail "
+            "profile; otherwise the profile posture."
+        ),
+    )
+    parser.add_argument(
+        "--scroll-target-selector",
+        default=None,
+        help=(
+            "Before progressive scrolling, scroll one matching element into view and wait up to "
+            "five seconds for the profile's content condition. Falls back to progressive scrolling "
+            "when the selector is absent, activation fails, or the condition is not reached. "
+            "Requires a retail capture profile."
         ),
     )
     parser.add_argument(
@@ -611,6 +683,58 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         require_series_identity(args)
+        retail_capture_profile = (
+            get_retail_capture_profile(args.retail_capture_profile)
+            if args.retail_capture_profile is not None
+            else None
+        )
+        if retail_capture_profile is not None:
+            if retail_capture_profile.source_surface != "cloakbrowser_snapshot":
+                raise ValueError(
+                    f"retail capture profile {retail_capture_profile.name} belongs to "
+                    f"{retail_capture_profile.source_surface}; use the matching capture runner"
+                )
+            validate_retail_capture_profile_route(
+                retail_capture_profile,
+                url=args.url,
+                source_family=args.source_family,
+                source_surface=args.source_surface,
+            )
+        settle_seconds = (
+            args.settle_seconds
+            if args.settle_seconds is not None
+            else retail_capture_profile.settle_seconds
+            if retail_capture_profile is not None
+            else 0.0
+        )
+        wait_until = (
+            args.wait_until
+            if args.wait_until is not None
+            else retail_capture_profile.wait_until
+            if retail_capture_profile is not None
+            else "load"
+        )
+        scroll_passes = (
+            args.scroll_passes
+            if args.scroll_passes is not None
+            else retail_capture_profile.scroll_passes
+            if retail_capture_profile is not None
+            else 0
+        )
+        scroll_step_px = (
+            args.scroll_step_px
+            if args.scroll_step_px is not None
+            else retail_capture_profile.scroll_step_px
+            if retail_capture_profile is not None
+            else 0
+        )
+        scroll_target_selector = (
+            args.scroll_target_selector
+            if args.scroll_target_selector is not None
+            else retail_capture_profile.scroll_target_selector
+            if retail_capture_profile is not None
+            else None
+        )
         if args.retail_pdp_projection_output is not None and args.source_family != "retail_pdp":
             raise ValueError("--retail-pdp-projection-output requires --source-family retail_pdp")
         proxy_profile = _load_optional_proxy_profile(
@@ -722,17 +846,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             warnings=args.warning,
             limitations=args.limitation,
             source_detail_sufficiency_requirements=build_source_detail_sufficiency_requirements(args),
+            retail_capture_profile=retail_capture_profile,
             timeout_seconds=args.timeout_seconds,
-            wait_until=args.wait_until,
+            wait_until=wait_until,
             viewport_width=args.viewport_width,
             viewport_height=args.viewport_height,
             max_artifact_bytes=args.max_artifact_bytes,
             block_heavy_assets=block_heavy_assets,
-            settle_seconds=args.settle_seconds,
-            scroll_passes=args.scroll_passes,
+            settle_seconds=settle_seconds,
+            scroll_passes=scroll_passes,
             load_more_selector=args.load_more_selector,
             load_more_clicks=args.load_more_clicks,
-            scroll_step_px=args.scroll_step_px,
+            scroll_step_px=scroll_step_px,
+            scroll_target_selector=scroll_target_selector,
             delivery_zip=args.delivery_zip,
             delivery_zip_setup_timeout_seconds=args.delivery_zip_setup_timeout_seconds,
             # Demand-durability series facts (Ob.17). Element 1 pins (each an honest

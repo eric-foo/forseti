@@ -132,9 +132,9 @@ Scratch packet evidence was written under
    source-access fact.
 5. Keep `--cutoff-posture` to accepted closed values such as `pre_cutoff`.
    Prose belongs in `capture_context`.
-6. Clear `ORCA_DATA_ROOT` for scratch probes when an explicit `--output` path is
-   intended. The Direct HTTP runner honors the environment data root ahead of
-   the supplied scratch output path.
+6. Clear `FORSETI_DATA_ROOT` (and legacy `ORCA_DATA_ROOT` if set) for scratch
+   probes when an explicit `--output` path is intended. The Direct HTTP runner
+   honors the environment data root ahead of the supplied scratch output path.
 
 ## Non-Claims
 

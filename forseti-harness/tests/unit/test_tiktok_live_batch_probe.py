@@ -10,6 +10,7 @@ from data_lake.root import DataLakeRoot, raw_shard
 from runners import run_source_capture_tiktok_live_batch_probe as runner
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationSuccess,
+    PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
     BrowserPagePointerAction,
     BrowserPageResponse,
 )
@@ -80,6 +81,8 @@ class _FakeObservationEngine:
         settle_seconds: float = 0.0,
         lazy_load_scroll_passes: int = 0,
         lazy_load_scroll_step_px: int = 0,
+        lazy_load_response_stop_condition: object = None,
+        dom_extract_after_lazy_load: bool = False,
         block_resource_types: tuple[str, ...] = (),
         proxy_profile: object = None,
         storage_state_path: Path | None = None,
@@ -120,9 +123,7 @@ def test_live_probe_runner_help_surfaces_sessioned_cold_agent_command(capsys) ->
 
     captured = capsys.readouterr()
     assert "Recommended sessioned cold-agent command" in captured.out
-    assert "--require-harness-proxy-posture no_proxy_profile_loaded" in captured.out
-    assert "--allow-challenge-close-followthrough" in captured.out
-    assert "--human-challenge-handoff" in captured.out
+    assert "--session-profile \"chowdakr_sg_tiktok\"" in captured.out
     assert "--admit-output" in captured.out
 
 
@@ -820,8 +821,7 @@ def test_live_probe_threads_cloakbrowser_and_human_handoff_options(
         "security check",
     )
     assert captured_kwargs["human_challenge_handoff_after_action_names"] == (
-        TIKTOK_CHALLENGE_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
-        TIKTOK_CHALLENGE_VISUAL_CLOSE_FOLLOWTHROUGH_POINTER_ACTION_NAME,
+        PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
     )
     assert captured_kwargs["human_challenge_handoff_timeout_seconds"] == 7.0
 
@@ -841,6 +841,26 @@ def test_live_probe_runner_required_proxy_posture_choices_exclude_unknown() -> N
         item for item in parser._actions if item.dest == "require_harness_proxy_posture"
     )
     assert action.choices == ["no_proxy_profile_loaded", "proxy_profile_loaded"]
+
+
+def test_live_probe_runner_admission_targets_stay_mutually_exclusive() -> None:
+    parser = runner.build_parser()
+    mutually_exclusive_option_sets = [
+        {
+            option
+            for action in group._group_actions
+            for option in action.option_strings
+        }
+        for group in parser._mutually_exclusive_groups
+    ]
+
+    assert any(
+        {"--admit-output", "--data-root"} <= options
+        for options in mutually_exclusive_option_sets
+    ), (
+        "--admit-output and --data-root must remain in one argparse "
+        "mutually-exclusive group"
+    )
 
 
 def test_live_probe_runner_defaults_to_cloakbrowser_packet_grade(
@@ -980,26 +1000,45 @@ def test_live_probe_runner_allows_playwright_with_diagnostic_opt_in(
     assert captured_kwargs["cloakbrowser_humanize"] is False
 
 
-def test_live_probe_runner_rejects_human_handoff_without_followthrough(tmp_path: Path) -> None:
-    try:
-        runner.main(
-            [
-                "--creator-handle",
-                "funmi",
-                "--creator-profile-url",
-                "https://www.tiktok.com/@funmi",
-                "--video-url",
-                "https://www.tiktok.com/@funmi/video/7390000000000000001",
-                "--logged-out",
-                "--human-challenge-handoff",
-                "--output-dir",
-                str(tmp_path / "out"),
-            ]
-        )
-    except SystemExit as exc:
-        assert exc.code == 2
-    else:
-        raise AssertionError("human handoff was accepted without followthrough")
+def test_live_probe_runner_allows_pre_action_handoff_without_followthrough(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    captured_kwargs: dict[str, object] = {}
+
+    class _Paths:
+        grid_result_json_path = tmp_path / "grid.json"
+        cadence_result_json_path = tmp_path / "cadence.json"
+
+    def fake_write(**kwargs: object) -> _Paths:
+        captured_kwargs.update(kwargs)
+        return _Paths()
+
+    monkeypatch.setattr(runner, "write_tiktok_live_batch_probe_outputs", fake_write)
+    monkeypatch.setattr(
+        runner,
+        "_staging_summary",
+        lambda **_kwargs: {"schema_version": "test", "stage": "staging"},
+    )
+
+    code = runner.main(
+        [
+            "--creator-handle",
+            "funmi",
+            "--creator-profile-url",
+            "https://www.tiktok.com/@funmi",
+            "--video-url",
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "--logged-out",
+            "--human-challenge-handoff",
+            "--output-dir",
+            str(tmp_path / "out"),
+        ]
+    )
+
+    assert code == 0
+    assert captured_kwargs["human_challenge_handoff"] is True
+    assert captured_kwargs["allow_challenge_close_followthrough"] is False
 
 
 def test_live_probe_runner_rejects_cloakbrowser_with_browser_channel(tmp_path: Path) -> None:

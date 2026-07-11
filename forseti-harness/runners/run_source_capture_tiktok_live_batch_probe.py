@@ -10,6 +10,12 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from source_capture.auth_state import AuthenticatedSessionMode
+from source_capture.session_profiles import (
+    OWNER_HANDOFF_BEFORE_ACTION,
+    default_session_profile_auth_state_root,
+    resolve_session_profile,
+    validate_session_profile_auth_state,
+)
 from source_capture.source_access_provenance import HarnessProxyProfilePosture
 from source_capture.tiktok.admission import COMPLETE_LANE_NOTE
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
@@ -39,11 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
             "    --creator-handle \"<handle>\" `\n"
             "    --creator-profile-url \"https://www.tiktok.com/@<handle>\" `\n"
             "    --video-url \"https://www.tiktok.com/@<handle>/video/<video-id>\" `\n"
-            "    --state-label \"<dedicated-tiktok-auth-state-label>\" `\n"
-            "    --session-mode client_provided_session `\n"
-            "    --require-harness-proxy-posture no_proxy_profile_loaded `\n"
-            "    --allow-challenge-close-followthrough `\n"
-            "    --human-challenge-handoff `\n"
+            "    --session-profile \"chowdakr_sg_tiktok\" `\n"
             "    --output-dir \".\\_test_runs\\tiktok_live_<handle>\" `\n"
             "    --admit-output \".\\_test_runs\\tiktok_live_<handle>_packet\"\n"
             "\n"
@@ -54,6 +56,20 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--creator-profile-url", required=True)
     parser.add_argument("--video-url", action="append", required=True, dest="video_urls")
     parser.add_argument("--state-label")
+    parser.add_argument(
+        "--session-profile",
+        help=(
+            "Resolve a machine-local cookie-backed session profile before browser "
+            "launch. Profile failure blocks; it never downgrades to logged-out mode."
+        ),
+    )
+    parser.add_argument(
+        "--session-profile-config",
+        type=Path,
+        help="Explicit machine-local session-profile config path.",
+    )
+    parser.add_argument("--auth-state-root", type=Path, help=argparse.SUPPRESS)
+
     parser.add_argument(
         "--session-mode",
         choices=[mode.value for mode in AuthenticatedSessionMode],
@@ -104,7 +120,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--browser-backend",
         choices=("playwright", "cloakbrowser"),
-        default=TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+        default=None,
         help=(
             "Browser backend for rendered page observation. TikTok packet-grade "
             "capture defaults to cloakbrowser; playwright is diagnostic-only."
@@ -140,9 +156,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--human-challenge-handoff",
         action="store_true",
         help=(
-            "After scripted challenge X/Close followthrough actions, prompt the "
-            "operator to solve a remaining slider/captcha in the visible browser. "
-            "The receipt marks this as a source-access intervention."
+            "Before scripted pointer actions, prompt the operator to solve a visible "
+            "slider/captcha in the open browser. Scripted actions remain suppressed "
+            "until the marker clears; the receipt records source-access intervention."
         ),
     )
     parser.add_argument(
@@ -178,13 +194,93 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    if args.allow_challenge_close_diagnostic and args.allow_challenge_close_followthrough:
+    if args.session_profile is not None:
+        manual_profile_fields = (
+            args.state_label,
+            args.session_mode,
+            args.require_harness_proxy_posture,
+            args.browser_backend,
+            args.browser_channel,
+        )
+        if (
+            args.logged_out
+            or any(value is not None for value in manual_profile_fields)
+            or args.allow_diagnostic_browser_backend
+            or args.cloakbrowser_humanize
+            or args.human_challenge_handoff
+            or args.allow_challenge_close_diagnostic
+            or args.allow_challenge_close_followthrough
+        ):
+            parser.error(
+                "--session-profile cannot be combined with manual session, browser, "
+                "or challenge-policy flags"
+            )
+        try:
+            auth_state_root = (
+                args.auth_state_root or default_session_profile_auth_state_root()
+            )
+            session_profile = resolve_session_profile(
+                args.session_profile,
+                config_path=args.session_profile_config,
+            )
+            validate_session_profile_auth_state(
+                session_profile,
+                auth_state_root=auth_state_root,
+            )
+        except ValueError as exc:
+            parser.error(f"BLOCKED_SESSION_PROFILE_UNAVAILABLE: {exc}")
+        state_label = session_profile.state_label
+        session_mode = session_profile.session_mode
+        required_harness_proxy_profile_posture = (
+            session_profile.required_harness_proxy_profile_posture
+        )
+        browser_backend = session_profile.browser_backend
+        human_challenge_handoff = (
+            session_profile.challenge_policy == OWNER_HANDOFF_BEFORE_ACTION
+        )
+        allow_challenge_close_diagnostic = False
+        allow_challenge_close_followthrough = False
+        logged_out = False
+    else:
+        if args.session_profile_config is not None:
+            parser.error("--session-profile-config requires --session-profile")
+        state_label = args.state_label
+        logged_out = args.logged_out
+        browser_backend = args.browser_backend or TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
+        human_challenge_handoff = args.human_challenge_handoff
+        auth_state_root = args.auth_state_root
+        allow_challenge_close_diagnostic = args.allow_challenge_close_diagnostic
+        allow_challenge_close_followthrough = args.allow_challenge_close_followthrough
+        if logged_out:
+            if state_label is not None or args.session_mode is not None:
+                parser.error(
+                    "--logged-out cannot be combined with --state-label or --session-mode"
+                )
+            if args.require_harness_proxy_posture is not None:
+                parser.error(
+                    "--require-harness-proxy-posture requires sessioned mode with --state-label"
+                )
+            session_mode = None
+        else:
+            if state_label is None or args.session_mode is None:
+                parser.error(
+                    "sessioned mode requires --state-label and --session-mode; "
+                    "use --logged-out for public logged-out capture"
+                )
+            session_mode = AuthenticatedSessionMode(args.session_mode)
+        required_harness_proxy_profile_posture = (
+            HarnessProxyProfilePosture(args.require_harness_proxy_posture)
+            if args.require_harness_proxy_posture is not None
+            else None
+        )
+
+    if allow_challenge_close_diagnostic and allow_challenge_close_followthrough:
         parser.error(
             "--allow-challenge-close-diagnostic and "
             "--allow-challenge-close-followthrough are mutually exclusive"
         )
     if (
-        args.browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
+        browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
         and not args.allow_diagnostic_browser_backend
     ):
         parser.error(
@@ -192,43 +288,26 @@ def main(argv: list[str] | None = None) -> int:
             "--allow-diagnostic-browser-backend to opt in"
         )
     if (
-        args.browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
+        browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
         and args.browser_channel is not None
     ):
-        parser.error("--browser-channel cannot be combined with --browser-backend cloakbrowser")
-    if (
-        args.cloakbrowser_humanize
-        and args.browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
-    ):
+        parser.error(
+            "--browser-channel cannot be combined with --browser-backend cloakbrowser"
+        )
+    if args.cloakbrowser_humanize and browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER:
         parser.error("--cloakbrowser-humanize requires --browser-backend cloakbrowser")
-    if args.human_challenge_handoff and not args.allow_challenge_close_followthrough:
-        parser.error("--human-challenge-handoff requires --allow-challenge-close-followthrough")
     cloakbrowser_humanize = (
         args.cloakbrowser_humanize
-        or args.browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
-    )
-    if args.logged_out:
-        if args.state_label is not None or args.session_mode is not None:
-            parser.error("--logged-out cannot be combined with --state-label or --session-mode")
-        if args.require_harness_proxy_posture is not None:
-            parser.error("--require-harness-proxy-posture requires sessioned mode with --state-label")
-        session_mode = None
-    else:
-        if args.state_label is None or args.session_mode is None:
-            parser.error("sessioned mode requires --state-label and --session-mode; use --logged-out for public logged-out capture")
-        session_mode = AuthenticatedSessionMode(args.session_mode)
-    required_harness_proxy_profile_posture = (
-        HarnessProxyProfilePosture(args.require_harness_proxy_posture)
-        if args.require_harness_proxy_posture is not None
-        else None
+        or browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER
     )
     paths = write_tiktok_live_batch_probe_outputs(
         creator_handle=args.creator_handle,
         creator_profile_url=args.creator_profile_url,
         video_urls=args.video_urls,
-        state_label=args.state_label,
+        state_label=state_label,
         session_mode=session_mode,
-        logged_out=args.logged_out,
+        logged_out=logged_out,
+        auth_state_root=auth_state_root,
         output_dir=args.output_dir,
         timeout_seconds=args.timeout_seconds,
         wait_until=args.wait_until,
@@ -238,17 +317,17 @@ def main(argv: list[str] | None = None) -> int:
         settle_seconds=args.settle_seconds,
         selector_timeout_seconds=args.selector_timeout_seconds,
         browser_channel=args.browser_channel,
-        browser_backend=args.browser_backend,
+        browser_backend=browser_backend,
         required_harness_proxy_profile_posture=required_harness_proxy_profile_posture,
         cloakbrowser_humanize=cloakbrowser_humanize,
-        human_challenge_handoff=args.human_challenge_handoff,
+        human_challenge_handoff=human_challenge_handoff,
         human_challenge_handoff_timeout_seconds=args.human_challenge_handoff_timeout_seconds,
         cadence_min_gap_seconds=args.cadence_min_gap_seconds,
         cadence_max_gap_seconds=args.cadence_max_gap_seconds,
         cadence_window_seconds=args.cadence_window_seconds,
         random_seed=args.random_seed,
-        allow_challenge_close_diagnostic=args.allow_challenge_close_diagnostic,
-        allow_challenge_close_followthrough=args.allow_challenge_close_followthrough,
+        allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
+        allow_challenge_close_followthrough=allow_challenge_close_followthrough,
     )
     print(f"grid_result_json={paths.grid_result_json_path}")
     print(f"cadence_result_json={paths.cadence_result_json_path}")
@@ -261,11 +340,11 @@ def main(argv: list[str] | None = None) -> int:
             _staging_summary(
                 paths=paths,
                 admission_target=admission_target,
-                browser_backend=args.browser_backend,
+                browser_backend=browser_backend,
                 session_mode=(
                     "public_logged_out"
-                    if args.logged_out
-                    else args.session_mode
+                    if logged_out
+                    else session_mode.value
                 ),
                 provenance_requirement_status=(
                     "validated"

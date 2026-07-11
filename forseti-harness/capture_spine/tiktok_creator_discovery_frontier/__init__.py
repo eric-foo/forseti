@@ -10,6 +10,7 @@ from capture_spine.tiktok_creator_discovery_frontier.models import (
     FrontierEdgeType,
     FrontierNode,
     FrontierNodeType,
+    LinkHubOutcome,
     NextRunEnvelope,
     ProjectionDecision,
     RefreshOutcome,
@@ -24,6 +25,9 @@ from capture_spine.tiktok_creator_discovery_frontier.frontier_selector import (
 from capture_spine.tiktok_creator_discovery_frontier.register_writer import (
     SUGGESTED_ACCOUNT_FRONTIER_SCOPE_LIMIT_RESIDUAL,
     build_tiktok_creator_discovery_frontier_register,
+)
+from capture_spine.tiktok_creator_discovery_frontier.register_lake_writer import (
+    write_tiktok_creator_discovery_frontier_register,
 )
 from capture_spine.tiktok_creator_discovery_frontier.validation import (
     validate_tiktok_creator_discovery_frontier_register,
@@ -42,6 +46,7 @@ __all__ = [
     "FrontierEdgeType",
     "FrontierNode",
     "FrontierNodeType",
+    "LinkHubOutcome",
     "NextRunEnvelope",
     "ProjectionDecision",
     "RefreshOutcome",
@@ -49,6 +54,7 @@ __all__ = [
     "SuggestedAccountObservation",
     "TikTokCreatorDiscoveryFrontierError",
     "build_tiktok_creator_discovery_frontier_register",
+    "write_tiktok_creator_discovery_frontier_register",
     "rank_tiktok_creator_discovery_targets",
     "summarize_tiktok_creator_discovery_overlap",
     "validate_tiktok_creator_discovery_frontier_register",

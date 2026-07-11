@@ -43,10 +43,12 @@ explicit reference-load and apply wording when method order matters.
 ## Cynefin Routing Layer
 
 Repo-aware prompts, wrappers, handoffs, review prompts, patch prompts, and
-reruns must include `.agents/workflow-overlay/decision-routing.md` when the
-task matches that file's trigger conditions. Run the router before planning or
-delegation, and include both an allowed next move and a disallowed next move.
-Skip it under that file's bypass conditions.
+reruns include `.agents/workflow-overlay/decision-routing.md` only when its
+full-router conditions trigger: a material uncertainty could change
+decomposition, authority, source truth, or safe sequencing. Task category alone
+does not trigger it. When triggered, run it before planning or delegation and
+include the allowed and disallowed next moves; otherwise proceed without a
+bypass receipt.
 
 ## Output Discipline
 
@@ -66,7 +68,10 @@ Skip it under that file's bypass conditions.
   artifact" collapse into path/hash/status-only chat.
 - Keep missing source fields as `not_found`, `not_bound`, or `UNKNOWN - requires owner input`.
 - Do not turn evidence collection into synthesis unless the prompt is a synthesis template.
-- Do not claim validation, readiness, approval, deployment, install, resolver, buyer validation, willingness to pay, implementation readiness, feature readiness, or commercial readiness unless an accepted Forseti source and current evidence explicitly bind that claim.
+- Make status claims, as defined in
+  `.agents/workflow-overlay/validation-gates.md`, only when an accepted Forseti
+  source and current evidence bind the exact status; otherwise name the
+  unsupported claim once.
 - For review prompts and reports, prefer a review-use boundary over a broad
   non-claims catalog: the review is decision input only and must not be treated
   as approval, validation, mandatory remediation, or executor-ready authority
