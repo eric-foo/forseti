@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Product artifact (live discovery instrument — adopted 2026-06-12)
+artifact_role: Historical product artifact (buyer binding suspended 2026-07-12)
 scope: >
   Target-selection instrument for the consumer-demand/beauty first proof:
   blank target slots, qualification objectives, and stop rules derived from
@@ -14,10 +14,11 @@ scope: >
 supersedes:
   - forseti/product/spines/product_lead/icp_wedge/forseti_discovery_batch_0_target_selection_brief_v0.md
 use_when:
-  - Selecting blank consumer-demand discovery target slots after the wedge is ratified and a candidate-scan lane is authorized.
-  - Checking first-contact qualification objectives for the beauty operator door before memo production.
+  - Reviewing the former consumer-demand discovery instrument as historical input.
+  - Harvesting factual qualification constraints after fresh verification.
 authority_boundary: retrieval_only
 open_next:
+  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md    owns the live substrate gate + disqualifiers
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
   - .agents/workflow-overlay/product-proof.md
@@ -33,17 +34,22 @@ stale_if:
 
    Status
 
-`ADOPTED_LIVE_INSTRUMENT` — adopted 2026-06-12 by the ratification cascade
-(owner ratified thesis asks 1-2; runbook step 6). Supersedes the batch-0
-target-selection brief as the live instrument. Prepared 2026-06-11 by the
+`SUSPENDED_PENDING_CANDIDATE_UNIVERSE_RESET` — the 2026-07-12 product-thesis
+reset removed the consumer-demand / beauty-first buyer binding. No target slots
+may be filled and no discovery, outreach, or proof work may route from this
+instrument unless a later owner decision reselects and rebinds the lane.
+
+Historical status: adopted 2026-06-12 by the ratification cascade
+(owner ratified thesis asks 1-2; runbook step 6). It superseded the batch-0
+target-selection brief as the live instrument at that time. Prepared 2026-06-11 by the
 ICP / product-direction lane. The companion instrument —
 `docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md`
 — is OUTSIDE the product lane's write scope (prompt artifact). Corrected
 2026-06-12 (gap DB-5): ORCA-HYGIENE-018 was resolved by RETIRING that prompt
 outright (RETIRED / OFF-TARGET banner, 2026-06-12), not by realigning it. No
-live discovery operating prompt exists; when the owner opens outreach, a
-consumer-demand successor must be commissioned through prompt orchestration
-before any discovery runs.
+live discovery operating prompt exists. Only if a later owner decision
+reselects consumer demand may a successor be commissioned through prompt
+orchestration before discovery; the current candidate reset selects no lane.
 
 Dated note (2026-06-12, owner ask-1 amendment): the capture risk posture is
 measured ToS risk accepted / absurd-level rejected (the owner's example:

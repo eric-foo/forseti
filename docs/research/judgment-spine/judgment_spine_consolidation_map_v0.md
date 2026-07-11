@@ -10,6 +10,7 @@ use_when:
   - Checking what a run can actually claim today before relying on it.
 authority_boundary: retrieval_only
 open_next:
+  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
   - docs/research/judgment-spine/README.md
   - docs/research/judgment-spine/manifest_v0.md
 stale_if:
@@ -35,6 +36,7 @@ stale_if:
 | I need to… | Open | Tree |
 | --- | --- | --- |
 | Know the north-star / what "good judgment" means here | `judgment_spine_thesis_v0.md` | research |
+| Understand Judgment's terminal product role / why evidence weighting is the epistemic heart | `docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md` | decisions |
 | Find the case inventory + per-case artifact status | `manifest_v0.md` | research |
 | Run or plan a case through gates JSG-01→JSG-10 | `forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md` (conductor) | product |
 | Know who owns a gate + its required receipts | `forseti/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md` | product |

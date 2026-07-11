@@ -10,9 +10,10 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
+  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md # controlling thesis and candidate-universe reset (2026-07-12)
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # superseded — historical beauty-first wedge
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
-  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # superseded — historical consumer-demand thesis
 input_hashes:
   - path: docs/decisions/turn_08_product_thesis_v0.md
     sha256: 822653A241CF84675A3F07F695BA0ED3BFACC230F7F13AA47A4649B5DB2CD7E6
@@ -29,15 +30,24 @@ input_hashes:
 
 ## Status And Verdict
 
-Status: `PROPOSED_BUYER_PROOF_PACKET_V0`
+Status: `METHOD_SHELL_REUSABLE_BUYER_BINDING_SUSPENDED`
 
-Product planning verdict: `NEEDS_CUSTOMER_DISCOVERY`.
+Product planning verdict: `NEEDS_CANDIDATE_AND_BUYER_REBIND`.
 
-Readiness verdict: `ready for product-fit testing`; not ready for product-bet planning until the graduation criteria in this packet are met and accepted.
+Readiness verdict: not currently routed to product-fit testing; no buyer or
+decision family is selected under the controlling thesis.
 
 Feature planning verdict: not ready. This packet does not route to feature planning.
 
-## Consumer-Demand Refinement (2026-06-12, ratified cascade)
+## Candidate-Universe Reset (2026-07-12)
+
+The generic proof grammar — qualified live decision, accountable decision owner,
+trust-objection handling, costly behavior, pull, kill, graduation, and
+non-claims — remains reusable. The consumer-demand buyer, signal surface,
+substrate hard gate, offer, and target-selection sections below are historical
+and must not be applied to a new candidate without explicit re-derivation.
+
+## Historical Consumer-Demand Refinement (2026-06-12, ratified cascade)
 
 This packet's first-proof framing is RE-TARGETED by the owner-ratified
 consumer-demand direction. Controlling authority:
@@ -78,7 +88,7 @@ The substantive content below (rubric grades, trust handling, pull standard,
 kill and graduation structure, exclusions, and all non-claims) is SURGICALLY
 ALIGNED to the refinement and unchanged in substance.
 
-## Commercial Target Selection Update (2026-06-16)
+## Historical Commercial Target Selection Update (2026-06-16)
 
 Owner direction confirms the first commercial target for this packet as
 US-market tractioned indie/DTC beauty or personal-care operators with a named
@@ -731,3 +741,5 @@ direction_change_propagation:
     - not a scoring engine
     - not a repo-wide gate-wording reconcile (six residual surfaces flagged above)
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
