@@ -1,4 +1,4 @@
-"""CLI: select a reach-proven top quarter from complete TikTok grid metrics."""
+"""CLI: select a reach-proven top fraction from complete TikTok grid metrics."""
 from __future__ import annotations
 
 import argparse
@@ -23,6 +23,7 @@ def run_tiktok_grid_video_selection(
     input_path: Path,
     expected_item_count: int,
     output_path: Path,
+    selection_fraction: float = 0.25,
 ) -> dict[str, Any]:
     if input_path.resolve() == output_path.resolve():
         raise TikTokGridVideoSelectionError("input and output paths must differ")
@@ -35,6 +36,7 @@ def run_tiktok_grid_video_selection(
     selection = build_tiktok_grid_video_selection(
         items,
         expected_item_count=expected_item_count,
+        selection_fraction=selection_fraction,
     )
     selection["input_receipt"] = {
         "file_name": input_path.name,
@@ -73,12 +75,13 @@ def _extract_items(payload: Any) -> list[dict[str, Any]]:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Select the reach-first top quarter from complete TikTok creator-grid "
+            "Select the reach-first top fraction from complete TikTok creator-grid "
             "playCount/diggCount metrics."
         )
     )
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--expected-item-count", required=True, type=int)
+    parser.add_argument("--selection-fraction", type=float, default=0.25)
     parser.add_argument("--output", required=True, type=Path)
     return parser
 
@@ -90,6 +93,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         selection = run_tiktok_grid_video_selection(
             input_path=args.input,
             expected_item_count=args.expected_item_count,
+            selection_fraction=args.selection_fraction,
             output_path=args.output,
         )
     except (OSError, TikTokGridVideoSelectionError) as exc:
