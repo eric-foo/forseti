@@ -13,6 +13,66 @@ authority_boundary: retrieval_only
 
 This file is the single authorized standalone archive for Orca direction_change_propagation receipts that have been moved out of controlling overlay files under the receipt-archiving rule (at most two most-recent receipts inline per controlling file; older receipts move here verbatim). The rule that governs receipt archiving lives in `.agents/workflow-overlay/source-of-truth.md`, Doctrine Change Propagation Contract section. This file carries no source authority, validation evidence, readiness, approval, or lifecycle claims.
 
+## From `.agents/workflow-overlay/prompt-orchestration.md` (archived 2026-07-12, delegated-prompt fast-path rotation)
+
+```yaml
+# same-turn self-closure and required next-moves tail 2026-07-02 (CA decision).
+direction_change_propagation:
+  doctrine_changed: >
+    Review adjudication closeout is hardened for one-turn completion: a
+    self-closable material issue (closure within the adjudicator's own authority
+    and the commissioned scope, such as applying the adjudicator's own
+    modify/reject adjudications to the target) is closed in the same turn
+    instead of ending the turn on a closure route; the material-move deep-think
+    widens from 1-3 to 1-5; and the land-step plus material-moves tail becomes a
+    required closeout element (1-5 named steps, or an explicit "none" with a
+    one-line reason), so an adjudication that stops at the verdict is malformed.
+  trigger: review_authority
+  related_triggers: [output_authority, workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: >
+        Lane authority, findings-first defaults, and the head deep-thinking-first
+        rule are unchanged; this edit tightens the adjudicator's closeout
+        mechanics only and stays deferred here for shape.
+    - path: AGENTS.md
+      note: >
+        Already routes delegated-review-patch and review/prompt doctrine to the
+        owning overlay files; no root restatement added.
+    - path: docs/workflows/orca_repo_map_v0.md
+      note: >
+        Index lines for the overlay files and the template stay accurate; this
+        is an in-file doctrine edit, not a structural or navigation change.
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Its findings fields and lane rules already defer the closeout tail to
+        communication-style.md; dual-homing the tail would fork the owner.
+  stale_language_search: >
+    rg -n "1-3 material|until the review is clean|only after a clean adjudication|only if no unresolved material issue|only when status is clean"
+    .agents docs/prompts/templates AGENTS.md docs/workflows
+  stale_language_search_result: >
+    Executed 2026-07-02 after edits. In the declared scope the remaining hits
+    are the retained non-self-closable bullet in communication-style.md, the
+    historical 2026-06-30 inline receipt in delegated-review-patch.md, and the
+    quoted search literals inside these receipts; no live doctrine or template
+    surface still gates the material-moves tail on a pre-closure clean state,
+    caps material moves at 1-3, or leaves the tail optional. A wider sweep of
+    docs/prompts/reviews and docs/prompts/patches found the old wording only in
+    three already-executed commission dispatch prompts, kept as historical lane
+    records and not rewritten.
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bound/mandatory/machine-routable review lane
+    - not runtime model routing
+```
+
 ## From .agents/workflow-overlay/source-of-truth.md
 
 ```yaml

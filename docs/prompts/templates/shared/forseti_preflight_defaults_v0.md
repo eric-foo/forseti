@@ -7,7 +7,7 @@ scope: >
   Repo-constant field values that escalated Forseti prompts may reference
   rather than restate. Routine prompts use the inline preflight core instead.
 use_when:
-  - Authoring a durable, cross-lane, novel, fused, or delegated-review-patch prompt.
+  - Authoring a prompt that matches the Full orchestration predicate in `.agents/workflow-overlay/prompt-orchestration.md`; not a lane-scoped prompt merely because it is delegated or patch-authorized.
   - Checking which escalated preflight fields are constant vs. per-prompt.
 authority_boundary: retrieval_only
 ```
