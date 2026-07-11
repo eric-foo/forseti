@@ -90,8 +90,9 @@ At that historical point, this record did not assert that any server-side gate w
 
 1. **CI.** A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the forseti-harness test suite
    on every `pull_request` and on `push` to `main`: Ubuntu, Python 3.12, `pip install -e .`
-   (forseti-harness core dependencies only) plus a pinned `pytest`, then `python -m pytest` from
-   `forseti-harness/`. Single target — no version matrix, no path-filter, no dependency caching.
+   (forseti-harness core dependencies only) plus pinned `pytest` and `pytest-xdist`, then the full
+   suite from `forseti-harness/` with slow-test timing and two file-grouped workers. Single target —
+   no version matrix, no path-filter, no dependency caching, and no test-selection reduction.
 2. **Branch protection on `main` — LIVE.** The server gate requires:
    - the `forseti-harness-tests` status check to pass;
    - a pull request before merging with `required_approving_review_count: 0`;
@@ -359,26 +360,30 @@ At that historical point, this record did not assert that any server-side gate w
 
 ## Why core-only CI (evidence)
 
-main's full suite is green with **no optional extras installed** — a fresh virtualenv holding only
-`pydantic` + `PyYAML` + `pytest` (no `playwright`, no `cloakbrowser`):
+The original core-only probe was green with **no runtime extras installed** — a fresh virtualenv
+holding only `pydantic` + `PyYAML` + `pytest` (no `playwright`, no `cloakbrowser`):
 
 ```
 243 passed, 1 skipped in 29.44s   (exit 0)
 ```
 
-The browser and `cloakbrowser` capture paths are decoupled by design: `*_no_runtime_imports`
+That count is historical bootstrap evidence, not a current suite-size claim. The browser and
+`cloakbrowser` capture paths are decoupled by design: `*_no_runtime_imports`
 contract tests assert the adapters import with no `playwright`/`cloakbrowser`/`requests`/etc., and
-the snapshot tests drive fake engines rather than the real backends. So CI needs no extras, and a
-path-filter is deliberately avoided (a filtered required check can strand docs-only PRs in a
-permanent "pending" state and block merges). `pytest` is pinned (`==9.0.3`, the version verified in
-the probe) so an upstream pytest release cannot silently break CI overnight. This evidence is
-re-derivable and is re-run by CI on every PR; it is not a self-asserted pass.
+the snapshot tests drive fake engines rather than the real backends. CI therefore still needs no
+runtime extras; `pytest-xdist==3.8.0` is a test-runner dependency only. A path-filter is deliberately
+avoided because a filtered required check can strand docs-only PRs in a permanent "pending" state
+and block merges. `pytest==9.0.3` and `pytest-xdist==3.8.0` are pinned so upstream releases cannot
+silently change CI overnight. The full suite remains required: `-n 2 --dist=loadfile` changes only
+scheduling, keeps every file's tests on one worker, and preserves failures; `--durations=50
+--durations-min=0.25` makes slow-test evidence visible. The parallel route is not a speedup claim
+until a live Actions run measures it.
 
 ## Explicitly not chosen
 
 - **Version matrix** — single supported target (Python 3.12); revisit if Forseti supports more runtimes.
 - **Path-filter** — would risk a stuck required check on docs-only PRs.
-- **Dependency caching** — install plus a ~30s suite is fast enough; add only if runs slow.
+- **Dependency caching** — installation is not the measured bottleneck; revisit only if it becomes one.
 - **Extras in CI** — the suite is green without them; if a future lane legitimately needs an extra to
   test something, that is a separate, explicit CI extension (for example, an added job), not a
   silent change to this contract.
@@ -553,6 +558,46 @@ direction_change_propagation:
     - not approval or review acceptance
     - not proof that CI or automation establishes correctness
     - not native auto-merge enablement
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The required CI job keeps the complete test suite and stable check identity while adding
+    slow-test timing plus conservative two-worker, file-grouped pytest execution; pytest-xdist is
+    pinned as test-only infrastructure, and change-based test selection remains excluded.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .github/workflows/ci.yml
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/README.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        It owns failure classification and gate placement, neither of which changes; the required
+        job still runs all gates and the full suite with ordinary nonzero failure behavior.
+    - path: .agents/hooks/README.md
+      reason: >
+        Hook commands, local mirror behavior, and checker semantics are unchanged; only pytest
+        scheduling and timing telemetry change after those gates run.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        The consolidated map already routes CI activation to .github/workflows/ci.yml and does not
+        duplicate command-level CI configuration.
+  stale_language_search: >
+    rg -n "python -m pytest|pytest-xdist|~30s suite|pydantic.*PyYAML.*pytest"
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md .agents .github
+    forseti-harness/tests/unit/test_ci_hook_wiring.py
+  non_claims:
+    - not validation or readiness
+    - not a reduction in required tests or policy gates
+    - not proof of speedup until measured on GitHub Actions
 ```
 
 Older direction_change_propagation receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
