@@ -104,6 +104,20 @@ def test_event_base_sha_precedes_github_branch_and_cli(
         assert resolver(*args) == EVENT_BASE_SHA, filename
 
 
+def test_github_pr_base_precedes_cli_when_event_sha_absent(
+    monkeypatch,
+) -> None:
+    monkeypatch.syspath_prepend(str(HOOKS_DIR))
+    monkeypatch.delenv("FORSETI_DIFF_BASE", raising=False)
+    monkeypatch.setenv("GITHUB_BASE_REF", "develop")
+
+    for filename, function_name, needs_root in DIFF_BASE_RESOLVERS:
+        module = importlib.import_module(Path(filename).stem)
+        resolver = getattr(module, function_name)
+        args = (REPO_ROOT, "cli-base") if needs_root else ("cli-base",)
+        assert resolver(*args) == "origin/develop", filename
+
+
 def test_external_actions_are_sha_pinned_and_renovate_managed() -> None:
     ci_text = CI_PATH.read_text(encoding="utf-8")
     uses = re.findall(r"^\s*- uses: (.+)$", ci_text, flags=re.MULTILINE)

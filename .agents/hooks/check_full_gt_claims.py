@@ -130,11 +130,11 @@ def resolve_base_ref(cli_base: str | None) -> str:
     ci_base = os.environ.get("FORSETI_DIFF_BASE", "").strip()
     if ci_base:
         return ci_base
-    if cli_base:
-        return cli_base
     github_base = os.environ.get("GITHUB_BASE_REF", "").strip()
     if github_base:
         return github_base if "/" in github_base else f"origin/{github_base}"
+    if cli_base:
+        return cli_base
     return "origin/main"
 
 
