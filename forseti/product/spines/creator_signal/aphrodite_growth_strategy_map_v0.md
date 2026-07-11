@@ -8,7 +8,7 @@ scope: >
   strategy that is NOT yet owner-ratified and NOT confined to one design lane: the
   two-company architecture (Aphrodite / Aphrodite Studio), the buyer ladder and
   price-tag scaling, the corpus/domination reasoning, the capture-and-media scope,
-  and the no-registry-dump rule. Captures decisions made in-thread, indexes the
+  and the strategic raw-registry transaction boundary. Captures decisions made in-thread, indexes the
   active design lanes, and routes ratified content to the charter.
 use_when:
   - Locating where an Aphrodite growth/monetization/expansion idea lives.
@@ -41,23 +41,27 @@ accumulates here. That is what keeps this from becoming shadow-doctrine.
 | --- | --- | --- |
 | Moat = position not extraction (niche domination) | RATIFIED | charter §3 (sharpened 2026-07-08, PR #799) |
 | Lead buyer lane = indie/DTC incl. clone houses | RATIFIED | charter §5 |
-| First unit = paid Vetting Sprint (5 panels) | RATIFIED | charter §4 |
+| Canonical first paid unit | SUPERSEDED / DEFERRED | charter §4; shortlists, rankings, decision reads, and the Vetting Sprint remain candidate units |
 | Phases 0–3; foundation-first | RATIFIED | charter §2 |
-| Two-company architecture (Aphrodite / Studio) | EXPLORATORY | §A below |
+| Independent shared-data revenue lanes (Signals / Studio) | RATIFIED | charter 2026-07-12 amendment; §A below routes forward |
 | Buyer ladder + price-tag scaling | EXPLORATORY | §B (pricing deferred → charter D-2) |
 | Corpus/domination sizing (~2K → ~25–40K) | EXPLORATORY | §C (market-sizing deferred the resize) |
 | Media/hooks capture scope | OWNER-DECIDED in-thread, NOT yet charter-amended | §D (needs §6 amendment + ToS re-gate) |
-| No-registry-dump rule | EXPLORATORY (application of existing forbidden set) | §E |
+| Strategic private raw-registry export | RATIFIED | charter 2026-07-12 amendment; §E routes forward |
 
 ## A. Two-company architecture
-- **Aphrodite** — neutral creator intelligence; sells decisions/reads; keeps the forbidden set (no contact/outreach/lead-export).
-- **Aphrodite Studio** — a SEPARATE company; a data-advantaged creator agency that *acts on* the alpha (enablement intel + rising-creator scouting). It does outreach/contact/management — which is *why* it must be separate: that surface is forbidden inside Aphrodite.
-- **Firewall** — disclosure + provenance keep Aphrodite's neutrality while Studio runs a roster.
-- **Consume-not-author** — Studio consumes derived decisions; the registry / data authority stays inside Aphrodite (prior placement: the capture-strategy doc).
+- **Aphrodite Signals** — creator intelligence sold as accountable, brief-specific decisions, rankings, and forecasts.
+- **Aphrodite Studio** — an independent revenue and operating lane that uses the same evidence asset to select, advise, position, and grow creators more intelligently. It does not depend on a Signals sale or Signals repeatability.
+- **Setup trigger** — internal Studio design and setup may begin now; this ratified direction is not itself creator-contact or client-execution authorization.
+- **Creator-facing trigger** — one named creator opportunity, a defined service, usable evidence, an operational firewall, and separate execution authorization.
+- **First-client trigger** — independent creator opt-in, explicit service/compensation, and an engagement-specific conflict check.
+- **Firewall** — disclose every relevant Studio relationship; never boost a Signals ranking because Studio would profit; never use buyer-confidential briefs for Studio solicitation; never tie Signals recommendation fees to Studio commission.
+- **Consume-not-author** — Studio consumes allowed derived evidence or creator-consented data; the registry/data authority stays inside Aphrodite.
+- **Entity boundary** — separate operating records, contracts, billing, communications, and access are required; the exact legal-entity form remains a separate decision.
 
 ## B. Buyer ladder + price-tag scaling
 - **Ladder:** indie → challenger/scale-up DTC → big brands (a *displacement* sale vs CreatorIQ/Traackr, winnable on fragrance depth, not greenfield) → **VC/PE/diligence (high-ceiling, different sales motion; deferred, charter D-5)**.
-- **Upstream vs downstream:** bigger tags come *upstream* (the same domination position sold to bigger wallets/decisions) or *downstream* (Studio acts on it) — never from overcharging indie brands (budget-capped) or from selling the registry.
+- **Upstream vs parallel:** bigger tags come from the same domination position sold to bigger wallets/decisions, Studio's separate service economics, or an exceptional strategic registry transaction — never from casually underpricing the asset or overcharging budget-capped indie brands.
 - **Value-based pricing:** price on the decision de-risked; big numbers only where the decision is big → requires the buyer climb.
 - **Ceiling honesty:** the retainer sits under CreatorIQ's ~$30–60k/yr because the *buyer's budget* differs, not because the data is worse. Aphrodite's creator increment (unlike a demand-intel product) does not shrink against a brand's internal data — it is outside-in and niche-complete.
 - Pricing frame itself is **deferred → charter D-2**.
@@ -74,15 +78,26 @@ accumulates here. That is what keeps this from becoming shadow-doctrine.
 - **Cost shape:** capture is bandwidth-modest (metadata is text; hooks are 3s). The scaling costs are egress *count* (per-IP safe rate), the audience-geo data vendor, and LLM token processing (bounded by stratification + cheap-model-for-bulk + deterministic-where-possible).
 - **⚠ Charter implication:** this consciously extends charter §6's media-light scope + re-opens the ToS-risk gate → needs a dated §6 amendment + a ToS re-check before any capture build. FLAGGED, not applied.
 
-## E. No-registry-dump rule
-Selling the raw registry (Excel/SQL) would convert the position-rent into a one-time sale and arm the buyer to not need you — and it is exactly the **lead-list export / person-level directory the charter's forbidden set already prohibits** (§3 moat protectors; spine README boundary). Sell **derived value** (reads, rankings, decisions) or controlled query access, never the dump. The only "sell the registry" that is right is at **acquisition** (selling the company/position). This is an *application* of existing doctrine, not a new rule.
+## E. Strategic raw-registry transaction rule
+
+Derived reads, rankings, decisions, and controlled access remain the ordinary
+high-margin products. A private raw registry export is nevertheless allowed as
+an exceptional owner-approved strategic transaction when its price and terms
+compensate for replacement cost, lost exclusivity, buyer reuse or
+redistribution, competitive leakage, and foregone recurring revenue.
+
+Before quoting, bind snapshot-versus-updates, exclusivity, internal-use versus
+resale rights, field/history scope, provenance/support, warranties, liability,
+and refresh obligations. Contact or other person-level fields require separate
+lawful-sourcing and transfer-rights clearance; raw registry approval does not
+silently approve them. This is not a standing public directory or cheap export.
 
 ## F. Design-lane index (current scaffolds — scratch, regenerable from this map)
 
 | Lane | Status | Scaffold (ephemeral scratch) |
 | --- | --- | --- |
 | B2B outreach motion (first Vetting Sprints) | active | `docs/_inbox/aphrodite_b2b_outreach_lane_handoff_v0.md` |
-| Aphrodite Studio design | exploratory | `docs/_inbox/aphrodite_studio_design_lane_handoff_v0.md` |
+| Aphrodite Studio design/setup | ratified direction; execution separately authorized | `docs/_inbox/aphrodite_studio_design_lane_handoff_v0.md` |
 | Rising-creators / breakout (× ad-load) | exploratory; MGT/SCI-adjudicated input | `forseti/product/spines/creator_signal/aphrodite_breakout_acceleration_mgt_sci_adjudication_v0.md` (scratch scaffold: `docs/_inbox/aphrodite_rising_creators_breakout_lane_handoff_v0.md`) |
 | Capture byte-measurement probe | active | `docs/_inbox/aphrodite_capture_lane_hooks_and_probe_handoff_v0.md` |
 | Own-growth research-engine GTM (outreach inputs · SEO · AEO · CreatorIQ CI · inbound→gate) | design landed (Phase-0) | `forseti/product/spines/creator_signal/aphrodite_research_engine_gtm_design_v0.md` |
