@@ -108,16 +108,16 @@ def test_boundary_challenger_can_replace_at_exact_thresholds() -> None:
         "locked",
         "challenger",
     ]
-    assert selection["selection_summary"]["promotion_count"] == 1
+    assert selection["selection_summary"]["range_override_count"] == 1
     incumbent = next(
         item for item in selection["ranked_items"] if item["video_id"] == "incumbent"
     )
     assert incumbent["exclusion_reason_or_none"] == (
         "replaced_by_within_range_higher_like_rate"
     )
-    assert selection["selection_summary"]["promotions"] == [
+    assert selection["selection_summary"]["range_overrides"] == [
         {
-            "promoted_video_id": "challenger",
+            "range_override_video_id": "challenger",
             "replaced_video_id": "incumbent",
             "view_retention_ratio": 0.8,
             "like_rate_lift_ratio": 1.2,
@@ -144,7 +144,7 @@ def test_boundary_challenger_fails_when_views_are_more_than_twenty_percent_lower
         "locked",
         "incumbent",
     ]
-    assert selection["selection_summary"]["promotion_count"] == 0
+    assert selection["selection_summary"]["range_override_count"] == 0
 
 
 def test_boundary_challenger_fails_without_twenty_percent_like_rate_lift() -> None:
@@ -165,10 +165,10 @@ def test_boundary_challenger_fails_without_twenty_percent_like_rate_lift() -> No
         "locked",
         "incumbent",
     ]
-    assert selection["selection_summary"]["promotion_count"] == 0
+    assert selection["selection_summary"]["range_override_count"] == 0
 
 
-def test_promotions_cannot_chain_the_reach_floor_downward() -> None:
+def test_range_overrides_cannot_chain_the_reach_floor_downward() -> None:
     items = [
         _item("locked", 1_000, 10),
         _item("incumbent", 900, 9),
@@ -209,9 +209,9 @@ def test_incumbent_with_zero_like_rate_is_replaced_with_no_lift_ratio() -> None:
         "locked",
         "challenger",
     ]
-    assert selection["selection_summary"]["promotions"] == [
+    assert selection["selection_summary"]["range_overrides"] == [
         {
-            "promoted_video_id": "challenger",
+            "range_override_video_id": "challenger",
             "replaced_video_id": "incumbent",
             "view_retention_ratio": 0.9,
             "like_rate_lift_ratio": None,
@@ -220,15 +220,15 @@ def test_incumbent_with_zero_like_rate_is_replaced_with_no_lift_ratio() -> None:
     ]
 
 
-def test_challenger_processing_order_can_leave_a_qualifying_challenger_unpromoted() -> None:
+def test_challenger_processing_order_can_leave_a_qualifying_challenger_outside_selection() -> None:
     # Documents (does not endorse) the greedy assignment order recorded in
     # selection_policy.competing_challenger_order_rule: challengers are matched
     # in like_rate-descending order, and each claims the lowest-like_rate
     # remaining eligible incumbent. Here "c1" (higher like_rate) is processed
     # first and claims "b" -- the only incumbent shared with "c2" -- even
-    # though a different pairing (c1<->a, c2<->b) would have promoted both
+    # though a different pairing (c1<->a, c2<->b) would have selected both through range overrides
     # challengers. "c2" individually satisfies the 80%/20% thresholds against
-    # "b" but is left unpromoted solely because of processing order.
+    # "b" but is left outside the selection solely because of processing order.
     items = [
         _item("a", 1_000, 10),
         _item("b", 1_000, 5),
@@ -246,7 +246,7 @@ def test_challenger_processing_order_can_leave_a_qualifying_challenger_unpromote
         "a",
         "c1",
     ]
-    assert selection["selection_summary"]["promotion_count"] == 1
+    assert selection["selection_summary"]["range_override_count"] == 1
     c2 = next(
         item for item in selection["ranked_items"] if item["video_id"] == "c2"
     )
@@ -324,3 +324,30 @@ def test_runner_reads_probe_summary_shape_and_writes_receipt(tmp_path: Path) -> 
     assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == ["one"]
     assert persisted["input_receipt"]["file_name"] == input_path.name
     assert len(persisted["input_receipt"]["sha256"]) == 64
+
+
+def test_selection_fraction_override_is_recorded_and_applied() -> None:
+    selection = build_tiktok_grid_video_selection(
+        [
+            _item("one", 400, 20),
+            _item("two", 300, 15),
+            _item("three", 200, 10),
+            _item("four", 100, 5),
+        ],
+        expected_item_count=4,
+        selection_fraction=0.5,
+    )
+
+    assert selection["selection_policy"]["selection_fraction"] == 0.5
+    assert selection["selection_summary"]["selection_count"] == 2
+    assert "promot" not in json.dumps(selection).lower()
+
+
+@pytest.mark.parametrize("fraction", [0, -0.25, 1.25, True, "0.25"])
+def test_selection_fraction_rejects_invalid_values(fraction: object) -> None:
+    with pytest.raises(TikTokGridVideoSelectionError, match="selection_fraction"):
+        build_tiktok_grid_video_selection(
+            [_item("one", 100, 10)],
+            expected_item_count=1,
+            selection_fraction=fraction,  # type: ignore[arg-type]
+        )

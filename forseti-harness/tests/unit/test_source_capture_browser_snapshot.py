@@ -23,6 +23,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotFailure,
     BrowserSnapshotFailureKind,
     BrowserSnapshotSuccess,
+    CloakBrowserPageObservationSessionEngine,
     fetch_browser_context_responses,
     fetch_browser_page_observation_capture,
     fetch_browser_snapshot_capture,
@@ -2805,3 +2806,67 @@ def test_browser_snapshot_runner_records_source_detail_sufficiency_pass(
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert "source_detail_sufficiency_passed" in manifest["visible_mode_changes"]
     assert not any("source_detail_sufficiency_failed" in item for item in manifest["limitations"])
+
+def test_bounded_lazy_load_scrolls_stops_when_response_target_is_reached() -> None:
+    page = _FakeLazyScrollPage()
+    checks = 0
+
+    def stop_condition() -> bool:
+        nonlocal checks
+        checks += 1
+        return checks >= 2
+
+    result = browser_snapshot_module._run_bounded_lazy_load_scrolls(
+        page,
+        scroll_passes=10,
+        scroll_step_px=0,
+        stop_condition=stop_condition,
+    )
+
+    assert result.executed_passes == 1
+    assert result.stop_reason == "response_target_reached"
+    assert page.scrolled_to == ["bottom"]
+
+
+def test_cloakbrowser_page_observation_session_reuses_one_context_and_closes_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(event_log)
+    cloakbrowser = _FakeCloakBrowserModule(page)
+    original_import_module = browser_snapshot_module.import_module
+
+    def fake_import_module(name: str) -> object:
+        if name == "cloakbrowser":
+            return cloakbrowser
+        return original_import_module(name)
+
+    monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
+    engine = CloakBrowserPageObservationSessionEngine()
+
+    for index in range(2):
+        result = fetch_browser_page_observation_capture(
+            url=f"https://example.com/source?capture={index}",
+            dom_extract_script="() => ({ok: true})",
+            dom_extract_arg=None,
+            response_url_predicate=lambda _: False,
+            browser_backend="cloakbrowser",
+            engine=engine,
+        )
+        assert isinstance(result, BrowserPageObservationSuccess)
+
+    before_close = engine.lifecycle_receipt
+    assert before_close["browser_launch_count"] == 1
+    assert before_close["context_creation_count"] == 1
+    assert before_close["capture_attempt_count"] == 2
+    assert before_close["capture_success_count"] == 2
+    assert before_close["closed"] is False
+    assert "context_close" not in event_log
+    assert "browser_close" not in event_log
+
+    engine.close()
+    engine.close()
+
+    assert engine.lifecycle_receipt["closed"] is True
+    assert event_log.count("context_close") == 1
+    assert event_log.count("browser_close") == 1

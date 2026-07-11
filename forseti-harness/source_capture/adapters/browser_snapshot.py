@@ -148,6 +148,11 @@ class BrowserPageObservationSuccess:
     limitation_notes: list[str]
 
 
+BrowserPageResponseStopCondition: TypeAlias = Callable[
+    [Sequence[BrowserPageResponse]], bool
+]
+
+
 @dataclass(frozen=True)
 class _LazyLoadScrollResult:
     executed_passes: int
@@ -225,6 +230,8 @@ class BrowserPageObservationEngine(Protocol):
         settle_seconds: float = 0.0,
         lazy_load_scroll_passes: int = 0,
         lazy_load_scroll_step_px: int = 0,
+        lazy_load_response_stop_condition: BrowserPageResponseStopCondition | None = None,
+        dom_extract_after_lazy_load: bool = False,
         block_resource_types: Sequence[str] = (),
         proxy_profile: ProxyProfile | None = None,
         storage_state_path: Path | None = None,
@@ -422,6 +429,8 @@ def fetch_browser_page_observation_capture(
     settle_seconds: float = 0.0,
     lazy_load_scroll_passes: int = 0,
     lazy_load_scroll_step_px: int = 0,
+    lazy_load_response_stop_condition: BrowserPageResponseStopCondition | None = None,
+    dom_extract_after_lazy_load: bool = False,
     selector: str | None = None,
     selector_timeout_seconds: float = 5.0,
     block_resource_types: Sequence[str] = (),
@@ -521,6 +530,8 @@ def fetch_browser_page_observation_capture(
             settle_seconds=settle_seconds,
             lazy_load_scroll_passes=lazy_load_scroll_passes,
             lazy_load_scroll_step_px=lazy_load_scroll_step_px,
+            lazy_load_response_stop_condition=lazy_load_response_stop_condition,
+            dom_extract_after_lazy_load=dom_extract_after_lazy_load,
             block_resource_types=tuple(block_resource_types),
             proxy_profile=proxy_profile,
             storage_state_path=storage_state_path,
@@ -792,6 +803,8 @@ class _PlaywrightBrowserSnapshotEngine:
         settle_seconds: float = 0.0,
         lazy_load_scroll_passes: int = 0,
         lazy_load_scroll_step_px: int = 0,
+        lazy_load_response_stop_condition: BrowserPageResponseStopCondition | None = None,
+        dom_extract_after_lazy_load: bool = False,
         block_resource_types: Sequence[str] = (),
         proxy_profile: ProxyProfile | None = None,
         storage_state_path: Path | None = None,
@@ -934,12 +947,32 @@ class _PlaywrightBrowserSnapshotEngine:
                         warning_notes.append(
                             f"browser_page_observation visible_text extraction failed: {exc}"
                         )
-                    dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
+                    def response_stop_reached() -> bool:
+                        if lazy_load_response_stop_condition is None:
+                            return False
+                        try:
+                            observed = _read_observed_page_responses(
+                                selected_responses,
+                                max_response_bytes=max_response_bytes,
+                            )
+                            return bool(lazy_load_response_stop_condition(observed))
+                        except Exception as exc:
+                            warning_notes.append(
+                                f"browser_page_observation response stop check failed: {exc}"
+                            )
+                            return False
+
+                    dom_observation: object = None
+                    if not dom_extract_after_lazy_load:
+                        dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
                     lazy_load_scroll_result = _run_bounded_lazy_load_scrolls(
                         page,
                         scroll_passes=lazy_load_scroll_passes,
                         scroll_step_px=lazy_load_scroll_step_px,
+                        stop_condition=response_stop_reached,
                     )
+                    if dom_extract_after_lazy_load:
+                        dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
                     responses = _read_observed_page_responses(
                         selected_responses,
                         max_response_bytes=max_response_bytes,
@@ -963,7 +996,11 @@ class _PlaywrightBrowserSnapshotEngine:
                         "timeout_seconds": timeout_seconds,
                         "wait_until": wait_until,
                         "settle_seconds": settle_seconds,
-                        "dom_observation_stage": "pre_lazy_load_scroll",
+                        "dom_observation_stage": (
+                            "post_lazy_load_scroll"
+                            if dom_extract_after_lazy_load
+                            else "pre_lazy_load_scroll"
+                        ),
                         "post_load_action_executed": post_load_action_script is not None
                         or bool(pointer_action_receipts),
                         "post_load_pointer_action": pointer_action_receipt,
@@ -972,6 +1009,7 @@ class _PlaywrightBrowserSnapshotEngine:
                         "lazy_load_scroll_step_px": lazy_load_scroll_step_px,
                         "lazy_load_scroll_passes_executed": lazy_load_scroll_result.executed_passes,
                         "lazy_load_scroll_stop_reason": lazy_load_scroll_result.stop_reason,
+                        "lazy_load_response_stop_condition_configured": lazy_load_response_stop_condition is not None,
                         "headless": headless,
                         "browser_channel": browser_channel,
                         "browser_backend": self.browser_backend,
@@ -1192,6 +1230,8 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
         settle_seconds: float = 0.0,
         lazy_load_scroll_passes: int = 0,
         lazy_load_scroll_step_px: int = 0,
+        lazy_load_response_stop_condition: BrowserPageResponseStopCondition | None = None,
+        dom_extract_after_lazy_load: bool = False,
         block_resource_types: Sequence[str] = (),
         proxy_profile: ProxyProfile | None = None,
         storage_state_path: Path | None = None,
@@ -1326,12 +1366,32 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                     warning_notes.append(
                         f"browser_page_observation visible_text extraction failed: {exc}"
                     )
-                dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
+                def response_stop_reached() -> bool:
+                    if lazy_load_response_stop_condition is None:
+                        return False
+                    try:
+                        observed = _read_observed_page_responses(
+                            selected_responses,
+                            max_response_bytes=max_response_bytes,
+                        )
+                        return bool(lazy_load_response_stop_condition(observed))
+                    except Exception as exc:
+                        warning_notes.append(
+                            f"browser_page_observation response stop check failed: {exc}"
+                        )
+                        return False
+
+                dom_observation: object = None
+                if not dom_extract_after_lazy_load:
+                    dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
                 lazy_load_scroll_result = _run_bounded_lazy_load_scrolls(
                     page,
                     scroll_passes=lazy_load_scroll_passes,
                     scroll_step_px=lazy_load_scroll_step_px,
+                    stop_condition=response_stop_reached,
                 )
+                if dom_extract_after_lazy_load:
+                    dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
                 responses = _read_observed_page_responses(
                     selected_responses,
                     max_response_bytes=max_response_bytes,
@@ -1355,7 +1415,11 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                     "timeout_seconds": timeout_seconds,
                     "wait_until": wait_until,
                     "settle_seconds": settle_seconds,
-                    "dom_observation_stage": "pre_lazy_load_scroll",
+                    "dom_observation_stage": (
+                        "post_lazy_load_scroll"
+                        if dom_extract_after_lazy_load
+                        else "pre_lazy_load_scroll"
+                    ),
                     "post_load_action_executed": post_load_action_script is not None
                     or bool(pointer_action_receipts),
                     "post_load_pointer_action": pointer_action_receipt,
@@ -1364,6 +1428,7 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                     "lazy_load_scroll_step_px": lazy_load_scroll_step_px,
                     "lazy_load_scroll_passes_executed": lazy_load_scroll_result.executed_passes,
                     "lazy_load_scroll_stop_reason": lazy_load_scroll_result.stop_reason,
+                    "lazy_load_response_stop_condition_configured": lazy_load_response_stop_condition is not None,
                     "headless": headless,
                     "browser_channel": browser_channel,
                     "browser_backend": self.browser_backend,
@@ -1436,6 +1501,133 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
             if proxy_profile.locale is not None:
                 launch_kwargs["locale"] = proxy_profile.locale
         return cloakbrowser.launch(**launch_kwargs)
+
+
+class CloakBrowserPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
+    """Reuse one CloakBrowser context across sequential page observations.
+
+    The first observation fixes launch and context settings. Later observations
+    must use the same settings, so a caller cannot silently change identity,
+    storage state, viewport, or proxy posture inside one supervised session.
+    Each observation gets a fresh page; ``close`` owns the single terminal
+    context/browser close and is idempotent.
+    """
+
+    def __init__(self, **kwargs: object) -> None:
+        super().__init__(**kwargs)
+        self._real_browser: object | None = None
+        self._real_context: object | None = None
+        self._launch_settings: tuple[ProxyProfile | None, bool, str | None] | None = None
+        self._context_settings: dict[str, object] | None = None
+        self._closed = False
+        self._capture_attempt_count = 0
+        self._capture_success_count = 0
+
+    def __enter__(self) -> "CloakBrowserPageObservationSessionEngine":
+        if self._closed:
+            raise RuntimeError("CloakBrowser page-observation session is already closed")
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self.close()
+
+    def capture_page_observation(self, **kwargs: object) -> BrowserPageObservationSuccess:
+        if self._closed:
+            raise RuntimeError("CloakBrowser page-observation session is already closed")
+        self._capture_attempt_count += 1
+        result = super().capture_page_observation(**kwargs)
+        self._capture_success_count += 1
+        return result
+
+    def _launch_page_observation_browser(
+        self,
+        *,
+        playwright: object,
+        proxy_profile: ProxyProfile | None,
+        headless: bool,
+        browser_channel: str | None,
+    ) -> object:
+        if self._closed:
+            raise RuntimeError("CloakBrowser page-observation session is already closed")
+        settings = (proxy_profile, headless, browser_channel)
+        if self._launch_settings is None:
+            self._real_browser = super()._launch_page_observation_browser(
+                playwright=playwright,
+                proxy_profile=proxy_profile,
+                headless=headless,
+                browser_channel=browser_channel,
+            )
+            self._launch_settings = settings
+        elif settings != self._launch_settings:
+            raise ValueError(
+                "CloakBrowser page-observation session launch settings changed mid-session"
+            )
+        return _SessionBrowserProxy(self)
+
+    def _new_scoped_context(self, context_kwargs: dict[str, object]) -> object:
+        if self._real_browser is None:
+            raise RuntimeError("CloakBrowser page-observation browser was not launched")
+        if self._real_context is None:
+            self._real_context = self._real_browser.new_context(**context_kwargs)  # type: ignore[attr-defined]
+            self._context_settings = dict(context_kwargs)
+        elif context_kwargs != self._context_settings:
+            raise ValueError(
+                "CloakBrowser page-observation context settings changed mid-session"
+            )
+        return _SessionContextProxy(self._real_context)
+
+    @property
+    def lifecycle_receipt(self) -> dict[str, object]:
+        return {
+            "engine": "cloakbrowser_page_observation_session",
+            "browser_launch_count": 1 if self._real_browser is not None else 0,
+            "context_creation_count": 1 if self._real_context is not None else 0,
+            "capture_attempt_count": self._capture_attempt_count,
+            "capture_success_count": self._capture_success_count,
+            "closed": self._closed,
+        }
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        try:
+            if self._real_context is not None:
+                self._real_context.close()  # type: ignore[attr-defined]
+        finally:
+            try:
+                if self._real_browser is not None:
+                    self._real_browser.close()  # type: ignore[attr-defined]
+            finally:
+                self._closed = True
+
+
+class _SessionBrowserProxy:
+    def __init__(self, owner: CloakBrowserPageObservationSessionEngine) -> None:
+        self._owner = owner
+
+    def new_context(self, **kwargs: object) -> object:
+        return self._owner._new_scoped_context(dict(kwargs))
+
+    def close(self) -> None:
+        return None
+
+
+class _SessionContextProxy:
+    def __init__(self, context: object) -> None:
+        self._context = context
+        self._pages: list[object] = []
+
+    def new_page(self) -> object:
+        page = self._context.new_page()  # type: ignore[attr-defined]
+        self._pages.append(page)
+        return page
+
+    def close(self) -> None:
+        for page in reversed(self._pages):
+            close = getattr(page, "close", None)
+            if callable(close):
+                close()
+        self._pages.clear()
 
 
 @dataclass(frozen=True)
@@ -2414,8 +2606,11 @@ def _run_bounded_lazy_load_scrolls(
     *,
     scroll_passes: int,
     scroll_step_px: int,
+    stop_condition: Callable[[], bool] | None = None,
 ) -> _LazyLoadScrollResult:
     executed = 0
+    if stop_condition is not None and stop_condition():
+        return _LazyLoadScrollResult(executed, "response_target_reached")
     if scroll_passes <= 0:
         return _LazyLoadScrollResult(executed)
     bounded_passes = min(scroll_passes, _MAX_SCROLL_PASSES)
@@ -2430,6 +2625,8 @@ def _run_bounded_lazy_load_scrolls(
             page.evaluate("(y) => window.scrollTo(0, y)", position)
             page.wait_for_timeout(_SCROLL_PASS_SETTLE_MS)
             executed += 1
+            if stop_condition is not None and stop_condition():
+                return _LazyLoadScrollResult(executed, "response_target_reached")
         stop_reason = "capped_pass_limit" if capped else "requested_passes_complete"
         return _LazyLoadScrollResult(executed, stop_reason)
 
@@ -2437,6 +2634,8 @@ def _run_bounded_lazy_load_scrolls(
         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
         page.wait_for_timeout(_SCROLL_PASS_SETTLE_MS)
         executed += 1
+        if stop_condition is not None and stop_condition():
+            return _LazyLoadScrollResult(executed, "response_target_reached")
     stop_reason = "capped_pass_limit" if capped else "requested_passes_complete"
     return _LazyLoadScrollResult(executed, stop_reason)
 
