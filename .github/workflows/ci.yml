@@ -48,7 +48,7 @@ jobs:
           # pyyaml is pinned explicitly (not left transitive) so the strict
           # yaml-backed gates (ontology SSOT/drift, deletion-evidence) cannot
           # silently fail-open if a dependency edit drops it.
-          python -m pip install -e . "pytest==9.0.3" pyyaml
+          python -m pip install -e . "pytest==9.0.3" "pytest-xdist==3.8.0" pyyaml
       - name: source-input hash freshness (source pointers stay current)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_source_input_hashes.py --strict
@@ -115,4 +115,4 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_full_gt_claims.py --changed --strict
       - name: Run tests
-        run: python -m pytest
+        run: python -m pytest --durations=50 --durations-min=0.25 -n 2 --dist=loadfile

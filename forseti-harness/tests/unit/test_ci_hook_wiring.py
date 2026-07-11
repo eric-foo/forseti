@@ -90,6 +90,16 @@ def test_ci_derives_and_verifies_exact_event_base_sha() -> None:
     assert ci_text.count('--diff "$FORSETI_DIFF_BASE" --strict') == 2
 
 
+def test_ci_profiles_and_parallelizes_the_full_suite_conservatively() -> None:
+    ci_text = CI_PATH.read_text(encoding="utf-8")
+    assert '"pytest-xdist==3.8.0"' in ci_text
+    assert (
+        "python -m pytest --durations=50 --durations-min=0.25 "
+        "-n 2 --dist=loadfile"
+    ) in ci_text
+
+
+
 def test_event_base_sha_precedes_github_branch_and_cli(
     monkeypatch,
 ) -> None:
