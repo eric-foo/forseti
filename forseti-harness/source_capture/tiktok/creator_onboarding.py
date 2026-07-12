@@ -161,6 +161,7 @@ class TikTokCreatorOnboardingOutputPaths:
 
 
 DeepCaptureFn = Callable[..., dict[str, Any]]
+ProgressFn = Callable[[str, dict[str, object]], None]
 
 
 def run_tiktok_creator_onboarding(
@@ -180,6 +181,7 @@ def run_tiktok_creator_onboarding(
     cadence_window_seconds: float | None = None,
     random_seed: int | None = None,
     engine: BrowserPageObservationEngine | None = None,
+    progress_fn: ProgressFn | None = None,
     deep_capture_fn: DeepCaptureFn = run_tiktok_live_batch_probe,
 ) -> TikTokCreatorOnboardingOutputPaths:
     """Run suggested -> grid -> select -> deep-capture in one browser context."""
@@ -252,6 +254,7 @@ def run_tiktok_creator_onboarding(
     artifacts_written: list[str] = []
     try:
         stage = "collect_suggested_accounts"
+        _notify_progress(progress_fn, stage)
         suggested_capture = _capture_suggested_accounts(
             profile_url=profile_url,
             creator_handle=normalized_handle,
@@ -271,6 +274,7 @@ def run_tiktok_creator_onboarding(
             raise TikTokCreatorOnboardingError("suggested-account observation failed")
 
         stage = "collect_grid"
+        _notify_progress(progress_fn, stage)
         grid_capture = _capture_creator_grid(
             profile_url=profile_url,
             creator_handle=normalized_handle,
@@ -287,6 +291,7 @@ def run_tiktok_creator_onboarding(
             )
 
         stage = "freeze_window"
+        _notify_progress(progress_fn, stage)
         grid_window = build_tiktok_grid_window(
             creator_handle=normalized_handle,
             capture=grid_capture,
@@ -297,6 +302,7 @@ def run_tiktok_creator_onboarding(
         artifacts_written.append(paths.grid_window_json_path.name)
 
         stage = "select"
+        _notify_progress(progress_fn, stage)
         selection = build_tiktok_grid_video_selection(
             grid_window["items"],
             expected_item_count=len(grid_window["items"]),
@@ -323,6 +329,7 @@ def run_tiktok_creator_onboarding(
         ]
 
         stage = "deep_capture"
+        _notify_progress(progress_fn, stage, selected_count=len(selected_video_ids))
         deep_capture = deep_capture_fn(
             creator_handle=normalized_handle,
             creator_profile_url=profile_url,
@@ -367,6 +374,7 @@ def run_tiktok_creator_onboarding(
                 "one or more selected video deep captures did not complete"
             )
         stage = "close"
+        _notify_progress(progress_fn, stage, completed_count=completed_count)
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
         raise
@@ -718,6 +726,15 @@ def _metric_items_from_payload(
 
     visit(payload)
     return found
+
+
+def _notify_progress(
+    progress_fn: ProgressFn | None,
+    event: str,
+    **fields: object,
+) -> None:
+    if progress_fn is not None:
+        progress_fn(event, dict(fields))
 
 
 def _dedupe_metric_items(items: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:

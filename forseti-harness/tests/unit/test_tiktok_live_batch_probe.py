@@ -343,6 +343,22 @@ def test_live_probe_captures_source_native_subtitle_transcript(
         "This fragrance is everywhere\nBronze shimmer test"
     )
     assert cadence["capture_contract"]["raw_subtitle_urls_persisted"] is False
+    assert (
+        cadence["capture_contract"]["video_navigation_mode"]
+        == "direct_selected_url_sequence"
+    )
+    assert cadence["capture_contract"]["video_page_reuse_policy"] == (
+        "one_page_sequential_navigation"
+    )
+    assert cadence["capture_contract"]["terminal_page_policy"] == (
+        "leave_last_selected_video_open"
+    )
+    assert cadence["capture_contract"]["pointer_movement_policy"] == (
+        "meaningful_page_actions_only"
+    )
+    assert cadence["capture_contract"]["address_bar_simulation"] is False
+    assert cadence["capture_contract"]["referrer_spoofing"] is False
+    assert cadence["capture_contract"]["return_to_grid_between_videos"] is False
     assert cadence["capture_contract"]["raw_subtitle_bodies_persisted"] is False
     assert cadence["capture_contract"]["subtitle_tier"] == (
         "source_native_webvtt_transcript_live_probe_v0"

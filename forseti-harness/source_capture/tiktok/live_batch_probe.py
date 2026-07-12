@@ -2284,6 +2284,13 @@ def _capture_contract(
     if session_mode_value is None:
         raise ValueError("session_mode is required unless logged_out is true")
     return {
+        "video_navigation_mode": "direct_selected_url_sequence",
+        "video_page_reuse_policy": "one_page_sequential_navigation",
+        "terminal_page_policy": "leave_last_selected_video_open",
+        "pointer_movement_policy": "meaningful_page_actions_only",
+        "address_bar_simulation": False,
+        "referrer_spoofing": False,
+        "return_to_grid_between_videos": False,
         "browser_backend": browser_backend,
         "required_harness_proxy_profile_posture": (
             required_harness_proxy_profile_posture.value

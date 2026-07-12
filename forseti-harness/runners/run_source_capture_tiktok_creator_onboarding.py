@@ -39,6 +39,8 @@ from source_capture.tiktok.live_batch_probe import (
 
 
 SUMMARY_PREFIX = "tiktok_creator_onboarding_summary_json="
+PROGRESS_PREFIX = "tiktok_creator_onboarding_progress_json="
+BLOCKER_PREFIX = "tiktok_creator_onboarding_blocker_json="
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CREATOR_REGISTRY = (
     ROOT
@@ -119,6 +121,13 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    _emit_progress(
+        "preflight_started",
+        {
+            "creator_handle": args.creator_handle.strip().lstrip("@").lower(),
+            "session_profile": args.session_profile,
+        },
+    )
     try:
         preflight_path, preflight_result = _write_creator_registry_preflight(
             creator_handle=args.creator_handle,
@@ -131,9 +140,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 f"Creator Registry preflight blocked: {preflight_result['action_blockers']}"
             )
         auth_state_root = args.auth_state_root or default_session_profile_auth_state_root()
+        _emit_progress("registry_preflight_complete", {"status": "allowed"})
         session_profile = resolve_session_profile(
             args.session_profile,
             config_path=args.session_profile_config,
+        )
+        _emit_progress(
+            "session_profile_resolved",
+            {"session_profile": args.session_profile},
         )
         paths = run_tiktok_creator_onboarding(
             creator_handle=args.creator_handle,
@@ -149,14 +163,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             cadence_max_gap_seconds=args.cadence_max_gap_seconds,
             cadence_window_seconds=args.cadence_window_seconds,
             random_seed=args.random_seed,
+            progress_fn=_emit_progress,
         )
     except (OSError, ValueError, TikTokCreatorOnboardingError) as exc:
+        _emit_blocker("ONBOARDING_PRECHECK_OR_CAPTURE_FAILED", "onboarding")
         parser.exit(
             status=2,
             message=f"source capture tiktok creator onboarding failed: {exc}\n",
         )
         return 2
     except Exception as exc:
+        _emit_blocker("ONBOARDING_UNEXPECTED_FAILURE", "onboarding")
         parser.exit(
             status=3,
             message=f"source capture tiktok creator onboarding failed: {type(exc).__name__}: {exc}\n",
@@ -165,6 +182,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     admitted_path: str | None = None
     if args.admit_output is not None or args.data_root is not None:
+        _emit_progress("admission_started", {})
         try:
             data_root = None
             if args.data_root is not None:
@@ -198,6 +216,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 ],
             )
         except Exception as exc:
+            _emit_blocker("ADMISSION_FAILED", "admission")
             parser.exit(
                 status=3,
                 message=(
@@ -207,6 +226,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             return 3
         if exit_code != 0:
+            _emit_blocker("ADMISSION_FAILED", "admission")
             parser.exit(
                 status=exit_code,
                 message=f"source capture tiktok creator onboarding admission failed: {output}\n",
@@ -240,6 +260,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     )
     return 0
+
+
+
+def _emit_progress(event: str, fields: dict[str, object]) -> None:
+    print(
+        PROGRESS_PREFIX
+        + json.dumps({"event": event, **fields}, sort_keys=True),
+        flush=True,
+    )
+
+
+def _emit_blocker(code: str, phase: str) -> None:
+    print(
+        BLOCKER_PREFIX
+        + json.dumps({"code": code, "phase": phase}, sort_keys=True),
+        flush=True,
+    )
 
 
 def _write_creator_registry_preflight(

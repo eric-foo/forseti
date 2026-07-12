@@ -263,6 +263,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     )
     engine = _FakeEngine([suggested, grid])
     deep_calls: list[dict[str, object]] = []
+    progress_events: list[tuple[str, dict[str, object]]] = []
 
     def deep_capture(**kwargs: object) -> dict[str, object]:
         deep_calls.append(dict(kwargs))
@@ -287,6 +288,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         selection_count=2,
         engine=engine,
         deep_capture_fn=deep_capture,
+        progress_fn=lambda event, fields: progress_events.append((event, fields)),
         cadence_min_gap_seconds=0,
         cadence_max_gap_seconds=0,
     )
@@ -294,6 +296,15 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert len(engine.calls) == 2
     assert engine.calls[1]["dom_extract_arg"] == {"creator_handle": "creator"}
     assert len(deep_calls) == 1
+    assert [event for event, _fields in progress_events] == [
+        "collect_suggested_accounts",
+        "collect_grid",
+        "freeze_window",
+        "select",
+        "deep_capture",
+        "close",
+    ]
+    assert progress_events[-2][1] == {"selected_count": 2}
     assert deep_calls[0]["video_urls"] == [
         "https://www.tiktok.com/@creator/video/2",
         "https://www.tiktok.com/@creator/video/1",
@@ -360,6 +371,21 @@ def test_grid_below_fixed_selection_count_fails_before_deep_capture(
     assert receipt["status"] == "failed"
     assert receipt["terminal_stage"] == "freeze_window"
     assert receipt["error_or_none"].startswith("TikTokCreatorOnboardingError:")
+
+
+def test_onboarding_cli_emits_machine_readable_progress_and_blocker(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    runner._emit_progress("collect_grid", {"window_cap": 30})
+    runner._emit_blocker("CDP_UNREACHABLE", "preflight")
+
+    lines = capsys.readouterr().out.splitlines()
+    assert lines == [
+        runner.PROGRESS_PREFIX
+        + '{"event": "collect_grid", "window_cap": 30}',
+        runner.BLOCKER_PREFIX
+        + '{"code": "CDP_UNREACHABLE", "phase": "preflight"}',
+    ]
 
 
 def test_onboarding_cli_defaults_to_fixed_top_eight_and_eight_thirteen_range() -> None:
