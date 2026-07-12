@@ -14,7 +14,7 @@
     "source_inputs": [
       {
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "e4dd8e773c3d0ed94a73b1d378ee92bfeb79d7ea9c3e2cf5d4f4512a6c1af0c9",
+        "sha256": "9acc15c8d46430d120db6b11f051179e62786de38289bab11ab4d06be4acf4b1",
         "role": "source-backed known public platform accounts and linkage state"
       }
     ],
@@ -29,13 +29,13 @@
       "capture_preflight_rule": "Capture should use registry freshness/routing state to avoid duplicate work, then rely on Capture/Silver records for facts and metrics."
     },
     "counts": {
-      "platform_accounts_total": 40,
+      "platform_accounts_total": 41,
       "creator_records_total": 2,
-      "known_account_rows_total": 40,
+      "known_account_rows_total": 41,
       "platform_accounts_by_platform": {
         "youtube": 30,
         "instagram": 5,
-        "tiktok": 5
+        "tiktok": 6
       }
     },
     "platform_accounts": [
@@ -1463,6 +1463,42 @@
         "source_pointers": [
           "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/39",
           "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ]
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_006",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "topfrag.official",
+        "normalized_public_handle": "topfrag.official",
+        "public_profile_url": "https://www.tiktok.com/@topfrag.official",
+        "creator_record_id_or_none": null,
+        "identity_state": "single_platform_observed",
+        "discovery_state": "known_account",
+        "capture_state": "identity_observed_profile_packet_available",
+        "linkage_state": "single_platform_observed",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "freshness": {
+          "identity_observed_at": "2026-07-08T18:52:19.366Z",
+          "last_discovery_observed_at_or_none": "2026-07-08T18:52:19.366Z",
+          "last_capture_observed_at_or_none": "2026-07-08T18:52:19.366Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_006",
+          "platform:tiktok:handle:topfrag.official",
+          "platform:tiktok:url:https://www.tiktok.com/@topfrag.official"
+        ],
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/40",
+          "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json"
         ],
         "non_claims": [
           "not current handle guarantee",

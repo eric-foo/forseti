@@ -82,10 +82,10 @@ def test_creator_registry_index_counts_and_contract() -> None:
     assert registry["schema_version"] == "creator_registry_index_v0"
     assert registry["index_mode"] == "static_known_public_account_dedupe_index"
     assert registry["counts"] == {
-        "platform_accounts_total": 40,
+        "platform_accounts_total": 41,
         "creator_records_total": 2,
-        "known_account_rows_total": 40,
-        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 5, "youtube": 30},
+        "known_account_rows_total": 41,
+        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 6, "youtube": 30},
     }
     assert [record["creator_record_id"] for record in registry["creator_records"]] == [
         "creator_fragranceknowledge_001",
@@ -151,6 +151,7 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
         "acct_ig_fragrance_005",
         "acct_tiktok_fragrance_005",
         "acct_ig_fragrance_006",
+        "acct_tiktok_fragrance_006",
     }
 
 
