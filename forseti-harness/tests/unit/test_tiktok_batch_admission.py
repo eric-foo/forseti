@@ -582,6 +582,87 @@ def test_tiktok_batch_rejects_failed_cadence_for_admission(tmp_path: Path) -> No
         )
 
 
+def test_tiktok_batch_admits_failure_superseded_by_later_completed_receipt(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "packet"
+    failed = json.loads(_cadence_payload().decode("utf-8"))
+    failed["attempted_count"] = 2
+    failed["completed_count"] = 1
+    failed["run_complete_utc"] = "2026-06-30T17:02:46Z"
+    failed["results"] = [failed["results"][0]]
+    failed["failures"] = [
+        {
+            "video_id": VIDEO_2,
+            "reason": "comment_list_response_absent",
+            "observed_utc": "2026-06-30T17:02:30Z",
+        }
+    ]
+
+    recovered = json.loads(_cadence_payload().decode("utf-8"))
+    recovered["attempted_count"] = 1
+    recovered["completed_count"] = 1
+    recovered["run_complete_utc"] = "2026-06-30T17:05:00Z"
+    recovered["results"] = [recovered["results"][1]]
+
+    code, _message = write_tiktok_batch_packet(
+        creator_handle="funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[
+            json.dumps(failed).encode("utf-8"),
+            json.dumps(recovered).encode("utf-8"),
+        ],
+        output_directory=output,
+        decision_question="admit a later-completed recovery without hiding the earlier failure",
+    )
+
+    assert code == 0
+    payload = json.loads(
+        (output / "raw" / "01_tiktok_batch_capture.json").read_text(encoding="utf-8")
+    )
+    assert [video["video_id"] for video in payload["videos"]] == [VIDEO_1, VIDEO_2]
+    assert payload["staging_contract_summary"]["superseded_failures"] == [
+        {
+            "video_id": VIDEO_2,
+            "failure_reason": "comment_list_response_absent",
+            "failure_observed_utc": "2026-06-30T17:02:30Z",
+            "failed_run_complete_utc": "2026-06-30T17:02:46Z",
+            "superseding_run_complete_utc": "2026-06-30T17:05:00Z",
+            "superseding_result_status": "completed",
+        }
+    ]
+
+
+def test_tiktok_batch_rejects_failure_when_completion_is_not_later(tmp_path: Path) -> None:
+    output = tmp_path / "packet"
+    failed = json.loads(_cadence_payload().decode("utf-8"))
+    failed["attempted_count"] = 1
+    failed["completed_count"] = 0
+    failed["run_complete_utc"] = "2026-06-30T17:05:00Z"
+    failed["results"] = []
+    failed["failures"] = [{"video_id": VIDEO_1, "reason": "comment_list_response_absent"}]
+
+    older_completion = json.loads(_cadence_payload().decode("utf-8"))
+    older_completion["attempted_count"] = 1
+    older_completion["completed_count"] = 1
+    older_completion["run_complete_utc"] = "2026-06-30T17:02:46Z"
+    older_completion["results"] = [older_completion["results"][0]]
+
+    with pytest.raises(ValueError, match="1 unsuperseded"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[
+                json.dumps(failed).encode("utf-8"),
+                json.dumps(older_completion).encode("utf-8"),
+            ],
+            output_directory=output,
+            decision_question="reject a failure without a strictly later completion",
+        )
+
+
 def test_tiktok_batch_rejects_diagnostic_mode_contract(tmp_path: Path) -> None:
     output = tmp_path / "packet"
     cadence = json.loads(_cadence_payload().decode("utf-8"))
