@@ -33,6 +33,25 @@ stale_if:
 
 `ADJUDICATED_STRATEGY_INPUT_2026-07-08`.
 
+### Owner-ratified external human-judgment amendment — 2026-07-12
+
+This record remains controlling for acceleration-recipe validation and any
+automated score, probability, or predictive-performance claim. Its earlier ban
+on any buyer-facing acceleration claim is superseded only for accountable human
+Signals judgment.
+
+A Signals analyst may state a forecast that a creator **will break out** when
+the output defines breakout, the forecast horizon, supporting
+trajectory/acceleration statistics, comparison baseline, major false-positive
+risks, and a falsification condition. The evidence may persuade; it does not
+become a guarantee, fabricated probability, calibrated model-performance claim,
+or autonomous spend authorization.
+
+Studio is an independent shared-data revenue lane and does not wait for Signals
+sales or acceleration validation. Acceleration evidence may inform Studio
+judgment, but it never automatically authorizes creator outreach or spend.
+
+
 Source basis: attached ChatGPT Pro memo supplied by the owner in this turn. The
 memo says it inspected the prompt/source-pack zip locally, but this lane did not
 reverify that zip as local repo state. Local control reads for this adjudication
@@ -61,8 +80,8 @@ traffic, or small-sample noise.
 Allowed next move: write one sealed validation spec for an internal,
 non-authoritative acceleration watchlist.
 
-Disallowed next move: build a ranked product surface, anomaly detector, ML
-pipeline, customer-facing score, sponsorship automation, Studio execution lane,
+Disallowed next move: build an autonomous ranked product surface, anomaly
+detector, ML pipeline, customer-facing universal score, sponsorship automation,
 or bot/paid accusation vocabulary.
 
 ## MGT Target
@@ -78,8 +97,10 @@ internal_not_validated_acceleration_watchlist
 ```
 
 It is an internal triage surface or validation run only. It may sort creators for
-human inspection, but it must not authorize spend, outreach, lead export, or a
-buyer-facing claim.
+human inspection, but it must not itself authorize spend, outreach, lead export,
+or an automated buyer-facing score. Under the 2026-07-12 amendment, an
+accountable human analyst may consume the evidence and make the bounded
+buyer-facing forecast defined above.
 
 The MGT edge is not a bigger formula. It is the combination of:
 
@@ -159,7 +180,7 @@ The spec should bind:
 | No customer-facing acceleration score | Validation is absent and the charter forbids vanity scores | Buyer-facing story is less flashy | Held-out lift clears the buyer-specific EV threshold and owner separately authorizes an external claim schema |
 | No precomputed metric family yet | Data Lake requires field-level posture/coverage and rebuildability before a metric view build | Validation may be slower or semi-manual | Sealed validation proves incremental lift and owner authorizes the metric-family field contract |
 | No ML ranking or learned weights | The first risk is leakage/noise, not model capacity | Simple thresholds may miss nonlinear breakout patterns | Deterministic recipe beats baseline but error analysis identifies stable missed patterns that threshold rules cannot capture |
-| No Studio/sponsorship execution integration | Aphrodite's forbidden set excludes outreach/contact/lead export; Studio is still exploratory | Early sponsor opportunities may be missed | Separate Studio/firewall decision lands and the acceleration watchlist has validated lift |
+| No automatic Studio/sponsorship execution integration | Studio is now an independent ratified revenue lane, but acceleration evidence cannot silently trigger outreach or spend | Early sponsor opportunities may still be missed | Studio's separately authorized creator-facing lane applies its firewall and a human accepts the decision |
 | No historical-lift claim if snapshots are unreconstructable | A fake backtest is worse than no backtest | Proof takes 60-90 days longer | Snapshot reconstruction succeeds, or a sealed forward holdout completes |
 | No universal precision threshold | Precision needed depends on sponsorship cost, analyst capacity, and brand risk | The next spec still needs owner/cost-tier choices | Validation spec binds K, cost tier, EV assumptions, and pass/fail thresholds before scoring |
 | No expansion beyond fragrance niche | MGT value comes from niche domination, not broad shallow coverage | Signal may not generalize to beauty broadly | Fragrance validation succeeds and a later sub-niche expansion decision names its own ontology/capture residuals |
@@ -181,7 +202,9 @@ the holdout period.
 
 ## Non-Claims
 
-This adjudication does not say acceleration is valid, sponsorable, implemented,
-or ready for a buyer. It does not ratify Studio, outreach, contact capture, a
-lead list, a creator score, or an anomaly detector. It records the narrow
+This adjudication does not say acceleration is validated, implemented, or
+calibrated. It does not authorize Studio execution, outreach, contact capture,
+a lead list, a creator score, or an anomaly detector. The charter separately
+ratifies bounded human forecasts and Studio's independent product direction.
+It records the narrow
 MGT/SCI target and the residuals accepted before the next validation-spec pass.
