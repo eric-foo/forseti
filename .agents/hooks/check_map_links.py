@@ -248,13 +248,19 @@ def extract_router_table_rows(
         if not (stripped.startswith("|") and stripped.endswith("|")):
             continue
         cells = [cell.strip() for cell in stripped.strip("|").split("|")]
-        if target_column >= len(cells) or not cells:
+        if not cells:
             continue
         if all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
             continue
         if cells[0].lower() in {"role", "doctrine"}:
             continue
-        rows.append((cells[0], extract_paths_from_line(cells[target_column])))
+        row_label = cells[0] or "<unlabeled live-router row>"
+        targets = (
+            extract_paths_from_line(cells[target_column])
+            if target_column < len(cells)
+            else []
+        )
+        rows.append((row_label, targets))
     return True, rows
 
 
@@ -1011,14 +1017,16 @@ def selftest() -> int:
 | --- | --- | --- |
 | Product artifact | `forseti/product/` | current |
 | Broken artifact | relative/path.md | invalid live target |
+| Short artifact row |
 
 ## Next Section
 | Ignore | `docs/ignored/` |
 """
     router_cases = [
-        ("section and rows",
+        ("section and rows including short data row",
          "## Role Bindings", 1, True,
-         [("Product artifact", ["forseti/product/"]), ("Broken artifact", [])]),
+         [("Product artifact", ["forseti/product/"]), ("Broken artifact", []),
+          ("Short artifact row", [])]),
         ("missing section", "## Missing", 1, False, []),
     ]
     for label, heading, column, exp_found, exp_rows in router_cases:
@@ -1296,7 +1304,7 @@ def main(argv: list[str]) -> int:
         return run_report_orca(root)
     # Default: print usage
     print("Usage: check_map_links.py --strict | --strict-inline | --check | --report-forseti | --report-orca | --selftest")
-    print("  --strict         CI gate: exit 1 if any finding (C1/C2/C3/C4)")
+    print("  --strict         CI gate: exit 1 if any finding (C1/C2/C3/C4/C5)")
     print("  --strict-inline  alias for --strict (C4/C5 included; kept for caller compat)")
     print("  --check          human-readable report, always exit 0")
     print("  --report-forseti REPORT MODE over forseti/: measure debt, always exit 0 (not a gate)")
