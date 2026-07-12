@@ -208,14 +208,18 @@ fills a repeatable spec; the persuasion lives in the artifact.
 
 **The firewall (motion §0, enforced by the engine's own forbidden set):** the
 engine delivers a *derived decision read to a brand* — never a creator contact
-list, exportable roster, or person-level data. The no-registry-dump rule
-(growth-map §E) and the charter §3 protectors are the same wall that keeps the
-product neutral. If a target mostly wants "just give me the creator list / their
-contacts," that is the park signal *and* the tell they want a data broker or
-Aphrodite Studio, not neutral Aphrodite (motion §3).
+list or person-level data by default. A separately negotiated strategic raw
+registry transaction is allowed under the charter's price/rights boundary; it
+is not smuggled into an ordinary first-touch or Signals read. If a target asks
+for contacts, person-level fields, or unrestricted redistribution, route that
+as a distinct rights-and-commercial decision. Studio maintains its own
+legitimately obtained creator relationships; it does not inherit a Signals
+contact dump.
 
-**Gate:** outreach is sellable only after D-1 fires **and** the owner opens buyer
-probes (charter §4/§7). Until then: designed, not sent.
+**Gate:** this document's candidate Vetting Sprint outreach remains
+designed-not-sent until D-1 fires and the owner opens that buyer-contact lane
+(charter §4/§7). D-1 does not gate every possible Signals shortlist, ranking,
+or decision-read unit; each still needs its own commercial/contact authorization.
 
 ## 3. Play B — Engine → SEO authority content that genuinely earns
 
@@ -360,7 +364,7 @@ Play B/C authority content  →  inbound interest  →  waitlist signups
    (SEO + earned AEO citations)                     (with role + decision-type fields, charter R-2)
         →  a QUALIFIED waitlist-inbound buyer signal  →  can pull D-1 forward
         →  the six-criteria dress rehearsal becomes the first design-partner Sprint prep (charter §7 accelerator)
-        →  first paid Vetting Sprint (Play A motion)
+        →  first paid Signals decision read (shortlist/ranking or candidate Vetting Sprint)
 ```
 
 **Honest tiering (the trap to avoid):** a waitlist signup is inbound *interest* —
@@ -440,7 +444,8 @@ Provenance: a de-correlated ChatGPT Pro GTM return (commissioned generatively, b
 to this design) was adjudicated by the home model under the Mini God Tier + Smallest
 Complete Intervention lenses, and the owner ruled on each point (2026-07-09/10). The
 return independently reproduced this design's spine (engine-as-instrument, the AEO
-channel-vs-demand-evidence seam, authority-via-method-not-directory, no-registry-dump,
+channel-vs-demand-evidence seam, authority-via-method-not-directory,
+strategic-registry boundary,
 phase/gate discipline, inbound loop, the owner-gated flags). The kept deltas +
 owner rulings below refine the plays above. Still Phase-0, `product_learning`-capped,
 public-info-only, earn-don't-fabricate; the charter §5 wedge sharpening is *applied*
@@ -508,12 +513,13 @@ as a first-batch selector, not self-ratified.
   integrating the buyer's internal data to reach highest-EV decisions is the *goal* once
   they are a paying customer; the public read wins the door first, and the integration
   *build* stays gated.
-- **Sell derived value, never the dump:** the high-revenue product is the *derived read /
-  ranking* ("name the creators that matter for segment X") and controlled query access —
-  allowed and on-moat. Selling the *raw registry file* stays the forbidden slice (one-time
-  cash-out + arms the buyer to leave; niche-domination protects against competitors, not
-  against a buyer who owns the snapshot). Selling the actual dump would be a deliberate
-  charter §3/§E override (owner-gated DCP), not taken here.
+- **Sell derived value by default; price the raw asset strategically:** the ordinary
+  high-revenue products remain the *derived read / ranking* ("name the creators that
+  matter for segment X") and controlled query access. A private raw-registry export is
+  also allowed when an owner-approved price and rights package compensates for lost
+  exclusivity, buyer reuse/redistribution, competitive leakage, and foregone recurring
+  revenue. Contact/person-level fields remain separately rights-gated. Do not confuse an
+  exceptional asset transaction with a cheap first-touch export.
 - **Segment rankings yes, vanity score no:** "best creators for [segment/decision]" as a
   receipt-backed, missingness-honest decision read (the fit matrix) is the product. The
   forbidden things are the single context-free vanity score (Traackr-style VIT) and a
@@ -526,10 +532,13 @@ as a first-batch selector, not self-ratified.
   now; do not pre-draft a large authority backlog ahead of the (gated) publishing
   authorization.
 
-### Owner-gated / deferred (flagged, not decided here)
+### Ratified direction with execution still owner-gated
 
-- **Aphrodite Studio** (the creator-agency execution side): separate company, later —
-  tied to *repeatable* pull (the charter's ≥2 qualified buyers + paid-pull bar), not the
-  literal first sale; its own owner-gated lane with a neutrality firewall.
+- **Aphrodite Studio** is an independent revenue lane over the same evidence asset; it
+  does not wait for a Signals sale or repeatability. Internal design/setup may begin now.
+  Creator-facing execution still requires a named creator opportunity, defined service,
+  usable evidence, an operational neutrality firewall, and separate execution
+  authorization. A first client additionally requires independent creator opt-in,
+  explicit service/compensation, and an engagement-specific conflict check.
 - **CI-as-a-service / research-for-hire:** a separate Forseti branch, after CI + Aphrodite
   prove out; owner-gated.

@@ -2962,7 +2962,7 @@ def _hydration(
     }
 
 
-def test_live_probe_cli_defaults_to_nine_fourteen_second_range() -> None:
+def test_live_probe_cli_defaults_to_eight_thirteen_second_range() -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -2977,9 +2977,9 @@ def test_live_probe_cli_defaults_to_nine_fourteen_second_range() -> None:
         ]
     )
 
-    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 11.5
-    assert args.cadence_min_gap_seconds == 9.0
-    assert args.cadence_max_gap_seconds == 14.0
+    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.5
+    assert args.cadence_min_gap_seconds == 8.0
+    assert args.cadence_max_gap_seconds == 13.0
 
 
 def test_default_cloakbrowser_batch_reuses_one_owned_session(monkeypatch) -> None:
