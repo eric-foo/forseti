@@ -134,6 +134,8 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("runners/run_sov_extraction_quality_eval.py", "lane_dir"): 1,
         ("runners/run_ig_reels_product_extract.py", "is_record_set_complete"): 3,
         ("runners/run_source_capture_ig_reels_deep_capture.py", "is_record_set_complete"): 1,
+        ("runners/run_tiktok_product_extract.py", "is_record_set_complete"): 1,
+        ("runners/run_tiktok_product_extract.py", "record_path"): 1,
         ("runners/run_transcript_product_extract.py", "is_record_set_complete"): 1,
         ("runners/run_transcript_product_extract.py", "lane_dir"): 2,
         ("runners/run_transcript_product_extract.py", "record_path"): 1,
