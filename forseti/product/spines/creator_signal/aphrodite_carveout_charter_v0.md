@@ -207,6 +207,24 @@ niche the incumbents are structurally blind to, hardening into a real barrier as
 the time axis accrues. Layer 1 is the bridge that makes Layer 2's years
 survivable.
 
+**Moat object, sharpened (2026-07-08, owner-approved in-thread):** The
+load-bearing distinction is *extraction vs domination*. Extraction — pulling and
+labeling transcripts / comments / metadata — is a commodity *flow*: any
+competitor with the same LLM can run it, so it earns no rent (this is the
+residual kept above). What is *not* a commodity is **domination of the niche** —
+a *position*, not a dataset: niche-*complete* coverage (every creator that
+matters, not a curated sample), a longitudinal series that cannot be backfilled,
+the roster judgment + ontology + scene relationships, and — as the position
+matures — the creator relationships, buyer trust, and being *the* source in the
+niche. A funded competitor with the same extraction can copy the *flow* but
+cannot instantly *occupy the position*. So the premium Aphrodite commands is a
+**position rent, not a data-quality rent** — the asset is "we own the niche," and
+data is a commodity input to it. This is also why *small* is the strategy, not a
+limitation: domination is achievable only in a niche small enough to fully
+capture, and defensible only in one too small for a horizontal incumbent to
+contest. Framing sharpened; the extraction residual above is unchanged and still
+kept.
+
 ## 4. Candidate sellable units — canonical first unit deferred
 
 `SUPERSEDED / REOPENED 2026-07-12`: the prior first-unit lock is no longer
@@ -458,4 +476,49 @@ direction_change_propagation:
     - framing strengthened; not a new moat claim tier; extraction residual kept
 ```
 
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    §3 "Honest boundary" sharpened further (2026-07-08, owner-approved
+    in-thread) with the extraction-vs-domination distinction: extraction is a
+    commodity flow (earns no rent), whereas domination of the niche is a
+    position (niche-complete coverage + un-backfillable longitudinal series +
+    roster judgment / ontology / scene relationships + maturing creator
+    relationships and buyer trust) that a same-LLM competitor cannot instantly
+    occupy. The premium is named a POSITION rent, not a data-quality rent, and
+    "small is the strategy" is stated as a consequence (domination is achievable
+    only in a niche small enough to fully capture and defensible only in one too
+    small for a horizontal incumbent to contest). Framing sharpened; the
+    extraction residual is explicitly unchanged and still kept; no phase, gate,
+    offer, ownership, or claim-tier boundary changes.
+  trigger: product_doctrine
+  related_triggers: []
+  controlling_sources_updated:
+    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # §3 Honest boundary — "Moat object, sharpened" paragraph added
+  downstream_surfaces_checked:
+    - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md   # "the hinge" (premium durability) reasoning consumed as-is; sizing not re-derived; consistent with position-rent framing
+    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md                    # parent moat language (outcome memory / de-correlated demand) consistent; not amended
+    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md   # moat object (evidence graph) unchanged; this sharpens its defensibility framing, not the object
+  stale_language_search: >
+    rg -in "extraction|commodity|domination|position rent|\bmoat\b" forseti/product/spines/creator_signal docs/decisions/forseti_product_thesis_consumer_demand_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-08 after the edits. Creator Signal spine hits: this charter
+    (controlling source, edited); creator_signal_product_architecture_v0.md
+    (defines the evidence-graph moat OBJECT — unchanged; this sharpens its
+    defensibility framing, not the object); creator_signal_market_sizing_v0.md
+    ("the hinge" premium-durability + the competitor teardown "they can copy
+    screens faster than capture history" — already consistent with position-rent
+    framing); and mechanics files (vetting panel design, derived-claim provenance
+    contract, ToS-risk check, README) that carry no moat-framing claim. Parent
+    thesis hits (forseti_product_thesis_consumer_demand_v0.md lines 169-188) are
+    its OWN moat object — "outcome memory is the moat", "scraping commodity" — a
+    distinct, consistent framing for the parent lane, not a conflict with
+    Aphrodite's niche-domination position. No surface carries a moat framing this
+    sharpening contradicts; no edit required beyond the charter.
+  non_claims:
+    - not validation
+    - not readiness
+    - not buyer proof
+    - framing sharpened; not a new moat claim tier; extraction residual kept
+```
 Older receipts for this file are archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
