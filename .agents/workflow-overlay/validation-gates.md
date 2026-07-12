@@ -176,6 +176,16 @@ inherit this floor.
   Findings are routing or hygiene defects only; they do not prove validation
   failure, validation success, approval, readiness, lifecycle completion,
   implementation authorization, or edit permission.
+- Repo-map T1 admission gate: a change that adds or materially expands a row in
+  `docs/workflows/forseti_repo_map_v0.md` must identify which T1 class in
+  `docs/decisions/forseti_repo_map_architecture_mgt_v0.md` it serves and why an
+  existing area row, submap, retrieval header, or generated
+  `header_index.py --index` route is insufficient. A valid path, passing link
+  check, or freshness trigger is not admission evidence. Reviewers reject
+  per-file inventory, historical chronology, embedded operating manuals, and
+  duplicated owner-source descriptions. This gate is resident judgment: the
+  existing retrieval checkers continue to enforce existence, reachability,
+  freshness, and header shape only; none claims semantic T1 admission.
 - Source hashes for migration-governance inputs are recorded in `docs/workflows/orca_bootstrap_record.md`.
 - Resolver-visible skill-name snapshots are recorded before any skill adoption or promotion work.
 - Git status is reported when this workspace is a Git repo.
@@ -552,59 +562,69 @@ markdown sibling of the EP-37 JSON gate. Registered in
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    CI and local feedback placement now fail earlier without weakening the
-    authoritative CI boundary: four observed fast failure classes (prompt
-    output mode, review-output provenance, handoff pointers, ontology tags)
-    join the pre-push mirror; ontology strict mode is tracked/diff-scoped
-    before local adoption; the CI job keeps its required name while moving
-    policy gates before pytest, cancelling obsolete PR runs, removing a
-    duplicate gate, and pinning external Actions by SHA with Renovate coverage.
-  trigger: validation_philosophy
+    Repo-map validation now includes a resident T1 admission gate: central-map
+    row additions or material expansions must name their architecture-owned T1
+    class and explain why the existing area, submap, header, or generated-index
+    route is insufficient. Mechanical retrieval checks remain limited to shape,
+    reachability, freshness, and header contracts and make no admission claim.
+  trigger: workflow_authority
   related_triggers:
-    - workflow_authority
+    - validation_philosophy
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_ontology_tag_validity.py
-    - .agents/hooks/pre_push_guard.py
-    - .agents/hooks/README.md
-    - .github/workflows/ci.yml
-    - .github/scripts/install-local-hooks.ps1
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - renovate.json
     - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/retrieval-metadata.md
+    - .agents/hooks/check_map_links.py
+    - .agents/hooks/check_repo_map_freshness.py
+    - .agents/hooks/header_index.py
+    - .agents/hooks/README.md
     - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/decisions/forseti_repo_map_architecture_mgt_v0.md
+    - docs/workflows/artifact_retrievability_guide.md
   intentionally_not_updated:
-    - path: .claude/settings.json
+    - path: AGENTS.md
       reason: >
-        No write-time hook changed; the new mirror is harness-agnostic at the
-        Git pre-push boundary.
-    - path: .codex/hooks.json
+        The kernel already routes validation and repo-map architecture to their
+        owners; duplicating the row-admission test would fork the rule.
+    - path: .agents/hooks/check_map_links.py
       reason: >
-        Retrieval-header and prompt-provenance hooks do not parse Codex
-        apply_patch payloads; wiring them now would create fake parity. Correct
-        apply-patch support remains a separate complete change if justified.
+        Path validity and ancestor-area reachability are objective; whether a
+        route belongs in T1 is semantic judgment and cannot be inferred safely
+        from path shape.
+    - path: .agents/hooks/check_repo_map_freshness.py
+      reason: >
+        The checker detects structural omission and description drift. Making it
+        approve central-map content would create a fake semantic success path.
+    - path: .agents/hooks/header_index.py
+      reason: >
+        It remains the generated per-doc catalog and header-health surface; it
+        does not decide central-map admission.
     - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
       reason: >
-        Its dated inventory explicitly defers the live registry to CI, the repo
-        map, and this file; no classification changed.
+        The placement principle already keeps judgment-based rules resident;
+        no substrate classification or implementation authority changed.
   stale_language_search: >
-    rg -n "selected strict CI gates|five gate|check_ontology_tag_validity|pre-push" AGENTS.md .agents .github docs/workflows/forseti_repo_map_v0.md
+    rg -n -i "per-doc index|per-file inventory|row-per-doc|T1 admission|valid path"
+    AGENTS.md .agents docs/decisions/forseti_repo_map_architecture_mgt_v0.md
+    docs/workflows/forseti_repo_map_v0.md docs/workflows/artifact_retrievability_guide.md
   stale_language_search_result: >
-    Executed 2026-07-11 after the edits: live pre-push descriptions point to
-    the nine-gate mirror; ontology strict scope is bound here and in the
-    checker; remaining selected-gate language is compatible and no live
-    surface retains the five-gate list.
+    Executed 2026-07-12 on the authoring branch. Defining hits are confined to
+    the architecture decision, the new central-map admission section, and this
+    controlling validation rule/receipt. AGENTS.md, the remaining overlay, and
+    the retrievability guide contain no competing permission to treat path
+    validity as T1 admission. The harder product-tree report found zero
+    uncovered Markdown-bearing folders; its five unresolved open_next findings
+    are pre-existing product-corpus pointer debt outside this map-boundary work.
   non_claims:
     - not validation
     - not readiness
-    - not review quality or finding truth
-    - not ontology correctness or semantic validity
-    - a green pre-push or CI run is not approval
+    - not proof that every admitted row is semantically correct
+    - not a mechanical T1-admission checker
+    - not an amendment to the repo-map architecture decision
 ```
 
 ```yaml
