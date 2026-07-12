@@ -39,32 +39,33 @@ def test_packer_can_mix_creators_but_keeps_transcript_units() -> None:
     assert [[item.creator_id for item in batch] for batch in batches] == [["a", "b"]]
 
 
-def test_parser_partitions_by_creator_and_rejects_demographics() -> None:
-    items = [_transcript("a", "v1", "compare affordable alternatives"), _transcript("b", "v2", "advanced collectors debate")]
+def test_parser_partitions_by_creator_and_accepts_cited_demographic_content_fit() -> None:
+    items = [_transcript("a", "v1", "compare affordable alternatives"), _transcript("b", "v2", "men debate advanced collector fragrances")]
     rows = [
         {"creator_id": "a", "video_id": "v1", "audience_layer": "beneficiary_content_fit", "dimension": "value_sought", "label": "comparison-led alternative evaluation", "content_pillar": "comparisons", "vote": 1, "source_pointer": "compare affordable alternatives", "possible_negation_or_irony": False},
-        {"creator_id": "b", "video_id": "v2", "audience_layer": "addressed_audience", "dimension": "category_relationship", "label": "wealthy men", "content_pillar": "collector debate", "vote": 1, "source_pointer": "advanced collectors debate", "possible_negation_or_irony": False},
+        {"creator_id": "b", "video_id": "v2", "audience_layer": "addressed_audience", "dimension": "category_relationship", "label": "men who collect fragrances", "content_pillar": "collector debate", "vote": 1, "source_pointer": "men debate advanced collector fragrances", "possible_negation_or_irony": False},
     ]
     result = parse_response(json.dumps(rows), items, model="m")
     assert len(result[("a", "v1")].evidence) == 1
-    assert result[("b", "v2")].rejected[0]["reason"] == "demographic_inference_forbidden"
+    assert result[("b", "v2")].evidence[0].label == "men who collect fragrances"
+    assert not result[("b", "v2")].rejected
 
 
-def test_parser_rejects_demographic_inference_in_content_pillar() -> None:
-    item = AudienceTranscript("a", TranscriptInput("v1", "anchor", "source", [{"start": 0.0, "text": "compare affordable alternatives"}]))
+def test_parser_accepts_demographic_content_pillar_with_exact_citation() -> None:
+    item = AudienceTranscript("a", TranscriptInput("v1", "anchor", "source", [{"start": 0.0, "text": "men compare affordable fragrance alternatives"}]))
     rows = [{"creator_id": "a", "video_id": "v1", "audience_layer": "beneficiary_content_fit",
-             "dimension": "value_sought", "label": "comparison shoppers", "content_pillar": "wealthy collectors",
-             "vote": 1, "source_pointer": "compare affordable alternatives", "possible_negation_or_irony": False}]
+             "dimension": "value_sought", "label": "comparison shoppers", "content_pillar": "men's fragrance comparisons",
+             "vote": 1, "source_pointer": "men compare affordable fragrance alternatives", "possible_negation_or_irony": False}]
     result = parse_response(json.dumps(rows), [item], model="model")[("a", "v1")]
-    assert not result.evidence
-    assert result.rejected[0]["reason"] == "demographic_inference_forbidden"
+    assert result.evidence[0].content_pillar == "men's fragrance comparisons"
+    assert not result.rejected
 
 
-def test_profile_synthesis_rejects_demographic_inference_outside_primary_hypothesis() -> None:
-    item = AudienceTranscript("a", TranscriptInput("v1", "anchor", "source", [{"start": 0.0, "text": "compare affordable alternatives"}]))
+def test_profile_synthesis_accepts_demographic_content_fit_but_keeps_actual_audience_unknown() -> None:
+    item = AudienceTranscript("a", TranscriptInput("v1", "anchor", "source", [{"start": 0.0, "text": "men compare affordable fragrance alternatives"}]))
     evidence_rows = [{"creator_id": "a", "video_id": "v1", "audience_layer": "beneficiary_content_fit",
                       "dimension": "value_sought", "label": "comparison shoppers", "content_pillar": "comparisons",
-                      "vote": 1, "source_pointer": "compare affordable alternatives", "possible_negation_or_irony": False}]
+                      "vote": 1, "source_pointer": "men compare affordable fragrance alternatives", "possible_negation_or_irony": False}]
     evidence = parse_response(json.dumps(evidence_rows), [item], model="model")[("a", "v1")].evidence
 
     class Transport:
@@ -74,14 +75,14 @@ def test_profile_synthesis_rejects_demographic_inference_outside_primary_hypothe
                 "knowledge_level": "category-aware", "shopping_stage": "comparison",
                 "product_range": ["affordable alternatives"], "recurring_decision_jobs": ["judge replacement fit"],
                 "engagement_style": "direct comparison", "price_posture": "value-aware",
-                "likely_exclusions": ["wealthy collectors"], "evidence_ids": [evidence[0].evidence_id],
+                "likely_exclusions": ["women seeking feminine fragrances"], "evidence_ids": [evidence[0].evidence_id],
                 "counterevidence_ids": [], "support_band": "medium", "actual_audience": "not_estimated",
             }])})
 
-    import pytest
-    with pytest.raises(ValueError, match="forbidden demographic inference"):
-        synthesize_profiles(evidence_by_creator={"a": evidence}, transport=Transport(),
-                            provider=RawApiProvider.OPENAI_RESPONSES, model="model", api_key="secret")
+    profile = synthesize_profiles(evidence_by_creator={"a": evidence}, transport=Transport(),
+                                  provider=RawApiProvider.OPENAI_RESPONSES, model="model", api_key="secret")["a"]
+    assert profile.likely_exclusions == ["women seeking feminine fragrances"]
+    assert profile.actual_audience == "not_estimated"
 
 
 def _commit_non_batch_tiktok_packet(data_root: DataLakeRoot, *, handle: str = "gamma") -> str:
