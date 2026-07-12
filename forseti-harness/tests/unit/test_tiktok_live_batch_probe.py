@@ -258,15 +258,15 @@ def test_live_probe_writes_sanitized_staging_compatible_with_batch_admission(
     assert "div,span,p" in pointer_actions[3].candidate_selector
     assert pointer_actions[3].exact_text_markers == ("more like this", "you may like")
     assert pointer_actions[3].prefer_smallest_match is True
-    assert pointer_actions[4].wait_after_ms == 3500
-    assert pointer_actions[7].wait_after_ms == 3500
+    assert pointer_actions[2].wait_after_ms == 5000
+    assert pointer_actions[4].wait_after_ms == 5000
     for action in pointer_actions:
         if action.action_name in {
             TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
             TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
         }:
             assert action.stop_wait_on_observed_response is True
-            assert action.stop_sequence_on_observed_response is False
+            assert action.stop_sequence_on_observed_response is True
     assert engine.calls[0]["response_predicate_matches_comment_list"] is True
 
     code, message = write_tiktok_batch_packet(
@@ -295,7 +295,7 @@ def test_live_probe_captures_source_native_subtitle_transcript(
 ) -> None:
     auth_root = _auth_state(tmp_path)
     video_id = "7390000000000000001"
-    subtitle_url = "https://v16-webapp.tiktokcdn-us.com/subtitle.webvtt"
+    subtitle_url = "https://v16-webapp.tiktok.com/subtitle.webvtt"
     subtitle_body = (
         b"WEBVTT\n\n"
         b"00:00:00.000 --> 00:00:01.000\n"
@@ -2335,12 +2335,15 @@ def test_live_probe_challenge_after_close_diagnostic_keeps_challenge_stop(
 
 
 
-def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
+def test_live_probe_continues_after_zero_comment_list_response(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
     engine = _FakeObservationEngine(
         outcomes=[
             _success_observation(video_id="7390000000000000001", responses=[]),
-            _success_observation(video_id="7390000000000000002", response=_comment_response()),
+            _success_observation(
+                video_id="7390000000000000002",
+                response=_comment_response(video_id="7390000000000000002"),
+            ),
         ]
     )
 
@@ -2363,14 +2366,19 @@ def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
     )
 
     cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
-    assert cadence["attempted_count"] == 1
-    assert cadence["completed_count"] == 0
+    assert cadence["attempted_count"] == 2
+    assert cadence["completed_count"] == 1
+    assert cadence["partial_count"] == 1
     assert cadence["challenge_count"] == 0
-    assert cadence["results"] == []
+    assert [row["video_id"] for row in cadence["results"]] == [
+        "7390000000000000001",
+        "7390000000000000002",
+    ]
+    assert [row["status"] for row in cadence["results"]] == ["partial_failure", "completed"]
     assert cadence["failures"][0]["reason"] == TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON
     assert cadence["failures"][0]["blocker_triage"] == {
         "blocker_class": "comment_route_zero_yield",
-        "action": "stop",
+        "action": "continue",
         "reason": TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
         "action_mode": "diagnosis_only",
         "action_taken": False,
@@ -2386,7 +2394,7 @@ def test_live_probe_stops_on_zero_comment_list_response(tmp_path: Path) -> None:
         "admitted_comment_response_count": 0,
         "dom_visible_comment_candidate_count": 0,
     }
-    assert len(engine.calls) == 1
+    assert len(engine.calls) == 2
 
 
 def test_live_probe_zero_comment_response_reports_missing_comment_route_actions(tmp_path: Path) -> None:
@@ -2513,7 +2521,9 @@ def test_live_probe_rejects_dom_visible_count_badge_as_comment_fallback(
     assert cadence["attempted_count"] == 1
     assert cadence["completed_count"] == 0
     assert cadence["challenge_count"] == 0
-    assert cadence["results"] == []
+    assert cadence["partial_count"] == 1
+    assert cadence["results"][0]["status"] == "partial_failure"
+    assert cadence["results"][0]["dom_visible_comment_candidates"] == []
     failure = cadence["failures"][0]
     assert failure["reason"] == TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON
     triage = failure["blocker_triage"]
@@ -2707,9 +2717,6 @@ def _comment_route_action_names() -> list[str]:
         TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
         TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
         TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-        TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
-        TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
     ]
 
 
@@ -2873,10 +2880,10 @@ def _benign_overlay_action_receipt() -> dict[str, object]:
 
 
 def _pointer_action_sequence_receipt() -> list[dict[str, object]]:
-    route_once = [
+    return [
         _pointer_action_receipt(
             action_name=TIKTOK_OPEN_COMMENTS_POINTER_ACTION_NAME,
-            wait_ms=2000,
+            wait_ms=5000,
         ),
         _pointer_action_receipt(
             action_name=TIKTOK_OPEN_MORE_LIKE_THIS_POINTER_ACTION_NAME,
@@ -2884,10 +2891,9 @@ def _pointer_action_sequence_receipt() -> list[dict[str, object]]:
         ),
         _pointer_action_receipt(
             action_name=TIKTOK_REOPEN_COMMENTS_POINTER_ACTION_NAME,
-            wait_ms=3500,
+            wait_ms=5000,
         ),
     ]
-    return [*route_once, *route_once]
 
 
 def _pointer_action_receipt(
@@ -2956,7 +2962,7 @@ def _hydration(
     }
 
 
-def test_live_probe_cli_defaults_to_measured_ten_second_gap() -> None:
+def test_live_probe_cli_defaults_to_eight_thirteen_second_range() -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -2971,8 +2977,9 @@ def test_live_probe_cli_defaults_to_measured_ten_second_gap() -> None:
         ]
     )
 
-    assert args.cadence_min_gap_seconds == 10.0
-    assert args.cadence_max_gap_seconds == 10.0
+    assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.5
+    assert args.cadence_min_gap_seconds == 8.0
+    assert args.cadence_max_gap_seconds == 13.0
 
 
 def test_default_cloakbrowser_batch_reuses_one_owned_session(monkeypatch) -> None:

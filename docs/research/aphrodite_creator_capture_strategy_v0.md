@@ -293,12 +293,15 @@ Use the layers this way:
   boundaries.
 - Aphrodite Signals: buyer-facing or operator-facing decision surface over
   stamped fields and visible limitations.
-- Aphrodite Studio/Activation: optional downstream service consumer after
-  Signals can identify the decision. It must not become the data authority.
+- Aphrodite Studio/Activation: independent revenue and operating lane consuming
+  the same stamped evidence asset. It does not wait for Signals sales or
+  repeatability and must not become the data authority.
 
-Silver can say what was observed. Creator Signal can assemble decision support.
-Gold/Judgment or later accepted product contracts own stronger recommendations,
-durability verdicts, or action meaning.
+Silver can say what was observed. Creator Signal can assemble decision support,
+and accountable human Signals analysts may rank, recommend, and make bounded
+relative-performance or breakout forecasts under the charter's 2026-07-12
+amendment. Gold/Judgment or later contracts still own autonomous/calibrated
+predictive-performance claims, not every strong human recommendation.
 
 ## Visual And Metadata Boundary
 
@@ -534,8 +537,9 @@ current view copies only accepted, lineage-backed fields.
    cadence, not as a daily deep-monitoring burden.
 7. Keep fragrance depth as the wedge, but include fragrance-proven adjacent and
    control creators so the signal learns both yes and no.
-8. Keep Studio/activation downstream of Signals. The capture strategy exists to
-   sharpen Signals first.
+8. Keep Studio/activation independent of Signals sales while both consume the
+   same evidence substrate. Capture should sharpen both without allowing either
+   commercial lane to become the data authority.
 
 ## Open Decisions Before Calculation
 

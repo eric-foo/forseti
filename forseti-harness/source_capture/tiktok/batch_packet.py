@@ -180,7 +180,7 @@ def _build_payload(
 ) -> JsonObject:
     grid_payload = _loads_json_object(grid_result_json, "grid_result_json")
     cadence_payloads = [_loads_json_object(raw, f"cadence_result_json[{index}]") for index, raw in enumerate(cadence_result_jsons)]
-    _validate_staging_contracts(grid_payload, cadence_payloads)
+    superseded_failures = _validate_staging_contracts(grid_payload, cadence_payloads)
 
     run_results = _iter_cadence_results(cadence_payloads)
     if not run_results:
@@ -206,6 +206,8 @@ def _build_payload(
 
     summary = _summarize_batch(videos, cadence_payloads)
     timestamp = capture_timestamp or _latest_run_complete_utc(cadence_payloads) or _utc_now_iso()
+    staging_contract_summary = _summarize_contracts(grid_payload, cadence_payloads)
+    staging_contract_summary["superseded_failures"] = superseded_failures
     payload: JsonObject = {
         "capture_schema_version": TIKTOK_BATCH_CAPTURE_SCHEMA_VERSION,
         "platform": "tiktok",
@@ -216,7 +218,7 @@ def _build_payload(
         "capture_timestamp": timestamp,
         "decision_question": decision_question,
         "source_file_receipts": [_normalize_source_receipt(receipt) for receipt in source_file_receipts],
-        "staging_contract_summary": _summarize_contracts(grid_payload, cadence_payloads),
+        "staging_contract_summary": staging_contract_summary,
         "batch_summary": summary,
         "videos": videos,
         "non_claims": list(TIKTOK_BATCH_NON_CLAIMS),
@@ -615,7 +617,9 @@ def _summarize_batch(videos: Sequence[JsonObject], cadence_payloads: Sequence[Js
     }
 
 
-def _validate_staging_contracts(grid_payload: JsonObject, cadence_payloads: Sequence[JsonObject]) -> None:
+def _validate_staging_contracts(
+    grid_payload: JsonObject, cadence_payloads: Sequence[JsonObject]
+) -> list[JsonObject]:
     contracts = [_as_dict(grid_payload.get("capture_contract"))]
     contracts.extend(_as_dict(payload.get("capture_contract")) for payload in cadence_payloads)
     forbidden_true = (
@@ -644,6 +648,9 @@ def _validate_staging_contracts(grid_payload: JsonObject, cadence_payloads: Sequ
             if contract.get(key) is not True:
                 raise ValueError(f"capture_contract[{index}] must indicate {key}=true")
 
+    superseded_failures, unsuperseded_by_payload = _classify_cadence_failures(
+        cadence_payloads
+    )
     for index, payload in enumerate(cadence_payloads):
         challenge_count = _first_int(payload.get("challenge_count"), 0) or 0
         if challenge_count:
@@ -651,9 +658,11 @@ def _validate_staging_contracts(grid_payload: JsonObject, cadence_payloads: Sequ
                 f"cadence_result_json[{index}] challenge_count={challenge_count} cannot be admitted"
             )
         failures = _as_list(payload.get("failures"))
-        if failures:
+        unsuperseded_failure_count = unsuperseded_by_payload.get(index, 0)
+        if failures and unsuperseded_failure_count:
             raise ValueError(
                 f"cadence_result_json[{index}] contains {len(failures)} failure entries; "
+                f"{unsuperseded_failure_count} unsuperseded failure entry or entries remain; "
                 "failed cadence cannot be admitted"
             )
         first_failure_reason = _first_str(payload.get("first_failure_reason"))
@@ -690,6 +699,69 @@ def _validate_staging_contracts(grid_payload: JsonObject, cadence_payloads: Sequ
                         f"cadence_result_json[{index}].results[{row_index}]"
                         f".human_challenge_handoff_attempts[{attempt_index}] permits agent challenge solving"
                     )
+    return superseded_failures
+
+
+def _classify_cadence_failures(
+    cadence_payloads: Sequence[JsonObject],
+) -> tuple[list[JsonObject], dict[int, int]]:
+    """Separate explicitly superseded failures from unresolved failures.
+
+    A failure is superseded only when a different cadence receipt carries a
+    strictly later ``run_complete_utc`` and a ``status=completed`` result for
+    the same video id. This keeps the ordinary fail-closed admission rule while
+    allowing split recovery runs to contribute their disjoint completed rows.
+    The returned receipts are sanitized and persisted in the batch payload so
+    the earlier failed attempt remains visible rather than being erased.
+    """
+    completed_runs_by_video: dict[str, list[str]] = {}
+    for payload in cadence_payloads:
+        run_complete_utc = _first_str(payload.get("run_complete_utc"))
+        if run_complete_utc is None:
+            continue
+        for raw_row in _as_list(payload.get("results")):
+            row = _as_dict(raw_row)
+            video_id = _first_str(row.get("video_id"))
+            if video_id and _first_str(row.get("status")) == "completed":
+                completed_runs_by_video.setdefault(video_id, []).append(run_complete_utc)
+
+    superseded: list[JsonObject] = []
+    unsuperseded_by_payload: dict[int, int] = {}
+    for payload_index, payload in enumerate(cadence_payloads):
+        failed_run_complete_utc = _first_str(payload.get("run_complete_utc"))
+        for raw_failure in _as_list(payload.get("failures")):
+            failure = _as_dict(raw_failure)
+            video_id = _first_str(failure.get("video_id"))
+            if video_id is None or failed_run_complete_utc is None:
+                unsuperseded_by_payload[payload_index] = (
+                    unsuperseded_by_payload.get(payload_index, 0) + 1
+                )
+                continue
+            failed_instant = _parse_capture_timestamp(failed_run_complete_utc)
+            later_runs = [
+                run_complete_utc
+                for run_complete_utc in completed_runs_by_video.get(video_id, [])
+                if _parse_capture_timestamp(run_complete_utc) > failed_instant
+            ]
+            if not later_runs:
+                unsuperseded_by_payload[payload_index] = (
+                    unsuperseded_by_payload.get(payload_index, 0) + 1
+                )
+                continue
+            superseding_run_complete_utc = min(
+                later_runs, key=_parse_capture_timestamp
+            )
+            superseded.append(
+                {
+                    "video_id": video_id,
+                    "failure_reason": _first_str(failure.get("reason")),
+                    "failure_observed_utc": _first_str(failure.get("observed_utc")),
+                    "failed_run_complete_utc": failed_run_complete_utc,
+                    "superseding_run_complete_utc": superseding_run_complete_utc,
+                    "superseding_result_status": "completed",
+                }
+            )
+    return superseded, unsuperseded_by_payload
 
 def _summarize_contracts(grid_payload: JsonObject, cadence_payloads: Sequence[JsonObject]) -> JsonObject:
     contracts = [_as_dict(grid_payload.get("capture_contract")), *[_as_dict(payload.get("capture_contract")) for payload in cadence_payloads]]

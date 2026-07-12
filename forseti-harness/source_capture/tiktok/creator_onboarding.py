@@ -31,7 +31,8 @@ from source_capture.tiktok.admission import (
 from source_capture.tiktok.grid_video_selection import build_tiktok_grid_video_selection
 from source_capture.tiktok.live_batch_probe import (
     TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
-    TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS,
+    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
+    TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     TIKTOK_CHALLENGE_TEXT_MARKERS,
     TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
     TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME,
@@ -45,8 +46,8 @@ TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME = "tiktok_suggested_accounts_attempt.json"
 TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
 TIKTOK_ONBOARDING_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
 TIKTOK_ONBOARDING_RECEIPT_JSON_NAME = "tiktok_creator_onboarding_receipt.json"
-DEFAULT_WINDOW_SIZE = 32
-DEFAULT_SELECTION_FRACTION = 0.25
+DEFAULT_WINDOW_SIZE = 30
+DEFAULT_SELECTION_COUNT = 8
 DEFAULT_MAX_GRID_SCROLL_PASSES = 40
 
 TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
@@ -111,7 +112,26 @@ TIKTOK_SUGGESTED_ACCOUNTS_DOM_EXTRACT_SCRIPT = r"""
       });
     }
   }
-  return {suggested_accounts: rows};
+  const externalLinks = [];
+  const seenExternal = new Set();
+  for (const anchor of Array.from(document.querySelectorAll('a[href]'))) {
+    try {
+      const url = new URL(String(anchor.href || anchor.getAttribute('href') || ''), location.href);
+      const host = String(url.hostname || '').toLowerCase();
+      if (!['http:', 'https:'].includes(url.protocol) || !host || host === 'tiktok.com' || host.endsWith('.tiktok.com')) continue;
+      const cleanUrl = url.origin + url.pathname;
+      if (seenExternal.has(cleanUrl)) continue;
+      seenExternal.add(cleanUrl);
+      externalLinks.push({
+        url: cleanUrl,
+        host,
+        display_text_or_none: String(anchor.innerText || anchor.textContent || '').trim() || null
+      });
+    } catch (_error) {
+      continue;
+    }
+  }
+  return {suggested_accounts: rows, profile_external_links: externalLinks};
 }
 """.strip()
 
@@ -149,12 +169,12 @@ def run_tiktok_creator_onboarding(
     output_dir: Path,
     auth_state_root: Path | None = None,
     window_size: int = DEFAULT_WINDOW_SIZE,
-    selection_fraction: float = DEFAULT_SELECTION_FRACTION,
+    selection_count: int = DEFAULT_SELECTION_COUNT,
     timeout_seconds: float = 30.0,
     settle_seconds: float = 2.0,
     max_grid_scroll_passes: int = DEFAULT_MAX_GRID_SCROLL_PASSES,
-    cadence_min_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS,
-    cadence_max_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_GAP_SECONDS,
+    cadence_min_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
+    cadence_max_gap_seconds: float = TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     cadence_window_seconds: float | None = None,
     random_seed: int | None = None,
     engine: BrowserPageObservationEngine | None = None,
@@ -169,6 +189,13 @@ def run_tiktok_creator_onboarding(
         raise TikTokCreatorOnboardingError("TikTok onboarding requires CloakBrowser")
     if isinstance(window_size, bool) or not isinstance(window_size, int) or window_size <= 0:
         raise TikTokCreatorOnboardingError("window_size must be a positive integer")
+    if (
+        isinstance(selection_count, bool)
+        or not isinstance(selection_count, int)
+        or selection_count <= 0
+        or selection_count > window_size
+    ):
+        raise TikTokCreatorOnboardingError("selection_count must be between 1 and window_size")
     if (
         isinstance(max_grid_scroll_passes, bool)
         or not isinstance(max_grid_scroll_passes, int)
@@ -246,6 +273,7 @@ def run_tiktok_creator_onboarding(
             creator_handle=normalized_handle,
             capture=grid_capture,
             window_size=window_size,
+            minimum_window_size=selection_count,
         )
         _write_json(paths.grid_window_json_path, grid_window)
         artifacts_written.append(paths.grid_window_json_path.name)
@@ -253,8 +281,8 @@ def run_tiktok_creator_onboarding(
         stage = "select"
         selection = build_tiktok_grid_video_selection(
             grid_window["items"],
-            expected_item_count=window_size,
-            selection_fraction=selection_fraction,
+            expected_item_count=len(grid_window["items"]),
+            selection_count=selection_count,
         )
         selection["onboarding_binding"] = {
             "creator_handle": normalized_handle,
@@ -334,8 +362,9 @@ def run_tiktok_creator_onboarding(
             "terminal_stage": stage,
             "creator_handle": normalized_handle,
             "session_profile": session_profile.alias,
-            "window_size": window_size,
-            "selection_fraction": selection_fraction,
+            "window_size": len(grid_window["items"]) if "grid_window" in locals() else 0,
+            "window_cap": window_size,
+            "selection_count": selection_count,
             "suggested_accounts_status_or_none": suggested_status,
             "selected_video_ids_in_capture_order": selected_video_ids,
             "selected_count": len(selected_video_ids),
@@ -433,9 +462,18 @@ def build_tiktok_grid_window(
     creator_handle: str,
     capture: BrowserPageObservationSuccess,
     window_size: int,
+    minimum_window_size: int | None = None,
 ) -> dict[str, Any]:
-    """Freeze the first complete N source-visible grid rows."""
+    """Freeze up to the cap while requiring enough rows for selection."""
 
+    required_minimum = window_size if minimum_window_size is None else minimum_window_size
+    if (
+        isinstance(required_minimum, bool)
+        or not isinstance(required_minimum, int)
+        or required_minimum <= 0
+        or required_minimum > window_size
+    ):
+        raise TikTokCreatorOnboardingError("minimum_window_size must be between 1 and window_size")
     dom = capture.dom_observation
     if not isinstance(dom, dict):
         raise TikTokCreatorOnboardingError("grid DOM observation is not an object")
@@ -468,15 +506,17 @@ def build_tiktok_grid_window(
         if len(frozen) == window_size:
             break
 
-    if len(frozen) != window_size:
+    if len(frozen) < required_minimum:
         raise TikTokCreatorOnboardingError(
-            "complete grid window unavailable: "
-            f"required {window_size}, found {len(frozen)} ordered rows with metrics"
+            "usable grid window unavailable: "
+            f"required at least {required_minimum}, found {len(frozen)} ordered rows with metrics"
         )
     receipt = {
         "schema_version": TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION,
         "creator_handle": creator_handle,
-        "window_size": window_size,
+        "window_size": len(frozen),
+        "window_cap": window_size,
+        "minimum_window_size": required_minimum,
         "observed_ordered_video_count": len(ordered_videos),
         "observed_metric_video_count": len(metric_items),
         "complete": True,
@@ -509,19 +549,29 @@ def _build_suggested_accounts_receipt(
             "creator_handle": creator_handle,
             "status": "failed",
             "suggested_accounts": [],
+            "profile_external_links": [],
+            "profile_external_links_status": "failed",
             "failure_kind_or_none": capture.failure_kind.value,
             "non_claims": ["not an exhaustive suggested-account graph"],
         }
     rows: list[dict[str, Any]] = []
+    profile_external_links: list[dict[str, Any]] = []
     if isinstance(capture.dom_observation, dict):
         candidate_rows = capture.dom_observation.get("suggested_accounts")
         if isinstance(candidate_rows, list):
             rows = [row for row in candidate_rows if isinstance(row, dict)]
+        external_rows = capture.dom_observation.get("profile_external_links")
+        if isinstance(external_rows, list):
+            profile_external_links = [
+                row for row in external_rows if isinstance(row, dict)
+            ]
     receipt = {
         "schema_version": TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION,
         "creator_handle": creator_handle,
         "status": "captured" if rows else "blocked_or_empty",
         "suggested_accounts": rows,
+        "profile_external_links": profile_external_links,
+        "profile_external_links_status": "captured" if profile_external_links else "none_visible",
         "attempt_receipt": {
             "view_all_action": capture.metadata.get("post_load_pointer_action"),
             "view_all_actions": capture.metadata.get("post_load_pointer_actions"),
@@ -703,7 +753,7 @@ def _normalize_handle(handle: str) -> str:
 
 __all__ = [
     "DEFAULT_MAX_GRID_SCROLL_PASSES",
-    "DEFAULT_SELECTION_FRACTION",
+    "DEFAULT_SELECTION_COUNT",
     "DEFAULT_WINDOW_SIZE",
     "TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION",
     "TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME",
