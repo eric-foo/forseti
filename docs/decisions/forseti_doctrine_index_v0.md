@@ -50,6 +50,7 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 | Decision Routing Doctrine | decision-routing.md | Cynefin pre-planning regime routing for non-trivial work |
 | Prompt Orchestration Doctrine | prompt-orchestration.md | Prompt families, output modes |
 | Review Lanes Doctrine | review-lanes.md | Review lanes, reviewer permissions |
+| Decision-Gate Economics Pilot (TEMPORARY) | batch1-decision-gate-economics.md | Non-mandatory deep-thinking, assumption-gate, and fused ENTRY evidence ledger; bounded closeout and retirement |
 | Communication style | communication-style.md | Response style, chat topology |
 | Template registry | template-registry.md | Prompt template registry |
 | Product-proof semantics | product-proof.md | Buyer-proof definitions, non-claims |
