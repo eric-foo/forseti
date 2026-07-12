@@ -10,6 +10,7 @@ from runners.run_source_capture_tiktok_grid_video_selection import (
 )
 from source_capture.tiktok.grid_video_selection import (
     TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION,
+    TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION,
     TikTokGridVideoSelectionError,
     build_tiktok_grid_video_selection,
 )
@@ -350,4 +351,34 @@ def test_selection_fraction_rejects_invalid_values(fraction: object) -> None:
             [_item("one", 100, 10)],
             expected_item_count=1,
             selection_fraction=fraction,  # type: ignore[arg-type]
+        )
+
+
+def test_fixed_selection_count_is_recorded_and_applied() -> None:
+    items = [
+        _item(str(index), 1_000 - index * 10, 100 - index)
+        for index in range(10)
+    ]
+
+    selection = build_tiktok_grid_video_selection(
+        items, expected_item_count=10, selection_count=8
+    )
+
+    assert selection["selection_policy"]["selection_mode"] == "fixed_count"
+    assert (
+        selection["selection_policy"]["policy_version"]
+        == TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION
+    )
+    assert selection["selection_policy"]["selection_fraction"] is None
+    assert selection["selection_policy"]["configured_selection_count_or_none"] == 8
+    assert selection["selection_summary"]["selection_count"] == 8
+
+
+@pytest.mark.parametrize("selection_count", [0, -1, 11, True, 1.5])
+def test_fixed_selection_count_rejects_invalid_values(selection_count: object) -> None:
+    with pytest.raises(TikTokGridVideoSelectionError, match="selection_count"):
+        build_tiktok_grid_video_selection(
+            [_item(str(index), 100 - index, 10) for index in range(10)],
+            expected_item_count=10,
+            selection_count=selection_count,  # type: ignore[arg-type]
         )

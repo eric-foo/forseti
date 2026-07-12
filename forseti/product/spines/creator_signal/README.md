@@ -49,15 +49,15 @@ Binding authority:
 | Path | Role |
 | --- | --- |
 | `creator_intelligence_profile_surface_v0.md` | First product surface contract for the one-stop creator intelligence profile. |
-| `aphrodite_carveout_charter_v0.md` | Carveout charter: Aphrodite identity stitch, phase strategy, two-layer moat doctrine, Vetting Sprint offer, decision register (owner-ratified direction, 2026-07-04). |
+| `aphrodite_carveout_charter_v0.md` | Ratified Aphrodite product spine, including the 2026-07-12 amendment: accountable human Signals judgment, reopened first-unit decision, independent Studio lane, and strategic raw-registry export boundary. |
 | `aphrodite_derived_claim_provenance_contract_v0.md` | Display/claim-language contract: derived (LLM-extracted) creator claims must carry derivation provenance to be shown; discharges charter pre-build gate 1. |
 | `aphrodite_vetting_sprint_panel_design_v0.md` | Adjudicated five-panel display design (2026-07-05, Mini God Tier): fit matrix (no composite score), dupe-space roll-up rule, buyer-segment lead variants, gameability countermeasures, accepted residuals. Display target for the depth-layer build and the D-1 dress rehearsal. |
-| `aphrodite_b2b_outreach_motion_design_v0.md` | B2B outreach MOTION design for the first paid Vetting Sprints: targeting (creator-native indie/DTC first), the demonstrating public-info-only first-touch (medium-is-moat), the qualify/kill bar (consumed grammar), and the Phase-0 designed-not-sent boundary. Applies charter doctrine; not itself ratified; no outreach authorized. |
+| `aphrodite_b2b_outreach_motion_design_v0.md` | Candidate B2B outreach motion for paid Vetting Sprints; no longer the exclusive first commercial unit. Phase-0 designed-not-sent; no outreach authorized. |
 | `aphrodite_depth_capture_tos_risk_sanity_check_v0.md` | Gate check: depth capture sits inside the accepted source-access boundary/measured-risk posture; discharges charter pre-build gate 2 (commercial-use flag carried to Phase 1). |
-| `aphrodite_breakout_acceleration_mgt_sci_adjudication_v0.md` | MGT/SCI adjudication of the ChatGPT Pro acceleration memo: accepts acceleration only as a validation-gated internal watchlist target, rejects anomaly-platform/customer-score/outreach drift, and names accepted residuals before the validation-spec pass. |
+| `aphrodite_breakout_acceleration_mgt_sci_adjudication_v0.md` | Acceleration validation target plus 2026-07-12 human-forecast amendment: automated scores/calibration remain gated; accountable analysts may make evidence-backed breakout forecasts. |
 | `creator_signal_product_architecture_v0.md` | Pre-ratification product architecture plan for the Creator Signal carve-out and Vetting v0 first increment. |
 | `creator_signal_market_sizing_v0.md` | Internal rough TAM/SAM/SOM market-sizing estimate for the Creator Signal carve-out (not demand validation or buyer proof). |
-| `aphrodite_growth_strategy_map_v0.md` | EXPLORATORY growth/monetization strategy map + design-lane index (not ratified; the charter is the spine): two-company architecture, buyer ladder, corpus/domination sizing, capture/media scope, no-registry-dump rule. |
+| `aphrodite_growth_strategy_map_v0.md` | Growth/monetization map + lane index routing the ratified independent Signals/Studio split and strategic raw-registry transaction boundary back to the charter; remaining items stay exploratory. |
 | `aphrodite_research_engine_gtm_design_v0.md` | EXPLORATORY own-growth GTM design: how Forseti points the CSB→capture→creator_signal engine at its own go-to-market — outreach-input depth, SEO, AEO (earn-don't-fabricate; channel-not-demand-evidence seam), CreatorIQ outside-in CI, and inbound→§7-gate accelerator. Applies ratified doctrine; Phase-0 designed-not-executed. |
 | `creator_signal_multi_creator_library_surface_v0.md` | Product-facing display contract for the multi-creator Creator Signal Library surface. |
 | `creator_signal_multi_creator_library_static_projection_v0.md` | Static, source-backed Markdown projection of the Creator Signal Library over committed creator_profile_current rows. |
@@ -71,10 +71,14 @@ and update the binding/route surfaces at the same time.
 Capture owns the current view and record mechanics. Creator Signal owns how that
 view becomes a product experience.
 
-The spine must inherit the Capture `Dashboard Boundary`: no contact/outreach, no
-lead-list export, no public person-level directory, no legal-name/person-identity
-proof, no follower graph, no actual-audience demographics without a later schema
-and data gate, and no unstamped/sourceless/LLM-only influence claims.
+The spine must inherit the Capture `Dashboard Boundary`: no unauthorized
+Signals contact/outreach, no unapproved lead-list or registry export, no public
+person-level directory, no legal-name/person-identity proof, no follower graph,
+no actual-audience demographics without a later schema and data gate, and no
+unstamped/sourceless/LLM-only influence claims. The charter's 2026-07-12
+amendment permits an exceptional owner-approved private raw-registry
+transaction under explicit strategic price, use, redistribution, and rights
+terms.
 
 ## Non-claims
 
