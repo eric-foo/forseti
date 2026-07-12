@@ -178,6 +178,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 ),
                 grid_result_json=paths.live_grid_json_path.read_bytes(),
                 cadence_result_jsons=[paths.live_cadence_json_path.read_bytes()],
+                grid_window_json=paths.grid_window_json_path.read_bytes(),
+                selection_result_json=paths.selection_json_path.read_bytes(),
                 output_directory=args.admit_output if data_root is None else None,
                 data_root=data_root,
                 decision_question=args.decision_question,
@@ -186,6 +188,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                     _source_receipt(paths.live_grid_json_path, "grid_result_json"),
                     _source_receipt(
                         paths.live_cadence_json_path, "cadence_result_json_1"
+                    ),
+                    _source_receipt(
+                        paths.grid_window_json_path, "grid_window_json"
+                    ),
+                    _source_receipt(
+                        paths.selection_json_path, "selection_result_json"
                     ),
                 ],
             )
