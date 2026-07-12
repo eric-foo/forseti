@@ -20,6 +20,8 @@ def run_source_capture_tiktok_batch_packet(
     creator_profile_url: str,
     grid_result_json_path: Path,
     cadence_result_json_paths: Sequence[Path],
+    grid_window_json_path: Path | None = None,
+    selection_result_json_path: Path | None = None,
     output_directory: Path | None = None,
     data_root=None,
     decision_question: str,
@@ -32,11 +34,19 @@ def run_source_capture_tiktok_batch_packet(
 
     grid_bytes = grid_result_json_path.read_bytes()
     cadence_bytes = [path.read_bytes() for path in cadence_result_json_paths]
+    grid_window_bytes = grid_window_json_path.read_bytes() if grid_window_json_path else None
+    selection_bytes = selection_result_json_path.read_bytes() if selection_result_json_path else None
     receipts = [_source_receipt(grid_result_json_path, grid_bytes, "grid_result_json")]
     receipts.extend(
         _source_receipt(path, raw, f"cadence_result_json_{index + 1}")
         for index, (path, raw) in enumerate(zip(cadence_result_json_paths, cadence_bytes, strict=True))
     )
+    if grid_window_json_path is not None and grid_window_bytes is not None:
+        receipts.append(_source_receipt(grid_window_json_path, grid_window_bytes, "grid_window_json"))
+    if selection_result_json_path is not None and selection_bytes is not None:
+        receipts.append(
+            _source_receipt(selection_result_json_path, selection_bytes, "selection_result_json")
+        )
 
     return write_tiktok_batch_packet(
         creator_handle=creator_handle,
@@ -44,6 +54,8 @@ def run_source_capture_tiktok_batch_packet(
         grid_result_json=grid_bytes,
         cadence_result_jsons=cadence_bytes,
         output_directory=output_directory,
+        grid_window_json=grid_window_bytes,
+        selection_result_json=selection_bytes,
         data_root=data_root,
         decision_question=decision_question,
         batch_label=batch_label,
@@ -68,6 +80,16 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     target = parser.add_mutually_exclusive_group(required=False)
     target.add_argument("--output", type=Path, default=None)
+    parser.add_argument(
+        "--grid-window-json",
+        type=Path,
+        help="Complete supervised-onboarding grid window; requires --selection-result-json.",
+    )
+    parser.add_argument(
+        "--selection-result-json",
+        type=Path,
+        help="Selection receipt bound to --grid-window-json; requires --grid-window-json.",
+    )
     target.add_argument(
         "--data-root",
         default=None,
@@ -103,6 +125,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             creator_profile_url=args.creator_profile_url,
             grid_result_json_path=args.grid_result_json,
             cadence_result_json_paths=args.cadence_result_json,
+            grid_window_json_path=args.grid_window_json,
+            selection_result_json_path=args.selection_result_json,
             output_directory=args.output if data_root is None else None,
             data_root=data_root,
             decision_question=args.decision_question,
