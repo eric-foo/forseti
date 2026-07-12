@@ -19,10 +19,11 @@ from source_capture.adapters.browser_snapshot import (
     BrowserPagePointerAction,
     BrowserPageResponse,
     BrowserSnapshotFailure,
-    CloakBrowserPageObservationSessionEngine,
+    ChromeCdpPageObservationSessionEngine,
     fetch_browser_page_observation_capture,
 )
 from source_capture.auth_state import validate_auth_state_provenance_requirement
+from source_capture.browser_user_data import browser_user_data_path_for_label
 from source_capture.session_profiles import SourceCaptureSessionProfile
 from source_capture.tiktok.admission import (
     assert_no_sensitive_tiktok_material,
@@ -30,7 +31,7 @@ from source_capture.tiktok.admission import (
 )
 from source_capture.tiktok.grid_video_selection import build_tiktok_grid_video_selection
 from source_capture.tiktok.live_batch_probe import (
-    TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+    TIKTOK_BROWSER_BACKEND_CHROME_CDP,
     TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
     TIKTOK_CHALLENGE_TEXT_MARKERS,
@@ -168,6 +169,7 @@ def run_tiktok_creator_onboarding(
     session_profile: SourceCaptureSessionProfile,
     output_dir: Path,
     auth_state_root: Path | None = None,
+    browser_user_data_root: Path | None = None,
     window_size: int = DEFAULT_WINDOW_SIZE,
     selection_count: int = DEFAULT_SELECTION_COUNT,
     timeout_seconds: float = 30.0,
@@ -185,8 +187,8 @@ def run_tiktok_creator_onboarding(
     normalized_handle = _normalize_handle(creator_handle)
     if session_profile.platform != "tiktok":
         raise TikTokCreatorOnboardingError("session profile platform must be tiktok")
-    if session_profile.browser_backend != TIKTOK_BROWSER_BACKEND_CLOAKBROWSER:
-        raise TikTokCreatorOnboardingError("TikTok onboarding requires CloakBrowser")
+    if session_profile.browser_backend != TIKTOK_BROWSER_BACKEND_CHROME_CDP:
+        raise TikTokCreatorOnboardingError("TikTok onboarding requires Chrome CDP")
     if isinstance(window_size, bool) or not isinstance(window_size, int) or window_size <= 0:
         raise TikTokCreatorOnboardingError("window_size must be a positive integer")
     if (
@@ -217,18 +219,34 @@ def run_tiktok_creator_onboarding(
     paths = _output_paths(output_dir)
     profile_url = f"https://www.tiktok.com/@{normalized_handle}"
     owned_engine = engine is None
-    observation_engine = engine or CloakBrowserPageObservationSessionEngine(
-        cloakbrowser_humanize=False,
-        human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
-        human_challenge_handoff_timeout_seconds=180.0,
-        human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
-    )
+    if engine is None:
+        if session_profile.browser_user_data_label is None:
+            raise TikTokCreatorOnboardingError(
+                "TikTok onboarding requires a retained browser_user_data_label"
+            )
+        user_data_dir = browser_user_data_path_for_label(
+            session_profile.browser_user_data_label,
+            user_data_root=browser_user_data_root,
+        )
+        if not user_data_dir.is_dir() or not any(user_data_dir.iterdir()):
+            raise TikTokCreatorOnboardingError(
+                "retained browser profile is missing or empty; bootstrap it manually before onboarding"
+            )
+        observation_engine = ChromeCdpPageObservationSessionEngine(
+            human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
+            human_challenge_handoff_timeout_seconds=180.0,
+            human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
+        )
+    else:
+        observation_engine = engine
 
     stage = "acquire_session"
     status = "failed"
     error: str | None = None
     close_error: str | None = None
     selected_video_ids: list[str] = []
+    challenge_count = 0
+    human_challenge_handoff_count = 0
     completed_count = 0
     suggested_status: str | None = None
     artifacts_written: list[str] = []
@@ -330,6 +348,14 @@ def run_tiktok_creator_onboarding(
         artifacts_written.append(paths.live_grid_json_path.name)
         _write_json(paths.live_cadence_json_path, deep_capture["cadence_result"])
         artifacts_written.append(paths.live_cadence_json_path.name)
+        challenge_count = int(
+            deep_capture["cadence_result"].get("challenge_count", 0)
+        )
+        human_challenge_handoff_count = int(
+            deep_capture["cadence_result"].get(
+                "human_challenge_handoff_count", 0
+            )
+        )
         completed_count = int(deep_capture["cadence_result"]["completed_count"])
         status = (
             "complete"
@@ -368,6 +394,8 @@ def run_tiktok_creator_onboarding(
             "suggested_accounts_status_or_none": suggested_status,
             "selected_video_ids_in_capture_order": selected_video_ids,
             "selected_count": len(selected_video_ids),
+            "challenge_count": challenge_count,
+            "human_challenge_handoff_count": human_challenge_handoff_count,
             "completed_deep_capture_count": completed_count,
             "artifacts_written": artifacts_written,
             "browser_lifecycle": (
@@ -414,7 +442,7 @@ def _capture_suggested_accounts(
         settle_seconds=settle_seconds,
         storage_state_path=storage_state_path,
         headless=False,
-        browser_backend=TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+        browser_backend=TIKTOK_BROWSER_BACKEND_CHROME_CDP,
         human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         human_challenge_handoff_timeout_seconds=180.0,
         human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
@@ -449,7 +477,7 @@ def _capture_creator_grid(
         dom_extract_after_lazy_load=True,
         storage_state_path=storage_state_path,
         headless=False,
-        browser_backend=TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+        browser_backend=TIKTOK_BROWSER_BACKEND_CHROME_CDP,
         human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
         human_challenge_handoff_timeout_seconds=180.0,
         human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,

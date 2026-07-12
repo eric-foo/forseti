@@ -23,6 +23,9 @@ _CHALLENGE_MARKERS = (
     "too many attempts",
     "maximum number of attempts",
     "unusual traffic",
+    "your account might be at risk",
+    "account might be at risk",
+    "log in to comment",
 )
 _BENIGN_OVERLAY_MARKERS = (
     "open app",
@@ -237,6 +240,10 @@ def _contains_any(text: str, markers: tuple[str, ...]) -> bool:
 
 
 def _challenge_kind_from_text(haystack: str) -> str:
+    if "account might be at risk" in haystack:
+        return "account_risk"
+    if "log in to comment" in haystack:
+        return "logged_out_or_auth_wall"
     if "drag the slider" in haystack:
         return "slider"
     if "captcha" in haystack:
