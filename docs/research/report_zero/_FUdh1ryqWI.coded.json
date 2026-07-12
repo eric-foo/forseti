@@ -1,0 +1,51 @@
+{
+  "video_id": "_FUdh1ryqWI",
+  "record_provenance": {"video_input_hash": "d241bfca0737bb5ddad0fb4979cb8dd0c16dc70ddc745f30f777d91aa7b5ff0a", "transcript_hash": "2178e73387e9faf13072daa4c7743d620c81c15ee37a231a02c751e5761a03bd", "watch_metadata_hash": "3a9a60105f8c83d248a55d18464b45666cc03c02819f4e2ae494adc2682b5de5", "comments_hash": "b983c1c3d05a6c2901d8840620315d5f128985a6991f5ac85467f8060a5cff74", "input_content_hash": "d241bfca0737bb5ddad0fb4979cb8dd0c16dc70ddc745f30f777d91aa7b5ff0a", "extraction_model": "claude-fable-5", "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1", "extraction_timestamp": "2026-07-09T18:38:40Z/2026-07-10T03:52:00Z (run window; per-file wall times not separately recorded — run-log receipt)", "receipt_ref_convention": "bare @ms / @start-end refs and comment refs cNN in this record are scoped to this record's video_id; the provenance fields in this block apply to every claim entry in this record (round-1 patch, AR-01)"},
+  "title": "NEW Ahmed Al Maghribi Kaaf Noir - Best Clone Release Of The Year?!",
+  "video_class": {"value": "review", "subtype": "single_product_clone_review", "receipt": "_FUdh1ryqWI@7560-12800 'a new fragrance that's getting a good amount of hype named K[aaf] Noir by Ahmed Al Maghribi'", "fragrance_topical": true, "confidence": "high"},
+  "views": 36307, "likes": 1338, "publish_date": "2026-06-24", "total_comments": 112,
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:creed.aventus", "kind": "dupe_target_comparative", "stance": "neutral_mention", "receipts": ["_FUdh1ryqWI@304920-307480 'has Absolute Aventus or Aventus or any kind of Aventus aspect to it' (the general-Aventus half of the cue)", "@699640-703040 'this is like 90% this [K] and 10% that [Aventus], if that'", "@814800-819960 'if there was more Aventus than K, I think that would have been a more interesting proposal'"], "note": "clone-TARGET-SELECTION adjudication around intake original #1 — the creator grades WHICH original the clone house should have chased (the exact clone-house buyer decision the fit panel serves)"},
+      {"product_id": "product:creed.aventus-absolu", "kind": "dupe_target_comparative", "stance": "neutral_mention", "receipts": ["_FUdh1ryqWI@242560-247520 'those two fragrances are K Eau de Parfum and Absolute Aventus'", "@304920-307480 'has Absolute Aventus or Aventus or any kind of Aventus aspect to it' (the Absolu half of the cue)"], "resolution_note": "'Absolute Aventus' has its own reference entry — resolved to the most specific covering entry; entry split from the general-Aventus receipts above (granularity rule, round-1 adjudication)"},
+      {"product_id": "product:chanel.bleu-de-chanel", "kind": "preference_comparative", "stance": "neutral_mention", "receipt": "@646640-653520 'I would take Dylan Blue over it, Bleu de Chanel over it, Sauvage, Y, any day of the week over any of the K fragrances'"},
+      {"product_id": "product:dior.sauvage", "kind": "preference_comparative", "stance": "neutral_mention", "receipt": "_FUdh1ryqWI@648240 'I would take Dylan Blue over it, Bleu de Chanel over it, Sauvage, Y, any day of the week over any of the K fragrances' (same cue as the bleu-de-chanel entry)"},
+      {"product_id": "product:ysl.y-eau-de-parfum", "kind": "preference_comparative", "stance": "neutral_mention", "receipt": "_FUdh1ryqWI@648240 'I would take Dylan Blue over it, Bleu de Chanel over it, Sauvage, Y, any day of the week over any of the K fragrances' (bare 'Y', confidence medium)"}
+    ],
+    "clone_subject_unresolved": {"surface": "Kaaf Noir (Ahmed Al Maghribi) — house named in ontology header's excluded-pending-source tail", "stance": "mixed_comparative", "receipt": "@788920-793040 'K Eau de Parfum is not really the most interesting thing out there... where's the absolute Aventus? Not really getting a lot of that' + @726200-742920 'if you love K, you're set up... projection, longevity... for a lower price point, absolutely sick'", "price": "$45 Perfume Box, ~$40 w/ code; eBay scalpers $109 'want to barf... Don't pay those prices ever' @161000-182880"},
+    "clone_strategy_textures": [
+      {"note": "hybridization satire: 'we're getting bored directly cloning... we want to be seen as more than just a clone house... we're going to clone two fragrances at once' @219520-233120"},
+      {"note": "clone-target critique precedent: 'when Armaf did Club de Nuit Urban Man... a dupe of Mr. Burberry EDP. It was like, who asked for this?' @708160-720280 — creator adjudicates clone-house target-selection decisions"}
+    ]
+  },
+  "disclosure": {
+    "class": "gifted-PR-candidate", "confidence": "medium-high",
+    "receipts": [
+      "transcript @12800-23800 'this one actually came to me from the perfume box. So shout out to them. It's linked in the description... you can use this code to save yourself money' — RETAILER-SUPPLIED product + same retailer's affiliate code (first gifted-candidate in corpus)",
+      "short_description: Kaaf Noir + Kaaf affiliate links + self-brand 'ARASHI REEF & FRENCH QUARTER 25% OFF' + Jomashop codes",
+      "paid_content_overlay: not_captured"
+    ],
+    "note": "affiliate-or-self-brand elements also present; gifted-candidate is the strongest per-video class per recipe enum (ambiguity carried per the gifted_invite_candidate rule)"
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "single-product clone review; heavy ownership discourse (~15/40)",
+    "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 2, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 1, "owned_no_creator_causality": 15, "none": 21},
+    "intent_refs": {
+      "bought_because_of_creator": ["c03 'because of your vid with your wife I got 9pm night' (5 likes) — SECOND wife-format conversion, product from a prior video"],
+      "where_to_buy": ["c36 'where I can buy Hawas Verde online?'", "c24 'prime day fragrance deals... Anything remotely worthwhile value-wise?'"],
+      "future_buy_watchlist": ["c25 'Under 40 on Amazon I think I may be getting it on friday'"]
+    },
+    "owned_refs": ["c06","c09","c12","c14","c15","c17","c18","c20","c21","c26","c28","c33","c35","c38","c40"],
+    "decision_gating_evidence": [{"ref": "c07", "note": "'thank you for your review you saved me buying this and i purposely waited for you to rate it or review to make a decision' — the review IS the purchase gate; avoided-purchase = decision influence (strongest decision-value class; not a purchase label)"}, {"ref": "c28", "note": "'I wish you had done this review a couple of months ago before I bought it' — review-timing regret, same decision-value"}],
+    "notable_textures": [
+      {"ref": "c16", "note": "TOP (36 likes): 'Kaaf means the letter K in Arabic' — clone naming-strategy insight"},
+      {"ref": "c04", "note": "16 likes, giveaway winner from Japan: 'clone fragrances are difficult to get in Japan and we don't have a discounter here. Would've cost like $160' — international clone-access friction"},
+      {"ref": "c05", "note": "5 likes: 'The arabic names are getting harder to remember and search' — DISCOVERY/SEARCH FRICTION (ontology-relevant)"},
+      {"refs": ["c10","c13","c37"], "note": "house-line crowd knowledge: review requests for Ma'nai ('basically the same — confusing'), Ghaf; 'They have Gaaf cloning Bois Imperial' — crowd dupe-mapping"},
+      {"ref": "c29", "note": "'K has been cloned quite a bit so it must be popular or maybe easy to clone' — audience infers demand from clone frequency"},
+      {"ref": "c32", "note": "'This is like a 12 months old Perfume ash. There are 2 different flankers that came after this' — coverage-lag critique"},
+      {"ref": "c40", "note": "negative own-verdict: 'dry down on skin for me is just a lavender detergent so try before you buy'"}
+    ],
+    "top_comment_concentration": "c01 (75, greeting) + c16 (36, naming) + c04 (16, giveaway) — liked support on meta, ownership verdicts mid-liked (c20: 14)"
+  }
+}
