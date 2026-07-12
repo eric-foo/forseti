@@ -1,17 +1,18 @@
 """Batched, daemon-ready TikTok subtitle audience-evidence runner."""
 from __future__ import annotations
-import json, sys
+import hashlib, json, sys
 from pathlib import Path
 from typing import Any, Mapping
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from cleaning.tiktok_audience_evidence_extractor import AudienceTranscript, RUBRIC_VERSION, extract_batch, pack_transcripts
-from cleaning.tiktok_audience_evidence_lake import AUDIENCE_EVIDENCE_LANE, AUDIENCE_EVIDENCE_SET_LANE, audience_record_id, write_result
+from cleaning.tiktok_audience_evidence_extractor import AudienceTranscript, RUBRIC_VERSION, extract_batch, pack_transcripts, synthesize_profiles
+from cleaning.tiktok_audience_evidence_lake import AUDIENCE_EVIDENCE_LANE, AUDIENCE_EVIDENCE_SET_LANE, AUDIENCE_PROFILE_SET_LANE, audience_record_id, write_profile, write_result
 from data_lake.consumption import append_ack, pickup, reconcile_availability_per_packet
 from runners.run_tiktok_product_extract import _transcripts_for_packet
 from source_capture.tiktok.batch_packet import TIKTOK_BATCH_CAPTURE_JSON_NAME
+from schemas.tiktok_audience_evidence_models import TikTokAudienceEvidence
 
 _ACK_NAMESPACE = AUDIENCE_EVIDENCE_LANE
 
@@ -54,13 +55,14 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
     pickup_items = list(pickup(data_root, ack_namespace=_ACK_NAMESPACE,
                                obligation_fn=lambda pid: _obligation(data_root, pid, model),
                                source_family="tiktok", reconcile=False))
-    states = {item.raw_anchor: {"item": item, "complete": True, "evidence": []} for item in pickup_items}
+    states = {item.raw_anchor: {"item": item, "complete": True, "evidence": [], "rows": [], "record_refs": [], "creator": None} for item in pickup_items}
     pending: list[AudienceTranscript] = []
     for pickup_item in pickup_items:
         packet_id = pickup_item.raw_anchor
         state = states[packet_id]
         try:
             creator = _creator_id(data_root, packet_id)
+            state["creator"] = creator
             transcripts, failures = _transcripts_for_packet(data_root, packet_id)
             if failures:
                 results.extend(failures)
@@ -74,6 +76,11 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
                                                     record_id=rid, completion_lane=AUDIENCE_EVIDENCE_SET_LANE):
                     results.append({"packet_id": packet_id, "creator_id": creator, "video_id": transcript.video_id, "status": "skipped_done"})
                     state["evidence"].append(marker)
+                    record_path = data_root.record_path(subtree="derived", raw_anchor=packet_id, lane=AUDIENCE_EVIDENCE_LANE, record_id=rid)
+                    body = record_path.read_bytes()
+                    stored = json.loads(body.decode("utf-8"))
+                    state["rows"].extend(TikTokAudienceEvidence.model_validate(row) for row in stored.get("evidence", []))
+                    state["record_refs"].append((rid, hashlib.sha256(body).hexdigest()))
                 elif data_root.record_path(subtree="derived", raw_anchor=packet_id,
                                            lane=AUDIENCE_EVIDENCE_LANE, record_id=rid).exists():
                     results.append({"packet_id": packet_id, "creator_id": creator, "video_id": transcript.video_id, "status": "partial_needs_cleanup"})
@@ -105,6 +112,10 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
             try:
                 rid = audience_record_id(item, model)
                 paths = write_result(data_root=data_root, item=item, result=extracted[key], model=model)
+                member_path = next(path for lane, path in paths.items() if lane == AUDIENCE_EVIDENCE_LANE)
+                member_body = member_path.read_bytes()
+                state["rows"].extend(extracted[key].evidence)
+                state["record_refs"].append((rid, hashlib.sha256(member_body).hexdigest()))
                 state["evidence"].append({"kind": "record_set_complete", "completion_lane": AUDIENCE_EVIDENCE_SET_LANE,
                                           "record_id": rid, "video_id": item.transcript.video_id})
                 results.append({"packet_id": item.transcript.transcript_anchor, "creator_id": item.creator_id,
@@ -118,6 +129,44 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
 
     for batch in pack_transcripts(pending, max_input_chars=max_input_chars):
         process(batch)
+
+    # Profile synthesis is per capture packet, but packets with distinct creators share
+    # one call. Repeated captures of the same creator are placed in separate call groups.
+    profile_groups: list[list[tuple[str, dict[str, Any]]]] = []
+    for packet_id, state in states.items():
+        if not state["complete"] or not state["rows"]:
+            continue
+        placed = False
+        for group in profile_groups:
+            if all(other["creator"] != state["creator"] for _pid, other in group):
+                group.append((packet_id, state)); placed = True; break
+        if not placed:
+            profile_groups.append([(packet_id, state)])
+    for group in profile_groups:
+        evidence_by_creator = {state["creator"]: state["rows"] for _pid, state in group}
+        try:
+            profiles = synthesize_profiles(evidence_by_creator=evidence_by_creator, transport=transport,
+                                           provider=provider, model=model, api_key=api_key, max_tokens=max_tokens)
+        except Exception as exc:
+            for packet_id, state in group:
+                state["complete"] = False
+                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_failed",
+                                "error": f"{type(exc).__name__}: {exc}"[:250]})
+            continue
+        for packet_id, state in group:
+            try:
+                paths = write_profile(data_root=data_root, raw_anchor=packet_id,
+                                      profile=profiles[state["creator"]], model=model,
+                                      evidence_records=state["record_refs"])
+                profile_record_id = next(iter(paths.values())).name
+                state["evidence"].append({"kind": "record_set_complete", "completion_lane": AUDIENCE_PROFILE_SET_LANE,
+                                          "record_id": profile_record_id})
+                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_extracted",
+                                "primary_hypothesis": profiles[state["creator"]].primary_hypothesis})
+            except Exception as exc:
+                state["complete"] = False
+                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_failed",
+                                "error": f"{type(exc).__name__}: {exc}"[:250]})
 
     for packet_id, state in states.items():
         if state["complete"]:

@@ -64,6 +64,8 @@ LANE_ROLES: dict[str, LaneRole] = {
     "silver__cleaning__product_mentions__set": LaneRole.SILVER_LINEAGE,
     "silver__cleaning__tiktok_audience_evidence": LaneRole.SILVER_LINEAGE,
     "silver__cleaning__tiktok_audience_evidence__set": LaneRole.SILVER_LINEAGE,
+    "silver__cleaning__tiktok_audience_profile": LaneRole.SILVER_LINEAGE,
+    "silver__cleaning__tiktok_audience_profile__set": LaneRole.SILVER_LINEAGE,
     "silver__capture__audience_comments": LaneRole.SILVER_LINEAGE,
     "silver__capture__reel_transcript": LaneRole.SILVER_LINEAGE,
     "silver__capture__reel_deep_capture__set": LaneRole.SILVER_LINEAGE,

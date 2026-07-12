@@ -93,6 +93,12 @@
     {
       "a2_fork_impact": "none",
       "call": "append_record_set",
+      "count": 2,
+      "module": "cleaning/tiktok_audience_evidence_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record_set",
       "count": 1,
       "module": "cleaning/transcript_product_lake.py"
     },
@@ -203,6 +209,18 @@
       "call": "lane_dir",
       "count": 1,
       "module": "runners/run_sov_extraction_quality_eval.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 1,
+      "module": "runners/run_tiktok_audience_evidence_extract.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 2,
+      "module": "runners/run_tiktok_audience_evidence_extract.py"
     },
     {
       "a2_fork_impact": "none",

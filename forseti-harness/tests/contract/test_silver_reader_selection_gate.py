@@ -50,6 +50,10 @@ _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
         "product-extraction writer checks one deterministic mention record id "
         "for completion or a crash-partial collision; it does not select among siblings"
     ),
+    "runners/run_tiktok_audience_evidence_extract.py": (
+        "audience-evidence writer checks one deterministic evidence record id for "
+        "completion or crash-partial recovery; it does not select among siblings"
+    ),
     "source_capture/ig_reels_grid_projection.py": (
         "projection writer checks exact bronze-catalog proof paths while appending "
         "stable derived records"

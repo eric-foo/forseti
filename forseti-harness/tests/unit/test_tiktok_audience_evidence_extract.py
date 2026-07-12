@@ -52,6 +52,15 @@ def test_runner_batches_two_creators_in_one_call_and_second_cycle_zero(tmp_path)
         def post_json(self, url, headers, body, timeout_seconds):
             self.calls += 1
             prompt = body["input"]
+            if "primary_hypothesis" in prompt:
+                profiles = []
+                if "tiktok:@alpha" in prompt:
+                    evidence_id = json.loads(prompt.split("\n\n", 1)[1])["tiktok:@alpha"][0]["evidence_id"]
+                    profiles.append({"creator_id": "tiktok:@alpha", "primary_hypothesis": "Comparison-led fragrance shoppers evaluating affordable alternatives.", "knowledge_level": "category-aware", "shopping_stage": "comparison", "product_range": ["affordable alternatives"], "recurring_decision_jobs": ["judge replacement fit"], "engagement_style": "direct comparison", "price_posture": "value-aware", "likely_exclusions": ["non-shoppers"], "evidence_ids": [evidence_id], "counterevidence_ids": [], "support_band": "medium", "actual_audience": "not_estimated"})
+                if "tiktok:@beta" in prompt:
+                    evidence_id = json.loads(prompt.split("\n\n", 1)[1])["tiktok:@beta"][0]["evidence_id"]
+                    profiles.append({"creator_id": "tiktok:@beta", "primary_hypothesis": "Category-fluent collectors who enjoy technical debate.", "knowledge_level": "advanced", "shopping_stage": "category participation", "product_range": ["collector fragrances"], "recurring_decision_jobs": ["debate category choices"], "engagement_style": "collector debate", "price_posture": "unknown", "likely_exclusions": ["complete beginners"], "evidence_ids": [evidence_id], "counterevidence_ids": [], "support_band": "medium", "actual_audience": "not_estimated"})
+                return json.dumps({"output_text": json.dumps(profiles)})
             rows = []
             if "v1" in prompt:
                 rows.append({"creator_id": "tiktok:@alpha", "video_id": "v1", "audience_layer": "beneficiary_content_fit", "dimension": "value_sought", "label": "comparison-led alternative evaluation", "content_pillar": "comparisons", "vote": 1, "source_pointer": "compare affordable alternatives", "possible_negation_or_irony": False})
@@ -62,8 +71,8 @@ def test_runner_batches_two_creators_in_one_call_and_second_cycle_zero(tmp_path)
     transport = Transport()
     first = run_extraction(data_root=root, transport=transport, provider=RawApiProvider.OPENAI_RESPONSES,
                            model="model", api_key="secret", max_input_chars=10000)
-    assert transport.calls == 1
-    assert sorted(row["status"] for row in first) == ["extracted", "extracted"]
+    assert transport.calls == 2
+    assert sorted(row["status"] for row in first) == ["extracted", "extracted", "profile_extracted", "profile_extracted"]
     for packet_id, creator, video in [(p1, "tiktok:@alpha", "v1"), (p2, "tiktok:@beta", "v2")]:
         transcripts, _ = __import__("runners.run_tiktok_product_extract", fromlist=["_transcripts_for_packet"])._transcripts_for_packet(root, packet_id)
         item = AudienceTranscript(creator, transcripts[0])
@@ -71,5 +80,4 @@ def test_runner_batches_two_creators_in_one_call_and_second_cycle_zero(tmp_path)
         assert root.is_record_set_complete(subtree="derived", raw_anchor=packet_id, record_id=rid, completion_lane=AUDIENCE_EVIDENCE_SET_LANE)
     assert run_extraction(data_root=root, transport=transport, provider=RawApiProvider.OPENAI_RESPONSES,
                           model="model", api_key="secret") == []
-    assert transport.calls == 1
-
+    assert transport.calls == 2

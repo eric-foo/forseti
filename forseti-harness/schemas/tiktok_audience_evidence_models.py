@@ -40,4 +40,41 @@ class TikTokAudienceEvidence(StrictModel):
         return value.strip()
 
 
-__all__ = ["AudienceDimension", "AudienceLayer", "TikTokAudienceEvidence"]
+class TikTokAudienceProfile(StrictModel):
+    creator_id: str
+    primary_hypothesis: str
+    knowledge_level: str
+    shopping_stage: str
+    product_range: list[str]
+    recurring_decision_jobs: list[str]
+    engagement_style: str
+    price_posture: str
+    likely_exclusions: list[str]
+    evidence_ids: list[str]
+    counterevidence_ids: list[str] = []
+    support_band: str
+    actual_audience: str = "not_estimated"
+
+    @field_validator("creator_id", "primary_hypothesis", "knowledge_level", "shopping_stage", "engagement_style", "price_posture")
+    @classmethod
+    def profile_non_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("profile field must be non-blank")
+        return value.strip()
+
+    @field_validator("support_band")
+    @classmethod
+    def support_band_closed(cls, value: str) -> str:
+        if value not in {"high", "medium", "low", "abstain"}:
+            raise ValueError("support_band must be high|medium|low|abstain")
+        return value
+
+    @field_validator("actual_audience")
+    @classmethod
+    def actual_unknown(cls, value: str) -> str:
+        if value != "not_estimated":
+            raise ValueError("actual_audience must remain not_estimated")
+        return value
+
+
+__all__ = ["AudienceDimension", "AudienceLayer", "TikTokAudienceEvidence", "TikTokAudienceProfile"]

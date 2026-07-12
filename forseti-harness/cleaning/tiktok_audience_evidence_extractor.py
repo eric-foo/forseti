@@ -12,7 +12,7 @@ from cleaning.audience_extractor import (
     extract_model_text, validate_endpoint,
 )
 from cleaning.transcript_product_extractor import TranscriptInput
-from schemas.tiktok_audience_evidence_models import TikTokAudienceEvidence
+from schemas.tiktok_audience_evidence_models import TikTokAudienceEvidence, TikTokAudienceProfile
 
 RUBRIC_VERSION = "tiktok_audience_triangulation_v0"
 _WS = re.compile(r"\s+")
@@ -124,4 +124,52 @@ def extract_batch(*, items: list[AudienceTranscript], transport: Transport, prov
     return parse_response(extract_model_text(provider, raw), items, model=model)
 
 
-__all__ = ["AudienceExtractionResult", "AudienceTranscript", "RUBRIC_VERSION", "build_prompt", "extract_batch", "pack_transcripts", "parse_response"]
+def build_profile_prompt(evidence_by_creator: Mapping[str, list[TikTokAudienceEvidence]]) -> str:
+    payload = {
+        creator: [row.model_dump(mode="json") for row in rows]
+        for creator, rows in evidence_by_creator.items()
+    }
+    return (
+        "Synthesize a concise, specific CONTENT-FIT audience hypothesis from verified evidence. "
+        "Do not infer actual followers, demographics, customers, conversion, or purchasing power. "
+        "Return ONLY a JSON array with one object per creator_id containing: creator_id, "
+        "primary_hypothesis, knowledge_level, shopping_stage, product_range (array), "
+        "recurring_decision_jobs (array), engagement_style, price_posture, likely_exclusions "
+        "(array), evidence_ids, counterevidence_ids, support_band (high|medium|low|abstain), "
+        "and actual_audience exactly not_estimated. Be specific enough that the hypothesis "
+        "would not fit most creators in the category unchanged.\n\n"
+        + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    )
+
+
+def synthesize_profiles(*, evidence_by_creator: Mapping[str, list[TikTokAudienceEvidence]],
+                        transport: Transport, provider: RawApiProvider, model: str, api_key: str,
+                        max_tokens: int = 4096, api_url: str | None = None) -> dict[str, TikTokAudienceProfile]:
+    endpoint = api_url or default_endpoint(provider)
+    validate_endpoint(provider, endpoint)
+    body = build_request_body(provider, model=model, prompt=build_profile_prompt(evidence_by_creator), max_tokens=max_tokens)
+    raw = transport.post_json(endpoint, build_headers(provider, api_key), body, 60.0)
+    text = extract_model_text(provider, raw)
+    try:
+        rows = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"profile response is not JSON: {exc}") from exc
+    if not isinstance(rows, list):
+        raise ValueError("profile response must be a JSON array")
+    allowed_ids = {creator: {row.evidence_id for row in evidence} for creator, evidence in evidence_by_creator.items()}
+    profiles: dict[str, TikTokAudienceProfile] = {}
+    for raw_profile in rows:
+        profile = TikTokAudienceProfile.model_validate(raw_profile)
+        if profile.creator_id not in allowed_ids or profile.creator_id in profiles:
+            raise ValueError(f"unexpected or duplicate profile creator_id: {profile.creator_id}")
+        cited = set(profile.evidence_ids) | set(profile.counterevidence_ids)
+        if not cited or not cited <= allowed_ids[profile.creator_id]:
+            raise ValueError(f"profile {profile.creator_id} cites unknown or no evidence")
+        profiles[profile.creator_id] = profile
+    missing = set(evidence_by_creator) - set(profiles)
+    if missing:
+        raise ValueError(f"profile response omitted creators: {sorted(missing)}")
+    return profiles
+
+
+__all__ = ["AudienceExtractionResult", "AudienceTranscript", "RUBRIC_VERSION", "build_prompt", "build_profile_prompt", "extract_batch", "pack_transcripts", "parse_response", "synthesize_profiles"]
