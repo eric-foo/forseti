@@ -273,3 +273,12 @@ deletions:
       semantic_delta: |
         No unique product authority is deleted. The file is the retail_pdp source-family README moved from the legacy Orca product root to the live Forseti product root, with naming/path references updated for the rename. The source-family routing role is preserved at the successor path.
       rollback: git revert <executing merge sha>
+  - targets:
+      - docs/hygiene/checkpoint_icp_convergence_lock.md
+    evidence:
+      reverse_ref_check: |
+        Fresh repo-wide exact-path, filename, and title searches were run on 2026-07-12 before deletion. The only inbound exact-path references are docs/migration/phase2_proposals/doctrine_decisions_B_w3a_proposal_v0.md:77, a historical W3a proposal inventory, and docs/hygiene/repo_integrity_overnight_review_v0.md:72,76, a hygiene finding that already classifies this checkpoint as apparently spent and recommends burning it. No repo-map, open_next, prompt, current decision, or other live routing surface points to the checkpoint. Its own controlling pointer resolves through docs/migration/forseti_product_strategy_filename_migration_v0/moved_paths_index.md to docs/decisions/forseti_icp_wedge_convergence_break_in_first_v0.md, whose body marks the break-in direction superseded; current first-proof wedge authority is docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md.
+      successor: docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
+      semantic_delta: |
+        Deletes a single-consumption lane-state checkpoint after the pointed direction and downstream cascade settled. No current decision or unique evidence is lost: the checkpoint only copied orientation and pointed to canonical decision and research sources; the current consumer-demand-first wedge decision and its executed propagation record remain. Historical references remain valid as provenance through Git.
+      rollback: git revert <executing merge sha>

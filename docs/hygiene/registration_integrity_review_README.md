@@ -1,5 +1,15 @@
 # Adversarial Review Commission — `registration_integrity.py` (no-repo, cross-vendor)
 
+```yaml
+retrieval_header_version: 1
+artifact_role: No-repo review bundle instructions
+scope: Self-contained historical commission instructions for the registration-integrity adversarial review bundle.
+use_when:
+  - Reconstructing the shipped registration-integrity review commission and its review boundary.
+  - Auditing the provenance of the registration-integrity hardening review.
+authority_boundary: retrieval_only
+```
+
 > You are reading the **executable instructions** for this review. Read this whole
 > file, then perform the review and return your findings. You need nothing outside
 > this bundle — no repo, no tools, no skills.

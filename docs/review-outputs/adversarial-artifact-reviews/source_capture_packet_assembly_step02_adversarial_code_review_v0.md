@@ -3,6 +3,10 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Review report
+scope: Adversarial code review of Source Capture packet assembly STEP-02.
+use_when:
+  - Inspecting packet-assembly findings before propagation or patching.
+  - Tracing STEP-02 changes to this review.
 review_prompt: docs/prompts/reviews/source_capture_packet_assembly_step02_adversarial_code_review_prompt_v0.md
 review_lane: adversarial code review
 reviewed_targets:
@@ -12,7 +16,10 @@ reviewed_targets:
   - orca-harness/source_capture/writer.py
   - orca-harness/source_capture/models.py
   - orca-harness/runners/run_source_capture_media_packet.py
-authority_boundary: advisory_findings_only
+review_authority_boundary: advisory_findings_only
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
 ```
 
 ```yaml
