@@ -160,6 +160,7 @@ class FrontierNode:
     platform_capture_status: str
     cross_platform_graph_status: str
     non_claims: tuple[str, ...] = DEFAULT_TIKTOK_CREATOR_DISCOVERY_FRONTIER_NON_CLAIMS
+    registry_preflight_receipt_evidence_or_none: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return _enum_values(asdict(self))

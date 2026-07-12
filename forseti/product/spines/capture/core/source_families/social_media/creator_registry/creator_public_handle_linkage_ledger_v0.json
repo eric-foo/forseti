@@ -492,6 +492,18 @@
         "public_display_name_or_none": "Noel Deyzel",
         "display_name_source_pointer_or_none": "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS\\raw\\01_noeldeyzel_fragrance_instagram_profile_grid_observation_20260708.json#/profile_observation/display_name",
         "display_name_source_field_or_none": "profile_observation.display_name"
+      },
+      {
+        "platform_account_id": "acct_tiktok_fragrance_006",
+        "platform": "tiktok",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "topfrag.official",
+        "public_profile_url": "https://www.tiktok.com/@topfrag.official",
+        "handle_source_pointer": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register/root_seed/handle",
+        "handle_observed_at": "2026-07-08T18:52:19.366Z",
+        "public_display_name_or_none": "Top Frag",
+        "display_name_source_pointer_or_none": "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json#/tiktok_creator_discovery_frontier_register/nodes/1/display_name_or_none",
+        "display_name_source_field_or_none": "tiktok_creator_discovery_frontier_register.nodes[1].display_name_or_none"
       }
     ],
     "account_link_evidence": [

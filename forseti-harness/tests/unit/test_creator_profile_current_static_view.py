@@ -208,8 +208,8 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
 
     assert view["schema_version"] == "creator_profile_current_view_v0"
     assert view["counts"] == {
-        "profiles_total": 40,
-        "platform_account_profiles": 40,
+        "profiles_total": 41,
+        "platform_account_profiles": 41,
         "creator_record_profiles": 0,
         "profiles_with_metric_rollups": 33,
         "profiles_with_ideal_audience_profiles": 0,
@@ -279,6 +279,7 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> No
         "acct_ig_fragrance_005",
         "acct_tiktok_fragrance_005",
         "acct_ig_fragrance_006",
+        "acct_tiktok_fragrance_006",
     }
     assert set(rollups_by_subject).issubset(set(accounts_by_id))
     assert set(accounts_by_id) - set(rollups_by_subject) == identity_only_ids
