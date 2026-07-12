@@ -1,0 +1,51 @@
+{
+  "video_id": "hzqxkp3OqQw",
+  "record_provenance": {"video_input_hash": "029ed1f71f6822ac8888c869c44136af05a47e99839bfae5ebef7835222ac9ca", "transcript_hash": "53315accc45e41e6e71242047fa55582c348d0a9d9b106344bcf979489adfe50", "watch_metadata_hash": "724ce7083273decb82f65f55d11b5eb19150a7a4574e99192946292524fac5b5", "comments_hash": "c045b527cdaad47a5cd6e2674710189f928b02311140cd94f715183c766f986d", "input_content_hash": "029ed1f71f6822ac8888c869c44136af05a47e99839bfae5ebef7835222ac9ca", "extraction_model": "claude-fable-5", "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1", "extraction_timestamp": "2026-07-09T18:38:40Z/2026-07-10T03:52:00Z (run window; per-file wall times not separately recorded — run-log receipt)", "receipt_ref_convention": "bare @ms / @start-end refs and comment refs cNN in this record are scoped to this record's video_id; the provenance fields in this block apply to every claim entry in this record (round-1 patch, AR-01)"},
+  "title": "Top 20 Most Popular ELIXIR Fragrances Ranked From S-Tier To TRASH",
+  "video_class": {"value": "ranking", "subtype": "category_trend_ranking", "receipt": "hzqxkp3OqQw@15760-23160 '20 of the absolute most popular men's elixir fragrances today and rank them out from worst to best'", "fragrance_topical": true, "confidence": "high"},
+  "views": 25128, "likes": 1242, "publish_date": "2026-06-24", "total_comments": 136,
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:dior.sauvage", "kind": "sales_tier_comparative", "stance": "neutral_mention", "receipt": "hzqxkp3OqQw@94840-99800 '[K] did not compete with Y, Bleu de Chanel, and Sauvage as far as sales goes'", "note": "base-line receipt only; the video's Sauvage Elixir material is a distinct unresolved flanker — moved to flanker_segments_unresolved (granularity rule, round-2 correction)"},
+      {"product_id": "product:chanel.bleu-de-chanel", "kind": "sales_tier_comparative", "stance": "neutral_mention", "receipt": "hzqxkp3OqQw@94840-99800 '[K] did not compete with Y, Bleu de Chanel, and Sauvage as far as sales goes' (same sales-tier cue as the sauvage entry)"},
+      {"product_id": "product:ysl.y-eau-de-parfum", "kind": "sales_tier_comparative", "stance": "neutral_mention", "receipt": "hzqxkp3OqQw@94840-99800 '[K] did not compete with Y, Bleu de Chanel, and Sauvage as far as sales goes' (bare 'Y', confidence medium)", "note": "base-line receipt only; the Y Elixir segment moved to flanker_segments_unresolved (granularity rule, round-2 correction)"},
+      {"product_id": "product:paco-rabanne.invictus-parfum", "kind": "comparative_component", "stance": "neutral_mention", "receipt": "@792560-798520 'Invictus Victory Elixir mixed with Invictus Parfum if you want to very simply dumb it down'"}
+    ],
+    "flanker_segments_unresolved": [
+      {"surface": "Sauvage Elixir (Dior)", "resolution": "unresolved", "reason": "distinct flanker with no reference entry of its own; the creator himself distinguishes it from the line's concentrations (granularity rule)", "stance": "positive_recommend (#1 of the elixir ranking)", "receipts": ["hzqxkp3OqQw@1070280-1078480 'Sauvage Elixir did the whole thing where it smells nothing like the Sauvage fragrances that came before it... the eau de toilette, the eau de parfum, or the parfum'", "@1006480-1038040 'Sauvage Elixir... set off all of this... every other brand went what if we do elixir and charge more' (market-causality claim)"]},
+      {"surface": "Y Elixir / Le Parfum (YSL)", "resolution": "unresolved", "reason": "distinct flanker; reference has y-eau-de-parfum only (granularity rule)", "stance": "mixed_comparative", "receipt": "hzqxkp3OqQw@501760-505840 'a lot of overlap with a bunch of the other Y fragrances. It's basically just a tweak on the existing Y DNA'"}
+    ],
+    "dupe_economy_receipt": {"note": "CREATOR RECOMMENDS DUPE OVER ORIGINAL on price: Y Elixir '$200 for a 2-oz... paying 100 bucks per ounce... for a lot of people this one might make more sense to get a dupe or inspired by fragrance of, because those are really well done, and they cost much less' @463720-538480"},
+    "market_reads": [
+      {"note": "K-line failure read: 'not selling. Nobody really cares about it... the K line probably needs to go away' @125479-145160"},
+      {"note": "white-space idea: 'An elixir fragrance specifically made for summer... maybe that's the big brain thing somebody needs to do next' @921040-937920"},
+      {"note": "elixir category definition (price/performance/quality) @267840-314960 — consumer education"},
+      {"note": "Boss Bottled Elixir reputation-flip story @834280-873800"}
+    ],
+    "ranking_top5": ["1 Sauvage Elixir", "2 Le Male Elixir", "3 Invictus Victory Elixir", "4 Guilty Elixir (~'Pegasus mixed with Reflection Man')", "5 Boss Bottled Elixir"],
+    "ranking_bottom": ["20 Phantom Elixir", "19 K Elixir", "18 Legend Elixir ('made by focus group')", "17 Hero Elixir (line-overlap ding)", "16 Code Elixir"]
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": false,
+    "receipts": ["short_description: per-elixir affiliate links (7+ visible, truncated)", "hzqxkp3OqQw@321919-330600 'I got codes that can do that. These are also in the description, you can copy and paste them from there if you like, but you can use these codes anytime you shop at any of these stores' (codes board + description)", "paid_content_overlay: not_captured"]
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "category ranking; ownership + list-debate discourse",
+    "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 1, "owned_no_creator_causality": 12, "none": 26},
+    "intent_refs": {
+      "bought_because_of_creator": ["c17 (no like count captured) 'Love the Sauvage Elixir... I had to get a bottle I finally pulled the trigger! Can't express how much I love it! 2 sprays last 12+ hours! Thank You Gentscents!!' — purchase thanks-attributed to channel"],
+      "future_buy_watchlist": ["c07 'Boss Bottled Elixir will be my favorite, as soon as I add it to my elixir free collection'"]
+    },
+    "owned_refs": ["c04","c09 ('went through a bottle in a month')","c18","c20","c21","c23","c25","c26","c31","c35","c36","c38"],
+    "notable_textures": [
+      {"ref": "c36", "note": "backup-bottle + peer resale: 'bought 4 back ups of Code Absolu... I listed a pair on Rescented if anyone is looking'"},
+      {"ref": "c01", "note": "TOP (75 likes): 'Day 2 of asking for a Tom Ford ranked/buying guide video' — serial content demand"},
+      {"refs": ["c02","c03","c11","c16","c24","c39"], "note": "list-completeness debate (missing elixirs) — audience audits coverage"},
+      {"refs": ["c12","c13","c14","c15","c19","c28","c33","c34"], "note": "8 buying-guide/content requests incl. 'middle eastern elixir video'"},
+      {"ref": "c05", "note": "product wish: 'I'd love to see a YSL MYSLF Elixir and a Prada Paradigme Elixir'"},
+      {"ref": "c40", "note": "13 likes: 'BDC L'exclusif completely crushes this category' (Chanel flanker)"},
+      {"refs": ["c04","c23"], "note": "scene vocab 'beast mode' recurrence"}
+    ],
+    "top_comment_concentration": "c01 (75) content-demand dominates; c29 (18) + c40 (13) product-verdict cluster"
+  }
+}

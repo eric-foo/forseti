@@ -50,8 +50,11 @@ available in the current session:
   inherits the parent model.
 - **Observed Codex override values on 2026-06-16:** `gpt-5.3-codex-spark`,
   `gpt-5.4`, `gpt-5.4-mini`, `gpt-5.5`.
-- **Reasoning/service overrides:** available but not part of this doctrine;
-  omit them unless independently required.
+- **Reasoning/service overrides:** reasoning effort is part of this doctrine only
+  for a newly created cold receiving/handoff thread: set `thinking: high` on
+  `create_thread`. Omit service-tier overrides. Spawned in-session subagents
+  continue to omit reasoning effort unless their current tool surface exposes a
+  supported override and a separate owner decision requires it.
 - **Stop condition:** if the tool schema no longer exposes these exact model
   names, do not invent replacements. Omit the model override or stop for an
   owner/tooling decision. The dated list above is a dispatch aid, not a durable
@@ -235,6 +238,15 @@ The same tiering applies to whole delegated session lanes — the worktree lanes
 the operator opens — not only to spawned subagents. Defaults, chosen by the
 operator when opening the lane:
 
+- **Cold receiving/handoff threads → `high` reasoning effort.** When Codex opens
+  a new receiving thread through `create_thread`, explicitly set
+  `thinking: high`, including when the thread starts cold with no forked
+  conversation context. Do not use `xhigh` as the handoff default. Keep `model`
+  omitted unless the owner separately requests a model override, so this effort
+  rule does not silently replace the user's configured model. `handoff_thread`
+  moves an existing thread and exposes no reasoning-effort field; preserve that
+  thread's current setting rather than claiming the move can rewrite it.
+
 - **CA / orchestrator threads → judgment tier (Opus).** Adjudication, doctrine
   authoring, cross-lane reconciliation, and anything that decides what is kept.
 - **Home-side review lanes → workhorse tier (Sonnet).** Under the two-bar rule,
@@ -268,6 +280,38 @@ It is not a Codex PreToolUse/PostToolUse hook and does not claim deterministic
 runtime enforcement beyond the observed `spawn_agent` payload fields. Dated
 model-name examples are not durable availability claims. It also does not create
 automatic lane-playbook loading for Codex or Claude Code subagents.
+
+The cold-thread `thinking: high` default is enforceable only on creation
+surfaces that expose a reasoning-effort override. It does not retroactively
+change existing threads or imply that `handoff_thread` can change effort.
+
+## Direction Change Propagation (2026-07-12: cold handoff effort)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Newly created Codex cold receiving/handoff threads explicitly use high
+    reasoning effort instead of inheriting or defaulting to xhigh; model choice
+    remains unchanged unless separately requested. Existing-thread handoff
+    cannot rewrite effort because that tool surface exposes no such field.
+  trigger: workflow_authority
+  controlling_sources_updated:
+    - docs/decisions/subagent_model_tiering_doctrine_v0.md
+    - .agents/workflow-overlay/decision-routing.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: Already routes delegation and handoff behavior to the overlay.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: This is a spawn-time runtime rule, not prompt-body content.
+  non_claims:
+    - not a model override
+    - not a service-tier override
+    - not retroactive for existing threads
+    - not enforceable through handoff_thread
+```
 
 ## Propagation
 
