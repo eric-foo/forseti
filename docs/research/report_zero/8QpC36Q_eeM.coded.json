@@ -1,0 +1,62 @@
+{
+  "video_id": "8QpC36Q_eeM",
+  "record_provenance": {"video_input_hash": "41d110f418936fe410d59ca5fc1b9987a8284d67463c94f250e0382e56c5aadc", "transcript_hash": "8bb6d8634efe88024ba8c63d2c1b02f7bf616c09fdd9867d3ffa1f9a649e3eef", "watch_metadata_hash": "a8db64f6ee70ba9872f3c99f4a4373b3da7dad6fc2e79c90489ec37ae0d5183f", "comments_hash": "d133d23ed23d59a240b9f252cb6d60f478a4d375e5b531860bdacd8ebb5ee27a", "input_content_hash": "41d110f418936fe410d59ca5fc1b9987a8284d67463c94f250e0382e56c5aadc", "extraction_model": "claude-fable-5", "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1", "extraction_timestamp": "2026-07-09T18:38:40Z/2026-07-10T03:52:00Z (run window; per-file wall times not separately recorded — run-log receipt)", "receipt_ref_convention": "bare @ms / @start-end refs and comment refs cNN in this record are scoped to this record's video_id; the provenance fields in this block apply to every claim entry in this record (round-1 patch, AR-01)"},
+  "title": "20 PERFECT Fragrances I Will Recommend FOREVER",
+  "video_class": {"value": "ranking", "subtype": "personal_favorites_list", "receipt": "8QpC36Q_eeM@26000-36640 'share with you 20 of the best of the best... 10 years from now... I'm still going to be talking to you about'", "fragrance_topical": true, "confidence": "high"},
+  "views": 36569, "likes": 1959, "publish_date": "2026-06-29", "total_comments": 703,
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:creed.aventus", "kind": "comparative_dupe_target", "stance": "neutral_mention", "receipt": "8QpC36Q_eeM@153560-186760 'Clearly they [Montblanc Explorer] ripped—were inspired by Creed Aventus. Right down to the color scheme... there are a boatload of different clones and alternatives... when it comes to just wanting that Aventus vibe with a designer styling to it for cheap, Explorer, that's the one to get'", "note": "DIRECT dupe-space discourse around intake original #1: Aventus named as the cloned target; Explorer + 'boatload of clones' = demand-space attention"},
+      {"product_id": "product:paco-rabanne.invictus-parfum", "kind": "comparative_component", "stance": "positive_recommend", "receipt": "8QpC36Q_eeM@303680-308760 '[Invictus Elixir] introduce that clean Invictus soapiness from Invictus Parfum' + @310880 'I like both of those Invictus scents'"}
+    ],
+    "unresolved_notable": [
+      {"surface": "Dior Homme Intense", "house_id": "brand:dior", "stance": "positive_recommend", "receipt": "@66840-71360 'one of the best things ever made' + @105320-110240 'I have more backup bottles of this fragrance than anything else that I own'", "note": "repurchase/backup-bottle behavior = strongest ownership signal type"},
+      {"surface": "Montblanc Explorer", "stance": "positive_recommend", "receipt": "@186760-190040 'Explorer, that's the one to get. The compliment factor is great'", "note": "the Aventus-clone pick"},
+      {"surface": "Rabanne Invictus Elixir", "house_id": "brand:paco-rabanne", "stance": "positive_recommend", "receipt": "@328640-333400 'one of my favorite releases of the year'", "note": "'they have done the job that a Middle Eastern clone brand would do... make a hybrid' @315120 — hybrid/clone framing of a designer release"},
+      {"surface": "French Avenue Mirage/Miraj Absolu", "stance": "positive_recommend", "receipt": "@414520-416280 'This guy right here, that's my go-to' (vs 'the Lattafas, the Armafs, the Afnans' @411120)", "dupe_note": "clone of PDM Layton/Layton Exclusif @360280-379760; also names French Avenue Liquid Bronze ~ PDM Althair @344080-346520; house brand:parfums-de-marly comparative"},
+      {"surface": "Terre d'Hermes Eau Givree", "stance": "positive_recommend", "receipt": "@470640-473680 'the one I've worn the most ever since it came out'", "self_brand_note": "SELF-BRAND: 'my fragrance Terranova was up for fragrance of the year, made it to the finals' @434360-440200 (creator's own line at industry award)"},
+      {"surface": "Lattafa/Armaf 'Light In The Heart' (desc: 'Lutfah Light In The Heart'; transcript: 'Armaf Prestige')", "stance": "positive_recommend", "receipt": "@505200-507919 'Sweet, rich, ambery goodness. This stuff for the price is insane'", "dupe_note": "hybrid-clone: 'that PDM Althair style... mixed with that MFK Grand Soir' @486600-499880; house surface form conflicts transcript-vs-description — resolution uncertain, recorded verbatim"},
+      {"surface": "ADG Profondo EDP (Armani)", "stance": "positive_recommend", "receipt": "@551080-563360 'it's the best Profondo... Fantastic redo of the Acqua di Gio DNA'"},
+      {"surface": "MYSLF Absolu (YSL)", "stance": "positive_recommend", "receipt": "@584800-588800 'of the entire lineup the absolute version. That's the one for me'"},
+      {"surface": "JPG Scandal Absolu", "house_id": "brand:jean-paul-gaultier", "stance": "positive_recommend", "receipt": "@617200-618880 'It just works, man'"},
+      {"surface": "Azzaro The Most Wanted Parfum", "stance": "positive_recommend", "receipt": "@669000-672080 'Great performance, big compliment puller, super popular'"},
+      {"surface": "Afnan L'Aventure/Lynked Freedom (ASR ambiguous)", "stance": "positive_recommend", "receipt": "@736000-743880 'best of both worlds... date night sexiness. Sneaky, sneaky good'", "note": "clone-house (Afnan); MYSLF-opening hybrid discourse @694240-705920"},
+      {"surface": "Dior Homme Sport", "house_id": "brand:dior", "stance": "positive_recommend", "receipt": "@776760-780000 'You can wear this stuff anywhere. Love it'"},
+      {"surface": "Valentino Uomo Born in Roma Intense", "stance": "positive_recommend", "receipt": "@811520-820000 'blend of lavender, vanilla, vetiver in here is just absolutely perfect'"},
+      {"surface": "Polo 67 EDP (Ralph Lauren)", "stance": "positive_recommend", "receipt": "@882480-883960 'it was sneaky good. And that one's even better'"},
+      {"surface": "V Elixir Icarus", "stance": "positive_recommend", "receipt": "@912320-930000 'smells similar to Blue Talisman... the one that I go to anytime somebody asks what blue talisman [alternative] should I go for'", "dupe_note": "repeat dupe-recommendation discourse (also in eH93HPAWucE); scalper price warning @896600-903240"},
+      {"surface": "Brioni Intense", "stance": "positive_recommend", "receipt": "@975880-979320 'It smells absolutely fantastic'"},
+      {"surface": "Armaf Odyssey Mandarin Sky Elixir", "stance": "positive_recommend", "receipt": "@1035079-1038000 'Good stuff on cheap'", "note": "clone-house hybrid discourse: 'JPG Scandal style... mix with Invictus Victory Elixir' @1013960-1024280"},
+      {"surface": "Prada Luna Rossa Black", "stance": "positive_recommend", "receipt": "@1058440-1063480 'The tonka in here, intoxicating... perfect for an evening out'"},
+      {"surface": "Pasha de Cartier Parfum", "stance": "positive_recommend", "receipt": "@1096880-1099360 'douse it in booze and sandalwood, and it just smells killer'"}
+    ]
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": true,
+    "receipts": [
+      "short_description: per-product affiliate links (gentsscents.me ×6+, go.magik.ly ×2, truncated at 'Profondo EDP - https://gentsscents.me/4xuwOo')",
+      "transcript @529000-543680 codes segment: 'Fragrance Gift Express, Perfume Box, Fragrance Lord, Maple Prime' (published 2026-06-29, before the 07-01 Gift Express kill in m-cJ9GVzzbc — consistent timeline)",
+      "self-brand mention: 'my fragrance Terranova was up for fragrance of the year' @434360 (no purchase link for it in captured desc prefix)",
+      "8QpC36Q_eeM@1104960-1118840 'Armaf Odyssey Wild One, paired up with the Essences Travel Spray Set from Amouage... kind of a random pairing. Uh but if you want to be entered in the giveaway for this, you know the drill' (giveaway; self-funded framing)",
+      "paid_content_overlay: not_captured"
+    ]
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "giveaway prompt 'the fragrance that you will never stop recommending' → recommendation texture dominates (~35/40); ownership implied but prompted",
+    "intent_counts": {"bought_because_of_creator": 0, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 0, "owned_no_creator_causality": 9, "none": 31},
+    "recommendation_texture_count": 35,
+    "owned_refs": ["c08","c12","c13","c15","c23","c31","c36","c38","c40"],
+    "resolved_in_comments": [
+      {"product_id": "product:versace.pour-homme", "refs": ["c04 'I think you can't go wrong recommending people Versace Pour Homme... recognizable house & affordable' (27 likes — the adjudication M2 exemplar)", "c39 'Versace Pour Homme....can't miss'"], "texture": "high-liked recommendation"},
+      {"product_id": "product:chanel.bleu-de-chanel", "refs": ["c02 'Bleu De Channel EDP' (11 likes; typo surface)"], "note": "medium-high confidence"}
+    ],
+    "dupe_clone_discourse": [
+      {"ref": "c06", "text_receipt": "'Afnan Supremacy Collector's Edition and Versace Dylan Blue'", "note": "clone-house recommendation"},
+      {"ref": "c17", "text_receipt": "'Khamrah Qahwa and Bvlgari MIB'", "note": "Lattafa product recommendation"},
+      {"ref": "c40", "text_receipt": "'Afnan Lynked Freedom. It's basically become my signature' (9 likes)", "note": "clone-house SIGNATURE ownership"},
+      {"refs": ["c32","c34"], "note": "Rayhaan (clone-adjacent house) recommendations"}
+    ],
+    "word_of_mouth_conversion": [{"ref": "c24", "text_receipt": "'Every single one of my buddies that smelled it went and bought a bottle for themselves as well so far :)'", "note": "peer-driven purchases around a recommendation — conversion texture, not creator-caused"}],
+    "top_comment_concentration": "c04 + c16 (27 each), c07 (21), c05 (18) — liked support spread across recommendation comments; no single dominant"
+  }
+}

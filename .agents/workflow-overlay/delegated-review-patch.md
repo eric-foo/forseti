@@ -111,6 +111,19 @@ readiness, review quality, or acceptance of the delegated findings.
 
 **Access modes — `repo` (default) and `no_repo`.** The commission records `access: repo | no_repo` — an operator/commission access constraint, not a model choice. In **`repo`** mode the loop above runs as written: the de-correlated delegate patches the named target and returns a diff. In **`no_repo`** mode the delegate has no repo access and **does not patch**; it runs advisory-only and returns findings (not a diff), and the **CA applies** accepted changes within the bounded scope. `no_repo` preserves de-correlated *review* but **not** de-correlated *patch authorship*, so it is **strictly weaker than `repo` mode** and **requires a bounded post-patch re-review** before keep — closure-of-findings plus any new blocker/major in the touched delta. The no-repo review method is target-kind specific: `authored_artifact` uses the portable review method (registry id `portable-adversarial-artifact-review-method`), while `delegated_code_review_and_patch` uses a repo-blind code-review package/prompt that preserves `workflow-code-review` method requirements as far as no-repo access permits. Because the post-patch recheck is a narrow, near-mechanical verification against the findings' explicit closure conditions rather than open seam-discovery, it runs as a **same-family, different (lower / mechanical-tier) model** (a who-constraint, not a runtime-model recommendation), **not** a cross-family pass. **Cross-family de-correlation is reserved for discovery** (the original full adversarial review) and is **required to claim** the *survives-an-adversarial-review-with-no-new-seam* standard; a bounded same-family recheck does not by itself support that claim. The recheck is CA-adjudicated before anything is kept. The no_repo package ships the review target as a **verbatim file attachment** with an independently confirmable file hash (embedded-in-markdown copies are not byte-confirmable); and the package assembler/CA runs the target-kind method's **freshness gate** before bundling, recording the result in the commission. The standard no_repo package shape is a **self-contained bundle**: the verbatim target attachment(s) plus a guardrail-complete `README` that carries the method, the authority excerpts, and the target's contract, delivered with a **thin-wrapper** chat prompt that points the reviewer at the in-bundle `README` — the wrapper still carries the cross-vendor who-constraint, which must not migrate silently into the bundle. When the reviewer cannot read in-bundle files, fall back to **inlining** the method block in the chat prompt; never ship a wrapper that points at a `README` a repo-blind reviewer cannot open. The de-correlation who-constraint, CA adjudication, `NEEDS_ARCHITECTURE_PASS`, and the strict-claim boundary are otherwise unchanged.
 
+**Couriered multi-round review loops — recheck tiering (owner-ratified
+2026-07-10).** In a couriered multi-round adversarial review loop (cross-vendor
+round-1 discovery, home-lane adjudication + patch, then closure verification),
+the closure recheck of adjudicated-and-patched findings runs as the bounded
+**same-vendor, different (typically lower-tier) model** pass already defined
+for the `no_repo` post-patch recheck — normally a spawned subagent — **not**
+another cross-vendor courier round. Cross-vendor rounds remain reserved for
+discovery and required for any no-new-seam claim; a closure recheck that
+surfaces a NEW seam (not mere non-closure of the adjudicated finding) routes
+back to cross-vendor discovery. This extends the existing recheck tier to the
+couriered loop explicitly; it is a who-constraint recorded in the commission,
+never runtime-model routing.
+
 **Citations.** The delegate's citations are neutral in tone — factual source
 evidence, no advocacy or editorializing — but decision-sufficient in substance,
 so the Chief Architect's veto stays informed rather than blind. The delegate's
@@ -536,6 +549,31 @@ direction_change_propagation:
     - not a bound/mandatory/machine-routable review lane
     - not runtime model routing
 
+# couriered-loop recheck tiering 2026-07-10 (owner decision, Report Zero criterion-5 loop).
+direction_change_propagation:
+  doctrine_changed: >
+    The same-vendor different (lower)-model post-patch recheck tier, already
+    bound for no_repo mode, is explicitly extended to couriered multi-round
+    adversarial review loops: closure rechecks of adjudicated-and-patched
+    findings run as a same-vendor lower-tier pass (normally a spawned
+    subagent), not another cross-vendor courier round; cross-vendor stays
+    reserved for discovery and the no-new-seam claim; a NEW seam found during
+    recheck routes back to cross-vendor discovery.
+  trigger: review_authority
+  related_triggers: [workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/delegated-review-patch.md
+  downstream_surfaces_checked:
+    - path: .agents/workflow-overlay/review-lanes.md
+      note: two-bar rule (cross-vendor discovery vs same-vendor verification) unchanged; no edit.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      note: no-runtime-model-recommendation rule unchanged; this is a who-constraint; no edit.
+    - path: docs/prompts/reviews/ (report_zero round 1-3 prompts)
+      note: historical executed commissions, kept as lane records; future round prompts follow the new tiering.
+  intentionally_not_updated:
+    - path: docs/prompts/reviews/report_zero_output_delegated_adversarial_artifact_review_round3_prompt_v0.md
+      reason: already-executed commission; rewriting history would falsify the lane record.
+  non_claims: [not validation, not readiness, not a bound/mandatory lane, not runtime model routing]
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

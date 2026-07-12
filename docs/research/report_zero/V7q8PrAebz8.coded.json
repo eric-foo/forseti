@@ -1,0 +1,44 @@
+{
+  "video_id": "V7q8PrAebz8",
+  "record_provenance": {"video_input_hash": "70eb1e306ca6cb00d688a7fb1ef7186944610a51c172f4bf34c3d02f6f89356e", "transcript_hash": "bd9a200145645b32a388cebdc120063bc8c132cd6026e947e72cb301e7d743ca", "watch_metadata_hash": "8a8f5e2346bdae3d49b2fccf2883d7e5c128995d4968542967004bf0649b9d38", "comments_hash": "672421e7a40c4873168c254a7ce9e20aaeb1fce780667078d2e11edad765386f", "input_content_hash": "70eb1e306ca6cb00d688a7fb1ef7186944610a51c172f4bf34c3d02f6f89356e", "extraction_model": "claude-fable-5", "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1", "extraction_timestamp": "2026-07-09T18:38:40Z/2026-07-10T03:52:00Z (run window; per-file wall times not separately recorded — run-log receipt)", "receipt_ref_convention": "bare @ms / @start-end refs and comment refs cNN in this record are scoped to this record's video_id; the provenance fields in this block apply to every claim entry in this record (round-1 patch, AR-01)"},
+  "title": "NEW Armaf Dunescape - The PERFECT Summertime Clone Fragrance",
+  "video_class": {"value": "review", "subtype": "single_product_clone_review", "receipt": "V7q8PrAebz8@8440-14080 'Dunescape. One of the newer fragrances released by Armaf that I've been living with for a little bit'", "fragrance_topical": true, "confidence": "high"},
+  "views": 24868, "likes": 1144, "publish_date": "2026-06-25", "total_comments": 129,
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:ysl.y-eau-de-parfum", "kind": "comparative_hybrid_component", "stance": "neutral_mention", "receipts": ["V7q8PrAebz8@224200-233760 'Y EDP has maybe a little more that sweetness to it'", "@502080 'if it smells like Y Eau de Parfum only turbocharged'", "@657800-666000 'take that Y formula that everybody knows and most people love... introducing a very citrus forward Louis Vuitton'", "@741240-744760 'Essentially, like 70% Y, 30% Afternoon Swim'"], "note": "subject video = hybridization clone of Y (+ LV Afternoon Swim); Y EDT/Eau Fraiche/Y Iced flankers also named (unresolved distinct products)"}
+    ],
+    "house_comparatives_resolved": [
+      {"house_id": "brand:louis-vuitton", "receipt": "@662160-667160 'a very citrus forward Louis Vuitton that's maybe not as well known for performance' (Afternoon Swim; product not in reference)"}
+    ],
+    "clone_subject_unresolved": {"surface": "Armaf Dunescape (extrait, ~$35)", "stance": "positive_recommend", "receipt": "@829240-834240 'Armaf Dunescape for me, absolutely fantastic' + price @103120 'about 35 bucks most places'", "trend_note": "'hybridization... the new fragrance term' @641080-645960 — creator tracks the clone-hybrid meta-trend"}
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": true,
+    "receipts": [
+      "short_description: 'Dunescape - https://gentsscents.me/43TDe3i' + 'GET MY NEW FRAGRANCES ARASHI REEF & FRENCH QUARTER... 25% OFF' + Jomashop app codes GS10/GS15/GS30",
+      "V7q8PrAebz8@114640-120280 'I got some codes you can use. Yeah, I got a bunch of different codes you can use for different websites like Jomashop, FragranceNet, Perfume Box, Beauty House, and more'",
+      "paid_content_overlay: not_captured"
+    ]
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "single-product review; organic purchase discourse; HIGHEST conversion density in corpus (~18/40 intent-bearing)",
+    "intent_counts": {"bought_because_of_creator": 2, "where_to_buy": 0, "dupe_request": 2, "price_objection": 1, "comparison_shopping": 1, "future_buy_watchlist": 6, "owned_no_creator_causality": 7, "none": 21},
+    "intent_refs": {
+      "bought_because_of_creator": ["c05 'Because of this channel, I bought Dunescape, Pacific Aura and Hawas Tropical. I was not mislead' (3 likes) — 3-product channel-attributed haul", "c04 'Had this for a while after Ash recommended it on a different video and really enjoy it' (6 likes)"],
+      "dupe_request": ["c11 'I would like to see Hawas come out with a beast mode Y edp clone' (35 likes, TOP comment, 10 replies) — clone request naming product:ysl.y-eau-de-parfum as target + scene vocab 'beast mode'", "c30 (2 likes) 'Got my hopes up thinking it could be a Dior Dune pour Homme clone'"],
+      "price_objection": ["c20 'short-list of frags to look out for to drop to under $30'"],
+      "comparison_shopping": ["c37 'How does it compare to odyssey mega?'"],
+      "future_buy_watchlist": ["c03 'Buying this jus cuz the sand in the cap is gangster' (19 likes — packaging-driven)", "c07 'Pulling the trigger on this, been in the cart for about a year'", "c09", "c12 'I gotta pick this one up'", "c14", "c25 'This is my next buy!'"]
+    },
+    "owned_refs": ["c02","c08","c13","c17","c26","c28","c36 (negative: 'After 6 week maserati, longevity only max 6 hour. Armaf disapointed me')"],
+    "notable_textures": [
+      {"ref": "c17", "note": "decant -> full bottle funnel: 'i ordered a decant of this, then after 3 days i ordered a full bottle'"},
+      {"ref": "c29", "note": "clone-preferred-over-original: 'Dunescape is vastly more interesting than YSL Y. If I had both, I can't imagine picking up boring YSL Y'"},
+      {"ref": "c22", "note": "category-entry + self-brand sample request: 'you started me on my fragrance journey, can I get a sample of one of your favorite fragrances that you created'"},
+      {"ref": "c40", "note": "21 likes: 'OLD video??? Been talked about a lot already on this channel??' + c12 '5 months at this point' — repeat-coverage fatigue signal"},
+      {"ref": "c39", "note": "self-brand inquiry: 'what do you think of Reef perfumes?'"}
+    ],
+    "top_comment_concentration": "c01 (40, branding-logic) + c11 (35, Y-clone request) + c40 (21) + c03 (19) — liked support split across branding debate and purchase intent"
+  }
+}

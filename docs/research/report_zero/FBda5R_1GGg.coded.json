@@ -1,0 +1,52 @@
+{
+  "video_id": "FBda5R_1GGg",
+  "record_provenance": {"video_input_hash": "7a528f86513e12ef432af134ece38e3e2156d5667722efe7f77e7be0d1941ce8", "transcript_hash": "82ba8a9c3ae98b491c7fc998e244547089cd73b149952222069f0a6f4d6be040", "watch_metadata_hash": "e780f64527a2f998da3e879748a634fc071d63d6d8d38abc5f06e0bebb4e96b1", "comments_hash": "03ef69b20929222c5f8a20b73b227b738e070c3ec2833326da55adaa2b55cc1a", "input_content_hash": "7a528f86513e12ef432af134ece38e3e2156d5667722efe7f77e7be0d1941ce8", "extraction_model": "claude-fable-5", "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1", "extraction_timestamp": "2026-07-09T18:38:40Z/2026-07-10T03:52:00Z (run window; per-file wall times not separately recorded — run-log receipt)", "receipt_ref_convention": "bare @ms / @start-end refs and comment refs cNN in this record are scoped to this record's video_id; the provenance fields in this block apply to every claim entry in this record (round-1 patch, AR-01)"},
+  "title": "Fake Fragrances Are STILL Flooding The Market - Don't Get Scammed!",
+  "video_class": {"value": "other", "subtype": "counterfeit_exposure_consumer_protection", "receipt": "FBda5R_1GGg@24320-32000 'showing you guys three different fake fragrances that I purchased. I'm going to name and shame exactly where I got them from'", "fragrance_topical": true, "confidence": "high"},
+  "views": 20653, "likes": 1229, "publish_date": "2026-06-27", "total_comments": 259,
+  "baseline_note": "lowest views in corpus (20,653 vs corpus range 20.6K-64.8K) — consumer-protection content underperforms rankings within-creator; ad-reception matched-pair relevant",
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:versace.pour-homme", "kind": "counterfeit_comparative", "stance": "neutral_mention", "receipt": "FBda5R_1GGg@799440-807120 'take this [cheap Ferragamo], mix it with Versace Pom[me], Mason Wave, give it a nice strong chemical unbalanced vibe' (fake-Profumo smell description) + @934160 sellers list 'fake Versace Pomme'", "confidence": "medium (ASR 'Pom/Pomme')"}
+    ],
+    "counterfeit_subjects_unresolved": [
+      {"surface": "fake Azzaro Forever Wanted Elixir ($37.52, eBay 'NowDeals store', 48 sold)", "receipt": "@466319-475039 'it is piss weak... truly awful. It's useless'"},
+      {"surface": "fake Acqua di Gio Profumo ($58.84, seller info Tunisia, fake NY address)", "receipt": "@601360 'I said, No, it's absolutely 100% fake' + @824639-829519 'It's gone already. Garbage. Absolute trash'"},
+      {"surface": "fake Valentino Purple Melancholia ($48.26, seller info Saudi Arabia, SAME fake NY address)", "receipt": "@1105280-1109440 'absolute garbage. It dissipates almost instantly'"}
+    ],
+    "integrity_facts": [
+      {"note": "coordinated counterfeit ring signal: two different eBay accounts, different claimed countries, same fake New York shipping address", "receipt": "FBda5R_1GGg@903920-915040 'Different seller info coming from the same fake address in New York'"},
+      {"note": "batch-code verification defeated: 'they're going to buy a real one and copy that' @518560-532000"},
+      {"note": "platform enforcement failure: 'I've reported fakes over and over. They don't remove them' @850000-857440"},
+      {"note": "clone-houses now counterfeited too: 'the reason that Lattafa and brands like that have introduced this whole certificate of authenticity' @1253520-1261200"},
+      {"note": "review-pollution loop named by creator: 'they'll watch a review... buy on eBay... spray it on and go this stuff sucks... they don't realize it's not real' @611519-626160"}
+    ]
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": true,
+    "receipts": [
+      "short_description: legit-product affiliate links (3) + 'GET MY NEW FRAGRANCES ARASHI REEF & FRENCH QUARTER... 25% OFF' (self-brand)",
+      "transcript @243519-256079 codes framed as anti-fraud guidance ('buy retail... or a legitimate discounter... Frag Flex, Fragrance Net, Fragrance Buy, Joop... codes in the description')",
+      "FBda5R_1GGg@71200-75200 'price of 58.84 for one of them, 3752 for the other and 48.26 for the last' (self-funded fake purchases: $58.84 + $37.52 + $48.26)",
+      "paid_content_overlay: not_captured"
+    ]
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "trust/consumer-protection discourse dominates; no product-prompt",
+    "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 0, "owned_no_creator_causality": 5, "none": 34},
+    "intent_refs": {"bought_because_of_creator": ["c39 (no like count captured) 'After watching one of your videos I started getting into mens fragrance.....now I smell wonderful all the time' — category-entry conversion"]},
+    "owned_refs": ["c16 (owned fake Hawas + Valentino)", "c25 (discovered own Azzaro is fake via this video's batch code)", "c33 ('bought four bottles of Amouage Beach Hut Man from Jomashop')", "c38 (venue-loyal buyer, one Amazon clone burn)", "c40 (fake Eros eBay burn story)"],
+    "trust_integrity_textures": [
+      {"ref": "c02", "note": "TOP comment (55 likes): demand for real-vs-fake series on the extra channel"},
+      {"ref": "c04", "note": "50 likes: 'community effort to start naming and shaming... even bringing in law enforcement... this needs to indirectly shame eBay'"},
+      {"ref": "c03/c12", "note": "review-pollution insight from audience: complaints about 'bad' fragrances may be unknowing fake-buyers — polluted public review signal"},
+      {"ref": "c07", "note": "counterfeit retail infiltration: 'Mall store tried to sell me one of those exact fake Profumos... They knew exactly what they were selling'"},
+      {"ref": "c25", "note": "decision-value evidence: viewer identified own fake via the video (same batch code)"},
+      {"ref": "c19", "note": "crowd supply-chain claim (15 likes): 'The fake suppliers are Alibaba temu and shein' — unverified"},
+      {"ref": "c31", "note": "counterfeit tech escalation: UV printers, refilled factory bottles"},
+      {"refs": ["c05","c23","c30","c35"], "note": "creator-trust ovation ('doing the Lord's work')"}
+    ],
+    "content_demand": [{"refs": ["c02","c08","c13","c14","c15","c22","c27","c36"], "note": "8/40 explicitly request recurring real-vs-fake content — strongest single content-demand signal in corpus"}],
+    "top_comment_concentration": "c02 (55) + c04 (50) + c01 (49) — liked support concentrated on anti-fraud advocacy"
+  }
+}
