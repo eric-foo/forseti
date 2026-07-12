@@ -1,0 +1,40 @@
+{
+  "video_id": "lecfbS6qOIw",
+  "record_provenance": {"video_input_hash": "bcb33f0b08750a4983c2ad9655858c43951fc61d8e90ae794a34112211f70858", "transcript_hash": "50831715be9629a3f83d882243ce69a2eb6d36f96cff97c39c09bdc5f7067873", "watch_metadata_hash": "4180c5b04c4cb836471e28004f046f4b80e2c802aa9e823b01bddb9b9c932a18", "comments_hash": "59cc2babf4e6c6aca27813348104ab4807629cb59284a19ac01b672089d28b29", "input_content_hash": "bcb33f0b08750a4983c2ad9655858c43951fc61d8e90ae794a34112211f70858", "extraction_model": "claude-fable-5", "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1", "extraction_timestamp": "2026-07-09T18:38:40Z/2026-07-10T03:52:00Z (run window; per-file wall times not separately recorded — run-log receipt)", "receipt_ref_convention": "bare @ms / @start-end refs and comment refs cNN in this record are scoped to this record's video_id; the provenance fields in this block apply to every claim entry in this record (round-1 patch, AR-01)"},
+  "title": "Ultimate Year-Round Fragrance Lineup - 4 Fragrances Per 4 Seasons",
+  "video_class": {"value": "ranking", "subtype": "seasonal_wardrobe_guide_designer_only", "receipt": "lecfbS6qOIw@10640-18160 'fragrances for spring, summer, fall, and winter. Four categories per season'", "fragrance_topical": true, "confidence": "high"},
+  "views": 40390, "likes": 1743, "publish_date": "2026-06-22", "total_comments": 129,
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:chanel.bleu-de-chanel", "kind": "subject_pick", "stance": "positive_recommend", "receipt": "lecfbS6qOIw@904440-933480 'Bleu de Chanel Parfum... understated sexiness... It oozes class and sophistication... The only real drawback is it's a Chanel, which means it's pricey. But it is also a Chanel, which means you can kind of brag about it to people... they hear Chanel and they go, Oh, I know that... and I know it is expensive'", "note": "Parfum concentration; brand-halo social-signaling read", "confidence": "medium-high"}
+    ],
+    "designer_picks_unresolved": [
+      {"surface": "D&G Light Blue EDP (summer versatile)"}, {"surface": "Dior Homme Sport (summer classy)", "house_id": "brand:dior"}, {"surface": "Polo 67 EDT (bonus)"}, {"surface": "Valentino BiR Coral Fantasy (summer sexy)"}, {"surface": "L'eau d'Issey Eau Fraiche (summer standout)"}, {"surface": "YSL MYSLF Absolu (fall versatile)"}, {"surface": "Varvatos XX Intense (~Polo Red Extreme; 'performance generally not great' house-pattern joke)"}, {"surface": "Armani Code Parfum (fall classy)"}, {"surface": "Armani SWY Powerfully (fall sexy)"}, {"surface": "Azzaro Forever Wanted Absolu (fall standout; 'smells like a cave' opening)"}, {"surface": "ADG Parfum (winter versatile)"}, {"surface": "Prada L'Homme Intense (winter classy)"}, {"surface": "D&G The One Parfum (winter sexy; 'one of the best DNAs ever made for a date night')"}, {"surface": "Boss Bottled Absolu (~PDM Carlisle comparative)"}, {"surface": "Rabanne 1 Million Gold Elixir (anti-rec of 1M Gold: 'can come across smelling like body odor... would not risk a blind buy')"}, {"surface": "Ralph's Club New York (spring versatile)"}, {"surface": "Terre d'Hermes Eau Givree (spring classy)"}, {"surface": "Prada Paradigme Le Parfum (spring sexy)"}, {"surface": "Gucci Guilty Elixir (spring standout; '~Reflection Man mixed with Pegasus by PDM')"}, {"surface": "Hermes H24 (anti-pick disclosed: 'I don't like H24... but it would fit this category' — honest counter-preference inclusion)"}
+    ],
+    "creator_community_texture": {"note": "'Sometimes I get emails from guys that say my video helped them through the day' @618920-624280 — parasocial wellbeing segment"}
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": false,
+    "receipts": ["short_description per-product affiliate links (8+ visible)", "transcript @339480-361880 codes segment ('niche, indie, designer, clone, whatever')", "paid_content_overlay: not_captured"]
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "wardrobe-guide format; knowledge-consumption + parasocial texture dominates",
+    "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 0, "dupe_request": 0, "price_objection": 0, "comparison_shopping": 0, "future_buy_watchlist": 0, "owned_no_creator_causality": 9, "none": 30},
+    "intent_refs": {
+      "bought_because_of_creator": ["c13 (2 likes) 'I'm wearing Arashi Reef today!... that, French Quarter and Citizens Jack are my first Michael Malul fragrances. Amazing quality and I love all the samples' — SELF-BRAND conversion, 3 creator products owned"]
+    },
+    "owned_refs": ["c12 ('Just ordered SWY Powerfully... had a sample... BEAUTIFUL' — sample->bottle funnel, circumstantial creator-influence)","c16","c20","c22","c26","c27","c29","c33","c39"],
+    "decision_support_value": [
+      {"ref": "c18", "note": "'I'm acquiring all of the knowledge so I don't make dumb purchases' — decision-support value verbatim"},
+      {"ref": "c15", "note": "'Been my fragrance coach for years' (2 likes) — advisory role"},
+      {"ref": "c01", "note": "TOP (116 likes): 'it's not even about wanting to get the fragrances. i just love the ball knowledge. i'm in too deep' — knowledge-consumption audience segment"}
+    ],
+    "notable_textures": [
+      {"ref": "c09", "note": "minimalist buyer persona: 'I have the rule to only own 4 perfumes all the year'"},
+      {"ref": "c14", "note": "designer price inflation: 'Used to love this kind of video back when you could get most designers for 40-60 USD'"},
+      {"ref": "c05", "note": "19 likes: parasocial wellbeing (new-father wind-down ritual)"},
+      {"refs": ["c07","c19","c30","c34","c36"], "note": "content requests: niche version, clones version, under-50 version, Tom Ford guide (recurring)"}
+    ],
+    "top_comment_concentration": "c01 (116) knowledge-not-purchase; c02 (23) creator-character; format-affection cluster"
+  }
+}
