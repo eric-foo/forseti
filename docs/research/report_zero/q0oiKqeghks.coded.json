@@ -1,0 +1,61 @@
+{
+  "video_id": "q0oiKqeghks",
+  "record_provenance": {"video_input_hash": "0362d378b95aeeebb196ee4b70edea797539c1522dd175be987b577f9f4656c5", "transcript_hash": "c7c4a41295f7c2a3f3bf79f6a38237df94032226849fd51b811b3af92a61f9ce", "watch_metadata_hash": "6c78c43b18b012eadffd04dbc98a3759f7d1049521f4a2c88f6f1895064dd251", "comments_hash": "b8452f9b8888602df582d9c973f640e214de6cfe5f07405e4b5bcb282ae469a0", "input_content_hash": "0362d378b95aeeebb196ee4b70edea797539c1522dd175be987b577f9f4656c5", "extraction_model": "claude-fable-5", "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1", "extraction_timestamp": "2026-07-09T18:38:40Z/2026-07-10T03:52:00Z (run window; per-file wall times not separately recorded — run-log receipt)", "receipt_ref_convention": "bare @ms / @start-end refs and comment refs cNN in this record are scoped to this record's video_id; the provenance fields in this block apply to every claim entry in this record (round-1 patch, AR-01)"},
+  "title": "12 FRESH Cheap Clone Fragrances Perfect For Summer",
+  "video_class": {"value": "clone-guide", "subtype": "clone_haul_review", "receipt": "q0oiKqeghks@13200-19840 'I got my hands on a whole bunch of new inspired by fragrances. I'm going to let you know which ones are absolute gas'", "fragrance_topical": true, "confidence": "high"},
+  "views": 33111, "likes": 1470, "publish_date": "2026-06-28", "total_comments": 100,
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:creed.aventus", "kind": "meta_archetype_comparative", "stance": "neutral_mention", "receipt": "q0oiKqeghks@541680-547120 'It's almost like somebody going, \"Look, it's Aventus. You never seen that before.\" Whoa.' — Aventus as the archetype most-cloned fragrance", "note": "second corpus-level dupe-space signal for intake original #1"}
+    ],
+    "house_comparatives_resolved": [
+      {"house_id": "brand:louis-vuitton", "receipts": ["@306400 'smells similar to Symphony by Louis Vuitton' (Velixir Concordia's target)", "@576800 'hybrid of Afternoon Swim and Virgin Island Water' (Mykonos Empire)"], "note": "LV products Symphony/Afternoon Swim not in reference; house-level only"},
+      {"house_id": "brand:creed", "receipts": ["@576800-585440 'Virgin Island Water... two of the biggest summertime niche leaning fragrances of all time'"], "note": "VIW not in reference; house-level only"}
+    ],
+    "clone_subjects_all_unresolved": [
+      {"surface": "Raees Luxury Edition", "dupe_target": "Acqua di Gio Profumo (discontinued)", "stance": "positive_recommend", "receipt": "@160080-169519 'It smells great already... luxury edition Acqua di Gio Profumo. Fantastic'"},
+      {"surface": "Paris Corner Cosmic Giardino", "dupe_target": "JPG Le Beau Paradise Garden", "stance": "positive_recommend", "receipt": "@204239-209840 'It smells similar to Le Beau Paradise Garden. And it actually rules'", "house_variance_note": "'I have had more flops from the PC than pretty much any other large fragrance house' @190800-197440"},
+      {"surface": "Velixir Concordia", "dupe_target": "Louis Vuitton Symphony", "stance": "positive_recommend", "receipt": "@319840-323840 'This is a very, very, very well done dupe'", "price_receipt": "@288000-290400 'Beauty House. 58.50' + scalper objection @265759-281759 'eBay for like 170... That is crackhead stuff'"},
+      {"surface": "Rasasi Hawas Highness", "dupe_target": "Vibrato (+ Bvlgari Tygar overlap)", "stance": "positive_recommend", "receipt": "@388080-401039 'basically just a more freshened up take on vibr[ato]... Really, really good performance'", "note": "head-to-head same-time skin test @378639"},
+      {"surface": "Montagne Port Of Neroli", "dupe_target": "Tom Ford Neroli Portofino", "stance": "positive_recommend", "receipt": "@524560-528800 'take that Neroli Portofino and crank that up... to 12'"},
+      {"surface": "Mykonos Empire", "dupe_target": "LV Afternoon Swim + Creed Virgin Island Water (hybrid)", "stance": "positive_recommend", "receipt": "@645120-648480 'Kind of dig it... definitely worth checking out. Just make sure you don't overpay'"},
+      {"surface": "Gulf Orchid Mosaic", "dupe_target": "YSL MYSLF Absolu", "stance": "positive_recommend", "receipt": "@682399-694560 'what this one lacks in insane performance... makes up for by smelling freaking good'", "price_receipt": "'30 bucks... If this dips down like 25, that's absurd' @670640-676399"},
+      {"surface": "Kana/Cana Mesmar (Rasasi)", "dupe_target": "YSL MYSLF", "stance": "positive_recommend", "receipt": "@763440-766320 'a twist on YSL myself. Quality is pretty good'"},
+      {"surface": "Paris Corner Ciao/Kaw Citrus", "dupe_target": "partial: Le Labo Bergamote 22 comparisons", "stance": "mixed_comparative", "receipt": "@884000-887199 'my wife... thinks it's awesome. And if you're a citrus lover, it's pretty good'"},
+      {"surface": "French Avenue Ravine Ice", "dupe_target": "Goldfield & Banks Pacific Rock Moss", "stance": "positive_recommend", "receipt": "@899279-903760 'this one smells like Pacific Rock Moss. It has that wearability built in'"},
+      {"surface": "Rifts Freeze", "dupe_target": "NOT a 1:1 for 'YSL YC [Y Iced]' per creator", "stance": "mixed_comparative", "receipt": "@970399-985600 'I don't think that it's close enough... not really like a one-to-one replacement'"},
+      {"surface": "Zamaya Damon Eclipse", "dupe_target": "ADG Elixir (~ADG DNA + Dior Fahrenheit cologne)", "stance": "neutral_mention", "receipt": "@1030480-1034799 'More of a slightly more grownup formal type of Acqua di Gio vibe here'"}
+    ]
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": false,
+    "receipts": [
+      "short_description: per-clone affiliate links (gentsscents.me ×7+, truncated at 'Gulf Orchid Mosaic - https://gentsscents.me/4uLLgW')",
+      "transcript @444960-457120 'I've got codes for [Beauty House] and many, many other discounters... also in the description'",
+      "self-purchases with named venues/prices: eBay (Raees), Beauty House $58.50 (Concordia), Jomashop $30 (Mosaic) — 'I have placed an order... more than one order' @3840-11200",
+      "paid_content_overlay: not_captured"
+    ]
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "no giveaway prompt; organic clone-purchase discourse — highest intent density in corpus (~11/40)",
+    "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 1, "dupe_request": 3, "price_objection": 0, "comparison_shopping": 2, "future_buy_watchlist": 4, "owned_no_creator_causality": 7, "none": 22},
+    "intent_refs": {
+      "bought_because_of_creator": ["c04 (no like count captured) 'I purchased Raees Luxury edition the day I saw this video and it was in stock and shipped already' — explicit same-day conversion"],
+      "where_to_buy": ["c25 'On Ebay, Le Perfect IS Jomashop. Is that where you purchased from?'"],
+      "dupe_request": ["c23 (no like count captured) 'any iced cologne clone yet in the market?'", "c28 (no like count captured) 'What is the closest scent to ADG Profumo in your opinion?'", "c33 (no like count captured) 'Is there any dupes for Sental 33 [Santal 33] out there?'"],
+      "comparison_shopping": ["c19 'I have 1million elixir (love it) is the new invictus elixir similar or overlapping to the point if just getting 1 of the 2?'", "c31 'How does Concordia compare to island dreams?'"],
+      "future_buy_watchlist": ["c06 'Gonna try the Concordia and Mykonos Empire'", "c07 'I'm going to try these fragrances'", "c12 'Mykonos empire is on the list now'", "c29 'thinking of dipping into clones'"]
+    },
+    "owned_refs": ["c01","c17","c20","c21","c36","c38","c40"],
+    "notable_textures": [
+      {"ref": "c01", "note": "TOP comment (24 likes): audience runs its OWN dupe-similarity grading — '8/10 when it comes to similarity to Profumo. It's lacking some incense and any depth'"},
+      {"ref": "c29", "note": "clone-adoption economics: 'so many discontinued fragrances that go for hundreds now so I don't wear them to preserve them... dipping into clones so I don't feel guilty' (2 likes)"},
+      {"ref": "c40", "note": "NEGATIVE dupe verdict + creator-guided purchase circumstantial: 'picked up Concordia for 55 from beauty house but... don't think it smells like symphony at all' — venue+price match the video's guidance; no explicit causality, coded owned"},
+      {"ref": "c35", "note": "creator-authenticity probe: 'curious if Ash ever actually wears many of these clones... I would imagine he wears mostly designer and niche'"},
+      {"ref": "c36", "note": "scene vocabulary 'BEAST MODE'; crowd-sourced dupe mapping 'word is, it smells similar to Oceania by Roja'"},
+      {"ref": "c20", "note": "distribution complaint: 'wish Velixir and Mykonos were easier to get. Beauty House trying to monopolize those 2'"}
+    ],
+    "content_requests": [{"refs": ["c08","c09","c18","c26"], "note": "iris list, note-based N/D/V format, hybrids list, Superz-vs-Blue-Talisman review — audience steers content"}],
+    "top_comment_concentration": "c01 (24 likes) dominates; the top-liked comment IS a dupe-quality verdict"
+  }
+}
