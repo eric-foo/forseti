@@ -1,12 +1,20 @@
 from __future__ import annotations
 import hashlib, json
+from pathlib import Path
 
 from cleaning.audience_extractor import RawApiProvider
-from cleaning.tiktok_audience_evidence_extractor import AudienceTranscript, pack_transcripts, parse_response
+from cleaning.tiktok_audience_evidence_extractor import AudienceTranscript, pack_transcripts, parse_response, synthesize_profiles
 from cleaning.transcript_product_extractor import TranscriptInput
-from cleaning.tiktok_audience_evidence_lake import AUDIENCE_EVIDENCE_SET_LANE, audience_record_id
+from cleaning.tiktok_audience_evidence_lake import (
+    AUDIENCE_EVIDENCE_LANE, AUDIENCE_EVIDENCE_SET_LANE, audience_record_id, write_profile, write_result,
+)
 from data_lake.root import DataLakeRoot
 from runners.run_tiktok_audience_evidence_extract import run_extraction
+from schemas.tiktok_audience_evidence_models import TikTokAudienceProfile
+from source_capture.models import (
+    CaptureModeCategory, PacketTiming, SourceCaptureSlice, known_fact, not_applicable, not_attempted,
+)
+from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 from test_tiktok_creator_metric_seed import _commit_batch_packet, _stats, _video
 
 
@@ -40,6 +48,170 @@ def test_parser_partitions_by_creator_and_rejects_demographics() -> None:
     result = parse_response(json.dumps(rows), items, model="m")
     assert len(result[("a", "v1")].evidence) == 1
     assert result[("b", "v2")].rejected[0]["reason"] == "demographic_inference_forbidden"
+
+
+def test_parser_rejects_demographic_inference_in_content_pillar() -> None:
+    item = AudienceTranscript("a", TranscriptInput("v1", "anchor", "source", [{"start": 0.0, "text": "compare affordable alternatives"}]))
+    rows = [{"creator_id": "a", "video_id": "v1", "audience_layer": "beneficiary_content_fit",
+             "dimension": "value_sought", "label": "comparison shoppers", "content_pillar": "wealthy collectors",
+             "vote": 1, "source_pointer": "compare affordable alternatives", "possible_negation_or_irony": False}]
+    result = parse_response(json.dumps(rows), [item], model="model")[("a", "v1")]
+    assert not result.evidence
+    assert result.rejected[0]["reason"] == "demographic_inference_forbidden"
+
+
+def test_profile_synthesis_rejects_demographic_inference_outside_primary_hypothesis() -> None:
+    item = AudienceTranscript("a", TranscriptInput("v1", "anchor", "source", [{"start": 0.0, "text": "compare affordable alternatives"}]))
+    evidence_rows = [{"creator_id": "a", "video_id": "v1", "audience_layer": "beneficiary_content_fit",
+                      "dimension": "value_sought", "label": "comparison shoppers", "content_pillar": "comparisons",
+                      "vote": 1, "source_pointer": "compare affordable alternatives", "possible_negation_or_irony": False}]
+    evidence = parse_response(json.dumps(evidence_rows), [item], model="model")[("a", "v1")].evidence
+
+    class Transport:
+        def post_json(self, url, headers, body, timeout_seconds):
+            return json.dumps({"output_text": json.dumps([{
+                "creator_id": "a", "primary_hypothesis": "Comparison-led fragrance shoppers.",
+                "knowledge_level": "category-aware", "shopping_stage": "comparison",
+                "product_range": ["affordable alternatives"], "recurring_decision_jobs": ["judge replacement fit"],
+                "engagement_style": "direct comparison", "price_posture": "value-aware",
+                "likely_exclusions": ["wealthy collectors"], "evidence_ids": [evidence[0].evidence_id],
+                "counterevidence_ids": [], "support_band": "medium", "actual_audience": "not_estimated",
+            }])})
+
+    import pytest
+    with pytest.raises(ValueError, match="forbidden demographic inference"):
+        synthesize_profiles(evidence_by_creator={"a": evidence}, transport=Transport(),
+                            provider=RawApiProvider.OPENAI_RESPONSES, model="model", api_key="secret")
+
+
+def _commit_non_batch_tiktok_packet(data_root: DataLakeRoot, *, handle: str = "gamma") -> str:
+    """A committed TikTok packet sharing source_family="tiktok" but NOT the
+    batch-admission surface (mirrors a single-video SCI packet) -- it has no
+    preserved batch capture JSON, so it is not this consumer's work."""
+    staged = [("fixture_video_admission.json", json.dumps({"video_id": "v9"}).encode("utf-8"))]
+    file_ids = staged_file_id_map(staged)
+    locator = f"https://www.tiktok.com/@{handle}/video/v9"
+    timing = PacketTiming(
+        source_publication_or_event=known_fact("fixture single-video window"),
+        source_edit_or_version=not_applicable("fixture single-video packet"),
+        capture_time=known_fact("2026-06-30T17:48:37Z"),
+        recapture_time=not_applicable("fixture single-video packet"),
+        cutoff_posture=not_applicable("fixture single-video packet"),
+    )
+    access = known_fact("sanitized parsed TikTok staging admission (fixture)")
+    archive = not_attempted("fixture single-video packet does not query archive services")
+    media = known_fact("parsed fields preserved; no raw media bytes (fixture)")
+    recapture = not_applicable("fixture single-video packet")
+    limitations = ["fixture only"]
+    result = stage_and_write_packet(
+        data_root=data_root,
+        staged_artifacts=staged,
+        source_slices=[
+            SourceCaptureSlice(
+                slice_id="tiktok_video_admission_01",
+                locator=known_fact(locator),
+                timing=timing,
+                access_posture=access,
+                archive_history_posture=archive,
+                media_modality_posture=media,
+                re_capture_relationship=recapture,
+                limitations=limitations,
+                warning_notes=[],
+                preserved_file_ids=[file_ids["fixture_video_admission.json"]],
+            )
+        ],
+        source_family="tiktok",
+        source_surface="tiktok_video_comment_subtitle_admission",
+        source_locator=known_fact(locator),
+        decision_question="fixture: TikTok single-video admission",
+        capture_context="fixture TikTok single-video admission (not a batch packet)",
+        actor_audience_context=not_applicable("fixture single-video packet"),
+        capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
+        operator_category="tiktok_video_admission_cli_operator",
+        session_identity=None,
+        visible_mode_changes=["tiktok_sci_admission:single_video"],
+        source_publication_or_event=timing.source_publication_or_event,
+        source_edit_or_version=timing.source_edit_or_version,
+        cutoff_posture=timing.cutoff_posture,
+        recapture_time=timing.recapture_time,
+        access_posture=access,
+        archive_history_posture=archive,
+        media_modality_posture=media,
+        re_capture_relationship=recapture,
+        warnings=[],
+        limitations=limitations,
+        receipt_summary=f"fixture TikTok single-video admission for @{handle}",
+        receipt_non_claims=["fixture only"],
+    )
+    data_root.rebuild_availability()
+    return Path(result.output_directory).name
+
+
+def test_runner_acks_non_batch_tiktok_packet_without_infinite_retry(tmp_path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_non_batch_tiktok_packet(root)
+
+    class Transport:
+        def post_json(self, *args, **kwargs):
+            raise AssertionError("no provider call expected for a non-batch TikTok packet")
+
+    transport = Transport()
+    first = run_extraction(data_root=root, transport=transport, provider=RawApiProvider.OPENAI_RESPONSES,
+                           model="model", api_key="secret")
+    assert first == []
+    second = run_extraction(data_root=root, transport=transport, provider=RawApiProvider.OPENAI_RESPONSES,
+                            model="model", api_key="secret")
+    assert second == []
+
+
+def test_runner_skips_already_written_profile_after_crash_before_ack(tmp_path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _commit_batch_packet(root, handle="alpha", videos=[_caption_video("v1", "compare affordable alternatives", "alpha")])
+    creator = "tiktok:@alpha"
+
+    transcripts, _ = __import__("runners.run_tiktok_product_extract", fromlist=["_transcripts_for_packet"])._transcripts_for_packet(root, packet_id)
+    item = AudienceTranscript(creator, transcripts[0])
+    rows = [{"creator_id": creator, "video_id": "v1", "audience_layer": "beneficiary_content_fit", "dimension": "value_sought", "label": "comparison-led alternative evaluation", "content_pillar": "comparisons", "vote": 1, "source_pointer": "compare affordable alternatives", "possible_negation_or_irony": False}]
+    extraction = parse_response(json.dumps(rows), [item], model="model")[(creator, "v1")]
+    assert extraction.evidence and not extraction.rejected
+    paths = write_result(data_root=root, item=item, result=extraction, model="model")
+    rid = audience_record_id(item, "model")
+    member_body = paths[AUDIENCE_EVIDENCE_LANE].read_bytes()
+
+    profile = TikTokAudienceProfile(
+        creator_id=creator,
+        primary_hypothesis="Comparison-led fragrance shoppers evaluating affordable alternatives.",
+        knowledge_level="category-aware",
+        shopping_stage="comparison",
+        product_range=["affordable alternatives"],
+        recurring_decision_jobs=["judge replacement fit"],
+        engagement_style="direct comparison",
+        price_posture="value-aware",
+        likely_exclusions=["non-shoppers"],
+        evidence_ids=[extraction.evidence[0].evidence_id],
+        counterevidence_ids=[],
+        support_band="medium",
+    )
+    # Simulate a crash that landed both the evidence record and the profile
+    # record durably, but before the runner reached its final append_ack loop.
+    write_profile(data_root=root, raw_anchor=packet_id, profile=profile, model="model",
+                  evidence_records=[(rid, hashlib.sha256(member_body).hexdigest())])
+
+    class Transport:
+        calls = 0
+        def post_json(self, url, headers, body, timeout_seconds):
+            self.calls += 1
+            return json.dumps({"output_text": "[]"})
+
+    transport = Transport()
+    first = run_extraction(data_root=root, transport=transport, provider=RawApiProvider.OPENAI_RESPONSES,
+                           model="model", api_key="secret")
+    assert transport.calls == 0
+    assert all(row.get("status") != "profile_failed" for row in first)
+    second = run_extraction(data_root=root, transport=transport, provider=RawApiProvider.OPENAI_RESPONSES,
+                            model="model", api_key="secret")
+    assert second == []
+    assert transport.calls == 0
 
 
 def test_runner_batches_two_creators_in_one_call_and_second_cycle_zero(tmp_path) -> None:

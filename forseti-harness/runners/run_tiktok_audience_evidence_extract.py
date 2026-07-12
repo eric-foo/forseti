@@ -8,7 +8,10 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cleaning.tiktok_audience_evidence_extractor import AudienceTranscript, RUBRIC_VERSION, extract_batch, pack_transcripts, synthesize_profiles
-from cleaning.tiktok_audience_evidence_lake import AUDIENCE_EVIDENCE_LANE, AUDIENCE_EVIDENCE_SET_LANE, AUDIENCE_PROFILE_SET_LANE, audience_record_id, write_profile, write_result
+from cleaning.tiktok_audience_evidence_lake import (
+    AUDIENCE_EVIDENCE_LANE, AUDIENCE_EVIDENCE_SET_LANE, AUDIENCE_PROFILE_LANE, AUDIENCE_PROFILE_SET_LANE,
+    audience_record_id, profile_record_id, write_profile, write_result,
+)
 from data_lake.consumption import append_ack, pickup, reconcile_availability_per_packet
 from runners.run_tiktok_product_extract import _transcripts_for_packet
 from source_capture.tiktok.batch_packet import TIKTOK_BATCH_CAPTURE_JSON_NAME
@@ -61,9 +64,17 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
         packet_id = pickup_item.raw_anchor
         state = states[packet_id]
         try:
+            transcripts, failures = _transcripts_for_packet(data_root, packet_id)
+            if not transcripts and not failures:
+                # Not a TikTok batch-admission packet (e.g. a single-video SCI packet
+                # sharing source_family="tiktok"), or a batch packet with zero videos.
+                # Nothing for this consumer to do; leave state at its default
+                # complete=True/empty-evidence so the packet acks as
+                # no_extractable_transcripts below instead of re-surfacing as a
+                # permanent discovery_failed retry on every future run.
+                continue
             creator = _creator_id(data_root, packet_id)
             state["creator"] = creator
-            transcripts, failures = _transcripts_for_packet(data_root, packet_id)
             if failures:
                 results.extend(failures)
                 state["complete"] = False
@@ -143,24 +154,46 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
         if not placed:
             profile_groups.append([(packet_id, state)])
     for group in profile_groups:
-        evidence_by_creator = {state["creator"]: state["rows"] for _pid, state in group}
+        # A crash between a prior run's profile write and its final ack loop leaves
+        # the profile durably complete but the packet still unacknowledged, so it
+        # resurfaces here on every retry. Resolve each creator's deterministic
+        # profile record id up front and skip/flag it the same way the evidence
+        # stage above does, instead of unconditionally re-synthesizing (a wasted
+        # provider call) and then failing write_profile's create-only guard forever.
+        pending_group: list[tuple[str, dict[str, Any]]] = []
+        for packet_id, state in group:
+            rid = profile_record_id(state["creator"], model, [ref_id for ref_id, _sha in state["record_refs"]])
+            if data_root.is_record_set_complete(subtree="derived", raw_anchor=packet_id,
+                                                record_id=rid, completion_lane=AUDIENCE_PROFILE_SET_LANE):
+                state["evidence"].append({"kind": "record_set_complete", "completion_lane": AUDIENCE_PROFILE_SET_LANE,
+                                          "record_id": rid})
+                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_skipped_done"})
+            elif data_root.record_path(subtree="derived", raw_anchor=packet_id,
+                                       lane=AUDIENCE_PROFILE_LANE, record_id=rid).exists():
+                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_partial_needs_cleanup"})
+                state["complete"] = False
+            else:
+                pending_group.append((packet_id, state))
+        if not pending_group:
+            continue
+        evidence_by_creator = {state["creator"]: state["rows"] for _pid, state in pending_group}
         try:
             profiles = synthesize_profiles(evidence_by_creator=evidence_by_creator, transport=transport,
                                            provider=provider, model=model, api_key=api_key, max_tokens=max_tokens)
         except Exception as exc:
-            for packet_id, state in group:
+            for packet_id, state in pending_group:
                 state["complete"] = False
                 results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_failed",
                                 "error": f"{type(exc).__name__}: {exc}"[:250]})
             continue
-        for packet_id, state in group:
+        for packet_id, state in pending_group:
             try:
                 paths = write_profile(data_root=data_root, raw_anchor=packet_id,
                                       profile=profiles[state["creator"]], model=model,
                                       evidence_records=state["record_refs"])
-                profile_record_id = next(iter(paths.values())).name
+                written_profile_record_id = next(iter(paths.values())).name
                 state["evidence"].append({"kind": "record_set_complete", "completion_lane": AUDIENCE_PROFILE_SET_LANE,
-                                          "record_id": profile_record_id})
+                                          "record_id": written_profile_record_id})
                 results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_extracted",
                                 "primary_hypothesis": profiles[state["creator"]].primary_hypothesis})
             except Exception as exc:

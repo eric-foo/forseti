@@ -38,6 +38,18 @@ def _norm(value: str) -> str:
     return _WS.sub(" ", value.strip().casefold())
 
 
+def _forbidden_demographic_text(values: object) -> str | None:
+    """Return the first model-authored text carrying a forbidden demographic."""
+    if isinstance(values, str):
+        return values if _FORBIDDEN_DEMOGRAPHIC.search(values) else None
+    if isinstance(values, (list, tuple)):
+        for value in values:
+            matched = _forbidden_demographic_text(value)
+            if matched is not None:
+                return matched
+    return None
+
+
 def pack_transcripts(items: list[AudienceTranscript], *, max_input_chars: int = 48_000) -> list[list[AudienceTranscript]]:
     if max_input_chars <= 0:
         raise ValueError("max_input_chars must be positive")
@@ -96,8 +108,9 @@ def parse_response(text: str, items: list[AudienceTranscript], *, model: str) ->
             raise ValueError(f"audience row {index} has unknown creator/video identity")
         pointer = str(raw.get("source_pointer") or "")
         label = str(raw.get("label") or "")
-        if _FORBIDDEN_DEMOGRAPHIC.search(label):
-            results[key].rejected.append({"reason": "demographic_inference_forbidden", "label": label})
+        forbidden = _forbidden_demographic_text((label, str(raw.get("content_pillar") or "")))
+        if forbidden is not None:
+            results[key].rejected.append({"reason": "demographic_inference_forbidden", "text": forbidden})
             continue
         if not pointer or _norm(pointer) not in _norm(lookup[key].transcript.joined_text):
             results[key].rejected.append({"reason": "source_pointer_not_found", "source_pointer": pointer})
@@ -160,6 +173,20 @@ def synthesize_profiles(*, evidence_by_creator: Mapping[str, list[TikTokAudience
     profiles: dict[str, TikTokAudienceProfile] = {}
     for raw_profile in rows:
         profile = TikTokAudienceProfile.model_validate(raw_profile)
+        forbidden = _forbidden_demographic_text((
+            profile.primary_hypothesis,
+            profile.knowledge_level,
+            profile.shopping_stage,
+            profile.product_range,
+            profile.recurring_decision_jobs,
+            profile.engagement_style,
+            profile.price_posture,
+            profile.likely_exclusions,
+        ))
+        if forbidden is not None:
+            raise ValueError(
+                f"profile {profile.creator_id} contains forbidden demographic inference"
+            )
         if profile.creator_id not in allowed_ids or profile.creator_id in profiles:
             raise ValueError(f"unexpected or duplicate profile creator_id: {profile.creator_id}")
         cited = set(profile.evidence_ids) | set(profile.counterevidence_ids)
