@@ -48,6 +48,24 @@ is harness-specific.
 
 Each has a `--selftest`. Each script names its own rule authority in its module
 header and references that source instead of restating it.
+## Run the CI hook-gate set locally (before pushing)
+
+CI runs every strict hook command registered in `.github/workflows/ci.yml`.
+The local pre-push guard mirrors nine selected strict gates, so CI still has
+additional hook commands that can fail after a push. Run the complete CI hook
+set locally with:
+
+```powershell
+pwsh .github/scripts/run-doc-gates.ps1          # run each registered CI hook command
+pwsh .github/scripts/run-doc-gates.ps1 -List    # list the commands derived from ci.yml
+```
+
+The runner parses both one-line steps and commands inside multiline `run: |`
+blocks directly from `.github/workflows/ci.yml`, so the workflow remains the
+command source. It intentionally excludes non-hook steps such as
+`python -m pytest` and `.github/scripts/*`; run relevant tests separately when
+you touch code. This is convenience tooling, not validation or readiness; CI
+remains the authoritative gate.
 
 **Shared helpers:** `_hooklib.py` (same directory) owns the helpers the wired
 checkers share -- repo-root/path normalization, tool-event parsing (incl. Codex
