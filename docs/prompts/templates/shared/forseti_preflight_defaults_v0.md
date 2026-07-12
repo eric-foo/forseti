@@ -5,10 +5,13 @@ retrieval_header_version: 1
 artifact_role: Preflight defaults (repo-constant prompt preflight bindings)
 scope: >
   Repo-constant field values that escalated Forseti prompts may reference
-  rather than restate. Routine prompts use the inline preflight core instead.
+  rather than restate. Routine prompts use the inline preflight core instead;
+  the `environment_baseline` constant may be pointed at by any Forseti prompt,
+  including compact delegated prompts.
 use_when:
   - Authoring a prompt that matches the Full orchestration predicate in `.agents/workflow-overlay/prompt-orchestration.md`; not a lane-scoped prompt merely because it is delegated or patch-authorized.
   - Checking which escalated preflight fields are constant vs. per-prompt.
+  - Resolving the `environment_baseline` constant pointed at by any Forseti prompt.
 authority_boundary: retrieval_only
 ```
 
@@ -31,6 +34,7 @@ These values do not need restating when an escalated prompt cites this artifact.
 | `external_source_boundary` | External workflow source is read-only from Forseti work; `jb` is not Forseti authority |
 | `retrieval_header_version` | `1` (for new durable artifacts) |
 | `authority_boundary` | `retrieval_only` (for new durable artifacts) |
+| `environment_baseline` | Windows host, PowerShell-first: use PowerShell syntax for shell/test commands; use absolute paths resolvable from any cwd; invoke `python`, never `python3`; do not pass Windows drive-letter paths or heredocs through bash |
 
 The REFERENCE-LOAD / SOURCE-LOAD / SOURCE_CONTEXT_READY / APPLY gate language
 is owned by `.agents/workflow-overlay/prompt-orchestration.md`'s

@@ -283,8 +283,9 @@ Render one compact pointer-first prompt containing:
    delegate family, using `operator_to_fill` only for an inferable but genuinely
    operator-owned value;
 4. pointers to `AGENTS.md`, `.agents/workflow-overlay/README.md`, the targeted
-   sections of `.agents/workflow-overlay/delegated-review-patch.md`, and the
-   relevant review skill or lane;
+   sections of `.agents/workflow-overlay/delegated-review-patch.md`, the
+   relevant review skill or lane, and the `environment_baseline` constant in
+   `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`;
 5. named validation expectations with real failure and not-run reporting;
 6. the controller return: findings, bounded diff, neutral citations, validation
    evidence, verdict, and residual risk;
@@ -338,7 +339,11 @@ separate:
   kept in ignored `docs/_inbox/` scratch when a disk handoff is useful. Do not
   open a separate prompt-only PR for that material, and do not commit it solely
   to manufacture a durable prompt artifact. The durable record is the lane PR
-  plus the downstream artifact the prompt asks the receiver to write.
+  plus the downstream artifact the prompt asks the receiver to write. Handoff
+  packets, closeout notes, and other lane-continuity docs follow the same
+  filing rule: they ride the originating work-unit lane PR or stay in ignored
+  scratch until consumed, and get a standalone PR only when the doc itself is
+  the bounded work unit.
 - If a lane-scoped prompt later becomes reusable, doctrine-bearing, or otherwise
   source-like, promote it through the canonical `docs/prompts/**` path in the
   same lane PR when that lane owns the change, or in a dedicated prompt PR only
@@ -838,56 +843,6 @@ Before using a generated Forseti prompt, apply these gates:
 ## Direction Change Propagation
 
 ```yaml
-# resolve-first repo-bound review target routing 2026-07-12 (owner-requested process improvement).
-direction_change_propagation:
-  doctrine_changed: "Repo-bound review and delegated-review preflight now resolves a launch-checkout mismatch against registered target worktrees before blocking, while preserving exact revision pins, target cleanliness rules, and the protected-path reroot guard."
-  trigger: "workflow_authority"
-  related_triggers:
-    - "review_authority"
-  controlling_sources_updated:
-    - ".agents/workflow-overlay/prompt-orchestration.md"
-    - "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md"
-    - "docs/prompts/templates/wrappers/thin_wrapper_v0.md"
-    - "docs/decisions/dcp_receipts_archive_v0.md"
-  downstream_surfaces_checked:
-    - "AGENTS.md"
-    - ".agents/workflow-overlay/delegated-review-patch.md"
-    - ".agents/workflow-overlay/source-loading.md"
-    - ".agents/workflow-overlay/safety-rules.md"
-    - ".agents/workflow-overlay/review-lanes.md"
-    - ".agents/workflow-overlay/template-registry.md"
-    - ".agents/hooks/README.md"
-    - ".codex/hooks/forseti_guard_codex_adapter.py"
-    - "docs/workflows/forseti_repo_map_v0.md"
-  intentionally_not_updated:
-    - surface: "AGENTS.md"
-      reason: "Its generic fresh-read lifecycle stop remains compatible, and it delegates prompt mechanics to the overlay."
-    - surface: ".agents/workflow-overlay/delegated-review-patch.md"
-      reason: "It already points to Escalated Preflight Fields; copying the resolver here would fork ownership."
-    - surface: ".agents/workflow-overlay/source-loading.md"
-      reason: "Its named-worktree targeted-read fast path is compatible; this change owns review target routing."
-    - surface: ".agents/workflow-overlay/safety-rules.md and .codex/hooks/forseti_guard_codex_adapter.py"
-      reason: "Non-current-worktree writes still reroot or fail closed; the resolver explicitly preserves that enforcement."
-    - surface: ".agents/workflow-overlay/review-lanes.md"
-      reason: "Review authority and destinations are unchanged; preflight mechanics belong to prompt orchestration."
-    - surface: ".agents/workflow-overlay/template-registry.md"
-      reason: "Template paths and lifecycle status are unchanged; registered templates were edited in place."
-    - surface: "docs/workflows/forseti_repo_map_v0.md"
-      reason: "No path or owner was added; the existing prompt-orchestration route remains authoritative."
-    - surface: "installed workflow-prompt-orchestrator skill"
-      reason: "The installed generic deployment copy is outside Forseti authority; the active project overlay owns target resolution."
-    - surface: "historical executed prompts under docs/prompts/reviews"
-      reason: "They are execution records, not reusable control surfaces, so they are not rewritten retroactively."
-  stale_language_search: "rg -n -i 'mismatch.*(?:stop|block)|wrong revision|alternate checkout|clean tree required|launch checkout|registered worktree|exact-revision|required-ancestry|exact revision.*ancestry' AGENTS.md .agents/workflow-overlay docs/prompts/templates docs/workflows/forseti_repo_map_v0.md .codex/hooks.json .codex/hooks .agents/hooks/README.md"
-  stale_language_search_result: "Executed 2026-07-12. Hits were the compatible AGENTS lifecycle line, the new owner and template pointers, and guard reroot enforcement; no live surface retained an immediate blocker before registered-worktree discovery. Historical executed prompts were intentionally excluded."
-  non_claims:
-    - "not validation"
-    - "not readiness"
-    - "not permission to weaken exact revision or hash pins"
-    - "not permission to edit a non-current worktree"
-    - "not substitute-source authority"
-    - "not a retroactive rewrite of historical prompts"
-
 # lane-scoped delegated patch prompt economy 2026-07-12 (owner-requested process improvement).
 direction_change_propagation:
   doctrine_changed: >
@@ -963,6 +918,89 @@ direction_change_propagation:
     - not permission for the delegate to commit, push, merge, or clean up
     - Mini God Tier is not a claim tier or cross-vendor availability guarantee
     - not deployment or adoption of an external installed skill
+
+# whale-first token/latency economy fixes 2026-07-12 (owner-approved insights follow-up).
+direction_change_propagation:
+  doctrine_changed: >
+    Four owner-approved efficiency rules: the AGENTS.md kernel now bans
+    uncommissioned adversarial self-review of an agent's own diff (CI plus any
+    commissioned review are the defect gate) and presumes untracked files are
+    authored artifacts requiring provenance confirmation before destructive
+    branch/worktree/PR actions; the lane-scoped filing rule now explicitly
+    covers handoff packets and closeout docs (no standalone doc PRs by
+    default); and a repo-constant Windows/PowerShell `environment_baseline`
+    is bound in the shared preflight defaults and pointed at by the compact
+    delegated prompt default.
+  trigger: workflow_authority
+  related_triggers: [review_authority]
+  controlling_sources_updated:
+    - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
+    - docs/decisions/dcp_receipts_archive_v0.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: CLAUDE.md
+      reason: >
+        It remains a shim importing AGENTS.md and must not duplicate kernel
+        rules.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Commissioned review lanes and CA adjudication of a self-review are
+        unchanged; the kernel ban covers only uncommissioned self-review of an
+        agent's own diff.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        Its fallback to source-read-only review plus CA self-review is a
+        commissioned review act and remains valid; de-correlation doctrine is
+        unchanged.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: >
+        Checkpoint-artifact lifecycle (non-authoritative, single-consumption)
+        is unchanged; the filing extension only decides which PR carries a
+        committed handoff doc.
+    - path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+      reason: >
+        It already rides planning/scoping artifacts with their work unit; the
+        handoff/closeout extension is same-direction and owned by the filing
+        section here.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The protected-action guard and deletion-evidence gate still enforce
+        destructive-command safety; the untracked-files presumption is
+        upstream always-loaded kernel behavior, not a guard change.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: no path, owner, or retrieval route changed.
+  stale_language_search: >
+    rg -n -i "self.review|untracked|standalone.{0,40}PR|python3|drive-letter"
+    AGENTS.md .agents/workflow-overlay docs/prompts/templates
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-12 after edits, before commit. All self-review hits are
+    commissioned lanes (CA adjudication in communication-style.md and this
+    file; the delegated-review-patch fallback), compatible with the
+    uncommissioned-only ban. Untracked hits are state-classification
+    vocabulary and the same-direction deletion-refusal safety in the dev
+    workflow doctrine; no surface labels untracked files disposable.
+    Standalone-PR hits are the existing planning-artifact and prompt filing
+    rules plus this edit; no surface mandates bash or python3 for Windows
+    work.
+  non_claims:
+    - not validation or readiness
+    - no numeric token or latency savings claim
+    - not a weakening of commissioned review, CI gates, the deletion-evidence
+      gate, or the protected-action guard
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

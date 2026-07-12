@@ -6,6 +6,7 @@ Surface a risky assumption or genuine ambiguity before acting -- but do not turn
 Default to the smallest complete intervention: solve the actual request completely with the narrowest sufficient scope.
 Every changed line must trace to the user request or required validation.
 Preserve real failure visibility; never create fake success paths.
+Treat untracked files as presumptively authored artifacts, never disposable scratch: confirm provenance or harvest before any destructive branch delete, worktree removal, or PR close.
 For non-trivial changes, define and run relevant verification or state why it was not run.
 Before reporting work as committed, written, pushed, or otherwise persisted, verify the durable target with a fresh read and show the verifying read's actual output for that lifecycle claim. Report only observed facts: never state a SHA, count, status, write, or check you did not observe. Absence and build-state are claims, not defaults: a doc that says something is missing, deferred, superseded, or done is a secondary report, not an observation of that state -- when such a claim is load-bearing and cheaply checkable, confirm it against the primary source (the code, commits, repo map, or owning lane) before reporting it. If verification fails, report the mismatch and stop. Sandbox escalation requires per-operation approval and must never become a standing rule.
 
@@ -106,6 +107,10 @@ guard, and owner steering all stay.
 - **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.
+- **No uncommissioned self-review.** After implementing, run the bound
+  validation gates and let CI plus any commissioned review be the defect gate;
+  do not run an adversarial self-review of your own diff unless the owner or a
+  commissioning artifact explicitly asks for one.
 - **Pre-build gates and precompact are triggered-only.** The assumption-gate,
   micro-decision-locking, Cynefin routing, and deep-thinking fire on their own
   triggers, not by default; an untriggered gate is skipped, not performed for

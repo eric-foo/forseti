@@ -4533,3 +4533,56 @@ direction_change_propagation:
     - not rehearsal completion — the gate is defined, not fired
     - not build authorization: depth-layer build and Vetting v0 keep their own owner gates
 ```
+
+```yaml
+# resolve-first repo-bound review target routing 2026-07-12 (owner-requested process improvement).
+# Archived verbatim from .agents/workflow-overlay/prompt-orchestration.md under the two-receipt inline cap.
+direction_change_propagation:
+  doctrine_changed: "Repo-bound review and delegated-review preflight now resolves a launch-checkout mismatch against registered target worktrees before blocking, while preserving exact revision pins, target cleanliness rules, and the protected-path reroot guard."
+  trigger: "workflow_authority"
+  related_triggers:
+    - "review_authority"
+  controlling_sources_updated:
+    - ".agents/workflow-overlay/prompt-orchestration.md"
+    - "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md"
+    - "docs/prompts/templates/wrappers/thin_wrapper_v0.md"
+    - "docs/decisions/dcp_receipts_archive_v0.md"
+  downstream_surfaces_checked:
+    - "AGENTS.md"
+    - ".agents/workflow-overlay/delegated-review-patch.md"
+    - ".agents/workflow-overlay/source-loading.md"
+    - ".agents/workflow-overlay/safety-rules.md"
+    - ".agents/workflow-overlay/review-lanes.md"
+    - ".agents/workflow-overlay/template-registry.md"
+    - ".agents/hooks/README.md"
+    - ".codex/hooks/forseti_guard_codex_adapter.py"
+    - "docs/workflows/forseti_repo_map_v0.md"
+  intentionally_not_updated:
+    - surface: "AGENTS.md"
+      reason: "Its generic fresh-read lifecycle stop remains compatible, and it delegates prompt mechanics to the overlay."
+    - surface: ".agents/workflow-overlay/delegated-review-patch.md"
+      reason: "It already points to Escalated Preflight Fields; copying the resolver here would fork ownership."
+    - surface: ".agents/workflow-overlay/source-loading.md"
+      reason: "Its named-worktree targeted-read fast path is compatible; this change owns review target routing."
+    - surface: ".agents/workflow-overlay/safety-rules.md and .codex/hooks/forseti_guard_codex_adapter.py"
+      reason: "Non-current-worktree writes still reroot or fail closed; the resolver explicitly preserves that enforcement."
+    - surface: ".agents/workflow-overlay/review-lanes.md"
+      reason: "Review authority and destinations are unchanged; preflight mechanics belong to prompt orchestration."
+    - surface: ".agents/workflow-overlay/template-registry.md"
+      reason: "Template paths and lifecycle status are unchanged; registered templates were edited in place."
+    - surface: "docs/workflows/forseti_repo_map_v0.md"
+      reason: "No path or owner was added; the existing prompt-orchestration route remains authoritative."
+    - surface: "installed workflow-prompt-orchestrator skill"
+      reason: "The installed generic deployment copy is outside Forseti authority; the active project overlay owns target resolution."
+    - surface: "historical executed prompts under docs/prompts/reviews"
+      reason: "They are execution records, not reusable control surfaces, so they are not rewritten retroactively."
+  stale_language_search: "rg -n -i 'mismatch.*(?:stop|block)|wrong revision|alternate checkout|clean tree required|launch checkout|registered worktree|exact-revision|required-ancestry|exact revision.*ancestry' AGENTS.md .agents/workflow-overlay docs/prompts/templates docs/workflows/forseti_repo_map_v0.md .codex/hooks.json .codex/hooks .agents/hooks/README.md"
+  stale_language_search_result: "Executed 2026-07-12. Hits were the compatible AGENTS lifecycle line, the new owner and template pointers, and guard reroot enforcement; no live surface retained an immediate blocker before registered-worktree discovery. Historical executed prompts were intentionally excluded."
+  non_claims:
+    - "not validation"
+    - "not readiness"
+    - "not permission to weaken exact revision or hash pins"
+    - "not permission to edit a non-current worktree"
+    - "not substitute-source authority"
+    - "not a retroactive rewrite of historical prompts"
+```
