@@ -189,7 +189,14 @@ inherit this floor.
   `.agents/workflow-overlay/prompt-orchestration.md`.
 - Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Forseti overlay file.
 - Source-resolution gate: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy must not be imported.
-- Worktree preflight gate: prompts state workspace, revision or hash, dirty-state allowance, target scope, and edit permission only when repository state matters.
+- Worktree preflight gate: prompts state workspace, revision or hash,
+  dirty-state allowance, target scope, and edit permission only when repository
+  state matters. Before a repo-changing cross-lane dispatch loads receiver
+  sources, resident judgment also verifies the chosen receiver mechanism is
+  actually rooted in, or demonstrably able to write, the commissioned worktree
+  under `.agents/workflow-overlay/decision-routing.md`; naming or registering a
+  worktree is not proof, and a mismatch reroutes or returns
+  `BLOCKED_RECEIVER_REROOT_REQUIRED` without bypassing the guard.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Forseti
   sources as clean, modified, untracked, stale, or not checked when those
@@ -340,6 +347,13 @@ must actually fire, not merely be present; a substrate enforces shape, never
 truth (cf. the receipt-field provenance gate above). The per-rule
 classification and the owner gate for building each substrate live in
 `docs/decisions/overlay_enforcement_placement_classification_v0.md`.
+
+Receiver-mechanism selection is one such judgment rule: whether a commission is
+read-only, safe same-root contribution, or an independent repo-changing lane
+depends on the requested act and live harness capability. The existing Codex
+adapter deterministically blocks registered non-current-worktree writes at the
+write boundary; do not add a registry, daemon, or static prompt checker that
+pretends it can prove a future receiver's runtime root.
 
 Active instance: the retrieval-header check
 (`.agents/hooks/check_retrieval_header.py`, EP-06) enforces
