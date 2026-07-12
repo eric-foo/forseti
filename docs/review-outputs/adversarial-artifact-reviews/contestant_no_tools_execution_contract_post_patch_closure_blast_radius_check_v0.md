@@ -1,6 +1,15 @@
 ---
+retrieval_header_version: 1
 artifact_id: contestant_no_tools_execution_contract_post_patch_closure_blast_radius_check_v0
-artifact_role: Research artifact - bounded closure and blast-radius check
+artifact_role: Review report
+scope: Bounded closure and blast-radius review of the contestant no-tools execution contract patch.
+use_when:
+  - Checking closure evidence for findings AR-01 through AR-03.
+  - Inspecting the bounded post-patch blast-radius review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 created_at: 2026-06-01
 review_mode: docs_only_post_patch_closure_check
 status: completed

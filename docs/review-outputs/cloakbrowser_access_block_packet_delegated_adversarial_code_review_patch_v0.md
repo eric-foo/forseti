@@ -7,11 +7,18 @@ scope: >
   Bounded adversarial review-and-patch of the CloakBrowser access-block packet
   preservation change. Findings and diff are decision input for CA adjudication.
   Not approval, readiness, or auto-keep authority.
+use_when:
+  - Inspecting access-block packet findings or the proposed bounded patch.
+  - Tracing CA adjudication to this delegated review.
 commission:
   author_family: OpenAI/Codex
   delegate_family: Anthropic/Claude
   de_correlation_satisfied: true
-authority_boundary: ca_adjudication_input_only
+review_authority_boundary: ca_adjudication_input_only
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 ```
 
 ---

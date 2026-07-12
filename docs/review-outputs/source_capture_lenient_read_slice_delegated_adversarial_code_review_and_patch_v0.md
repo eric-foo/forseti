@@ -1,6 +1,19 @@
 # Source Capture Lenient-Read Slice - Delegated Adversarial Code Review-and-Patch v0
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Delegated adversarial code review-and-patch output for the Source Capture lenient-read slice.
+use_when:
+  - Inspecting lenient-read findings or the proposed patch before adjudication.
+  - Tracing lenient-read changes to this delegated review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
+```
+
+```yaml
 status: completed
 review_location: docs/review-outputs/source_capture_lenient_read_slice_delegated_adversarial_code_review_and_patch_v0.md
 recommendation: patch_proposed
@@ -108,8 +121,8 @@ diff --git a/orca-harness/tests/unit/test_source_quality_state_assembler.py b/or
 -    assert any("non-current schema version" in item for item in row["visible_stops"])
 +    assert any("does not declare a string manifest_version" in item for item in row["visible_stops"])
      assert census["census"]["packet_state_counts"]["manifest_nonconforming"] == 1
- 
- 
+
+
 ```
 
 ## Non-Findings Checked

@@ -1,5 +1,15 @@
 # Search-lane Reference Inventory
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Migration reference inventory
+scope: Records live and historical references considered by the two-wave search-lane migration.
+use_when:
+  - Auditing references rewritten or intentionally retained by the search-lane move.
+  - Interpreting migration provenance and moved-path resolution.
+authority_boundary: retrieval_only
+```
+
 Covers the full lane migration (two waves, applied on the lane branch). Verified
 by worker sweeps this session and re-scanned by `apply_moves.py --dry-run` at
 apply. Classes: `live` = rewritten by `--apply`; `historical` = kept, resolved
