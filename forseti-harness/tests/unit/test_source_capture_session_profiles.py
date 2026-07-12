@@ -11,6 +11,7 @@ from source_capture.auth_state import (
     auth_state_path_for_label,
     write_auth_state_metadata,
 )
+from source_capture.browser_user_data import default_browser_user_data_root
 from source_capture.session_profiles import (
     SESSION_PROFILE_CONFIG_SCHEMA_VERSION,
     resolve_session_profile,
@@ -46,6 +47,29 @@ def test_auth_state_root_environment_override_wins(
     assert default_session_profile_auth_state_root() == explicit
 
 
+def test_default_browser_user_data_root_is_stable_across_worktrees(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    local_app_data = tmp_path / "local"
+    monkeypatch.delenv("FORSETI_BROWSER_USER_DATA_ROOT", raising=False)
+    monkeypatch.setenv("LOCALAPPDATA", str(local_app_data))
+
+    assert default_browser_user_data_root() == (
+        local_app_data / "Forseti" / "_browser_user_data"
+    )
+
+
+def test_browser_user_data_root_environment_override_wins(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    explicit = tmp_path / "explicit-browser-profile"
+    monkeypatch.setenv("FORSETI_BROWSER_USER_DATA_ROOT", str(explicit))
+
+    assert default_browser_user_data_root() == explicit
+
+
 def test_profile_resolves_and_preflights_without_secret_path_or_state_label(
     tmp_path: Path,
 ) -> None:
@@ -59,6 +83,7 @@ def test_profile_resolves_and_preflights_without_secret_path_or_state_label(
 
     assert receipt["status"] == "available"
     assert receipt["session_profile"] == ALIAS
+    assert receipt["persistent_browser_profile_configured"] is True
     assert receipt["challenge_policy"] == "owner_handoff_before_action"
     assert receipt["auth_state_validated"] is True
     assert STATE_LABEL not in serialized
@@ -177,6 +202,7 @@ def _write_profile_config(tmp_path: Path) -> Path:
                     ALIAS: {
                         "platform": "tiktok",
                         "state_label": STATE_LABEL,
+                        "browser_user_data_label": ALIAS,
                         "session_mode": "free_account_created_session",
                         "required_harness_proxy_profile_posture": (
                             "proxy_profile_loaded"

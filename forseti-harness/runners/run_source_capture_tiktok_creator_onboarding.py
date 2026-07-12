@@ -76,7 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--session-profile",
         default="chowdakr_sg_tiktok",
-        help="Machine-local cookie-backed TikTok session alias.",
+        help="Machine-local retained-profile TikTok session alias.",
     )
     parser.add_argument("--session-profile-config", type=Path)
     parser.add_argument("--auth-state-root", type=Path, help=argparse.SUPPRESS)

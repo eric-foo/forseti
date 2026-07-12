@@ -52,6 +52,37 @@ def test_blocker_triage_login_url_is_security_stop() -> None:
     assert receipt["challenge_kind"] == "login_or_auth_wall"
 
 
+def test_blocker_triage_account_risk_warning_is_security_stop() -> None:
+    triage = classify_tiktok_blocker(
+        final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+        title="TikTok",
+        visible_text="Your account might be at risk",
+        hydration_present=True,
+        item_struct_present=True,
+    )
+
+    assert triage.blocker_class == TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY
+    assert triage.action == TIKTOK_BLOCKER_ACTION_STOP
+    assert triage.to_receipt()["challenge_kind"] == "account_risk"
+
+
+def test_blocker_triage_logged_out_comment_state_is_security_stop() -> None:
+    triage = classify_tiktok_blocker(
+        final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+        title="TikTok",
+        visible_text="Log in to comment",
+        hydration_present=True,
+        item_struct_present=True,
+    )
+
+    assert triage.blocker_class == TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY
+    assert triage.action == TIKTOK_BLOCKER_ACTION_STOP
+    assert (
+        triage.to_receipt()["challenge_kind"]
+        == "logged_out_or_auth_wall"
+    )
+
+
 def test_blocker_triage_benign_overlay_is_one_dismiss_candidate() -> None:
     triage = classify_tiktok_blocker(
         final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",

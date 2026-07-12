@@ -298,6 +298,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         "https://www.tiktok.com/@creator/video/2",
         "https://www.tiktok.com/@creator/video/1",
     ]
+    assert deep_calls[0]["cloakbrowser_humanize"] is True
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
     assert receipt["status"] == "complete"
     assert receipt["session_profile"] == "chowdakr_sg_tiktok"
@@ -306,6 +307,8 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert receipt["window_cap"] == 4
     assert receipt["suggested_accounts_status_or_none"] == "captured"
     assert receipt["completed_deep_capture_count"] == 2
+    assert receipt["challenge_count"] == 0
+    assert receipt["human_challenge_handoff_count"] == 0
 
 
 def test_grid_below_fixed_selection_count_fails_before_deep_capture(

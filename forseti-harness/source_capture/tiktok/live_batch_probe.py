@@ -428,6 +428,8 @@ def run_tiktok_live_batch_probe(
 
     attempts = 0
     challenge_count = 0
+    human_challenge_handoff_count = 0
+    cleared_human_challenge_handoff_count = 0
     challenge_close_followthrough_count = 0
     failures: list[JsonObject] = []
     results: list[JsonObject] = []
@@ -488,6 +490,14 @@ def run_tiktok_live_batch_probe(
             )
             continue
 
+        human_handoff_attempts = _human_challenge_handoff_attempts(capture_result)
+        if human_handoff_attempts:
+            human_challenge_handoff_count += len(human_handoff_attempts)
+            cleared_human_challenge_handoff_count += sum(
+                1
+                for attempt in human_handoff_attempts
+                if attempt.get("cleared") is True
+            )
         challenge_close_action = _challenge_close_action_summary(capture_result)
         challenge_close_clicked = _first_bool(challenge_close_action.get("clicked")) is True
         challenge_close_accepted = _challenge_close_accepted(challenge_close_action)
@@ -768,6 +778,8 @@ def run_tiktok_live_batch_probe(
         "completed_count": completed_count,
         "partial_count": partial_count,
         "challenge_count": challenge_count,
+        "human_challenge_handoff_count": human_challenge_handoff_count,
+        "cleared_human_challenge_handoff_count": cleared_human_challenge_handoff_count,
         "challenge_close_followthrough_count": challenge_close_followthrough_count,
         "capture_contract": _capture_contract(
             session_mode=session_mode,
@@ -1419,9 +1431,12 @@ def _tiktok_open_more_like_this_pointer_action(
     )
 
 
-def _stable_pointer_seed(*, video_id: str, random_seed: int | None, action_name: str) -> int:
-    base_seed = random_seed if random_seed is not None else 0
-    material = f"{base_seed}:{video_id}:{action_name}"
+def _stable_pointer_seed(
+    *, video_id: str, random_seed: int | None, action_name: str
+) -> int | None:
+    if random_seed is None:
+        return None
+    material = f"{random_seed}:{video_id}:{action_name}"
     return int(sha256(material.encode("utf-8")).hexdigest()[:16], 16)
 
 

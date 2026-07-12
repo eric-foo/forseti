@@ -1945,6 +1945,60 @@ def test_live_probe_close_not_accepted_reports_handoff_prompt_route_when_enabled
     assert triage["owner_attention_counts_as_clean_capture"] is False
 
 
+
+def test_live_probe_counts_cleared_handoff_and_continues_batch(
+    tmp_path: Path,
+) -> None:
+    auth_root = _auth_state(tmp_path)
+    first = _success_observation(
+        video_id="7390000000000000001",
+        response=_comment_response(video_id="7390000000000000001"),
+    )
+    first.metadata["human_challenge_handoff_attempts"] = [
+        {
+            "action_name": "human_challenge_handoff_v0",
+            "action_mode": "source_access_intervention",
+            "action_taken": True,
+            "captcha_solving_by_agent": False,
+            "prompted": True,
+            "prompt_surface": "test_prompt",
+            "matched_marker": "drag the slider",
+            "cleared": True,
+        }
+    ]
+    second = _success_observation(
+        video_id="7390000000000000002",
+        response=_comment_response(video_id="7390000000000000002"),
+    )
+    engine = _FakeObservationEngine(outcomes=[first, second])
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        human_challenge_handoff=True,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+        subtitle_fetcher=lambda _url: (
+            b"WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n"
+        ),
+    )
+
+    cadence = result["cadence_result"]
+    assert cadence["attempted_count"] == 2
+    assert cadence["completed_count"] == 2
+    assert cadence["challenge_count"] == 0
+    assert cadence["human_challenge_handoff_count"] == 1
+    assert cadence["cleared_human_challenge_handoff_count"] == 1
+
 def test_live_probe_failed_close_receipt_surfaces_center_modal_zone_candidate_count(
     tmp_path: Path,
 ) -> None:

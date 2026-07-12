@@ -24,6 +24,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotFailureKind,
     BrowserSnapshotSuccess,
     CloakBrowserPageObservationSessionEngine,
+    CloakBrowserPersistentPageObservationSessionEngine,
     fetch_browser_context_responses,
     fetch_browser_page_observation_capture,
     fetch_browser_snapshot_capture,
@@ -2965,3 +2966,72 @@ def test_cloakbrowser_page_observation_session_reuses_one_context_and_closes_onc
     assert engine.lifecycle_receipt["closed"] is True
     assert event_log.count("context_close") == 1
     assert event_log.count("browser_close") == 1
+
+
+def test_persistent_session_engine_reuses_retained_profile_and_existing_page(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    page = object()
+
+    class FakeContext:
+        def __init__(self) -> None:
+            self.pages = [page]
+            self.close_count = 0
+
+        def new_page(self) -> object:
+            raise AssertionError("existing retained-profile page should be reused")
+
+        def close(self) -> None:
+            self.close_count += 1
+
+    context = FakeContext()
+    launch_calls: list[tuple[Path, dict[str, object]]] = []
+
+    class FakeCloakBrowser:
+        @staticmethod
+        def launch_persistent_context(
+            user_data_dir: Path, **kwargs: object
+        ) -> FakeContext:
+            launch_calls.append((user_data_dir, dict(kwargs)))
+            return context
+
+    original_import_module = browser_snapshot_module.import_module
+
+    def fake_import_module(name: str) -> object:
+        if name == "cloakbrowser":
+            return FakeCloakBrowser()
+        return original_import_module(name)
+
+    monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
+    engine = CloakBrowserPersistentPageObservationSessionEngine(
+        user_data_dir=tmp_path,
+        cloakbrowser_humanize=True,
+    )
+    browser = engine._launch_page_observation_browser(
+        playwright=object(),
+        proxy_profile=None,
+        headless=False,
+        browser_channel=None,
+    )
+    browser.new_context(
+        viewport={"width": 1280, "height": 720},
+        storage_state=str(tmp_path / "ignored-storage-state.json"),
+    )
+
+    assert engine._get_or_create_page() is page
+    assert launch_calls == [
+        (
+            tmp_path,
+            {
+                "headless": False,
+                "stealth_args": True,
+                "humanize": True,
+                "human_preset": "careful",
+                "viewport": {"width": 1280, "height": 720},
+            },
+        )
+    ]
+    assert engine.lifecycle_receipt["persistent_profile_loaded"] is True
+    engine.close()
+    assert context.close_count == 1
