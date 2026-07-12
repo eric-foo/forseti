@@ -377,6 +377,88 @@ def test_onboarding_cli_defaults_to_fixed_top_eight_and_eight_thirteen_range() -
     assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.5
 
 
+def test_onboarding_cli_admission_passes_full_grid_and_selection(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_dir = tmp_path / "staging"
+    output_dir.mkdir()
+    paths = onboarding.TikTokCreatorOnboardingOutputPaths(
+        suggested_accounts_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_SUGGESTED_JSON_NAME,
+        grid_window_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME,
+        selection_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_SELECTION_JSON_NAME,
+        live_grid_json_path=output_dir / onboarding.TIKTOK_LIVE_BATCH_GRID_JSON_NAME,
+        live_cadence_json_path=output_dir
+        / onboarding.TIKTOK_LIVE_BATCH_CADENCE_JSON_NAME,
+        onboarding_receipt_json_path=output_dir
+        / onboarding.TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
+    )
+    paths.suggested_accounts_json_path.write_text("{}", encoding="utf-8")
+    paths.grid_window_json_path.write_bytes(b'{"grid":"complete"}')
+    paths.selection_json_path.write_bytes(b'{"selection":"bound"}')
+    paths.live_grid_json_path.write_bytes(b'{"deep_grid":"selected"}')
+    paths.live_cadence_json_path.write_bytes(b'{"cadence":"complete"}')
+    paths.onboarding_receipt_json_path.write_text(
+        json.dumps(
+            {
+                "status": "complete",
+                "creator_handle": "creator",
+                "session_profile": "chowdakr_sg_tiktok",
+                "window_size": 29,
+                "selection_count": 8,
+                "window_cap": 30,
+                "selected_count": 8,
+                "completed_deep_capture_count": 8,
+                "suggested_accounts_status_or_none": "blocked_or_empty",
+            }
+        ),
+        encoding="utf-8",
+    )
+    preflight_path = output_dir / runner.REGISTRY_PREFLIGHT_JSON_NAME
+    captured: dict[str, object] = {}
+
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (preflight_path, {"action_status": "allowed"}),
+    )
+    monkeypatch.setattr(
+        runner, "default_session_profile_auth_state_root", lambda: tmp_path
+    )
+    monkeypatch.setattr(runner, "resolve_session_profile", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr(runner, "run_tiktok_creator_onboarding", lambda **_kwargs: paths)
+
+    def fake_writer(**kwargs: object) -> tuple[int, str]:
+        captured.update(kwargs)
+        return 0, str((tmp_path / "admitted").resolve())
+
+    monkeypatch.setattr(runner, "write_tiktok_batch_packet", fake_writer)
+
+    code = runner.main(
+        [
+            "--creator-handle",
+            "creator",
+            "--output-dir",
+            str(output_dir),
+            "--admit-output",
+            str(tmp_path / "admitted"),
+        ]
+    )
+
+    assert code == 0
+    assert captured["grid_window_json"] == paths.grid_window_json_path.read_bytes()
+    assert captured["selection_result_json"] == paths.selection_json_path.read_bytes()
+    assert [row["role"] for row in captured["source_file_receipts"]] == [
+        "grid_result_json",
+        "cadence_result_json_1",
+        "grid_window_json",
+        "selection_result_json",
+    ]
+
+
 def test_grid_window_accepts_available_rows_below_cap() -> None:
     capture = _capture(
         ordered_ids=["1", "2", "3"],

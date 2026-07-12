@@ -27,9 +27,11 @@ from source_capture.tiktok.admission import (
     json_dumps_sanitized,
 )
 
-TIKTOK_BATCH_CAPTURE_SCHEMA_VERSION = "tiktok_batch_capture_admission_v0"
+TIKTOK_BATCH_CAPTURE_SCHEMA_VERSION = "tiktok_batch_capture_admission_v1"
 TIKTOK_BATCH_CAPTURE_SURFACE = "tiktok_creator_batch_comment_subtitle_admission"
 TIKTOK_BATCH_CAPTURE_JSON_NAME = "tiktok_batch_capture.json"
+TIKTOK_BATCH_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
+TIKTOK_BATCH_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
 
 TIKTOK_BATCH_NON_CLAIMS = (
     "not_live_tiktok_capture_or_browser_automation",
@@ -63,6 +65,8 @@ def write_tiktok_batch_packet(
     creator_profile_url: str,
     grid_result_json: bytes,
     cadence_result_jsons: Sequence[bytes],
+    grid_window_json: bytes | None = None,
+    selection_result_json: bytes | None = None,
     output_directory: str | Path | None = None,
     data_root: str | Path | None = None,
     decision_question: str = "What product, disclosure, comment, and subtitle signals are present in this TikTok creator batch?",
@@ -87,9 +91,25 @@ def write_tiktok_batch_packet(
         source_file_receipts=source_file_receipts or (),
         capture_timestamp=capture_timestamp,
     )
+    onboarding_evidence = _validate_onboarding_evidence(
+        creator_handle=handle,
+        grid_window_json=grid_window_json,
+        selection_result_json=selection_result_json,
+        admitted_video_ids=[str(video["video_id"]) for video in payload["videos"]],
+    )
+    if onboarding_evidence is not None:
+        payload["onboarding_evidence"] = onboarding_evidence
+    assert_no_sensitive_tiktok_material(payload)
 
     payload_bytes = json_dumps_sanitized(payload)
     staged_artifacts = [(TIKTOK_BATCH_CAPTURE_JSON_NAME, payload_bytes)]
+    if grid_window_json is not None and selection_result_json is not None:
+        staged_artifacts.extend(
+            [
+                (TIKTOK_BATCH_GRID_WINDOW_JSON_NAME, grid_window_json),
+                (TIKTOK_BATCH_SELECTION_JSON_NAME, selection_result_json),
+            ]
+        )
     file_ids = staged_file_id_map(staged_artifacts)
     summary = payload["batch_summary"]
     window = summary.get("create_time_utc_range") or "unknown create-time window"
@@ -120,7 +140,7 @@ def write_tiktok_batch_packet(
             re_capture_relationship=recapture,
             limitations=limitations,
             warning_notes=[],
-            preserved_file_ids=[file_ids[TIKTOK_BATCH_CAPTURE_JSON_NAME]],
+            preserved_file_ids=[file_ids[name] for name, _raw in staged_artifacts],
         )
     ]
 
@@ -159,12 +179,181 @@ def write_tiktok_batch_packet(
             f"TikTok batch admission for @{handle}: videos={summary['video_count']}, "
             f"comment_responses={summary['comment_response_success_count']}, "
             f"dom_visible_comment_videos={summary['dom_visible_comment_video_count']}, "
+            f"grid_window_items={onboarding_evidence['grid_window_item_count'] if onboarding_evidence else 'not_supplied'}, "
             f"captured_comments={summary['captured_comment_count']}, "
             f"subtitle_success={summary['subtitle_success_count']}."
         ),
         receipt_non_claims=TIKTOK_BATCH_NON_CLAIMS,
     )
     return 0, result.output_directory
+
+
+def _is_creator_video_url(*, video_url: str, creator_handle: str, video_id: str) -> bool:
+    """Match the capture-time tolerance in creator_onboarding._is_creator_video_url.
+
+    Grid hrefs are scraped from live TikTok markup, not synthesized, so this
+    intentionally tolerates http scheme and tiktok.com subdomains that a
+    strict canonical-URL string match would reject even though the upstream
+    capture-time validator already accepted them. A query string is still
+    rejected, but earlier and separately, by assert_no_sensitive_tiktok_material.
+    """
+    parsed = urlparse(video_url)
+    host = (parsed.hostname or "").lower()
+    expected_path = f"/@{creator_handle.lower()}/video/{video_id}"
+    return (
+        parsed.scheme in {"http", "https"}
+        and (host == "tiktok.com" or host.endswith(".tiktok.com"))
+        and parsed.path.rstrip("/").lower() == expected_path.lower()
+    )
+
+
+def _validate_onboarding_evidence(
+    *,
+    creator_handle: str,
+    grid_window_json: bytes | None,
+    selection_result_json: bytes | None,
+    admitted_video_ids: Sequence[str],
+) -> JsonObject | None:
+    if (grid_window_json is None) != (selection_result_json is None):
+        raise ValueError(
+            "grid_window_json and selection_result_json must be supplied together"
+        )
+    if grid_window_json is None or selection_result_json is None:
+        return None
+
+    grid = _loads_json_object(grid_window_json, "grid_window_json")
+    selection = _loads_json_object(selection_result_json, "selection_result_json")
+    assert_no_sensitive_tiktok_material(grid)
+    assert_no_sensitive_tiktok_material(selection)
+
+    if (
+        (_first_str(grid.get("creator_handle"), "") or "").lstrip("@").lower()
+        != creator_handle.lower()
+    ):
+        raise ValueError("grid_window_json creator_handle does not match creator_handle")
+    if grid.get("complete") is not True:
+        raise ValueError("grid_window_json must indicate complete=true")
+    grid_items = _as_list(grid.get("items"))
+    if not grid_items:
+        raise ValueError("grid_window_json must contain at least one item")
+    if _first_int(grid.get("window_size")) != len(grid_items):
+        raise ValueError("grid_window_json window_size does not match items length")
+
+    grid_ids: list[str] = []
+    for index, raw_item in enumerate(grid_items):
+        item = _as_dict(raw_item)
+        video_id = _first_str(item.get("video_id"))
+        video_url = _first_str(item.get("video_url"))
+        if video_id is None or video_url is None:
+            raise ValueError(
+                f"grid_window_json.items[{index}] lacks video_id or video_url"
+            )
+        if video_id in grid_ids:
+            raise ValueError(f"grid_window_json contains duplicate video_id={video_id}")
+        if not _is_creator_video_url(
+            video_url=video_url, creator_handle=creator_handle, video_id=video_id
+        ):
+            raise ValueError(
+                f"grid_window_json.items[{index}] video_url does not match creator/video_id"
+            )
+        grid_ids.append(video_id)
+
+    binding = _as_dict(selection.get("onboarding_binding"))
+    if (
+        (_first_str(binding.get("creator_handle"), "") or "").lstrip("@").lower()
+        != creator_handle.lower()
+    ):
+        raise ValueError(
+            "selection_result_json creator binding does not match creator_handle"
+        )
+    grid_sha256 = hashlib.sha256(grid_window_json).hexdigest()
+    if _first_str(binding.get("grid_window_sha256")) != grid_sha256:
+        raise ValueError(
+            "selection_result_json grid_window_sha256 does not match supplied grid bytes"
+        )
+    if (
+        Path(_first_str(binding.get("grid_window_file"), "") or "").name
+        != TIKTOK_BATCH_GRID_WINDOW_JSON_NAME
+    ):
+        raise ValueError(
+            "selection_result_json grid_window_file is not the onboarding grid artifact"
+        )
+
+    coverage = _as_dict(selection.get("coverage"))
+    if coverage.get("complete") is not True:
+        raise ValueError("selection_result_json coverage must indicate complete=true")
+    if (
+        _first_int(coverage.get("expected_item_count")) != len(grid_ids)
+        or _first_int(coverage.get("observed_item_count")) != len(grid_ids)
+    ):
+        raise ValueError(
+            "selection_result_json coverage does not match grid window size"
+        )
+
+    ranked_rows = [_as_dict(row) for row in _as_list(selection.get("ranked_items"))]
+    ranked_ids = [_first_str(row.get("video_id")) for row in ranked_rows]
+    if (
+        any(video_id is None for video_id in ranked_ids)
+        or len(set(ranked_ids)) != len(ranked_ids)
+    ):
+        raise ValueError(
+            "selection_result_json ranked_items must contain unique video ids"
+        )
+    if set(ranked_ids) != set(grid_ids):
+        raise ValueError(
+            "selection_result_json ranked_items do not cover the supplied grid window"
+        )
+
+    selection_summary = _as_dict(selection.get("selection_summary"))
+    selected_ids = [
+        str(video_id)
+        for video_id in _as_list(
+            selection_summary.get("selected_video_ids_in_review_priority_order")
+        )
+        if str(video_id).strip()
+    ]
+    if not selected_ids or len(set(selected_ids)) != len(selected_ids):
+        raise ValueError(
+            "selection_result_json selected video ids must be non-empty and unique"
+        )
+    if _first_int(selection_summary.get("selection_count")) != len(selected_ids):
+        raise ValueError(
+            "selection_result_json selection_count does not match selected ids"
+        )
+    selected_from_rows = {
+        str(row["video_id"])
+        for row in ranked_rows
+        if row.get("selected") is True and row.get("video_id") is not None
+    }
+    if selected_from_rows != set(selected_ids):
+        raise ValueError(
+            "selection_result_json selected ranked rows do not match selection summary"
+        )
+    if not set(selected_ids).issubset(set(grid_ids)):
+        raise ValueError(
+            "selection_result_json selected ids are not all present in the grid window"
+        )
+
+    admitted_ids = [str(video_id) for video_id in admitted_video_ids]
+    if len(set(admitted_ids)) != len(admitted_ids):
+        raise ValueError("admitted cadence results contain duplicate video ids")
+    if set(admitted_ids) != set(selected_ids):
+        raise ValueError(
+            "selection_result_json selected ids do not match admitted cadence results"
+        )
+
+    return {
+        "grid_window_file": TIKTOK_BATCH_GRID_WINDOW_JSON_NAME,
+        "grid_window_sha256": grid_sha256,
+        "grid_window_schema_version": _first_str(grid.get("schema_version")),
+        "grid_window_item_count": len(grid_ids),
+        "selection_file": TIKTOK_BATCH_SELECTION_JSON_NAME,
+        "selection_sha256": hashlib.sha256(selection_result_json).hexdigest(),
+        "selection_schema_version": _first_str(selection.get("schema_version")),
+        "selected_video_count": len(selected_ids),
+        "selection_grid_window_binding_verified": True,
+        "selected_deep_capture_coverage_verified": True,
+    }
 
 
 def _build_payload(

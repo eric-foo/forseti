@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from source_capture.tiktok.batch_packet import _normalize_stats, write_tiktok_ba
 
 VIDEO_1 = "7629774409762442526"
 VIDEO_2 = "7629774409762442527"
+VIDEO_3 = "7629774409762442528"
 PROFILE_URL = "https://www.tiktok.com/@funmimonet"
 
 
@@ -78,6 +80,64 @@ def _cadence_payload() -> bytes:
             "results": [_result_row(VIDEO_1, 1761930827, subtitle=True), _result_row(VIDEO_2, 1761930927, subtitle=False)],
         }
     ).encode("utf-8")
+
+
+def _onboarding_evidence_payloads() -> tuple[bytes, bytes]:
+    grid = {
+        "schema_version": "tiktok_creator_onboarding_v0",
+        "creator_handle": "funmimonet",
+        "window_size": 3,
+        "window_cap": 30,
+        "minimum_window_size": 2,
+        "complete": True,
+        "items": [
+            {
+                "video_id": VIDEO_1,
+                "video_url": f"{PROFILE_URL}/video/{VIDEO_1}",
+                "playCount": 1000,
+                "diggCount": 45,
+            },
+            {
+                "video_id": VIDEO_2,
+                "video_url": f"{PROFILE_URL}/video/{VIDEO_2}",
+                "playCount": 2000,
+                "diggCount": 90,
+            },
+            {
+                "video_id": VIDEO_3,
+                "video_url": f"{PROFILE_URL}/video/{VIDEO_3}",
+                "playCount": 500,
+                "diggCount": 20,
+            },
+        ],
+    }
+    grid_bytes = (json.dumps(grid, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    selection = {
+        "schema_version": "tiktok_grid_video_selection_v1",
+        "coverage": {
+            "complete": True,
+            "expected_item_count": 3,
+            "observed_item_count": 3,
+        },
+        "onboarding_binding": {
+            "creator_handle": "funmimonet",
+            "grid_window_file": "tiktok_grid_window.json",
+            "grid_window_sha256": hashlib.sha256(grid_bytes).hexdigest(),
+        },
+        "ranked_items": [
+            {"video_id": VIDEO_2, "selected": True},
+            {"video_id": VIDEO_1, "selected": True},
+            {"video_id": VIDEO_3, "selected": False},
+        ],
+        "selection_summary": {
+            "selection_count": 2,
+            "selected_video_ids_in_review_priority_order": [VIDEO_2, VIDEO_1],
+        },
+    }
+    selection_bytes = (json.dumps(selection, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
+    return grid_bytes, selection_bytes
 
 
 def _result_row(video_id: str, create_time: int, *, subtitle: bool) -> dict[str, object]:
@@ -261,6 +321,189 @@ def test_write_tiktok_batch_packet_preserves_sanitized_batch_payload(tmp_path: P
     assert "X-Bogus" not in payload_text
     assert "msToken" not in payload_text
     assert "tiktokcdn" not in payload_text
+
+
+def test_write_tiktok_batch_packet_preserves_complete_onboarding_evidence(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "batch_packet"
+    grid_window, selection = _onboarding_evidence_payloads()
+
+    code, message = write_tiktok_batch_packet(
+        creator_handle="funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[_cadence_payload()],
+        grid_window_json=grid_window,
+        selection_result_json=selection,
+        output_directory=output,
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+
+    assert code == 0
+    assert Path(message) == output.resolve()
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    packet = SourceCapturePacket(**manifest)
+    assert [item.relative_packet_path for item in packet.preserved_files] == [
+        "raw/01_tiktok_batch_capture.json",
+        "raw/02_tiktok_grid_window.json",
+        "raw/03_tiktok_grid_video_selection.json",
+    ]
+    assert (output / "raw" / "02_tiktok_grid_window.json").read_bytes() == grid_window
+    assert (
+        output / "raw" / "03_tiktok_grid_video_selection.json"
+    ).read_bytes() == selection
+    payload = json.loads(
+        (output / "raw" / "01_tiktok_batch_capture.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert payload["capture_schema_version"] == "tiktok_batch_capture_admission_v1"
+    assert payload["onboarding_evidence"] == {
+        "grid_window_file": "tiktok_grid_window.json",
+        "grid_window_sha256": hashlib.sha256(grid_window).hexdigest(),
+        "grid_window_schema_version": "tiktok_creator_onboarding_v0",
+        "grid_window_item_count": 3,
+        "selection_file": "tiktok_grid_video_selection.json",
+        "selection_sha256": hashlib.sha256(selection).hexdigest(),
+        "selection_schema_version": "tiktok_grid_video_selection_v1",
+        "selected_video_count": 2,
+        "selection_grid_window_binding_verified": True,
+        "selected_deep_capture_coverage_verified": True,
+    }
+
+
+def test_write_tiktok_batch_packet_requires_onboarding_evidence_pair(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "batch_packet"
+    grid_window, _selection = _onboarding_evidence_payloads()
+
+    with pytest.raises(
+        ValueError,
+        match="grid_window_json and selection_result_json must be supplied together",
+    ):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[_cadence_payload()],
+            grid_window_json=grid_window,
+            output_directory=output,
+        )
+
+    assert not output.exists()
+
+
+def test_write_tiktok_batch_packet_rejects_stale_grid_selection_binding(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "batch_packet"
+    grid_window, selection = _onboarding_evidence_payloads()
+    selection_payload = json.loads(selection)
+    selection_payload["onboarding_binding"]["grid_window_sha256"] = "0" * 64
+
+    with pytest.raises(ValueError, match="grid_window_sha256 does not match"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[_cadence_payload()],
+            grid_window_json=grid_window,
+            selection_result_json=json.dumps(selection_payload).encode("utf-8"),
+            output_directory=output,
+        )
+
+    assert not output.exists()
+
+
+def test_write_tiktok_batch_packet_rejects_selection_not_matching_deep_captures(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "batch_packet"
+    grid_window, selection = _onboarding_evidence_payloads()
+    selection_payload = json.loads(selection)
+    selection_payload["ranked_items"][0]["selected"] = False
+    selection_payload["selection_summary"] = {
+        "selection_count": 1,
+        "selected_video_ids_in_review_priority_order": [VIDEO_1],
+    }
+
+    with pytest.raises(ValueError, match="selected ids do not match admitted cadence"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[_cadence_payload()],
+            grid_window_json=grid_window,
+            selection_result_json=json.dumps(selection_payload).encode("utf-8"),
+            output_directory=output,
+        )
+
+    assert not output.exists()
+
+
+def test_write_tiktok_batch_packet_accepts_scraped_video_url_variants(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "batch_packet"
+    grid_bytes, selection_bytes = _onboarding_evidence_payloads()
+    grid_payload = json.loads(grid_bytes)
+    grid_payload["items"][0]["video_url"] = (
+        f"http://m.tiktok.com/@funmimonet/video/{VIDEO_1}/"
+    )
+    grid_bytes = (json.dumps(grid_payload, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
+    selection_payload = json.loads(selection_bytes)
+    selection_payload["onboarding_binding"]["grid_window_sha256"] = hashlib.sha256(
+        grid_bytes
+    ).hexdigest()
+    selection_bytes = (
+        json.dumps(selection_payload, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+
+    code, message = write_tiktok_batch_packet(
+        creator_handle="funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[_cadence_payload()],
+        grid_window_json=grid_bytes,
+        selection_result_json=selection_bytes,
+        output_directory=output,
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+
+    assert code == 0
+    assert Path(message) == output.resolve()
+
+
+def test_write_tiktok_batch_packet_rejects_grid_video_url_for_wrong_creator(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "batch_packet"
+    grid_window, selection = _onboarding_evidence_payloads()
+    grid_payload = json.loads(grid_window)
+    grid_payload["items"][0]["video_url"] = f"https://www.tiktok.com/@someoneelse/video/{VIDEO_1}"
+    grid_window = (json.dumps(grid_payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    selection_payload = json.loads(selection)
+    selection_payload["onboarding_binding"]["grid_window_sha256"] = hashlib.sha256(
+        grid_window
+    ).hexdigest()
+    selection = (json.dumps(selection_payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+    with pytest.raises(ValueError, match="video_url does not match creator/video_id"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[_cadence_payload()],
+            grid_window_json=grid_window,
+            selection_result_json=selection,
+            output_directory=output,
+        )
+
+    assert not output.exists()
 
 
 def test_write_tiktok_batch_packet_preserves_dom_visible_comment_fallback(tmp_path: Path) -> None:
@@ -504,6 +747,50 @@ def test_tiktok_batch_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
     payload = json.loads((packet_dir / "raw" / "01_tiktok_batch_capture.json").read_text(encoding="utf-8"))
     assert payload["source_file_receipts"][0]["file_name"] == "grid.json"
     assert payload["source_file_receipts"][0]["source_path_sha256"]
+
+
+def test_tiktok_batch_runner_can_re_admit_complete_onboarding_staging(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    grid_path = tmp_path / "grid.json"
+    cadence_path = tmp_path / "cadence.json"
+    grid_window_path = tmp_path / "tiktok_grid_window.json"
+    selection_path = tmp_path / "tiktok_grid_video_selection.json"
+    grid_window, selection = _onboarding_evidence_payloads()
+    grid_path.write_bytes(_grid_payload())
+    cadence_path.write_bytes(_cadence_payload())
+    grid_window_path.write_bytes(grid_window)
+    selection_path.write_bytes(selection)
+
+    code, message = run_source_capture_tiktok_batch_packet(
+        creator_handle="funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json_path=grid_path,
+        cadence_result_json_paths=[cadence_path],
+        grid_window_json_path=grid_window_path,
+        selection_result_json_path=selection_path,
+        data_root=root,
+        decision_question="admit complete TikTok onboarding evidence",
+    )
+
+    assert code == 0
+    packet_dir = Path(message)
+    manifest = json.loads((packet_dir / "manifest.json").read_text(encoding="utf-8"))
+    assert [row["relative_packet_path"] for row in manifest["preserved_files"]] == [
+        "raw/01_tiktok_batch_capture.json",
+        "raw/02_tiktok_grid_window.json",
+        "raw/03_tiktok_grid_video_selection.json",
+    ]
+    payload = json.loads(
+        (packet_dir / "raw" / "01_tiktok_batch_capture.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert [row["role"] for row in payload["source_file_receipts"]][-2:] == [
+        "grid_window_json",
+        "selection_result_json",
+    ]
 
 
 def test_tiktok_batch_cli_prints_complete_lane_note(tmp_path: Path, capsys) -> None:
