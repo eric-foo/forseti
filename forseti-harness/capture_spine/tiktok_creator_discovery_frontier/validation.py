@@ -1,12 +1,18 @@
 """Validators for TikTok Creator Discovery Frontier register artifacts."""
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import fields
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import urlparse
 
+from capture_spine.creator_profile_current.registry_match_preflight import (
+    RECEIPT_SCHEMA_VERSION as CREATOR_REGISTRY_PREFLIGHT_RECEIPT_SCHEMA_VERSION,
+    RECEIPT_WRAPPER_KEY as CREATOR_REGISTRY_PREFLIGHT_RECEIPT_WRAPPER_KEY,
+)
 from capture_spine.tiktok_creator_discovery_frontier.models import (
     TIKTOK_CREATOR_DISCOVERY_FRONTIER_REGISTER_SCHEMA_VERSION,
     TIKTOK_CREATOR_DISCOVERY_NEXT_RUN_ENVELOPE_SCHEMA_VERSION,
@@ -86,15 +92,16 @@ _SUGGESTED_ACCOUNTS_NOT_ATTEMPTED_MARKERS = (
     "deferred",
     "skipped",
 )
-# A PROMOTE decision needs preflight that actually ran: these markers name
-# known not-run/negative statuses that must not clear the PROMOTE gate.
-_PREFLIGHT_NOT_ATTEMPTED_MARKERS = (
-    "not_run",
-    "not_started",
-    "not_attempted",
-    "pending",
-    "deferred",
-    "skipped",
+_ALLOWED_REGISTRY_PREFLIGHT_RECEIPT_EVIDENCE_KEYS = frozenset(
+    {
+        "receipt_pointer",
+        "receipt_sha256",
+        "candidate_id",
+        "intended_action",
+        "decision",
+        "action_status",
+        "can_start_new_capture",
+    }
 )
 
 _REQUIRED_NON_CLAIM_CATEGORIES = (
@@ -301,7 +308,11 @@ def validate_tiktok_creator_discovery_scan_receipt(receipt: Mapping[str, Any]) -
     _validate_non_claims(receipt.get("non_claims"), "scan_receipt")
 
 
-def validate_tiktok_creator_discovery_frontier_register(register: Mapping[str, Any]) -> None:
+def validate_tiktok_creator_discovery_frontier_register(
+    register: Mapping[str, Any],
+    *,
+    preflight_receipt_resolver: Callable[[str], bytes] | None = None,
+) -> None:
     """Validate the frontier register shape without proving source truth."""
     _assert_no_forbidden_output_fields(register)
     _reject_unknown_keys(register, _ALLOWED_TOP_LEVEL_KEYS, "register top-level")
@@ -365,7 +376,7 @@ def validate_tiktok_creator_discovery_frontier_register(register: Mapping[str, A
     for decision in wrapper.get("frontier_decisions", []):
         if not isinstance(decision, Mapping):
             _fail("invalid_frontier_decision", "frontier decisions must be mappings")
-        _validate_decision(decision, node_by_id)
+        _validate_decision(decision, node_by_id, preflight_receipt_resolver)
 
     for envelope in wrapper.get("next_run_envelopes"):
         if not isinstance(envelope, Mapping):
@@ -558,6 +569,18 @@ def _validate_node(node: Mapping[str, Any], provenance: Mapping[str, Any]) -> No
         _fail("invalid_node_type", "node_type must be an allowed TikTok frontier node type")
     if node.get("platform") != "tiktok":
         _fail("invalid_node_platform", "frontier nodes must use platform tiktok")
+    legacy_preflight_status = node.get("registry_preflight_status_or_none")
+    if legacy_preflight_status is not None and (
+        not isinstance(legacy_preflight_status, str) or not legacy_preflight_status.strip()
+    ):
+        _fail(
+            "invalid_registry_preflight_status",
+            "registry_preflight_status_or_none must be a non-empty string or null",
+        )
+    receipt_evidence = node.get("registry_preflight_receipt_evidence_or_none")
+    if receipt_evidence is not None:
+        _validate_registry_preflight_evidence_shape(receipt_evidence)
+
     if not isinstance(node.get("caps_applied"), Mapping) or not node.get("caps_applied"):
         _fail("missing_node_caps_applied", "node caps_applied must be a non-empty mapping")
     if not _is_list(node.get("exclusions")):
@@ -600,7 +623,11 @@ def _validate_edge(edge: Mapping[str, Any], node_ids: set[str]) -> None:
     _validate_non_claims(edge.get("non_claims"), "edge")
 
 
-def _validate_decision(decision: Mapping[str, Any], node_by_id: Mapping[str, Mapping[str, Any]]) -> None:
+def _validate_decision(
+    decision: Mapping[str, Any],
+    node_by_id: Mapping[str, Mapping[str, Any]],
+    preflight_receipt_resolver: Callable[[str], bytes] | None,
+) -> None:
     _reject_unknown_keys(decision, _ALLOWED_DECISION_KEYS, "frontier_decision")
     _require(
         decision,
@@ -621,22 +648,335 @@ def _validate_decision(decision: Mapping[str, Any], node_by_id: Mapping[str, Map
     if decision.get("projection_decision") not in _ALLOWED_PROJECTION_DECISIONS:
         _fail("invalid_projection_decision", "frontier decision projection_decision is invalid")
     if decision.get("projection_decision") == ProjectionDecision.PROMOTE.value:
-        preflight = selected_node.get("registry_preflight_status_or_none")
-        if not isinstance(preflight, str) or not preflight.strip():
+        if selected_node.get("node_type") != FrontierNodeType.TIKTOK_CREATOR_CANDIDATE.value:
             _fail(
-                "promote_requires_registry_preflight",
-                "a PROMOTE frontier decision requires the selected node to carry a "
-                "non-empty string registry_preflight_status_or_none (exact-match "
-                "preflight before any onboarding decision)",
+                "promote_requires_candidate_node",
+                "a PROMOTE frontier decision must target a TikTok creator candidate node",
             )
-        lowered_preflight = preflight.lower()
-        if any(marker in lowered_preflight for marker in _PREFLIGHT_NOT_ATTEMPTED_MARKERS):
-            _fail(
-                "promote_registry_preflight_not_attempted",
-                "a PROMOTE frontier decision requires preflight that actually ran; "
-                f"status {preflight!r} names a not-run/negative marker",
-            )
+        _validate_promote_registry_preflight_evidence(
+            selected_node,
+            preflight_receipt_resolver,
+        )
     _validate_non_claims(decision.get("non_claims"), "frontier_decision")
+
+
+def _validate_registry_preflight_evidence_shape(evidence: Any) -> Mapping[str, Any]:
+    if not isinstance(evidence, Mapping):
+        _fail(
+            "malformed_registry_preflight_receipt_evidence",
+            "registry preflight receipt evidence must be an object",
+        )
+    _reject_unknown_keys(
+        evidence,
+        _ALLOWED_REGISTRY_PREFLIGHT_RECEIPT_EVIDENCE_KEYS,
+        "registry_preflight_receipt_evidence",
+    )
+    _require(
+        evidence,
+        (
+            "receipt_pointer",
+            "receipt_sha256",
+            "candidate_id",
+            "intended_action",
+            "decision",
+            "action_status",
+            "can_start_new_capture",
+        ),
+        "registry_preflight_receipt_evidence",
+    )
+    for field_name in (
+        "receipt_pointer",
+        "receipt_sha256",
+        "candidate_id",
+        "intended_action",
+        "decision",
+        "action_status",
+    ):
+        value = evidence.get(field_name)
+        if not isinstance(value, str) or not value.strip():
+            _fail(
+                "malformed_registry_preflight_receipt_evidence",
+                f"registry preflight evidence {field_name} must be a non-empty string",
+            )
+    if not isinstance(evidence.get("can_start_new_capture"), bool):
+        _fail(
+            "malformed_registry_preflight_receipt_evidence",
+            "registry preflight evidence can_start_new_capture must be a boolean",
+        )
+    receipt_sha256 = str(evidence["receipt_sha256"]).lower()
+    if re.fullmatch(r"[0-9a-f]{64}", receipt_sha256) is None:
+        _fail(
+            "malformed_registry_preflight_receipt_evidence",
+            "registry preflight evidence receipt_sha256 must be 64 hexadecimal characters",
+        )
+    return evidence
+
+
+def _validate_creator_registry_preflight_receipt_wrapper(
+    wrapper: Mapping[str, Any],
+) -> list[Mapping[str, Any]]:
+    _require(
+        wrapper,
+        (
+            "schema_version",
+            "generated_at_utc",
+            "registry_source",
+            "summary",
+            "results",
+            "accepted_residuals",
+            "non_claims",
+        ),
+        "Creator Registry preflight receipt",
+    )
+    generated_at_utc = wrapper.get("generated_at_utc")
+    if not isinstance(generated_at_utc, str) or not generated_at_utc.strip():
+        _fail(
+            "promote_preflight_receipt_malformed",
+            "Creator Registry preflight receipt generated_at_utc must be a non-empty string",
+        )
+
+    registry_source = wrapper.get("registry_source")
+    if not isinstance(registry_source, Mapping):
+        _fail(
+            "promote_preflight_receipt_malformed",
+            "Creator Registry preflight receipt registry_source must be an object",
+        )
+    _require(
+        registry_source,
+        ("source_pointer", "sha256", "schema_version", "generated_at_utc", "profiles_total"),
+        "Creator Registry preflight receipt registry_source",
+    )
+    for field_name in ("source_pointer", "schema_version", "generated_at_utc"):
+        value = registry_source.get(field_name)
+        if not isinstance(value, str) or not value.strip():
+            _fail(
+                "promote_preflight_receipt_malformed",
+                f"Creator Registry preflight receipt registry_source.{field_name} "
+                "must be a non-empty string",
+            )
+    registry_sha256 = registry_source.get("sha256")
+    if not isinstance(registry_sha256, str) or re.fullmatch(
+        r"[0-9a-fA-F]{64}", registry_sha256
+    ) is None:
+        _fail(
+            "promote_preflight_receipt_malformed",
+            "Creator Registry preflight receipt registry_source.sha256 must be "
+            "64 hexadecimal characters",
+        )
+    _require_non_negative_int(registry_source.get("profiles_total"), "registry_source.profiles_total")
+
+    results_value = wrapper.get("results")
+    if not _is_list(results_value) or not results_value:
+        _fail(
+            "promote_preflight_receipt_malformed",
+            "Creator Registry preflight receipt results must be a non-empty list",
+        )
+    results: list[Mapping[str, Any]] = []
+    candidate_ids: set[str] = set()
+    for row in results_value:
+        if not isinstance(row, Mapping):
+            _fail(
+                "promote_preflight_receipt_malformed",
+                "Creator Registry preflight receipt result rows must be objects",
+            )
+        _require(
+            row,
+            (
+                "candidate_id",
+                "intended_action",
+                "decision",
+                "action_status",
+                "can_start_new_capture",
+                "normalized_candidate",
+            ),
+            "Creator Registry preflight receipt result row",
+        )
+        candidate_id = row.get("candidate_id")
+        if not isinstance(candidate_id, str) or not candidate_id.strip() or candidate_id in candidate_ids:
+            _fail(
+                "promote_preflight_receipt_malformed",
+                "Creator Registry preflight receipt candidate_id values must be "
+                "non-empty and unique",
+            )
+        candidate_ids.add(candidate_id)
+        if row.get("intended_action") not in {"classify", "new_capture", "update_existing"}:
+            _fail("promote_preflight_receipt_malformed", "invalid receipt intended_action")
+        if row.get("decision") not in {
+            "existing_match",
+            "new_candidate",
+            "ambiguous_match",
+            "invalid_candidate",
+        }:
+            _fail("promote_preflight_receipt_malformed", "invalid receipt decision")
+        if row.get("action_status") not in {"allowed", "blocked"}:
+            _fail("promote_preflight_receipt_malformed", "invalid receipt action_status")
+        if not isinstance(row.get("can_start_new_capture"), bool):
+            _fail("promote_preflight_receipt_malformed", "invalid receipt can_start_new_capture")
+        if not isinstance(row.get("normalized_candidate"), Mapping):
+            _fail("promote_preflight_receipt_malformed", "invalid receipt normalized_candidate")
+        results.append(row)
+
+    summary = wrapper.get("summary")
+    if not isinstance(summary, Mapping):
+        _fail("promote_preflight_receipt_malformed", "receipt summary must be an object")
+    decisions = [str(row["decision"]) for row in results]
+    expected_summary = {
+        "total_candidates": len(results),
+        "existing_matches": decisions.count("existing_match"),
+        "new_candidates": decisions.count("new_candidate"),
+        "ambiguous_matches": decisions.count("ambiguous_match"),
+        "invalid_candidates": decisions.count("invalid_candidate"),
+        "blocked_actions": sum(row["action_status"] == "blocked" for row in results),
+        "safe_to_capture_new": sum(row["can_start_new_capture"] is True for row in results),
+    }
+    if any(
+        not isinstance(summary.get(key), int)
+        or isinstance(summary.get(key), bool)
+        or summary.get(key) != value
+        for key, value in expected_summary.items()
+    ):
+        _fail(
+            "promote_preflight_receipt_summary_mismatch",
+            "Creator Registry preflight receipt summary is inconsistent with results",
+        )
+    for field_name in ("accepted_residuals", "non_claims"):
+        if not _is_list(wrapper.get(field_name)):
+            _fail(
+                "promote_preflight_receipt_malformed",
+                f"Creator Registry preflight receipt {field_name} must be a list",
+            )
+    return results
+
+
+def _validate_promote_registry_preflight_evidence(
+    selected_node: Mapping[str, Any],
+    resolver: Callable[[str], bytes] | None,
+) -> None:
+    evidence_value = selected_node.get("registry_preflight_receipt_evidence_or_none")
+    if evidence_value is None:
+        _fail(
+            "promote_requires_registry_preflight_receipt_evidence",
+            "a PROMOTE frontier decision requires candidate-bound Creator Registry "
+            "preflight receipt evidence; registry_preflight_status_or_none is "
+            "informational only and cannot clear PROMOTE",
+        )
+    evidence = _validate_registry_preflight_evidence_shape(evidence_value)
+    receipt_sha256 = str(evidence["receipt_sha256"]).lower()
+    if resolver is None:
+        _fail(
+            "promote_preflight_receipt_resolver_required",
+            "PROMOTE receipt evidence requires a caller-supplied repo/lake receipt resolver",
+        )
+
+    receipt_pointer = str(evidence["receipt_pointer"])
+    try:
+        receipt_bytes = resolver(receipt_pointer)
+    except Exception as exc:  # noqa: BLE001 - resolver failures must remain fail-closed
+        _fail(
+            "promote_preflight_receipt_not_found",
+            f"could not resolve Creator Registry preflight receipt {receipt_pointer!r}: "
+            f"{type(exc).__name__}: {exc}",
+        )
+    if not isinstance(receipt_bytes, bytes):
+        _fail(
+            "promote_preflight_receipt_malformed",
+            "Creator Registry preflight receipt resolver must return raw bytes",
+        )
+    actual_sha256 = hashlib.sha256(receipt_bytes).hexdigest()
+    if actual_sha256 != receipt_sha256:
+        _fail(
+            "promote_preflight_receipt_hash_mismatch",
+            "Creator Registry preflight receipt bytes do not match receipt_sha256",
+        )
+
+    try:
+        receipt_document = json.loads(receipt_bytes.decode("utf-8-sig"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        _fail(
+            "promote_preflight_receipt_malformed",
+            f"Creator Registry preflight receipt is not valid UTF-8 JSON: {exc}",
+        )
+    if not isinstance(receipt_document, Mapping):
+        _fail(
+            "promote_preflight_receipt_malformed",
+            "Creator Registry preflight receipt document must be an object",
+        )
+    wrapper = receipt_document.get(CREATOR_REGISTRY_PREFLIGHT_RECEIPT_WRAPPER_KEY)
+    if not isinstance(wrapper, Mapping):
+        _fail(
+            "promote_preflight_receipt_malformed",
+            "Creator Registry preflight receipt wrapper is missing or malformed",
+        )
+    if wrapper.get("schema_version") != CREATOR_REGISTRY_PREFLIGHT_RECEIPT_SCHEMA_VERSION:
+        _fail(
+            "promote_preflight_receipt_schema_mismatch",
+            "Creator Registry preflight receipt schema_version is not supported",
+        )
+    results = _validate_creator_registry_preflight_receipt_wrapper(wrapper)
+
+    candidate_id = str(evidence["candidate_id"])
+    matching_rows = [
+        row
+        for row in results
+        if isinstance(row, Mapping) and row.get("candidate_id") == candidate_id
+    ]
+    if len(matching_rows) != 1:
+        _fail(
+            "promote_preflight_receipt_candidate_unrelated",
+            "Creator Registry preflight receipt must contain exactly one result row "
+            f"for candidate_id {candidate_id!r}",
+        )
+    row = matching_rows[0]
+    clearance_fields = (
+        "candidate_id",
+        "intended_action",
+        "decision",
+        "action_status",
+        "can_start_new_capture",
+    )
+    if any(row.get(field_name) != evidence.get(field_name) for field_name in clearance_fields):
+        _fail(
+            "promote_preflight_evidence_row_mismatch",
+            "PROMOTE evidence clearance fields do not match the cited receipt row",
+        )
+    if (
+        row.get("intended_action") != "new_capture"
+        or row.get("decision") != "new_candidate"
+        or row.get("action_status") != "allowed"
+        or row.get("can_start_new_capture") is not True
+    ):
+        _fail(
+            "promote_preflight_receipt_not_cleared",
+            "PROMOTE requires a new_capture/new_candidate/allowed receipt row with "
+            "can_start_new_capture true",
+        )
+
+    normalized_candidate = row.get("normalized_candidate")
+    if not isinstance(normalized_candidate, Mapping):
+        _fail(
+            "promote_preflight_receipt_malformed",
+            "Creator Registry preflight receipt row normalized_candidate must be an object",
+        )
+    selected_platform = selected_node.get("platform")
+    selected_handle = selected_node.get("handle_or_none")
+    row_handles = normalized_candidate.get("handles")
+    if (
+        not isinstance(selected_platform, str)
+        or normalized_candidate.get("platform_or_none") != selected_platform.lower()
+        or not isinstance(selected_handle, str)
+        or not _is_list(row_handles)
+        or _normalize_handle_for_preflight(selected_handle)
+        not in {_normalize_handle_for_preflight(item) for item in row_handles if isinstance(item, str)}
+    ):
+        _fail(
+            "promote_preflight_receipt_candidate_mismatch",
+            "Creator Registry preflight receipt row platform/handle does not match "
+            "the selected frontier candidate",
+        )
+
+
+def _normalize_handle_for_preflight(value: str) -> str:
+    return value.strip().strip("/").removeprefix("@").lower()
 
 
 def _validate_accepted_residuals(value: Any) -> None:
