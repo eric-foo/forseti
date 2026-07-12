@@ -6,8 +6,7 @@ WHAT THIS DOES
   receipts in changed durable docs:
 
     - at most two inline direction_change_propagation receipts;
-    - an archive pointer line after inline receipts;
-    - no unauthorized standalone DCP receipt files.
+    - no new standalone DCP receipt files.
 
 RULE AUTHORITY
   .agents/workflow-overlay/source-of-truth.md
@@ -52,9 +51,6 @@ TOP_LEVEL_SCOPE = {"AGENTS.md", "CLAUDE.md"}
 RECEIPT_RE = re.compile(r"(?m)^\s*direction_change_propagation\s*:")
 DCP_HEADING_RE = re.compile(
     r"(?im)^#{2,6}\s+direction[_ -]change[_ -]propagation\b"
-)
-ARCHIVE_POINTER_LINE_RE = re.compile(
-    r"(?i)\b(older receipts?|archived)\b.*docs/decisions/dcp_receipts_archive_v0\.md"
 )
 STANDALONE_DCP_RECEIPT_PATH_RE = re.compile(
     r"(?i)(^|[/_-])(direction_change_propagation_receipts?|dcp_receipts?)([/_.-]|$)"
@@ -157,13 +153,6 @@ def receipt_offsets(text: str) -> list[int]:
     return [start + match.start() for match in RECEIPT_RE.finditer(region)]
 
 
-def has_archive_pointer_after(text: str, offset: int) -> bool:
-    for line in text[offset:].splitlines():
-        if ARCHIVE_POINTER_LINE_RE.search(line):
-            return True
-    return False
-
-
 def check_text(relposix: str, text: str) -> list[Finding]:
     findings: list[Finding] = []
 
@@ -172,8 +161,8 @@ def check_text(relposix: str, text: str) -> list[Finding]:
             Finding(
                 relposix,
                 "unauthorized_standalone_dcp_receipt_file",
-                f"Only {ARCHIVE_PATH} is authorized as a standalone DCP receipt archive; "
-                f"store DCP receipts inline or move older receipts to the archive per {RULE_AUTHORITY}.",
+                f"{ARCHIVE_PATH} is frozen legacy history and the only existing standalone "
+                f"DCP receipt file; store new receipts inline per {RULE_AUTHORITY}.",
             )
         )
 
@@ -187,19 +176,8 @@ def check_text(relposix: str, text: str) -> list[Finding]:
                 relposix,
                 "too_many_inline_dcp_receipts",
                 f"Found {len(offsets)} inline direction_change_propagation receipts; "
-                f"{RULE_AUTHORITY} allows at most {MAX_INLINE_RECEIPTS} before older receipts "
-                f"move to {ARCHIVE_PATH}.",
-            )
-        )
-
-    if offsets and not has_archive_pointer_after(text, offsets[-1]):
-        findings.append(
-            Finding(
-                relposix,
-                "missing_dcp_archive_pointer",
-                "Inline direction_change_propagation receipts require an "
-                f"Older receipts archive pointer line to {ARCHIVE_PATH} after the last receipt "
-                f"per {RULE_AUTHORITY}.",
+                f"{RULE_AUTHORITY} allows at most {MAX_INLINE_RECEIPTS}; delete the oldest "
+                "inline receipt and do not append it to the frozen archive.",
             )
         )
 
@@ -356,10 +334,10 @@ direction_change_propagation_blocker:
             ["too_many_inline_dcp_receipts"],
         ),
         (
-            "missing pointer fail",
+            "archive pointer not required",
             "docs/decisions/x_v0.md",
             "## Direction Change Propagation\n\ndirection_change_propagation:\n  doctrine_changed: x\n",
-            ["missing_dcp_archive_pointer"],
+            [],
         ),
         ("schema example ignored", "docs/decisions/x_v0.md", example_then_real, []),
         (

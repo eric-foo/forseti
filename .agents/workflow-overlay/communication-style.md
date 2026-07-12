@@ -388,4 +388,4 @@ direction_change_propagation:
     - not runtime model routing
 ```
 
-Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+Legacy receipts previously cycled out remain frozen in `docs/decisions/dcp_receipts_archive_v0.md`; current work never appends there.
