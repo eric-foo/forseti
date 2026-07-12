@@ -93,7 +93,6 @@ def write_tiktok_batch_packet(
     )
     onboarding_evidence = _validate_onboarding_evidence(
         creator_handle=handle,
-        creator_profile_url=profile_url,
         grid_window_json=grid_window_json,
         selection_result_json=selection_result_json,
         admitted_video_ids=[str(video["video_id"]) for video in payload["videos"]],
@@ -189,10 +188,28 @@ def write_tiktok_batch_packet(
     return 0, result.output_directory
 
 
+def _is_creator_video_url(*, video_url: str, creator_handle: str, video_id: str) -> bool:
+    """Match the capture-time tolerance in creator_onboarding._is_creator_video_url.
+
+    Grid hrefs are scraped from live TikTok markup, not synthesized, so this
+    intentionally tolerates http scheme and tiktok.com subdomains that a
+    strict canonical-URL string match would reject even though the upstream
+    capture-time validator already accepted them. A query string is still
+    rejected, but earlier and separately, by assert_no_sensitive_tiktok_material.
+    """
+    parsed = urlparse(video_url)
+    host = (parsed.hostname or "").lower()
+    expected_path = f"/@{creator_handle.lower()}/video/{video_id}"
+    return (
+        parsed.scheme in {"http", "https"}
+        and (host == "tiktok.com" or host.endswith(".tiktok.com"))
+        and parsed.path.rstrip("/").lower() == expected_path.lower()
+    )
+
+
 def _validate_onboarding_evidence(
     *,
     creator_handle: str,
-    creator_profile_url: str,
     grid_window_json: bytes | None,
     selection_result_json: bytes | None,
     admitted_video_ids: Sequence[str],
@@ -233,7 +250,9 @@ def _validate_onboarding_evidence(
             )
         if video_id in grid_ids:
             raise ValueError(f"grid_window_json contains duplicate video_id={video_id}")
-        if video_url.lower() != f"{creator_profile_url}/video/{video_id}".lower():
+        if not _is_creator_video_url(
+            video_url=video_url, creator_handle=creator_handle, video_id=video_id
+        ):
             raise ValueError(
                 f"grid_window_json.items[{index}] video_url does not match creator/video_id"
             )
