@@ -46,6 +46,10 @@ _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
     "runners/run_source_capture_ig_reels_deep_capture.py": (
         "deep-capture writer checks completion markers for exact record sets"
     ),
+    "runners/run_tiktok_product_extract.py": (
+        "product-extraction writer checks one deterministic mention record id "
+        "for completion or a crash-partial collision; it does not select among siblings"
+    ),
     "source_capture/ig_reels_grid_projection.py": (
         "projection writer checks exact bronze-catalog proof paths while appending "
         "stable derived records"
