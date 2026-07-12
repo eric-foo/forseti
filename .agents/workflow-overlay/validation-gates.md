@@ -170,6 +170,14 @@ inherit this floor.
 - New or materially touched durable human-authored workflow artifacts follow
   `.agents/workflow-overlay/retrieval-metadata.md` or are clearly outside that
   contract.
+- New or materially touched durable artifacts close against `AGENTS.md`
+  ("Artifact-Level Smallest Complete Intervention"): resident judgment must
+  confirm a distinct future consumer, outcome, or lifecycle; standalone
+  usability without authoring-chat reconstruction; the material authority,
+  currentness, and next-source facts; no duplicated authority or speculative
+  registry; and reconciliation of affected supersession, retirement, and live
+  routers. Deterministic tooling may check objective router-target existence,
+  but a green path check does not establish semantic completeness.
 - Report-only retrievability checks may use
   `docs/workflows/artifact_retrievability_guide.md` for artifact body-opening
   shape, stale/recheck clarity, repo-map/index treatment, and hygiene anti-rot.
@@ -348,6 +356,14 @@ registered in the repo map's "Active Hooks" note; reuse this pattern for the
 next such rule. Placement decides where a rule is enforced, not whether it is
 correct: a passing check is not validation, readiness, approval, or
 source-of-truth promotion.
+
+**Live-router direct-target check** (`.agents/hooks/check_map_links.py`, C5).
+The existing map/link gate also checks the authoritative-target column of the
+Artifact Roles `Role Bindings` table and the Doctrine Index product-spine table.
+Each live row must carry a repo-rooted target that exists directly in the
+current tree; moved-path indexes do not satisfy a live router. This is objective
+path existence only — not authority, currentness, semantic completeness,
+validation, readiness, or proof that the routed source is the right one.
 
 **Retrieval-header index + forward-only CI gate** (`.agents/hooks/header_index.py`).
 Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
@@ -552,59 +568,64 @@ markdown sibling of the EP-37 JSON gate. Registered in
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    CI and local feedback placement now fail earlier without weakening the
-    authoritative CI boundary: four observed fast failure classes (prompt
-    output mode, review-output provenance, handoff pointers, ontology tags)
-    join the pre-push mirror; ontology strict mode is tracked/diff-scoped
-    before local adoption; the CI job keeps its required name while moving
-    policy gates before pytest, cancelling obsolete PR runs, removing a
-    duplicate gate, and pinning external Actions by SHA with Renovate coverage.
-  trigger: validation_philosophy
+    Smallest Complete Intervention now binds each separate durable artifact to
+    a distinct future consumer, outcome, or lifecycle and requires standalone
+    usability plus authority/currentness/next-source and lifecycle-router
+    reconciliation; semantic closeout stays resident judgment, while the
+    existing map/link gate deterministically checks only direct target existence
+    in the Artifact Roles and product-spine Doctrine Index live-router tables.
+  trigger: workflow_authority
   related_triggers:
-    - workflow_authority
+    - validation_philosophy
+    - output_authority
+    - lifecycle_boundary
   controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_ontology_tag_validity.py
-    - .agents/hooks/pre_push_guard.py
-    - .agents/hooks/README.md
-    - .github/workflows/ci.yml
-    - .github/scripts/install-local-hooks.ps1
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - renovate.json
-    - docs/workflows/forseti_repo_map_v0.md
-  downstream_surfaces_checked:
     - AGENTS.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - docs/decisions/forseti_doctrine_index_v0.md
+    - .agents/hooks/check_map_links.py
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/review-lanes.md
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/artifact-folders.md
+    - .agents/workflow-overlay/retrieval-metadata.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .github/workflows/ci.yml
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
   intentionally_not_updated:
-    - path: .claude/settings.json
+    - path: CLAUDE.md
       reason: >
-        No write-time hook changed; the new mirror is harness-agnostic at the
-        Git pre-push boundary.
-    - path: .codex/hooks.json
+        It remains a shim importing AGENTS.md and must not duplicate the kernel
+        rule.
+    - path: .agents/workflow-overlay/retrieval-metadata.md
       reason: >
-        Retrieval-header and prompt-provenance hooks do not parse Codex
-        apply_patch payloads; wiring them now would create fake parity. Correct
-        apply-patch support remains a separate complete change if justified.
-    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+        Retrieval headers remain retrieval-only and must not carry semantic
+        quality, authority, validation, currentness, or lifecycle claims.
+    - path: .agents/workflow-overlay/artifact-folders.md
       reason: >
-        Its dated inventory explicitly defers the live registry to CI, the repo
-        map, and this file; no classification changed.
+        It already binds `forseti/product/` as the current product-artifact root
+        and records `docs/product/` as retired historical routing.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        Its live product-tree route already points to `forseti/product/`; no map
+        target or section changed.
+    - path: .github/workflows/ci.yml
+      reason: >
+        The existing registered `check_map_links.py --strict` step runs C5; no
+        parallel gate or workflow change is needed.
   stale_language_search: >
-    rg -n "selected strict CI gates|five gate|check_ontology_tag_validity|pre-push" AGENTS.md .agents .github docs/workflows/forseti_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-11 after the edits: live pre-push descriptions point to
-    the nine-gate mirror; ontology strict scope is bound here and in the
-    checker; remaining selected-gate language is compatible and no live
-    surface retains the five-gate list.
+    rg -n "Product artifact.*[d]ocs/product|Product-lane doctrine.*[d]ocs/product|\| [p]roduct_lead/proof_charter/forseti_claim_defense_doctrine_v0\.md|\| [j]udgment_spine/judgment_spine_evidence_ladder_architecture_v0\.md|\| [d]ata_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0\.md" AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md docs/decisions/forseti_doctrine_index_v0.md docs/workflows/forseti_repo_map_v0.md
   non_claims:
     - not validation
     - not readiness
-    - not review quality or finding truth
-    - not ontology correctness or semantic validity
-    - a green pre-push or CI run is not approval
+    - not authority or currentness proof
+    - not semantic completeness proof
+    - not permission to create a new maintenance surface
 ```
 
 ```yaml
