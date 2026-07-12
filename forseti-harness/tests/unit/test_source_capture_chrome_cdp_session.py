@@ -69,12 +69,16 @@ def test_chrome_cdp_session_bootstrap_exports_no_proxy_state_and_leaves_browser(
     )
     auth_root = tmp_path / "auth"
     profile_root = tmp_path / "profiles"
+    monkeypatch.setattr(
+        runner,
+        "default_session_profile_auth_state_root",
+        lambda: auth_root,
+    )
 
     code, _ = runner.launch_and_export_chrome_cdp_session(
         user_data_label="chowdakr_sg_tiktok_chrome_v1",
         state_label="chowdakr_sg_tiktok_chrome_v1",
         session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
-        auth_state_root=auth_root,
         browser_user_data_root=profile_root,
         chrome_executable=chrome,
     )
