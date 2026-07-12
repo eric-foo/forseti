@@ -120,6 +120,14 @@ tiktok_creator_discovery_frontier_register:
       exclusions:
       stop_reason:
       registry_preflight_status_or_none:
+      registry_preflight_receipt_evidence_or_none:
+        receipt_pointer:
+        receipt_sha256:
+        candidate_id:
+        intended_action:
+        decision:
+        action_status:
+        can_start_new_capture:
       platform_capture_status:
       cross_platform_graph_status:
       non_claims:
@@ -196,6 +204,40 @@ carousel if present, click `View all` once when available to expand more rows,
 otherwise check `Following` or `Followers` -> `Suggested`, then record a packet
 or blocked/empty outcome before link-hub or sibling-channel work.
 
+
+## PROMOTE Receipt-Evidence Binding
+
+`PROMOTE` is receipt-gated. The selected candidate node must carry
+`registry_preflight_receipt_evidence_or_none` with:
+
+- an opaque repo/lake `receipt_pointer` and the SHA-256 of the exact receipt
+  bytes;
+- the selected `candidate_id`; and
+- copied receipt-row clearance fields: `intended_action`, `decision`,
+  `action_status`, and `can_start_new_capture`.
+
+The validator does not guess how repo or lake pointers resolve. Its caller must
+supply a resolver that returns the exact receipt bytes for the opaque pointer.
+Validation fails closed when the resolver or artifact is absent, the hash is
+stale, the JSON or receipt schema is malformed, the candidate row is missing or
+duplicated, the copied fields differ from that row, the row is not
+`new_capture` / `new_candidate` / `allowed` with
+`can_start_new_capture: true`, or the row's normalized TikTok platform and
+handle do not match the selected frontier node.
+
+`registry_preflight_status_or_none` remains in v0 as a legacy informational
+field so historical registers and current readers do not require a breaking
+schema migration. It never clears `PROMOTE`; a scalar string, including a
+plausible or positive-looking status, is not receipt evidence. The new evidence
+field is additive and optional for non-PROMOTE nodes, so the register keeps its
+v0 schema version. A future incompatible removal or meaning change requires a
+schema-version decision rather than silently redefining v0.
+
+This binding proves only that the cited exact-match preflight receipt cleared
+this candidate for new capture under that receipt's registry snapshot. It does
+not prove fuzzy duplicate absence, cross-platform identity, discovery quality,
+capture authorization, registry mutation authorization, or source truth.
+
 ## Count And Completeness Semantics
 
 `suggested_accounts_observed` is receipt/cap context for source-visible suggested
@@ -265,3 +307,82 @@ Not validation, readiness, capture success, account-safety proof, source-access
 authorization, Creator Registry identity proof, follower graph, endorsement
 proof, country/region evidence, metric rollup, commercial permission, or
 production infrastructure authorization.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    TikTok frontier PROMOTE decisions now require a candidate-bound Creator
+    Registry preflight receipt pointer, raw-byte SHA-256, copied clearance
+    fields, and caller-resolved receipt verification; the legacy scalar status
+    remains informational and cannot clear PROMOTE.
+  trigger: architecture_doctrine
+  related_triggers:
+    - validation_philosophy
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_frontier_register_v0.md
+    - forseti-harness/capture_spine/tiktok_creator_discovery_frontier/models.py
+    - forseti-harness/capture_spine/tiktok_creator_discovery_frontier/validation.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/workflows/creator_onboarding_first_batch_next_material_steps_handoff_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
+    - forseti-harness/capture_spine/creator_profile_current/registry_match_preflight.py
+    - forseti-harness/capture_spine/tiktok_creator_discovery_frontier/register_writer.py
+    - forseti-harness/runners/run_tiktok_creator_discovery_register.py
+    - forseti-harness/tests/unit/test_tiktok_creator_discovery_frontier.py
+  intentionally_not_updated:
+    - path: AGENTS.md and .agents/workflow-overlay/
+      reason: >
+        Project-wide implementation authority, source loading, and receipt-field
+        provenance rules already route this source-family binding without
+        restating its schema.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        The existing Scanning spine and harness capture_spine/runners family-level
+        entries still route to the target roots; no path family or owner changed,
+        so a new file-level map row would add duplicate navigation.
+    - path: forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_match_preflight_usage_v0.md
+      reason: >
+        The usage contract already owns the candidate-specific clearance fields
+        and exact-match non-claims consumed here.
+    - path: forseti-harness/capture_spine/tiktok_creator_discovery_frontier/register_writer.py
+      reason: >
+        The network-free builder emits no PROMOTE decisions. Its retained scalar
+        field is legacy informational data and no longer clears the validator gate.
+    - path: docs/workflows/creator_onboarding_first_batch_next_material_steps_handoff_v0.md
+      reason: >
+        This consumed checkpoint now meets its own stale_if conditions because
+        the frontier schema and preflight semantics changed. It retains other
+        excluded future batches, so this PROMOTE-only lane does not rewrite or
+        delete their handoff; any future lane must re-ground and refresh it.
+    - path: docs/prompts/reviews/tiktok_scanner_hardening_delegated_adversarial_code_review_patch_prompt_v0.md and docs/review-outputs/tiktok_scanner_hardening_delegated_adversarial_code_review_v0.md
+      reason: >
+        These are historical commission/review provenance for the defect, not
+        live schema authority; rewriting them would falsify what was reviewed.
+  stale_language_search: >
+    rg -n "registry_preflight_status_or_none|registry_preflight_receipt_evidence_or_none|promote_requires_registry_preflight|PROMOTE.*preflight|preflight.*PROMOTE"
+    AGENTS.md .agents forseti forseti-harness docs/workflows docs/decisions docs/prompts docs/review-outputs
+  stale_language_search_result: >
+    Executed 2026-07-11 after rebasing onto origin/main. Live hits are the
+    updated product contract, model, validator, focused tests, and the builder's
+    explicitly retained legacy informational field. The creator-onboarding
+    handoff hit now meets that checkpoint's own stale_if conditions; remaining
+    prompt/review hits are historical defect provenance. No checked live
+    authority surface still says a scalar status clears PROMOTE.
+  non_claims:
+    - not validation
+    - not readiness
+    - not fuzzy duplicate detection
+    - not capture authorization
+    - not registry mutation authorization
+```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
