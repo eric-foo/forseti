@@ -151,6 +151,7 @@ TIKTOK_CHALLENGE_TEXT_MARKERS = (
 )
 TIKTOK_BROWSER_BACKEND_DEFAULT = "play" + "wright"
 TIKTOK_BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
+TIKTOK_BROWSER_BACKEND_CHROME_CDP = "chrome_cdp"
 TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS = 180.0
 TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT = (
     "A TikTok slider/captcha/security challenge is visible before any scripted "
@@ -381,8 +382,11 @@ def run_tiktok_live_batch_probe(
     if browser_backend not in (
         TIKTOK_BROWSER_BACKEND_DEFAULT,
         TIKTOK_BROWSER_BACKEND_CLOAKBROWSER,
+        TIKTOK_BROWSER_BACKEND_CHROME_CDP,
     ):
-        raise ValueError("browser_backend must be one of: cloakbrowser, " + TIKTOK_BROWSER_BACKEND_DEFAULT)
+        raise ValueError(
+            "browser_backend must be one of: chrome_cdp, cloakbrowser, " + TIKTOK_BROWSER_BACKEND_DEFAULT
+        )
 
     if allow_challenge_close_diagnostic and allow_challenge_close_followthrough:
         raise ValueError(

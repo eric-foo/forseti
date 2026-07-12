@@ -123,8 +123,10 @@ def resolve_session_profile(
             "session-profile required_harness_proxy_profile_posture is unsupported"
         ) from None
     browser_backend = _required_string(profile_payload, "browser_backend")
-    if browser_backend != "cloakbrowser":
-        raise ValueError("TikTok session-profile browser_backend must be cloakbrowser")
+    if browser_backend not in {"cloakbrowser", "chrome_cdp"}:
+        raise ValueError(
+            "TikTok session-profile browser_backend must be cloakbrowser or chrome_cdp"
+        )
     challenge_policy = _required_string(profile_payload, "challenge_policy")
     if challenge_policy != OWNER_HANDOFF_BEFORE_ACTION:
         raise ValueError(

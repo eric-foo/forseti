@@ -25,6 +25,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserSnapshotSuccess,
     CloakBrowserPageObservationSessionEngine,
     CloakBrowserPersistentPageObservationSessionEngine,
+    ChromeCdpPageObservationSessionEngine,
     fetch_browser_context_responses,
     fetch_browser_page_observation_capture,
     fetch_browser_snapshot_capture,
@@ -3035,3 +3036,85 @@ def test_persistent_session_engine_reuses_retained_profile_and_existing_page(
     assert engine.lifecycle_receipt["persistent_profile_loaded"] is True
     engine.close()
     assert context.close_count == 1
+
+
+def test_chrome_cdp_session_detaches_without_closing_context_or_page(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events: list[str] = []
+
+    class FakePage:
+        def is_closed(self) -> bool:
+            return False
+
+    page = FakePage()
+
+    class FakeContext:
+        def new_page(self) -> FakePage:
+            events.append("new_page")
+            return page
+
+        def close(self) -> None:
+            events.append("context_close")
+
+    context = FakeContext()
+
+    class FakeBrowser:
+        contexts = [context]
+
+        def close(self) -> None:
+            events.append("browser_disconnect")
+
+    browser = FakeBrowser()
+
+    class FakeChromium:
+        def connect_over_cdp(self, endpoint: str) -> FakeBrowser:
+            events.append(f"attach:{endpoint}")
+            return browser
+
+    class FakePlaywrightOwner:
+        chromium = FakeChromium()
+
+        def stop(self) -> None:
+            events.append("playwright_stop")
+
+    owner = FakePlaywrightOwner()
+
+    class FakeSyncPlaywright:
+        @staticmethod
+        def start() -> FakePlaywrightOwner:
+            return owner
+
+    class FakeSyncApi:
+        @staticmethod
+        def sync_playwright() -> FakeSyncPlaywright:
+            return FakeSyncPlaywright()
+
+    original_import_module = browser_snapshot_module.import_module
+
+    def fake_import_module(name: str) -> object:
+        if name == "playwright.sync_api":
+            return FakeSyncApi()
+        return original_import_module(name)
+
+    monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
+    engine = ChromeCdpPageObservationSessionEngine(
+        humanize_context_fn=lambda _context: events.append("humanize:careful")
+    )
+    proxy = engine._launch_page_observation_browser(
+        playwright=object(), proxy_profile=None, headless=False, browser_channel=None
+    )
+    proxy.new_context(viewport={"width": 1280, "height": 720}, storage_state="ignored")
+
+    assert engine._get_or_create_page() is page
+    engine.close()
+    assert events == [
+        "attach:http://127.0.0.1:9222",
+        "humanize:careful",
+        "new_page",
+        "browser_disconnect",
+        "playwright_stop",
+    ]
+    assert engine.lifecycle_receipt["close_policy"] == (
+        "detach_only_leave_browser_and_page_open"
+    )

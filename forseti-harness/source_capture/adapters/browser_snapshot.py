@@ -22,7 +22,12 @@ DEFAULT_MAX_ARTIFACT_BYTES = 5_000_000
 ALLOWED_WAIT_UNTIL = {"commit", "domcontentloaded", "load", "networkidle"}
 BROWSER_BACKEND_PLAYWRIGHT = "playwright"
 BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
-ALLOWED_BROWSER_BACKENDS = {BROWSER_BACKEND_PLAYWRIGHT, BROWSER_BACKEND_CLOAKBROWSER}
+BROWSER_BACKEND_CHROME_CDP = "chrome_cdp"
+ALLOWED_BROWSER_BACKENDS = {
+    BROWSER_BACKEND_PLAYWRIGHT,
+    BROWSER_BACKEND_CLOAKBROWSER,
+    BROWSER_BACKEND_CHROME_CDP,
+}
 DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS = 180.0
 PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME = "page_load_before_pointer_actions_v0"
 # Pause after each scroll-to-bottom pass so lazy-loaded (infinite-scroll / "load
@@ -1509,6 +1514,160 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
             if proxy_profile.locale is not None:
                 launch_kwargs["locale"] = proxy_profile.locale
         return cloakbrowser.launch(**launch_kwargs)
+
+
+class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
+    """Attach to one operator-owned local Chrome process without closing it."""
+
+    def __init__(
+        self,
+        *,
+        cdp_endpoint: str = "http://127.0.0.1:9222",
+        human_challenge_handoff_markers: Sequence[str] = (),
+        human_challenge_handoff_after_action_names: Sequence[str] = (),
+        human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
+        human_challenge_handoff_prompt: str | None = None,
+        humanize_context_fn: Callable[[object], None] | None = None,
+    ) -> None:
+        super().__init__(
+            cloakbrowser_humanize=False,
+            human_challenge_handoff_markers=human_challenge_handoff_markers,
+            human_challenge_handoff_after_action_names=human_challenge_handoff_after_action_names,
+            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
+            human_challenge_handoff_prompt=human_challenge_handoff_prompt,
+        )
+        parsed = urlparse(cdp_endpoint)
+        if (
+            parsed.scheme not in {"http", "https"}
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.hostname not in {"localhost", "127.0.0.1", "::1"}
+        ):
+            raise ValueError(
+                "cdp_endpoint must be a credential-free loopback http(s) URL"
+            )
+        self.browser_backend = BROWSER_BACKEND_CHROME_CDP
+        self.cdp_endpoint = parsed.geturl()
+        self._playwright_owner: object | None = None
+        self._real_browser: object | None = None
+        self._real_context: object | None = None
+        self._real_page: object | None = None
+        self._launch_settings: tuple[ProxyProfile | None, bool, str | None] | None = None
+        self._humanize_context_fn = humanize_context_fn
+        self._context_settings: dict[str, object] | None = None
+        self._closed = False
+        self._page_creation_count = 0
+        self._capture_attempt_count = 0
+        self._capture_success_count = 0
+
+    def capture_page_observation(self, **kwargs: object) -> BrowserPageObservationSuccess:
+        if self._closed:
+            raise RuntimeError("Chrome CDP page-observation session is already closed")
+        self._capture_attempt_count += 1
+        result = super().capture_page_observation(**kwargs)
+        self._capture_success_count += 1
+        return result
+
+    def _launch_page_observation_browser(
+        self,
+        *,
+        playwright: object,
+        proxy_profile: ProxyProfile | None,
+        headless: bool,
+        browser_channel: str | None,
+    ) -> object:
+        del playwright
+        if proxy_profile is not None:
+            raise ValueError("Chrome CDP attach does not accept a harness proxy profile")
+        if browser_channel is not None:
+            raise ValueError("browser_channel is not supported with Chrome CDP attach")
+        settings = (proxy_profile, headless, browser_channel)
+        if self._launch_settings is None:
+            try:
+                sync_api = import_module("playwright.sync_api")
+            except ModuleNotFoundError as exc:
+                raise _BrowserSnapshotDependencyUnavailable(
+                    "Playwright is required for Chrome CDP attachment."
+                ) from exc
+            self._playwright_owner = sync_api.sync_playwright().start()
+            self._real_browser = self._playwright_owner.chromium.connect_over_cdp(  # type: ignore[attr-defined]
+                self.cdp_endpoint
+            )
+            self._launch_settings = settings
+        elif settings != self._launch_settings:
+            raise ValueError("Chrome CDP launch settings changed mid-session")
+        return _SessionBrowserProxy(self)
+
+    def _new_scoped_context(self, context_kwargs: dict[str, object]) -> object:
+        normalized = {
+            key: value
+            for key, value in context_kwargs.items()
+            if key not in {"storage_state", "viewport"}
+        }
+        if self._real_browser is None:
+            raise RuntimeError("Chrome CDP browser was not attached")
+        if self._real_context is None:
+            contexts = list(getattr(self._real_browser, "contexts", ()))
+            if not contexts:
+                raise RuntimeError("Chrome CDP browser exposed no persistent context")
+            self._real_context = contexts[0]
+            if self._humanize_context_fn is not None:
+                self._humanize_context_fn(self._real_context)
+            else:
+                try:
+                    from cloakbrowser.human import patch_context
+                    from cloakbrowser.human.config import resolve_config
+
+                    patch_context(self._real_context, resolve_config("careful", None))
+                except ModuleNotFoundError as exc:
+                    raise _BrowserSnapshotDependencyUnavailable(
+                        "CloakBrowser human input support is required for Chrome CDP capture."
+                    ) from exc
+            self._context_settings = normalized
+        elif normalized != self._context_settings:
+            raise ValueError("Chrome CDP context settings changed mid-session")
+        return _SessionContextProxy(self)
+
+    def _get_or_create_page(self) -> object:
+        if self._real_context is None:
+            raise RuntimeError("Chrome CDP context was not acquired")
+        if self._real_page is not None:
+            is_closed = getattr(self._real_page, "is_closed", None)
+            if callable(is_closed) and is_closed():
+                self._real_page = None
+        if self._real_page is None:
+            self._real_page = self._real_context.new_page()  # type: ignore[attr-defined]
+            self._page_creation_count += 1
+        return self._real_page
+
+    @property
+    def lifecycle_receipt(self) -> dict[str, object]:
+        return {
+            "engine": "chrome_cdp_page_observation_session",
+            "browser_attach_count": 1 if self._real_browser is not None else 0,
+            "context_acquisition_count": 1 if self._real_context is not None else 0,
+            "page_creation_count": self._page_creation_count,
+            "page_reuse_policy": "reuse_one_runner_page_until_detached",
+            "capture_attempt_count": self._capture_attempt_count,
+            "capture_success_count": self._capture_success_count,
+            "browser_ownership": "operator_owned",
+            "close_policy": "detach_only_leave_browser_and_page_open",
+            "humanized_input_preset": "careful",
+            "closed": self._closed,
+        }
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        try:
+            if self._real_browser is not None:
+                self._real_browser.close()  # type: ignore[attr-defined]
+        finally:
+            try:
+                if self._playwright_owner is not None:
+                    self._playwright_owner.stop()  # type: ignore[attr-defined]
+            finally:
+                self._closed = True
 
 
 class CloakBrowserPageObservationSessionEngine(_CloakBrowserPageObservationEngine):

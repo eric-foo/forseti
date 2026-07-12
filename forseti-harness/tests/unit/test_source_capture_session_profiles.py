@@ -90,6 +90,21 @@ def test_profile_resolves_and_preflights_without_secret_path_or_state_label(
     assert str(auth_root) not in serialized
 
 
+def test_profile_resolves_chrome_cdp_backend(tmp_path: Path) -> None:
+    config_path = _write_profile_config(tmp_path)
+    payload = json.loads(config_path.read_text(encoding="utf-8"))
+    payload["profiles"][ALIAS]["browser_backend"] = "chrome_cdp"
+    payload["profiles"][ALIAS][
+        "required_harness_proxy_profile_posture"
+    ] = "no_proxy_profile_loaded"
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    profile = resolve_session_profile(ALIAS, config_path=config_path)
+
+    assert profile.browser_backend == "chrome_cdp"
+    assert profile.browser_user_data_label == ALIAS
+
+
 def test_profile_preflight_runner_fails_closed_before_browser_launch(
     tmp_path: Path,
     capsys,

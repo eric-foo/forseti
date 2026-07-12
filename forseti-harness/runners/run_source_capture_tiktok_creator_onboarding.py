@@ -53,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Attempt suggested-account capture, freeze a bounded TikTok creator grid, "
             "select the reach-proven top eight, and deep-capture it sequentially "
-            "without relaunching the browser."
+            "through the already-running dedicated Chrome CDP session."
         ),
         epilog=(
             "Cold-agent default session alias: chowdakr_sg_tiktok. "
@@ -76,7 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--session-profile",
         default="chowdakr_sg_tiktok",
-        help="Machine-local retained-profile TikTok session alias.",
+        help="Machine-local retained Chrome CDP TikTok session alias.",
     )
     parser.add_argument("--session-profile-config", type=Path)
     parser.add_argument("--auth-state-root", type=Path, help=argparse.SUPPRESS)

@@ -109,12 +109,12 @@ def _profile() -> SourceCaptureSessionProfile:
         required_harness_proxy_profile_posture=(
             HarnessProxyProfilePosture.NO_PROXY_PROFILE_LOADED
         ),
-        browser_backend="cloakbrowser",
+        browser_backend="chrome_cdp",
         challenge_policy=OWNER_HANDOFF_BEFORE_ACTION,
     )
 
 
-def test_runner_defaults_cold_agents_to_cookie_backed_session_alias(tmp_path: Path) -> None:
+def test_runner_defaults_cold_agents_to_retained_chrome_session_alias(tmp_path: Path) -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -298,7 +298,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         "https://www.tiktok.com/@creator/video/2",
         "https://www.tiktok.com/@creator/video/1",
     ]
-    assert deep_calls[0]["cloakbrowser_humanize"] is True
+    assert "cloakbrowser_humanize" not in deep_calls[0]
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
     assert receipt["status"] == "complete"
     assert receipt["session_profile"] == "chowdakr_sg_tiktok"
