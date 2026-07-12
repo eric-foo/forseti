@@ -1,6 +1,6 @@
 """Deterministic reach-first selection for TikTok creator-grid onboarding.
 
-Selection starts with the configured top fraction by observed view count. An
+Selection starts with a configured fraction or fixed count by observed view count. An
 outside video may replace an original selection only when it retains at least
 80% of that incumbent's views and has at least 20% higher like rate. Range
 overrides never become new comparison anchors, preventing reach-floor erosion.
@@ -13,6 +13,7 @@ from fractions import Fraction
 from typing import Any
 
 TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION = "tiktok_grid_video_selection_v1"
+TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION = "tiktok_reach_first_fixed_count_v0"
 TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION = "tiktok_reach_first_top_fraction_v2"
 _DEFAULT_SELECTION_FRACTION = Fraction(1, 4)
 _MINIMUM_VIEW_RETENTION_PERCENT = 80
@@ -28,14 +29,22 @@ def build_tiktok_grid_video_selection(
     *,
     expected_item_count: int,
     selection_fraction: float = 0.25,
+    selection_count: int | None = None,
 ) -> dict[str, Any]:
-    """Select the reach-proven top fraction from one complete creator grid."""
+    """Select a reach-proven fraction or fixed count from one complete grid."""
 
     if isinstance(expected_item_count, bool) or not isinstance(expected_item_count, int):
         raise TikTokGridVideoSelectionError("expected_item_count must be an integer")
     if expected_item_count <= 0:
         raise TikTokGridVideoSelectionError("expected_item_count must be positive")
     normalized_selection_fraction = _normalize_selection_fraction(selection_fraction)
+    if selection_count is not None:
+        if isinstance(selection_count, bool) or not isinstance(selection_count, int):
+            raise TikTokGridVideoSelectionError("selection_count must be an integer")
+        if selection_count <= 0 or selection_count > expected_item_count:
+            raise TikTokGridVideoSelectionError(
+                "selection_count must be positive and no greater than expected_item_count"
+            )
     if len(items) != expected_item_count:
         raise TikTokGridVideoSelectionError(
             "complete-grid coverage required: "
@@ -47,7 +56,7 @@ def build_tiktok_grid_video_selection(
     if len(set(video_ids)) != len(video_ids):
         raise TikTokGridVideoSelectionError("duplicate video_id values are not allowed")
 
-    selection_count = max(
+    resolved_selection_count = selection_count or max(
         1, math.ceil(expected_item_count * normalized_selection_fraction)
     )
     reach_order = sorted(
@@ -59,11 +68,11 @@ def build_tiktok_grid_video_selection(
             item["video_id"],
         ),
     )
-    baseline_selected = reach_order[:selection_count]
+    baseline_selected = reach_order[:resolved_selection_count]
     baseline_cutoff_view_count = baseline_selected[-1]["view_count"]
     selected, range_overrides = _apply_boundary_range_overrides(
         baseline_selected=baseline_selected,
-        challengers=reach_order[selection_count:],
+        challengers=reach_order[resolved_selection_count:],
     )
     selected_ids = {item["video_id"] for item in selected}
     replaced_ids = {receipt["replaced_video_id"] for receipt in range_overrides}
@@ -106,13 +115,23 @@ def build_tiktok_grid_video_selection(
     return {
         "schema_version": TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION,
         "selection_policy": {
-            "policy_version": TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION,
-            "selection_fraction": float(normalized_selection_fraction),
-            "selection_count_rounding": "ceil_with_minimum_one",
+            "policy_version": (
+                TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION
+                if selection_count is not None
+                else TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION
+            ),
+            "selection_mode": "fixed_count" if selection_count is not None else "fraction",
+            "selection_fraction": (
+                None if selection_count is not None else float(normalized_selection_fraction)
+            ),
+            "configured_selection_count_or_none": selection_count,
+            "selection_count_rounding": (
+                None if selection_count is not None else "ceil_with_minimum_one"
+            ),
             "required_metrics": ["playCount", "diggCount"],
             "membership_rule": (
-                "Start with the top configured fraction by view_count. An outside video may "
-                "replace an original view-selected incumbent only when it retains "
+                "Start with the configured fraction or fixed count by view_count. An outside "
+                "video may replace an original view-selected incumbent only when it retains "
                 "at least 80% of that incumbent's views and has at least 20% higher "
                 "like_rate."
             ),
@@ -141,7 +160,7 @@ def build_tiktok_grid_video_selection(
             "complete": True,
         },
         "selection_summary": {
-            "selection_count": selection_count,
+            "selection_count": resolved_selection_count,
             "baseline_cutoff_view_count": baseline_cutoff_view_count,
             "final_minimum_view_count": min(item["view_count"] for item in selected),
             "range_override_count": len(range_overrides),
@@ -341,6 +360,7 @@ def _first_present(payload: dict[str, Any], *keys: str) -> Any:
 
 __all__ = [
     "TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION",
+    "TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION",
     "TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION",
     "TikTokGridVideoSelectionError",
     "build_tiktok_grid_video_selection",

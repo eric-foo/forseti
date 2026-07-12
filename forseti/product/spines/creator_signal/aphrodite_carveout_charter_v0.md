@@ -6,8 +6,9 @@ artifact_role: Product charter (carveout identity stitch + strategy register —
 scope: >
   The carveout charter for Aphrodite, the productized Creator Signal spine:
   binds the brand-to-spine identity stitch, the phase strategy, the two-layer
-  moat doctrine (depth-now / time-later), the first sellable unit (paid
-  design-partner Vetting Sprint), the five sprint evidence panels, buyer-lane
+  moat doctrine (depth-now / time-later), the human-adjudicated Signals
+  decision boundary, candidate sellable units, the Studio operating split,
+  strategic registry-export boundary, the five sprint evidence panels, buyer-lane
   defaults, the stratified capture policy (hypothesis-tier), the pre-build
   gates, and the DECIDE/DEFAULT/DEFER decision register with accepted
   residuals. Routes to the ratified records; restates none of them.
@@ -53,6 +54,65 @@ Intervention, with owner ratification question-by-question in the same thread
 (2026-07-04). Advisory input throughout; the owner ratifications are the only
 decision authority claimed.
 
+### Owner-ratified direction amendment — 2026-07-12
+
+The owner ratified the following correction and expansion in chat on
+2026-07-12. This dated amendment supersedes conflicting earlier language in
+this charter and its routed Aphrodite design records:
+
+1. **Concurrent vertical, accountable human judgment now.** Aphrodite is a
+   concurrent vertical business, not Forseti's terminal company. Aphrodite
+   Signals may sell accountable human analyst judgment over Forseti evidence
+   before any automated or outcome-calibrated Judgment Spine is mature.
+2. **Brief-specific decision vocabulary.** For a named buyer brief, Signals
+   may rank and shortlist creators and recommend:
+   - `reach_out` — strongest current candidate; obtain terms and availability;
+   - `reach_out_only_as_value_play` — weaker than preferred alternatives;
+     proceed only if price or terms are materially better;
+   - `investigate_further` — potentially attractive, but a named evidence gap
+     must be resolved first; or
+   - `do_not_prioritize` — current evidence does not justify buyer effort now.
+   Each recommendation names its evidence, comparative alternatives,
+   freshness, material uncertainty, and the condition that would change it.
+3. **Momentum, performance, and breakout judgment.** Signals may sell observed
+   momentum and make evidence-backed relative-performance forecasts, including
+   that one creator should perform better than another for a named product and
+   why. It may also state an accountable analyst forecast that a creator
+   **will break out** when the forecast defines breakout, horizon, supporting
+   trajectory/acceleration statistics, comparison baseline, major
+   false-positive risks, and a falsification condition. This is not a
+   guarantee, fabricated probability, numerical conversion/ROI forecast, or
+   claim of calibrated/autonomous predictive performance.
+4. **Canonical first paid unit reopened.** The prior lock that the paid
+   design-partner Vetting Sprint is the one canonical first sellable unit is
+   superseded. Shortlists, rankings, and other brief-specific decision reads
+   are also sellable candidate units. The canonical initial unit, buyer, proof
+   loop, and kill condition are `DEFER` pending a later owner decision. The
+   five-panel Vetting Sprint remains a valid candidate offer; D-1 gates that
+   offer, not every allowed Signals decision read.
+5. **Studio is an independent shared-data revenue lane.** Studio does not
+   depend on a Signals sale or Signals repeatability. Internal Studio design
+   and setup may begin now. Creator-facing execution requires one named
+   creator opportunity, a defined service, usable supporting evidence, an
+   operational neutrality firewall, and separate execution authorization.
+   The first Studio client additionally requires independent creator opt-in,
+   explicit service/compensation, and an engagement-specific conflict check.
+   Studio consumes the shared evidence asset but does not become its data
+   authority.
+6. **Raw registry export is allowed at the right strategic price.** A private
+   raw registry export is an allowed exceptional, owner-approved transaction,
+   not a standing default product. Price and terms must compensate for
+   replacement cost, lost exclusivity, buyer reuse/redistribution,
+   competitive leakage, and foregone recurring revenue. The deal must bind
+   snapshot-versus-updates, exclusivity, use/resale rights, field/history
+   scope, provenance/support, warranties, and liability. Contact or other
+   person-level fields are separately gated by lawful sourcing and transfer
+   rights; they are not automatically included.
+
+This amendment ratifies product direction only. It does not authorize buyer
+contact, Studio execution, publishing, a registry transaction, or any numerical
+conversion/ROI claim.
+
 ## 1. Identity stitch
 
 **Aphrodite is the productized Creator Signal carveout.** One product, two
@@ -80,7 +140,9 @@ Sprint offer, the sprint evidence panels, and the buyer-facing claim language.
 What stays outside (Capture/Orca-internal): the creator registry data
 contracts, capture runners, the lake, identity linkage, metric computation —
 per the spine binding's `owns / does_not_own` split, which this charter does
-not move.
+not move. Aphrodite Studio is a separate operating and revenue lane over the
+same evidence asset; it may consume allowed derived evidence but does not own
+or silently rewrite that substrate.
 
 ## 2. Strategy
 
@@ -92,7 +154,7 @@ option whose downside is capped because the data asset compounds regardless.**
 | Phase | What happens | Gate to enter | Customer-facing? |
 | --- | --- | --- | --- |
 | **0 — Foundation (now)** | Feed the evidence asset (registry growth, depth capture, ontology); strategy on paper; stay dark | — (current state) | No. Only the ratified holding page + waitlist (with role/decision-type fields per the D8 amendment, 2026-07-04) |
-| **1 — Prove payment** | One paid design-partner **Vetting Sprint** per buyer; readback; WTP evidence is the primary output | Foundation exit gate (register row D-1, ratified 2026-07-05) fires Vetting v0; buyer probes separately owner-gated | Gated, design-partner only |
+| **1 — Prove payment** | Sell bounded brief-specific Signals decisions: shortlists, rankings, decision reads, or the candidate five-panel **Vetting Sprint**; readback/WTP learning remains the proof objective | Buyer contact remains separately owner-gated; D-1 gates the five-panel Vetting Sprint, not every allowed Signals unit | Gated, design-partner only |
 | **2 — Productize repeats** | Pricing/packaging/SaaS decisions; external claim schema lock | Full house graduation grammar adapted at sprint time; minimum repeat/pull anchor = ≥2 independent qualified buyers at Grade A/B + ≥1 paid-sprint-level pull | Gated |
 | **3 — Public launch** | Own domain, handles, formal trademark clearance, marketing posture | Owner decision; bundle per brand ADR D8 | Yes |
 
@@ -122,10 +184,13 @@ vs the creator's own baseline — derivable from grid capture already flowing);
 rising-star and history products mature later.
 
 **Moat protectors** (all pre-existing doctrine, inherited verbatim): the
-forbidden set (no outreach, contact enrichment, lead-list export, public
-person-level directory, demographics without gates, single vanity score,
-unstamped/LLM-only claims, zero-filled metrics) and honesty-as-product
-(explicit missingness, per-number provenance).
+forbidden set (no unauthorized Signals outreach/contact enrichment, no
+unapproved lead-list or registry export, no public person-level directory,
+demographics without gates, single vanity score, unstamped/LLM-only claims,
+zero-filled metrics) and honesty-as-product (explicit missingness, per-number
+provenance). The 2026-07-12 amendment permits an exceptional owner-approved
+private raw-registry transaction under strategic price, rights, and transfer
+terms; that is not a blanket lead-export permission.
 
 **Honest boundary (moat strength — amended 2026-07-05):** LLMs commoditize
 *extraction* for everyone, so extraction-only depth is not the moat and a funded
@@ -142,15 +207,19 @@ niche the incumbents are structurally blind to, hardening into a real barrier as
 the time axis accrues. Layer 1 is the bridge that makes Layer 2's years
 survivable.
 
-## 4. First sellable unit — the Vetting Sprint
+## 4. Candidate sellable units — canonical first unit deferred
 
-`DECIDE (ratified 2026-07-04)`: the first sellable unit is a **paid,
-fixed-scope design-partner Vetting Sprint** — a report for one live
-creator-spend decision, plus a gated evidence view and a readback with the
-decision owner. Not SaaS, not library access, not software. Its primary output
-is willingness-to-pay evidence; revenue is secondary. Sellable only after the
-foundation exit gate fires (register row D-1) and the owner separately opens
-buyer probes.
+`SUPERSEDED / REOPENED 2026-07-12`: the prior first-unit lock is no longer
+current. Signals may sell bounded, brief-specific shortlists, rankings, and
+decision reads using the ratified analyst vocabulary in the dated amendment
+above. The canonical initial unit, buyer, proof loop, and kill condition remain
+`DEFER` for a later owner decision.
+
+The **paid, fixed-scope design-partner Vetting Sprint** remains one candidate
+offer: a report for one live creator-spend decision, plus a gated evidence view
+and decision-owner readback. Its five-panel form is sellable only after D-1
+fires and the owner separately authorizes the relevant buyer-contact lane. D-1
+does not gate other later-authorized Signals decision-read units.
 
 The sprint report is built from five evidence panels — panels, never scores;
 every shown fact is a claim object with provenance, freshness, sample support,
@@ -302,15 +371,19 @@ fired — the rehearsal has not run. The depth-layer build itself is
 packaged in `docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v1.md`
 (supersedes the v0 packet) and stays gated on explicit owner build-authorization.
 
-**Gate status update (2026-07-10):** the rehearsal has since completed, so the
-preceding 2026-07-05 gate snapshot remains historical and the v1 handoff is no
-longer a live gate under its own `stale_if`.
+**Gate-artifact update (2026-07-10; clarified 2026-07-12):** the
+share-of-voice rehearsal completed, so the v1 handoff is historical under its
+own `stale_if`. That product-learning-capped record does not by itself evidence
+all six D-1 criteria—five panels, fully derived fit, displayed withhold,
+candidate-set exercise, blocker/major-free review, and bounded-effort receipt.
+Until a complete closeout receipt is identified, this charter does not claim
+that D-1 fired. D-1 now affects only the candidate five-panel Vetting Sprint.
 
 ## 8. Decision register
 
 | # | Item | Tag | Basis / trigger |
 | --- | --- | --- | --- |
-| R-1 | First sellable unit = paid design-partner Vetting Sprint | `DECIDE (ratified 2026-07-04)` | Owner selection: "Ratify the Vetting Sprint" |
+| R-1 | Canonical first sellable unit | `SUPERSEDED / DEFER (2026-07-12)` | Paid Vetting Sprint remains a candidate; shortlists/rankings/decision reads are also sellable candidates. Initial unit, buyer, proof loop, and kill condition reopen to a later owner decision. |
 | R-2 | Waitlist collects two optional fields (role, decision type) | `DECIDE (ratified 2026-07-04)` | Owner selection: "Add the two fields"; applied as the D8 amendment (2026-07-04) in the brand ADR |
 | R-3 | Candidate-set hybrid: assembly capability built + rehearsed; mix decided at first sprint | `DECIDE (ratified 2026-07-04)` | Owner: "deciding at first sprint, but we must have enough information to bring to them so hybrid" |
 | R-4 | Sprint panels: fit, sponsorship/ad-reception, purchase-intent, brand adjacency, momentum | `DECIDE (ratified 2026-07-04)` | Owner: "we need this for sure"; momentum owner-added same day |
@@ -324,6 +397,9 @@ longer a live gate under its own `stale_if`.
 | F-1 | Buyer lanes: brands lead; agencies conditional on client decision owner in readback | `DEFAULT` | Inherited parent rule; reopened only by D-5's trigger |
 | F-2 | Repo home = `creator_signal` spine; Aphrodite in filenames, never tree | `DEFAULT` | Section 1 naming boundary |
 | F-3 | Proof grammar = house grammar; `product_learning` cap | `DEFAULT` | Section 5 |
+| R-6 | Accountable human Signals judgment + brief-specific recommendation vocabulary + evidence-backed relative performance/breakout forecasts | `DECIDE (ratified 2026-07-12)` | Owner accepted statements 1–3 with the vocabulary amendment recorded above. |
+| R-7 | Studio = independent shared-data revenue lane; setup now, execution/client gates separate from Signals sales | `DECIDE (ratified 2026-07-12)` | Owner correction: Studio exploits the same farmed data but is a different revenue source. |
+| R-8 | Strategic private raw-registry export allowed when price/rights compensate for asset value and leakage | `DECIDE (ratified 2026-07-12)` | Owner correction: raw registry export is allowed if the price is right; contact/person-level transfer remains rights-gated. |
 
 ## 9. Accepted residuals (Mini God Tier discipline)
 
@@ -336,7 +412,7 @@ trigger. Without this table the MGT label would be hype.
 | No numeric foundation gate pre-committed | Numbers would be unvalidated guesses; the practice-run rehearsal is the real test either way | Capture lane lacks a hard numeric finish line | First rehearsal failure mints evidence-based numbers (D-1) |
 | Stratified (not full) transcript corpus | Hypothesis-tier estimate: ~90–95% of decision value at ~20–30% of capture cost; analytics are view-weighted | Organic mentions in unsampled median videos missed | Metadata scan on all videos mitigates; sprint-specific needs pulled on demand |
 | Page-1 comments only | Engagement-ranked page carries the decision signal | Superfan skew; drift; moderation invisible | Named-limitation display; re-probe on trigger |
-| No pricing menu / tiers | One unit must sell before a ladder exists | Cannot quote beyond the sprint | First paid conversation → commercial-frame pass (D-2) |
+| No canonical first-unit or pricing lock | Shortlists, rankings, decision reads, and the Vetting Sprint are real candidate shapes; choosing one now would invent commercial certainty | Offer/pricing may vary before proof accumulates | Later owner decision after real paid conversations settles unit, buyer, proof loop, kill, and D-2 commercial frame |
 | No freshness SLA | Single-operator manual posture is the verified state | Staleness at readback | Refresh-before-readback rule now; SLA only when a customer requires one |
 | Working brand name without formal clearance | D7 amendment posture: light check before spend, formal clearance at first public commercial use, rename cheap pre-launch | Late collision forces rename | Public-launch gate bundles clearance (D-6) |
 
@@ -349,141 +425,13 @@ trigger. Without this table the MGT label would be hype.
   keeps its own authorization boundary.
 - Moves no Capture/Creator Signal ownership boundary and mints no
   evidence-ladder vocabulary.
-- Ratification locks a direction only; the in-thread ratifications recorded in
-  register rows R-1…R-5 stand on the owner's words. Every gated lane keeps its
-  own authorization boundary.
+- Ratification locks direction only. Register rows R-2…R-5 and the dated
+  2026-07-12 rows stand on the owner's words; R-1 is explicitly superseded and
+  reopened. Every gated lane keeps its own authorization boundary.
 
 ## Direction Change Propagation
 
-Older receipts for this file are archived verbatim in
-`docs/decisions/dcp_receipts_archive_v0.md` (charter-creation receipt,
-2026-07-04, moved 2026-07-05 under the two-inline-receipt rule).
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Durable propagation of the owner-directed lead-lane sharpening landed in
-    §5 by commit d1bbfb2f (PR #710, merged): the Aphrodite lead buyer lane
-    (indie/DTC fragrance brands) explicitly includes the dupe-first/clone-house,
-    creator-owned-DTC, and pre-designer specialty/indie cohort (the
-    Lattafa/Armaf/Dossier graduation arc) as buyer-core, not an enrichment
-    add-on; brand-safety/imitation-legality screening stays per-engagement,
-    never a lane exclusion. That commit's message-body receipt was compact and
-    did not carry the full downstream sweep this record completes. This receipt
-    adds no new doctrine — it is the propagation completion for the
-    already-landed §5 text quoted above.
-  trigger: product_doctrine
-  related_triggers: []
-  controlling_sources_updated:
-    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # §5 sharpening already landed by d1bbfb2f; this receipt completes propagation
-    - forseti/product/spines/creator_signal/creator_signal_market_sizing_v0.md   # added a dated routing note (2026-07-05): buyer counts/SAM predate the cohort sharpening and are not re-derived here; resizing is its own later unit
-  downstream_surfaces_checked:
-    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md   # ICP framing ("niche/indie/challenger/DTC fragrance brands", lines 26/95-99) is the broader superset the charter narrows within; consistent, not contradicted — charter's own text says the DEFAULT is "sharpened here," so no edit
-    - forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml   # clone-house / creator-owned-dtc tier vocabulary already exists (lines 96,116,120,129); consistent, confirms the sharpening has a classification substrate
-    - forseti/product/spines/creator_signal/README.md   # index rows for the charter and the market-sizing doc still accurately describe each artifact's role after the sizing-note addition; no row text change needed
-    - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md   # describes the separate parent-level indie/DTC beauty/personal-care ICP wedge (a different product lane, not Aphrodite); charter §5 already states proof semantics are "consumed, not redefined" from this lane — consistent, out of scope
-    - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md   # same parent buyer-proof grammar; charter explicitly reuses grammar without transferring the demand-substrate gate — consistent, out of scope per task bound (buyer-proof grammar owned elsewhere)
-    - forseti/product/spines/product_lead/icp_wedge/*   # parent ICP-wedge decision chain (pricing-first / consumer-demand-first lineage) is a distinct, superseded-in-place lane unrelated to the Aphrodite carveout lead lane; no lane-naming or vocabulary collision found
-    - docs/workflows/orca_repo_map_v0.md   # no Aphrodite/creator_signal lead-lane enumeration to update; existing precedent routes per-spine artifacts via the spine front door (per the charter's own prior receipt)
-  intentionally_not_updated:
-    - path: forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
-      reason: >
-        The charter's §5 header already states the DEFAULT is "per the product
-        architecture, sharpened here" — the architecture doc keeps the broader
-        ICP statement (niche/indie/challenger/DTC) and the sharpening
-        deliberately lives only in the charter, per the charter's own existing
-        (pre-this-receipt) intentionally_not_updated note for this same file.
-    - path: forseti/product/spines/creator_signal/README.md
-      reason: >
-        Both affected artifacts' index-row descriptions remain accurate after
-        this lane's edits (the charter row already names it as the strategy
-        register; the market-sizing row already flags it as a non-validating
-        estimate) — no row text is stale.
-    - path: forseti/product/spines/product_lead/*
-      reason: >
-        Owns a distinct, parent-level ICP/buyer-proof lane and grammar the
-        charter explicitly borrows without redefining (§5); task scope
-        excludes widening into product-proof semantics or buyer-proof grammar.
-        Checked for lane-naming collision only — none found.
-  stale_language_search: >
-    rg -in "lead lane|buyer lane|\bICP\b|indie/DTC|indie-DTC|\bclone\b|\bdupe\b|dupe-cohort|dupe cohort" forseti/product/spines/creator_signal forseti/product/spines/product_lead docs/decisions docs/workflows
-  stale_language_search_result: >
-    Executed 2026-07-05 on branch claude/aphrodite-icp-dcp-propagation (base
-    origin/main e1969efb). ~146 hits. Creator Signal spine hits are the
-    already-landed §5 sharpening (charter), the broader ICP superset statement
-    (product architecture, consistent per above), and the ontology tier
-    vocabulary (consistent, pre-existing substrate). product_lead and
-    docs/decisions hits are exclusively the separate parent ICP-wedge/buyer-proof
-    lane (pricing-first / consumer-demand-first lineage, and the general
-    US-market indie/DTC beauty/personal-care wedge) — a different product line
-    from the Aphrodite carveout, already explicitly decoupled by charter §5's
-    "consumed, not redefined" language; no conflicting or stale routing found
-    requiring edits there. No hit found requiring a change beyond the
-    market-sizing routing note added by this receipt.
-  non_claims:
-    - not validation
-    - not readiness
-    - not buyer proof
-    - not willingness-to-pay evidence
-    - not implementation, capture, outreach, or publishing authorization
-    - not a resizing of the market-sizing estimate (routing note only)
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Register row D-1 (foundation exit gate definition) flips DEFER
-    (owner-parked) to DECIDE (ratified 2026-07-05): the foundation phase exits
-    on a six-criteria practice-run dress rehearsal (five panels rendered via
-    the operator-runner transport; fit panel fully DERIVED against
-    fragrance_reference_v0.yaml; provenance behavior end-to-end including at
-    least one honest withhold displayed; candidate-set assembly rehearsed per
-    register row R-3; cross-vendor adversarial review blocker/major-free;
-    bounded-effort receipt), plus a waitlist-inbound accelerator and the
-    FLAG-1 commercial-use/data-rights rider carried into Phase 1. Numeric
-    roster thresholds are excluded per the owner's roster-decoupling decision;
-    numbers remain non-binding capture targets. The definition lives in §7
-    gate 3; no other register row, phase boundary, or ownership boundary
-    changes. Defining the gate does not fire it: the rehearsal has not run,
-    and the depth-layer build keeps its own owner authorization.
-  trigger: product_doctrine
-  related_triggers: []
-  controlling_sources_updated:
-    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md   # §2 phase-table gate cell, §7 gate 3 definition + gate status, §8 row D-1
-  downstream_surfaces_checked:
-    - forseti/product/spines/creator_signal/aphrodite_vetting_sprint_panel_design_v0.md   # (lands via PR #717, open at receipt time) names itself the display target for the D-1 dress rehearsal; its stale_if trigger "D-1 adopts different rehearsal criteria than this design assumes" does not fire — the ratified criteria adopt that design as the rehearsal target
-    - docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v0.md   # marks D-1 "OPEN (parked)" at lines 90/128; committed point-in-time packet whose load contract requires re-verifying the charter register before execution; its own text already states D-1 does not block the rehearsal
-    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md   # sequencing authority (foundation-first, Direction Update v0.1) untouched; the gate definition pulls no customer product forward
-    - forseti/product/spines/creator_signal/README.md   # charter index row already names it the decision register; no row text stale
-  intentionally_not_updated:
-    - path: docs/prompts/handoffs/aphrodite_depth_layer_build_handoff_v0.md
-      reason: >
-        Committed point-in-time handoff packet; per existing DCP precedent
-        (web-foundation handoff, charter-creation receipt) sealed packets are
-        not edited — their confirm-don't-trust load contract routes receivers
-        to re-read the charter register, which now carries the DECIDE row.
-    - path: forseti/product/spines/creator_signal/aphrodite_vetting_sprint_panel_design_v0.md
-      reason: >
-        Not on main at receipt time (PR #717 open); its stale_if for D-1 does
-        not fire because the ratified criteria match the design it assumes.
-  stale_language_search: >
-    rg -in "D-1|foundation exit gate" forseti/product/spines/creator_signal
-    docs/prompts/handoffs docs/decisions docs/workflows
-  stale_language_search_result: >
-    Executed 2026-07-05 on branch claude/d1-gate-ratification (base
-    origin/main e8ca2093) with all edits in the working tree, before commit.
-    Hits: this charter (controlling source), the depth-layer build handoff
-    (sealed point-in-time packet, handled above), and cleaning/judgment-spine
-    files whose matches are the unrelated "OD-1" token and a different lane's
-    "foundation" vocabulary — no Aphrodite surface carries stale
-    deferred-gate routing.
-  non_claims:
-    - not validation
-    - not readiness
-    - not buyer proof or willingness-to-pay evidence
-    - not rehearsal completion — the gate is defined, not fired
-    - not build authorization: depth-layer build and Vetting v0 keep their own owner gates
-```
 
 ```yaml
 direction_change_propagation:
@@ -509,3 +457,5 @@ direction_change_propagation:
     - not buyer proof
     - framing strengthened; not a new moat claim tier; extraction residual kept
 ```
+
+Older receipts for this file are archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
