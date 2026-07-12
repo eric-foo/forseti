@@ -1,0 +1,58 @@
+{
+  "video_id": "sw34VzzWlvA",
+  "record_provenance": {"video_input_hash": "d237b67dbc111dee1920b68f8e491bf079e76cad9634524dac7d6ee389efc180", "transcript_hash": "af1fe3f48df36d78ab008915e59163af9d5babf2082d19965d8366509458ded6", "watch_metadata_hash": "88a6c3c8a3d8dcfa705cce82462e611d53838ba8445acab5ee653ba800cf3505", "comments_hash": "705e2fcda16b5b75e6facf4ba01a14d4076520b3f0e46c14658967724ee62b44", "input_content_hash": "d237b67dbc111dee1920b68f8e491bf079e76cad9634524dac7d6ee389efc180", "extraction_model": "claude-fable-5", "extraction_recipe_version": "aphrodite-rehearsal-extraction-v1", "extraction_timestamp": "2026-07-09T18:38:40Z/2026-07-10T03:52:00Z (run window; per-file wall times not separately recorded — run-log receipt)", "receipt_ref_convention": "bare @ms / @start-end refs and comment refs cNN in this record are scoped to this record's video_id; the provenance fields in this block apply to every claim entry in this record (round-1 patch, AR-01)"},
+  "title": "15 Cheap Fragrances That Are 10/10 In EVERY Situation",
+  "video_class": {"value": "ranking", "subtype": "budget_versatility_list", "receipt": "sw34VzzWlvA@11759-20160 '15 different scents that you can pick up on the low low... wear just about whenever you want'", "fragrance_topical": true, "confidence": "high"},
+  "views": 32524, "likes": 1464, "publish_date": "2026-06-23", "total_comments": 108,
+  "product_mentions_summary": {
+    "resolved": [
+      {"product_id": "product:louis-vuitton.imagination", "kind": "dupe_target_comparative", "stance": "mixed_comparative", "receipt": "sw34VzzWlvA@109119-136560 '[Mykonos Inception is] modeled after Imagination... the Louis Vuitton fragrance' + @132400-136560 'legitimately, Imagination is actually a fantastic fragrance. It smells amazing'", "note": "FIRST direct resolved mention of this reference product; wrapped in brand-halo pricing critique: 'what if it were released by Carolina Herrera or Burberry... would people still pay that price? But because it's got an L and a V on the bottle' @139040-169040"},
+      {"product_id": "product:coach.coach-for-men", "kind": "subject", "stance": "positive_recommend", "receipt": "@1008000-1027600 'A surprisingly big seller... one of the more popular men's fragrances in the US... similarities with Jimmy Choo man, but between the two, Coach is a little bit better... a true year round blue scent'"},
+      {"product_id": "product:dior.sauvage", "kind": "dupe_target_comparative", "stance": "positive_recommend", "receipt": "@752560-779760 '[Zenith Blue] has similarities to Savage by Christian Dior... just Savage when it first came out... one of the best ones ever made, um, ever, like ever, ever' + K-style comparative @979199-984480"},
+      {"product_id": "product:ysl.y-eau-de-parfum", "kind": "dupe_target_comparative", "stance": "positive_recommend", "receipt": "@429199-462800 '[Apollo] smells quite similar to... Y Odaparfam. And for my money, this is the best Y alternative that you can get right now... smells fantastic, just like YEDP'"},
+      {"product_id": "product:chanel.bleu-de-chanel", "kind": "dupe_target_comparative", "stance": "neutral_mention", "receipt": "@334800-342000 '[Maison Alhambra M]... we want to smell like we're maybe wearing a little bit of Bleu de Chanel, which is how this comes across... just like Bleu de Chanel, you can wear it literally whenever you want' + Sunrise 'a little Bleu de Chanel' @949199"},
+      {"product_id": "product:chanel.allure-homme-sport", "kind": "dupe_target_comparative", "stance": "neutral_mention", "receipt": "@352479-358560 'Maison Wave... smells closer to Allure Sport if we're talking about Chanel similarities'"},
+      {"product_id": "product:creed.aventus", "kind": "dupe_space_comparative", "stance": "neutral_mention", "receipts": ["@581839-590959 'Scent of Peace for Him, a little bit of an Aventus style fragrance... that same wearability, that usability, that year-round kind of vibe that Aventus has' (Armaf Blue Sky chain)", "@949199-954000 '[Moncler Sunrise] a little Bleu de Chanel, a little Explorer, a little Aventus'"], "note": "third and fourth corpus dupe-space signals for intake original #1"}
+    ],
+    "clone_subjects_unresolved": [
+      {"surface": "Azzaro Chrome Extreme", "dupe_target": "ADG Profumo (original)", "note": "comments correct availability: discontinued + eBay fakes (c32/c35/c36/c40)"},
+      {"surface": "Mykonos Inception", "dupe_target": "LV Imagination", "note": "extrait, cheap, better performance claim"},
+      {"surface": "Versace Eros EDT (original)", "house_id": "brand:versace", "note": "anti-'clubbing-only' rehabilitation; 'I used to rock Eros to the office'"},
+      {"surface": "Maison Alhambra Legacy ('Mason Roar')", "dupe_target": "Blue Talisman", "note": "'for a lot of people the best of the best alternatives'"},
+      {"surface": "Maison Alhambra M ('Mason Parfam')", "dupe_target": "Bleu de Chanel", "note": "tester/no-cap purchase"},
+      {"surface": "Velixir Apollo", "dupe_target": "Y EDP", "note": "'best Y alternative right now'; cheaper option: 'Afnan 9PM?' garble 'F car Black'"},
+      {"surface": "Burberry Hero EDT (original)", "note": "most expensive in list (~$50-55)"},
+      {"surface": "Armaf Blue Sky", "dupe_target": "Scent of Peace for Him (~Aventus-style)", "note": "'by and large pretty much overlooked'"},
+      {"surface": "Zamaya Itcon Noir", "dupe_target": "YSL MYSLF (note-for-note)", "note": "retail-price contrast: MYSLF '$165... this ~30ish bucks'"},
+      {"surface": "Bentley Silverlake", "dupe_target": "ADG Essenza (discontinued)", "note": "discontinued-original replacement economics"},
+      {"surface": "French Avenue Zenith Blue", "dupe_target": "Sauvage EDT (original)"},
+      {"surface": "Karl Lagerfeld Bois de Vetiver", "note": "accessible-vetiver; Declaration comparative; weak performance flag"},
+      {"surface": "Moncler Sunrise", "note": "'I bought at full retail as soon as I smelled it. I picked that stuff up in store. That does not happen often' — CREATOR full-retail impulse receipt @960160-966000"},
+      {"surface": "Rochas L'Homme", "dupe_target": "styled like D&G K", "note": "'I actually like the smell of this more than D&G K'"}
+    ]
+  },
+  "disclosure": {
+    "class": "affiliate-or-self-brand", "confidence": "high", "self_brand_commerce": false,
+    "receipts": ["short_description per-product affiliate links (8+ visible)", "transcript @391600-418880 codes segment (Jomashop app, Frag Flex '200% joke', Perfume Box, Beauty House, Gift Express, Fragrance Lord)", "paid_content_overlay: not_captured"],
+    "note": "Gift Express code mentioned here (published 06-23) — before the 07-01 on-air kill; timeline consistent"
+  },
+  "comment_coding": {
+    "sample": 40, "bias_note": "budget list; ownership + availability-audit discourse",
+    "intent_counts": {"bought_because_of_creator": 1, "where_to_buy": 0, "dupe_request": 0, "price_objection": 1, "comparison_shopping": 0, "future_buy_watchlist": 3, "owned_no_creator_causality": 9, "none": 26},
+    "intent_refs": {
+      "bought_because_of_creator": ["c15 'These videos have shaped my collection so far!' (5 likes) — collection-level attribution"],
+      "price_objection": ["c01 (21 likes, TOP): 'You can miss me with the Mykonos suggestions... the price-per-ml ALONE is a no-go'"],
+      "future_buy_watchlist": ["c10 'Waiting for Coach for Men to come in - smelled it at Sam's Club and it instantly went to the top of my list'", "c25 'Might have to try legacy. But I'm running out of room on my fragrance wall'", "c14"]
+    },
+    "owned_refs": ["c02","c07 (substitution purchase: 'couldn't find chrome extreme anywhere, so I just bought profondo edp')","c11","c17 ('discovered the blue sky a couple days ago and picked it up')","c18","c27","c30","c31","c37"],
+    "availability_audit": [{"refs": ["c32 (15 likes)","c35","c36","c40"], "note": "audience corrects the list: Chrome Extreme discontinued; eBay $60-80+ or fake — 'Beware of the fakes' — crowd availability/fake intelligence"}],
+    "notable_textures": [
+      {"refs": ["c16","c29"], "note": "Mykonos/Velixir stock scarcity: 'when they can keep stock more than 5 minutes'"},
+      {"ref": "c39", "note": "note-level hate: Scent of Peace/Another 13 ISO E Super 'cheap wood laminate lunchroom table... soured dish rag'"},
+      {"ref": "c22", "note": "audience dupe-verdict: 'Azzaro chrome isn't a 1:1 to profondo but imo the best alternative I tried so far'"},
+      {"ref": "c34", "note": "format meta-affection: 'Mom! Get in here! Another top N cheap fragrances video dropped!'"},
+      {"ref": "c06", "note": "flanker-flood fatigue: 'before the latest 72 Hawas flankers dropped'"}
+    ],
+    "top_comment_concentration": "c01 (21, price objection) tops — a pricing complaint is the most-liked comment"
+  }
+}
