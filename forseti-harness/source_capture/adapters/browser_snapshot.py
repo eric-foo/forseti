@@ -500,6 +500,12 @@ def fetch_browser_page_observation_capture(
 
     if engine is not None:
         observation_engine = engine
+    elif normalized_browser_backend == BROWSER_BACKEND_CHROME_CDP:
+        raise ValueError(
+            "browser_backend='chrome_cdp' requires an explicit session engine; "
+            "it is never auto-constructed so a missing engine fails loudly "
+            "instead of silently launching a disposable browser"
+        )
     elif normalized_browser_backend == BROWSER_BACKEND_CLOAKBROWSER:
         observation_engine = _CloakBrowserPageObservationEngine(
             cloakbrowser_humanize=cloakbrowser_humanize,
@@ -1783,122 +1789,6 @@ class CloakBrowserPageObservationSessionEngine(_CloakBrowserPageObservationEngin
                     self._real_browser.close()  # type: ignore[attr-defined]
             finally:
                 self._closed = True
-
-
-class CloakBrowserPersistentPageObservationSessionEngine(
-    CloakBrowserPageObservationSessionEngine
-):
-    """Reuse one retained CloakBrowser profile, context, and page per run."""
-
-    def __init__(self, *, user_data_dir: Path, **kwargs: object) -> None:
-        if not isinstance(user_data_dir, Path):
-            raise TypeError("user_data_dir must be a pathlib.Path")
-        super().__init__(**kwargs)
-        self.user_data_dir = user_data_dir
-
-    def _launch_page_observation_browser(
-        self,
-        *,
-        playwright: object,
-        proxy_profile: ProxyProfile | None,
-        headless: bool,
-        browser_channel: str | None,
-    ) -> object:
-        del playwright
-        if self._closed:
-            raise RuntimeError(
-                "CloakBrowser page-observation session is already closed"
-            )
-        if browser_channel is not None:
-            raise ValueError(
-                "browser_channel is not supported with a persistent CloakBrowser profile"
-            )
-        settings = (proxy_profile, headless, browser_channel)
-        if self._launch_settings is None:
-            self._launch_settings = settings
-        elif settings != self._launch_settings:
-            raise ValueError(
-                "CloakBrowser page-observation session launch settings changed mid-session"
-            )
-        return _SessionBrowserProxy(self)
-
-    def _new_scoped_context(self, context_kwargs: dict[str, object]) -> object:
-        normalized_context_kwargs = {
-            key: value
-            for key, value in context_kwargs.items()
-            if key != "storage_state"
-        }
-        if self._real_context is None:
-            try:
-                cloakbrowser = import_module("cloakbrowser")
-            except ModuleNotFoundError as exc:
-                raise _BrowserSnapshotDependencyUnavailable(
-                    "CloakBrowser is not installed. Install cloakbrowser before running CloakBrowser page observations."
-                ) from exc
-            proxy_profile, headless, _ = self._launch_settings or (None, False, None)
-            launch_kwargs: dict[str, object] = {
-                "headless": headless,
-                "stealth_args": True,
-                "humanize": self.cloakbrowser_humanize,
-                "human_preset": "careful",
-            }
-            viewport = normalized_context_kwargs.pop("viewport", None)
-            if viewport is not None:
-                launch_kwargs["viewport"] = viewport
-            timezone_id = normalized_context_kwargs.pop("timezone_id", None)
-            if timezone_id is not None:
-                launch_kwargs["timezone"] = timezone_id
-            locale = normalized_context_kwargs.pop("locale", None)
-            if locale is not None:
-                launch_kwargs["locale"] = locale
-            if proxy_profile is not None:
-                launch_kwargs["proxy"] = _playwright_proxy_settings(proxy_profile)
-            launch_kwargs.update(normalized_context_kwargs)
-            self._real_context = cloakbrowser.launch_persistent_context(
-                self.user_data_dir,
-                **launch_kwargs,
-            )
-            self._context_settings = {
-                key: value
-                for key, value in context_kwargs.items()
-                if key != "storage_state"
-            }
-        elif normalized_context_kwargs != self._context_settings:
-            raise ValueError(
-                "CloakBrowser page-observation context settings changed mid-session"
-            )
-        return _SessionContextProxy(self)
-
-    def _get_or_create_page(self) -> object:
-        if self._real_context is None:
-            raise RuntimeError("CloakBrowser page-observation context was not created")
-        if self._real_page is not None:
-            is_closed = getattr(self._real_page, "is_closed", None)
-            if callable(is_closed) and is_closed():
-                self._real_page = None
-        if self._real_page is None:
-            existing_pages = list(getattr(self._real_context, "pages", ()))
-            if existing_pages:
-                self._real_page = existing_pages[0]
-            else:
-                self._real_page = self._real_context.new_page()  # type: ignore[attr-defined]
-                self._page_creation_count += 1
-        return self._real_page
-
-    @property
-    def lifecycle_receipt(self) -> dict[str, object]:
-        receipt = dict(super().lifecycle_receipt)
-        receipt.update(
-            {
-                "browser_launch_count": 1 if self._real_context is not None else 0,
-                "profile_persistence": "retained_user_data_directory",
-                "persistent_profile_loaded": self._real_context is not None,
-                "humanized_input_preset": "careful",
-            }
-        )
-        return receipt
-
-
 
 
 class _SessionBrowserProxy:
