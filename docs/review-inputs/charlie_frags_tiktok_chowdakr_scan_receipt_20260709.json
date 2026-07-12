@@ -1,0 +1,66 @@
+{
+  "tiktok_creator_discovery_scan_receipt": {
+    "schema_version": "tiktok_creator_discovery_scan_receipt_v1",
+    "receipt_id": "receipt_charlie_frags_tiktok_chowdakr_suggested_view_all_20260709",
+    "run_id": "tiktok_creator_discovery_charlie_frags_chowdakr_20260709",
+    "register_id": "tiktok_creator_discovery_frontier_charlie_frags_chowdakr_20260709",
+    "root_seed": {
+      "platform": "tiktok",
+      "handle": "charlie.frags",
+      "url": "https://www.tiktok.com/@charlie.frags"
+    },
+    "source_surface": "tiktok_profile_suggested_view_all_existing_chowdakr_cloakbrowser_cdp",
+    "captured_at_utc": "2026-07-09T17:25:12.313Z",
+    "method_mode": "existing_chowdakr_cloakbrowser_cdp_dom_extraction",
+    "access_mode": "owner_authorized_existing_session_light_dom_read_with_view_all_no_root_follow",
+    "extraction_method": "dom_visible_profile_grid_and_suggested_view_all_panel",
+    "browser_session_label_or_none": "chowdakr_cloakbrowser_cdp_9223_existing_session",
+    "parent_grid_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+    "parent_grid_packet_path_or_none": "F:/orca-data-lake/raw/4d7/01KX3YWZTDEE59G1HJ4FYNBHF1",
+    "source_packet_id_or_none": "01KX3YWZTDEE59G1HJ4FYNBHF1",
+    "source_packet_path_or_none": "F:/orca-data-lake/raw/4d7/01KX3YWZTDEE59G1HJ4FYNBHF1",
+    "parent_profile_capture_status": "tiktok_parent_profile_grid_packet_available",
+    "suggested_accounts_capture_status": "tiktok_suggested_accounts_view_all_packet_available",
+    "link_hub_capture_status": "deferred_not_authorized",
+    "link_hub_url_or_none": null,
+    "browser_closed_by_runner": false,
+    "refresh_attempt_count": 0,
+    "refresh_outcome": "not_needed",
+    "pagination_bound": 0,
+    "suggested_accounts_observed": 30,
+    "candidate_profiles_opened": 0,
+    "follow_unfollow_actions_taken": 0,
+    "screenshots_emitted_to_chat": 0,
+    "caps_applied": {
+      "root_profiles": 1,
+      "suggested_accounts_observed": 30,
+      "candidate_profiles_opened": 0,
+      "screenshots_emitted_to_chat": 0,
+      "follow_actions": 0,
+      "view_all_expansion_clicks": 1
+    },
+    "stop_reason": "bounded_profile_grid_and_profile_suggested_view_all_observation_complete",
+    "exclusions": [
+      "no_candidate_profile_open",
+      "no_follow_unfollow",
+      "no_unfollow_action",
+      "no_metric_rollup",
+      "no_registry_mutation",
+      "no_screenshot_chat_output",
+      "no_contact_enrichment",
+      "no_private_identity_inference"
+    ],
+    "non_claims": [
+      "not Creator Registry identity proof",
+      "not follower graph",
+      "not following graph",
+      "not endorsement proof",
+      "not country/region evidence",
+      "not metric rollup",
+      "not capture execution authorization",
+      "not source-access authorization",
+      "not standing crawler or monitor",
+      "not account completeness proof"
+    ]
+  }
+}
