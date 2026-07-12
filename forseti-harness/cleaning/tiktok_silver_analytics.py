@@ -118,14 +118,6 @@ def resolve_product_mentions(
     return resolved
 
 
-def _percentile_rank(values: list[int], value: int) -> float:
-    if len(values) <= 1:
-        return 1.0
-    below = sum(1 for candidate in values if candidate < value)
-    equal = sum(1 for candidate in values if candidate == value)
-    return (below + 0.5 * (equal - 1)) / (len(values) - 1)
-
-
 def comment_engagement_context(
     video: Mapping[str, Any], semantic_labels: Mapping[str, Any] | None = None
 ) -> dict[str, Any]:
@@ -135,18 +127,12 @@ def comment_engagement_context(
     comments_block = video.get("comments") if isinstance(video.get("comments"), Mapping) else {}
     comments = comments_block.get("comments") if isinstance(comments_block.get("comments"), list) else []
     video_likes = stats.get("diggCount")
-    reported_comments = stats.get("commentCount")
-    like_values = [
-        int(row["digg_count"])
-        for row in comments
-        if isinstance(row, Mapping) and type(row.get("digg_count")) is int
-    ]
     ordered = sorted(
         [row for row in comments if isinstance(row, Mapping)],
         key=lambda row: (-(row.get("digg_count") if type(row.get("digg_count")) is int else -1), str(row.get("cid") or "")),
     )
     rows: list[dict[str, Any]] = []
-    for rank, comment in enumerate(ordered, start=1):
+    for comment in ordered:
         comment_id = str(comment.get("cid") or f"source_order:{comment.get('source_order')}")
         likes = comment.get("digg_count") if type(comment.get("digg_count")) is int else None
         labels = None
@@ -165,9 +151,7 @@ def comment_engagement_context(
                 "text": str(comment.get("text") or ""),
                 "comment_likes": likes,
                 "reply_count": comment.get("reply_comment_total") if type(comment.get("reply_comment_total")) is int else None,
-                "like_rank_within_captured": rank if likes is not None else None,
-                "like_percentile_within_captured": _percentile_rank(like_values, likes) if likes is not None else None,
-                "comment_like_share_of_video_likes": (
+                "comment_like_to_video_like_ratio": (
                     likes / video_likes
                     if likes is not None and type(video_likes) is int and video_likes > 0
                     else None
@@ -179,14 +163,8 @@ def comment_engagement_context(
     return {
         "video_id": video_id,
         "video_likes": video_likes if type(video_likes) is int else None,
-        "reported_total_comments": reported_comments if type(reported_comments) is int else None,
         "captured_comment_count": len(comments),
-        "captured_comment_coverage_ratio": (
-            len(comments) / reported_comments
-            if type(reported_comments) is int and reported_comments > 0
-            else None
-        ),
-        "ranking_basis": ["comment_like_share_of_video_likes", "like_percentile_within_captured"],
+        "attention_metric": "comment_like_to_video_like_ratio",
         "non_claims": ["not_full_comment_census", "not_comment_credibility", "not_decision_impact"],
         "comments": rows,
     }

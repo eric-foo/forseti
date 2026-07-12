@@ -40,12 +40,12 @@ def _catalog() -> dict:
     }
 
 
-def test_comment_context_uses_video_like_share_and_within_video_rank() -> None:
+def test_comment_context_uses_comment_like_to_video_like_ratio() -> None:
     view = comment_engagement_context(_video(), {"v1:c1": ["product_relevant"], "v1:c2": ["disagreement"]})
-    assert view["captured_comment_coverage_ratio"] == pytest.approx(0.02)
     assert view["comments"][0]["comment_id"] == "c1"
-    assert view["comments"][0]["comment_like_share_of_video_likes"] == pytest.approx(0.1)
-    assert view["comments"][0]["like_percentile_within_captured"] == pytest.approx(1.0)
+    assert view["comments"][0]["comment_like_to_video_like_ratio"] == pytest.approx(0.1)
+    assert "captured_comment_coverage_ratio" not in view
+    assert "like_percentile_within_captured" not in view["comments"][0]
     assert "not_decision_impact" in view["non_claims"]
 
 
