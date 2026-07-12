@@ -29,6 +29,87 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-11: Batch 2 closeout-obligation placement decision (no build)
+
+Batch 2 examined two independent consequential misses before choosing an
+enforcement placement:
+
+1. **WU-02 / PR #860 — review-economics receipt omitted.** The material review
+   was CA-adjudicated, but its Batch 0 receipt was not filed. The valid counter
+   remained at one until owner direction caused recovery in PR #863. Evidence:
+   `docs/workflows/process_improvement_batch0/resident_rule_firing_audit_v0.md`
+   and
+   `docs/workflows/process_improvement_batch0/review_receipts/forseti_data_root_runner_enforcement_review_v0.json`.
+2. **WU-03 / PR #866, clean replacement PR #873 — DCP accounting ambiguity.** The
+   Batch 1 branch changed the doctrine index, repo map, and case ledger while
+   its DCP recorded those
+   files only under `downstream_surfaces_checked`. Delegated review recovered
+   their local disposition; CA kept the clarity patch but rejected the
+   reviewer's stronger universal partition inference. Evidence is pinned to
+   PR #873, branch `codex/process-improvement-batch1-clean` at `df3df48d`
+   (the original review commission is preserved on closed PR #866):
+   `docs/review-outputs/adversarial-artifact-reviews/process_improvement_batch1_decision_gate_economics_pilot_delegated_adversarial_artifact_review_v0.md`
+   and `docs/review-outputs/adversarial-artifact-reviews/process_improvement_batch1_decision_gate_economics_pilot_adjudication_v0.md`.
+   PR #873 was open and unmerged at this decision's commission time; if it
+   closes or its branch is deleted before merging, this citation becomes
+   unresolvable from `main` and would need re-pinning to wherever the
+   evidence lands.
+
+```yaml
+batch2_enforcement_placement:
+  cynefin_regime: complicated
+  scoping_gate: cleared
+  substrate_build_gate: not_cleared
+  comparison_level: consequential actor-carried closeout obligations
+  shared_mechanical_predicate: not_proven
+  current_decision: no_build_bounded_feasibility_probe
+  stop_condition: >
+    Stop before automation whenever the proposed check would infer receipt truth,
+    doctrine-change status, DCP-list meaning, material-review status, or completed
+    CA adjudication from self-asserted or unbound fields.
+```
+
+The events are independent enough to justify a placement decision: they occurred
+in different work units, concerned different receipt types, and each required a
+separate recovery action. They are not similar enough to justify one checker.
+Their only established common class is an actor-carried closeout obligation.
+
+### Placement decision
+
+| Option | Decision | Basis |
+| --- | --- | --- |
+| Add another template, reminder, or resident copy | reject | The governing rules already existed; duplicating prose repeats the mechanism that missed. |
+| Extend `.agents/hooks/check_dcp_receipt.py` strictly now, or add a non-gating `--audit`-only variant | reject for now | EP-09 and EP-29 bind shape to substrate and receipt truth to judgment. `source-of-truth.md` does not state the proposed invariant that every branch-changed downstream file must appear under `controlling_sources_updated`, so a strict check would overclaim. An audit-only heuristic could surface a candidate mismatch without deciding truth, but this evidence contains one DCP event and does not yet prove enough recurring decision value to justify another maintained surface. |
+| Add a write-time hook | reject | Both events depend on closeout or commit-diff state; a second hook would duplicate the existing CI boundary and still invent semantic truth. |
+| Record a no-build decision and probe feasibility | keep | It preserves the evidence and exact reversal conditions without greenwashing an unbound judgment as deterministic enforcement. |
+
+The bounded feasibility probe is read-only: determine whether a future durable
+review/adjudication record can expose a provenance-bound completion marker from
+which the temporary Batch 0 receipt could be derived, and whether the DCP owner
+can bind a mechanically decidable list invariant without false positives. This
+record does not create that marker or invariant.
+
+Re-open substrate implementation only when at least one of these becomes true:
+
+- an owning source binds a deterministic DCP disposition invariant that can be
+  checked against the commit diff without deciding whether an edit is
+  doctrine-changing or whether a semantic check was truthful; or
+- material-review completion and CA adjudication gain an independently
+  verifiable durable marker from which a temporary measurement receipt can be
+  derived without self-certification. No current source names an owning
+  surface for creating that marker; establishing one is itself a future
+  decision, not assumed here.
+
+If the first condition clears, extend the existing diff-scoped DCP checker
+rather than add a competing hook. If the second clears, prefer derivation at
+adjudication closeout over another reminder.
+
+This update classifies observed evidence and builds or binds nothing. It changes
+no overlay authority, validation gate, hook, CI workflow, template, review
+requirement, or notification rule; no Direction Change Propagation receipt is
+owed. It is not proof that resident rules generally fail, not receipt-truth
+validation, not readiness, and not authorization for automation.
+
 ## Update — 2026-07-10: EP-10 + EP-11 + EP-15 built and wired (receipt-shape gate wave)
 
 Three rows from the original EP-01..EP-31 table — EP-10, EP-11, EP-15 — built

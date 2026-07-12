@@ -402,11 +402,12 @@ never restating it. It validates SHAPE only: it does NOT decide whether an edit
 is doctrine-changing, so it never requires a receipt to be *present* (the EP-09
 over-edge stays resident judgment), and it never asserts a listed
 controlling/downstream surface was truly updated or checked. Contract template
-blocks and non-receipt note-markers are skipped. The inline-receipt cap, archive
-pointer, and "no standalone receipt files" rules are deliberately NOT gated here
-(not born-green; several controlling files already hold >2 inline receipts).
-Registered in `.github/workflows/ci.yml`; whole-repo advisory backlog via
-`--audit`; `--selftest` present.
+blocks and non-receipt note-markers are skipped. The inline-receipt cap and "no
+new standalone receipt files" rule are deliberately NOT gated here; they remain
+advisory hygiene, while the former archive-pointer requirement is retired.
+Registered in `.github/workflows/ci.yml`; whole-repo `--audit` is maintenance-
+only for checker/contract changes or explicit legacy-corpus repair, never routine
+change validation; `--selftest` present.
 
 **Review-routing disposition gate** (`.agents/hooks/check_review_routing.py`,
 EP-35). Diff-scoped, forward-only CI gate plus a local commit-msg advisory: a

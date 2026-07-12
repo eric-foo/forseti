@@ -272,6 +272,7 @@ nickname: "crawling graph." The runner is
 | `.agents/workflow-overlay/template-registry.md` | Forseti-local prompt template registry. |
 | `.agents/workflow-overlay/product-proof.md` | Buyer-proof semantics and non-claims. |
 | `.agents/workflow-overlay/communication-style.md` | Forseti response style. |
+| `.agents/workflow-overlay/batch1-decision-gate-economics.md` | Temporary non-mandatory decision-gate economics pilot, case schema, comparable-sample closeout, and retirement boundary. |
 | `.agents/workflow-overlay/validation-gates.md` | Validation gate expectations. |
 | `.agents/workflow-overlay/review-lanes.md` | Review lane rules. |
 | `.agents/workflow-overlay/delegated-review-patch.md` | Provisional, opt-in Delegated Review-and-Patch convention for high-stakes authored artifacts (and bounded multi-file code diffs via the `delegated_code_review_and_patch` sibling target kind); not a bound review lane. |
@@ -295,6 +296,7 @@ nickname: "crawling graph." The runner is
 | `docs/workflows/creator_ledger_observation_sibling_checkpoint_v0.md` | Third operational proof-loop checkpoint for the Creator Ledger: binds the YouTube creator-observation ledger as a source-backed sibling evidence layer for repeat-observation and metric-upgrade work without remigrating registry/profile data. |
 | `docs/workflows/creator_ledger_additive_upgrade_intake_rehearsal_v0.md` | Additive-upgrade-intake rehearsal for a Creator Ledger capability that does not fit the initial routing matrix cleanly: routes ideal/content-fit audience profile snapshots as sibling evidence joined into profile-current without registry/profile data remigration. |
 | `docs/workflows/repo_map_recent_changes/` | Low-conflict, one-file-per-change notes for repo-map-affecting additions; retrieval-only context, not a substitute for updating actual map routes when navigation changes. |
+| `docs/workflows/process_improvement_batch1/README.md` | Active ledger for the temporary Batch 1 decision-gate economics pilot; starts with two source-backed historical cases and preserves unknown cost/reversal fields. |
 | `docs/workflows/bronze_silver_two_family_consumer_proof_closeout_v0.md` | Post-PR #537/#540 Bronze/Silver consumer-proof closeout: two source-family Silver producers consume public Bronze source-surface catalog / Attachment Record rows for source-backed `raw_refs`; routes the lane away from default third-family proof expansion and toward full-GT residual scoping. |
 | `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_upgrade_scoping_v0.md` | Data Lake spine scoping record that turns the PR #542 consumer-proof boundary into A-D full-GT success signals and review timing without selecting runtime physicalization choices or claiming Bronze full GT. |
 | `forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_full_gt_next_material_decisions_v0.md` | Superseded as the active continuation anchor by the physicalization decision brief; remains the historical planning-only next material decision packet after the Bronze full-GT A-D scoping record: Batch A raw-writer/non-raw-touchpoint source inventory plus Manifest/equivalent decision request, Batch B/C physicalization gates, and Batch D proof/CI threshold hardening before any third-proof work. |
@@ -772,7 +774,7 @@ direction_change_propagation:
     - "not Data Capture"
 ```
 
-Older receipts, when cycled out, are archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+The legacy DCP archive is frozen; current controlling files delete their oldest inline receipt when adding a third.
 
 ## Workstream Status Pointers
 

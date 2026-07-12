@@ -22,13 +22,13 @@ open_next:
   - .agents/workflow-overlay/source-loading.md
   - .agents/workflow-overlay/safety-rules.md
   - docs/workflows/tiktok_cold_agent_capture_enforcement_goal_v0.md
-  - orca-harness/docs/source_capture_agent_runbook.md
+  - forseti-harness/docs/source_capture_agent_runbook.md
   - docs/workflows/tiktok_live_microbatch_owner_gated_handoff_v0.md
-  - orca-harness/source_capture/adapters/browser_snapshot.py
-  - orca-harness/source_capture/tiktok/live_batch_probe.py
-  - orca-harness/source_capture/tiktok/blocker_triage.py
-  - orca-harness/tests/unit/test_source_capture_browser_snapshot.py
-  - orca-harness/tests/unit/test_tiktok_live_batch_probe.py
+  - forseti-harness/source_capture/adapters/browser_snapshot.py
+  - forseti-harness/source_capture/tiktok/live_batch_probe.py
+  - forseti-harness/source_capture/tiktok/blocker_triage.py
+  - forseti-harness/tests/unit/test_source_capture_browser_snapshot.py
+  - forseti-harness/tests/unit/test_tiktok_live_batch_probe.py
 stale_if:
   - `BrowserPagePointerAction`, `_run_pointer_action`, or the visual-X fallback changes materially.
   - `live_batch_probe.py` action names, ordering, stop semantics, or CLI flags change materially.
@@ -172,7 +172,7 @@ stop.
 
 The substrate is:
 
-- `BrowserPagePointerAction` in `orca-harness/source_capture/adapters/browser_snapshot.py`.
+- `BrowserPagePointerAction` in `forseti-harness/source_capture/adapters/browser_snapshot.py`.
 - `_run_pointer_action(...)` in the same file.
 - Movement execution via `page.mouse.move(..., steps=...)` followed by
   `page.mouse.click(...)`, with randomized bounded target fractions and step
@@ -283,12 +283,16 @@ challenge-close actions; use `pointer_action_chronology` for exact chronology.
 1. Load the active handoff and this playbook. Re-read the current
    `browser_snapshot.py`, `live_batch_probe.py`, and `blocker_triage.py` before
    making strict claims.
-2. Select mode before browser action:
-   - logged-out limit mapping: no auth state, no credential entry, benign
-     dismissals allowed, challenge/security stops;
-   - live/sessioned gate: dedicated non-personal warmed account,
-     human-performed login, authorized auth-state label/session mode, no
-     duplicate TikTok tabs, and owner authorization for the live run.
+2. From `forseti-harness/`, preflight the default live/sessioned route before
+   browser action: `python runners/check_source_capture_session_profile.py --session-profile
+   chowdakr_sg_tiktok`. Continue only when the sanitized receipt reports
+   `status=available`, `auth_state_validated=true`, and
+   `secret_values_exposed=false`. Invoke the live runner with
+   `--session-profile chowdakr_sg_tiktok`; do not combine it with manual
+   session, browser, proxy-posture, or challenge-policy flags, and do not copy
+   the stable machine-local auth state into the worktree. Use logged-out limit
+   mapping only when explicitly selected: no auth state, no credential entry,
+   benign dismissals allowed, and challenge/security stops.
 3. For an unchallenged route-yield gate, run without challenge-close flags. The
    runner may press visible retry controls, dismiss benign overlays, and perform
    comments -> `You may like` / `More like this` -> comments twice before
@@ -313,8 +317,10 @@ challenge-close actions; use `pointer_action_chronology` for exact chronology.
    `fail_closed_admission_*`. A manual slider/captcha handoff is owner attention
    and source-access intervention, not clean capture.
 7. Scan outputs for forbidden markers before any admission claim. Auth-state files
-   copied for a live run must be removed and verified absent after the run.
-   When the owner asks for a packet or bronze/data-lake write, prefer the live
+   copied for a legacy manual-state run must be removed and verified absent
+   after the run; machine-local state resolved by a session profile is not a
+   worktree copy and must not be deleted by cleanup. When the owner asks for a
+   packet or bronze/data-lake write, prefer the live
    runner's own `--admit-output` or explicit `--data-root` chain so staging feeds
    the existing TikTok batch admission gate directly; do not hand-copy staging
    JSON into a packet. Batch admission is code-gated to reject challenge/

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "review_id": "process-improvement-batch1-decision-gate-economics-pilot-delegated-adversarial-artifact-review-v0",
+  "review_report_path": "docs/review-outputs/adversarial-artifact-reviews/process_improvement_batch1_decision_gate_economics_pilot_delegated_adversarial_artifact_review_v0.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "claude-sonnet-5",
+  "authored_by": "openai-codex-gpt-5",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "OpenAI Codex / GPT-5",
+  "accepted_net_new_material_findings": 2,
+  "decision_changed": "yes",
+  "closure_state": "partially_closed",
+  "report_lines": 202,
+  "turn_count": "unknown",
+  "evidence_pointers": [
+    "docs/review-outputs/adversarial-artifact-reviews/process_improvement_batch1_decision_gate_economics_pilot_delegated_adversarial_artifact_review_v0.md",
+    "docs/review-outputs/adversarial-artifact-reviews/process_improvement_batch1_decision_gate_economics_pilot_adjudication_v0.md",
+    "docs/workflows/process_improvement_batch1/README.md"
+  ],
+  "completed_at": "2026-07-11"
+}

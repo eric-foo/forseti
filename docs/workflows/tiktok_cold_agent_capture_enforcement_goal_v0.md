@@ -20,12 +20,12 @@ open_next:
   - docs/decisions/tiktok_auth_state_provenance_sidecar_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_capture_lane_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/tiktok/tiktok_sessioned_capture_warm_probe_plan_v0.md
-  - orca-harness/docs/source_capture_agent_runbook.md
+  - forseti-harness/docs/source_capture_agent_runbook.md
   - docs/review-outputs/tiktok_capture_enforcement_batches_1_4_post_adjudication_delegated_adversarial_code_review_v0.md
-  - orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py
-  - orca-harness/source_capture/tiktok/live_batch_probe.py
-  - orca-harness/source_capture/tiktok/blocker_triage.py
-  - orca-harness/source_capture/source_access_provenance.py
+  - forseti-harness/runners/run_source_capture_tiktok_live_batch_probe.py
+  - forseti-harness/source_capture/tiktok/live_batch_probe.py
+  - forseti-harness/source_capture/tiktok/blocker_triage.py
+  - forseti-harness/source_capture/source_access_provenance.py
 branch_or_commit: PR #709 / codex/tiktok-session-provenance-implementation; use the containing commit for this document, with implementation review target fb078dd08539c1392002dc0ca145a41a02656ddc.
 stale_if:
   - PR #709 is merged, closed, or rebased without this document being checked against the final branch head.
@@ -186,10 +186,10 @@ Purpose: make the runner hard to invoke in the wrong TikTok capture posture and 
 
 Code scope:
 
-- `orca-harness/runners/run_source_capture_tiktok_live_batch_probe.py`
-- `orca-harness/source_capture/tiktok/live_batch_probe.py`
-- `orca-harness/source_capture/source_access_provenance.py` only if needed for exported helper messages
-- focused tests in `orca-harness/tests/unit/test_tiktok_live_batch_probe.py` and `orca-harness/tests/unit/test_source_capture_authenticated_browser_snapshot.py`
+- `forseti-harness/runners/run_source_capture_tiktok_live_batch_probe.py`
+- `forseti-harness/source_capture/tiktok/live_batch_probe.py`
+- `forseti-harness/source_capture/source_access_provenance.py` only if needed for exported helper messages
+- focused tests in `forseti-harness/tests/unit/test_tiktok_live_batch_probe.py` and `forseti-harness/tests/unit/test_source_capture_authenticated_browser_snapshot.py`
 
 Expected behavior:
 
@@ -212,10 +212,10 @@ Purpose: move the known cold-agent blocker taxonomy from memory/prose into deter
 
 Code scope:
 
-- `orca-harness/source_capture/tiktok/blocker_triage.py`
-- `orca-harness/source_capture/tiktok/live_batch_probe.py`
-- pointer-action configs/tests in `orca-harness/source_capture/adapters/browser_snapshot.py` only if missing
-- focused tests in `orca-harness/tests/unit/test_tiktok_live_batch_probe.py`, `orca-harness/tests/unit/test_source_capture_browser_snapshot.py`, and blocker-triage tests
+- `forseti-harness/source_capture/tiktok/blocker_triage.py`
+- `forseti-harness/source_capture/tiktok/live_batch_probe.py`
+- pointer-action configs/tests in `forseti-harness/source_capture/adapters/browser_snapshot.py` only if missing
+- focused tests in `forseti-harness/tests/unit/test_tiktok_live_batch_probe.py`, `forseti-harness/tests/unit/test_source_capture_browser_snapshot.py`, and blocker-triage tests
 
 Expected behavior:
 
@@ -237,9 +237,9 @@ Purpose: make optional packet/bronze output reliable and ensure comments/subtitl
 
 Code scope:
 
-- `orca-harness/source_capture/tiktok/batch_packet.py`
-- `orca-harness/source_capture/tiktok/admission.py`
-- `orca-harness/source_capture/tiktok/live_batch_probe.py`
+- `forseti-harness/source_capture/tiktok/batch_packet.py`
+- `forseti-harness/source_capture/tiktok/admission.py`
+- `forseti-harness/source_capture/tiktok/live_batch_probe.py`
 - live runner admission chain
 - tests for TikTok batch admission and live batch probe
 
@@ -263,8 +263,8 @@ Purpose: make the operator-facing route simple enough that cold agents run the r
 Code/docs scope:
 
 - runner `--help`
-- `orca-harness/README.md`
-- `orca-harness/docs/source_capture_agent_runbook.md`
+- `forseti-harness/README.md`
+- `forseti-harness/docs/source_capture_agent_runbook.md`
 - `docs/workflows/tiktok_ui_movement_blocker_substrate_playbook_v0.md`
 - optional new receipt template/checker if needed
 
