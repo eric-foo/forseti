@@ -443,6 +443,69 @@ def test_write_tiktok_batch_packet_rejects_selection_not_matching_deep_captures(
     assert not output.exists()
 
 
+def test_write_tiktok_batch_packet_accepts_scraped_video_url_variants(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "batch_packet"
+    grid_bytes, selection_bytes = _onboarding_evidence_payloads()
+    grid_payload = json.loads(grid_bytes)
+    grid_payload["items"][0]["video_url"] = (
+        f"http://m.tiktok.com/@funmimonet/video/{VIDEO_1}/"
+    )
+    grid_bytes = (json.dumps(grid_payload, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
+    selection_payload = json.loads(selection_bytes)
+    selection_payload["onboarding_binding"]["grid_window_sha256"] = hashlib.sha256(
+        grid_bytes
+    ).hexdigest()
+    selection_bytes = (
+        json.dumps(selection_payload, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+
+    code, message = write_tiktok_batch_packet(
+        creator_handle="funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[_cadence_payload()],
+        grid_window_json=grid_bytes,
+        selection_result_json=selection_bytes,
+        output_directory=output,
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+
+    assert code == 0
+    assert Path(message) == output.resolve()
+
+
+def test_write_tiktok_batch_packet_rejects_grid_video_url_for_wrong_creator(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "batch_packet"
+    grid_window, selection = _onboarding_evidence_payloads()
+    grid_payload = json.loads(grid_window)
+    grid_payload["items"][0]["video_url"] = f"https://www.tiktok.com/@someoneelse/video/{VIDEO_1}"
+    grid_window = (json.dumps(grid_payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    selection_payload = json.loads(selection)
+    selection_payload["onboarding_binding"]["grid_window_sha256"] = hashlib.sha256(
+        grid_window
+    ).hexdigest()
+    selection = (json.dumps(selection_payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+    with pytest.raises(ValueError, match="video_url does not match creator/video_id"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=_grid_payload(),
+            cadence_result_jsons=[_cadence_payload()],
+            grid_window_json=grid_window,
+            selection_result_json=selection,
+            output_directory=output,
+        )
+
+    assert not output.exists()
+
+
 def test_write_tiktok_batch_packet_preserves_dom_visible_comment_fallback(tmp_path: Path) -> None:
     output = tmp_path / "batch_packet"
     row = _result_row(VIDEO_1, 1761930827, subtitle=False)
