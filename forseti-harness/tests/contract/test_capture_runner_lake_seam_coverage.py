@@ -69,6 +69,7 @@ EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
         "run_source_capture_packet.py",
         "run_source_capture_price_payload_packet.py",
         "run_source_capture_tiktok_batch_packet.py",
+        "run_source_capture_tiktok_grid_packet.py",
         "run_source_capture_tiktok_live_batch_probe.py",
         "run_source_capture_tiktok_creator_onboarding.py",
         "run_source_capture_tiktok_video_packet.py",
@@ -87,6 +88,10 @@ FORBIDDEN_RUNNER_RAW_PUBLICATION_CALLS = {
 
 EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
     {
+        (
+            "capture_spine/creator_profile_current/social_metric_history_reader.py",
+            "record_path",
+        ): 1,
         ("capture_spine/creator_profile_current/silver_metric_producer.py", "append_silver_record"): 2,
         (
             "capture_spine/creator_profile_current/silver_metric_producer.py",
@@ -96,6 +101,22 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         (
             "capture_spine/tiktok_creator_discovery_frontier/register_lake_writer.py",
             "append_record",
+        ): 1,
+        (
+            "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py",
+            "append_silver_record",
+        ): 1,
+        (
+            "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py",
+            "record_path",
+        ): 1,
+        (
+            "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py",
+            "append_silver_record",
+        ): 1,
+        (
+            "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py",
+            "record_path",
         ): 1,
         (
             "capture_spine/creator_profile_current/youtube_silver_metric_producer.py",

@@ -57,6 +57,7 @@ LANE_ROLES: dict[str, LaneRole] = {
     "cleaning_parfumo_silver": LaneRole.SILVER_ENVELOPE,
     "creator_metric_silver": LaneRole.SILVER_ENVELOPE,
     "creator_metric_rollup_silver": LaneRole.SILVER_ENVELOPE,
+    "social_metric_observation_set_silver": LaneRole.SILVER_ENVELOPE,
     "tiktok_comment_attention_silver": LaneRole.SILVER_ENVELOPE,
     "retail_pdp_silver": LaneRole.SILVER_ENVELOPE,
     # --- silver_lineage: grammar B (lineage kit + freeform payload); declared,

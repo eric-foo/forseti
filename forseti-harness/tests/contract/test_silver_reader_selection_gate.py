@@ -32,6 +32,14 @@ _DECLARED_FREE_WALK_WITHOUT_TOUCHPOINT = {
     "capture_spine/creator_profile_current/instagram_metric_seed.py",
 }
 _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
+    "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py": (
+        "producer checks its own deterministic current-policy record id for "
+        "idempotency/collision; it does not select among sibling records"
+    ),
+    "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py": (
+        "producer checks its own deterministic exact-policy observation-set record id "
+        "for idempotency/collision; it does not select among sibling records"
+    ),
     "runners/run_asr_transcript_catchup.py": (
         "catch-up writer checks one deterministic current-policy transcript id "
         "before acking; it does not select among sibling records"

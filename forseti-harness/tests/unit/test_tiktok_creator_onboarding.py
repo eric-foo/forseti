@@ -159,6 +159,65 @@ def test_grid_window_preserves_source_visible_order_and_complete_metrics() -> No
     assert window["collection_receipt"]["scroll_stop_reason"] == "response_target_reached"
 
 
+def test_grid_window_preserves_full_source_stats_and_zero_or_missing_ranking_metrics() -> None:
+    capture = _capture(
+        ordered_ids=["zero", "missing_like", "full"],
+        items=[
+            {
+                "id": "zero",
+                "author": {"uniqueId": "creator"},
+                "stats": {
+                    "playCount": 0,
+                    "diggCount": 0,
+                    "commentCount": 7,
+                    "shareCount": 2,
+                    "collectCount": 3,
+                },
+            },
+            {
+                "id": "missing_like",
+                "author": {"uniqueId": "creator"},
+                "stats": {"playCount": 42, "commentCount": 5},
+            },
+            {
+                "id": "full",
+                "author": {"uniqueId": "creator"},
+                "stats": {
+                    "playCount": 100,
+                    "diggCount": 11,
+                    "commentCount": 9,
+                    "shareCount": 4,
+                    "collectCount": 6,
+                },
+            },
+        ],
+    )
+
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=3,
+    )
+
+    assert [item["video_id"] for item in window["items"]] == [
+        "zero",
+        "missing_like",
+        "full",
+    ]
+    assert window["items"][0]["stats"] == {
+        "playCount": 0,
+        "diggCount": 0,
+        "commentCount": 7,
+        "shareCount": 2,
+        "collectCount": 3,
+    }
+    assert window["items"][1]["stats"] == {
+        "playCount": 42,
+        "commentCount": 5,
+    }
+    assert window["items"][2]["stats"]["commentCount"] == 9
+
+
 def test_grid_window_accepts_missing_author_with_exact_creator_url() -> None:
     capture = _capture(
         ordered_ids=["1"],
