@@ -86,6 +86,10 @@ EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
     "run_source_capture_tiktok_creator_onboarding.py": (
         "supervised live onboarding stages first; durable lake admission requires explicit --data-root"
     ),
+    "run_source_capture_tiktok_daily_heartbeat.py": (
+        "live grid capture is invoked by the operator/control wrapper, which supplies an "
+        "explicit output_root or resolved data_root; this adapter does not use ambient admission"
+    ),
 }
 # Orchestrator runners that forward data_root into raw-packet sub-runners
 # instead of calling a packet writer directly. Declared, not auto-discovered.
@@ -297,6 +301,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "onboarding binds grid metrics to source-visible creator rows and reuses the "
             "validated session across selected-video capture, but admitted comment/subtitle "
             "artifacts still lack an end-to-end served author identity proof"
+        ),
+    },
+    "run_source_capture_tiktok_daily_heartbeat.py": {
+        "status": "unbound",
+        "reason": (
+            "the frozen plan is stably keyed by platform_account_id and the grid seam "
+            "checks author/DOM URLs plus canonical creator/video URL shape against the "
+            "planned handle, but the served grid does not expose and verify the numeric "
+            "platform_account_id; a stale handle-to-account roster binding remains visible"
         ),
     },
     "run_source_capture_tiktok_video_packet.py": {

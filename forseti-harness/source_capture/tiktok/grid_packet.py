@@ -41,6 +41,7 @@ def write_tiktok_grid_packet(
     output_directory: Path | None = None,
     data_root: Any = None,
     observed_at_utc: str | None = None,
+    session_identity: str | None = None,
     decision_question: str = "What source-visible metrics are present on this TikTok creator grid?",
 ) -> tuple[int, str]:
     """Validate and preserve one grid-window artifact as a SourceCapturePacket."""
@@ -140,7 +141,7 @@ def write_tiktok_grid_packet(
         ),
         capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
         operator_category="tiktok_grid_packet_cli_operator",
-        session_identity=None,
+        session_identity=session_identity,
         visible_mode_changes=[TIKTOK_GRID_PACKET_POLICY_VERSION],
         source_publication_or_event=timing.source_publication_or_event,
         source_edit_or_version=timing.source_edit_or_version,

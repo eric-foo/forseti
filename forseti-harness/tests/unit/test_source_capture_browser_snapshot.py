@@ -1245,6 +1245,44 @@ def test_page_load_account_safety_stop_suppresses_actions_without_handoff(
     assert "mouse_click" not in event_log
 
 
+def test_page_load_account_safety_stop_suppresses_lazy_load_scrolls(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        marker_match_results=[
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "account might be at risk",
+                "marker_count": 1,
+            }
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        pre_action_stop_markers=("account might be at risk",),
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda _url: False,
+        lazy_load_scroll_passes=2,
+        lazy_load_scroll_step_px=500,
+    )
+
+    assert result.metadata["pointer_actions_suppressed_by_pre_action_stop"] is True
+    assert result.metadata["lazy_load_scroll_passes_executed"] == 0
+    assert result.metadata["lazy_load_scroll_stop_reason"] == "scripted_actions_suppressed"
+    assert "page_evaluate" not in event_log
+
+
 def test_page_load_handoff_suppresses_pointer_actions_until_challenge_clears(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
