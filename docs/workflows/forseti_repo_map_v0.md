@@ -75,6 +75,7 @@ not changes to source precedence.
 | Source packs and read budgets | `.agents/workflow-overlay/source-loading.md` |
 | Artifact folders and placement | `.agents/workflow-overlay/artifact-folders.md` |
 | Validation gates and checker boundaries | `.agents/workflow-overlay/validation-gates.md` |
+| Technical diagnostics for recurring workflow or tooling failures | `docs/workflows/technical_difficulties_log_v0.md` |
 | Prompt or review-prompt work | `.agents/workflow-overlay/prompt-orchestration.md` |
 | Product direction, offer, ICP/wedge, or buyer proof | `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`, then the matching `forseti/product/spines/product_lead/` area |
 | Fragrance facts and per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` |
