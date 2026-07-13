@@ -27,6 +27,7 @@ by a conformance test, not yet wired into every producer's write path.
 from __future__ import annotations
 
 from collections.abc import Mapping
+import re
 from typing import TYPE_CHECKING, Any
 
 from data_lake.canonical_json import canonical_record_bytes
@@ -44,6 +45,7 @@ CLOSED_RECORD_KINDS = ("entity", "relationship", "observation")
 # source-capture posture vocabulary" clause without importing the capture spine. Adding a
 # kind is a deliberate edit here (mirroring a capture-spine vocabulary change).
 METRIC_POSTURE_KINDS = ("observed", "unavailable_with_reason", "not_attempted")
+METRIC_OBSERVATION_SET_PAYLOAD_KIND = "MetricObservationSet"
 # Keys that mark Cleaning processing evidence (the transform ledger). A Silver fact
 # must never carry them -- that is the evidence-vs-fact half of the no-blur invariant.
 _LEDGER_KEYS = ("cleaning_packet", "transform_ledger")
@@ -98,6 +100,8 @@ def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
         _reject_ledger(observation, where="observation")
         if payload_kind == "MetricObservation":
             _validate_metric_posture(observation)
+        elif payload_kind == METRIC_OBSERVATION_SET_PAYLOAD_KIND:
+            _validate_metric_observation_set(observation)
         elif payload_kind == "TextObservation":
             _validate_text_observation(observation)
 
@@ -155,6 +159,112 @@ def _validate_metric_posture(observation: Mapping[str, Any]) -> None:
             )
 
 
+def _validate_metric_observation_set(observation: Mapping[str, Any]) -> None:
+    """Validate the packet-grain social metric observation-set envelope.
+
+    The set is a physicalization optimization only: every nested metric retains
+    the exact MetricObservation posture/value discipline.  Keeping this check in
+    the Silver front door prevents a producer from gaining fewer files by
+    weakening missing-vs-zero semantics or row identity.
+    """
+    platform = observation.get("platform")
+    if not isinstance(platform, str) or not platform.strip():
+        raise SilverRecordError("MetricObservationSet requires a non-empty platform.")
+    policy_version = observation.get("policy_version")
+    if not isinstance(policy_version, str) or not policy_version.strip():
+        raise SilverRecordError("MetricObservationSet requires a non-empty policy_version.")
+    fingerprint = observation.get("policy_fingerprint_sha256")
+    if not isinstance(fingerprint, str) or re.fullmatch(r"[0-9a-f]{64}", fingerprint) is None:
+        raise SilverRecordError(
+            "MetricObservationSet requires a lowercase 64-hex policy_fingerprint_sha256."
+        )
+    rows = observation.get("rows")
+    if not isinstance(rows, list) or not rows:
+        raise SilverRecordError("MetricObservationSet requires a non-empty rows list.")
+    row_count = observation.get("row_count")
+    if isinstance(row_count, bool) or not isinstance(row_count, int) or row_count != len(rows):
+        raise SilverRecordError(
+            "MetricObservationSet row_count must exactly equal the rows-list length."
+        )
+    subject = observation.get("subject")
+    subject_ref = subject.get("ref") if isinstance(subject, Mapping) else None
+    if (
+        not isinstance(subject, Mapping)
+        or subject.get("ref_type") != "entity_key"
+        or not isinstance(subject_ref, Mapping)
+        or not all(
+            isinstance(subject_ref.get(key), str) and str(subject_ref.get(key)).strip()
+            for key in ("namespace", "kind", "native_id")
+        )
+    ):
+        raise SilverRecordError(
+            "MetricObservationSet requires an account-level entity_key subject."
+        )
+    if subject_ref.get("namespace") != platform:
+        raise SilverRecordError(
+            "MetricObservationSet subject namespace must equal platform."
+        )
+    if not isinstance(observation.get("observation_set_kind"), str) or not str(
+        observation.get("observation_set_kind")
+    ).strip():
+        raise SilverRecordError(
+            "MetricObservationSet requires a non-empty observation_set_kind."
+        )
+    seen_subjects: set[tuple[str, str, str]] = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, Mapping):
+            raise SilverRecordError(f"MetricObservationSet row {index} must be a mapping.")
+        subject = row.get("subject")
+        if not isinstance(subject, Mapping) or subject.get("ref_type") != "entity_key":
+            raise SilverRecordError(
+                f"MetricObservationSet row {index} requires an entity_key subject."
+            )
+        ref = subject.get("ref")
+        if not isinstance(ref, Mapping):
+            raise SilverRecordError(
+                f"MetricObservationSet row {index} requires a subject.ref mapping."
+            )
+        identity = tuple(str(ref.get(key) or "").strip() for key in ("namespace", "kind", "native_id"))
+        if any(not value for value in identity):
+            raise SilverRecordError(
+                f"MetricObservationSet row {index} requires namespace/kind/native_id identity."
+            )
+        if identity[0] != platform:
+            raise SilverRecordError(
+                f"MetricObservationSet row {index} subject namespace must equal platform."
+            )
+        if identity in seen_subjects:
+            raise SilverRecordError(
+                f"MetricObservationSet contains duplicate row subject {identity!r}."
+            )
+        seen_subjects.add(identity)
+        metrics = row.get("metrics")
+        if not isinstance(metrics, Mapping) or not metrics:
+            raise SilverRecordError(
+                f"MetricObservationSet row {index} requires a non-empty metrics mapping."
+            )
+        for metric_name, metric in metrics.items():
+            if not isinstance(metric_name, str) or not metric_name.strip():
+                raise SilverRecordError(
+                    f"MetricObservationSet row {index} has a blank metric name."
+                )
+            if not isinstance(metric, Mapping):
+                raise SilverRecordError(
+                    f"MetricObservationSet row {index} metric {metric_name!r} must be a mapping."
+                )
+            if not isinstance(metric.get("unit"), str) or not str(metric.get("unit")).strip():
+                raise SilverRecordError(
+                    f"MetricObservationSet row {index} metric {metric_name!r} requires a unit."
+                )
+            if not isinstance(metric.get("source_field"), str) or not str(
+                metric.get("source_field")
+            ).strip():
+                raise SilverRecordError(
+                    f"MetricObservationSet row {index} metric {metric_name!r} requires a source_field."
+                )
+            _validate_metric_posture({**dict(metric), "metric_name": metric_name})
+
+
 def _has_posture_reason(posture: Mapping[str, Any]) -> bool:
     """True if the posture carries a non-empty reason in either field. The Silver Vault
     contract requires 'a reason is present' for a non-observed metric without mandating
@@ -198,6 +308,7 @@ def append_silver_record(
 __all__ = [
     "CLOSED_RECORD_KINDS",
     "METRIC_POSTURE_KINDS",
+    "METRIC_OBSERVATION_SET_PAYLOAD_KIND",
     "SILVER_VAULT_RECORD_SCHEMA_VERSION",
     "SilverRecordError",
     "append_silver_record",

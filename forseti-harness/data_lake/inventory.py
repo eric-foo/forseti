@@ -273,6 +273,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "creator without a served-content author check"
         ),
     },
+    "run_source_capture_tiktok_grid_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "grid-only admission validates every preserved row's canonical video URL "
+            "suffix against the artifact's creator_handle and tiktok video_id, but it "
+            "admits an operator-supplied artifact without independently proving that "
+            "TikTok served that creator/video authorship"
+        ),
+    },
     "run_source_capture_tiktok_live_batch_probe.py": {
         "status": "unbound",
         "reason": (
@@ -394,6 +403,12 @@ SILVER_READER_POSTURES = (
 # path-based or indirect (getattr) and thus invisible to call detection --
 # mechanical free-walk detection is a NAMED residual, not silently claimed.
 SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
+    "capture_spine/creator_profile_current/social_metric_history_reader.py": {
+        "detection": "declared_free_walk",
+        "posture": "selection_rule",
+        "mechanism": "local:read_social_metric_history",
+        "reason": "requires an explicit policy fingerprint and deterministic per-anchor record-id function; exact-policy by-key records only, with no latest-sibling guess",
+    },
     "capture_spine/creator_profile_current/silver_metric_reader.py": {
         "detection": "lane_dir",
         "posture": "selection_rule",

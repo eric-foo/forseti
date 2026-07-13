@@ -55,9 +55,85 @@ def _metric_record() -> dict:
     }
 
 
+def _metric_set_record() -> dict:
+    return {
+        "record_id": "rec_metric_set.json",
+        "raw_anchor": _PACKET_ID,
+        "schema_version": "silver_vault_record_v0",
+        "record_kind": "observation",
+        "payload_kind": "MetricObservationSet",
+        "content_hash": "sha256:deadbeef",
+        "payload": {
+            "observation": {
+                "subject": {
+                    "ref_type": "entity_key",
+                    "ref": {
+                        "namespace": "tiktok",
+                        "kind": "platform_public_account",
+                        "native_id": "creator",
+                    },
+                },
+                "observation_set_kind": "social_content_metric_grid",
+                "platform": "tiktok",
+                "policy_version": "policy_v0",
+                "policy_fingerprint_sha256": "a" * 64,
+                "row_count": 1,
+                "rows": [
+                    {
+                        "subject": {
+                            "ref_type": "entity_key",
+                            "ref": {
+                                "namespace": "tiktok",
+                                "kind": "public_content_object",
+                                "native_id": "123",
+                            },
+                        },
+                        "metrics": {
+                            "view_count": {
+                                "metric_value": 0,
+                                "metric_posture": {
+                                    "kind": "observed",
+                                    "reason_code": None,
+                                    "reason_detail": None,
+                                },
+                                "unit": "count",
+                                "source_field": "playCount",
+                            }
+                        },
+                    }
+                ],
+            }
+        },
+    }
+
+
 def test_validate_accepts_well_formed_text_and_metric_observations() -> None:
     validate_silver_vault_record(_text_record())
     validate_silver_vault_record(_metric_record())
+    validate_silver_vault_record(_metric_set_record())
+
+
+def test_validate_metric_set_rejects_row_count_drift() -> None:
+    record = _metric_set_record()
+    record["payload"]["observation"]["row_count"] = 2
+    with pytest.raises(SilverRecordError, match="row_count"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_metric_set_rejects_cross_platform_row_namespace() -> None:
+    record = _metric_set_record()
+    record["payload"]["observation"]["rows"][0]["subject"]["ref"]["namespace"] = "instagram"
+    with pytest.raises(SilverRecordError, match="must equal platform"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_metric_set_rejects_missing_source_field() -> None:
+    record = _metric_set_record()
+    del record["payload"]["observation"]["rows"][0]["metrics"]["view_count"][
+        "source_field"
+    ]
+    with pytest.raises(SilverRecordError, match="source_field"):
+        validate_silver_vault_record(record)
 
 
 def test_validate_rejects_open_record_kind() -> None:

@@ -55,6 +55,8 @@ from runners import run_fragrance_review_projection_catchup as _fragrance_review
 from runners import run_fragrantica_cleaning_catchup as _fragrantica
 from runners import run_ig_reels_grid_projection_catchup as _ig_reels_grid
 from runners import run_parfumo_cleaning_catchup as _parfumo
+from runners import run_tiktok_comment_attention_producer as _tiktok_comment_attention
+from runners import run_tiktok_grid_observation_producer as _tiktok_grid_observation
 
 
 @dataclass(frozen=True)
@@ -133,6 +135,20 @@ CADENCE_ENTRYPOINTS: tuple[CadenceEntrypoint, ...] = (
         runner="run_ig_reels_grid_projection_catchup.py",
         pending=lambda ctx: len(_ig_reels_grid.pending_packets(data_root=ctx.data_root)),
         run=lambda ctx: _ig_reels_grid.run_catchup(data_root=ctx.data_root),
+    ),
+    CadenceEntrypoint(
+        runner="run_tiktok_comment_attention_producer.py",
+        pending=lambda ctx: len(
+            _tiktok_comment_attention.pending_packets(data_root=ctx.data_root)
+        ),
+        run=lambda ctx: _tiktok_comment_attention.run_catchup(data_root=ctx.data_root),
+    ),
+    CadenceEntrypoint(
+        runner="run_tiktok_grid_observation_producer.py",
+        pending=lambda ctx: len(
+            _tiktok_grid_observation.pending_packets(data_root=ctx.data_root)
+        ),
+        run=lambda ctx: _tiktok_grid_observation.run_catchup(data_root=ctx.data_root),
     ),
     CadenceEntrypoint(
         runner="run_asr_transcript_catchup.py",

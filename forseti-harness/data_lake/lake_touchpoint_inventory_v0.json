@@ -32,6 +32,36 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/social_metric_history_reader.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "append_silver_record",
       "count": 2,
       "module": "capture_spine/creator_profile_current/tiktok_silver_metric_producer.py"
@@ -555,6 +585,15 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "reason": "grid-only admission validates every preserved row's canonical video URL suffix against the artifact's creator_handle and tiktok video_id, but it admits an operator-supplied artifact without independently proving that TikTok served that creator/video authorship",
+          "status": "unbound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_tiktok_grid_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "reason": "live probe validates requested creator/profile/video URL shape and can admit only sanitized page-owned staging through the TikTok batch gate, but the resulting packet is still attributed to the requested creator/video without an end-to-end served author identity proof",
           "status": "unbound"
         },
@@ -663,6 +702,13 @@
           "source_capture/tiktok/batch_packet.py"
         ],
         "function": "write_tiktok_batch_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/tiktok/grid_packet.py"
+        ],
+        "function": "write_tiktok_grid_packet"
       },
       {
         "a2_fork_impact": "manifest_shape",

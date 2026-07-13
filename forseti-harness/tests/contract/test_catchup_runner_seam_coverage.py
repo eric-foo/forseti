@@ -39,6 +39,8 @@ EXPECTED_SEAM_CONSUMER_RUNNERS = frozenset(
         "run_parfumo_cleaning_catchup.py",
         "run_tiktok_product_extract.py",
         "run_tiktok_audience_evidence_extract.py",
+        "run_tiktok_comment_attention_producer.py",
+        "run_tiktok_grid_observation_producer.py",
         "run_transcript_product_extract.py",
     }
 )
