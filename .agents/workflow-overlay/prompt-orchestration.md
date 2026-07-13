@@ -345,15 +345,49 @@ separate:
   kept in ignored `docs/_inbox/` scratch when a disk handoff is useful. Do not
   open a separate prompt-only PR for that material, and do not commit it solely
   to manufacture a durable prompt artifact. The durable record is the lane PR
-  plus the downstream artifact the prompt asks the receiver to write. Handoff
-  packets, closeout notes, and other lane-continuity docs follow the same
-  filing rule: they ride the originating work-unit lane PR or stay in ignored
-  scratch until consumed, and get a standalone PR only when the doc itself is
-  the bounded work unit.
+  plus the downstream artifact the prompt asks the receiver to write. Closeout
+  notes and other lane-continuity docs follow the same filing rule: they ride
+  the originating work-unit lane PR or stay in ignored scratch until consumed,
+  and get a standalone PR only when the doc itself is the bounded publication
+  work unit. Handoff-only packets follow the transport/publication split
+  immediately below; commissioning the packet alone does not make it a bounded
+  publication work unit.
 - If a lane-scoped prompt later becomes reusable, doctrine-bearing, or otherwise
   source-like, promote it through the canonical `docs/prompts/**` path in the
   same lane PR when that lane owns the change, or in a dedicated prompt PR only
   when the prompt artifact itself is the work unit.
+
+### Handoff Transport Versus Publication
+
+A handoff-only packet has two distinct lifecycle states:
+
+- **Dispatch-ready / transport.** The receiving cold lane can resolve the exact
+  packet bytes through its actual receiver mechanism before dispatch. Commit is
+  the stable local transport boundary; once its SHA is couriered as the packet's
+  revision handle, that commit is not rewritten (no amend, rebase, or squash) for
+  the packet's transport lifetime, and a required history change re-couriers the
+  new SHA, because a `git show <sha>:<path>` fallback resolves nothing against an
+  orphaned SHA. The courier/context identifies the
+  repository or worktree access route, repository-relative packet path,
+  branch/ref and commit SHA when revision access is needed, and an explicit
+  fallback such as `git show <sha>:<path>`. Include a same-filesystem absolute
+  path only when that is the receiver's actual route. The dispatcher verifies
+  discoverability by reading the packet through that actual route; path
+  existence in the author's checkout or a path merely written in chat is not
+  verification for a different receiver mechanism. If the receiver cannot use
+  the authoring worktree or local ref, push the branch and verify the remote ref
+  before dispatch. If no verified route exists, stop with a visible transport
+  blocker.
+- **Publication-ready / landing.** The packet independently merits durable
+  publication on `main`, another landing artifact requires it, or the owner
+  requests landing. Only this state opens a packet PR. A PR is never created
+  merely to make the packet discoverable; it publishes an independently
+  justified durable artifact.
+
+This split is specific to handoff-only transport. A packet that rides an
+existing implementation, doctrine, code, or other publication work unit still
+lands in that work unit's normal PR. A handoff-only branch is pushed only when
+the receiving mechanism cannot reach the local worktree/ref, not by default.
 
 The `docs/prompts/**` PostToolUse hook (`check_prompt_provenance.py`) fires only
 for canonical filed prompt writes and injects the preflight — output mode, edit
@@ -386,7 +420,9 @@ When the request is for a lane-scoped execution prompt and no reusable prompt
 artifact is requested, default to attaching the prompt to the lane PR
 body/comment. If the lane PR is not open yet and a file handoff is useful, use
 ignored `docs/_inbox/` scratch and carry the prompt into the lane PR at PR prep.
-Do not create a standalone prompt PR for that default.
+Do not create a standalone prompt PR for that default. A handoff-only packet
+that must remain findable across a cold lane uses the dispatch-ready transport
+contract above instead of this scratch default.
 
 Repo-aware prompts handed to another model, agent, thread, or worktree must
 state both:
@@ -396,6 +432,11 @@ state both:
   body/comment location, or an ignored `docs/_inbox/` scratch path; and
 - the exact output artifact path the reviewer or downstream agent should write,
   when the output mode writes a durable artifact.
+
+For a handoff-only packet, those fields are insufficient by themselves: the
+courier also carries the verified transport route, repository-relative path,
+branch/ref, commit SHA, and explicit revision-read fallback required by
+"Handoff Transport Versus Publication" above.
 
 Ask the user for a path only when the destination cannot be determined from the
 artifact role, accepted folders, requested workflow, or collision state. If a
@@ -859,81 +900,73 @@ Before using a generated Forseti prompt, apply these gates:
 ## Direction Change Propagation
 
 ```yaml
-# lane-scoped delegated patch prompt economy 2026-07-12 (owner-requested process improvement).
+# handoff transport/publication split 2026-07-14 (owner-requested correction).
 direction_change_propagation:
   doctrine_changed: >
-    Lane-scoped, operator-couriered delegated review-and-patch prompts now use
-    one unnamed pointer-first default with one fresh target-state read instead
-    of automatically invoking the full prompt orchestrator, escalated preflight,
-    deep-thinking, source-ready ceremony, durable report, and provenance courier.
-    Full orchestration remains for real routing complexity and owner-invoked
-    Mini God Tier; the delegate retains cross-vendor discovery, exact scope,
-    real review and validation, CA adjudication, architecture escalation, and an
-    explicit no-lifecycle hard stop.
+    Handoff-only packets now become dispatch-ready through an exact,
+    actual-route-verified commit pointer before couriering, while PR creation is
+    reserved for independently justified publication on main rather than packet
+    discovery or transport.
   trigger: workflow_authority
-  related_triggers: [review_authority, output_authority, lifecycle_boundary]
+  related_triggers: [output_authority, lifecycle_boundary]
   controlling_sources_updated:
     - AGENTS.md
     - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/hooks/check_prompt_provenance.py
-    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
-    - docs/workflows/forseti_repo_map_v0.md
-    - docs/decisions/dcp_receipts_archive_v0.md
-  downstream_surfaces_checked:
-    - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/review-lanes.md
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/decision-routing.md
     - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/safety-rules.md
     - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/template-registry.md
-    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
+    - .agents/hooks/check_handoff_pointers.py
+    - .agents/hooks/README.md
+    - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
-    - path: .agents/workflow-overlay/review-lanes.md
+    - path: CLAUDE.md
       reason: >
-        The actual code/artifact review methods, findings authority, and
-        two-bar de-correlation rule are unchanged; this edit removes dispatch
-        ceremony rather than weakening review.
-    - path: .agents/workflow-overlay/validation-gates.md
+        It remains a shim importing AGENTS.md and must not duplicate the new
+        kernel pointer.
+    - path: .agents/workflow-overlay/source-loading.md
       reason: >
-        Validation remains mandatory and real failures remain visible; prompt
-        routing depth is owned by prompt-orchestration.md.
-    - path: .agents/workflow-overlay/communication-style.md
+        Source packs and confirm-don't-trust loading are unchanged; this rule
+        governs how a packet reaches the receiver before source loading begins.
+    - path: .agents/workflow-overlay/decision-routing.md
       reason: >
-        Chief Architect adjudication and the same-turn land/next-move tail remain
-        unchanged; only the delegate's prompt and return ceremony is right-sized.
-    - path: .agents/workflow-overlay/template-registry.md
+        It still owns receiver-mechanism and write-root selection. The new
+        exact-byte transport proof is the prompt/handoff owner's downstream use
+        of that selected mechanism, not a competing receiver selector.
+    - path: .agents/workflow-overlay/validation-gates.md and .agents/hooks/check_handoff_pointers.py
       reason: >
-        No template path or lifecycle status changed. The compact default is an
-        in-contract pointer shape, not a new standing template surface.
-    - path: installed workflow-prompt-orchestrator and workflow-delegated-review-patch skills
+        The existing gate correctly checks durable in-repo pointer resolution
+        and explicitly cannot observe chat, PR comments, or receiver access.
+        Extending it would create a fake actual-route check; resident dispatch
+        verification remains in prompt-orchestration.md.
+    - path: docs/workflows/forseti_repo_map_v0.md
       reason: >
-        Installed generic/plugin copies are outside Forseti authority; the
-        project overlay owns Forseti routing and now carries an explicit
-        precedence bridge for the generic always-full default. Revisit upstream
-        after three confirmed off-project repetitions.
-    - path: historical executed prompts and review reports
+        The map already routes prompt/handoff mechanics and developer workflow
+        to the changed controlling files; no file family or owner moved.
+    - path: historical prompts, handoffs, and review outputs
       reason: >
-        They remain evidence of completed lanes and are not rewritten as live
-        control surfaces.
+        Forward-only doctrine change; completed lane evidence is not rewritten.
   stale_language_search: >
-    rg -n -i "Fused, delegated-review-patch|delegated-review-patch.{0,80}(always use|full skill|Escalated Preflight)|commissioned.{0,80}deep-thinking|deep-thinking first|sibling mode|SOURCE_CONTEXT_READY.{0,80}delegat|delegat.{0,80}SOURCE_CONTEXT_READY|mandatory.{0,80}durable review report"
-    AGENTS.md .agents/workflow-overlay .agents/hooks docs/prompts/templates
-    docs/workflows/forseti_repo_map_v0.md --glob '!docs/prompts/reviews/**'
-    --glob '!docs/prompts/patches/**'
+    rg -n -i "handoff.{0,80}(standalone|whole).{0,30}PR|handoff.{0,80}(push|PR preparation)|PR.{0,80}(discover|transport).{0,40}handoff|commit.{0,40}handoff.{0,40}(landed|publication)"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-12 after the live-authority edits. The only hit was the
-    quoted search literal in this receipt; no live rule retained the old blanket
-    escalation. Historical executed prompts, review outputs, and the DCP archive
-    were intentionally excluded from live-control-surface cleanup.
+    Executed 2026-07-14 after the live-authority edits. Hits were the new
+    handoff-only push condition, this receipt's query, and the retained prior
+    receipt describing the compatible no-standalone-doc-PR rule; no checked
+    live surface still requires a PR merely for packet discovery or transport.
   non_claims:
     - not validation or readiness
-    - not permission to skip reading the real diff or target sources
-    - not permission to skip relevant validation or mask failures
-    - not permission for the delegate to commit, push, merge, or clean up
-    - Mini God Tier is not a claim tier or cross-vendor availability guarantee
-    - not deployment or adoption of an external installed skill
+    - not proof that a receiver actually has repository access
+    - not publication or landing authority
+    - not a weakening of normal implementation, doctrine, or code PR flow
 
 # whale-first token/latency economy fixes 2026-07-12 (owner-approved insights follow-up).
 direction_change_propagation:

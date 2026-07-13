@@ -102,8 +102,11 @@ At that historical point, this record did not assert that any server-side gate w
    Applied and read back through the GitHub API on 2026-07-11 after the repository
    became public. This is the harness-agnostic preventive boundary; local and
    agent guards remain defense in depth.
-3. **Per-lane PR flow.** Each lane branches off `main`, works in its own branch/worktree, and opens
-   one focused PR. No multi-workstream mega-batches (the PR #1 lesson).
+3. **Per-lane PR flow.** Each publication work unit branches off `main`, works in its own
+   branch/worktree, and opens one focused PR. No multi-workstream mega-batches (the PR #1 lesson).
+   A handoff-only packet is transport rather than a publication work unit until item 15's landing
+   condition is met; this exception does not apply to implementation, doctrine, code, or another
+   independently publishable artifact.
    **Codex/sandboxed lane-start writeability (harness-scoped, not a Claude Code rule).** For Codex or
    any sandboxed harness whose writes are mediated by workspace writable roots, the lane is not ready
    for repo-changing edits until the active worktree is the harness workspace root (or otherwise
@@ -376,6 +379,17 @@ At that historical point, this record did not assert that any server-side gate w
    license for big-bang PRs: item 13's cadence and the Smallest Complete Intervention rule still
    govern work-unit size; this item only fixes where the PR boundary sits relative to the owner
    authorization fork.
+15. **Handoff transport is not publication.** A handoff-only packet becomes dispatch-ready when its
+   exact bytes are committed and the dispatcher verifies the receiving lane can resolve them through
+   the actual receiver mechanism. The courier binds the repository/worktree access route,
+   repository-relative path, branch/ref and commit SHA when revision access is needed, plus an
+   explicit revision-read fallback such as `git show <sha>:<path>`; a same-filesystem absolute path
+   is included only when that is the receiver's actual route. Push the handoff branch only when the
+   receiver cannot access the authoring worktree or local ref, and verify the remote ref before
+   dispatch. Open a PR only when the packet independently deserves durable publication on `main`, is
+   required by another landing artifact, or the owner requests landing. A PR must not be used merely
+   as packet discovery or transport. Handoffs riding an existing implementation, doctrine, code, or
+   other publication work unit remain in that work unit's ordinary PR.
 
 ## Why core-only CI (evidence)
 
