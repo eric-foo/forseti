@@ -348,10 +348,10 @@ def test_live_probe_captures_source_native_subtitle_transcript(
         == "direct_selected_url_sequence"
     )
     assert cadence["capture_contract"]["video_page_reuse_policy"] == (
-        "one_page_sequential_navigation"
+        "capture_engine_defined"
     )
     assert cadence["capture_contract"]["terminal_page_policy"] == (
-        "leave_last_selected_video_open"
+        "capture_engine_defined"
     )
     assert cadence["capture_contract"]["pointer_movement_policy"] == (
         "meaningful_page_actions_only"
@@ -359,7 +359,7 @@ def test_live_probe_captures_source_native_subtitle_transcript(
     assert cadence["capture_contract"]["address_bar_simulation"] is False
     assert cadence["capture_contract"]["referrer_spoofing"] is False
     assert cadence["capture_contract"]["return_to_grid_between_videos"] is False
-    assert cadence["capture_contract"]["account_safety_pre_action_circuit_breaker"] is True
+    assert cadence["capture_contract"]["account_safety_pre_action_circuit_breaker"] is False
     assert cadence["capture_contract"]["account_safety_automatic_retry"] is False
     assert cadence["capture_contract"]["cleared_human_captcha_continues_batch"] is True
     assert cadence["capture_contract"]["raw_subtitle_bodies_persisted"] is False
@@ -386,6 +386,27 @@ def test_live_probe_captures_source_native_subtitle_transcript(
     assert subtitles["cue_count"] == 2
     assert subtitles["transcript_text"] == "This fragrance is everywhere\nBronze shimmer test"
     assert subtitle_url not in json.dumps(packet_payload)
+
+def test_capture_contract_reports_verified_session_engine_guarantees() -> None:
+    contract = live_batch_probe._capture_contract(
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        session_engine_reused=True,
+        account_safety_pre_action_circuit_breaker=True,
+    )
+
+    assert contract["video_page_reuse_policy"] == (
+        "one_page_sequential_navigation"
+    )
+    assert contract["terminal_page_policy"] == "leave_last_selected_video_open"
+    assert contract["account_safety_pre_action_circuit_breaker"] is True
+
+    fallback = live_batch_probe._capture_contract(
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+    )
+    assert fallback["video_page_reuse_policy"] == "capture_engine_defined"
+    assert fallback["terminal_page_policy"] == "capture_engine_defined"
+    assert fallback["account_safety_pre_action_circuit_breaker"] is False
+
 
 def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
     tmp_path: Path,
