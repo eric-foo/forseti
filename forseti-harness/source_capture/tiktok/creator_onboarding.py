@@ -83,24 +83,41 @@ TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
 TIKTOK_SUGGESTED_ACCOUNTS_DOM_EXTRACT_SCRIPT = r"""
 (arg) => {
   const creator = String((arg && arg.creator_handle) || '').toLowerCase();
-  const selectors = [
-    '[data-e2e*="suggest"]',
-    '[class*="Suggested"]',
-    '[class*="suggested"]',
-    '[class*="Recommend"]',
-    '[class*="recommend"]',
-    '[role="dialog"]'
-  ];
+  const profileAnchors = (root) => Array.from(
+    root.querySelectorAll('a[href^="/@"],a[href*="tiktok.com/@"]')
+  );
   const roots = [];
-  for (const selector of selectors) {
-    for (const node of Array.from(document.querySelectorAll(selector))) {
-      if (!roots.includes(node)) roots.push(node);
+  const addSuggestedRoot = (node) => {
+    let current = node;
+    while (current && current !== document.body) {
+      if (
+        String(current.innerText || current.textContent || '')
+          .toLowerCase()
+          .includes('suggested accounts') &&
+        profileAnchors(current).length > 0
+      ) {
+        if (!roots.includes(current)) roots.push(current);
+        return;
+      }
+      current = current.parentElement;
     }
+  };
+  for (const node of Array.from(document.querySelectorAll('body *'))) {
+    if (
+      String(node.innerText || node.textContent || '').trim().toLowerCase() ===
+      'suggested accounts'
+    ) addSuggestedRoot(node);
+  }
+  for (const node of Array.from(document.querySelectorAll('[data-e2e*="suggest"]'))) {
+    addSuggestedRoot(node);
   }
   const rows = [];
   const seen = new Set();
+  let suggestedProfileAnchorCount = 0;
   for (const root of roots) {
-    for (const anchor of Array.from(root.querySelectorAll('a[href^="/@"],a[href*="tiktok.com/@"]'))) {
+    const anchors = profileAnchors(root);
+    suggestedProfileAnchorCount += anchors.length;
+    for (const anchor of anchors) {
       const href = String(anchor.href || anchor.getAttribute('href') || '');
       const match = href.match(/\/@([^/?#]+)/);
       if (!match) continue;
@@ -133,13 +150,19 @@ TIKTOK_SUGGESTED_ACCOUNTS_DOM_EXTRACT_SCRIPT = r"""
       continue;
     }
   }
-  return {suggested_accounts: rows, profile_external_links: externalLinks};
+  return {
+    suggested_accounts: rows,
+    profile_external_links: externalLinks,
+    suggested_surface_detected: roots.length > 0,
+    suggested_surface_root_count: roots.length,
+    suggested_profile_anchor_count: suggestedProfileAnchorCount
+  };
 }
 """.strip()
 
 TIKTOK_SUGGESTED_VIEW_ALL_ACTION = BrowserPagePointerAction(
     action_name="tiktok_suggested_accounts_view_all_v0",
-    candidate_selector="button,a,[role='button']",
+    candidate_selector="[aria-label='View All']",
     text_markers=("view all", "see all"),
     page_text_markers=("suggested",),
     wait_after_ms=2000,
@@ -595,6 +618,9 @@ def _build_suggested_accounts_receipt(
             "creator_handle": creator_handle,
             "status": "failed",
             "suggested_accounts": [],
+            "suggested_surface_detected": False,
+            "suggested_surface_root_count": 0,
+            "suggested_profile_anchor_count": 0,
             "profile_external_links": [],
             "profile_external_links_status": "failed",
             "failure_kind_or_none": capture.failure_kind.value,
@@ -602,6 +628,9 @@ def _build_suggested_accounts_receipt(
         }
     rows: list[dict[str, Any]] = []
     profile_external_links: list[dict[str, Any]] = []
+    suggested_surface_detected = False
+    suggested_surface_root_count = 0
+    suggested_profile_anchor_count = 0
     if isinstance(capture.dom_observation, dict):
         candidate_rows = capture.dom_observation.get("suggested_accounts")
         if isinstance(candidate_rows, list):
@@ -611,11 +640,30 @@ def _build_suggested_accounts_receipt(
             profile_external_links = [
                 row for row in external_rows if isinstance(row, dict)
             ]
+        suggested_surface_detected = (
+            capture.dom_observation.get("suggested_surface_detected") is True
+        )
+        suggested_surface_root_count = _non_negative_int_or_zero(
+            capture.dom_observation.get("suggested_surface_root_count")
+        )
+        suggested_profile_anchor_count = _non_negative_int_or_zero(
+            capture.dom_observation.get("suggested_profile_anchor_count")
+        )
+    status = (
+        "captured"
+        if rows
+        else "visible_empty"
+        if suggested_surface_detected
+        else "not_visible"
+    )
     receipt = {
         "schema_version": TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION,
         "creator_handle": creator_handle,
-        "status": "captured" if rows else "blocked_or_empty",
+        "status": status,
         "suggested_accounts": rows,
+        "suggested_surface_detected": suggested_surface_detected,
+        "suggested_surface_root_count": suggested_surface_root_count,
+        "suggested_profile_anchor_count": suggested_profile_anchor_count,
         "profile_external_links": profile_external_links,
         "profile_external_links_status": "captured" if profile_external_links else "none_visible",
         "attempt_receipt": {
@@ -624,11 +672,18 @@ def _build_suggested_accounts_receipt(
             "challenge_handoff_attempts": capture.metadata.get(
                 "human_challenge_handoff_attempts"
             ),
+            "capture_timestamp": capture.metadata.get("capture_timestamp"),
         },
         "non_claims": ["not an exhaustive suggested-account graph"],
     }
     assert_no_sensitive_tiktok_material(receipt)
     return receipt
+
+
+def _non_negative_int_or_zero(value: Any) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return 0
+    return value
 
 
 def is_tiktok_profile_item_list_url(url: str) -> bool:

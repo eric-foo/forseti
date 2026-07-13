@@ -268,6 +268,56 @@ def test_write_omits_a_missing_stat_end_to_end_no_zero_fill(tmp_path: Path) -> N
     assert payload["batch_summary"]["stats_sums"]["diggCount"] == 90
 
 
+def test_write_tiktok_batch_packet_preserves_suggested_accounts_as_bronze(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "batch_packet"
+    grid_window, selection = _onboarding_evidence_payloads()
+    suggested = json.dumps(
+        {
+            "schema_version": "tiktok_creator_onboarding_v0",
+            "creator_handle": "funmimonet",
+            "status": "captured",
+            "suggested_accounts": [
+                {
+                    "handle": "freshfrag",
+                    "profile_url": "https://www.tiktok.com/@freshfrag",
+                    "display_text_or_none": "Fresh Frag",
+                }
+            ],
+            "profile_external_links": [],
+        }
+    ).encode("utf-8")
+
+    code, _message = write_tiktok_batch_packet(
+        creator_handle="@funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[_cadence_payload()],
+        grid_window_json=grid_window,
+        selection_result_json=selection,
+        suggested_accounts_json=suggested,
+        output_directory=output,
+        capture_timestamp="2026-06-30T17:02:46Z",
+    )
+
+    assert code == 0
+    manifest = SourceCapturePacket(
+        **json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    )
+    assert [item.relative_packet_path for item in manifest.preserved_files] == [
+        "raw/01_tiktok_batch_capture.json",
+        "raw/02_tiktok_grid_window.json",
+        "raw/03_tiktok_grid_video_selection.json",
+        "raw/04_tiktok_suggested_accounts_attempt.json",
+    ]
+    assert json.loads(
+        (output / "raw/04_tiktok_suggested_accounts_attempt.json").read_text(
+            encoding="utf-8"
+        )
+    )["suggested_accounts"][0]["handle"] == "freshfrag"
+
+
 def test_write_tiktok_batch_packet_preserves_sanitized_batch_payload(tmp_path: Path) -> None:
     output = tmp_path / "batch_packet"
 

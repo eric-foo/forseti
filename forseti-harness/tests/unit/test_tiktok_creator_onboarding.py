@@ -79,6 +79,7 @@ def _capture(
         metadata={
             "post_load_pointer_actions": [],
             "human_challenge_handoff_attempts": [],
+            "capture_timestamp": "2026-07-14T10:00:00Z",
             "lazy_load_scroll_passes_executed": 2,
             "lazy_load_scroll_stop_reason": "response_target_reached",
             "lazy_load_response_stop_condition_configured": True,
@@ -560,7 +561,7 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
                 "window_cap": 30,
                 "selected_count": 8,
                 "completed_deep_capture_count": 8,
-                "suggested_accounts_status_or_none": "blocked_or_empty",
+                "suggested_accounts_status_or_none": "not_visible",
             }
         ),
         encoding="utf-8",
@@ -599,11 +600,16 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
     assert code == 0
     assert captured["grid_window_json"] == paths.grid_window_json_path.read_bytes()
     assert captured["selection_result_json"] == paths.selection_json_path.read_bytes()
+    assert (
+        captured["suggested_accounts_json"]
+        == paths.suggested_accounts_json_path.read_bytes()
+    )
     assert [row["role"] for row in captured["source_file_receipts"]] == [
         "grid_result_json",
         "cadence_result_json_1",
         "grid_window_json",
         "selection_result_json",
+        "suggested_accounts_json",
     ]
 
 
@@ -651,6 +657,117 @@ def test_suggested_receipt_preserves_clean_profile_external_links() -> None:
             "display_text_or_none": "My links",
         }
     ]
+
+
+def test_suggested_dom_contract_targets_the_profile_surface_only() -> None:
+    script = onboarding.TIKTOK_SUGGESTED_ACCOUNTS_DOM_EXTRACT_SCRIPT
+
+    assert "suggested accounts" in script.lower()
+    assert "profileAnchors" in script
+    assert '[role="dialog"]' not in script
+    assert (
+        onboarding.TIKTOK_SUGGESTED_VIEW_ALL_ACTION.candidate_selector
+        == "[aria-label='View All']"
+    )
+
+
+def test_suggested_receipt_distinguishes_visible_empty_from_not_visible() -> None:
+    visible = _capture(ordered_ids=[], items=[], suggested=[])
+    visible.dom_observation.update(
+        {
+            "suggested_surface_detected": True,
+            "suggested_surface_root_count": 1,
+            "suggested_profile_anchor_count": 0,
+        }
+    )
+    not_visible = _capture(ordered_ids=[], items=[], suggested=[])
+
+    visible_receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator", capture=visible
+    )
+    not_visible_receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator", capture=not_visible
+    )
+
+    assert visible_receipt["status"] == "visible_empty"
+    assert visible_receipt["suggested_surface_root_count"] == 1
+    assert not_visible_receipt["status"] == "not_visible"
+
+
+def test_suggested_frontier_write_anchors_to_admitted_bronze_packet(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    suggested_path = tmp_path / "suggested.json"
+    suggested_path.write_text(
+        json.dumps(
+            {
+                "status": "captured",
+                "creator_handle": "creator",
+                "suggested_accounts": [
+                    {
+                        "handle": "freshfrag",
+                        "profile_url": "https://www.tiktok.com/@freshfrag",
+                        "display_text_or_none": "Fresh Frag",
+                    }
+                ],
+                "profile_external_links": [
+                    {"url": "https://linktr.ee/creator"}
+                ],
+                "attempt_receipt": {
+                    "capture_timestamp": "2026-07-14T10:00:00Z",
+                    "view_all_action": {"clicked": True},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    captured: dict[str, object] = {}
+
+    def fake_build(**kwargs: object) -> dict[str, object]:
+        captured.update(kwargs)
+        return {"frontier": "validated"}
+
+    def fake_write(
+        register: object,
+        data_root: object,
+        *,
+        record_id: str,
+    ) -> Path:
+        captured["register"] = register
+        captured["data_root"] = data_root
+        captured["record_id"] = record_id
+        return tmp_path / "frontier.json"
+
+    monkeypatch.setattr(
+        runner, "build_tiktok_creator_discovery_frontier_register", fake_build
+    )
+    monkeypatch.setattr(
+        runner, "write_tiktok_creator_discovery_frontier_register", fake_write
+    )
+    fake_root = object()
+    admitted = Path("F:/forseti-data-lake/raw/abc/01KXPACKET")
+
+    written = runner._write_suggested_frontier(
+        creator_handle="@Creator",
+        session_profile="chowdakr_sg_tiktok",
+        suggested_receipt_path=suggested_path,
+        admitted_path=admitted,
+        data_root=fake_root,
+    )
+
+    assert written == str(tmp_path / "frontier.json")
+    scan_receipt = captured["scan_receipt"]
+    assert scan_receipt["parent_grid_packet_id_or_none"] == "01KXPACKET"
+    assert scan_receipt["source_packet_id_or_none"] == "01KXPACKET"
+    assert scan_receipt["link_hub_url_or_none"] == "https://linktr.ee/creator"
+    assert captured["suggested_accounts"][0].handle == "freshfrag"
+    assert captured["suggested_accounts"][0].observed_sections == (
+        "profile_suggested_view_all",
+    )
+    assert str(captured["prior_register_pointer"]).endswith(
+        "/raw/04_tiktok_suggested_accounts_attempt.json"
+    )
 
 
 @pytest.mark.parametrize(

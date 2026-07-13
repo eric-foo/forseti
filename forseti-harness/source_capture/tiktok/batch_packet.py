@@ -32,6 +32,7 @@ TIKTOK_BATCH_CAPTURE_SURFACE = "tiktok_creator_batch_comment_subtitle_admission"
 TIKTOK_BATCH_CAPTURE_JSON_NAME = "tiktok_batch_capture.json"
 TIKTOK_BATCH_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
 TIKTOK_BATCH_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
+TIKTOK_BATCH_SUGGESTED_ACCOUNTS_JSON_NAME = "tiktok_suggested_accounts_attempt.json"
 
 TIKTOK_BATCH_NON_CLAIMS = (
     "not_live_tiktok_capture_or_browser_automation",
@@ -67,6 +68,7 @@ def write_tiktok_batch_packet(
     cadence_result_jsons: Sequence[bytes],
     grid_window_json: bytes | None = None,
     selection_result_json: bytes | None = None,
+    suggested_accounts_json: bytes | None = None,
     output_directory: str | Path | None = None,
     data_root: str | Path | None = None,
     decision_question: str = "What product, disclosure, comment, and subtitle signals are present in this TikTok creator batch?",
@@ -99,6 +101,10 @@ def write_tiktok_batch_packet(
     )
     if onboarding_evidence is not None:
         payload["onboarding_evidence"] = onboarding_evidence
+    suggested_accounts_evidence = _validate_suggested_accounts_evidence(
+        creator_handle=handle,
+        suggested_accounts_json=suggested_accounts_json,
+    )
     assert_no_sensitive_tiktok_material(payload)
 
     payload_bytes = json_dumps_sanitized(payload)
@@ -109,6 +115,10 @@ def write_tiktok_batch_packet(
                 (TIKTOK_BATCH_GRID_WINDOW_JSON_NAME, grid_window_json),
                 (TIKTOK_BATCH_SELECTION_JSON_NAME, selection_result_json),
             ]
+        )
+    if suggested_accounts_evidence is not None:
+        staged_artifacts.append(
+            (TIKTOK_BATCH_SUGGESTED_ACCOUNTS_JSON_NAME, suggested_accounts_json)
         )
     file_ids = staged_file_id_map(staged_artifacts)
     summary = payload["batch_summary"]
@@ -186,6 +196,27 @@ def write_tiktok_batch_packet(
         receipt_non_claims=TIKTOK_BATCH_NON_CLAIMS,
     )
     return 0, result.output_directory
+
+
+def _validate_suggested_accounts_evidence(
+    *,
+    creator_handle: str,
+    suggested_accounts_json: bytes | None,
+) -> JsonObject | None:
+    if suggested_accounts_json is None:
+        return None
+    try:
+        evidence = json.loads(suggested_accounts_json)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("suggested_accounts_json must be valid UTF-8 JSON") from exc
+    if not isinstance(evidence, dict):
+        raise ValueError("suggested_accounts_json must decode to an object")
+    if str(evidence.get("creator_handle") or "").strip().lstrip("@").lower() != creator_handle:
+        raise ValueError("suggested_accounts_json creator_handle does not match batch creator")
+    if not isinstance(evidence.get("suggested_accounts"), list):
+        raise ValueError("suggested_accounts_json must contain suggested_accounts list")
+    assert_no_sensitive_tiktok_material(evidence)
+    return evidence
 
 
 def _is_creator_video_url(*, video_url: str, creator_handle: str, video_id: str) -> bool:

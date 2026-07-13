@@ -20,6 +20,14 @@ from capture_spine.creator_profile_current.registry_match_preflight import (
 from capture_spine.creator_profile_current.validation import (
     load_creator_profile_current_view,
 )
+from capture_spine.tiktok_creator_discovery_frontier import (
+    LinkHubOutcome,
+    RefreshOutcome,
+    ScanReceipt,
+    SuggestedAccountObservation,
+    build_tiktok_creator_discovery_frontier_register,
+    write_tiktok_creator_discovery_frontier_register,
+)
 from source_capture.session_profiles import (
     default_session_profile_auth_state_root,
     resolve_session_profile,
@@ -186,10 +194,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 3
 
     admitted_path: str | None = None
+    frontier_path: str | None = None
     if args.admit_output is not None or args.data_root is not None:
         _emit_progress("admission_started", {})
+        data_root = None
         try:
-            data_root = None
             if args.data_root is not None:
                 from data_lake.root import DataLakeRoot
 
@@ -203,6 +212,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 cadence_result_jsons=[paths.live_cadence_json_path.read_bytes()],
                 grid_window_json=paths.grid_window_json_path.read_bytes(),
                 selection_result_json=paths.selection_json_path.read_bytes(),
+                suggested_accounts_json=paths.suggested_accounts_json_path.read_bytes(),
                 output_directory=args.admit_output if data_root is None else None,
                 data_root=data_root,
                 decision_question=args.decision_question,
@@ -217,6 +227,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                     ),
                     _source_receipt(
                         paths.selection_json_path, "selection_result_json"
+                    ),
+                    _source_receipt(
+                        paths.suggested_accounts_json_path,
+                        "suggested_accounts_json",
                     ),
                 ],
             )
@@ -237,6 +251,25 @@ def main(argv: Sequence[str] | None = None) -> int:
                 message=f"source capture tiktok creator onboarding admission failed: {output}\n",
             )
         admitted_path = str(output)
+        if data_root is not None:
+            try:
+                frontier_path = _write_suggested_frontier(
+                    creator_handle=args.creator_handle,
+                    session_profile=args.session_profile,
+                    suggested_receipt_path=paths.suggested_accounts_json_path,
+                    admitted_path=Path(admitted_path),
+                    data_root=data_root,
+                )
+            except Exception as exc:
+                _emit_blocker("SUGGESTED_FRONTIER_WRITE_FAILED", "admission")
+                parser.exit(
+                    status=3,
+                    message=(
+                        "source capture tiktok suggested frontier write failed: "
+                        f"{type(exc).__name__}: {exc}\n"
+                    ),
+                )
+                return 3
 
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
     print(
@@ -260,6 +293,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 ],
                 "output_dir": str(args.output_dir),
                 "admitted_path_or_none": admitted_path,
+                "suggested_frontier_path_or_none": frontier_path,
             },
             sort_keys=True,
         )
@@ -333,6 +367,125 @@ def _source_receipt(path: Path, role: str) -> dict[str, object]:
         "sha256": hashlib.sha256(raw).hexdigest(),
         "size_bytes": len(raw),
     }
+
+
+def _write_suggested_frontier(
+    *,
+    creator_handle: str,
+    session_profile: str,
+    suggested_receipt_path: Path,
+    admitted_path: Path,
+    data_root: object,
+) -> str | None:
+    suggested_receipt = json.loads(
+        suggested_receipt_path.read_text(encoding="utf-8")
+    )
+    rows = suggested_receipt.get("suggested_accounts")
+    if suggested_receipt.get("status") != "captured" or not isinstance(rows, list) or not rows:
+        return None
+
+    handle = creator_handle.strip().lstrip("@").lower()
+    packet_id = admitted_path.name
+    capture_timestamp = (
+        suggested_receipt.get("attempt_receipt", {}).get("capture_timestamp")
+    )
+    if not isinstance(capture_timestamp, str) or not capture_timestamp:
+        raise ValueError("captured suggested accounts require capture_timestamp")
+    external_links = suggested_receipt.get("profile_external_links")
+    link_hub_url = None
+    if isinstance(external_links, list):
+        for row in external_links:
+            if isinstance(row, dict) and isinstance(row.get("url"), str):
+                link_hub_url = row["url"]
+                break
+
+    run_id = f"tiktok_creator_onboarding_{packet_id.lower()}"
+    register_id = f"tiktok_creator_discovery_frontier_{handle}_{packet_id.lower()}"
+    scan_receipt = ScanReceipt(
+        receipt_id=f"receipt_{run_id}",
+        run_id=run_id,
+        register_id=register_id,
+        root_seed={
+            "platform": "tiktok",
+            "handle": handle,
+            "url": f"https://www.tiktok.com/@{handle}",
+        },
+        source_surface="tiktok_profile_suggested_accounts_existing_chrome_cdp",
+        captured_at_utc=capture_timestamp,
+        method_mode="existing_chrome_cdp_dom_extraction",
+        access_mode="owner_authorized_retained_session_screen_light_dom_read",
+        extraction_method="dom_visible_suggested_account_cards",
+        browser_session_label_or_none=session_profile,
+        parent_grid_packet_id_or_none=packet_id,
+        parent_grid_packet_path_or_none=str(admitted_path),
+        source_packet_id_or_none=packet_id,
+        source_packet_path_or_none=str(admitted_path),
+        parent_profile_capture_status="tiktok_parent_profile_grid_packet_available",
+        suggested_accounts_capture_status="tiktok_suggested_accounts_packet_available",
+        link_hub_capture_status=(
+            LinkHubOutcome.CAPTURED if link_hub_url else LinkHubOutcome.NONE_VISIBLE
+        ),
+        link_hub_url_or_none=link_hub_url,
+        browser_closed_by_runner=False,
+        refresh_attempt_count=0,
+        refresh_outcome=RefreshOutcome.NOT_NEEDED,
+        pagination_bound=len(rows),
+        suggested_accounts_observed=len(rows),
+        candidate_profiles_opened=0,
+        follow_unfollow_actions_taken=0,
+        screenshots_emitted_to_chat=0,
+        caps_applied={
+            "root_profiles": 1,
+            "suggested_accounts_observed": len(rows),
+            "candidate_profiles_opened": 0,
+            "screenshots_emitted_to_chat": 0,
+        },
+        stop_reason="bounded_suggested_accounts_observation_complete",
+        exclusions=(
+            "no_candidate_profile_open",
+            "no_follow_unfollow_action",
+            "no_metric_rollup",
+            "no_registry_mutation",
+            "no_screenshot_chat_output",
+        ),
+    ).to_dict()
+    view_all_action = suggested_receipt.get("attempt_receipt", {}).get(
+        "view_all_action"
+    )
+    observed_sections = (
+        ("profile_suggested_view_all",)
+        if isinstance(view_all_action, dict) and view_all_action.get("clicked") is True
+        else ("suggested_accounts",)
+    )
+    observations = [
+        SuggestedAccountObservation(
+            handle=str(row["handle"]),
+            display_name_or_none=(
+                str(row["display_text_or_none"])
+                if row.get("display_text_or_none")
+                else None
+            ),
+            source_url_or_locator=(
+                str(row["profile_url"]) if row.get("profile_url") else None
+            ),
+            observed_sections=observed_sections,
+        )
+        for row in rows
+        if isinstance(row, dict) and row.get("handle")
+    ]
+    register = build_tiktok_creator_discovery_frontier_register(
+        scan_receipt=scan_receipt,
+        suggested_accounts=observations,
+        prior_register_pointer=(
+            f"{admitted_path}/raw/04_tiktok_suggested_accounts_attempt.json"
+        ),
+    )
+    written = write_tiktok_creator_discovery_frontier_register(
+        register,
+        data_root,
+        record_id=f"{register_id}.json",
+    )
+    return str(written)
 
 
 if __name__ == "__main__":
