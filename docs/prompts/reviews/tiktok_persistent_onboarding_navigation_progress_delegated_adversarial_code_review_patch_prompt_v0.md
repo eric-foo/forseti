@@ -26,7 +26,8 @@ authority_boundary: retrieval_only
 - Patch authority: patch only confirmed defects inside the eight named files; leave edits uncommitted.
 - Lifecycle boundary: no live browser, TikTok, OAuth, CAPTCHA, data-lake admission, commit, push, merge, or PR mutation.
 - Output: write the durable report named below and return a courier summary for Chief Architect adjudication.
-- If branch, revision, cleanliness, or any file hash differs, stop and report the mismatch.
+- If branch, revision, cleanliness, or any committed blob ID differs, stop and
+  report the mismatch.
 
 ## Confirm-don't-trust source load
 
@@ -35,16 +36,18 @@ Before strict claims, read `AGENTS.md`, `.agents/workflow-overlay/README.md`,
 all named files. Apply `workflow-deep-thinking` before
 `workflow-code-review`. Declare `SOURCE_CONTEXT_READY` only after this load.
 
-Pinned files:
+Pinned committed Git blobs at the target revision (verify each with
+`git rev-parse ccc77aaa28cb7a6494de45dc2f7dfa4773ceb61f:<path>`; do not hash
+checkout bytes because Windows line-ending normalization is worktree-dependent):
 
-- `1d7a65ca086724ec2a4dea8156fcbab969888cb0c78f443105d25f28f626401e  forseti-harness/docs/source_capture_agent_runbook.md`
-- `90f033fdcabceb474730ea32e91d0e3f6ca543af5a17d4702405bdbd5227ad53  forseti-harness/runners/run_source_capture_chrome_cdp_session.py`
-- `6bc7a277848d1f3fdb1ad3eb99523b9bbca41f36897362c31b37326139e2582f  forseti-harness/runners/run_source_capture_tiktok_creator_onboarding.py`
-- `8e4fb11b2af3255df3d080401c8e6ba6d0cc9a1948649a287598f6a6b978a19a  forseti-harness/source_capture/tiktok/creator_onboarding.py`
-- `9fbb2cbb0e7da97b3d5029be4239d69465d6b8e84b11bdab09c0ce568e0a245c  forseti-harness/source_capture/tiktok/live_batch_probe.py`
-- `4475b8bf96b1924dc923fd5cb0d1bcffc7a28dbb57bf0f894ad5502c6fa4998a  forseti-harness/tests/unit/test_source_capture_chrome_cdp_session.py`
-- `48f97a519fa8d43f77bf03ff6a760ae2ab50b833d14901610590e66e855172ad  forseti-harness/tests/unit/test_tiktok_creator_onboarding.py`
-- `7e43404453b081886438787adc03d623912c4bad4611241887b592fc8ec631dc  forseti-harness/tests/unit/test_tiktok_live_batch_probe.py`
+- `3908ddc1f26c1535cceed886bb03532cd5246b10  forseti-harness/docs/source_capture_agent_runbook.md`
+- `04d0f06b6608afb1538b11614c2a21a4f0f045e9  forseti-harness/runners/run_source_capture_chrome_cdp_session.py`
+- `a7e66213f8d8d92b33c26bb7562bbcbce63fe416  forseti-harness/runners/run_source_capture_tiktok_creator_onboarding.py`
+- `5c223f8c71fde27bc49c63dc8544369e3fc0e4b4  forseti-harness/source_capture/tiktok/creator_onboarding.py`
+- `5f409f1b84441d50fd8bddada898805f3637fec2  forseti-harness/source_capture/tiktok/live_batch_probe.py`
+- `dc268bcea4581a1e39887c5e34134dca8d33ba47  forseti-harness/tests/unit/test_source_capture_chrome_cdp_session.py`
+- `683085b73fc371fefbabd531aa9c3d6bcb28ee9a  forseti-harness/tests/unit/test_tiktok_creator_onboarding.py`
+- `5f662e859ad7c75e0ef954f631274a2ef0d9ab84  forseti-harness/tests/unit/test_tiktok_live_batch_probe.py`
 
 ## Fitness contract
 
