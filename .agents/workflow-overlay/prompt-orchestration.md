@@ -3,10 +3,11 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Forseti overlay authority
-scope: Prompt artifact families, output modes, preflight fields, and prompt validation gates.
+scope: Prompt artifact families, receiver routing, output modes, preflight fields, and prompt validation gates.
 use_when:
   - Creating or reviewing Forseti prompt artifacts.
   - Checking prompt output mode, preflight, or review-report rules.
+  - Dispatching cross-lane or repo-changing work to a receiver with a matching write root.
 authority_boundary: retrieval_only
 ```
 
@@ -264,13 +265,18 @@ conditions hold:
 - the visible request supplies or safely determines a goal and success signal,
   one matching target worktree, branch/revision, dirty-state allowance, named
   file set, bounded patch authority, and validation route;
+- before receiver source loading, the dispatcher has selected a receiver
+  mechanism and verified its actual workspace/write root can write that target
+  worktree under `.agents/workflow-overlay/decision-routing.md`;
 - none of the **Full orchestration** routing conditions immediately above apply;
   and
 - there is no unresolved authority, target, state, or scope conflict.
 
-The dispatcher performs exactly one fresh target-state read: worktree path,
-branch and HEAD, dirty state, named or changed files, and the material validation
-commands or evidence already bound to the lane. It does not pre-load the
+The dispatcher first performs the receiver-mechanism/write-root check owned by
+`.agents/workflow-overlay/decision-routing.md`, then exactly one fresh
+target-state read: worktree path, branch and HEAD, dirty state, named or changed
+files, and the material validation commands or evidence already bound to the
+lane. It does not pre-load the
 receiver's target sources, reconstruct the receiver's source ledger, traverse
 the template registry, or prove the delegated lane execution-ready.
 
@@ -278,7 +284,7 @@ Render one compact pointer-first prompt containing:
 
 1. the plain goal and what done looks like;
 2. the exact worktree, branch/revision, dirty-state allowance, named targets,
-   and patch scope;
+   patch scope, receiver mechanism, and verified receiver write root/capability;
 3. the different-vendor controller constraint plus author/home family and
    delegate family, using `operator_to_fill` only for an inferable but genuinely
    operator-owned value;
@@ -648,6 +654,8 @@ Every escalated prompt must state:
 - `repo_map_decision: loaded | not_needed | unavailable`, plus `repo_map_reason`. Source-loading (`.agents/workflow-overlay/source-loading.md`) owns the read-pack rule; this field records the prompt author's routing decision and must not make the repo map a mandatory read;
 - workspace path or repository identifier;
 - expected branch, detached revision, or commit hash when source stability matters;
+- receiver mechanism and observed workspace/write root or equivalent capability
+  proof when the prompt commissions repo-changing work in another lane;
 - dirty-state allowance and whether untracked files are in scope;
 - controlling-source state when strict claims depend on Forseti overlay,
   source-loading, repo-map, prompt-policy, validation, or artifact-role files:
@@ -669,10 +677,15 @@ Every escalated prompt must state:
 ### Repo-Bound Review Target Resolution
 
 Repo-bound review and delegated-review prompts must treat a mismatch in the
-receiver's launch checkout as a routing condition, not an immediate review
-blocker. The prompt states the target identity as either an exact revision/hash
-pin or required commit ancestry; exact pins remain exact, while an advancing
-lane head may continue only when the prompt explicitly uses ancestry semantics.
+receiver's launch checkout as a routing condition, not permission to assume the
+receiver can reroot. For patch-authorized cross-lane work, the dispatcher first
+selects a worktree-rooted receiver and verifies its write root under
+`.agents/workflow-overlay/decision-routing.md`, before receiver source loading.
+The receiving preflight below verifies that binding and remains the discovery
+fallback for read-only work or an unexpected launch mismatch. The prompt states
+the target identity as either an exact revision/hash pin or required commit
+ancestry; exact pins remain exact, while an advancing lane head may continue
+only when the prompt explicitly uses ancestry semantics.
 
 Receiving preflight follows this order:
 
@@ -684,11 +697,14 @@ Receiving preflight follows this order:
    cleanliness, untracked-file allowance, target paths, and required validation
    in that worktree. Dirt in the unrelated launch/parent checkout is out of
    scope and does not fail the target's clean-tree gate.
-4. Continue in the resolved worktree when the runtime can safely operate there.
-   Patch-authorized work must use the harness's worktree-rooted/reroot mechanism
-   before editing when cross-worktree writes are guarded; if safe rerooting is
-   unavailable, return the nearest blocker with the resolved path and required
-   reroot action instead of reviewing or patching a substitute checkout.
+4. Continue in the resolved worktree when the runtime is actually rooted there
+   or otherwise has demonstrated write capability. Naming or discovering the
+   path does not reroot a collaboration subagent. Patch-authorized work must use
+   the harness's worktree-rooted receiver mechanism before editing when
+   cross-worktree writes are guarded; if safe rerooting is unavailable, return
+   `BLOCKED_RECEIVER_REROOT_REQUIRED` with the resolved path, observed receiver
+   root/capability, and required reroot action instead of loading more sources,
+   reviewing or patching a substitute checkout, or bypassing the guard.
 5. Block only when the target worktree is absent, ambiguous, inaccessible, has
    disallowed dirt, fails the exact revision or required-ancestry check, fails a
    pinned target hash, or cannot be safely rerooted for authorized writes.
@@ -783,7 +799,7 @@ Before using a generated Forseti prompt, apply these gates:
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
-4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters; a launch-checkout mismatch routes through registered-worktree resolution before it can become a blocker.
+4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters. Repo-changing cross-lane dispatch also records the receiver mechanism and observed write root/capability before receiver source loading; a launch-checkout mismatch routes through registered-worktree resolution, but path discovery alone never proves rerooting or write capability.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source-capsule budget satisfied: source capsules stay within

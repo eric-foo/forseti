@@ -3,11 +3,12 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Forseti overlay authority
-scope: Source-loading budgets, read packs, and context-bloat controls for Forseti prompts and workflow artifacts.
+scope: Source-loading budgets, pre-dispatch receiver readiness, read packs, and context-bloat controls for Forseti prompts and workflow artifacts.
 use_when:
   - Preparing Chief Architect prompts, review prompts, product prompts, or handoffs that cite Forseti source.
   - Deciding which files to read before producing a Forseti artifact.
   - Preventing context blow-up before a first artifact or first CA output.
+  - Preventing source loading into a repo-changing receiver that cannot write its commissioned worktree.
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/source-of-truth.md
@@ -114,9 +115,12 @@ For bounded work that stays in the current interaction:
    otherwise require broad search.
 4. Run the full Cynefin router only when
    `.agents/workflow-overlay/decision-routing.md` triggers it.
-5. Check repository state, isolation, and validation only to the depth material
+5. Before delegating repo-changing work, run the receiver-mechanism/write-root
+   check in `.agents/workflow-overlay/decision-routing.md`; do not load the
+   receiver's task sources first and discover a known write-root mismatch later.
+6. Check repository state, isolation, and validation only to the depth material
    to the task and its claims.
-6. Add a durable start receipt only when the work crosses one of the receipt
+7. Add a durable start receipt only when the work crosses one of the receipt
    boundaries above.
 
 This path changes reporting ceremony, not source hierarchy, validation,

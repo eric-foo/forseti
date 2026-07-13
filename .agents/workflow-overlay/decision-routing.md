@@ -3,11 +3,12 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Forseti overlay authority
-scope: Lightweight Cynefin-based pre-planning router for uncertainty-sensitive Forseti work.
+scope: Lightweight Cynefin-based pre-planning router and receiver-mechanism selector for uncertainty-sensitive Forseti work.
 use_when:
   - A material uncertainty could change decomposition, authority, source truth, or safe sequencing.
   - The user explicitly asks for Cynefin or uncertainty-regime classification.
   - Recovering a drifting or messy workstream before more agents act.
+  - Selecting a writable receiver before delegated or parallel repo-changing work.
 authority_boundary: retrieval_only
 ```
 
@@ -126,6 +127,40 @@ For chaotic work, do not assign parallel work until the bottleneck is visible.
 Idle agents are acceptable when non-bottleneck work would increase WIP or blur
 claim boundaries.
 
+## Receiver Mechanism And Write-Root Selection
+
+Before dispatching delegated or parallel work, classify the commissioned act
+and bind its receiver mechanism before the receiver loads task sources:
+
+- Read-only research, orientation, or review may use an in-session collaboration
+  subagent when its source access is sufficient.
+- A collaboration subagent may contribute repo changes only inside the calling
+  task's current, already-isolated work unit when same-root concurrent edits are
+  safe. It is not a separately rooted repo-changing lane.
+- An independent concurrent repo-changing lane that needs its own branch or
+  worktree must use a worktree-backed Codex task/thread, or another receiver
+  whose actual workspace/write root is demonstrably that commissioned
+  worktree. Never create an external worktree and assume a collaboration
+  subagent can reroot itself by being told its path.
+
+The dispatcher runs this pre-dispatch check before expensive required reads or
+source loading: commissioned act (`read-only` or repo-changing), target worktree
+and revision, chosen receiver mechanism, observed receiver workspace/write root
+or an equivalent capability proof, and whether that root can write the target.
+A path in the prompt is not capability proof. Creating a user-visible Codex
+task/thread still requires explicit user authorization; a commission authorizes
+only the tasks it explicitly places in scope, never standing task creation.
+
+If the intended receiver cannot write the target worktree, switch to a capable
+mechanism before dispatch. If none is authorized or available, return
+`BLOCKED_RECEIVER_REROOT_REQUIRED` with the commissioned target, observed
+receiver root/capability mismatch, and the required worktree-rooted mechanism or
+reroot action. Do not source-load into a receiver already known to be incapable,
+do not substitute another checkout, and do not bypass the protected-action
+guard. The write-boundary enforcement and lane-start write/index probe remain
+owned by `.agents/hooks/README.md` and
+`docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
+
 ## Enforcement Placement
 
 Routing also governs *how* a rule is enforced, not only how the next move is
@@ -201,13 +236,15 @@ for hundreds of times.
 
 Dispatch, do not inline, any mechanical work loop expected to take more than a
 few (~4+) tool round-trips whose success is verifiable by exit code, diff, or
-test count — test-fix loops, batch normalizations, CI polling, bulk file
-edits. Route it to a pinned `worker` or `mechanical` subagent (per Subagent
-Model Tiering above) with a narrow contract: target path(s), exact commands,
-acceptance condition, and return shape. Bulk intermediate output (test dumps,
-batch listings, poll output) stays in the subagent; only a compact summary
-returns to the orchestrator context. This is a heuristic for context economy,
-not a mechanical gate.
+test count — test-fix loops, batch normalizations, CI polling, bulk file edits.
+First apply Receiver Mechanism And Write-Root Selection above: read-only or safe
+same-root work may use a pinned `worker` or `mechanical` subagent (per Subagent
+Model Tiering above), while an independent repo-changing lane uses a receiver
+actually rooted in its worktree. Give the selected receiver a narrow contract:
+target path(s), exact commands, acceptance condition, and return shape. Bulk
+intermediate output (test dumps, batch listings, poll output) stays in the
+receiver; only a compact summary returns to the orchestrator context. This is a
+heuristic for context economy, not a mechanical gate.
 
 Judgment work — adjudication, doctrine wording, contract design, anything
 where the orchestrator's accumulated context materially improves the output —
@@ -268,6 +305,83 @@ direction_change_propagation:
     - not validation
     - not readiness
     - no token-savings efficacy claim
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Delegated and parallel work now selects and verifies a receiver mechanism
+    before source loading: collaboration subagents are same-root actors, while
+    independent concurrent repo-changing worktrees require a receiver actually
+    rooted there; mismatches reroute or fail as a precise reroot blocker and
+    never bypass the guard.
+  trigger: workflow_authority
+  related_triggers: [lifecycle_boundary]
+  controlling_sources_updated:
+    - AGENTS.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .codex/hooks.json
+    - .codex/hooks/forseti_guard_codex_adapter.py
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - docs/decisions/subagent_model_tiering_doctrine_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/README.md
+      reason: >
+        Decision-routing remains the existing delegation and sequencing owner;
+        no overlay section or owner changed.
+    - path: .agents/workflow-overlay/source-of-truth.md
+      reason: Source precedence and doctrine-propagation mechanics are unchanged.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        The authorization boundary and protected-action policy are unchanged;
+        this patch routes earlier to the already-bound guard.
+    - path: .codex/hooks.json
+      reason: >
+        Existing PreToolUse registration already invokes the adapter on Codex
+        write surfaces; receiver selection is not statically checkable there.
+    - path: .codex/hooks/forseti_guard_codex_adapter.py
+      reason: >
+        The adapter already blocks registered non-current-worktree writes and
+        gives the correct reroot instruction. It cannot choose a future receiver
+        before dispatch, so no hook change or new checker is justified.
+    - path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+      reason: >
+        It already requires the active worktree to be the harness write root and
+        a write/index probe before edits; the new rule moves mechanism selection
+        earlier without changing that lane-start test.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        The map already routes delegation to decision-routing, prompt work to
+        prompt-orchestration, hook semantics to the hook README, and Codex
+        activation to the adapter/config; no route or path changed.
+  stale_language_search: >
+    rg -n -i "external worktree|nested worktree|collaboration subagent|spawn_agent|reroot|receiver.{0,40}root|worktree-backed|continue in the resolved worktree|dispatch.{0,60}subagent"
+    AGENTS.md .agents/workflow-overlay .agents/hooks/README.md .codex/hooks
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    docs/decisions/subagent_model_tiering_doctrine_v0.md
+    docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-12 after edits. Live hits now agree: decision-routing owns
+    mechanism selection; prompt/source-loading surfaces require it before
+    receiver source loading; the guard docs and adapter remain the later
+    deterministic denial; branch doctrine retains the actual-root write/index
+    probe; model-tiering references spawn payloads only. A second contradiction
+    scan for source-loading-before-root and assumed subagent reroot language
+    returned no matches.
+  non_claims:
+    - not validation
+    - not readiness
+    - not automatic task-creation authorization
+    - not a new guard or checker
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
