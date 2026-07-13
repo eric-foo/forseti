@@ -40,7 +40,7 @@ resume/snapshot note. They are convenience copies, never a Forseti source of tru
   decision/contract/overlay), or against disk for build state, before relying on
   it. The source hierarchy above governs; a checkpoint never overrides it, even
   when more recent.
-- Single-consumption, one live instance per lane. A checkpoint exists to be consumed once; the consuming lane deletes it after recovery checks run and live state is re-established. Refresh by overwriting in place under a stable name — do not accumulate `_v2`/`_v3` copies. A checkpoint whose work has landed (committed/settled) is retired by deletion.
+- Single-consumption, one live instance per lane. A checkpoint exists to be consumed once; the consuming lane deletes it after recovery checks run and live state is re-established. Refresh by overwriting in place under a stable name — do not accumulate `_v2`/`_v3` copies. A checkpoint whose work has landed (committed/settled) is retired by deletion. A transport-only commit that stabilizes packet bytes for a receiver does not mean the underlying work has landed.
 - Point, do not copy. When a checkpoint must carry a volatile fact, record a
   pointer plus a re-confirm instruction (for example "authorization -> <decision>;
   build state -> glob disk"), not a copied snapshot that silently goes stale.
