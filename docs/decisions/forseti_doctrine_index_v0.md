@@ -73,13 +73,13 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 | Ontology<->Runtime Drift-Check Contract (W2b leak-surface semantics) | ontology_runtime_drift_check_contract_v0.md | OWNER-RATIFIED 2026-06-19 — `check_ontology_drift.py --strict` in ci.yml |
 | Repo-Map Architecture (Mini God Tier) — map/submap/header tiers, generated index/health, recent-change satellite, promotion-on-touch + coverage invariant | forseti_repo_map_architecture_mgt_v0.md | OWNER-LOCKED STACK 2026-07-02 (design lens; reachability gated by `check_map_links`; generated inventory/health by `header_index`) |
 
-## Product-lane doctrine (docs/product/)
+## Product-spine doctrine (`forseti/product/`)
 
 | Doctrine | File | Status |
 | --- | --- | --- |
-| Claim defense (external claims policy) | product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md | OWNER_SIGNED_OPERATIVE 2026-06-11 |
-| Judgment-spine evidence ladder | judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md | ACTIVE (claim-tier architecture) |
-| Data-capture obligation contract | data_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0.md | CONTRACT_DRAFT_V0 (doctrine-adjacent) |
+| Claim defense (external claims policy) | `forseti/product/spines/product_lead/proof_charter/forseti_claim_defense_doctrine_v0.md` | OWNER_SIGNED_OPERATIVE 2026-06-11 |
+| Judgment-spine evidence ladder | `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md` | ACTIVE (claim-tier architecture) |
+| Data-capture obligation contract | `forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md` | CONTRACT_DRAFT_V0_AMENDED_2026_06_05 (doctrine-adjacent) |
 
 ## Dropped (do not re-open without a dated owner decision)
 

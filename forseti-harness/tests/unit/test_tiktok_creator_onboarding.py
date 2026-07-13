@@ -109,12 +109,12 @@ def _profile() -> SourceCaptureSessionProfile:
         required_harness_proxy_profile_posture=(
             HarnessProxyProfilePosture.NO_PROXY_PROFILE_LOADED
         ),
-        browser_backend="cloakbrowser",
+        browser_backend="chrome_cdp",
         challenge_policy=OWNER_HANDOFF_BEFORE_ACTION,
     )
 
 
-def test_runner_defaults_cold_agents_to_cookie_backed_session_alias(tmp_path: Path) -> None:
+def test_runner_defaults_cold_agents_to_retained_chrome_session_alias(tmp_path: Path) -> None:
     args = runner.build_parser().parse_args(
         [
             "--creator-handle",
@@ -298,6 +298,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         "https://www.tiktok.com/@creator/video/2",
         "https://www.tiktok.com/@creator/video/1",
     ]
+    assert "cloakbrowser_humanize" not in deep_calls[0]
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
     assert receipt["status"] == "complete"
     assert receipt["session_profile"] == "chowdakr_sg_tiktok"
@@ -306,6 +307,8 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert receipt["window_cap"] == 4
     assert receipt["suggested_accounts_status_or_none"] == "captured"
     assert receipt["completed_deep_capture_count"] == 2
+    assert receipt["challenge_count"] == 0
+    assert receipt["human_challenge_handoff_count"] == 0
 
 
 def test_grid_below_fixed_selection_count_fails_before_deep_capture(
