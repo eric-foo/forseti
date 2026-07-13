@@ -62,7 +62,7 @@ def test_grid_packet_preserves_supplied_grid_bytes_exactly(tmp_path: Path) -> No
 def test_grid_packet_requires_explicit_observed_time_when_receipt_has_none(
     tmp_path: Path,
 ) -> None:
-    with pytest.raises(ValueError, match="requires observed_at_utc"):
+    with pytest.raises(ValueError, match="source-backed UTC capture time"):
         write_tiktok_grid_packet(
             grid_window_json=_grid_bytes(observed_at=None),
             output_directory=tmp_path / "missing-time",
@@ -74,3 +74,46 @@ def test_grid_packet_requires_explicit_observed_time_when_receipt_has_none(
         output_directory=tmp_path / "explicit-time",
     )
     assert code == 0
+
+
+def test_grid_packet_rejects_explicit_time_conflicting_with_receipt(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(ValueError, match="conflicts with"):
+        write_tiktok_grid_packet(
+            grid_window_json=_grid_bytes(observed_at="2026-07-13T01:02:03Z"),
+            observed_at_utc="2026-07-14T00:00:00Z",
+            output_directory=tmp_path / "conflicting-time",
+        )
+
+
+def test_grid_packet_accepts_explicit_time_matching_receipt_instant(
+    tmp_path: Path,
+) -> None:
+    code, _ = write_tiktok_grid_packet(
+        grid_window_json=_grid_bytes(observed_at="2026-07-13T01:02:03Z"),
+        observed_at_utc="2026-07-13T01:02:03+00:00",
+        output_directory=tmp_path / "matching-time",
+    )
+    assert code == 0
+
+
+def test_grid_packet_rejects_malformed_receipt_time_even_with_override(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(ValueError):
+        write_tiktok_grid_packet(
+            grid_window_json=_grid_bytes(observed_at="yesterday"),
+            observed_at_utc="2026-07-13T01:02:03Z",
+            output_directory=tmp_path / "malformed-receipt-time",
+        )
+
+
+def test_grid_packet_rejects_video_url_on_non_tiktok_host(tmp_path: Path) -> None:
+    payload = json.loads(_grid_bytes().decode("utf-8"))
+    payload["items"][0]["video_url"] = "https://evil.example/@creator/video/101"
+    with pytest.raises(ValueError, match="does not bind"):
+        write_tiktok_grid_packet(
+            grid_window_json=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
+            output_directory=tmp_path / "wrong-host",
+        )

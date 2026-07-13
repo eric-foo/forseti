@@ -229,6 +229,10 @@ def _validate_metric_observation_set(observation: Mapping[str, Any]) -> None:
             raise SilverRecordError(
                 f"MetricObservationSet row {index} requires namespace/kind/native_id identity."
             )
+        if identity[0] != platform:
+            raise SilverRecordError(
+                f"MetricObservationSet row {index} subject namespace must equal platform."
+            )
         if identity in seen_subjects:
             raise SilverRecordError(
                 f"MetricObservationSet contains duplicate row subject {identity!r}."

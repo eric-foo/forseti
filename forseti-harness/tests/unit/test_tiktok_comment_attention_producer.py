@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import json
 import hashlib
+from types import SimpleNamespace
+
+import pytest
 
 from capture_spine.creator_profile_current.tiktok_comment_attention_producer import (
     COMMENT_ATTENTION_LANE,
@@ -9,10 +12,13 @@ from capture_spine.creator_profile_current.tiktok_comment_attention_producer imp
     COMMENT_ATTENTION_POLICY_FINGERPRINT,
     build_comment_attention_records,
 )
+from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot
 from data_lake.silver_lineage import SOURCE_BACKED_COMPLETE_STATUS, silver_record_source_backed_status
+from runners import run_tiktok_comment_attention_producer as runner
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
 from test_tiktok_creator_metric_seed import CAPTURE_T1, _commit_batch_packet, _stats, _video
+from test_tiktok_grid_observation_producer import _admit_grid
 
 
 def _comment_video(*, video_likes: int = 1000) -> dict:
@@ -115,3 +121,51 @@ def test_runner_appends_once_and_ack_skips_unchanged_packet(tmp_path) -> None:
 
     assert run_comment_attention(data_root=data_root) == []
     assert len(list(lane.iterdir())) == 2
+
+
+def test_runner_acknowledges_grid_packet_as_not_applicable(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _admit_grid(
+        data_root,
+        observed_at="2026-07-12T00:00:00Z",
+        play_count=100,
+        like_count=10,
+        comment_count=2,
+    )
+
+    assert runner.run_catchup(data_root=data_root) == [
+        {"packet_id": packet_id, "status": "not_applicable"}
+    ]
+    acks = find_acks(
+        data_root,
+        raw_anchor=packet_id,
+        ack_namespace=COMMENT_ATTENTION_LANE,
+    )
+    assert len(acks) == 1
+    assert acks[0]["evidence"][0]["kind"] == "not_applicable_non_batch_tiktok_packet"
+    assert runner.pending_packets(data_root=data_root) == []
+
+
+def test_main_exit_code_fails_on_availability_reconcile_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        runner,
+        "DataLakeRoot",
+        SimpleNamespace(resolve=lambda **_kwargs: object()),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_catchup",
+        lambda **_kwargs: [
+            {
+                "packet_id": "01PACKET",
+                "status": "availability_reconcile_failed",
+                "error": "OSError: simulated locked availability entry",
+            }
+        ],
+    )
+
+    assert runner.main(["--data-root", "ignored"]) == 1
+    assert "availability_reconcile_failed" in capsys.readouterr().out

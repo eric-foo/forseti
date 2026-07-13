@@ -10,6 +10,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping
+from urllib.parse import urlparse
 
 from source_capture.models import (
     CaptureModeCategory,
@@ -59,10 +60,17 @@ def write_tiktok_grid_packet(
             raise ValueError(f"TikTok grid item {index} must be an object")
         video_id = _required_text(raw_item.get("video_id"), f"items[{index}].video_id")
         video_url = _required_text(raw_item.get("video_url"), f"items[{index}].video_url")
-        expected_suffix = f"/@{creator_handle}/video/{video_id}"
-        if not video_url.rstrip("/").endswith(expected_suffix):
+        parsed = urlparse(video_url)
+        host = parsed.hostname.lower() if parsed.hostname else ""
+        expected_path = f"/@{creator_handle}/video/{video_id}".lower()
+        if (
+            parsed.scheme not in {"http", "https"}
+            or not (host == "tiktok.com" or host.endswith(".tiktok.com"))
+            or parsed.path.rstrip("/").lower() != expected_path
+        ):
             raise ValueError(
-                f"TikTok grid item {index} URL does not bind creator_handle and video_id"
+                f"TikTok grid item {index} URL does not bind creator_handle and video_id "
+                "on a canonical TikTok host"
             )
         video_ids.append(video_id)
     if len(set(video_ids)) != len(video_ids):
@@ -70,7 +78,17 @@ def write_tiktok_grid_packet(
 
     receipt = grid.get("collection_receipt")
     receipt_time = receipt.get("capture_timestamp") if isinstance(receipt, Mapping) else None
-    observed_at = _required_utc(observed_at_utc or receipt_time)
+    if receipt_time is not None:
+        # The artifact's own collection receipt is the source-backed capture time;
+        # an explicit observed_at_utc may only confirm it, never replace it.
+        observed_at = _required_utc(receipt_time)
+        if observed_at_utc and _required_utc(observed_at_utc) != observed_at:
+            raise ValueError(
+                "TikTok grid observed_at_utc conflicts with the artifact's "
+                "collection_receipt capture_timestamp"
+            )
+    else:
+        observed_at = _required_utc(observed_at_utc)
     profile_url = f"https://www.tiktok.com/@{creator_handle}"
     staged_artifacts = [(TIKTOK_GRID_WINDOW_JSON_NAME, grid_window_json)]
     file_ids = staged_file_id_map(staged_artifacts)
@@ -165,7 +183,8 @@ def _required_text(value: object, field: str) -> str:
 def _required_utc(value: object) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(
-            "TikTok grid admission requires observed_at_utc when the grid receipt lacks capture_timestamp"
+            "TikTok grid admission requires a source-backed UTC capture time "
+            "(collection_receipt.capture_timestamp, or observed_at_utc when the receipt lacks one)"
         )
     text = value.strip()
     parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
