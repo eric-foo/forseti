@@ -189,6 +189,15 @@ marker does not clear, scripted actions stay suppressed and capture fails closed
 The agent must not drag or solve the puzzle, and any manual owner action is
 source-access intervention rather than clean capture.
 
+An account-risk warning, unexpected logged-out/comment-auth wall, or `/login`
+redirect is different from a CAPTCHA. It is a terminal account-safety stop:
+scripted actions are suppressed before the next pointer action, automatic retry
+is forbidden, Chrome remains open, and the operator checks TikTok Security
+Alerts before starting a new run. Check Account Status only when login remains
+restricted or another account capability appears limited. A CAPTCHA that the
+owner clears successfully may continue the current batch; CAPTCHA presence
+alone is not this circuit breaker.
+
 For supervised creator onboarding with an already-running retained Chrome CDP
 session, invoke the onboarding runner directly. It owns the Creator Registry
 preflight and session-alias resolution; do not precede it with separate registry,

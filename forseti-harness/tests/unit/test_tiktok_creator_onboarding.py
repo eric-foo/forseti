@@ -320,6 +320,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert receipt["completed_deep_capture_count"] == 2
     assert receipt["challenge_count"] == 0
     assert receipt["human_challenge_handoff_count"] == 0
+    assert receipt["account_safety_stop"] is False
 
 
 def test_grid_below_fixed_selection_count_fails_before_deep_capture(
@@ -373,6 +374,24 @@ def test_grid_below_fixed_selection_count_fails_before_deep_capture(
     assert receipt["error_or_none"].startswith("TikTokCreatorOnboardingError:")
 
 
+def test_account_safety_stop_detection_reads_failure_triage_only() -> None:
+    assert onboarding._has_account_safety_stop(
+        {
+            "failures": [
+                {
+                    "blocker_triage": {
+                        "account_safety_stop": True,
+                        "automatic_retry_allowed": False,
+                    }
+                }
+            ]
+        }
+    ) is True
+    assert onboarding._has_account_safety_stop(
+        {"failures": [{"blocker_triage": {"challenge_kind": "captcha"}}]}
+    ) is False
+
+
 def test_onboarding_cli_emits_machine_readable_progress_and_blocker(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -386,6 +405,47 @@ def test_onboarding_cli_emits_machine_readable_progress_and_blocker(
         runner.BLOCKER_PREFIX
         + '{"code": "CDP_UNREACHABLE", "phase": "preflight"}',
     ]
+
+
+def test_onboarding_cli_emits_dedicated_account_safety_stop(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        runner,
+        "_write_creator_registry_preflight",
+        lambda **_kwargs: (
+            tmp_path / runner.REGISTRY_PREFLIGHT_JSON_NAME,
+            {"action_status": "allowed"},
+        ),
+    )
+    monkeypatch.setattr(
+        runner, "default_session_profile_auth_state_root", lambda: tmp_path
+    )
+    monkeypatch.setattr(
+        runner, "resolve_session_profile", lambda *_args, **_kwargs: object()
+    )
+
+    def account_safety_stop(**_kwargs: object) -> object:
+        raise TikTokCreatorOnboardingError("account_safety_stop")
+
+    monkeypatch.setattr(runner, "run_tiktok_creator_onboarding", account_safety_stop)
+
+    with pytest.raises(SystemExit) as exc_info:
+        runner.main(
+            [
+                "--creator-handle",
+                "creator",
+                "--output-dir",
+                str(tmp_path / "out"),
+            ]
+        )
+
+    assert exc_info.value.code == 2
+    assert runner.BLOCKER_PREFIX + (
+        '{"code": "ACCOUNT_SAFETY_STOP", "phase": "deep_capture"}'
+    ) in capsys.readouterr().out.splitlines()
 
 
 def test_onboarding_cli_defaults_to_fixed_top_eight_and_eight_thirteen_range() -> None:

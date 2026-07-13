@@ -166,7 +166,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             progress_fn=_emit_progress,
         )
     except (OSError, ValueError, TikTokCreatorOnboardingError) as exc:
-        _emit_blocker("ONBOARDING_PRECHECK_OR_CAPTURE_FAILED", "onboarding")
+        if str(exc) == "account_safety_stop":
+            _emit_blocker("ACCOUNT_SAFETY_STOP", "deep_capture")
+        else:
+            _emit_blocker(
+                "ONBOARDING_PRECHECK_OR_CAPTURE_FAILED", "onboarding"
+            )
         parser.exit(
             status=2,
             message=f"source capture tiktok creator onboarding failed: {exc}\n",

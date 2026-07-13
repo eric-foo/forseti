@@ -661,6 +661,7 @@ class _PlaywrightBrowserSnapshotEngine:
         *,
         browser_backend: str = BROWSER_BACKEND_PLAYWRIGHT,
         cloakbrowser_humanize: bool = False,
+        pre_action_stop_markers: Sequence[str] = (),
         human_challenge_handoff_markers: Sequence[str] = (),
         human_challenge_handoff_after_action_names: Sequence[str] = (),
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -668,6 +669,9 @@ class _PlaywrightBrowserSnapshotEngine:
     ) -> None:
         self.browser_backend = browser_backend
         self.cloakbrowser_humanize = bool(cloakbrowser_humanize)
+        self.pre_action_stop_markers = tuple(
+            marker.strip().lower() for marker in pre_action_stop_markers if marker.strip()
+        )
         self.human_challenge_handoff_markers = tuple(human_challenge_handoff_markers)
         self.human_challenge_handoff_after_action_names = tuple(
             human_challenge_handoff_after_action_names
@@ -896,6 +900,22 @@ class _PlaywrightBrowserSnapshotEngine:
                             )
                     pointer_action_receipt: dict[str, object] | None = None
                     pointer_action_receipts: list[dict[str, object]] = []
+                    pre_action_stop_receipts: list[dict[str, object]] = []
+
+                    def maybe_stop_before_action(after_action_name: str) -> bool:
+                        receipt = _pre_action_stop_marker_receipt(
+                            page,
+                            markers=self.pre_action_stop_markers,
+                            after_action_name=after_action_name,
+                        )
+                        if receipt is None:
+                            return False
+                        pre_action_stop_receipts.append(receipt)
+                        warning_notes.append(
+                            "browser_page_observation terminal account-safety marker "
+                            "suppressed scripted actions"
+                        )
+                        return True
                     human_challenge_handoff_receipts: list[dict[str, object]] = []
 
                     def maybe_run_handoff(after_action_name: str) -> bool:
@@ -920,8 +940,14 @@ class _PlaywrightBrowserSnapshotEngine:
                         )
                         return True
 
-                    pointer_actions_suppressed = maybe_run_handoff(
-                        PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
+                    pointer_actions_suppressed_by_pre_action_stop = (
+                        maybe_stop_before_action(
+                            PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
+                        )
+                    )
+                    pointer_actions_suppressed = (
+                        pointer_actions_suppressed_by_pre_action_stop
+                        or maybe_run_handoff(PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME)
                     )
                     if pointer_actions_suppressed:
                         warning_notes.append(
@@ -938,8 +964,9 @@ class _PlaywrightBrowserSnapshotEngine:
                                 observed_response_count=observed_response_count,
                             )
                             pointer_action_receipts.append(pointer_action_receipt)
-                            pointer_actions_suppressed = maybe_run_handoff(
-                                post_load_pointer_action.action_name
+                            pointer_actions_suppressed = (
+                                maybe_stop_before_action(post_load_pointer_action.action_name)
+                                or maybe_run_handoff(post_load_pointer_action.action_name)
                             )
                         for pointer_action in post_load_pointer_actions:
                             pointer_action_receipt = _run_pointer_action(
@@ -948,6 +975,9 @@ class _PlaywrightBrowserSnapshotEngine:
                                 observed_response_count=observed_response_count,
                             )
                             pointer_action_receipts.append(pointer_action_receipt)
+                            if maybe_stop_before_action(pointer_action.action_name):
+                                pointer_actions_suppressed = True
+                                break
                             if maybe_run_handoff(pointer_action.action_name):
                                 pointer_actions_suppressed = True
                                 break
@@ -1043,9 +1073,16 @@ class _PlaywrightBrowserSnapshotEngine:
                             self.human_challenge_handoff_timeout_seconds
                         ),
                         "human_challenge_handoff_attempts": human_challenge_handoff_receipts,
+                        "pre_action_stop_marker_count": len(self.pre_action_stop_markers),
+                        "pre_action_stop_attempts": pre_action_stop_receipts,
+                        "pointer_actions_suppressed_by_pre_action_stop": bool(
+                            pre_action_stop_receipts
+                        ),
                         "viewport_width": viewport_width,
                         "viewport_height": viewport_height,
-                        "pointer_actions_suppressed_by_human_challenge_handoff": pointer_actions_suppressed,
+                        "pointer_actions_suppressed_by_human_challenge_handoff": (
+                            pointer_actions_suppressed and bool(human_challenge_handoff_receipts)
+                        ),
                         "storage_state_loaded": storage_state_path is not None,
                         "blocked_resource_types": sorted(blocked_resource_types),
                         "max_response_bytes": max_response_bytes,
@@ -1198,6 +1235,7 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
         self,
         *,
         cloakbrowser_humanize: bool = False,
+        pre_action_stop_markers: Sequence[str] = (),
         human_challenge_handoff_markers: Sequence[str] = (),
         human_challenge_handoff_after_action_names: Sequence[str] = (),
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -1206,6 +1244,7 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
         super().__init__(
             browser_backend=BROWSER_BACKEND_CLOAKBROWSER,
             cloakbrowser_humanize=cloakbrowser_humanize,
+            pre_action_stop_markers=pre_action_stop_markers,
             human_challenge_handoff_markers=human_challenge_handoff_markers,
             human_challenge_handoff_after_action_names=human_challenge_handoff_after_action_names,
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
@@ -1319,6 +1358,22 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                         )
                 pointer_action_receipt: dict[str, object] | None = None
                 pointer_action_receipts: list[dict[str, object]] = []
+                pre_action_stop_receipts: list[dict[str, object]] = []
+
+                def maybe_stop_before_action(after_action_name: str) -> bool:
+                    receipt = _pre_action_stop_marker_receipt(
+                        page,
+                        markers=self.pre_action_stop_markers,
+                        after_action_name=after_action_name,
+                    )
+                    if receipt is None:
+                        return False
+                    pre_action_stop_receipts.append(receipt)
+                    warning_notes.append(
+                        "browser_page_observation terminal account-safety marker "
+                        "suppressed scripted actions"
+                    )
+                    return True
                 human_challenge_handoff_receipts: list[dict[str, object]] = []
 
                 def maybe_run_handoff(after_action_name: str) -> bool:
@@ -1343,8 +1398,14 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                     )
                     return True
 
-                pointer_actions_suppressed = maybe_run_handoff(
-                    PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
+                pointer_actions_suppressed_by_pre_action_stop = (
+                    maybe_stop_before_action(
+                        PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
+                    )
+                )
+                pointer_actions_suppressed = (
+                    pointer_actions_suppressed_by_pre_action_stop
+                    or maybe_run_handoff(PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME)
                 )
                 if pointer_actions_suppressed:
                     warning_notes.append(
@@ -1361,8 +1422,9 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                             observed_response_count=observed_response_count,
                         )
                         pointer_action_receipts.append(pointer_action_receipt)
-                        pointer_actions_suppressed = maybe_run_handoff(
-                            post_load_pointer_action.action_name
+                        pointer_actions_suppressed = (
+                            maybe_stop_before_action(post_load_pointer_action.action_name)
+                            or maybe_run_handoff(post_load_pointer_action.action_name)
                         )
                     for pointer_action in post_load_pointer_actions:
                         pointer_action_receipt = _run_pointer_action(
@@ -1371,6 +1433,9 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                             observed_response_count=observed_response_count,
                         )
                         pointer_action_receipts.append(pointer_action_receipt)
+                        if maybe_stop_before_action(pointer_action.action_name):
+                            pointer_actions_suppressed = True
+                            break
                         if maybe_run_handoff(pointer_action.action_name):
                             pointer_actions_suppressed = True
                             break
@@ -1466,12 +1531,19 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                         self.human_challenge_handoff_timeout_seconds
                     ),
                     "human_challenge_handoff_attempts": human_challenge_handoff_receipts,
+                    "pre_action_stop_marker_count": len(self.pre_action_stop_markers),
+                    "pre_action_stop_attempts": pre_action_stop_receipts,
+                    "pointer_actions_suppressed_by_pre_action_stop": bool(
+                        pre_action_stop_receipts
+                    ),
                     "viewport_width": viewport_width,
                     "viewport_height": viewport_height,
                     "storage_state_loaded": storage_state_path is not None,
                     "blocked_resource_types": sorted(blocked_resource_types),
                     "max_response_bytes": max_response_bytes,
-                    "pointer_actions_suppressed_by_human_challenge_handoff": pointer_actions_suppressed,
+                    "pointer_actions_suppressed_by_human_challenge_handoff": (
+                        pointer_actions_suppressed and bool(human_challenge_handoff_receipts)
+                    ),
                     "response_count": len(responses),
                     **_proxy_metadata(proxy_profile),
                 }
@@ -1529,6 +1601,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         self,
         *,
         cdp_endpoint: str = "http://127.0.0.1:9222",
+        pre_action_stop_markers: Sequence[str] = (),
         human_challenge_handoff_markers: Sequence[str] = (),
         human_challenge_handoff_after_action_names: Sequence[str] = (),
         human_challenge_handoff_timeout_seconds: float = DEFAULT_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
@@ -1537,6 +1610,7 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
     ) -> None:
         super().__init__(
             cloakbrowser_humanize=False,
+            pre_action_stop_markers=pre_action_stop_markers,
             human_challenge_handoff_markers=human_challenge_handoff_markers,
             human_challenge_handoff_after_action_names=human_challenge_handoff_after_action_names,
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
@@ -2575,6 +2649,45 @@ def _should_stop_pointer_action_sequence(
     if not clicked:
         return True
     return not _post_click_verification_accepted(receipt)
+
+
+def _pre_action_stop_marker_receipt(
+    page: object,
+    *,
+    markers: Sequence[str],
+    after_action_name: str,
+) -> dict[str, object] | None:
+    if not markers:
+        return None
+    match = _page_text_marker_match_result(page, markers)
+    if match.get("matched") is not True:
+        current_url = str(getattr(page, "url", "")).lower()
+        url_marker = next(
+            (
+                marker
+                for marker in markers
+                if marker.startswith("/") and marker in current_url
+            ),
+            None,
+        )
+        if url_marker is None:
+            return None
+        match = {
+            "matched": True,
+            "matched_marker": url_marker,
+            "marker_count": len(markers),
+        }
+    return {
+        "action_name": "pre_action_terminal_stop_v0",
+        "action_mode": "account_safety_circuit_breaker",
+        "action_taken": False,
+        "after_action_name": after_action_name,
+        "matched_marker": match.get("matched_marker"),
+        "marker_count": match.get("marker_count"),
+        "scripted_actions_suppressed": True,
+        "automatic_retry_allowed": False,
+    }
+
 
 def _run_human_challenge_handoff(
     page: object,

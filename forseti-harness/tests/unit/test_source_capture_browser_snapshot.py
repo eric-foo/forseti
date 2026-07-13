@@ -1186,6 +1186,65 @@ def test_post_action_handoff_stops_remaining_actions_when_challenge_persists(
     assert attempts[0]["timeout_exceeded"] is True
 
 
+def test_page_load_account_safety_stop_suppresses_actions_without_handoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+        marker_match_results=[
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "account might be at risk",
+                "marker_count": 1,
+            }
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+    monkeypatch.setattr(
+        browser_snapshot_module,
+        "_show_human_challenge_prompt",
+        lambda _prompt: pytest.fail("account safety stop must not prompt CAPTCHA handoff"),
+    )
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        pre_action_stop_markers=("account might be at risk",),
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="must_not_run",
+                candidate_selector="button",
+                text_markers=("continue",),
+                wait_after_ms=0,
+            ),
+        ),
+    )
+
+    assert result.metadata["pointer_actions_suppressed_by_pre_action_stop"] is True
+    assert result.metadata["pointer_actions_suppressed_by_human_challenge_handoff"] is False
+    assert result.metadata["human_challenge_handoff_attempts"] == []
+    assert result.metadata["post_load_pointer_actions"] == []
+    assert result.metadata["pre_action_stop_attempts"][0]["automatic_retry_allowed"] is False
+    assert "pointer_target_lookup" not in event_log
+    assert "mouse_click" not in event_log
+
+
 def test_page_load_handoff_suppresses_pointer_actions_until_challenge_clears(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1340,6 +1399,69 @@ def test_cloakbrowser_page_load_handoff_suppresses_pointer_actions(
     )
     assert attempt["cleared"] is False
     assert attempt["timeout_exceeded"] is True
+
+
+def test_cloakbrowser_account_safety_stop_suppresses_actions_without_handoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+        marker_match_results=[
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "account might be at risk",
+                "marker_count": 1,
+            }
+        ],
+    )
+    fake_cloakbrowser = _FakeCloakBrowserModule(page)
+
+    def fake_import_module(name: str) -> object:
+        if name == "cloakbrowser":
+            return fake_cloakbrowser
+        raise ModuleNotFoundError(name)
+
+    monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
+    monkeypatch.setattr(
+        browser_snapshot_module,
+        "_show_human_challenge_prompt",
+        lambda _prompt: pytest.fail("account safety stop must not prompt CAPTCHA handoff"),
+    )
+
+    result = browser_snapshot_module._CloakBrowserPageObservationEngine(
+        pre_action_stop_markers=("account might be at risk",),
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda _url: False,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="must_not_run",
+                candidate_selector="button",
+                text_markers=("continue",),
+                wait_after_ms=0,
+            ),
+        ),
+    )
+
+    assert result.metadata["pointer_actions_suppressed_by_pre_action_stop"] is True
+    assert result.metadata["human_challenge_handoff_attempts"] == []
+    assert result.metadata["post_load_pointer_actions"] == []
+    assert "mouse_click" not in event_log
 
 
 def test_pointer_action_target_script_matches_data_attributes() -> None:

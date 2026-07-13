@@ -149,6 +149,12 @@ TIKTOK_CHALLENGE_TEXT_MARKERS = (
     "captcha",
     "security check",
 )
+TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS = (
+    "your account might be at risk",
+    "account might be at risk",
+    "log in to comment",
+    "/login",
+)
 TIKTOK_BROWSER_BACKEND_DEFAULT = "play" + "wright"
 TIKTOK_BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
 TIKTOK_BROWSER_BACKEND_CHROME_CDP = "chrome_cdp"
@@ -312,6 +318,7 @@ def run_tiktok_live_batch_probe(
     if engine is None and normalized_browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER:
         observation_engine = CloakBrowserPageObservationSessionEngine(
             cloakbrowser_humanize=cloakbrowser_humanize,
+            pre_action_stop_markers=TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS,
             human_challenge_handoff_markers=(
                 TIKTOK_CHALLENGE_TEXT_MARKERS if human_challenge_handoff else ()
             ),
@@ -831,6 +838,14 @@ def _blocker_triage_receipt(triage: TikTokBlockerTriage) -> JsonObject:
     receipt = triage.to_receipt()
     receipt["action_mode"] = "classification_only"
     receipt["action_taken"] = False
+    if triage.challenge_kind in {
+        "account_risk",
+        "logged_out_or_auth_wall",
+        "login_or_auth_wall",
+    }:
+        receipt["account_safety_stop"] = True
+        receipt["automatic_retry_allowed"] = False
+        receipt["operator_next_action"] = "review_security_alerts_before_new_run"
     return receipt
 
 
@@ -2291,6 +2306,9 @@ def _capture_contract(
         "address_bar_simulation": False,
         "referrer_spoofing": False,
         "return_to_grid_between_videos": False,
+        "account_safety_pre_action_circuit_breaker": True,
+        "account_safety_automatic_retry": False,
+        "cleared_human_captcha_continues_batch": True,
         "browser_backend": browser_backend,
         "required_harness_proxy_profile_posture": (
             required_harness_proxy_profile_posture.value

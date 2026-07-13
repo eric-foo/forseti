@@ -31,6 +31,7 @@ from source_capture.tiktok.admission import (
 )
 from source_capture.tiktok.grid_video_selection import build_tiktok_grid_video_selection
 from source_capture.tiktok.live_batch_probe import (
+    TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS,
     TIKTOK_BROWSER_BACKEND_CHROME_CDP,
     TIKTOK_SUPERVISED_DEFAULT_CADENCE_MAX_GAP_SECONDS,
     TIKTOK_SUPERVISED_DEFAULT_CADENCE_MIN_GAP_SECONDS,
@@ -235,6 +236,7 @@ def run_tiktok_creator_onboarding(
                 "retained browser profile is missing or empty; bootstrap it manually before onboarding"
             )
         observation_engine = ChromeCdpPageObservationSessionEngine(
+            pre_action_stop_markers=TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS,
             human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
             human_challenge_handoff_timeout_seconds=180.0,
             human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
@@ -250,6 +252,7 @@ def run_tiktok_creator_onboarding(
     challenge_count = 0
     human_challenge_handoff_count = 0
     completed_count = 0
+    account_safety_stop = False
     suggested_status: str | None = None
     artifacts_written: list[str] = []
     try:
@@ -364,12 +367,17 @@ def run_tiktok_creator_onboarding(
             )
         )
         completed_count = int(deep_capture["cadence_result"]["completed_count"])
+        account_safety_stop = _has_account_safety_stop(
+            deep_capture["cadence_result"]
+        )
         status = (
             "complete"
             if completed_count == len(selected_video_ids)
             else "partial_failure"
         )
         if status != "complete":
+            if account_safety_stop:
+                raise TikTokCreatorOnboardingError("account_safety_stop")
             raise TikTokCreatorOnboardingError(
                 "one or more selected video deep captures did not complete"
             )
@@ -404,6 +412,7 @@ def run_tiktok_creator_onboarding(
             "selected_count": len(selected_video_ids),
             "challenge_count": challenge_count,
             "human_challenge_handoff_count": human_challenge_handoff_count,
+            "account_safety_stop": account_safety_stop,
             "completed_deep_capture_count": completed_count,
             "artifacts_written": artifacts_written,
             "browser_lifecycle": (
@@ -735,6 +744,21 @@ def _notify_progress(
 ) -> None:
     if progress_fn is not None:
         progress_fn(event, dict(fields))
+
+
+def _has_account_safety_stop(cadence_result: object) -> bool:
+    if not isinstance(cadence_result, dict):
+        return False
+    failures = cadence_result.get("failures")
+    if not isinstance(failures, list):
+        return False
+    for failure in failures:
+        if not isinstance(failure, dict):
+            continue
+        triage = failure.get("blocker_triage")
+        if isinstance(triage, dict) and triage.get("account_safety_stop") is True:
+            return True
+    return False
 
 
 def _dedupe_metric_items(items: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
