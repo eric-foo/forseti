@@ -363,7 +363,11 @@ A handoff-only packet has two distinct lifecycle states:
 
 - **Dispatch-ready / transport.** The receiving cold lane can resolve the exact
   packet bytes through its actual receiver mechanism before dispatch. Commit is
-  the stable local transport boundary. The courier/context identifies the
+  the stable local transport boundary; once its SHA is couriered as the packet's
+  revision handle, that commit is not rewritten (no amend, rebase, or squash) for
+  the packet's transport lifetime, and a required history change re-couriers the
+  new SHA, because a `git show <sha>:<path>` fallback resolves nothing against an
+  orphaned SHA. The courier/context identifies the
   repository or worktree access route, repository-relative packet path,
   branch/ref and commit SHA when revision access is needed, and an explicit
   fallback such as `git show <sha>:<path>`. Include a same-filesystem absolute
