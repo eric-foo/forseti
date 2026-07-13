@@ -63,6 +63,18 @@ outcome rather than a safer or more resilient downstream posture. If none,
 exclude it; at most note a deferred risk and upgrade trigger. Include necessary
 supporting work, and surface the tradeoff when it materially increases lock-in.
 
+### Artifact-Level Smallest Complete Intervention
+
+Create a separate durable artifact only when it serves a distinct future
+consumer, outcome, or lifecycle that an existing artifact cannot serve without
+becoming materially less usable. The artifact must be usable without
+reconstructing the authoring chat and must name the material authority,
+currentness, and next-source facts a future consumer needs to use it correctly.
+Prefer updating the owning source and pointing to it over duplicating authority
+or specifications; do not create speculative registries or maintenance
+surfaces. When an artifact is materially touched, reconcile any affected
+supersession, retirement, and live-router entries in the same work unit.
+
 ## Decision Priority
 
 When multiple options already satisfy real failure visibility and Smallest
@@ -133,7 +145,7 @@ Run the Forseti Cynefin Routing Layer before planning or delegation when uncerta
 
 Every durable prompt, handoff, wrapper, rerun, or patch prompt applies the prompt contract; do not author one that skips it. Routine prompts apply the **Forseti Prompt Preflight** core inline (the ~12-line core in `.agents/workflow-overlay/prompt-orchestration.md`) -- no skill reload. A lane-scoped, operator-couriered delegated review-and-patch prompt whose goal, clean target worktree, revision, named file scope, patch authority, and validation route are already bound uses that same pointer-first core plus one fresh target-state read; delegation or patch authorization alone does not trigger the full `workflow-prompt-orchestrator`. Use the full orchestrator only when the **Full orchestration** predicate in `.agents/workflow-overlay/prompt-orchestration.md` applies, including owner-invoked Mini God Tier. In Forseti, a resolver-loaded generic prompt or delegated-review skill must defer to this project-owned routing depth: its generic always-orchestrate default does not override an eligible compact route, while its review mechanics and safeguards still apply. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain governed by this contract. The owning rule, eligibility test, required compact fields, MGT expansion, and fallback blockers are in `.agents/workflow-overlay/prompt-orchestration.md`.
 
-When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`. When a repo-changing work unit completes verified on its own lane branch or worktree, proceed to commit, push, and PR preparation without waiting for a typed instruction; the `settings.json` permission prompts on push and PR actions are the owner gate. Landing to `main` stays human-gated, except an agent may self-merge its **own** PR under the protected-action guard's verified exception (else it fails closed to a human merge). See `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
+When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. Before dispatching parallel repo-changing work, also bind a receiver mechanism whose actual write root matches that isolation; a separate worktree requires a worktree-rooted receiver, not an in-session collaboration subagent merely pointed at the path. The owning selection and pre-dispatch blocker rule is `.agents/workflow-overlay/decision-routing.md`. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`. When a repo-changing work unit completes verified on its own lane branch or worktree, proceed to commit, push, and PR preparation without waiting for a typed instruction; the `settings.json` permission prompts on push and PR actions are the owner gate. Landing to `main` stays human-gated, except an agent may self-merge its **own** PR under the protected-action guard's verified exception (else it fails closed to a human merge). See `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
 
 Do not treat `jb` rules, paths, handoffs, lifecycle mechanics, product policy, validation habits, or external workflow source as Forseti authority. Explicitly invoked or resolver-loaded skills may provide task-local mechanics only.
 
