@@ -567,6 +567,7 @@ def build_tiktok_grid_window(
         "complete": True,
         "items": frozen,
         "collection_receipt": {
+            "capture_timestamp": capture.metadata.get("capture_timestamp"),
             "response_count": len(capture.responses),
             "scroll_passes_executed": capture.metadata.get(
                 "lazy_load_scroll_passes_executed"
@@ -688,30 +689,30 @@ def _metric_items_from_payload(
         raw_id = node.get("id")
         if not isinstance(stats, dict) or not isinstance(raw_id, (str, int)):
             return
-        play_count = stats.get("playCount")
-        digg_count = stats.get("diggCount")
         author = node.get("author")
         author_handle = (
             str(author.get("uniqueId") or "").lstrip("@").lower()
             if isinstance(author, dict)
             else ""
         )
-        if (
-            isinstance(play_count, int)
-            and not isinstance(play_count, bool)
-            and play_count > 0
-            and isinstance(digg_count, int)
-            and not isinstance(digg_count, bool)
-            and 0 <= digg_count <= play_count
-            and (not author_handle or author_handle == normalized_handle)
-        ):
-            found.append(
-                {
-                    "video_id": str(raw_id),
-                    "playCount": play_count,
-                    "diggCount": digg_count,
-                }
-            )
+        if author_handle and author_handle != normalized_handle:
+            return
+
+        # Bronze-facing grid evidence preserves every source-present stat and
+        # every source-owned row, including a real zero-play row or a row whose
+        # ranking metrics are incomplete. Selection eligibility is a separate
+        # concern handled by grid_video_selection; dropping the row here would
+        # make later longitudinal reconstruction impossible.
+        item: dict[str, Any] = {
+            "video_id": str(raw_id),
+            "stats": dict(stats),
+        }
+        # Keep the two incumbent flat fields as compatibility mirrors while the
+        # exact source-native stats object is the fidelity-preserving home.
+        for key in ("playCount", "diggCount"):
+            if key in stats:
+                item[key] = stats[key]
+        found.append(item)
 
     def visit(node: object) -> None:
         if isinstance(node, list):

@@ -13,8 +13,8 @@ from fractions import Fraction
 from typing import Any
 
 TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION = "tiktok_grid_video_selection_v1"
-TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION = "tiktok_reach_first_fixed_count_v0"
-TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION = "tiktok_reach_first_top_fraction_v2"
+TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION = "tiktok_reach_first_fixed_count_v1"
+TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION = "tiktok_reach_first_top_fraction_v3"
 _DEFAULT_SELECTION_FRACTION = Fraction(1, 4)
 _MINIMUM_VIEW_RETENTION_PERCENT = 80
 _MINIMUM_LIKE_RATE_LIFT_PERCENT = 20
@@ -59,8 +59,14 @@ def build_tiktok_grid_video_selection(
     resolved_selection_count = selection_count or max(
         1, math.ceil(expected_item_count * normalized_selection_fraction)
     )
+    eligible = [item for item in normalized if item["selection_eligible"]]
+    if len(eligible) < resolved_selection_count:
+        raise TikTokGridVideoSelectionError(
+            "insufficient selection-eligible rows: "
+            f"required {resolved_selection_count}, found {len(eligible)}"
+        )
     reach_order = sorted(
-        normalized,
+        eligible,
         key=lambda item: (
             -item["view_count"],
             -_like_rate_fraction(item),
@@ -94,7 +100,7 @@ def build_tiktok_grid_video_selection(
         is_selected = item["video_id"] in selected_ids
         ranked_items.append(
             {
-                **item,
+                **{key: value for key, value in item.items() if key != "_source_index"},
                 "reach_rank": reach_rank,
                 "selected": is_selected,
                 "review_priority_rank_or_none": (
@@ -108,6 +114,22 @@ def build_tiktok_grid_video_selection(
                         if item["video_id"] in replaced_ids
                         else "not_selected_after_boundary_comparison"
                     )
+                ),
+            }
+        )
+    for item in sorted(
+        (row for row in normalized if not row["selection_eligible"]),
+        key=lambda row: row["_source_index"],
+    ):
+        ranked_items.append(
+            {
+                **{key: value for key, value in item.items() if key != "_source_index"},
+                "reach_rank": None,
+                "selected": False,
+                "review_priority_rank_or_none": None,
+                "exclusion_reason_or_none": (
+                    "selection_ineligible:"
+                    f"{item['selection_ineligibility_reason_or_none']}"
                 ),
             }
         )
@@ -129,6 +151,10 @@ def build_tiktok_grid_video_selection(
                 None if selection_count is not None else "ceil_with_minimum_one"
             ),
             "required_metrics": ["playCount", "diggCount"],
+            "ineligible_row_rule": (
+                "Preserve source-owned grid rows in the grid artifact and selection receipt, "
+                "but exclude rows whose playCount/diggCount cannot support the ranking recipe."
+            ),
             "membership_rule": (
                 "Start with the configured fraction or fixed count by view_count. An outside "
                 "video may replace an original view-selected incumbent only when it retains "
@@ -157,6 +183,8 @@ def build_tiktok_grid_video_selection(
         "coverage": {
             "expected_item_count": expected_item_count,
             "observed_item_count": len(normalized),
+            "selection_eligible_item_count": len(eligible),
+            "selection_ineligible_item_count": len(normalized) - len(eligible),
             "complete": True,
         },
         "selection_summary": {
@@ -305,50 +333,57 @@ def _normalize_item(item: dict[str, Any], *, index: int) -> dict[str, Any]:
     if not video_id:
         raise TikTokGridVideoSelectionError(f"item {index} video_id is blank")
 
-    view_count = _required_count(
+    view_count, view_reason = _optional_selection_count(
         metric_source,
-        index=index,
         metric_name="playCount",
         keys=("playCount", "play_count", "view_count"),
     )
-    like_count = _required_count(
+    like_count, like_reason = _optional_selection_count(
         metric_source,
-        index=index,
         metric_name="diggCount",
         keys=("diggCount", "digg_count", "like_count"),
     )
-    if view_count == 0:
-        raise TikTokGridVideoSelectionError(
-            f"item {index} playCount must be positive to compute like_rate"
-        )
-    if like_count > view_count:
-        raise TikTokGridVideoSelectionError(
-            f"item {index} diggCount exceeds playCount"
-        )
+    ineligibility_reason = view_reason or like_reason
+    if ineligibility_reason is None and view_count == 0:
+        ineligibility_reason = "playCount_zero"
+    if (
+        ineligibility_reason is None
+        and view_count is not None
+        and like_count is not None
+        and like_count > view_count
+    ):
+        ineligibility_reason = "diggCount_exceeds_playCount"
+    eligible = ineligibility_reason is None
 
     return {
         "video_id": video_id,
         "view_count": view_count,
         "like_count": like_count,
-        "like_rate": round(like_count / view_count, 6),
+        "like_rate": (
+            round(like_count / view_count, 6)
+            if eligible and view_count is not None and like_count is not None
+            else None
+        ),
+        "selection_eligible": eligible,
+        "selection_ineligibility_reason_or_none": ineligibility_reason,
+        "_source_index": index,
     }
 
 
-def _required_count(
+def _optional_selection_count(
     payload: dict[str, Any],
     *,
-    index: int,
     metric_name: str,
     keys: tuple[str, ...],
-) -> int:
+) -> tuple[int | None, str | None]:
     value = _first_present(payload, *keys)
+    if value is None:
+        return None, f"{metric_name}_missing"
     if isinstance(value, bool) or not isinstance(value, int):
-        raise TikTokGridVideoSelectionError(
-            f"item {index} {metric_name} is missing or not an integer"
-        )
+        return None, f"{metric_name}_not_integer"
     if value < 0:
-        raise TikTokGridVideoSelectionError(f"item {index} {metric_name} is negative")
-    return value
+        return None, f"{metric_name}_negative"
+    return value, None
 
 
 def _first_present(payload: dict[str, Any], *keys: str) -> Any:
