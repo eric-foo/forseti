@@ -63,6 +63,18 @@ outcome rather than a safer or more resilient downstream posture. If none,
 exclude it; at most note a deferred risk and upgrade trigger. Include necessary
 supporting work, and surface the tradeoff when it materially increases lock-in.
 
+### Artifact-Level Smallest Complete Intervention
+
+Create a separate durable artifact only when it serves a distinct future
+consumer, outcome, or lifecycle that an existing artifact cannot serve without
+becoming materially less usable. The artifact must be usable without
+reconstructing the authoring chat and must name the material authority,
+currentness, and next-source facts a future consumer needs to use it correctly.
+Prefer updating the owning source and pointing to it over duplicating authority
+or specifications; do not create speculative registries or maintenance
+surfaces. When an artifact is materially touched, reconcile any affected
+supersession, retirement, and live-router entries in the same work unit.
+
 ## Decision Priority
 
 When multiple options already satisfy real failure visibility and Smallest

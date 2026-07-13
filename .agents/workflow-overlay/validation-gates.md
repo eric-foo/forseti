@@ -170,12 +170,30 @@ inherit this floor.
 - New or materially touched durable human-authored workflow artifacts follow
   `.agents/workflow-overlay/retrieval-metadata.md` or are clearly outside that
   contract.
+- New or materially touched durable artifacts close against `AGENTS.md`
+  ("Artifact-Level Smallest Complete Intervention"): resident judgment must
+  confirm a distinct future consumer, outcome, or lifecycle; standalone
+  usability without authoring-chat reconstruction; the material authority,
+  currentness, and next-source facts; no duplicated authority or speculative
+  registry; and reconciliation of affected supersession, retirement, and live
+  routers. Deterministic tooling may check objective router-target existence,
+  but a green path check does not establish semantic completeness.
 - Report-only retrievability checks may use
   `docs/workflows/artifact_retrievability_guide.md` for artifact body-opening
   shape, stale/recheck clarity, repo-map/index treatment, and hygiene anti-rot.
   Findings are routing or hygiene defects only; they do not prove validation
   failure, validation success, approval, readiness, lifecycle completion,
   implementation authorization, or edit permission.
+- Repo-map T1 admission gate: a change that adds or materially expands a row in
+  `docs/workflows/forseti_repo_map_v0.md` must identify which T1 class in
+  `docs/decisions/forseti_repo_map_architecture_mgt_v0.md` it serves and why an
+  existing area row, submap, retrieval header, or generated
+  `header_index.py --index` route is insufficient. A valid path, passing link
+  check, or freshness trigger is not admission evidence. Reviewers reject
+  per-file inventory, historical chronology, embedded operating manuals, and
+  duplicated owner-source descriptions. This gate is resident judgment: the
+  existing retrieval checkers continue to enforce existence, reachability,
+  freshness, and header shape only; none claims semantic T1 admission.
 - Source hashes for migration-governance inputs are recorded in `docs/workflows/orca_bootstrap_record.md`.
 - Resolver-visible skill-name snapshots are recorded before any skill adoption or promotion work.
 - Git status is reported when this workspace is a Git repo.
@@ -362,6 +380,14 @@ registered in the repo map's "Active Hooks" note; reuse this pattern for the
 next such rule. Placement decides where a rule is enforced, not whether it is
 correct: a passing check is not validation, readiness, approval, or
 source-of-truth promotion.
+
+**Live-router direct-target check** (`.agents/hooks/check_map_links.py`, C5).
+The existing map/link gate also checks the authoritative-target column of the
+Artifact Roles `Role Bindings` table and the Doctrine Index product-spine table.
+Each live row must carry a repo-rooted target that exists directly in the
+current tree; moved-path indexes do not satisfy a live router. This is objective
+path existence only — not authority, currentness, semantic completeness,
+validation, readiness, or proof that the routed source is the right one.
 
 **Retrieval-header index + forward-only CI gate** (`.agents/hooks/header_index.py`).
 Companion to EP-06. Adds three non-blocking surfaces and one CI gate:
@@ -566,113 +592,132 @@ markdown sibling of the EP-37 JSON gate. Registered in
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    CI and local feedback placement now fail earlier without weakening the
-    authoritative CI boundary: four observed fast failure classes (prompt
-    output mode, review-output provenance, handoff pointers, ontology tags)
-    join the pre-push mirror; ontology strict mode is tracked/diff-scoped
-    before local adoption; the CI job keeps its required name while moving
-    policy gates before pytest, cancelling obsolete PR runs, removing a
-    duplicate gate, and pinning external Actions by SHA with Renovate coverage.
-  trigger: validation_philosophy
+    Smallest Complete Intervention now binds each separate durable artifact to
+    a distinct future consumer, outcome, or lifecycle and requires standalone
+    usability plus authority/currentness/next-source and lifecycle-router
+    reconciliation; semantic closeout stays resident judgment, while the
+    existing map/link gate deterministically checks only direct target existence
+    in the Artifact Roles and product-spine Doctrine Index live-router tables.
+  trigger: workflow_authority
   related_triggers:
-    - workflow_authority
+    - validation_philosophy
+    - output_authority
+    - lifecycle_boundary
   controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_ontology_tag_validity.py
-    - .agents/hooks/pre_push_guard.py
-    - .agents/hooks/README.md
-    - .github/workflows/ci.yml
-    - .github/scripts/install-local-hooks.ps1
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - renovate.json
-    - docs/workflows/forseti_repo_map_v0.md
-  downstream_surfaces_checked:
     - AGENTS.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/artifact-roles.md
+    - docs/decisions/forseti_doctrine_index_v0.md
+    - .agents/hooks/check_map_links.py
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/review-lanes.md
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/artifact-folders.md
+    - .agents/workflow-overlay/retrieval-metadata.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .github/workflows/ci.yml
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
   intentionally_not_updated:
-    - path: .claude/settings.json
+    - path: CLAUDE.md
       reason: >
-        No write-time hook changed; the new mirror is harness-agnostic at the
-        Git pre-push boundary.
-    - path: .codex/hooks.json
+        It remains a shim importing AGENTS.md and must not duplicate the kernel
+        rule.
+    - path: .agents/workflow-overlay/retrieval-metadata.md
       reason: >
-        Retrieval-header and prompt-provenance hooks do not parse Codex
-        apply_patch payloads; wiring them now would create fake parity. Correct
-        apply-patch support remains a separate complete change if justified.
-    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+        Retrieval headers remain retrieval-only and must not carry semantic
+        quality, authority, validation, currentness, or lifecycle claims.
+    - path: .agents/workflow-overlay/artifact-folders.md
       reason: >
-        Its dated inventory explicitly defers the live registry to CI, the repo
-        map, and this file; no classification changed.
+        It already binds `forseti/product/` as the current product-artifact root
+        and records `docs/product/` as retired historical routing.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        Its live product-tree route already points to `forseti/product/`; no map
+        target or section changed.
+    - path: .github/workflows/ci.yml
+      reason: >
+        The existing registered `check_map_links.py --strict` step runs C5; no
+        parallel gate or workflow change is needed.
   stale_language_search: >
-    rg -n "selected strict CI gates|five gate|check_ontology_tag_validity|pre-push" AGENTS.md .agents .github docs/workflows/forseti_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-11 after the edits: live pre-push descriptions point to
-    the nine-gate mirror; ontology strict scope is bound here and in the
-    checker; remaining selected-gate language is compatible and no live
-    surface retains the five-gate list.
+    rg -n "Product artifact.*[d]ocs/product|Product-lane doctrine.*[d]ocs/product|\| [p]roduct_lead/proof_charter/forseti_claim_defense_doctrine_v0\.md|\| [j]udgment_spine/judgment_spine_evidence_ladder_architecture_v0\.md|\| [d]ata_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0\.md" AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md docs/decisions/forseti_doctrine_index_v0.md docs/workflows/forseti_repo_map_v0.md
   non_claims:
     - not validation
     - not readiness
-    - not review quality or finding truth
-    - not ontology correctness or semantic validity
-    - a green pre-push or CI run is not approval
+    - not authority or currentness proof
+    - not semantic completeness proof
+    - not permission to create a new maintenance surface
 ```
 
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Diff-scoped CI policy gates now bind the exact GitHub event transition base:
-    pull-request base SHA for PRs and the pre-push `before` SHA for pushes to
-    main. The workflow verifies that SHA before any policy gate and fails closed
-    on zero, malformed, or unresolvable event bases; all internal base resolvers
-    give `FORSETI_DIFF_BASE` highest precedence. Local pre-push retains its
-    outgoing `origin/main...HEAD` contract.
-  trigger: validation_philosophy
+    Repo-map validation now includes a resident T1 admission gate: central-map
+    row additions or material expansions must name their architecture-owned T1
+    class and explain why the existing area, submap, header, or generated-index
+    route is insufficient. Mechanical retrieval checks remain limited to shape,
+    reachability, freshness, and header contracts and make no admission claim.
+  trigger: workflow_authority
   related_triggers:
-    - workflow_authority
+    - validation_philosophy
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
-    - .github/workflows/ci.yml
-    - .agents/hooks/
-    - .agents/hooks/README.md
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
     - docs/workflows/forseti_repo_map_v0.md
-    - docs/decisions/dcp_receipts_archive_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/safety-rules.md
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .agents/workflow-overlay/retrieval-metadata.md
+    - .agents/hooks/check_map_links.py
+    - .agents/hooks/check_repo_map_freshness.py
+    - .agents/hooks/header_index.py
+    - .agents/hooks/README.md
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/decisions/forseti_repo_map_architecture_mgt_v0.md
+    - docs/workflows/artifact_retrievability_guide.md
   intentionally_not_updated:
-    - path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - path: AGENTS.md
       reason: >
-        Branch cadence, required-check identity, and landing authority do not
-        change; this patch repairs the input scope of the existing CI job.
-    - path: .githooks/pre-push
+        The kernel already routes validation and repo-map architecture to their
+        owners; duplicating the row-admission test would fork the rule.
+    - path: .agents/hooks/check_map_links.py
       reason: >
-        The adapter remains a thin launcher. Local outgoing-diff semantics stay
-        in pre_push_guard.py and deliberately do not consume GitHub event state.
-    - path: .agents/hooks/check_review_output_provenance.py
+        Path validity and ancestor-area reachability are objective; whether a
+        route belongs in T1 is semantic judgment and cannot be inferred safely
+        from path shape.
+    - path: .agents/hooks/check_repo_map_freshness.py
       reason: >
-        Its explicit --diff API already accepts an exact SHA; only the CI caller
-        needed to stop passing origin/main.
+        The checker detects structural omission and description drift. Making it
+        approve central-map content would create a fake semantic success path.
+    - path: .agents/hooks/header_index.py
+      reason: >
+        It remains the generated per-doc catalog and header-health surface; it
+        does not decide central-map admission.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        The placement principle already keeps judgment-based rules resident;
+        no substrate classification or implementation authority changed.
   stale_language_search: >
-    rg -n "same base CI|CI resolves for|CI runs --diff origin/main|ontology
-    SSOT roster over origin/main...HEAD" .agents .github
-    docs/workflows/forseti_repo_map_v0.md
+    rg -n -i "per-doc index|per-file inventory|row-per-doc|T1 admission|valid path"
+    AGENTS.md .agents docs/decisions/forseti_repo_map_architecture_mgt_v0.md
+    docs/workflows/forseti_repo_map_v0.md docs/workflows/artifact_retrievability_guide.md
   stale_language_search_result: >
-    Executed 2026-07-11 after edits: the only match is this receipt's own
-    declared stale-search string; no live hook, workflow, validation rule, or
-    repo-map description retains the superseded CI origin/main contract.
+    Executed 2026-07-12 on the authoring branch. Defining hits are confined to
+    the architecture decision, the new central-map admission section, and this
+    controlling validation rule/receipt. AGENTS.md, the remaining overlay, and
+    the retrievability guide contain no competing permission to treat path
+    validity as T1 admission. The harder product-tree report found zero
+    uncovered Markdown-bearing folders; its five unresolved open_next findings
+    are pre-existing product-corpus pointer debt outside this map-boundary work.
   non_claims:
     - not validation
     - not readiness
-    - not approval
-    - not a change to local pre-push scope
-    - not coverage of non-fast-forward push transitions
+    - not proof that every admitted row is semantically correct
+    - not a mechanical T1-admission checker
+    - not an amendment to the repo-map architecture decision
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

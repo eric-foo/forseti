@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from source_capture.local_secret_store import (
@@ -8,8 +9,10 @@ from source_capture.local_secret_store import (
     label_to_filename,
     read_sidecar,
     sidecar_path_for,
+
     write_sidecar,
 )
+FORSETI_BROWSER_USER_DATA_ROOT_ENV = "FORSETI_BROWSER_USER_DATA_ROOT"
 
 
 BROWSER_USER_DATA_DIRNAME = "_browser_user_data"
@@ -18,7 +21,13 @@ _BROWSER_USER_DATA_KIND = "browser user-data"
 
 
 def default_browser_user_data_root() -> Path:
-    return Path(__file__).resolve().parents[1] / BROWSER_USER_DATA_DIRNAME
+    configured_root = os.environ.get(FORSETI_BROWSER_USER_DATA_ROOT_ENV)
+    if configured_root:
+        return Path(configured_root).expanduser()
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        return Path(local_app_data) / "Forseti" / BROWSER_USER_DATA_DIRNAME
+    return Path.home() / ".forseti" / BROWSER_USER_DATA_DIRNAME
 
 
 def browser_user_data_path_for_label(

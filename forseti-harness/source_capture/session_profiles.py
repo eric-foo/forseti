@@ -26,6 +26,7 @@ _ALLOWED_PROFILE_FIELDS = {
     "required_harness_proxy_profile_posture",
     "browser_backend",
     "challenge_policy",
+    "browser_user_data_label",
 }
 
 
@@ -38,6 +39,7 @@ class SourceCaptureSessionProfile:
     required_harness_proxy_profile_posture: HarnessProxyProfilePosture
     browser_backend: str
     challenge_policy: str
+    browser_user_data_label: str | None = None
 
 
 def default_session_profile_config_path() -> Path:
@@ -121,12 +123,27 @@ def resolve_session_profile(
             "session-profile required_harness_proxy_profile_posture is unsupported"
         ) from None
     browser_backend = _required_string(profile_payload, "browser_backend")
-    if browser_backend != "cloakbrowser":
-        raise ValueError("TikTok session-profile browser_backend must be cloakbrowser")
+    if browser_backend not in {"cloakbrowser", "chrome_cdp"}:
+        raise ValueError(
+            "TikTok session-profile browser_backend must be cloakbrowser or chrome_cdp"
+        )
     challenge_policy = _required_string(profile_payload, "challenge_policy")
     if challenge_policy != OWNER_HANDOFF_BEFORE_ACTION:
         raise ValueError(
             "TikTok session-profile challenge_policy must be owner_handoff_before_action"
+        )
+    browser_user_data_label = profile_payload.get("browser_user_data_label")
+    if browser_user_data_label is not None:
+        if (
+            not isinstance(browser_user_data_label, str)
+            or not browser_user_data_label.strip()
+        ):
+            raise ValueError(
+                "session-profile browser_user_data_label must be a non-empty string"
+            )
+        browser_user_data_label = browser_user_data_label.strip()
+        label_to_filename(
+            browser_user_data_label, kind="browser user-data", suffix=""
         )
     return SourceCaptureSessionProfile(
         alias=alias,
@@ -136,6 +153,7 @@ def resolve_session_profile(
         required_harness_proxy_profile_posture=proxy_posture,
         browser_backend=browser_backend,
         challenge_policy=challenge_policy,
+        browser_user_data_label=browser_user_data_label,
     )
 
 
@@ -189,6 +207,9 @@ def sanitized_session_profile_preflight(
         ),
         "browser_backend": profile.browser_backend,
         "challenge_policy": profile.challenge_policy,
+        "persistent_browser_profile_configured": (
+            profile.browser_user_data_label is not None
+        ),
         "auth_state_validated": True,
         "secret_values_exposed": False,
     }
