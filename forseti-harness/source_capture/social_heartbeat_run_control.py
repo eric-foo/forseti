@@ -89,6 +89,78 @@ class SummarizeDayResult:
         return str(self.summary_path)
 
 
+class _FileMutex:
+    """Small cross-process mutex backed by an OS file lock.
+
+    The lock file is intentionally persistent. Removing it after unlock would
+    race with another process that already opened the same file and is waiting
+    on its lock.
+    """
+
+    def __init__(
+        self, path: Path, *, timeout_seconds: float = 5.0, poll_seconds: float = 0.01
+    ) -> None:
+        self.path = path
+        self.timeout_seconds = timeout_seconds
+        self.poll_seconds = poll_seconds
+        self.handle: Any | None = None
+
+    def __enter__(self) -> "_FileMutex":
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        handle = self.path.open("a+b")
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0, os.SEEK_END)
+            if handle.tell() == 0:
+                handle.write(b"\0")
+                handle.flush()
+            deadline = time.monotonic() + self.timeout_seconds
+            while True:
+                try:
+                    handle.seek(0)
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError as exc:
+                    if time.monotonic() >= deadline:
+                        handle.close()
+                        raise ValueError(f"file mutex already held: {self.path}") from exc
+                    time.sleep(self.poll_seconds)
+        else:
+            import fcntl
+
+            deadline = time.monotonic() + self.timeout_seconds
+            while True:
+                try:
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except BlockingIOError as exc:
+                    if time.monotonic() >= deadline:
+                        handle.close()
+                        raise ValueError(f"file mutex already held: {self.path}") from exc
+                    time.sleep(self.poll_seconds)
+        self.handle = handle
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        handle = self.handle
+        if handle is None:
+            return
+        try:
+            if os.name == "nt":
+                import msvcrt
+
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        finally:
+            handle.close()
+            self.handle = None
+
+
 class DayLock:
     def __init__(self, path: Path, *, session_id: str, stale_seconds: int, now_func: NowFunc) -> None:
         self.path = path
@@ -99,23 +171,28 @@ class DayLock:
 
     def __enter__(self) -> "DayLock":
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        if self.path.exists():
-            age_seconds = max(0.0, time.time() - os.path.getmtime(self.path))
-            if age_seconds <= self.stale_seconds:
-                raise ValueError(f"session lock already exists: {self.path}")
-            self.path.unlink()
-        payload = {
-            "schema_version": "social_daily_heartbeat_session_lock_v0",
-            "session_id": self.session_id,
-            "created_at_utc": self.now_func(),
-        }
-        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-        fd = os.open(self.path, flags)
-        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
-            handle.write(f"{json.dumps(payload, sort_keys=True)}\n")
-            handle.flush()
-            os.fsync(handle.fileno())
-        self.acquired = True
+        guard_path = self.path.with_name(f"{self.path.name}.guard")
+        with _FileMutex(guard_path):
+            if self.path.exists():
+                age_seconds = max(0.0, time.time() - os.path.getmtime(self.path))
+                if age_seconds <= self.stale_seconds:
+                    raise ValueError(f"session lock already exists: {self.path}")
+                self.path.unlink(missing_ok=True)
+            payload = {
+                "schema_version": "social_daily_heartbeat_session_lock_v0",
+                "session_id": self.session_id,
+                "created_at_utc": self.now_func(),
+            }
+            flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+            try:
+                fd = os.open(self.path, flags)
+            except FileExistsError as exc:
+                raise ValueError(f"session lock already exists: {self.path}") from exc
+            with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
+                handle.write(f"{json.dumps(payload, sort_keys=True)}\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+            self.acquired = True
         return self
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
@@ -255,7 +332,7 @@ def run_session(
     session_id = session_id or f"session_{plan_date}_bucket_{bucket}_{generate_ulid()}"
     lock_path = day_dir / f"session_{bucket}.lock"
     with DayLock(lock_path, session_id=session_id, stale_seconds=lease_stale_seconds, now_func=now_func):
-        attempts = read_jsonl(attempts_path)
+        attempts = read_attempt_log(attempts_path)
         terminal = _terminal_attempts_by_key(attempts)
         active = _active_attempts_by_key(attempts)
         bucket_rows = [row for row in plan["creators"] if row.get("bucket") == bucket]
@@ -399,7 +476,7 @@ def summarize_day(
     _validate_plan_date(plan_date)
     day_dir = day_directory(run_control_root, policy, plan_date)
     plan = _load_daily_plan(day_dir / "daily_plan.json", policy=policy)
-    attempts = read_jsonl(day_dir / "attempts.jsonl")
+    attempts = read_attempt_log(day_dir / "attempts.jsonl")
     terminal = _terminal_attempts_by_key(attempts)
     counts = {status: 0 for status in TERMINAL_ATTEMPT_STATUSES}
     for attempt in terminal.values():
@@ -443,13 +520,23 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def _attempt_log_lock_path(path: Path) -> Path:
+    return path.with_name(f"{path.name}.lock")
+
+
+def read_attempt_log(path: Path) -> list[dict[str, Any]]:
+    with _FileMutex(_attempt_log_lock_path(path)):
+        return read_jsonl(path)
+
+
 def append_attempt(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8", newline="\n") as handle:
-        handle.write(json.dumps(dict(payload), ensure_ascii=False, sort_keys=True))
-        handle.write("\n")
-        handle.flush()
-        os.fsync(handle.fileno())
+    with _FileMutex(_attempt_log_lock_path(path)):
+        with path.open("a", encoding="utf-8", newline="\n") as handle:
+            handle.write(json.dumps(dict(payload), ensure_ascii=False, sort_keys=True))
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
 
 
 def find_committed_packet_by_session_identity(

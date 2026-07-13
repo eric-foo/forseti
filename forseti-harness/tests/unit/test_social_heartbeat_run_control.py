@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
+from threading import Event, Thread
 from types import SimpleNamespace
 from typing import Any, Callable
 
@@ -102,6 +104,40 @@ def _write_verified_packet(packet_dir: Path, *, attempt_id: str) -> str:
         encoding="utf-8",
     )
     return packet_id
+
+
+class _FakeDataRoot:
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self._packets: dict[str, Path] = {}
+        self._availability: set[str] = set()
+
+    def add_packet(
+        self, *, packet_id: str, attempt_id: str, source_surface: str
+    ) -> Path:
+        packet_dir = self.path / "raw" / packet_id[:3] / packet_id
+        packet_dir.mkdir(parents=True)
+        (packet_dir / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "packet_id": packet_id,
+                    "session_identity": attempt_id,
+                    "source_surface": source_surface,
+                }
+            ),
+            encoding="utf-8",
+        )
+        self._packets[packet_id] = packet_dir
+        return packet_dir
+
+    def load_raw_packet(self, packet_id: str) -> object:
+        return SimpleNamespace(container=self._packets[packet_id])
+
+    def read_availability(self, packet_id: str) -> object | None:
+        return {} if packet_id in self._availability else None
+
+    def record_availability(self, packet_id: str) -> None:
+        self._availability.add(packet_id)
 
 
 def _run(
@@ -282,4 +318,84 @@ def test_freeze_plan_is_exclusive_and_rejects_duplicate_stable_keys(tmp_path: Pa
             run_control_root=duplicate_root,
             plan_date=PLAN_DATE,
             bucket_count=1,
+        )
+
+
+def test_attempt_log_append_waits_for_shared_log_lock(tmp_path: Path) -> None:
+    attempts_path = tmp_path / "attempts.jsonl"
+    attempts_path.touch()
+    completed = Event()
+
+    def append_in_thread() -> None:
+        control.append_attempt(attempts_path, {"attempt_id": "parallel_bucket"})
+        completed.set()
+
+    with control._FileMutex(control._attempt_log_lock_path(attempts_path)):
+        thread = Thread(target=append_in_thread, daemon=True)
+        thread.start()
+        assert completed.wait(0.05) is False
+
+    thread.join(timeout=2)
+    assert completed.is_set()
+    assert control.read_attempt_log(attempts_path) == [{"attempt_id": "parallel_bucket"}]
+
+
+def test_day_lock_stale_takeover_race_is_visible_lock_contention(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    lock_path = tmp_path / "session_1.lock"
+    lock_path.write_text("stale", encoding="utf-8")
+    os.utime(lock_path, (0, 0))
+    real_open = control.os.open
+
+    def race_open(path: object, flags: int, *args: object) -> int:
+        if Path(path) == lock_path:
+            raise FileExistsError(str(path))
+        return real_open(path, flags, *args)
+
+    monkeypatch.setattr(control.os, "open", race_open)
+
+    with pytest.raises(ValueError, match="session lock already exists"):
+        with control.DayLock(
+            lock_path,
+            session_id="losing_stale_taker",
+            stale_seconds=1,
+            now_func=lambda: "2026-07-14T00:00:00Z",
+        ):
+            pytest.fail("losing stale taker must not acquire the lease")
+
+
+def test_data_root_success_and_crash_reconciliation_bind_attempt_identity(tmp_path: Path) -> None:
+    root = _FakeDataRoot(tmp_path / "lake")
+    packet_dir = root.add_packet(
+        packet_id="01DATAROOTPACKET00000000000",
+        attempt_id="attempt_data_root",
+        source_surface="test/grid",
+    )
+    receipt = {
+        "packet_pointer": str(packet_dir),
+        "packet_id": "01DATAROOTPACKET00000000000",
+    }
+
+    control._verify_success_packet(receipt, attempt_id="attempt_data_root", data_root=root)
+    assert control.find_committed_packet_by_session_identity(
+        root,
+        session_identity="attempt_data_root",
+        source_surface="test/grid",
+    ) == ("01DATAROOTPACKET00000000000", packet_dir)
+    assert root.read_availability("01DATAROOTPACKET00000000000") == {}
+
+    with pytest.raises(ValueError, match="session_identity does not match"):
+        control._verify_success_packet(receipt, attempt_id="wrong_attempt", data_root=root)
+
+    root.add_packet(
+        packet_id="01DATAROOTDUPLICATE000000000",
+        attempt_id="attempt_data_root",
+        source_surface="test/grid",
+    )
+    with pytest.raises(ValueError, match="multiple committed packets"):
+        control.find_committed_packet_by_session_identity(
+            root,
+            session_identity="attempt_data_root",
+            source_surface="test/grid",
         )

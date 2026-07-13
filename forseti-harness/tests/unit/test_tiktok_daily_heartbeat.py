@@ -7,7 +7,11 @@ import pytest
 
 from runners import run_source_capture_tiktok_daily_heartbeat as heartbeat
 from runners import run_source_capture_tiktok_daily_heartbeat_control as control
-from source_capture.adapters.browser_snapshot import BrowserPageObservationSuccess
+from source_capture.adapters.browser_snapshot import (
+    BrowserPageObservationSuccess,
+    BrowserSnapshotFailure,
+    BrowserSnapshotFailureKind,
+)
 
 
 def _active_creator(*, account_id: str = "acct-001", handle: str = "@Creator") -> dict[str, str]:
@@ -31,6 +35,22 @@ def _session_roster(*, attempt_resume: bool = False) -> dict[str, object]:
                 "attempt_id": "01TESTATTEMPT",
                 "attempt_resume": attempt_resume,
             }
+        ]
+    }
+
+
+def _two_creator_session_roster() -> dict[str, object]:
+    return {
+        "creators": [
+            {
+                "platform": "tiktok",
+                "platform_account_id": f"acct-{index:03d}",
+                "stable_partition_key": f"platform_account_id:acct-{index:03d}",
+                "handle": f"creator{index}",
+                "attempt_id": f"01TESTATTEMPT{index}",
+                "attempt_resume": False,
+            }
+            for index in range(1, 3)
         ]
     }
 
@@ -223,3 +243,78 @@ def test_resumed_attempt_reuses_bound_frozen_window_without_browser_recapture(
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     assert receipt["reconciled_existing_packet"] is True
     assert receipt["packet_id"] == "01RESUMEDPACKET"
+
+
+def test_safety_stop_returns_access_gap_and_defers_remaining_creators(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    roster = tmp_path / "session_roster.json"
+    roster.write_text(json.dumps(_two_creator_session_roster()), encoding="utf-8")
+    receipt_path = tmp_path / "session" / "receipts.jsonl"
+    capture_calls = 0
+
+    def stopped_capture(**_kwargs: object) -> BrowserPageObservationSuccess:
+        nonlocal capture_calls
+        capture_calls += 1
+        capture = _capture()
+        capture.metadata["pre_action_stop_attempts"] = [{"matched": True}]
+        return capture
+
+    monkeypatch.setattr(heartbeat, "capture_tiktok_creator_grid", stopped_capture)
+    monkeypatch.setattr(
+        heartbeat,
+        "build_tiktok_grid_window",
+        lambda **_kwargs: pytest.fail("safety stop must prevent grid freeze"),
+    )
+
+    result = heartbeat.run_tiktok_daily_heartbeat(
+        roster_path=roster,
+        receipt_jsonl=receipt_path,
+        lane_id="0",
+        lane_count=1,
+        output_root=tmp_path / "packets",
+        storage_state_path=tmp_path / "state",
+        engine=object(),
+        partition_preselected=True,
+    )
+
+    assert capture_calls == 1
+    assert result.access_gap_count == 1
+    assert result.deferred_partition_keys == ("platform_account_id:acct-002",)
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    assert receipt["status"] == "access_gap"
+    assert receipt["access_gap_reason"] == "account_safety_stop"
+
+
+def test_grid_capture_failure_returns_terminal_failed_receipt(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    roster = tmp_path / "session_roster.json"
+    roster.write_text(json.dumps(_session_roster()), encoding="utf-8")
+    receipt_path = tmp_path / "session" / "receipts.jsonl"
+    monkeypatch.setattr(
+        heartbeat,
+        "capture_tiktok_creator_grid",
+        lambda **_kwargs: BrowserSnapshotFailure(
+            requested_url="https://www.tiktok.com/@creator",
+            failure_kind=BrowserSnapshotFailureKind.CAPTURE_FAILED,
+            message="fixture grid failure",
+        ),
+    )
+
+    result = heartbeat.run_tiktok_daily_heartbeat(
+        roster_path=roster,
+        receipt_jsonl=receipt_path,
+        lane_id="0",
+        lane_count=1,
+        output_root=tmp_path / "packets",
+        storage_state_path=tmp_path / "state",
+        engine=object(),
+        partition_preselected=True,
+    )
+
+    assert result.failed_count == 1
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    assert receipt["status"] == "failed"
+    assert receipt["error_class"] == "RuntimeError"
+    assert "fixture grid failure" in receipt["error_message"]

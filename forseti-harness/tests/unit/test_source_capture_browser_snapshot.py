@@ -1424,13 +1424,18 @@ def test_cloakbrowser_page_load_handoff_suppresses_pointer_actions(
                 wait_after_ms=0,
             ),
         ),
+        lazy_load_scroll_passes=2,
+        lazy_load_scroll_step_px=500,
     )
 
     assert result.metadata["browser_backend"] == "cloakbrowser"
     assert result.metadata["pointer_actions_suppressed_by_human_challenge_handoff"] is True
     assert result.metadata["post_load_pointer_actions"] == []
+    assert result.metadata["lazy_load_scroll_passes_executed"] == 0
+    assert result.metadata["lazy_load_scroll_stop_reason"] == "scripted_actions_suppressed"
     assert "pointer_target_lookup" not in event_log
     assert "mouse_click" not in event_log
+    assert "scroll" not in event_log
     attempt = result.metadata["human_challenge_handoff_attempts"][0]
     assert attempt["after_action_name"] == (
         browser_snapshot_module.PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
