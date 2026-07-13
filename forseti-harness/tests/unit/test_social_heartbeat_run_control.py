@@ -348,10 +348,10 @@ def test_day_lock_stale_takeover_race_is_visible_lock_contention(
     os.utime(lock_path, (0, 0))
     real_open = control.os.open
 
-    def race_open(path: object, flags: int, *args: object) -> int:
+    def race_open(path: object, flags: int, *args: object, **kwargs: object) -> int:
         if Path(path) == lock_path:
             raise FileExistsError(str(path))
-        return real_open(path, flags, *args)
+        return real_open(path, flags, *args, **kwargs)
 
     monkeypatch.setattr(control.os, "open", race_open)
 
