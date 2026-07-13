@@ -171,11 +171,21 @@ At that historical point, this record did not assert that any server-side gate w
    tool call, not on grandchild processes), so running it would **bypass the CLEAN/label
    verification**. Agents self-merge only via a direct `gh pr merge <N>`, which the guard inspects.
 
-   **GitHub API sandbox-egress classification.** A `gh` / GitHub API failure that names
+   **GitHub remote-access and publication routing.** A `gh` / GitHub API failure that names
    `127.0.0.1:9`, or connection-refused to a local proxy/discard port, is sandbox egress refusal,
    not evidence that the repository, PR, branch, or CI state failed. Prefer an available GitHub
-   connector for the read/write path; if using `gh`, network escalation is a bounded owner-gated
-   fallback for that operation only. Without a connector result or escalated readback, remote state is
+   connector for remote readback and GitHub-native PR/issue metadata. For a tracked repository file
+   on an existing lane branch with a configured `origin`, the publication route is the ordinary local
+   path — edit, commit, then `git push` that lane branch — not a connector file-create/update upload.
+   This route choice adds no chat permission gate: commit/push authority remains the work-unit
+   completion rule plus the harness permission prompt already named in `AGENTS.md` and
+   `.agents/workflow-overlay/safety-rules.md`. A connector's unverified-destination export refusal is
+   specific to that attempted connector disclosure; it is not evidence that an ordinary lane push
+   needs separate chat approval. Avoid the false block by choosing the local Git route before the
+   connector call. Once an export refusal has fired, do not switch tools to achieve the same
+   disclosure without the explicit destination approval the refusal requires. If `gh` is needed for
+   remote metadata/readback, network escalation is a bounded owner-gated fallback for that operation
+   only. Without a connector result, successful lane push, or escalated readback, remote state is
    unverified and must not be reported as failed, green, pushed, created, or merged.
 
 8. **Lane-isolation integrity — early detection, not a hard gate.** Lane isolation (the AGENTS.md
@@ -426,181 +436,8 @@ four-worker plus scan-reuse result before its own live run.
   approval, review acceptance, readiness, or proof that a PR is safe to merge.
 - Not validation, readiness, or acceptance of any lane's content beyond "the test suite passed."
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Adds Decision item 14 (owner-directed 2026-07-02): a lane PR is cut per WORK UNIT, not per
-    pipeline stage, and a planning/scoping-only artifact is not a standalone PR by default — it
-    rides with the work unit that produced it, or the chain continues when authority allows. The
-    commissioning artifact (handoff packet or /fused invocation) fixes the boundary at commissioning
-    time via the edit-permission grant it already states: pre-granted bounded implementation
-    authority means the full scope→spec→implement→review chain lands as one lane PR; deliberately
-    withheld authority makes the mid-chain owner authorization fork the explicit work-unit boundary
-    (split PRs — a deliberate choice, never the default drift). Named exceptions where splitting
-    stays correct even with pre-granted authority: (a) the earlier half carries shared-authority
-    doctrine other concurrent lanes need on main promptly (example: PR #585), (b) authority withheld
-    for a mid-chain owner fork, (c) high-lock-in probe-first slicing per Smallest Complete
-    Intervention. Item 13's example list is reconciled in place: an implementation-scoping decision
-    is a PR-worthy durable point only when it closes its work unit.
-  trigger: workflow_authority
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/safety-rules.md
-    - docs/workflows/orca_repo_map_v0.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Already routes landing through this doctrine's per-lane PR flow and already speaks in
-        work-unit vocabulary ("when a repo-changing work unit completes verified on its own lane
-        branch or worktree..."); the boundary rule lives here, so no kernel restatement is added.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        The commissioning-time authority-grant field already exists — the edit-permission preflight
-        enum (read-only | docs-write | patch-only | implementation-authorized) that every handoff
-        and routine prompt must state — so item 14 points at it and no new field or pointer is
-        added.
-    - path: .agents/workflow-overlay/decision-routing.md
-      reason: >
-        Owns pre-planning routing and delegation, not PR topology; the stale-language search found
-        no cadence or boundary language there to reconcile.
-    - path: .agents/workflow-overlay/safety-rules.md
-      reason: >
-        Its work-unit completion rule already defers merge conditions and policy to this doctrine;
-        item 14 changes topology only and grants no authority, so nothing there moves.
-    - path: docs/workflows/orca_repo_map_v0.md
-      reason: >
-        Already indexes this doctrine at file level; an in-file decision item is not a structural
-        or navigation change.
-  stale_language_search: >
-    rg -in "one focused PR|PR cadence|per-lane PR|work unit" AGENTS.md .agents/workflow-overlay/
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    (run 2026-07-02 in the sad-shirley worktree off origin/main @ 1dfbb2d0, before and after edits)
-  stale_language_search_result: >
-    Executed 2026-07-02. The only surface that presented a scoping artifact as a default standalone
-    PR boundary was item 13's example list ("...or implementation-scoping decision"), now qualified
-    in place with a pointer to item 14. All other hits are compatible: item 3's one-focused-PR flow
-    (one focused PR per work unit), items 10/11's "lands via a per-lane PR" closing lines,
-    AGENTS.md's work-unit completion rule and routing line, safety-rules.md's deference to this
-    doctrine, prompt-orchestration.md's lane-scoped-prompt and work-unit filing rules, and the
-    historical append-only DCP receipts (correctly not edited).
-  non_claims:
-    - not validation, readiness, or acceptance of any lane's content
-    - governs PR topology only; grants no commit, push, PR, or merge authority — items 7/9/11 and
-      the human gate on landing to main are unchanged
-    - pre-granting implementation authority remains an owner choice recorded in the commissioning
-      artifact, never an agent default
-    - not a retro-classification of past PRs (PR #585 was correct under its commissioning packet)
-    - a behavioral/doctrine rule, not code; live only insofar as commissioning artifacts follow it
-```
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The deferred private/free-plan merge posture is superseded: after the
-    repository became public, main branch protection was applied and read back
-    with PRs required, strict forseti-harness-tests, administrators included,
-    and force-push/deletion disabled; the custom auto-merge, risk-router, and
-    main-red workflows were restored as active defense-in-depth automation while
-    native allow_auto_merge remains off.
-  trigger: workflow_authority
-  related_triggers:
-    - validation_philosophy
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    - .github/workflows/auto-merge.yml
-    - .github/workflows/main-red-alert.yml
-    - .github/scripts/merge-when-green.ps1
-    - .github/scripts/install-local-hooks.ps1
-    - .agents/hooks/guard_protected_actions.py
-    - .agents/hooks/README.md
-    - .agents/checks/registration_integrity.py
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/safety-rules.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/validation-gates.md
-    - docs/workflows/forseti_repo_map_v0.md
-    - .claude/settings.json
-    - .codex/hooks.json
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Already routes landing conditions to this doctrine and keeps merges
-        human-gated except the guard-verified exception; no root rule changed.
-    - path: .agents/workflow-overlay/safety-rules.md
-      reason: >
-        Already defers merge conditions and policy to this doctrine; bounded
-        authorization and destructive-action rules are unchanged.
-    - path: .claude/settings.json
-      reason: >
-        The protected-action guard remains wired with the same local contract;
-        server protection strengthens the remote boundary without changing it.
-    - path: .codex/hooks.json
-      reason: >
-        The Codex guard adapter remains wired; no matcher or denial contract
-        changed.
-  stale_language_search: >
-    rg -n "403-blocked|private/free|private\\+free|deferred server-side|branch protection remains the unbypassable target" AGENTS.md .agents .github .githooks docs/workflows/forseti_repo_map_v0.md docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-11 after propagation: the only remaining private/free and
-    403-blocked hits are inside the explicitly labeled historical pre-public
-    baseline in this decision; live guards, helpers, workflows, hook registry,
-    and repo-map surfaces describe active server protection.
-  non_claims:
-    - not validation
-    - not readiness
-    - not approval or review acceptance
-    - not proof that CI or automation establishes correctness
-    - not native auto-merge enablement
-```
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The required CI job keeps the complete test suite and stable check identity while adding
-    slow-test timing plus conservative two-worker, file-grouped pytest execution; pytest-xdist is
-    pinned as test-only infrastructure, and change-based test selection remains excluded.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    - .github/workflows/ci.yml
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-  downstream_surfaces_checked:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/README.md
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        It owns failure classification and gate placement, neither of which changes; the required
-        job still runs all gates and the full suite with ordinary nonzero failure behavior.
-    - path: .agents/hooks/README.md
-      reason: >
-        Hook commands, local mirror behavior, and checker semantics are unchanged; only pytest
-        scheduling and timing telemetry change after those gates run.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: >
-        The consolidated map already routes CI activation to .github/workflows/ci.yml and does not
-        duplicate command-level CI configuration.
-  stale_language_search: >
-    rg -n "python -m pytest|pytest-xdist|~30s suite|pydantic.*PyYAML.*pytest"
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md .agents .github
-    forseti-harness/tests/unit/test_ci_hook_wiring.py
-  non_claims:
-    - not validation or readiness
-    - not a reduction in required tests or policy gates
-    - not proof of speedup until measured on GitHub Actions
-```
 
 ```yaml
 direction_change_propagation:
@@ -649,6 +486,58 @@ direction_change_propagation:
     - not validation or readiness
     - not a reduction in required tests or policy gates
     - not proof of four-worker speedup until measured on GitHub Actions
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Separates GitHub remote readback and native metadata from tracked-file publication: an existing
+    lane branch publishes repository files through local edit, commit, and ordinary `git push` to
+    its configured origin; connector file uploads are not a push-permission gate, and an export
+    refusal is prevented by choosing the correct route before the connector call.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Already says verified work-unit commit/push/PR preparation proceeds without a typed
+        instruction and treats the harness permission prompt as the irreversibility gate; this
+        decision now owns the narrower tool route, so duplicating it in the kernel would fork it.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        Already points commit/push policy to this decision and says the workflow proceeds without a
+        typed instruction at verified work-unit completion; authorization strength is unchanged.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        Owns prompt artifacts and receiver contracts, not publication tooling for tracked files.
+    - path: .agents/workflow-overlay/decision-routing.md
+      reason: >
+        Owns uncertainty and delegation routing; the publication route is a clear lifecycle rule in
+        the existing developer-workflow owner.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Repository hooks cannot observe or classify an MCP connector call before it happens; this is
+        judgment-based route selection, so no fake deterministic gate is added.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        Already indexes the developer-workflow decision at file level; no route or owner moved.
+  stale_language_search: >
+    rg -n -i "connector for the read/write path|connector.*tracked|tracked.*connector|chat permission gate|unverified-destination" AGENTS.md .agents/workflow-overlay docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  non_claims:
+    - not validation
+    - not readiness
+    - not a bypass of connector export refusals
+    - not new commit, push, PR, or merge authority
 ```
 
 Older direction_change_propagation receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
