@@ -17,6 +17,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserPagePointerAction,
     BrowserPageResponse,
     BrowserSnapshotFailure,
+    ChromeCdpPageObservationSessionEngine,
     CloakBrowserPageObservationSessionEngine,
     PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
     fetch_browser_page_observation_capture,
@@ -148,6 +149,12 @@ TIKTOK_CHALLENGE_TEXT_MARKERS = (
     "verify to continue",
     "captcha",
     "security check",
+)
+TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS = (
+    "your account might be at risk",
+    "account might be at risk",
+    "log in to comment",
+    "/login",
 )
 TIKTOK_BROWSER_BACKEND_DEFAULT = "play" + "wright"
 TIKTOK_BROWSER_BACKEND_CLOAKBROWSER = "cloakbrowser"
@@ -312,6 +319,7 @@ def run_tiktok_live_batch_probe(
     if engine is None and normalized_browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER:
         observation_engine = CloakBrowserPageObservationSessionEngine(
             cloakbrowser_humanize=cloakbrowser_humanize,
+            pre_action_stop_markers=TIKTOK_ACCOUNT_SAFETY_STOP_MARKERS,
             human_challenge_handoff_markers=(
                 TIKTOK_CHALLENGE_TEXT_MARKERS if human_challenge_handoff else ()
             ),
@@ -754,6 +762,16 @@ def run_tiktok_live_batch_probe(
         1 for row in results if row.get("status") == "partial_failure"
     )
     run_complete_utc = utc_now_z()
+    session_engine_reused = isinstance(
+        engine,
+        (
+            ChromeCdpPageObservationSessionEngine,
+            CloakBrowserPageObservationSessionEngine,
+        ),
+    )
+    account_safety_pre_action_circuit_breaker = bool(
+        getattr(engine, "pre_action_stop_markers", ())
+    )
     grid_result = {
         "schema_version": TIKTOK_LIVE_BATCH_PROBE_SCHEMA_VERSION,
         "creator_handle": normalized_handle,
@@ -768,6 +786,8 @@ def run_tiktok_live_batch_probe(
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
             allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
             allow_challenge_close_followthrough=allow_challenge_close_followthrough,
+            session_engine_reused=session_engine_reused,
+            account_safety_pre_action_circuit_breaker=account_safety_pre_action_circuit_breaker,
         ),
         "response_items": grid_items,
         "run_complete_utc": run_complete_utc,
@@ -795,6 +815,8 @@ def run_tiktok_live_batch_probe(
             human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
             allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
             allow_challenge_close_followthrough=allow_challenge_close_followthrough,
+            session_engine_reused=session_engine_reused,
+            account_safety_pre_action_circuit_breaker=account_safety_pre_action_circuit_breaker,
         ),
         "cadence_plan": cadence_plan.to_dict(),
         "results": results,
@@ -831,6 +853,14 @@ def _blocker_triage_receipt(triage: TikTokBlockerTriage) -> JsonObject:
     receipt = triage.to_receipt()
     receipt["action_mode"] = "classification_only"
     receipt["action_taken"] = False
+    if triage.challenge_kind in {
+        "account_risk",
+        "logged_out_or_auth_wall",
+        "login_or_auth_wall",
+    }:
+        receipt["account_safety_stop"] = True
+        receipt["automatic_retry_allowed"] = False
+        receipt["operator_next_action"] = "review_security_alerts_before_new_run"
     return receipt
 
 
@@ -2275,6 +2305,8 @@ def _capture_contract(
     human_challenge_handoff_timeout_seconds: float = TIKTOK_HUMAN_CHALLENGE_HANDOFF_TIMEOUT_SECONDS,
     allow_challenge_close_diagnostic: bool = False,
     allow_challenge_close_followthrough: bool = False,
+    session_engine_reused: bool = False,
+    account_safety_pre_action_circuit_breaker: bool = False,
 ) -> JsonObject:
     session_mode_value = (
         TIKTOK_LOGGED_OUT_SESSION_MODE
@@ -2284,6 +2316,26 @@ def _capture_contract(
     if session_mode_value is None:
         raise ValueError("session_mode is required unless logged_out is true")
     return {
+        "video_navigation_mode": "direct_selected_url_sequence",
+        "video_page_reuse_policy": (
+            "one_page_sequential_navigation"
+            if session_engine_reused
+            else "capture_engine_defined"
+        ),
+        "terminal_page_policy": (
+            "leave_last_selected_video_open"
+            if session_engine_reused
+            else "capture_engine_defined"
+        ),
+        "pointer_movement_policy": "meaningful_page_actions_only",
+        "address_bar_simulation": False,
+        "referrer_spoofing": False,
+        "return_to_grid_between_videos": False,
+        "account_safety_pre_action_circuit_breaker": (
+            account_safety_pre_action_circuit_breaker
+        ),
+        "account_safety_automatic_retry": False,
+        "cleared_human_captcha_continues_batch": True,
         "browser_backend": browser_backend,
         "required_harness_proxy_profile_posture": (
             required_harness_proxy_profile_posture.value

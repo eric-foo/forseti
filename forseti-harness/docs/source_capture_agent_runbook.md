@@ -189,6 +189,32 @@ marker does not clear, scripted actions stay suppressed and capture fails closed
 The agent must not drag or solve the puzzle, and any manual owner action is
 source-access intervention rather than clean capture.
 
+An account-risk warning, unexpected logged-out/comment-auth wall, or `/login`
+redirect is different from a CAPTCHA. It is a terminal account-safety stop:
+scripted actions are suppressed before the next pointer action, automatic retry
+is forbidden, Chrome remains open, and the operator checks TikTok Security
+Alerts before starting a new run. Check Account Status only when login remains
+restricted or another account capability appears limited. A CAPTCHA that the
+owner clears successfully may continue the current batch; CAPTCHA presence
+alone is not this circuit breaker.
+
+For supervised creator onboarding with an already-running retained Chrome CDP
+session, invoke the onboarding runner directly. It owns the Creator Registry
+preflight and session-alias resolution; do not precede it with separate registry,
+alias, browser, or CDP probes unless it emits a blocker. Those duplicate checks
+add operator latency without improving the runner's failure visibility.
+
+The runner emits flushed `tiktok_creator_onboarding_progress_json=` phase events
+and a `tiktok_creator_onboarding_blocker_json=` event before a fail-loud exit.
+Treat those events as the live status source. The deep-capture navigation policy
+is direct selected-video URLs in selection order on one reused page. It does not
+return to the creator grid, simulate address-bar typing, spoof a referrer, or add
+ceremonial pointer movement. After the batch, CDP detaches and the operator-owned
+Chrome remains open on the final selected video.
+
+The separate alias check below remains a diagnostic command for a blocker or an
+explicit session-health check; it is not a required preamble to onboarding.
+
 Validate the machine-local alias without opening a browser:
 
 ```powershell

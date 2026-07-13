@@ -343,6 +343,25 @@ def test_live_probe_captures_source_native_subtitle_transcript(
         "This fragrance is everywhere\nBronze shimmer test"
     )
     assert cadence["capture_contract"]["raw_subtitle_urls_persisted"] is False
+    assert (
+        cadence["capture_contract"]["video_navigation_mode"]
+        == "direct_selected_url_sequence"
+    )
+    assert cadence["capture_contract"]["video_page_reuse_policy"] == (
+        "capture_engine_defined"
+    )
+    assert cadence["capture_contract"]["terminal_page_policy"] == (
+        "capture_engine_defined"
+    )
+    assert cadence["capture_contract"]["pointer_movement_policy"] == (
+        "meaningful_page_actions_only"
+    )
+    assert cadence["capture_contract"]["address_bar_simulation"] is False
+    assert cadence["capture_contract"]["referrer_spoofing"] is False
+    assert cadence["capture_contract"]["return_to_grid_between_videos"] is False
+    assert cadence["capture_contract"]["account_safety_pre_action_circuit_breaker"] is False
+    assert cadence["capture_contract"]["account_safety_automatic_retry"] is False
+    assert cadence["capture_contract"]["cleared_human_captcha_continues_batch"] is True
     assert cadence["capture_contract"]["raw_subtitle_bodies_persisted"] is False
     assert cadence["capture_contract"]["subtitle_tier"] == (
         "source_native_webvtt_transcript_live_probe_v0"
@@ -367,6 +386,27 @@ def test_live_probe_captures_source_native_subtitle_transcript(
     assert subtitles["cue_count"] == 2
     assert subtitles["transcript_text"] == "This fragrance is everywhere\nBronze shimmer test"
     assert subtitle_url not in json.dumps(packet_payload)
+
+def test_capture_contract_reports_verified_session_engine_guarantees() -> None:
+    contract = live_batch_probe._capture_contract(
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        session_engine_reused=True,
+        account_safety_pre_action_circuit_breaker=True,
+    )
+
+    assert contract["video_page_reuse_policy"] == (
+        "one_page_sequential_navigation"
+    )
+    assert contract["terminal_page_policy"] == "leave_last_selected_video_open"
+    assert contract["account_safety_pre_action_circuit_breaker"] is True
+
+    fallback = live_batch_probe._capture_contract(
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+    )
+    assert fallback["video_page_reuse_policy"] == "capture_engine_defined"
+    assert fallback["terminal_page_policy"] == "capture_engine_defined"
+    assert fallback["account_safety_pre_action_circuit_breaker"] is False
+
 
 def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
     tmp_path: Path,
@@ -2634,6 +2674,62 @@ def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     assert cadence["failures"][0]["blocker_triage"]["matched_marker"] == "verify to continue"
     assert cadence["failures"][0]["blocker_triage"]["challenge_kind"] == "slider"
     assert len(engine.calls) == 1
+
+
+def test_live_probe_account_risk_is_non_retriable_batch_stop(tmp_path: Path) -> None:
+    auth_root = _auth_state(tmp_path)
+    engine = _FakeObservationEngine(
+        outcomes=[
+            BrowserPageObservationSuccess(
+                requested_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                title="TikTok",
+                visible_text="Your account might be at risk",
+                dom_observation={"hydration_json_text": "{}"},
+                responses=[],
+                metadata={
+                    "post_load_pointer_actions": [],
+                    "pre_action_stop_attempts": [
+                        {
+                            "action_name": "pre_action_terminal_stop_v0",
+                            "automatic_retry_allowed": False,
+                        }
+                    ],
+                },
+                warning_notes=[],
+                limitation_notes=[],
+            ),
+            _success_observation(video_id="7390000000000000002"),
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["attempted_count"] == 1
+    assert cadence["completed_count"] == 0
+    assert len(engine.calls) == 1
+    triage = cadence["failures"][0]["blocker_triage"]
+    assert triage["challenge_kind"] == "account_risk"
+    assert triage["account_safety_stop"] is True
+    assert triage["automatic_retry_allowed"] is False
+    assert triage["operator_next_action"] == "review_security_alerts_before_new_run"
 
 
 def test_live_probe_stops_on_missing_video_detail_hydration(tmp_path: Path) -> None:
