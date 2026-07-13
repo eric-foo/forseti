@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+from capture_spine.creator_profile_current.silver_envelope_core import content_hash
 from capture_spine.creator_profile_current.social_metric_history_reader import (
     read_social_metric_history,
 )
@@ -198,6 +200,66 @@ def test_history_reader_rejects_tampered_exact_policy_record(tmp_path: Path) -> 
             account_native_id="creator",
             content_native_ids=["101"],
         )
+
+
+def test_history_reader_fails_loud_on_wrong_policy_record_at_exact_policy_path(
+    tmp_path: Path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _admit_grid(
+        data_root,
+        observed_at="2026-07-12T00:00:00Z",
+        play_count=100,
+        like_count=10,
+        comment_count=2,
+    )
+    assert all(row["status"] == "derived" for row in runner.run_catchup(data_root=data_root))
+    path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+        record_id=observation_set_record_id(packet_id),
+    )
+    record = json.loads(path.read_text(encoding="utf-8"))
+    record["payload"]["observation"]["policy_fingerprint_sha256"] = "f" * 64
+    record["content_hash"] = f"sha256:{content_hash(record)}"
+    path.write_text(json.dumps(record), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="different policy fingerprint"):
+        read_social_metric_history(
+            data_root=data_root,
+            lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+            policy_fingerprint=TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT,
+            record_id_for_anchor=observation_set_record_id,
+            platform="tiktok",
+            account_native_id="creator",
+            content_native_ids=["101"],
+        )
+
+
+def test_main_exit_code_fails_on_availability_reconcile_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        runner,
+        "DataLakeRoot",
+        SimpleNamespace(resolve=lambda **_kwargs: object()),
+    )
+    monkeypatch.setattr(
+        runner,
+        "run_catchup",
+        lambda **_kwargs: [
+            {
+                "packet_id": "01PACKET",
+                "status": "availability_reconcile_failed",
+                "error": "OSError: simulated locked availability entry",
+            }
+        ],
+    )
+
+    assert runner.main(["--data-root", "ignored"]) == 1
+    assert "availability_reconcile_failed" in capsys.readouterr().out
 
 
 def test_history_reader_rejects_equal_time_siblings(tmp_path: Path) -> None:

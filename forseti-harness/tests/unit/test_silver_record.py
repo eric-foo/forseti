@@ -120,6 +120,13 @@ def test_validate_metric_set_rejects_row_count_drift() -> None:
         validate_silver_vault_record(record)
 
 
+def test_validate_metric_set_rejects_cross_platform_row_namespace() -> None:
+    record = _metric_set_record()
+    record["payload"]["observation"]["rows"][0]["subject"]["ref"]["namespace"] = "instagram"
+    with pytest.raises(SilverRecordError, match="must equal platform"):
+        validate_silver_vault_record(record)
+
+
 def test_validate_metric_set_rejects_missing_source_field() -> None:
     record = _metric_set_record()
     del record["payload"]["observation"]["rows"][0]["metrics"]["view_count"][

@@ -42,11 +42,13 @@ def _obligation(data_root: DataLakeRoot, packet_id: str) -> dict[str, Any]:
     }
 
 
-def _batch_payload(data_root: DataLakeRoot, packet_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
+def _batch_payload(
+    data_root: DataLakeRoot, packet_id: str
+) -> tuple[dict[str, Any], dict[str, Any]] | None:
     loaded = data_root.load_raw_packet(packet_id)
     manifest = loaded.manifest
     if manifest.get("source_surface") != TIKTOK_BATCH_CAPTURE_SURFACE:
-        raise ValueError(f"packet {packet_id} is not a TikTok batch-admission packet")
+        return None
     matches = [
         item
         for item in manifest.get("preserved_files", [])
@@ -83,7 +85,24 @@ def run_comment_attention(*, data_root: DataLakeRoot) -> list[dict[str, Any]]:
     ):
         packet_id = item.raw_anchor
         try:
-            payload, raw_file_ref = _batch_payload(data_root, packet_id)
+            batch_input = _batch_payload(data_root, packet_id)
+            if batch_input is None:
+                append_ack(
+                    data_root,
+                    raw_anchor=packet_id,
+                    ack_namespace=_ACK_NAMESPACE,
+                    obligation=item.obligation,
+                    evidence=[
+                        {
+                            "kind": "not_applicable_non_batch_tiktok_packet",
+                            "manifest_sha256": item.obligation["manifest_sha256"],
+                            "policy_fingerprint_sha256": COMMENT_ATTENTION_POLICY_FINGERPRINT,
+                        }
+                    ],
+                )
+                results.append({"packet_id": packet_id, "status": "not_applicable"})
+                continue
+            payload, raw_file_ref = batch_input
             derived = derive_comment_attention_silver_records(
                 data_root=data_root,
                 raw_anchor=packet_id,
@@ -162,7 +181,7 @@ def main(argv: list[str] | None = None) -> int:
     except DataLakeRootError as exc:
         parser.exit(status=2, message=f"data lake unavailable: {exc}\n")
     print(json.dumps(results, indent=2, sort_keys=True))
-    return 1 if any(row.get("status") == "failed" for row in results) else 0
+    return 0 if all(row.get("status") in {"derived", "not_applicable"} for row in results) else 1
 
 
 if __name__ == "__main__":

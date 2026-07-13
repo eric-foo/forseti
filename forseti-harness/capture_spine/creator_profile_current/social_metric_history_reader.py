@@ -48,9 +48,11 @@ def read_social_metric_history(
     """Return ordered histories for the requested platform-native content IDs.
 
     ``policy_fingerprint`` and ``record_id_for_anchor`` are mandatory selection
-    inputs.  A record from any other policy is ignored rather than silently
-    substituted.  A malformed or integrity-invalid exact-policy record fails
-    the read loudly.
+    inputs.  A record for any other policy lives at a different deterministic
+    record id and is simply absent here; a record found at the exact-policy path
+    whose embedded record_id or policy fingerprint disagrees is a misfiled or
+    tampered record and fails the read loudly, as does any malformed or
+    integrity-invalid exact-policy record.
     """
     requested = {str(value).strip() for value in content_native_ids if str(value).strip()}
     histories: dict[str, list[SocialMetricHistoryPoint]] = defaultdict(list)
@@ -83,9 +85,14 @@ def read_social_metric_history(
             raise ValueError(f"social metric Silver raw_anchor mismatch: {path}")
         if record.get("payload_kind") != METRIC_OBSERVATION_SET_PAYLOAD_KIND:
             raise ValueError(f"unexpected social metric Silver payload kind: {path}")
+        if record.get("record_id") != record_id:
+            raise ValueError(f"social metric Silver record_id mismatch: {path}")
         observation = record["payload"]["observation"]
         if observation.get("policy_fingerprint_sha256") != policy_fingerprint:
-            continue
+            raise ValueError(
+                "social metric Silver record at the exact-policy path carries a "
+                f"different policy fingerprint: {path}"
+            )
         if observation.get("platform") != platform:
             continue
         account_ref = observation.get("subject", {}).get("ref", {})

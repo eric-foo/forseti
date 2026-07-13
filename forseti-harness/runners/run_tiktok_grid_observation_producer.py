@@ -214,7 +214,9 @@ def main(argv: list[str] | None = None) -> int:
     except DataLakeRootError as exc:
         parser.exit(status=2, message=f"data lake unavailable: {exc}\n")
     print(json.dumps(results, indent=2, sort_keys=True))
-    return 1 if any(row.get("status") == "failed" for row in results) else 0
+    # Allowlist exit semantics (matching the catch-up siblings): any unexpected
+    # status -- including availability_reconcile_failed -- fails the exit code.
+    return 0 if all(row.get("status") in {"derived", "not_applicable"} for row in results) else 1
 
 
 if __name__ == "__main__":
