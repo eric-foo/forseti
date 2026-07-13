@@ -7,10 +7,14 @@ must never take unattended:
   EP-01  writes/edits into protected external roots (jb, agent-workflow, and the
          user-level plugin/skill caches) — corrupting another repo/tooling.
   EP-03  irreversible / main-affecting git: blocks direct push to main,
-         force-push, and bare/ambiguous push, plus `reset --hard` / `clean` — via
-         Bash OR PowerShell. ALLOWS an explicit non-main, non-force lane push
-         (`git push -u origin <lane>`) so lanes can prep PRs under the per-lane PR
-         flow.
+          force-push, and bare/ambiguous push, plus `reset --hard` / `clean` — via
+          Bash OR PowerShell. It also blocks an explicit rebase (including
+          `pull --rebase`) once the current lane branch has been published, because
+          the resulting rewritten branch cannot be pushed under the no-force-push
+          policy. ALLOWS an explicit non-main, non-force lane push
+          (`git push -u origin <lane>`) so lanes can prep PRs under the per-lane PR
+          flow, and allows rebase recovery commands so an existing rebase is never
+          trapped.
          Landing a PR to main (`gh pr merge <N>`) is CONDITIONALLY allowed: the
          guard queries the PR and allows the merge ONLY when it is mergeStateStatus
          == CLEAN, every CI check has completed green, it carries the opt-in
@@ -35,9 +39,10 @@ Dev-workflow doctrine:     docs/decisions/dev_workflow_ci_branch_protection_doct
 Placement principle:       .agents/workflow-overlay/validation-gates.md -> "Enforcement Placement"
 Per-rule classification:   docs/decisions/overlay_enforcement_placement_classification_v0.md
 
-Scope (deliberately narrow): `git commit` and an explicit lane-branch push are
-NOT blocked (reversible; required by the per-lane PR flow); generic file deletion
-is NOT blocked. Only the irreversible / main-affecting few are blocked.
+Scope (deliberately narrow): `git commit`, an explicit lane-branch push, and an
+unpublished-branch rebase are NOT blocked; generic file deletion is NOT blocked.
+Only the irreversible / main-affecting few and the mechanically identifiable
+published-branch history rewrite are blocked.
 Authorized exceptions: run the action yourself, or temporarily remove this hook.
 
 Contract: reads the PreToolUse JSON on stdin; exit 2 + stderr = BLOCK; exit 0 =
@@ -87,6 +92,9 @@ MANUAL_RISK_LABELS = ("risk/manual-review-required", "risk/blocked-for-merge-pol
 # settings.json timeout so we fail CLOSED in-script rather than relying on the
 # harness's (unspecified) timeout-kill behavior.
 GH_TIMEOUT = 6
+# Local git-state probes are bounded independently so a damaged checkout cannot
+# turn a preventive check into tool-call latency. Probe failures fail open.
+GIT_TIMEOUT = 2
 # statusCheckRollup conclusions that count as "green" for a completed check.
 _OK_CONCLUSIONS = {"SUCCESS", "NEUTRAL", "SKIPPED"}
 
@@ -140,6 +148,15 @@ _GIT_PREFIX = r"\bgit\b(?:\s+-C\s+\S+|\s+-c\s+\S+|\s+--?\S+)*\s+"
 _RESET_HARD = re.compile(_GIT_PREFIX + r"reset\b[^&|;]*--hard\b", re.I)
 _CLEAN = re.compile(_GIT_PREFIX + r"clean\b", re.I)
 _PUSH = re.compile(_GIT_PREFIX + r"push\b(.*)$", re.I)
+_REBASE = re.compile(_GIT_PREFIX + r"rebase\b(.*)$", re.I)
+_PULL = re.compile(_GIT_PREFIX + r"pull\b(.*)$", re.I)
+_REBASE_RECOVERY = re.compile(
+    r"(?:^|\s)--(?:continue|abort|skip|quit|edit-todo|show-current-patch)\b", re.I
+)
+_PULL_REBASE = re.compile(
+    r"(?:^|\s)(?:--rebase(?:=(?!false(?:\s|$))\S*)?|-[A-Za-z]*r[A-Za-z]*)(?:\s|$)",
+    re.I,
+)
 _GH_PR_MERGE = re.compile(r"\bgh\s+pr\s+merge\b(.*)$", re.I)
 _GH_API_MERGE = re.compile(r"\bgh\s+api\b.*?(?:pulls?/\d+/merge|/merges)\b", re.I)
 # `--repo owner/name` / `-R owner/name` on a merge: the guard only ever queries
@@ -171,6 +188,51 @@ def _push_block_reason(rest):
         return "ambiguous push (bare HEAD could be main)"
     if len(positionals) < 2:
         return "bare/ambiguous push (could target main)"
+    return None
+
+
+def _git_result(args):
+    """Return ``(returncode, stdout)`` for one bounded local git probe."""
+    try:
+        out = subprocess.run(
+            ["git"] + list(args), capture_output=True, text=True, timeout=GIT_TIMEOUT
+        )
+    except (OSError, subprocess.SubprocessError):
+        return 1, ""
+    return out.returncode, (out.stdout or "").strip()
+
+
+def _published_branch_ref(git_result=None):
+    """Return the matching remote branch ref when the current branch is published.
+
+    A branch merely tracking ``origin/main`` is still unpublished. Publication
+    requires either an upstream whose suffix exactly matches the local branch or
+    the conventional local ``origin/<branch>`` remote-tracking ref. All probe
+    failures return ``None`` so this preventive path fails open.
+    """
+    git_result = _git_result if git_result is None else git_result
+    rc, branch = git_result(["symbolic-ref", "--quiet", "--short", "HEAD"])
+    if rc != 0 or not branch:
+        return None
+    rc, upstream = git_result(
+        ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"]
+    )
+    if rc == 0 and upstream.endswith("/" + branch):
+        return upstream
+    rc, _ = git_result(
+        ["show-ref", "--verify", "--quiet", "refs/remotes/origin/" + branch]
+    )
+    return "origin/" + branch if rc == 0 else None
+
+
+def _history_rewrite_kind(seg):
+    """Name an explicit rebase-starting command; recovery forms return ``None``."""
+    match = _REBASE.search(seg)
+    if match and not _REBASE_RECOVERY.search(match.group(1)):
+        return "git rebase"
+    match = _PULL.search(seg)
+    if match and _PULL_REBASE.search(match.group(1)):
+        return "git pull --rebase"
     return None
 
 
@@ -258,13 +320,15 @@ def _merge_decision(pr_ref, lookup):
     return None  # CLEAN + green + opt-in label + no manual-risk label → allow self-merge
 
 
-def _shell_block_reason(cmd, lookup=None):
+def _shell_block_reason(cmd, lookup=None, publication_lookup=None):
     """Return an EP-03 block reason for a shell command, or None to allow.
 
-    `lookup` is the PR-state fetcher (injected so --selftest stays offline);
-    defaults to the real `gh` query."""
+    `lookup` is the PR-state fetcher and `publication_lookup` identifies a
+    published current branch. Both are injectable so --selftest stays offline."""
     if lookup is None:
         lookup = _query_pr_state
+    if publication_lookup is None:
+        publication_lookup = _published_branch_ref
     cmd = _QUOTED.sub(" ", cmd or "")
     for seg in _SEP.split(cmd):
         seg = seg.strip()
@@ -291,6 +355,18 @@ def _shell_block_reason(cmd, lookup=None):
             return "EP-03 destructive (git reset --hard): %s" % seg[:160]
         if _CLEAN.search(seg):
             return "EP-03 destructive (git clean): %s" % seg[:160]
+        rewrite = _history_rewrite_kind(seg)
+        if rewrite:
+            try:
+                published_ref = publication_lookup()
+            except Exception:
+                published_ref = None
+            if published_ref:
+                return (
+                    "EP-03 published-branch history rewrite blocked (%s; %s): %s. "
+                    "Fetch main, then merge origin/main into the lane branch instead"
+                    % (rewrite, published_ref, seg[:160])
+                )
         m = _PUSH.search(seg)
         if m:
             why = _push_block_reason(m.group(1))
@@ -299,10 +375,11 @@ def _shell_block_reason(cmd, lookup=None):
     return None
 
 
-def decide(tool_name, tool_input, lookup=None):
+def decide(tool_name, tool_input, lookup=None, publication_lookup=None):
     """Decision. Returns (block: bool, reason: str). EP-01 (write paths) is pure;
-    the EP-03 merge path may consult `lookup` (the PR-state fetcher, injected in
-    tests, real `gh` query in production)."""
+    the EP-03 merge path may consult `lookup`, while the published-rebase path
+    may consult `publication_lookup`; both are injected in tests and use bounded
+    real probes in production."""
     tool_input = tool_input or {}
     if tool_name in WRITE_TOOLS:
         target = (tool_input.get("file_path")
@@ -312,7 +389,9 @@ def decide(tool_name, tool_input, lookup=None):
         if hit:
             return True, "EP-01 protected-path write: %s (under %s)" % (target, hit)
     elif tool_name in SHELL_TOOLS:
-        reason = _shell_block_reason(tool_input.get("command", "") or "", lookup)
+        reason = _shell_block_reason(
+            tool_input.get("command", "") or "", lookup, publication_lookup
+        )
         if reason:
             return True, reason
     return False, ""
@@ -323,12 +402,14 @@ _BLOCK_MSG = (
     "Reason: %s\n"
     "%s"
     "Authority: .agents/workflow-overlay/safety-rules.md + dev-workflow doctrine "
-    "(push-to-main / force-push / destructive-clean are blocked, and edits to "
+    "(push-to-main / force-push / destructive-clean / published-branch rebase are "
+    "blocked, and edits to "
     "jb/external/installed skills, unless explicitly authorized; `gh pr merge <N>` "
     "self-merge is allowed ONLY for a CLEAN + CI-green + '" + AUTOMERGE_LABEL +
     "'-labeled PR). Fires in all modes incl. auto.\n"
     "Authorized exception: a human lands the PR with the command above, or remove "
-    "this hook. An explicit lane push `git push -u origin <lane>` is allowed."
+    "this hook. An explicit lane push `git push -u origin <lane>` is allowed; "
+    "published lanes update from main with fetch + merge, not rebase."
 )
 
 # --- selftest ---------------------------------------------------------------
@@ -358,6 +439,8 @@ def _selftest():
                            {"name": "risk/manual-review-required"}]},  # router-flagged -> human only
     }
     _fake = lambda pr: _FAKE.get(str(pr))            # unknown PR -> None -> fail closed
+    _published = lambda: "origin/codex/example-lane"
+    _unpublished = lambda: None
 
     def _raises(pr):                                 # lookup error -> fail closed
         raise RuntimeError("simulated gh/network failure")
@@ -394,6 +477,11 @@ def _selftest():
         ("Bash", {"command": "git -C . reset --hard HEAD~1"}, True),
         ("PowerShell", {"command": "git clean -fd"}, True),
         ("Bash", {"command": "git reset HEAD~1 --hard"}, True),
+        # EP-03 block: a published lane cannot be rewritten under no-force-push.
+        ("Bash", {"command": "git rebase origin/main"}, True, _fake, _published),
+        ("PowerShell", {"command": "git pull --rebase origin main"}, True, _fake, _published),
+        ("Bash", {"command": "git pull --rebase=merges origin main"}, True, _fake, _published),
+        ("Bash", {"command": "git pull -r origin main"}, True, _fake, _published),
         # EP-01 block: protected paths
         ("Write", {"file_path": j("Desktop", "projects", "jb", "x.md")}, True),
         ("Write", {"file_path": j("Desktop", "projects", "jb nonrepo", "x.md")}, True),
@@ -413,6 +501,14 @@ def _selftest():
         ("Bash", {"command": "git status"}, False),
         ("Bash", {"command": "git commit -m 'x'"}, False),
         ("Bash", {"command": "git log --grep=push"}, False),
+        # ALLOW: unpublished rebase, explicit merge route, and rebase recovery.
+        ("Bash", {"command": "git rebase origin/main"}, False, _fake, _unpublished),
+        ("Bash", {"command": "git merge --no-edit origin/main"}, False, _fake, _published),
+        ("Bash", {"command": "git rebase --continue"}, False, _fake, _published),
+        ("Bash", {"command": "git rebase --abort"}, False, _fake, _published),
+        ("Bash", {"command": "git pull --rebase=false origin main"}, False, _fake, _published),
+        ("Bash", {"command": "git pull --no-rebase origin main"}, False, _fake, _published),
+        ("Bash", {"command": "echo 'git rebase origin/main'"}, False, _fake, _published),
         ("Write", {"file_path": j("Desktop", "projects", "orca", "docs", "x.md")}, False),
         ("Edit", {"file_path": j("Desktop", "projects", "orca", ".claude", "skills", "forseti-product-lead", "SKILL.md")}, False),
         ("Edit", {"file_path": j("Desktop", "projects", "orca", ".claude", "skills", "orca-product-lead", "SKILL.md")}, False),
@@ -421,12 +517,52 @@ def _selftest():
     ok = True
     for i, (tn, ti, expect, *rest) in enumerate(cases, 1):
         lookup = rest[0] if rest else _fake
-        got, reason = decide(tn, ti, lookup=lookup)
+        publication_lookup = rest[1] if len(rest) > 1 else _unpublished
+        got, reason = decide(
+            tn, ti, lookup=lookup, publication_lookup=publication_lookup
+        )
         status = "PASS" if got == expect else "FAIL"
         if got != expect:
             ok = False
         print("%s case %02d  %-12s expect_block=%-5s got=%-5s  %s"
               % (status, i, tn, expect, got, reason or ""))
+    def _fake_git(mapping):
+        return lambda args: mapping.get(tuple(args), (1, ""))
+
+    publication_cases = [
+        (
+            {
+                ("symbolic-ref", "--quiet", "--short", "HEAD"): (0, "codex/lane"),
+                ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+                    (0, "origin/codex/lane"),
+            },
+            "origin/codex/lane",
+        ),
+        (
+            {
+                ("symbolic-ref", "--quiet", "--short", "HEAD"): (0, "codex/lane"),
+                ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+                    (0, "origin/main"),
+            },
+            None,
+        ),
+        (
+            {
+                ("symbolic-ref", "--quiet", "--short", "HEAD"): (0, "codex/lane"),
+                ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+                    (0, "origin/main"),
+                ("show-ref", "--verify", "--quiet", "refs/remotes/origin/codex/lane"):
+                    (0, ""),
+            },
+            "origin/codex/lane",
+        ),
+    ]
+    for i, (mapping, expect) in enumerate(publication_cases, 1):
+        got = _published_branch_ref(_fake_git(mapping))
+        passed = got == expect
+        ok = ok and passed
+        print("%s publication case %02d expect=%r got=%r"
+              % ("PASS" if passed else "FAIL", i, expect, got))
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 

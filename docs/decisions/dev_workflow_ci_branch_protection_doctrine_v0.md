@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Forseti decision record
-scope: Forseti developer-workflow doctrine — CI test gate, branch protection on main, per-lane PR flow, auto-merge, and rebase cadence.
+scope: Forseti developer-workflow doctrine — CI test gate, branch protection on main, per-lane PR flow, auto-merge, and lane-update cadence.
 use_when:
   - Opening, merging, or gating a change to Forseti's main branch.
   - Setting up or changing CI, branch protection, or the per-lane PR workflow.
@@ -133,9 +133,16 @@ At that historical point, this record did not assert that any server-side gate w
    so the custom router/bot policy supplements rather than substitutes for it.
 5. **Merge method.** Lane PRs squash-merge by default — one tidy commit per lane on `main`. Other
    methods remain available; squash is the documented default.
-6. **Rebase cadence.** Each lane keeps its branch reasonably current with `main`; the
-   server gate also uses `strict: true`, so a behind head must update and rerun CI
-   before merging. This makes up-to-date state preventive rather than discretionary.
+6. **Lane-update cadence.** Each lane keeps its branch reasonably current with
+   `main`; the server gate also uses `strict: true`, so a behind head must update
+   and rerun CI before merging. Before the lane branch is first pushed, rebase onto
+   `origin/main` remains allowed. Once the branch is published or has a PR, do not
+   rebase it: fetch `main`, merge `origin/main` into the lane branch, resolve any
+   conflicts there, and use an ordinary fast-forwardable lane push. This is the
+   only update route compatible with both a stable published branch identity and
+   the hard no-force-push rule. Prefer the explicit pair `git fetch origin main`
+   then `git merge --no-edit origin/main`; do not rely on a plain `git pull`, whose
+   behavior can be changed by local rebase configuration.
 7. **Defense-in-depth enforcement — structure B′ (guard-verified CLEAN self-merge; else human-landed).**
    With the server gate active, agents still prepare green PRs. An agent may self-merge
    its own PR with a direct `gh pr merge <N>`, but **only when the protected-action guard
@@ -146,8 +153,10 @@ At that historical point, this record did not assert that any server-side gate w
    lower-level `gh api .../merge` form, a foreign `--repo`, or any lookup error/timeout — **fails
    closed**: the guard blocks (exit 2) and prints the repo-scoped manual command
    (`gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`) for a human to run from anywhere.
-   Push to `main`, force-push, and destructive `reset --hard` / `clean` stay hard-blocked; a benign
-   lane-branch push stays allowed. **Why CLEAN + green + label, not bare CLEAN:** the server
+   Push to `main`, force-push, destructive `reset --hard` / `clean`, and explicit
+   rebase starts on a mechanically confirmed published lane stay hard-blocked; a
+   benign lane-branch push, the fetch-plus-merge update route, and rebase recovery
+   commands stay allowed. **Why CLEAN + green + label, not bare CLEAN:** the server
    now requires the CI check, while the guard independently requires a present green rollup
    plus explicit opt-in before authorizing an agent merge. That preserves clear local failure,
    closes the empty/early check-set race, and keeps self-merge auditable. The **opt-in label
@@ -435,59 +444,6 @@ four-worker plus scan-reuse result before its own live run.
 - Risk-router labels and merge-packet comments are routing/check signal only — **not** validation,
   approval, review acceptance, readiness, or proof that a PR is safe to merge.
 - Not validation, readiness, or acceptance of any lane's content beyond "the test suite passed."
-
-
-
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The required public-repository CI job now uses all four documented ubuntu-latest CPUs while
-    retaining file-grouped isolation; the two measured slow contract gates reuse a single
-    per-process tracked-source snapshot; and silver-lane production discovery excludes gitignored
-    test scratch so concurrent copied-project fixtures cannot contaminate the live-repo gate.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    - .github/workflows/ci.yml
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - forseti-harness/tests/contract/test_data_lake_inventory_gate.py
-    - forseti-harness/tests/contract/test_silver_reader_selection_gate.py
-    - .agents/hooks/check_silver_lane_registry.py
-    - forseti-harness/tests/unit/test_silver_lane_registry_guard.py
-  downstream_surfaces_checked:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/README.md
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        Gate classification, failure behavior, and the required full-suite boundary are unchanged.
-        Excluding already-gitignored generated scratch narrows discovery to production candidates;
-        it does not exempt any tracked production path.
-    - path: .agents/hooks/README.md
-      reason: >
-        Hook command and wiring are unchanged; the scratch exclusion is documented inline in the
-        checker and pinned by its unit regression test.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: >
-        The compact map already routes command-level CI configuration to .github/workflows/ci.yml.
-  stale_language_search: >
-    rg -n -- "-n 2|two file-grouped workers|four file-grouped workers|_inventory_snapshot|non_raw_lake_touchpoints|_PRODUCER_DISCOVERY_EXCLUDED_DIRS|_test_runs"
-    .github/workflows/ci.yml docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    forseti-harness/tests/unit/test_ci_hook_wiring.py
-    forseti-harness/tests/contract/test_data_lake_inventory_gate.py
-    forseti-harness/tests/contract/test_silver_reader_selection_gate.py
-    .agents/hooks/check_silver_lane_registry.py
-    forseti-harness/tests/unit/test_silver_lane_registry_guard.py
-  non_claims:
-    - not validation or readiness
-    - not a reduction in required tests or policy gates
-    - not proof of four-worker speedup until measured on GitHub Actions
-```
-
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
@@ -538,6 +494,55 @@ direction_change_propagation:
     - not readiness
     - not a bypass of connector export refusals
     - not new commit, push, PR, or merge authority
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Published lane branches now update from main by fetch plus merge, never rebase,
+    because force-push is prohibited; the protected-action guard blocks explicit
+    published-branch rebase starts before they create an unpushable history.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - .agents/hooks/guard_protected_actions.py
+    - .agents/hooks/README.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The kernel already points lane lifecycle to this decision and separately
+        forbids destructive Git; duplicating the update command would fork policy.
+    - path: .agents/workflow-overlay/safety-rules.md
+      reason: >
+        It already delegates commit, push, and pull-request lifecycle policy to
+        this decision and names the guard as enforcement.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Its enforcement-placement principle already requires mechanically
+        checkable lifecycle rules at the tool boundary; no principle changed.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        EP-03 already classifies Git lifecycle commands as a shell-boundary
+        substrate; this change narrows the authorized command route, not placement.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        It already routes workflow doctrine to the decision and active-hook
+        behavior to the hook README; no T1 route moved.
+  stale_language_search: >
+    rg -n -i "rebase cadence|published.*rebase|rebase.*published|git rebase|pull --rebase"
+    AGENTS.md .agents docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+  non_claims:
+    - not validation or readiness
+    - not proof that every harness loads the local guard
+    - not prevention of opaque-script or deliberately bypassed rebases
 ```
 
 Older direction_change_propagation receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
