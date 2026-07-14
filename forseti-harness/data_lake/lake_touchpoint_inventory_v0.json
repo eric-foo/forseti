@@ -64,12 +64,6 @@
       "a2_fork_impact": "none",
       "call": "append_silver_record",
       "count": 2,
-      "module": "capture_spine/creator_profile_current/tiktok_silver_metric_producer.py"
-    },
-    {
-      "a2_fork_impact": "none",
-      "call": "append_silver_record",
-      "count": 2,
       "module": "capture_spine/creator_profile_current/youtube_silver_metric_producer.py"
     },
     {
@@ -255,13 +249,13 @@
     {
       "a2_fork_impact": "none",
       "call": "is_record_set_complete",
-      "count": 2,
+      "count": 1,
       "module": "runners/run_tiktok_audience_evidence_extract.py"
     },
     {
       "a2_fork_impact": "none",
       "call": "record_path",
-      "count": 3,
+      "count": 2,
       "module": "runners/run_tiktok_audience_evidence_extract.py"
     },
     {

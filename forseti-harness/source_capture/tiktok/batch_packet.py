@@ -32,6 +32,7 @@ TIKTOK_BATCH_CAPTURE_SURFACE = "tiktok_creator_batch_comment_subtitle_admission"
 TIKTOK_BATCH_CAPTURE_JSON_NAME = "tiktok_batch_capture.json"
 TIKTOK_BATCH_GRID_WINDOW_JSON_NAME = "tiktok_grid_window.json"
 TIKTOK_BATCH_SELECTION_JSON_NAME = "tiktok_grid_video_selection.json"
+TIKTOK_BATCH_SUGGESTED_ACCOUNTS_JSON_NAME = "tiktok_suggested_accounts_attempt.json"
 
 TIKTOK_BATCH_NON_CLAIMS = (
     "not_live_tiktok_capture_or_browser_automation",
@@ -67,12 +68,14 @@ def write_tiktok_batch_packet(
     cadence_result_jsons: Sequence[bytes],
     grid_window_json: bytes | None = None,
     selection_result_json: bytes | None = None,
+    suggested_accounts_json: bytes | None = None,
     output_directory: str | Path | None = None,
     data_root: str | Path | None = None,
     decision_question: str = "What product, disclosure, comment, and subtitle signals are present in this TikTok creator batch?",
     batch_label: str = "tiktok_creator_batch",
     source_file_receipts: Sequence[JsonObject] | None = None,
     capture_timestamp: str | None = None,
+    prior_capture_pointer: str | None = None,
 ) -> tuple[int, str]:
     """Write a sanitized TikTok creator batch packet from parsed staging JSON."""
 
@@ -80,6 +83,8 @@ def write_tiktok_batch_packet(
     profile_url = _canonical_creator_profile_url(creator_profile_url, handle)
     if not cadence_result_jsons:
         raise ValueError("At least one cadence result JSON input is required")
+    if prior_capture_pointer is not None and not prior_capture_pointer.strip():
+        raise ValueError("prior_capture_pointer must be non-empty when supplied")
 
     payload = _build_payload(
         creator_handle=handle,
@@ -99,6 +104,16 @@ def write_tiktok_batch_packet(
     )
     if onboarding_evidence is not None:
         payload["onboarding_evidence"] = onboarding_evidence
+    suggested_accounts_evidence = _validate_suggested_accounts_evidence(
+        creator_handle=handle,
+        suggested_accounts_json=suggested_accounts_json,
+    )
+    if prior_capture_pointer is not None:
+        payload["historical_recapture"] = {
+            "re_capture_relationship": "supplement",
+            "prior_capture_pointer": prior_capture_pointer,
+            "prior_provenance_mutated": False,
+        }
     assert_no_sensitive_tiktok_material(payload)
 
     payload_bytes = json_dumps_sanitized(payload)
@@ -110,15 +125,28 @@ def write_tiktok_batch_packet(
                 (TIKTOK_BATCH_SELECTION_JSON_NAME, selection_result_json),
             ]
         )
+    if suggested_accounts_evidence is not None:
+        staged_artifacts.append(
+            (TIKTOK_BATCH_SUGGESTED_ACCOUNTS_JSON_NAME, suggested_accounts_json)
+        )
     file_ids = staged_file_id_map(staged_artifacts)
     summary = payload["batch_summary"]
     window = summary.get("create_time_utc_range") or "unknown create-time window"
 
+    recapture = (
+        known_fact("supplement")
+        if prior_capture_pointer is not None
+        else not_applicable("no prior TikTok batch admission packet supplied")
+    )
     timing = PacketTiming(
         source_publication_or_event=known_fact(f"creator batch window UTC: {window}"),
         source_edit_or_version=not_applicable("TikTok batch admission packet does not model source edit/version timing"),
         capture_time=known_fact(payload["capture_timestamp"]),
-        recapture_time=not_applicable("no prior TikTok batch admission packet supplied"),
+        recapture_time=(
+            known_fact(payload["capture_timestamp"])
+            if prior_capture_pointer is not None
+            else not_applicable("no prior TikTok batch admission packet supplied")
+        ),
         cutoff_posture=not_applicable("cutoff posture does not apply to parsed TikTok staging admission"),
     )
     access = known_fact(
@@ -126,7 +154,6 @@ def write_tiktok_batch_packet(
     )
     archive = not_attempted("TikTok batch admission packet does not query archive/history services")
     media = known_fact("parsed comments/source-native WebVTT/profile-list fields preserved; no raw media bytes")
-    recapture = not_applicable("no prior TikTok batch admission packet supplied")
     limitations = list(TIKTOK_BATCH_NON_CLAIMS)
 
     source_slices = [
@@ -186,6 +213,27 @@ def write_tiktok_batch_packet(
         receipt_non_claims=TIKTOK_BATCH_NON_CLAIMS,
     )
     return 0, result.output_directory
+
+
+def _validate_suggested_accounts_evidence(
+    *,
+    creator_handle: str,
+    suggested_accounts_json: bytes | None,
+) -> JsonObject | None:
+    if suggested_accounts_json is None:
+        return None
+    try:
+        evidence = json.loads(suggested_accounts_json)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("suggested_accounts_json must be valid UTF-8 JSON") from exc
+    if not isinstance(evidence, dict):
+        raise ValueError("suggested_accounts_json must decode to an object")
+    if str(evidence.get("creator_handle") or "").strip().lstrip("@").lower() != creator_handle:
+        raise ValueError("suggested_accounts_json creator_handle does not match batch creator")
+    if not isinstance(evidence.get("suggested_accounts"), list):
+        raise ValueError("suggested_accounts_json must contain suggested_accounts list")
+    assert_no_sensitive_tiktok_material(evidence)
+    return evidence
 
 
 def _is_creator_video_url(*, video_url: str, creator_handle: str, video_id: str) -> bool:
@@ -451,6 +499,10 @@ def _normalize_video_row(
             source_item.get("decoded_aweme_id_create_time_utc") if source_item else None,
             grid_candidate.get("decoded_aweme_id_create_time_utc"),
             decoded_aweme_id_create_time_utc(video_id),
+        ),
+        "stats_observed_utc": _first_str(
+            row.get("observed_utc"),
+            comments.get("observed_utc"),
         ),
         "stats": _normalize_stats(source_stats),
         "source_text": {
@@ -836,6 +888,24 @@ def _validate_staging_contracts(
         for key in required_true:
             if contract.get(key) is not True:
                 raise ValueError(f"capture_contract[{index}] must indicate {key}=true")
+        navigation_mode = contract.get("video_navigation_mode")
+        if navigation_mode == "grid_tile_overlay_sequence":
+            required_overlay_values = {
+                "grid_tile_overlay_navigation": True,
+                "return_to_grid_between_videos": True,
+                "direct_video_navigation": False,
+                "item_struct_required": False,
+            }
+            for key, expected in required_overlay_values.items():
+                if contract.get(key) is not expected:
+                    raise ValueError(
+                        f"capture_contract[{index}] overlay route must indicate "
+                        f"{key}={str(expected).lower()}"
+                    )
+        elif navigation_mode not in {None, "direct_selected_url_sequence"}:
+            raise ValueError(
+                f"capture_contract[{index}] has unsupported video_navigation_mode"
+            )
 
     superseded_failures, unsuperseded_by_payload = _classify_cadence_failures(
         cadence_payloads

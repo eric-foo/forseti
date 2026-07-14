@@ -314,10 +314,12 @@ triggers, not permission to add a telemetry ledger or silently change scope.
 - Worktree preflight gate: prompts state workspace, revision or hash,
   dirty-state allowance, target scope, and edit permission only when repository
   state matters. Before a repo-changing cross-lane dispatch loads receiver
-  sources, resident judgment also verifies the chosen receiver mechanism is
-  actually rooted in, or demonstrably able to write, the commissioned worktree
-  under `.agents/workflow-overlay/decision-routing.md`; naming or registering a
-  worktree is not proof, and a mismatch reroutes or returns
+  sources, resident judgment also applies the two-root preflight in
+  `.agents/workflow-overlay/decision-routing.md`: resolve the launch checkout to
+  the unique effective target, verify dirty-byte identity when applicable,
+  prove direct write capability, and exclude concurrent writers. A launch-path
+  mismatch alone is not a blocker; naming or reading another worktree is not
+  write proof. Guarded receivers still reroot or return
   `BLOCKED_RECEIVER_REROOT_REQUIRED` without bypassing the guard.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Forseti
@@ -474,8 +476,10 @@ Receiver-mechanism selection is one such judgment rule: whether a commission is
 read-only, safe same-root contribution, or an independent repo-changing lane
 depends on the requested act and live harness capability. The existing Codex
 adapter deterministically blocks registered non-current-worktree writes at the
-write boundary; do not add a registry, daemon, or static prompt checker that
-pretends it can prove a future receiver's runtime root.
+write boundary. An independent external controller may use a different launch
+checkout only when it proves direct access to the exact effective target under
+the owning two-root rule. Do not add a registry, daemon, or static prompt
+checker that pretends it can prove a future receiver's runtime capability.
 
 Active instance: the retrieval-header check
 (`.agents/hooks/check_retrieval_header.py`, EP-06) enforces

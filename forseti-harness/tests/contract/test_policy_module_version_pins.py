@@ -40,7 +40,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "COMMENT_ATTENTION_PRODUCER_SCHEMA_VERSION",
             "COMMENT_ATTENTION_POLICY_FINGERPRINT",
         ),
-        "65c7aba1cc571fa452be8baecb58942edda0fdb186bb22260503a61bbb1be9f2",
+        # Output-shaping: temporal pairing, amplification/rank context, and the
+        # cid-less mechanics fix now ride the producer's v1 recipe/schema tokens.
+        "88588cca1a2a4e088c1f04bde99602af2ad38117e86160c231bb957f7b6e3141",
     ),
     "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py": (
         (
@@ -104,7 +106,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/tiktok_audience_evidence_extractor.py": (
         ("RUBRIC_VERSION",),
-        "766539714680f3d111d3faeaf451c1b8a339645bac1856fa932169e3066a6e30",
+        # Output-shaping: transcript packing now isolates creators; v1 forces
+        # existing packets to re-surface under the new batching policy.
+        "83d3e1cee3918c17e8de496128c1a2f5efed33fb347feab23f57bd74e9a45ad1",
     ),
     "cleaning/tiktok_audience_evidence_lake.py": (
         ("RUBRIC_VERSION", "RECORD_SCHEMA_VERSION", "PROFILE_SCHEMA_VERSION"),

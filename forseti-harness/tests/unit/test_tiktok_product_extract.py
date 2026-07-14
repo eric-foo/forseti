@@ -10,7 +10,7 @@ from cleaning.audience_extractor import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE
 from data_lake.root import DataLakeRoot
 from runners.run_tiktok_product_extract import _transcripts_for_packet, run_extraction
-from test_tiktok_creator_metric_seed import _commit_batch_packet, _stats, _video
+from tiktok_batch_test_support import _commit_batch_packet, _stats, _video
 
 _PROVIDER = RawApiProvider.ANTHROPIC_MESSAGES
 
