@@ -21,6 +21,11 @@ from data_lake.silver_lineage import (
     SOURCE_BACKED_COMPLETE_STATUS,
     silver_record_source_backed_status,
 )
+from data_lake.silver_record import (
+    SilverRecordError,
+    validate_silver_vault_record,
+    verify_silver_vault_record_sources,
+)
 from source_capture.ig_reels_behavioral_projection import project_ig_reels_behavioral_item
 from source_capture.ig_reels_deep_capture_lake import (
     AUDIENCE_COMMENTS_LANE,
@@ -239,7 +244,18 @@ def _collect_product_extraction_results(
         if not isinstance(body, dict):
             _append_once(global_residuals, f"ig_lake_product_mentions_record_unreadable:{anchor}:{record_id}")
             continue
-        shortcode = _string_or_none(body.get("video_id")) or _string_or_none(body.get("shortcode"))
+        payload = body.get("payload")
+        observation = payload.get("observation") if isinstance(payload, dict) else None
+        subject = observation.get("subject") if isinstance(observation, dict) else None
+        subject_ref = subject.get("ref") if isinstance(subject, dict) else None
+        provenance = body.get("provenance")
+        if not isinstance(provenance, dict):
+            provenance = {}
+        shortcode = (
+            _string_or_none(subject_ref.get("native_id"))
+            if isinstance(subject_ref, dict)
+            else None
+        ) or _string_or_none(body.get("video_id")) or _string_or_none(body.get("shortcode"))
         if shortcode is None:
             _append_once(global_residuals, f"ig_lake_product_mentions_record_video_id_absent:{anchor}:{record_id}")
             continue
@@ -253,8 +269,19 @@ def _collect_product_extraction_results(
         except Exception:  # noqa: BLE001
             complete = False
         source_backed_status = silver_record_source_backed_status(body)
-        if complete and source_backed_status != SOURCE_BACKED_COMPLETE_STATUS:
-            status = source_backed_status
+        try:
+            validate_silver_vault_record(body)
+        except SilverRecordError:
+            authority_status = "invalid_silver_envelope"
+        else:
+            try:
+                verify_silver_vault_record_sources(data_root, body)
+            except SilverRecordError:
+                authority_status = "source_ref_unresolved"
+            else:
+                authority_status = source_backed_status
+        if complete and authority_status != SOURCE_BACKED_COMPLETE_STATUS:
+            status = authority_status
         else:
             status = "extracted" if complete else "partial_needs_cleanup"
         index.setdefault(shortcode, _BehavioralInputs()).extraction_results.append(
@@ -263,10 +290,13 @@ def _collect_product_extraction_results(
                 "video_id": shortcode,
                 "status": status,
                 "path": str(record_path),
-                "transcript_source_key": _string_or_none(body.get("transcript_source_key")),
-                "source_route": _string_or_none(body.get("source_route")),
-                "asr_record_id": _string_or_none(body.get("asr_record_id")),
-                "source_backed_status": source_backed_status,
+                "transcript_source_key": _string_or_none(provenance.get("transcript_source_key"))
+                or _string_or_none(body.get("transcript_source_key")),
+                "source_route": _string_or_none(provenance.get("source_route"))
+                or _string_or_none(body.get("source_route")),
+                "asr_record_id": _string_or_none(provenance.get("asr_record_id"))
+                or _string_or_none(body.get("asr_record_id")),
+                "source_backed_status": authority_status,
             }
         )
 

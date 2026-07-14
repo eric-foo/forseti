@@ -11,8 +11,8 @@ from data_lake.silver_census import (
 )
 from data_lake.silver_record import append_silver_record, silver_content_hash
 
-PACKET = "01TESTSILVERCENSUSPKT01"
-PARFUMO_PACKET = "01TESTSILVERCENSUSPKT02"
+PACKET = "01J00000000000000000000002"
+PARFUMO_PACKET = "01J00000000000000000000003"
 OBSERVED_AT = "2026-07-15T00:00:00Z"
 
 
@@ -26,10 +26,21 @@ def _manifest(
 ) -> None:
     container = root.path / "raw" / raw_shard(packet_id) / packet_id
     container.mkdir(parents=True)
+    source = container / "preserved" / "source.json"
+    source.parent.mkdir(parents=True)
+    source.write_text("{}", encoding="utf-8")
     (container / "manifest.json").write_text(
         json.dumps(
             {
                 "packet_id": packet_id,
+                "preserved_files": [
+                    {
+                        "file_id": "source",
+                        "relative_packet_path": "preserved/source.json",
+                        "size_bytes": 2,
+                        "sha256": hashlib.sha256(b"{}").hexdigest(),
+                    }
+                ],
                 "source_family": family,
                 "source_surface": surface,
                 "access_posture": {
@@ -75,7 +86,7 @@ def _record(
         "source_surface": "test_surface",
         "observed_at": OBSERVED_AT,
         "captured_at": OBSERVED_AT,
-        "raw_refs": [{"packet_id": PACKET}],
+        "raw_refs": [{"ref_type": "raw_packet", "packet_id": PACKET}],
         "derived_refs": [],
         "content_hash": "",
         "content_hash_basis": "canonical_json_excluding_content_hash",
@@ -161,7 +172,7 @@ def test_census_is_deterministic_reconciled_and_counts_observation_units(tmp_pat
                 "cleaning_fragrantica_silver",
                 "MetricObservation",
                 _vote(metric, value),
-                producer_schema="fragrantica_cleaning_silver_metricobservation_v2" if current else "fragrantica_cleaning_silver_metricobservation_v0",
+                producer_schema="fragrantica_cleaning_silver_metricobservation_v3" if current else "fragrantica_cleaning_silver_metricobservation_v0",
                 provenance={"review_vote_policy_version": FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION} if current else {},
             ),
         )
@@ -257,3 +268,40 @@ def test_duplicate_unit_is_suppressed_but_both_files_remain_stored(tmp_path: Pat
     assert totals["silver_records"] == 2
     assert totals["directly_observed_atomic_metric_values"] == 1
     assert totals["duplicate_observation_units_suppressed"] == 1
+
+
+def test_unresolved_record_is_named_and_cannot_inflate_observation_totals(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test((tmp_path / "lake").resolve())
+    _manifest(root, PACKET, "tiktok", "tiktok_creator_grid_window")
+    record = _record(
+        "unresolved.json",
+        "creator_metric_silver",
+        "MetricObservation",
+        {
+            "subject": _entity("public_content_object", "video-1"),
+            "metric_name": "view_count",
+            "metric_value": 10,
+            "metric_posture": {
+                "kind": "observed",
+                "reason_code": None,
+                "reason_detail": None,
+            },
+        },
+    )
+    record["raw_refs"][0]["packet_id"] = "01J00000000000000000000004"
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+    path = root.record_path(
+        subtree="derived",
+        raw_anchor=PACKET,
+        lane=record["lane_namespace"],
+        record_id=record["record_id"],
+    )
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(record), encoding="utf-8")
+
+    census = build_silver_observation_census(root)
+
+    assert census["totals"]["silver_records"] == 1
+    assert census["totals"]["directly_observed_atomic_metric_values"] == 0
+    assert census["totals"]["unclassified_silver_records"] == 1
+    assert census["errors"][0]["kind"] == "silver_record_source_unresolved"

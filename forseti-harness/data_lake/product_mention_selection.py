@@ -12,7 +12,11 @@ from data_lake.silver_lineage import (
     SOURCE_BACKED_COMPLETE_STATUS,
     silver_record_source_backed_status,
 )
-from data_lake.silver_record import SilverRecordError, validate_silver_vault_record
+from data_lake.silver_record import (
+    SilverRecordError,
+    validate_silver_vault_record,
+    verify_silver_vault_record_sources,
+)
 
 MENTIONS_LANE = "transcript_product_mentions_silver"
 
@@ -159,6 +163,18 @@ def select_product_mention_records(
             except SilverRecordError:
                 residuals.append(
                     _residual(raw_anchor, record_file.name, "invalid_silver_envelope")
+                )
+                continue
+            try:
+                verify_silver_vault_record_sources(root, record)
+            except SilverRecordError as exc:
+                residuals.append(
+                    _residual(
+                        raw_anchor,
+                        record_file.name,
+                        "source_ref_unresolved",
+                        error=str(exc),
+                    )
                 )
                 continue
             lineage_status = silver_record_source_backed_status(record)

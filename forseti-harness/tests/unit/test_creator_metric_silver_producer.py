@@ -32,12 +32,14 @@ from capture_spine.creator_profile_current.silver_metric_snapshot import (
 )
 from data_lake.attachment_record_entry import ATTACHMENT_RECORD_SCHEMA_VERSION
 from data_lake.catalog import rebuild_catalog
-from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
-PACKET_ID = "packet_fixture"
+PACKET_ID = "01J00000000000000000000005"
 GENERATED_AT = "2026-06-29T00:02:00Z"
+_RAW_BODY = b'{"fixture":"ig-grid"}'
+_RAW_SHA256 = hashlib.sha256(_RAW_BODY).hexdigest()
 
 
 def _content_hash(record: dict) -> str:
@@ -84,7 +86,7 @@ def _profile_row(username: str, value: int, capture_time: str) -> dict:
         "raw_anchor": {
             "file_id": "file_01",
             "relative_packet_path": "raw/01.json",
-            "sha256": "a" * 64,
+            "sha256": _RAW_SHA256,
             "hash_basis": "raw_stored_bytes",
         },
         "chosen_source_surface": "web_profile_info_json_metadata",
@@ -111,7 +113,7 @@ def _reel_row(username: str, shortcode: str, metric: str, value: int, capture_ti
         "raw_anchor": {
             "file_id": "file_01",
             "relative_packet_path": "raw/01.json",
-            "sha256": "a" * 64,
+            "sha256": _RAW_SHA256,
             "hash_basis": "raw_stored_bytes",
         },
         "chosen_source_surface": "clips_user_json_metadata",
@@ -133,11 +135,35 @@ def _run(tmp_path: Path):
     projection = tmp_path / "projection.json"
     projection.write_text(json.dumps({"packet_id": PACKET_ID, "rows": _projection_rows()}), encoding="utf-8")
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_default_raw_packet(data_root)
     return derive_creator_metric_silver_records_from_projections(
         data_root=data_root,
         projection_paths=[projection],
         account_ledger=_account_ledger(),
         generated_at_utc=GENERATED_AT,
+    )
+
+
+def _commit_default_raw_packet(data_root: DataLakeRoot) -> None:
+    container = data_root.path / "raw" / raw_shard(PACKET_ID) / PACKET_ID
+    preserved = container / "raw" / "01.json"
+    preserved.parent.mkdir(parents=True)
+    preserved.write_bytes(_RAW_BODY)
+    (container / "manifest.json").write_text(
+        json.dumps(
+            {
+                "packet_id": PACKET_ID,
+                "preserved_files": [
+                    {
+                        "file_id": "file_01",
+                        "relative_packet_path": "raw/01.json",
+                        "size_bytes": len(_RAW_BODY),
+                        "sha256": _RAW_SHA256,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
     )
 
 
@@ -150,14 +176,20 @@ def _projection_rows_for_anchor(packet_id: str, raw_anchor: dict) -> list[dict]:
     return rows
 
 
-def _commit_bronze_reels_packet(data_root: DataLakeRoot, tmp_path: Path) -> tuple[str, dict]:
+def _commit_bronze_reels_packet(
+    data_root: DataLakeRoot,
+    tmp_path: Path,
+    *,
+    source_family: str = "instagram_creator",
+    source_surface: str = "ig_reels_grid_dom_passive_json",
+) -> tuple[str, dict]:
     raw = tmp_path / "ig_reels_grid_capture.json"
     raw.write_text(json.dumps({"grid": "fixture"}, sort_keys=True), encoding="utf-8")
     result = write_local_source_capture_packet(
         data_root=data_root,
         input_files=[raw],
-        source_family="instagram_creator",
-        source_surface="ig_reels_grid_dom_passive_json",
+        source_family=source_family,
+        source_surface=source_surface,
         source_locator=known_fact("https://www.instagram.com/fixturecreator/reels/"),
         decision_question="creator metric AR-backed raw refs",
         capture_context="creator metric Silver AR proof test",
@@ -220,7 +252,7 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
     assert result.observation_records
     for record in result.observation_records:
         raw_ref = record["raw_refs"][0]
-        assert raw_ref["raw_ref_kind"] == "bronze_attachment_record"
+        assert raw_ref["ref_type"] == "bronze_attachment_record"
         assert raw_ref["attachment_record_id"].startswith("ar_")
         assert raw_ref["attachment_record_schema_version"] == ATTACHMENT_RECORD_SCHEMA_VERSION
         assert raw_ref["attachment_record_physicalization"] == "manifest_equivalent_entry_over_raw_packet_body_v0"
@@ -280,9 +312,23 @@ def test_ar_mode_records_round_trip_through_reader_discovery_and_snapshot(tmp_pa
 
 def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id, raw_anchor = _commit_bronze_reels_packet(
+        data_root,
+        tmp_path,
+        source_family="unrelated_fixture",
+        source_surface="unrelated_surface",
+    )
     assert rebuild_catalog(data_root)["status"] == "rebuilt"
     projection = tmp_path / "projection.json"
-    projection.write_text(json.dumps({"packet_id": PACKET_ID, "rows": _projection_rows()}), encoding="utf-8")
+    projection.write_text(
+        json.dumps(
+            {
+                "packet_id": packet_id,
+                "rows": _projection_rows_for_anchor(packet_id, raw_anchor),
+            }
+        ),
+        encoding="utf-8",
+    )
 
     result = derive_creator_metric_silver_records_from_projections(
         data_root=data_root,
@@ -293,7 +339,7 @@ def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path:
     )
 
     raw_ref = result.observation_records[0]["raw_refs"][0]
-    assert raw_ref["raw_ref_kind"] == "raw_packet_fallback_missing_attachment_record"
+    assert raw_ref["ref_type"] == "raw_packet"
     assert raw_ref["typed_attachment_record_status"] == "missing"
     assert raw_ref["attachment_record_residual"] == "typed_attachment_record_missing_for_raw_ref"
     assert result.observation_records[0]["lineage_limitations"] == [
@@ -397,6 +443,7 @@ def test_content_subject_missing_native_id_fails_closed(tmp_path: Path) -> None:
     projection = tmp_path / "projection.json"
     projection.write_text(json.dumps({"packet_id": PACKET_ID, "rows": rows}), encoding="utf-8")
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_default_raw_packet(data_root)
 
     with pytest.raises(ValueError, match="content subject requires a non-empty entity_key native_id"):
         derive_creator_metric_silver_records_from_projections(

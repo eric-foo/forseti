@@ -62,7 +62,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "BASENOTES_SILVER_PRODUCER_SCHEMA_VERSION",
             "BASENOTES_CLEANING_METHOD_ID",
         ),
-        "b18ef028e21a94a165ee159cf86bfa3b541c08a5e81ba14744f56ef8fd2617d3",
+        "34635ec6f0ace24e58c1a133ace0952a7f9895a677e1d383013bce3d26672acd",
     ),
     "cleaning/fragrantica.py": (
         ("FRAGRANTICA_CLEANING_METHOD_ID (cleaning/fragrantica_lake.py)",),
@@ -76,7 +76,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION",
             "FRAGRANTICA_CLEANING_METHOD_ID",
         ),
-        "126f4252d35453c341516e2148287134bdeaf2caded0647c8f4116ce16cee875",
+        "bf581aaa83ce319370d6bd045934c689f2053150e859f6f03062f4d953887c60",
     ),
     "cleaning/models.py": (
         ("CLEANING_CORE_VERSION",),
@@ -93,7 +93,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION",
             "PARFUMO_CLEANING_METHOD_ID",
         ),
-        "16a34bddff60ab660720c0cef63f198a275e36b2bd47b1bbc1bf8ca7b5d6a608",
+        "e596bf4c379018df74385b1e024faebce96319fc7e02922da0de3cf8981c3dc5",
     ),
     "cleaning/transcript_product_extractor.py": (
         ("EXTRACTOR_RUBRIC_VERSION",),

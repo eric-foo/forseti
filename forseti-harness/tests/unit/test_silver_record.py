@@ -6,6 +6,8 @@ and the front-door refuses to persist one (raises before any bytes are written).
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
+import json
 
 import pytest
 
@@ -18,7 +20,7 @@ from data_lake.silver_record import (
     validate_silver_vault_record,
 )
 
-_PACKET_ID = "01TESTSILVERENVELOPE"
+_PACKET_ID = "01J00000000000000000000001"
 _SILVER_LANE = "cleaning_fragrantica_silver"
 
 
@@ -36,7 +38,7 @@ def _text_record() -> dict:
         "source_surface": "test_surface",
         "observed_at": "2026-07-14T00:00:00Z",
         "captured_at": "2026-07-14T00:00:00Z",
-        "raw_refs": [{"packet_id": _PACKET_ID}],
+        "raw_refs": [{"ref_type": "raw_packet", "packet_id": _PACKET_ID}],
         "derived_refs": [],
         "content_hash": "",
         "content_hash_basis": "canonical_json_excluding_content_hash",
@@ -68,7 +70,7 @@ def _metric_record() -> dict:
         "source_surface": "test_surface",
         "observed_at": "2026-07-14T00:00:00Z",
         "captured_at": "2026-07-14T00:00:00Z",
-        "raw_refs": [{"packet_id": _PACKET_ID}],
+        "raw_refs": [{"ref_type": "raw_packet", "packet_id": _PACKET_ID}],
         "derived_refs": [],
         "content_hash": "",
         "content_hash_basis": "canonical_json_excluding_content_hash",
@@ -98,7 +100,7 @@ def _metric_set_record() -> dict:
         "source_surface": "test_surface",
         "observed_at": "2026-07-14T00:00:00Z",
         "captured_at": "2026-07-14T00:00:00Z",
-        "raw_refs": [{"packet_id": _PACKET_ID}],
+        "raw_refs": [{"ref_type": "raw_packet", "packet_id": _PACKET_ID}],
         "derived_refs": [],
         "content_hash": "",
         "content_hash_basis": "canonical_json_excluding_content_hash",
@@ -150,6 +152,30 @@ def _metric_set_record() -> dict:
 
 def _rehash(record: dict) -> None:
     record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+
+
+def _commit_source(root: DataLakeRoot, *, body: bytes = b"source") -> Path:
+    container = root.path / "raw" / raw_shard(_PACKET_ID) / _PACKET_ID
+    preserved = container / "preserved" / "source.bin"
+    preserved.parent.mkdir(parents=True)
+    preserved.write_bytes(body)
+    (container / "manifest.json").write_text(
+        json.dumps(
+            {
+                "packet_id": _PACKET_ID,
+                "preserved_files": [
+                    {
+                        "file_id": "source",
+                        "relative_packet_path": "preserved/source.bin",
+                        "size_bytes": len(body),
+                        "sha256": hashlib.sha256(body).hexdigest(),
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return preserved
 
 
 def test_validate_accepts_well_formed_text_and_metric_observations() -> None:
@@ -216,6 +242,15 @@ def test_validate_rejects_record_without_source_lineage() -> None:
     record = _text_record()
     record["raw_refs"] = []
     with pytest.raises(SilverRecordError, match="at least one resolvable"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_rejects_raw_ref_without_explicit_source_posture() -> None:
+    record = _text_record()
+    record["raw_refs"][0].pop("ref_type")
+    _rehash(record)
+
+    with pytest.raises(SilverRecordError, match="ref_type"):
         validate_silver_vault_record(record)
 
 
@@ -305,6 +340,7 @@ def test_validate_rejects_observed_metric_with_reason_detail() -> None:
 
 def test_append_silver_record_writes_a_valid_record(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    _commit_source(root)
     record = _text_record()
     path = append_silver_record(
         root,
@@ -351,6 +387,7 @@ def test_append_silver_record_rejects_header_target_mismatch(tmp_path: Path) -> 
 
 def test_append_silver_record_set_validates_all_members_before_write(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    _commit_source(root)
     valid = _text_record()
     invalid = _text_record()
     invalid["record_id"] = valid["record_id"]
@@ -363,6 +400,102 @@ def test_append_silver_record_set_validates_all_members_before_write(tmp_path: P
             raw_anchor=_PACKET_ID,
             record_id=valid["record_id"],
             records={_SILVER_LANE: valid, "second_silver": invalid},
+            completion_lane="silver_test_completion",
+        )
+    assert not root.lane_dir(
+        subtree="derived", raw_anchor=_PACKET_ID, lane=_SILVER_LANE
+    ).exists()
+
+
+def test_append_silver_record_rejects_unresolved_source_before_write(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    record = _text_record()
+    with pytest.raises(SilverRecordError, match="physically unresolved"):
+        append_silver_record(
+            root,
+            raw_anchor=_PACKET_ID,
+            lane=_SILVER_LANE,
+            record_id=record["record_id"],
+            record=record,
+        )
+    assert not root.lane_dir(
+        subtree="derived", raw_anchor=_PACKET_ID, lane=_SILVER_LANE
+    ).exists()
+
+
+def test_append_silver_record_rejects_tampered_source_before_write(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    preserved = _commit_source(root)
+    preserved.write_bytes(b"tampered")
+    record = _text_record()
+    with pytest.raises(SilverRecordError, match="tampered"):
+        append_silver_record(
+            root,
+            raw_anchor=_PACKET_ID,
+            lane=_SILVER_LANE,
+            record_id=record["record_id"],
+            record=record,
+        )
+    assert not root.lane_dir(
+        subtree="derived", raw_anchor=_PACKET_ID, lane=_SILVER_LANE
+    ).exists()
+
+
+def test_append_silver_record_verifies_exact_derived_ref_and_hash(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    _commit_source(root)
+    source = _text_record()
+    append_silver_record(
+        root,
+        raw_anchor=_PACKET_ID,
+        lane=_SILVER_LANE,
+        record_id=source["record_id"],
+        record=source,
+    )
+    dependent = _metric_record()
+    dependent["lane_namespace"] = "derived_metric_silver"
+    dependent["raw_refs"] = []
+    dependent["derived_refs"] = [
+        {
+            "raw_anchor": _PACKET_ID,
+            "lane_namespace": _SILVER_LANE,
+            "record_id": source["record_id"],
+            "content_hash": source["content_hash"],
+            "content_hash_basis": source["content_hash_basis"],
+        }
+    ]
+    _rehash(dependent)
+
+    path = append_silver_record(
+        root,
+        raw_anchor=_PACKET_ID,
+        lane=dependent["lane_namespace"],
+        record_id=dependent["record_id"],
+        record=dependent,
+    )
+    assert path.is_file()
+
+
+def test_append_silver_record_set_rejects_unresolved_member_before_any_write(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    _commit_source(root)
+    first = _text_record()
+    second = _metric_record()
+    second["record_id"] = first["record_id"]
+    second["lane_namespace"] = "second_silver"
+    second["raw_refs"] = [
+        {"ref_type": "raw_packet", "packet_id": "01J00000000000000000000002"}
+    ]
+    _rehash(second)
+
+    with pytest.raises(SilverRecordError, match="physically unresolved"):
+        append_silver_record_set(
+            root,
+            raw_anchor=_PACKET_ID,
+            record_id=first["record_id"],
+            records={_SILVER_LANE: first, "second_silver": second},
             completion_lane="silver_test_completion",
         )
     assert not root.lane_dir(

@@ -17,9 +17,9 @@ Two grammars, declared honestly:
   (``record_kind``/``payload_kind``/``payload.observation``). The validating
   front-door ``data_lake.silver_record.append_silver_record`` is the only
   sanctioned writer.
-- ``silver_lineage``: the remaining pre-existing grammar-B capture lanes.  The
-  migrated product/audience lanes are ``retired_silver_lineage``: their bytes
-  remain audit-readable, but current readers and writers never select them.
+- ``retired_silver_lineage``: pre-existing grammar-B lanes whose bytes remain
+  audit-readable, but current readers and writers never select them. There are
+  no active source-less ``silver_lineage`` lanes.
 
 ``FRONT_DOOR_PENDING`` records ``silver_envelope`` lanes whose producer has not
 yet been migrated onto the front-door, each with the reason. The guard permits a
@@ -73,9 +73,9 @@ LANE_ROLES: dict[str, LaneRole] = {
     "silver__cleaning__tiktok_audience_evidence__set": LaneRole.RETIRED_SILVER_LINEAGE,
     "silver__cleaning__tiktok_audience_profile": LaneRole.RETIRED_SILVER_LINEAGE,
     "silver__cleaning__tiktok_audience_profile__set": LaneRole.RETIRED_SILVER_LINEAGE,
-    "silver__capture__audience_comments": LaneRole.SILVER_LINEAGE,
-    "silver__capture__reel_transcript": LaneRole.SILVER_LINEAGE,
-    "silver__capture__reel_deep_capture__set": LaneRole.SILVER_LINEAGE,
+    "silver__capture__audience_comments": LaneRole.RETIRED_SILVER_LINEAGE,
+    "silver__capture__reel_transcript": LaneRole.RETIRED_SILVER_LINEAGE,
+    "silver__capture__reel_deep_capture__set": LaneRole.RETIRED_SILVER_LINEAGE,
     # --- cleaning audit pack (processing evidence; no record_kind)
     "cleaning_basenotes_audit": LaneRole.CLEANING_AUDIT,
     "cleaning_fragrantica_audit": LaneRole.CLEANING_AUDIT,
@@ -125,13 +125,7 @@ FRONT_DOOR_PENDING_BASELINE: frozenset[str] = frozenset()
 # only route for new Silver Authority lanes. Equality is deliberate: a migration
 # may shrink this set only through a reviewed edit that changes both the registry
 # and this baseline; expanding it silently is forbidden.
-SILVER_LINEAGE_LEGACY_BASELINE: frozenset[str] = frozenset(
-    {
-        "silver__capture__audience_comments",
-        "silver__capture__reel_transcript",
-        "silver__capture__reel_deep_capture__set",
-    }
-)
+SILVER_LINEAGE_LEGACY_BASELINE: frozenset[str] = frozenset()
 
 RETIRED_SILVER_LINEAGE_BASELINE: frozenset[str] = frozenset(
     {
@@ -141,6 +135,9 @@ RETIRED_SILVER_LINEAGE_BASELINE: frozenset[str] = frozenset(
         "silver__cleaning__tiktok_audience_evidence__set",
         "silver__cleaning__tiktok_audience_profile",
         "silver__cleaning__tiktok_audience_profile__set",
+        "silver__capture__audience_comments",
+        "silver__capture__reel_transcript",
+        "silver__capture__reel_deep_capture__set",
     }
 )
 

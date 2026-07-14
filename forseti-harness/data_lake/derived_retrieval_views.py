@@ -1,10 +1,10 @@
-"""Gate-opened ``indexes/derived_retrieval`` object-level view builder.
+"""Gate-opened Silver Vault generated-read-model builder.
 
 Builds the two currently-buildable views the 2026-06-25 gate opening named
 (``undone``, ``by_mention``; ``by_creator`` stays deferred behind the
-audience-silver lake wiring), as rebuildable JSON caches under
-``indexes/derived_retrieval/object_level/<view>/`` with a per-view manifest
-carrying the Silver Vault read-model obligations. Contract:
+audience-silver lake wiring), as rebuildable JSON query tables under the Silver
+Vault contract-owned ``indexes/derived_retrieval/silver_vault/core/`` home,
+with paired manifest rows carrying the read-model obligations. Contract:
 ``core_spine_v0_data_lake_consumption_seam_contract_v0.md`` (Rebuild Command
 Binding section); command shape pinned by the derived-layout contract.
 
@@ -26,8 +26,8 @@ Invariants enforced here:
   itself).
 
 Writes follow the incumbent generated-index pattern (``data_lake.catalog``):
-``root._reverify()`` + ``root._within(...)`` + wipe-and-rewrite of the
-rebuildable tier. No behavior is added to ``DataLakeRoot``.
+``root._reverify()`` + ``root._within(...)`` + replacement of only the two
+owned generated views. No behavior is added to ``DataLakeRoot``.
 """
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ UNDONE_VIEW_SCHEMA_VERSION = 1
 BY_MENTION_VIEW_SCHEMA_VERSION = 2
 VIEW_SCHEMA_VERSION = BY_MENTION_VIEW_SCHEMA_VERSION
 MANIFEST_SCHEMA_VERSION = 1
-OBJECT_LEVEL_PARTS = ("indexes", "derived_retrieval", "object_level")
+SILVER_VAULT_CORE_PARTS = ("indexes", "derived_retrieval", "silver_vault", "core")
 BUILT_VIEWS = ("by_mention", "undone")
 
 assert MENTIONS_LANE in LANE_ROLES, "by_mention source lane must stay registered"
@@ -201,7 +201,7 @@ def _generate(
     product_mention_policy: dict[str, str] | None,
     views: tuple[str, ...] = BUILT_VIEWS,
 ) -> dict[str, bytes]:
-    """All object-level view files as relpath -> bytes, regenerated purely from
+    """All owned view files as relpath -> bytes, regenerated purely from
     committed material under the given stamp."""
     normalized_policy = (
         normalize_product_mention_policy(product_mention_policy)
@@ -226,13 +226,13 @@ def _generate(
                 normalized_policy,
             )
         )
-        files[f"{view_name}/view.json"] = view_bytes
-        files[f"{view_name}/manifest.json"] = manifest_bytes
+        files[f"query_tables/{view_name}.json"] = view_bytes
+        files[f"manifests/{view_name}.json"] = manifest_bytes
     return files
 
 
-def _object_level_root(root) -> Path:
-    return root._within(*OBJECT_LEVEL_PARTS)
+def _silver_vault_core_root(root) -> Path:
+    return root._within(*SILVER_VAULT_CORE_PARTS)
 
 
 def rebuild_derived_retrieval(
@@ -241,13 +241,21 @@ def rebuild_derived_retrieval(
     product_mention_policy: dict[str, str],
     stamp: dict | None = None,
 ) -> dict:
-    """Wipe and rewrite the object-level views (rebuildable tier, catalog pattern)."""
+    """Replace the owned views and remove their contradictory legacy home."""
     root._reverify()
     stamp = stamp or generation_stamp()
     files = _generate(root, stamp, product_mention_policy=product_mention_policy)
-    target_root = _object_level_root(root)
-    if target_root.exists():
-        shutil.rmtree(target_root)
+    target_root = _silver_vault_core_root(root)
+    legacy_root = root._within("indexes", "derived_retrieval", "object_level")
+    if legacy_root.exists():
+        shutil.rmtree(legacy_root)
+    for view_name in BUILT_VIEWS:
+        for target in (
+            target_root / "query_tables" / f"{view_name}.json",
+            target_root / "manifests" / f"{view_name}.json",
+        ):
+            if target.exists():
+                target.unlink()
     for relpath, data in files.items():
         target = target_root / relpath
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -266,12 +274,12 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
     stored manifest recorded and byte-compare. Never compares a rebuild against
     itself; never writes."""
     root._reverify()
-    target_root = _object_level_root(root)
+    target_root = _silver_vault_core_root(root)
     results: dict[str, str] = {}
     failures: list[str] = []
     for view_name in BUILT_VIEWS:
-        view_path = target_root / view_name / "view.json"
-        manifest_path = target_root / view_name / "manifest.json"
+        view_path = target_root / "query_tables" / f"{view_name}.json"
+        manifest_path = target_root / "manifests" / f"{view_name}.json"
         if not view_path.is_file() and not manifest_path.is_file():
             results[view_name] = "absent_nothing_to_prove"
             continue
@@ -303,8 +311,8 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
             views=(view_name,),
         )
         if (
-            regenerated[f"{view_name}/view.json"] == view_path.read_bytes()
-            and regenerated[f"{view_name}/manifest.json"] == manifest_path.read_bytes()
+            regenerated[f"query_tables/{view_name}.json"] == view_path.read_bytes()
+            and regenerated[f"manifests/{view_name}.json"] == manifest_path.read_bytes()
         ):
             results[view_name] = "rebuildable"
         else:
@@ -321,7 +329,7 @@ __all__ = [
     "BUILT_VIEWS",
     "MANIFEST_SCHEMA_VERSION",
     "MENTIONS_LANE",
-    "OBJECT_LEVEL_PARTS",
+    "SILVER_VAULT_CORE_PARTS",
     "VIEW_SCHEMA_VERSION",
     "build_by_mention_view",
     "build_undone_view",

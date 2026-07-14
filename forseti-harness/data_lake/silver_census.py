@@ -24,6 +24,7 @@ from data_lake.root import EPOCH_MARKER_FILENAME, LEGACY_EPOCH_MARKER_FILENAME
 from data_lake.silver_record import (
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
     validate_silver_vault_record,
+    verify_silver_vault_record_sources,
 )
 
 CENSUS_SCHEMA_VERSION = "silver_observation_census_v0"
@@ -87,9 +88,6 @@ _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
         ("tiktok", "tiktok_creator_batch_comment_subtitle_admission"),
     ),
     "retail_pdp_silver": (("fragrance_purchase_review_pdp", None),),
-    "silver__capture__audience_comments": (("instagram_creator", None),),
-    "silver__capture__reel_transcript": (("instagram_creator", None),),
-    "silver__capture__reel_deep_capture__set": (("instagram_creator", None),),
 }
 _ACTIVE_SILVER_LANES = {
     lane for lane in SILVER_LANES if role_of(lane) is not LaneRole.RETIRED_SILVER_LINEAGE
@@ -650,6 +648,18 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                     accumulator.increment("unclassified_silver_records", context)
                     errors.append(
                         {"kind": "silver_record_invalid", "path": relative, "error": f"{type(exc).__name__}: {exc}"}
+                    )
+                    continue
+                try:
+                    verify_silver_vault_record_sources(data_root, record)
+                except (TypeError, ValueError) as exc:
+                    accumulator.increment("unclassified_silver_records", context)
+                    errors.append(
+                        {
+                            "kind": "silver_record_source_unresolved",
+                            "path": relative,
+                            "error": f"{type(exc).__name__}: {exc}",
+                        }
                     )
                     continue
                 _classify_record(

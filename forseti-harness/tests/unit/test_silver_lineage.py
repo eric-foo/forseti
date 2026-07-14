@@ -125,6 +125,14 @@ def test_silver_record_source_backed_status_reads_persisted_fields() -> None:
     assert is_silver_record_source_backed_complete(fields) is True
 
 
+def test_silver_record_source_backed_status_does_not_require_legacy_lineage_version() -> None:
+    fields = _derived_lineage().to_record_fields()
+    fields.pop("lineage_schema_version")
+
+    assert silver_record_source_backed_status(fields) == SOURCE_BACKED_COMPLETE_STATUS
+    assert is_silver_record_source_backed_complete(fields) is True
+
+
 def test_silver_record_source_backed_status_flags_missing_lineage() -> None:
     assert (
         silver_record_source_backed_status({"mention_count": 0}) == SOURCE_LINEAGE_MISSING_STATUS

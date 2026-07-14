@@ -446,6 +446,12 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "all_siblings",
         "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
     },
+    "data_lake/silver_record.py": {
+        "detection": "declared_free_walk",
+        "posture": "selection_rule",
+        "mechanism": "local:_verify_derived_ref",
+        "reason": "authority gate resolves only the exact raw_anchor + lane + record_id claimed by a derived ref and fails closed on absence or hash mismatch",
+    },
     "data_lake/silver_census.py": {
         "detection": "declared_free_walk",
         "posture": "all_siblings",
@@ -464,7 +470,8 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
     "source_capture/ig_reels_behavioral_lake.py": {
         "detection": "lane_dir",
         "posture": "set_marker_pinned",
-        "reason": "deep-capture lanes read pinned record ids via set markers; ASR/mentions inputs accumulated all-siblings with explicit status labels",
+        "mechanism": "local:verify_silver_vault_record_sources",
+        "reason": "deep-capture lanes read pinned record ids for historical audit; product-mention inputs remain all-siblings with explicit status labels and cannot become extracted authority without the current envelope plus physical source verification",
     },
     "youtube_capture/behavioral_projection.py": {
         "detection": "lane_dir",

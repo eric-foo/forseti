@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, PRODUCT_MENTIONS_SET_LANE
 from data_lake.root import DataLakeRoot
+from data_lake.silver_record import append_silver_record_set, silver_content_hash
 from schemas.audience_comment_models import AudienceComment
 from source_capture.ig_reels_behavioral_lake import (
     IG_REELS_BEHAVIORAL_LAKE_ADAPTER_METHOD,
@@ -13,10 +15,10 @@ from source_capture.ig_reels_behavioral_lake import (
 )
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
 from source_capture.ig_reels_deep_capture_lake import (
+    AUDIENCE_COMMENTS_LANE,
     DEEP_CAPTURE_SET_LANE,
     REEL_TRANSCRIPT_LANE,
     deep_capture_record_id,
-    write_reel_deep_capture_into_lake,
 )
 from source_capture.models import (
     CaptureModeCategory,
@@ -40,7 +42,7 @@ _CUES = [{"start_ms": 0, "end_ms": 90, "text": "hello from a real lake record"}]
 _CORRUPT_PRODUCT_RECORD_ID = "mentions_bad__0000000000000000.json"
 
 
-def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: Path) -> None:
+def test_lake_adapter_keeps_historical_records_visible_without_authority(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     audio_packet_id, asr_record_id = _write_audio_transcript(root)
     deep_record_id = _write_deep_capture(root)
@@ -84,8 +86,11 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
     residuals = projection["behavioral_completeness"]["residuals"]
     assert "unknown_record" not in json.dumps(projection, sort_keys=True)
     assert not any("record_id_absent" in residual for residual in residuals)
-    assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
-    assert projection["behavioral_completeness"]["status"] == "complete_with_residuals"
+    assert projection["transcript"]["extraction_rollup"]["status"] == "failed"
+    assert all(
+        source["extraction_status"] == "invalid_silver_envelope"
+        for source in projection["extraction"]["source_statuses"]
+    )
     assert projection["behavioral_completeness"]["complete"] is False
     assert f"ig_grid_candidate_absent:{_SHORTCODE}" in residuals
 
@@ -110,14 +115,36 @@ def test_lake_adapter_blocks_complete_product_record_without_source_lineage(tmp_
     )
 
     source_status = projection["extraction"]["source_statuses"][0]
-    assert source_status["extraction_status"] == "source_lineage_missing"
-    assert source_status["source_backed_status"] == "source_lineage_missing"
+    assert source_status["extraction_status"] == "invalid_silver_envelope"
+    assert source_status["source_backed_status"] == "invalid_silver_envelope"
     assert projection["transcript"]["extraction_rollup"]["status"] == "failed"
     assert projection["behavioral_completeness"]["complete"] is False
     assert (
-        f"ig_transcript_extraction_source_lineage_missing:{deep_key}"
+        f"ig_transcript_extraction_invalid_silver_envelope:{deep_key}"
         in projection["behavioral_completeness"]["residuals"]
     )
+
+
+def test_lake_adapter_accepts_only_current_envelope_with_verified_source(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    audio_packet_id, asr_record_id = _write_audio_transcript(root)
+    source_key = f"{audio_packet_id}:asr:{asr_record_id}"
+    _write_authoritative_product_mentions(
+        root,
+        raw_anchor=audio_packet_id,
+        asr_record_id=asr_record_id,
+        transcript_source_key=source_key,
+    )
+
+    projection = project_ig_reels_behavioral_item_from_lake(
+        data_root=root,
+        platform_item_id=_SHORTCODE,
+    )
+
+    source_status = projection["extraction"]["source_statuses"][0]
+    assert source_status["extraction_status"] == "extracted"
+    assert source_status["source_backed_status"] == "source_backed_complete"
+    assert projection["transcript"]["extraction_rollup"]["status"] == "complete"
 
 def test_lake_adapter_projects_requested_missing_item_without_hidden_success(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
@@ -422,12 +449,33 @@ def _write_deep_capture(root: DataLakeRoot) -> str:
         transcript_cues=tuple(_CUES),
         media_url_used="https://x.fbcdn.net/o1/v/clip.mp4",
     )
-    write_reel_deep_capture_into_lake(
-        data_root=root,
-        result=result,
-        generated_at="2026-06-29T00:01:00Z",
+    record_id = deep_capture_record_id(result)
+    root.append_record_set(
+        subtree="derived",
+        raw_anchor=result.reel_shortcode,
+        record_id=record_id,
+        members={
+            AUDIENCE_COMMENTS_LANE: json.dumps(
+                {
+                    "reel_shortcode": result.reel_shortcode,
+                    "generated_at": "2026-06-29T00:01:00Z",
+                    "comment_count": len(result.comments),
+                    "comments": [comment.model_dump(mode="json") for comment in result.comments],
+                }
+            ).encode("utf-8"),
+            REEL_TRANSCRIPT_LANE: json.dumps(
+                {
+                    "reel_shortcode": result.reel_shortcode,
+                    "generated_at": "2026-06-29T00:01:00Z",
+                    "transcript_posture": result.transcript_posture,
+                    "cue_count": len(result.transcript_cues),
+                    "cues": [dict(cue) for cue in result.transcript_cues],
+                }
+            ).encode("utf-8"),
+        },
+        completion_lane=DEEP_CAPTURE_SET_LANE,
     )
-    return deep_capture_record_id(result)
+    return record_id
 
 
 def _write_corrupt_product_mentions(root: DataLakeRoot, *, raw_anchor: str) -> None:
@@ -480,6 +528,78 @@ def _write_product_mentions(
                 json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
             ).encode("utf-8")
         },
+        completion_lane=PRODUCT_MENTIONS_SET_LANE,
+    )
+
+
+def _write_authoritative_product_mentions(
+    root: DataLakeRoot,
+    *,
+    raw_anchor: str,
+    asr_record_id: str,
+    transcript_source_key: str,
+) -> None:
+    source_path = root.record_path(
+        subtree="derived",
+        raw_anchor=raw_anchor,
+        lane="transcript_asr",
+        record_id=asr_record_id,
+    )
+    record_id = "mentions_current__0000000000000000.json"
+    record = {
+        "record_id": record_id,
+        "raw_anchor": raw_anchor,
+        "lane_namespace": PRODUCT_MENTIONS_LANE,
+        "producer_id": "cleaning.transcript_product_extractor",
+        "schema_version": "silver_vault_record_v0",
+        "producer_schema_version": "transcript_product_mentions_v2",
+        "content_hash": "",
+        "content_hash_basis": "canonical_json_excluding_content_hash",
+        "record_kind": "observation",
+        "payload_kind": "TextObservationSet",
+        "producer_row_kind": "transcript_product_mentions",
+        "source_surface": "ig_reels_audio",
+        "observed_at": "2026-06-29T00:02:00Z",
+        "captured_at": "2026-06-29T00:02:00Z",
+        "raw_refs": [],
+        "derived_refs": [
+            {
+                "raw_anchor": raw_anchor,
+                "lane": "transcript_asr",
+                "record_id": asr_record_id,
+                "sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
+                "hash_basis": "derived_record_bytes",
+            }
+        ],
+        "payload": {
+            "observation": {
+                "subject": {
+                    "ref_type": "entity_key",
+                    "ref": {
+                        "namespace": "instagram",
+                        "kind": "public_content_object",
+                        "native_id": _SHORTCODE,
+                    },
+                },
+                "observation_set_kind": "transcript_product_mentions",
+                "policy_version": "test_policy_v0",
+                "policy_fingerprint_sha256": "a" * 64,
+                "row_count": 0,
+                "rows": [],
+            }
+        },
+        "provenance": {
+            "transcript_source_key": transcript_source_key,
+            "source_route": "standalone_audio_packet",
+            "asr_record_id": asr_record_id,
+        },
+    }
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+    append_silver_record_set(
+        root,
+        raw_anchor=raw_anchor,
+        record_id=record_id,
+        records={PRODUCT_MENTIONS_LANE: record},
         completion_lane=PRODUCT_MENTIONS_SET_LANE,
     )
 

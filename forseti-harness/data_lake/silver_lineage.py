@@ -323,31 +323,31 @@ def validate_silver_lineage(lineage: SilverLineage) -> SilverLineage:
 def silver_record_source_backed_status(record: Mapping[str, object]) -> SourceBackedStatus:
     """Read-side eligibility gate for persisted Silver record fields.
 
-    Writers persist lineage as top-level header-shaped fields, not a nested object.
-    Consumers that make source-backed completeness decisions can use this helper to
-    reconstruct and validate that block before treating a record as complete evidence.
+    The current Silver Vault envelope owns top-level ``raw_refs`` and
+    ``derived_refs``. ``lineage_schema_version`` is a legacy lineage-kit marker,
+    not a requirement of that official envelope. This structural helper therefore
+    accepts its absence; authority-making readers must additionally run the
+    root-aware physical verifier in ``data_lake.silver_record``.
     """
-    if "lineage_schema_version" not in record:
+    if "raw_refs" not in record or "derived_refs" not in record:
         return SOURCE_LINEAGE_MISSING_STATUS
-    if record.get("lineage_schema_version") != SILVER_LINEAGE_SCHEMA_VERSION:
+    if (
+        "lineage_schema_version" in record
+        and record.get("lineage_schema_version") != SILVER_LINEAGE_SCHEMA_VERSION
+    ):
         return SOURCE_LINEAGE_INVALID_STATUS
-    try:
-        lineage = SilverLineage(
-            schema_version=record.get("lineage_schema_version"),
-            producer_id=record.get("producer_id"),
-            producer_schema_version=record.get("producer_schema_version"),
-            source_surface=record.get("source_surface"),
-            source_object=record.get("source_object"),
-            observed_at=record.get("observed_at"),
-            captured_at=record.get("captured_at"),
-            raw_refs=record.get("raw_refs") or [],
-            derived_refs=record.get("derived_refs") or [],
-            lineage_limitations=record.get("lineage_limitations") or [],
-        )
-    except (TypeError, ValueError, ValidationError):
+    for field in ("producer_id", "producer_schema_version", "source_surface"):
+        value = record.get(field)
+        if not isinstance(value, str) or not value.strip():
+            return SOURCE_LINEAGE_INVALID_STATUS
+    raw_refs = record.get("raw_refs")
+    derived_refs = record.get("derived_refs")
+    if not isinstance(raw_refs, list) or not isinstance(derived_refs, list):
         return SOURCE_LINEAGE_INVALID_STATUS
-    if not lineage.is_source_backed_complete():
+    if not raw_refs and not derived_refs:
         return SOURCE_LINEAGE_INCOMPLETE_STATUS
+    if any(not isinstance(ref, Mapping) for ref in [*raw_refs, *derived_refs]):
+        return SOURCE_LINEAGE_INVALID_STATUS
     return SOURCE_BACKED_COMPLETE_STATUS
 
 

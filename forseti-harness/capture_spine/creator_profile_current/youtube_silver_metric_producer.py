@@ -119,8 +119,8 @@ DEFAULT_YOUTUBE_SEED_PATH = (
     / "youtube_shorts_fragrance_creator_metric_seed_v0.json"
 )
 
-METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricobservation_v0"
-METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricrollupobservation_v0"
+METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricobservation_v1"
+METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricrollupobservation_v1"
 
 _OBS_PRODUCER_ID = (
     "forseti-harness.capture_spine.creator_profile_current.youtube_silver_metric_producer"
@@ -210,6 +210,7 @@ def derive_youtube_creator_metric_silver_records_from_seed(
         observation_records.append(record)
         observation_paths.append(path)
         ref_by_seed_observation_id[seed_observation["metric_observation_id"]] = {
+            "raw_anchor": record["raw_anchor"],
             "lane_namespace": METRIC_OBSERVATION_LANE,
             "record_id": record["record_id"],
             "content_hash": record["content_hash"],
@@ -373,6 +374,7 @@ def build_metric_rollup_record(
         derived_refs.append(
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": ref["raw_anchor"],
                 "lane_namespace": ref["lane_namespace"],
                 "record_id": ref["record_id"],
                 "content_hash": ref["content_hash"],
@@ -528,6 +530,7 @@ def _raw_ref(
         what=f"metric observation {seed_observation.get('metric_observation_id')!r} raw_ref",
     )
     raw_ref: dict[str, Any] = {
+        "ref_type": "raw_packet",
         "packet_id": seed_observation.get("source_packet_id_or_none"),
         "source_pointer": seed_observation.get("source_pointer"),
         "source_field": seed_observation.get("source_field"),
@@ -565,7 +568,7 @@ def _raw_ref(
     body_sha256 = attachment_record.get("body_sha256") or evidence_hash
     raw_ref.update(
         {
-            "raw_ref_kind": _BRONZE_AR_RAW_REF_KIND,
+            "ref_type": _BRONZE_AR_RAW_REF_KIND,
             "attachment_record_id": attachment_record.get("attachment_record_id"),
             "attachment_record_schema_version": attachment_record.get(
                 "attachment_record_schema_version"
@@ -594,12 +597,12 @@ def _raw_ref(
 def _fallback_raw_ref_fields(*, residual: str) -> dict[str, str]:
     if residual == _AMBIGUOUS_AR_LIMITATION:
         return {
-            "raw_ref_kind": _RAW_PACKET_FALLBACK_AMBIGUOUS_AR_REF_KIND,
+            "ref_type": "raw_packet",
             "typed_attachment_record_status": "ambiguous",
             "attachment_record_residual": residual,
         }
     return {
-        "raw_ref_kind": _RAW_PACKET_FALLBACK_MISSING_AR_REF_KIND,
+        "ref_type": "raw_packet",
         "typed_attachment_record_status": "missing",
         "attachment_record_residual": _MISSING_AR_LIMITATION,
     }

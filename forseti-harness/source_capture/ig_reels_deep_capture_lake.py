@@ -1,4 +1,4 @@
-"""Persist a one-render reel deep-capture into the Data Lake (silver, no-LLM).
+"""Historical source-less reel deep-capture Silver writer (retired).
 
 Mirrors ``cleaning/transcript_product_lake.py``'s append-only record-set pattern,
 adapted for the deep-capture: ONE render yields BOTH the audience comments and the
@@ -12,7 +12,8 @@ with an all-or-nothing completion marker so a re-run can skip an already-persist
 reel. The TRANSIENT media URL is never persisted (it is signed + expiring); only a
 redacted provenance note (CDN host + a used-flag) is kept.
 
-No LLM. Capture-layer evidence only -- not Cleaning, not Judgment.
+Historical bytes remain audit-readable. New writes fail visibly until an
+eligible Bronze source exists; this module does not invent that producer.
 """
 from __future__ import annotations
 
@@ -105,11 +106,13 @@ def write_reel_deep_capture_into_lake(
     generated_at: str,
     record_id: str | None = None,
 ) -> dict:
-    """Append the silver deep-capture record-set (comments + transcript) for one reel.
+    """Reject new source-less legacy Silver writes before persistence."""
+    raise ValueError(
+        "eligible_bronze_required: source-less legacy deep-capture Silver lanes are retired"
+    )
 
-    Re-appending the same ``record_id`` is refused by the lake (write-once); the caller
-    should check ``is_record_set_complete`` first to skip an already-persisted reel.
-    """
+    # Historical construction logic is intentionally retained below for audit
+    # readability; the fail-closed gate above prevents any new bytes.
     rid = record_id or deep_capture_record_id(result)
     provenance = _media_provenance(result.media_url_used)
     redactions = _transient_media_redactions(result.media_url_used)

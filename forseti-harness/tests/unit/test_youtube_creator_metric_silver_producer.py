@@ -36,7 +36,9 @@ from capture_spine.creator_profile_current.youtube_silver_metric_producer import
 )
 from data_lake.attachment_record_entry import ATTACHMENT_RECORD_SCHEMA_VERSION
 from data_lake.catalog import rebuild_catalog
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, raw_shard
+from source_capture.models import known_fact
+from source_capture.writer import write_local_source_capture_packet
 from source_capture.youtube_watch_packet import YoutubeWatchFetch, write_youtube_watch_packet
 
 EXPECTED_OBSERVATIONS = 196
@@ -140,6 +142,25 @@ def _commit_youtube_watch_packet(data_root: DataLakeRoot, *, view_count: int) ->
     return packet_id, preserved
 
 
+def _commit_unrelated_packet(
+    data_root: DataLakeRoot, tmp_path: Path
+) -> tuple[str, dict]:
+    source = tmp_path / "unrelated.json"
+    source.write_text('{"fixture":"unrelated"}', encoding="utf-8")
+    result = write_local_source_capture_packet(
+        data_root=data_root,
+        input_files=[source],
+        source_family="unrelated_fixture",
+        source_surface="unrelated_surface",
+        source_locator=known_fact("https://example.com/unrelated"),
+        decision_question="YouTube missing Attachment Record fixture",
+        capture_context="Silver physical source verification test",
+    )
+    packet_id = result.packet.packet_id
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    return packet_id, preserved
+
+
 def _single_observation_seed_document(*, packet_id: str, evidence_hash: str, view_count: int) -> dict:
     seed_document = _committed_seed_document()
     seed = deepcopy(seed_document[YOUTUBE_SEED_WRAPPER_KEY])
@@ -196,12 +217,56 @@ def _single_observation_seed_document(*, packet_id: str, evidence_hash: str, vie
 
 
 def _run(tmp_path: Path):
-    seed_document = _committed_seed_document()
+    seed_document = deepcopy(_committed_seed_document())
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _materialize_seed_sources(data_root, seed_document)
     result = derive_youtube_creator_metric_silver_records_from_seed(
         data_root=data_root, seed_document=seed_document
     )
     return result, seed_document[YOUTUBE_SEED_WRAPPER_KEY]
+
+
+def _materialize_seed_sources(data_root: DataLakeRoot, seed_document: dict) -> None:
+    """Give the committed metric fixture real verified temp-lake raw sources.
+
+    The committed seed points at a private historical lake that is deliberately
+    unavailable to unit tests. The metric facts stay unchanged; only each copied
+    observation's source hash is rebound to a real temp packet so the authority
+    write gate is exercised instead of bypassed.
+    """
+    hashes: dict[str, str] = {}
+    for observation in seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_observations"]:
+        packet_id = observation["source_packet_id_or_none"]
+        if packet_id not in hashes:
+            body = json.dumps({"packet_id": packet_id}, sort_keys=True).encode("utf-8")
+            digest = hashlib.sha256(body).hexdigest()
+            hashes[packet_id] = digest
+            container = data_root.path / "raw" / raw_shard(packet_id) / packet_id
+            preserved = container / "preserved" / "source.json"
+            preserved.parent.mkdir(parents=True)
+            preserved.write_bytes(body)
+            (container / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "packet_id": packet_id,
+                        "preserved_files": [
+                            {
+                                "file_id": "source",
+                                "relative_packet_path": "preserved/source.json",
+                                "size_bytes": len(body),
+                                "sha256": digest,
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+        observation["source_evidence_sha256"] = hashes[packet_id]
+        observation["source_evidence_hash_basis"] = (
+            "source_captured_selective_payload_sha256"
+        )
+        observation["source_watch_html_sha256_or_none"] = None
+        observation["source_file"] = "preserved/source.json"
 
 
 def test_producer_emits_conformant_metric_observation_records(tmp_path: Path) -> None:
@@ -233,9 +298,9 @@ def test_producer_emits_conformant_metric_observation_records(tmp_path: Path) ->
         assert raw_ref["packet_id"] == seed_obs["source_packet_id_or_none"]
         assert raw_ref["source_pointer"] == seed_obs["source_pointer"]
         assert raw_ref["source_field"] == seed_obs["source_field"]
-        assert raw_ref["sha256"] == seed_obs["source_watch_html_sha256_or_none"]
+        assert raw_ref["sha256"] == seed_obs["source_evidence_sha256"]
         assert raw_ref["sha256"]
-        assert raw_ref["hash_basis"] == "source_captured_watch_html_sha256"
+        assert raw_ref["hash_basis"] == seed_obs["source_evidence_hash_basis"]
 
         observation = record["payload"]["observation"]
         # Subject is the public content object keyed by stable ids only.
@@ -276,7 +341,7 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
     assert len(result.observation_records) == 1
     record = result.observation_records[0]
     raw_ref = record["raw_refs"][0]
-    assert raw_ref["raw_ref_kind"] == "bronze_attachment_record"
+    assert raw_ref["ref_type"] == "bronze_attachment_record"
     assert raw_ref["attachment_record_id"].startswith("ar_")
     assert raw_ref["attachment_record_schema_version"] == ATTACHMENT_RECORD_SCHEMA_VERSION
     assert raw_ref["attachment_record_physicalization"] == "manifest_equivalent_entry_over_raw_packet_body_v0"
@@ -302,10 +367,11 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
 
 def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    assert rebuild_catalog(data_root)["status"] == "rebuilt"
+    packet_id, preserved = _commit_unrelated_packet(data_root, tmp_path)
     seed_document = _single_observation_seed_document(
-        packet_id="01KWYTARPROOFFALLBACK0001", evidence_hash="f" * 64, view_count=479
+        packet_id=packet_id, evidence_hash=preserved["sha256"], view_count=479
     )
+    assert rebuild_catalog(data_root)["status"] == "rebuilt"
 
     result = derive_youtube_creator_metric_silver_records_from_seed(
         data_root=data_root,
@@ -314,7 +380,7 @@ def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path:
     )
 
     raw_ref = result.observation_records[0]["raw_refs"][0]
-    assert raw_ref["raw_ref_kind"] == "raw_packet_fallback_missing_attachment_record"
+    assert raw_ref["ref_type"] == "raw_packet"
     assert raw_ref["typed_attachment_record_status"] == "missing"
     assert raw_ref["attachment_record_residual"] == "typed_attachment_record_missing_for_raw_ref"
     assert result.observation_records[0]["lineage_limitations"] == [
@@ -344,7 +410,7 @@ def test_ambiguous_bronze_attachment_record_stays_visible_when_requested(tmp_pat
     )
 
     raw_ref = record["raw_refs"][0]
-    assert raw_ref["raw_ref_kind"] == "raw_packet_fallback_ambiguous_attachment_record"
+    assert raw_ref["ref_type"] == "raw_packet"
     assert raw_ref["typed_attachment_record_status"] == "ambiguous"
     assert raw_ref["attachment_record_residual"] == "typed_attachment_record_ambiguous_for_raw_ref"
     assert raw_ref["packet_id"] == packet_id
@@ -504,6 +570,7 @@ def test_rollup_platform_account_mismatch_fails_closed(tmp_path: Path) -> None:
     seed_document = _committed_seed_document()
     seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_rollups"][0]["platform_account_ids"] = ["acct_mismatch"]
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _materialize_seed_sources(data_root, seed_document)
     with pytest.raises(ValueError, match="does not match profile_subject_id"):
         derive_youtube_creator_metric_silver_records_from_seed(
             data_root=data_root, seed_document=seed_document
