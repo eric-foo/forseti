@@ -12,6 +12,7 @@ import random
 import re
 import time
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
@@ -69,6 +70,12 @@ GRID_ENTRY_RETRY_WAIT_SECONDS = 60.0
 # a failed matching-overlay materialization (creator discovery enforcement
 # placement doctrine), never in the grid-pagination path.
 GRID_PAGINATION_NO_PROGRESS_STALL_LIMIT = 3
+GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MIN = 0.20
+GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MAX = 0.35
+GRID_ACQUISITION_BATCH_REVEAL_WHEEL_CAP = 4
+GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT = 27
+GRID_ACQUISITION_STABILITY_POLL_TARGET = 2
+GRID_ACQUISITION_STABILITY_POLL_CAP = 4
 
 SleepFn = Callable[[float], None]
 MonotonicFn = Callable[[], float]
@@ -108,11 +115,17 @@ TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT = r"""
       box.top < window.innerHeight && box.left < window.innerWidth;
     const visibleInViewport = style.visibility !== 'hidden' && style.display !== 'none' &&
       box.width > 0 && box.height > 0 && intersectsViewport;
+    const viewCountFooter = anchor.querySelector('.video-count');
+    const viewCountText = viewCountFooter
+      ? String(viewCountFooter.innerText || viewCountFooter.textContent || '').trim()
+      : '';
     videos.push({
       video_id: match[2],
       video_url: href,
       pinned_visible: pinnedVisible,
       visible_in_viewport: visibleInViewport,
+      view_count_text_or_none: viewCountText || null,
+      view_count_footer_present: Boolean(viewCountFooter),
       grid_position: videos.length + 1
     });
   }
@@ -230,15 +243,33 @@ TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT = r"""
     if (!visible) continue;
     visibleGridPositions.push(gridPosition);
     if (!selected.has(match[2])) continue;
+    const clickTarget = anchor.querySelector('.video-count');
+    const clickTargetText = clickTarget
+      ? String(clickTarget.innerText || clickTarget.textContent || '').trim()
+      : '';
+    const clickTargetStyle = clickTarget ? window.getComputedStyle(clickTarget) : null;
+    const clickTargetBox = clickTarget ? clickTarget.getBoundingClientRect() : null;
+    const clickTargetVisible = Boolean(
+      clickTarget && clickTargetStyle && clickTargetBox &&
+      clickTargetStyle.visibility !== 'hidden' && clickTargetStyle.display !== 'none' &&
+      clickTargetBox.width > 0 && clickTargetBox.height > 0 &&
+      clickTargetBox.bottom > 0 && clickTargetBox.right > 0 &&
+      clickTargetBox.top < window.innerHeight && clickTargetBox.left < window.innerWidth
+    );
+    if (!clickTargetVisible || !clickTargetText) continue;
     rows.push({
       video_id: match[2],
       video_url: href,
       grid_position: gridPosition,
-      bounding_box: {x: box.x, y: box.y, width: box.width, height: box.height}
+      bounding_box: {x: box.x, y: box.y, width: box.width, height: box.height},
+      click_target_kind: 'link_routed_video_count_footer',
+      click_target_text_or_none: clickTargetText,
+      click_target_visible_in_viewport: true
     });
   }
   return {
     visible_selected_tiles: rows,
+    loaded_grid_video_ids: Array.from(seen),
     selected_video_count: selected.size,
     tile_scroll_performed: false,
     visible_grid_position_min_or_none: visibleGridPositions.length
@@ -329,6 +360,73 @@ TIKTOK_SUGGESTED_ACCOUNTS_FALLBACK_DOM_EXTRACT_SCRIPT = r"""
 }
 """.strip()
 
+TIKTOK_SUGGESTED_SURFACE_CLOSED_DOM_EXTRACT_SCRIPT = r"""
+() => {
+  const visible = (node) => {
+    if (!node) return false;
+    const style = window.getComputedStyle(node);
+    const box = node.getBoundingClientRect();
+    return style.visibility !== 'hidden' && style.display !== 'none' &&
+      box.width > 0 && box.height > 0;
+  };
+  const visibleThroughAncestors = (node) => {
+    if (!visible(node)) return false;
+    let current = node;
+    while (current && current !== document.body) {
+      const style = window.getComputedStyle(current);
+      const box = current.getBoundingClientRect();
+      if (style.display === 'none' || style.visibility === 'hidden' ||
+          Number(style.opacity || '1') === 0) return false;
+      const clips = ['hidden', 'clip'].includes(style.overflow) ||
+        ['hidden', 'clip'].includes(style.overflowX) ||
+        ['hidden', 'clip'].includes(style.overflowY);
+      if (clips && (box.width <= 0 || box.height <= 0)) return false;
+      current = current.parentElement;
+    }
+    return true;
+  };
+  const suggestedModals = Array.from(
+    document.querySelectorAll('[role="dialog"],[aria-modal="true"]')
+  ).filter((node) => {
+    if (!visible(node)) return false;
+    const text = String(node.innerText || node.textContent || '').toLowerCase();
+    return text.includes('suggested') &&
+      (text.includes('followers') || text.includes('following') || text.includes('suggested accounts'));
+  });
+  const exactSuggestedHeadings = Array.from(
+    document.querySelectorAll('p,h1,h2,h3,h4')
+  ).filter((node) => String(node.textContent || '').trim().toLowerCase() === 'suggested accounts');
+  const expandedSuggestedRoots = [];
+  for (const heading of exactSuggestedHeadings) {
+    let root = heading;
+    for (let depth = 0; depth < 6 && root; depth += 1, root = root.parentElement) {
+      if (root.querySelectorAll('a[href^="/@"]').length === 0) continue;
+      if (visibleThroughAncestors(root)) expandedSuggestedRoots.push(root);
+      break;
+    }
+  }
+  const bodyStyle = window.getComputedStyle(document.body);
+  const htmlStyle = window.getComputedStyle(document.documentElement);
+  const bodyScrollLocked = document.body.classList.contains('hidden') ||
+    ['hidden', 'clip'].includes(bodyStyle.overflow) ||
+    ['hidden', 'clip'].includes(bodyStyle.overflowY) ||
+    ['hidden', 'clip'].includes(htmlStyle.overflow) ||
+    ['hidden', 'clip'].includes(htmlStyle.overflowY);
+  const blockingModals = Array.from(
+    document.querySelectorAll('[role="dialog"],[aria-modal="true"]')
+  ).filter(visibleThroughAncestors);
+  return {
+    suggested_modal_open: suggestedModals.length > 0,
+    suggested_modal_count: suggestedModals.length,
+    suggested_accounts_expanded: expandedSuggestedRoots.length > 0,
+    suggested_accounts_expanded_root_count: expandedSuggestedRoots.length,
+    body_scroll_locked: bodyScrollLocked,
+    blocking_modal_count: blockingModals.length,
+    grid_video_anchor_count: document.querySelectorAll('a[href*="/video/"]').length
+  };
+}
+""".strip()
+
 TIKTOK_SUGGESTED_VIEW_ALL_ACTION = BrowserPagePointerAction(
     action_name="tiktok_suggested_accounts_view_all_v0",
     candidate_selector="[aria-label='View All'],button,[role='button'],a",
@@ -342,16 +440,32 @@ TIKTOK_SUGGESTED_VIEW_ALL_ACTION = BrowserPagePointerAction(
 TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION = BrowserPagePointerAction(
     action_name="tiktok_relationship_dialog_close_v0",
     candidate_selector=(
-        "[role='dialog'] button,[role='dialog'] [role='button'],"
-        "[role='dialog'] svg"
+        "[role='dialog'] [data-e2e='follow-popup-close'],"
+        "[aria-modal='true'] [data-e2e='follow-popup-close'],"
+        "[role='dialog'] [aria-label*='close' i],"
+        "[aria-modal='true'] [aria-label*='close' i]"
     ),
-    text_markers=(),
+    text_markers=("close",),
     exact_text_markers=("close", "x", "×"),
     page_text_markers=("followers", "suggested"),
     wait_after_ms=1500,
-    prefer_top_right=True,
-    visual_top_right_x_fallback=True,
-    visual_x_target_zone="center_modal",
+    prefer_smallest_match=True,
+    visual_top_right_x_fallback=False,
+    visual_x_geometric_fallback=False,
+)
+
+TIKTOK_SUGGESTED_ACCOUNTS_COLLAPSE_ACTION = BrowserPagePointerAction(
+    action_name="tiktok_suggested_accounts_collapse_before_grid_v0",
+    candidate_selector=(
+        "button[data-e2e='show-suggested-accounts']"
+        "[aria-label='Suggested accounts']"
+    ),
+    text_markers=(),
+    exact_text_markers=("suggested accounts",),
+    page_text_markers=("suggested accounts",),
+    wait_after_ms=1000,
+    prefer_smallest_match=True,
+    visual_top_right_x_fallback=False,
     visual_x_geometric_fallback=False,
 )
 
@@ -430,8 +544,15 @@ def run_tiktok_creator_onboarding(
         raise TikTokCreatorOnboardingError("session profile platform must be tiktok")
     if session_profile.browser_backend != TIKTOK_BROWSER_BACKEND_CHROME_CDP:
         raise TikTokCreatorOnboardingError("TikTok onboarding requires Chrome CDP")
-    if isinstance(window_size, bool) or not isinstance(window_size, int) or window_size <= 0:
-        raise TikTokCreatorOnboardingError("window_size must be a positive integer")
+    if (
+        isinstance(window_size, bool)
+        or not isinstance(window_size, int)
+        or window_size < GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT
+    ):
+        raise TikTokCreatorOnboardingError(
+            "window_size must be an integer of at least "
+            f"{GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT}"
+        )
     if (
         isinstance(selection_count, bool)
         or not isinstance(selection_count, int)
@@ -493,6 +614,7 @@ def run_tiktok_creator_onboarding(
     account_safety_stop = False
     suggested_status: str | None = None
     suggested_outer_ui_route: str | None = None
+    suggested_surface_close: dict[str, object] | None = None
     initial_deep_capture_wait: dict[str, object] | None = None
     grid_deep_entry: dict[str, object] | None = None
     artifacts_written: list[str] = []
@@ -517,6 +639,19 @@ def run_tiktok_creator_onboarding(
         artifacts_written.append(paths.suggested_accounts_json_path.name)
         if suggested_status == "failed":
             raise TikTokCreatorOnboardingError("suggested-account observation failed")
+
+        stage = "close_suggested_surface"
+        _notify_progress(progress_fn, stage)
+        suggested_surface_close = _close_suggested_surface_before_grid(
+            profile_url=profile_url,
+            creator_handle=normalized_handle,
+            suggested_status=suggested_status,
+            suggested_outer_ui_route=suggested_outer_ui_route,
+            storage_state_path=storage_state_path,
+            timeout_seconds=timeout_seconds,
+            settle_seconds=settle_seconds,
+            engine=observation_engine,
+        )
 
         stage = "collect_grid"
         _notify_progress(progress_fn, stage)
@@ -620,7 +755,9 @@ def run_tiktok_creator_onboarding(
             "grid_pagination_input_method": "mouse_wheel_burst",
             "logical_grid_positions_remembered": True,
             "absolute_pixel_positions_cached": False,
-            "thumbnail_click_safe_inset_fraction": 0.15,
+            "tile_click_target_policy": "link_routed_video_count_footer",
+            "hover_preview_body_click_allowed": False,
+            "click_target_safe_inset_fraction": 0.15,
             "grid_pagination_pass_cap_per_lookup": max_grid_scroll_passes,
             "grid_pagination_total_pass_cap": (
                 max_grid_scroll_passes * len(selected_video_ids)
@@ -628,6 +765,9 @@ def run_tiktok_creator_onboarding(
             "grid_pagination_passes_executed": 0,
             "grid_pagination_passes": [],
             "grid_pagination_stop_reason": None,
+            "frozen_window_identity_drift_detected": False,
+            "frozen_window_live_overlap_count_at_stop_or_none": None,
+            "loaded_grid_video_count_at_stop_or_none": None,
             "attempts": [],
             "retry_waits": [],
             "status": "in_progress",
@@ -745,6 +885,14 @@ def run_tiktok_creator_onboarding(
                     status = "failed"
                     stage = "close"
         lifecycle_receipt = getattr(observation_engine, "lifecycle_receipt", None)
+        grid_overlay_capture_order = (
+            list(grid_deep_entry.get("selected_video_ids_in_capture_order", []))
+            if isinstance(grid_deep_entry, dict)
+            and isinstance(
+                grid_deep_entry.get("selected_video_ids_in_capture_order"), list
+            )
+            else []
+        )
         receipt = {
             "schema_version": TIKTOK_CREATOR_ONBOARDING_SCHEMA_VERSION,
             "status": status,
@@ -756,18 +904,23 @@ def run_tiktok_creator_onboarding(
             "selection_count": selection_count,
             "suggested_accounts_status_or_none": suggested_status,
             "suggested_outer_ui_route_or_none": suggested_outer_ui_route,
+            "suggested_surface_close_before_grid_or_none": suggested_surface_close,
             "candidate_profiles_opened": 0,
             "account_mutations_taken": 0,
             "selected_video_ids_in_capture_order": (
                 captured_video_ids
                 if "captured_video_ids" in locals()
-                else selected_video_ids
+                else grid_overlay_capture_order
             ),
             "selected_count": len(selected_video_ids),
             "challenge_count": challenge_count,
             "human_challenge_handoff_count": human_challenge_handoff_count,
             "account_safety_stop": account_safety_stop,
             "completed_deep_capture_count": completed_count,
+            "completed_deep_capture_count_source": (
+                "cadence_result" if "deep_capture" in locals() else "no_cadence_result"
+            ),
+            "completed_grid_overlay_capture_count": len(grid_overlay_capture_order),
             "initial_deep_capture_wait_or_none": initial_deep_capture_wait,
             "grid_deep_entry_or_none": grid_deep_entry,
             "phase_chronology": phase_chronology,
@@ -881,6 +1034,101 @@ def _capture_suggested_accounts(
     return fallback
 
 
+def _close_suggested_surface_before_grid(
+    *,
+    profile_url: str,
+    creator_handle: str,
+    suggested_status: str,
+    suggested_outer_ui_route: str,
+    storage_state_path: Path,
+    timeout_seconds: float,
+    settle_seconds: float,
+    engine: BrowserPageObservationEngine,
+) -> dict[str, object]:
+    close_required = suggested_status in {"captured", "visible_empty"}
+    close_action_route = "none"
+    pointer_actions: tuple[BrowserPagePointerAction, ...] = ()
+    if close_required:
+        if suggested_outer_ui_route.startswith("followers_dialog_suggested_tab"):
+            close_action_route = "relationship_dialog_close"
+            pointer_actions = (TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION,)
+        elif suggested_outer_ui_route == "profile_suggested_accounts_view_all_fallback":
+            close_action_route = "suggested_accounts_toggle_collapse"
+            pointer_actions = (TIKTOK_SUGGESTED_ACCOUNTS_COLLAPSE_ACTION,)
+        else:
+            raise TikTokCreatorOnboardingError(
+                "unsupported suggested outer UI route before grid capture"
+            )
+    capture = fetch_browser_page_observation_capture(
+        url=profile_url,
+        dom_extract_script=TIKTOK_SUGGESTED_SURFACE_CLOSED_DOM_EXTRACT_SCRIPT,
+        dom_extract_arg={"creator_handle": creator_handle},
+        response_url_predicate=lambda _: False,
+        post_load_pointer_actions=pointer_actions,
+        timeout_seconds=timeout_seconds,
+        wait_until="domcontentloaded",
+        settle_seconds=settle_seconds,
+        storage_state_path=storage_state_path,
+        headless=False,
+        browser_backend=TIKTOK_BROWSER_BACKEND_CHROME_CDP,
+        human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
+        human_challenge_handoff_timeout_seconds=180.0,
+        human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
+        engine=engine,
+    )
+    if isinstance(capture, BrowserSnapshotFailure):
+        raise TikTokCreatorOnboardingError(
+            "suggested surface close verification failed before grid capture"
+        )
+    action = _first_pointer_action_receipt(capture)
+    dom = capture.dom_observation if isinstance(capture.dom_observation, dict) else {}
+    clicked = isinstance(action, dict) and action.get("clicked") is True
+    modal_open_after = dom.get("suggested_modal_open") is True
+    suggested_accounts_expanded_after = dom.get("suggested_accounts_expanded") is True
+    body_scroll_locked_after = dom.get("body_scroll_locked") is True
+    blocking_modal_count_after = _non_negative_int_or_zero(
+        dom.get("blocking_modal_count")
+    )
+    route_surface_open_after = (
+        modal_open_after
+        if close_action_route == "relationship_dialog_close"
+        else suggested_accounts_expanded_after
+        if close_action_route == "suggested_accounts_toggle_collapse"
+        else False
+    )
+    if (
+        route_surface_open_after
+        or body_scroll_locked_after
+        or blocking_modal_count_after > 0
+        or (close_required and not clicked)
+    ):
+        raise TikTokCreatorOnboardingError(
+            "suggested surface remained open before grid capture"
+        )
+    return {
+        "policy": "close_suggested_surface_before_any_grid_wheel_or_tile_click",
+        "status": "closed" if clicked else "already_closed",
+        "close_required": close_required,
+        "close_clicked": clicked,
+        "close_action_route": close_action_route,
+        "suggested_outer_ui_route": suggested_outer_ui_route,
+        "suggested_modal_open_after": modal_open_after,
+        "suggested_modal_count_after": _non_negative_int_or_zero(
+            dom.get("suggested_modal_count")
+        ),
+        "suggested_accounts_expanded_after": suggested_accounts_expanded_after,
+        "suggested_accounts_expanded_root_count_after": _non_negative_int_or_zero(
+            dom.get("suggested_accounts_expanded_root_count")
+        ),
+        "body_scroll_locked_after": body_scroll_locked_after,
+        "blocking_modal_count_after": blocking_modal_count_after,
+        "grid_video_anchor_count_after": _non_negative_int_or_zero(
+            dom.get("grid_video_anchor_count")
+        ),
+        "pointer_action_or_none": action,
+    }
+
+
 class _GridOverlayCaptureSequence:
     """Choose every deep capture from visible selected tiles on one grid page."""
 
@@ -934,10 +1182,21 @@ class _GridOverlayCaptureSequence:
             self._close_current_overlay(tuple(pending_by_id))
 
         visible_rows = self._visible_rows(tuple(pending_by_id))
-        if not visible_rows:
+        if (
+            not visible_rows
+            and self.receipt.get("grid_pagination_stop_reason")
+            != "frozen_window_identity_drift"
+        ):
             visible_rows = self._paginate_until_visible(tuple(pending_by_id))
         if not visible_rows:
             self.receipt["status"] = "failed"
+            if (
+                self.receipt.get("grid_pagination_stop_reason")
+                == "frozen_window_identity_drift"
+            ):
+                raise TikTokCreatorOnboardingError(
+                    "frozen grid window no longer matches the live grid identity"
+                )
             raise TikTokCreatorOnboardingError(
                 "bounded grid pagination exhausted before a selected tile became visible"
             )
@@ -948,11 +1207,19 @@ class _GridOverlayCaptureSequence:
             chosen = self.rng.choice(visible_rows)
             chosen_video_id = str(chosen["video_id"])
             chosen_url = pending_by_id[chosen_video_id]
+            click_target_text = str(
+                chosen.get("click_target_text_or_none") or ""
+            ).strip()
+            if not click_target_text:
+                raise TikTokCreatorOnboardingError(
+                    "visible selected grid tile lacks a link-routed footer target"
+                )
             click_capture = _click_visible_selected_grid_tile(
                 profile_url=self.profile_url,
                 creator_handle=self.creator_handle,
                 selected_video_ids=tuple(pending_by_id),
                 chosen_video_id=chosen_video_id,
+                click_target_text=click_target_text,
                 storage_state_path=self.storage_state_path,
                 timeout_seconds=self.timeout_seconds,
                 settle_seconds=self.settle_seconds,
@@ -1035,12 +1302,16 @@ class _GridOverlayCaptureSequence:
         if isinstance(capture, BrowserSnapshotFailure):
             return []
         self._remember_grid_view(capture)
+        if self._frozen_window_identity_drifted():
+            self._record_frozen_window_identity_drift()
+            return []
         return _visible_grid_rows_from_capture(capture)
 
     def _paginate_until_visible(
         self, pending_video_ids: Sequence[str]
     ) -> list[dict[str, Any]]:
         previous_fingerprint = self._grid_progress_fingerprint()
+        observed_fingerprints = {previous_fingerprint}
         consecutive_no_progress = 0
         for lookup_pass_number in range(1, self.pagination_pass_cap + 1):
             total_pass_number = int(
@@ -1094,10 +1365,28 @@ class _GridOverlayCaptureSequence:
                 pass_receipt["outcome"] = "selected_tile_visible"
                 pagination_passes.append(pass_receipt)
                 return rows
+            if self._frozen_window_identity_drifted():
+                self._record_frozen_window_identity_drift()
+                pass_receipt["progress_since_previous"] = (
+                    "frozen_window_identity_drift"
+                )
+                pass_receipt["outcome"] = (
+                    "frozen_window_identity_drift_budget_stopped"
+                )
+                pagination_passes.append(pass_receipt)
+                return []
             current_fingerprint = self._grid_progress_fingerprint()
             if current_fingerprint != previous_fingerprint:
                 consecutive_no_progress = 0
+                if current_fingerprint in observed_fingerprints:
+                    pass_receipt["progress_since_previous"] = "progress_cycle"
+                    pass_receipt["consecutive_no_progress_passes"] = 0
+                    pass_receipt["outcome"] = "progress_cycle_budget_stopped"
+                    self.receipt["grid_pagination_stop_reason"] = "progress_cycle"
+                    pagination_passes.append(pass_receipt)
+                    return []
                 pass_receipt["progress_since_previous"] = "advanced"
+                observed_fingerprints.add(current_fingerprint)
             else:
                 consecutive_no_progress += 1
                 pass_receipt["progress_since_previous"] = "no_progress"
@@ -1129,7 +1418,37 @@ class _GridOverlayCaptureSequence:
             ),
             "scroll_y": observation.get("scroll_y"),
             "document_height": observation.get("document_height"),
+            "loaded_grid_video_ids": tuple(
+                str(video_id)
+                for video_id in observation.get("loaded_grid_video_ids", [])
+                if isinstance(video_id, (str, int)) and str(video_id).strip()
+            ),
         }
+
+    def _frozen_window_identity_drifted(self) -> bool:
+        loaded_video_ids = self.last_grid_view.get("loaded_grid_video_ids")
+        if not isinstance(loaded_video_ids, tuple) or not loaded_video_ids:
+            return False
+        frozen_positions = [
+            int(row["grid_position"])
+            for row in self.window_by_id.values()
+            if row.get("grid_position") is not None
+        ]
+        if not frozen_positions or len(loaded_video_ids) < max(frozen_positions):
+            return False
+        return not set(loaded_video_ids).intersection(self.window_by_id)
+
+    def _record_frozen_window_identity_drift(self) -> None:
+        loaded_video_ids = self.last_grid_view.get("loaded_grid_video_ids")
+        loaded = set(loaded_video_ids) if isinstance(loaded_video_ids, tuple) else set()
+        self.receipt["grid_pagination_stop_reason"] = (
+            "frozen_window_identity_drift"
+        )
+        self.receipt["frozen_window_identity_drift_detected"] = True
+        self.receipt["frozen_window_live_overlap_count_at_stop_or_none"] = len(
+            loaded.intersection(self.window_by_id)
+        )
+        self.receipt["loaded_grid_video_count_at_stop_or_none"] = len(loaded)
 
     def _grid_progress_fingerprint(self) -> tuple[object, object, object, object]:
         """Fresh-state grid signals used to detect a non-advancing grid.
@@ -1237,6 +1556,8 @@ class _GridOverlayCaptureSequence:
             ],
             "chosen_video_id": chosen_video_id,
             "chosen_grid_position": chosen.get("grid_position"),
+            "click_target_kind": chosen.get("click_target_kind"),
+            "click_target_text_or_none": chosen.get("click_target_text_or_none"),
             "click_action_or_none": action,
             "final_url_or_none": (
                 capture.final_url
@@ -1280,6 +1601,12 @@ def _capture_visible_selected_grid_tiles(
             BrowserPageWheelAction(
                 action_name="tiktok_grid_mouse_wheel_pagination_v0",
                 direction=pagination_direction,
+                viewport_fraction_min=(
+                    GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MIN
+                ),
+                viewport_fraction_max=(
+                    GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MAX
+                ),
             )
             if pagination_direction is not None
             else None
@@ -1303,6 +1630,7 @@ def _click_visible_selected_grid_tile(
     creator_handle: str,
     selected_video_ids: Sequence[str],
     chosen_video_id: str,
+    click_target_text: str,
     storage_state_path: Path,
     timeout_seconds: float,
     settle_seconds: float,
@@ -1310,8 +1638,10 @@ def _click_visible_selected_grid_tile(
 ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
     action = BrowserPagePointerAction(
         action_name="tiktok_visible_selected_grid_video_v0",
-        candidate_selector=f"a[href*='/video/{chosen_video_id}']",
-        text_markers=(chosen_video_id,),
+        candidate_selector=(
+            f"a[href*='/video/{chosen_video_id}'] .video-count"
+        ),
+        text_markers=(click_target_text,),
         wait_after_ms=2500,
         prefer_smallest_match=True,
         target_fraction_min=0.15,
@@ -1429,28 +1759,146 @@ def capture_tiktok_creator_grid(
     max_grid_scroll_passes: int,
     engine: BrowserPageObservationEngine,
 ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
-    def target_reached(responses: Sequence[BrowserPageResponse]) -> bool:
-        return len(_metric_items_from_responses(responses, creator_handle)) >= window_size
+    """Capture one sufficient grid batch without loading a second batch."""
 
-    return fetch_browser_page_observation_capture(
-        url=profile_url,
-        dom_extract_script=TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT,
-        dom_extract_arg={"creator_handle": creator_handle},
-        response_url_predicate=is_tiktok_profile_item_list_url,
-        post_load_pointer_actions=(TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION,),
-        timeout_seconds=timeout_seconds,
-        wait_until="domcontentloaded",
-        settle_seconds=settle_seconds,
-        lazy_load_scroll_passes=max_grid_scroll_passes,
-        lazy_load_response_stop_condition=target_reached,
-        dom_extract_after_lazy_load=True,
-        storage_state_path=storage_state_path,
-        headless=False,
-        browser_backend=TIKTOK_BROWSER_BACKEND_CHROME_CDP,
-        human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
-        human_challenge_handoff_timeout_seconds=180.0,
-        human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
-        engine=engine,
+    del max_grid_scroll_passes
+
+    def observe(
+        *,
+        pointer_actions: Sequence[BrowserPagePointerAction] = (),
+        wheel_action: BrowserPageWheelAction | None = None,
+    ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
+        return fetch_browser_page_observation_capture(
+            url=profile_url,
+            dom_extract_script=TIKTOK_PROFILE_GRID_DOM_EXTRACT_SCRIPT,
+            dom_extract_arg={"creator_handle": creator_handle},
+            response_url_predicate=is_tiktok_profile_item_list_url,
+            post_load_pointer_actions=pointer_actions,
+            post_load_wheel_action=wheel_action,
+            timeout_seconds=timeout_seconds,
+            wait_until="domcontentloaded",
+            settle_seconds=settle_seconds,
+            storage_state_path=storage_state_path,
+            headless=False,
+            browser_backend=TIKTOK_BROWSER_BACKEND_CHROME_CDP,
+            human_challenge_handoff_markers=TIKTOK_CHALLENGE_TEXT_MARKERS,
+            human_challenge_handoff_timeout_seconds=180.0,
+            human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
+            engine=engine,
+        )
+
+    initial = observe(pointer_actions=(TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION,))
+    if isinstance(initial, BrowserSnapshotFailure):
+        return initial
+    initial_ids = _ordered_grid_video_ids(initial, creator_handle=creator_handle)
+
+    captures = [initial]
+    initial_id_set = set(initial_ids)
+    prior_ids = initial_ids
+    sufficient_dom_video_count = min(
+        window_size,
+        GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT,
+    )
+    initial_window_sufficient = len(initial_ids) >= sufficient_dom_video_count
+    wheel_burst_count = 0
+    if not initial_window_sufficient:
+        for _ in range(GRID_ACQUISITION_BATCH_REVEAL_WHEEL_CAP):
+            wheel_capture = observe(
+                wheel_action=BrowserPageWheelAction(
+                    action_name="tiktok_grid_one_dom_batch_reveal_v0",
+                    direction="down",
+                    viewport_fraction_min=GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MIN,
+                    viewport_fraction_max=GRID_PAGINATION_WHEEL_VIEWPORT_FRACTION_MAX,
+                )
+            )
+            wheel_burst_count += 1
+            if isinstance(wheel_capture, BrowserSnapshotFailure):
+                return wheel_capture
+            captures.append(wheel_capture)
+            prior_ids = _ordered_grid_video_ids(
+                wheel_capture,
+                creator_handle=creator_handle,
+            )
+            if set(prior_ids) - initial_id_set:
+                break
+        else:
+            raise TikTokCreatorOnboardingError(
+                "no new grid DOM batch appeared within bounded adaptive wheel bursts"
+            )
+
+    stable_poll_count = 0
+    passive_polls_executed = 0
+    for _ in range(GRID_ACQUISITION_STABILITY_POLL_CAP):
+        poll = observe()
+        passive_polls_executed += 1
+        if isinstance(poll, BrowserSnapshotFailure):
+            return poll
+        captures.append(poll)
+        poll_ids = _ordered_grid_video_ids(poll, creator_handle=creator_handle)
+        if poll_ids == prior_ids:
+            stable_poll_count += 1
+        else:
+            stable_poll_count = 0
+        prior_ids = poll_ids
+        if stable_poll_count == GRID_ACQUISITION_STABILITY_POLL_TARGET:
+            break
+    if stable_poll_count < GRID_ACQUISITION_STABILITY_POLL_TARGET:
+        raise TikTokCreatorOnboardingError(
+            "grid DOM did not stabilize after one bounded batch-reveal wheel"
+        )
+
+    final = captures[-1]
+    final_id_set = set(prior_ids)
+    if len(prior_ids) < sufficient_dom_video_count:
+        raise TikTokCreatorOnboardingError(
+            "one grid DOM batch did not produce the minimum usable window"
+        )
+    combined_responses = [
+        response for capture in captures for response in capture.responses
+    ]
+    wheel_action_receipts = [
+        action
+        for capture in captures
+        for action in [capture.metadata.get("post_load_wheel_action")]
+        if isinstance(action, dict)
+    ]
+    metadata = dict(final.metadata)
+    metadata.update(
+        {
+            "grid_acquisition_policy": "sufficient_initial_or_adaptive_first_dom_batch_then_stabilize",
+            "grid_acquisition_sufficient_dom_video_count": sufficient_dom_video_count,
+            "grid_acquisition_initial_window_sufficient": initial_window_sufficient,
+            "grid_acquisition_wheel_burst_cap": GRID_ACQUISITION_BATCH_REVEAL_WHEEL_CAP,
+            "grid_acquisition_wheel_burst_count": wheel_burst_count,
+            "grid_acquisition_wheel_action_receipts": wheel_action_receipts,
+            "grid_acquisition_initial_dom_video_count": len(initial_ids),
+            "grid_acquisition_final_dom_video_count": len(prior_ids),
+            "grid_acquisition_new_dom_video_count": len(final_id_set - initial_id_set),
+            "grid_acquisition_new_batch_observed": bool(final_id_set - initial_id_set),
+            "grid_acquisition_passive_polls_executed": passive_polls_executed,
+            "grid_acquisition_consecutive_stable_polls": stable_poll_count,
+            "grid_acquisition_stop_reason": (
+                "initial_sufficient_window_stabilized"
+                if initial_window_sufficient
+                else "first_new_dom_batch_stabilized"
+            ),
+            "lazy_load_scroll_passes_executed": 0,
+            "lazy_load_scroll_stop_reason": "not_used_dom_batch_policy",
+            "lazy_load_response_stop_condition_configured": False,
+        }
+    )
+    return BrowserPageObservationSuccess(
+        requested_url=final.requested_url,
+        final_url=final.final_url,
+        title=final.title,
+        visible_text=final.visible_text,
+        dom_observation=final.dom_observation,
+        responses=combined_responses,
+        metadata=metadata,
+        warning_notes=list(dict.fromkeys(note for capture in captures for note in capture.warning_notes)),
+        limitation_notes=list(
+            dict.fromkeys(note for capture in captures for note in capture.limitation_notes)
+        ),
     )
 
 
@@ -1494,7 +1942,6 @@ def build_tiktok_grid_window(
         if (
             not video_id
             or video_id in seen
-            or video_id not in by_id
             or not _is_creator_video_url(
                 video_url=video_url,
                 creator_handle=creator_handle,
@@ -1502,10 +1949,28 @@ def build_tiktok_grid_window(
             )
         ):
             continue
+        metric_item = by_id.get(video_id)
+        dom_view_count_text = row.get("view_count_text_or_none")
+        dom_view_count = _parse_tiktok_compact_count(dom_view_count_text)
+        if metric_item is None and dom_view_count is None:
+            continue
+        item = dict(metric_item or {"video_id": video_id, "stats": {}})
+        stats = dict(item.get("stats") or {})
+        dom_view_count_used = "playCount" not in stats and dom_view_count is not None
+        if dom_view_count_used:
+            stats["playCount"] = dom_view_count
+        item["stats"] = stats
+        item["grid_view_count"] = {
+            "raw_text_or_none": dom_view_count_text if isinstance(dom_view_count_text, str) else None,
+            "parsed_approximate_count_or_none": dom_view_count,
+            "source": "profile_grid_dom_view_count_footer",
+            "source_display_precision": "rounded_compact",
+            "used_for_play_count": dom_view_count_used,
+        }
         seen.add(video_id)
         frozen.append(
             {
-                **by_id[video_id],
+                **item,
                 "video_url": video_url,
                 "pinned_visible": row.get("pinned_visible") is True,
                 "visible_in_viewport": row.get("visible_in_viewport") is True,
@@ -1535,15 +2000,42 @@ def build_tiktok_grid_window(
         "collection_receipt": {
             "capture_timestamp": capture.metadata.get("capture_timestamp"),
             "response_count": len(capture.responses),
-            "scroll_passes_executed": capture.metadata.get(
-                "lazy_load_scroll_passes_executed"
+            "grid_acquisition_policy": capture.metadata.get("grid_acquisition_policy"),
+            "sufficient_dom_video_count": capture.metadata.get(
+                "grid_acquisition_sufficient_dom_video_count"
             ),
-            "scroll_stop_reason": capture.metadata.get(
-                "lazy_load_scroll_stop_reason"
+            "initial_window_sufficient": capture.metadata.get(
+                "grid_acquisition_initial_window_sufficient"
             ),
-            "response_target_stop_configured": capture.metadata.get(
-                "lazy_load_response_stop_condition_configured"
+            "initial_dom_video_count": capture.metadata.get(
+                "grid_acquisition_initial_dom_video_count"
             ),
+            "final_dom_video_count": capture.metadata.get(
+                "grid_acquisition_final_dom_video_count"
+            ),
+            "new_dom_video_count": capture.metadata.get(
+                "grid_acquisition_new_dom_video_count"
+            ),
+            "new_batch_observed": capture.metadata.get(
+                "grid_acquisition_new_batch_observed"
+            ),
+            "wheel_burst_count": capture.metadata.get(
+                "grid_acquisition_wheel_burst_count"
+            ),
+            "wheel_burst_cap": capture.metadata.get(
+                "grid_acquisition_wheel_burst_cap"
+            ),
+            "wheel_action_receipts": capture.metadata.get(
+                "grid_acquisition_wheel_action_receipts"
+            ),
+            "passive_polls_executed": capture.metadata.get(
+                "grid_acquisition_passive_polls_executed"
+            ),
+            "consecutive_stable_polls": capture.metadata.get(
+                "grid_acquisition_consecutive_stable_polls"
+            ),
+            "stop_reason": capture.metadata.get("grid_acquisition_stop_reason"),
+            "legacy_response_target_scroll_used": False,
         },
     }
     assert_no_sensitive_tiktok_material(receipt)
@@ -1666,6 +2158,56 @@ def _non_negative_int_or_zero(value: Any) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         return 0
     return value
+
+
+def _ordered_grid_video_ids(
+    capture: BrowserPageObservationSuccess,
+    *,
+    creator_handle: str,
+) -> tuple[str, ...]:
+    dom = capture.dom_observation
+    if not isinstance(dom, dict):
+        return ()
+    rows = dom.get("ordered_videos")
+    if not isinstance(rows, list):
+        return ()
+    ids: list[str] = []
+    seen: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        video_id = str(row.get("video_id") or "").strip()
+        video_url = str(row.get("video_url") or "").strip()
+        if (
+            not video_id
+            or video_id in seen
+            or not _is_creator_video_url(
+                video_url=video_url,
+                creator_handle=creator_handle,
+                video_id=video_id,
+            )
+        ):
+            continue
+        seen.add(video_id)
+        ids.append(video_id)
+    return tuple(ids)
+
+
+def _parse_tiktok_compact_count(value: Any) -> int | None:
+    if not isinstance(value, str):
+        return None
+    normalized = re.sub(r"\s+", "", value).replace(",", "").upper()
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)([KMB]?)", normalized)
+    if match is None:
+        return None
+    multiplier = {"": 1, "K": 1_000, "M": 1_000_000, "B": 1_000_000_000}[
+        match.group(2)
+    ]
+    try:
+        count = Decimal(match.group(1)) * multiplier
+    except InvalidOperation:
+        return None
+    return int(count.to_integral_value(rounding=ROUND_HALF_UP))
 
 
 def is_tiktok_profile_item_list_url(url: str) -> bool:

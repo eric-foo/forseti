@@ -54,8 +54,8 @@ identity, region, endorsement, account safety, or metric quality.
 | Load AGENTS.md and workflow overlay before repo work | Doctrine plus existing workflow gates | Existing doctrine; partially hook-backed for durable artifacts | Read AGENTS.md and .agents/workflow-overlay/README.md before scan work | Source hierarchy/judgment trigger; not fully inferable from output JSON. |
 | Use intended warmed browser/session; do not close it at lane end | Code plus doctrine/runbook | Existing Chrome CDP session adapter detaches without closing operator Chrome | State intended surface and leave it open unless owner asks otherwise | Session choice and operator intent remain live-context judgment; detach behavior is mechanical. |
 | Avoid duplicate/wrong ordinary Chrome tabs | Code plus doctrine/runbook | Existing Chrome CDP session adapter adopts the most recently enumerated non-closed TikTok page regardless of creator/path, never adopts a cross-platform page, and creates only when no TikTok page exists | Verify `page_acquisition_policy=adopt_same_platform_else_create`, platform/exact match counts, and adoption/creation/navigation counts | Platform matching, latest-enumerated selection, and same-path navigation suppression are mechanical; no active-focus claim is made. |
-| Keep Suggested-to-grid continuity and minimize deep-capture footprint | Code plus doctrine/runbook | Onboarding suppresses same-profile reloads, performs no sort-tab click, closes the relationship modal, opens every selected video through a currently visible selected grid tile, and closes each overlay back to the retained grid | Require one 8-13 second pre-entry wait, random choice among visible selected tiles, a freshly resolved thumbnail rectangle with randomized 15-85% inset click, bounded logical-position-guided mouse-wheel pagination only when needed, no cached screen coordinates, zero targeted tile scroll, zero direct-video onboarding navigation, and at most one 60-second retry after failed matching-overlay materialization | Viewport intersection, pointer geometry, pagination/retry bounds, return-to-grid, and receipt shape are mechanical; the product preference for normal grid-to-overlay use is doctrine. |
-| Bind overlay evidence without mandatory direct-video hydration | Code plus doctrine/runbook | The clicked grid identity and overlay URL bind the video; profile-grid responses supply available structured metadata; page-owned comment responses and visible overlay DOM supply initially exposed comments; direct `itemStruct` is optional | Preserve naturally available fields with per-field provenance, distinguish captured/visible-empty/not-visible comments, never zero-fill unavailable optional metrics, and fail on identity mismatch | Evidence availability differs between normal grid overlays and direct URLs; validators must model that reality rather than forcing the direct-page shape. |
+| Keep Suggested-to-grid continuity and minimize deep-capture footprint | Code plus doctrine/runbook | Onboarding suppresses same-profile reloads, performs no sort-tab click, closes the primary relationship dialog or collapses fallback Suggested accounts through its exact toggle, accepts an already-loaded 27-video initial window with zero acquisition wheels or otherwise uses bounded adaptive 20-35% viewport wheels only until the first positive exact-ID batch delta, then requires two stable passive DOM polls, opens every selected video through a currently visible selected grid tile, and closes each overlay back to the retained grid | For transition to grid, prohibit generic Close/X targeting and fail on route-surface, blocking-modal, or scroll-lock residue. For acquisition, prohibit page-bottom/response-count scrolling, a sub-27 stabilized batch window, and loading another batch after sufficiency; freeze up to 30 exact-creator DOM rows, and disclose the sufficiency threshold, initial sufficiency, initial/final/new counts, bounded wheel action receipts, and stability. Then require one 8-13 second pre-entry wait, random choice among visible selected tiles whose link-routed view-count footer itself intersects the viewport, a freshly resolved footer with randomized 15-85% inset click, never the hover-preview body, bounded logical-position-guided 20-35% viewport mouse-wheel pagination only when needed, live/frozen video-ID continuity, cycle stopping, no cached screen coordinates, zero targeted tile scroll, zero direct-video onboarding navigation, and at most one 60-second retry after failed matching-overlay materialization | DOM stability, viewport intersection, link-target geometry, identity drift, pagination cycles/retry bounds, return-to-grid, and receipt shape are mechanical; the product preference for normal grid-to-overlay use is doctrine. |
+| Bind overlay evidence without mandatory direct-video hydration | Code plus doctrine/runbook | The clicked grid identity and overlay URL bind the video; profile-grid responses supply available structured metadata; the exact grid tile's compact view footer can supply rounded DOM reach when playCount is absent; page-owned comment responses and visible overlay DOM supply initially exposed comments; direct `itemStruct` is optional | Fixed-count onboarding requires reach only, preserves raw plus parsed rounded DOM-view provenance when used, preserves naturally available engagement fields without making them membership gates, distinguishes captured/visible-empty/not-visible comments, never zero-fills unavailable optional metrics, and fails on identity mismatch | Evidence availability differs between normal grid overlays and direct URLs; validators must model that reality rather than forcing the direct-page shape. |
 | Parent platform profile/grid capture when entering seed profile | Code plus doctrine | Register validator and scan receipt validator built; future runner optional | Require a parent profile/grid packet pointer or explicit not-captured reason in the receipt/register | Presence of packet pointer is mechanical; deciding capture posture is doctrine. |
 | Suggested-account graphing on the retained humanized CDP surface | Code plus doctrine | Onboarding runner clicks visible creator `Followers`, waits for the visible relationship dialog, clicks that dialog's `Suggested` tab, and extracts only visible-dialog profile rows; visible `Suggested accounts` + exact `View All` is fallback only | Record the outer UI route separately from CloakBrowser `careful` pointer humanization and preserve `captured`, `visible_empty`, and `not_visible` distinctly before sibling-channel/link-hub work | Route precedence and source-visible outcome semantics are doctrine; action/receipt shape is mechanical. |
 | Data-lake placement for packet-grade parent/suggested observations | Code plus doctrine | Existing packet writer; scan receipt and register validators check packet pointers when packet-grade is claimed | Preserve source packet first, then graph register points to packet | File/packet existence is mechanical; whether an observation is packet-grade is judgment. |
@@ -123,19 +123,29 @@ is worth scanning. Those stay doctrine/resident judgment.
    dialog, click that dialog's `Suggested` tab, and extract profile rows only from
    that visible dialog.
 6. Only when that primary route is not visible, use the visible `Suggested
-   accounts` heading and exact `View All` route as fallback. Preserve `captured`,
-   `visible_empty`, or `not_visible` truthfully before link-hub or sibling-channel
-   work. Never click Follow, open a candidate, like, or message.
+    accounts` heading and exact `View All` route as fallback. Preserve `captured`,
+    `visible_empty`, or `not_visible` truthfully before link-hub or sibling-channel
+    work. Close the primary relationship dialog or collapse fallback Suggested
+    accounts through its exact profile toggle before grid collection; a generic
+    Close/X target is forbidden. Do not wheel or click a grid tile while the route
+    surface, a blocking modal, or page scroll lock remains. Never click Follow,
+    open a candidate, like, or message.
 7. Keep the acquired page through modal close, grid collection, and all selected
    video captures. Do not reload an already matching creator path or click Latest,
    Popular, or Oldest. After the 8-13 second wait, open each selected video by
    randomly clicking a currently viewport-visible selected grid tile, capture the
-   matching overlay, and close back to the grid. Resolve that tile's current
-   rectangle immediately before clicking and choose a randomized point within its
-   15-85 percent inset on both axes; never cache absolute screen coordinates. If
+   matching overlay, and close back to the grid. Resolve that tile's link-routed
+   view-count footer immediately before clicking and choose a randomized point
+   within the footer's 15-85 percent inset on both axes; never cache absolute
+   screen coordinates or click the hover-preview body. The footer itself must
+   intersect the viewport; a partially visible thumbnail with an off-screen
+   footer is not actionable. If
    selected tiles are not visible, remember their stable identities and logical
    grid positions, compare them with the freshly visible position range, and use
-   only bounded small mouse-wheel bursts in the required direction. Distinguish
+   only bounded 20-35 percent viewport mouse-wheel bursts in the required
+   direction. Once the live grid has loaded through the frozen window's bound,
+   zero video-ID overlap stops as `frozen_window_identity_drift`; a repeated
+   non-consecutive grid-state fingerprint stops as `progress_cycle`. Distinguish
    CloakBrowser's humanized cursor move from the raw wheel burst in receipts; never
    target-scroll a tile.
    If a click does not materialize the matching overlay, wait 60 seconds,
@@ -149,7 +159,11 @@ is worth scanning. Those stay doctrine/resident judgment.
    observed suggestions, record that residual and do not claim exhaustive
    suggestion capture.
 11. Run/check Creator Registry exact-match preflight before any registry proposal.
-12. Report compact receipt facts, not screenshots, and state non-verified items.
+12. Routine onboarding dogfood chooses a Suggested/frontier candidate absent
+    from the Creator Registry and uses `new_capture`; an exact match means choose
+    another candidate. Reserve `update_existing` for an explicitly recapture-
+    specific test, and do not treat the identity registry as dogfood-run history.
+13. Report compact receipt facts, not screenshots, and state non-verified items.
 
 ## Direction Change Propagation
 
@@ -160,12 +174,31 @@ direction_change_propagation:
     Suggested tab primary and keeps visible Suggested accounts plus exact View All
     as fallback. Retained CDP now adopts the latest TikTok page at platform scope,
     suppresses same-path reloads, preserves one-page Suggested-to-grid continuity,
-    and opens every selected video through a random currently visible selected
-    grid tile, returning to the grid after each overlay. The thumbnail rectangle
-    is freshly resolved and the click is randomized within its 15-85 percent safe
-    inset. Bounded normal-grid pagination remembers logical positions and uses
-    receipt-backed small mouse-wheel bursts without caching screen coordinates;
-    targeted tile scrolling and direct-video onboarding navigation are forbidden.
+    closes and verifies the Suggested surface before any grid wheel or tile
+    action using the relationship-dialog close for the primary route or the
+    exact profile Suggested-accounts toggle for fallback; a generic page Close/X
+    search is forbidden, and blocking-modal or scroll-lock residue fails loud.
+    Grid acquisition accepts an already-loaded 27-video initial window with zero
+    wheels; otherwise it uses bounded adaptive 20-35 percent viewport wheel
+    bursts only until the first positive exact-video-ID batch delta, then zero
+    further wheels and two consecutive stable passive DOM polls. It freezes up
+    to 30 stabilized rows, fails when the one-batch window remains below 27, and
+    never page-bottom-scrolls or chases a response count. Fixed-count reach selection prefers structured
+    playCount and may use an explicitly rounded, provenance-bearing grid view
+    footer when absent; optional engagement metrics do not gate membership. It
+    opens every selected video through a random currently visible
+    selected grid tile, returning to the grid after each overlay. The tile's link-routed
+    view-count footer is freshly resolved and the click is randomized within its
+    15-85 percent safe inset; the hover-preview body is not a click target.
+    Bounded normal-grid pagination remembers logical positions and uses
+    receipt-backed 20-35 percent viewport mouse-wheel bursts without caching
+    screen coordinates. Live/frozen video-ID divergence stops once the frozen
+    bound is loaded, and repeated non-consecutive grid state stops as a progress
+    cycle instead of reversing indefinitely. Targeted tile scrolling and direct-
+    video onboarding navigation are forbidden. Routine dogfood selects a
+    Suggested/frontier candidate absent from the Creator Registry with
+    `new_capture`; `update_existing` is reserved for an explicitly recapture-
+    specific test.
     One 60-second retry is
     allowed only after failed matching-overlay materialization. Grid/API, URL,
     overlay DOM, comment-response, and subtitle-track evidence are preserved with
@@ -210,9 +243,17 @@ direction_change_propagation:
         The existing TikTok Scanning and source-capture routes still resolve the
         same controlling sources; no owner or path family moved.
   stale_language_search: >
-    rg -n -i "first deep entry|remaining selected videos|direct selected-video|source item detail|adopt_exact_target_else_create|arbitrary TikTok tab|profile suggested|View all.*Following|View all.*Followers|root follow|owner-authorized root follow|allows one.*follow"
+    rg -n -i "response_target_reached|scrollTo\(0, document.body.scrollHeight\)|playCount/diggCount.*fixed|fixed.*diggCount|required.*30.*grid|first deep entry|remaining selected videos|direct selected-video|source item detail|adopt_exact_target_else_create|arbitrary TikTok tab|profile suggested|View all.*Following|View all.*Followers|root follow|owner-authorized root follow|allows one.*follow|small mouse-wheel|update_existing.*dogfood|dogfood.*update_existing|identity drift|progress cycle|scroll.*suggested.*open|suggested.*open.*scroll|tiktok_suggested_surface_close_before_grid_v0"
     forseti/product/spines/scanning/source_families/tiktok forseti-harness/docs/source_capture_agent_runbook.md
     forseti-harness/source_capture/tiktok forseti-harness/capture_spine/tiktok_creator_discovery_frontier
+  stale_language_search_result: >
+    Executed 2026-07-15. Live hits outside the two receipt queries are the
+    selection implementation's explicit fraction-mode playCount/diggCount list,
+    the retained direct-page diagnostic helper, and accepted doctrine statements
+    naming profile Suggested fallback or progress-cycle safeguards. No live
+    onboarding source retains response-target/page-bottom acquisition, makes
+    diggCount a fixed-count membership requirement, or uses the retired generic
+    Suggested-surface close action.
   non_claims:
     - not validation
     - not readiness

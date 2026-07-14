@@ -74,10 +74,23 @@ Each profile exposes:
 - `review_state_or_none`
 - `platform_accounts`
 - `identity_evidence_summary`
+- `onboarding`
 
 For current single-platform rows, the subject is one public platform account.
 The profile does not claim public person identity, outreach authorization, or a
 cross-platform creator record.
+
+### onboarding
+
+`onboarding` tells an operator whether this exact platform account has at least
+one complete, verified, official committed Bronze content capture. It exposes
+the state, policy version, and—only for `onboarded`—the earliest qualifying
+capture time plus packet/source evidence.
+
+This panel is copied from the Creator Registry projection. It is not a freshness,
+coverage, content-quality, influence, or analysis-completion signal. A profile
+may be onboarded while its metrics are stale, and may be not onboarded while its
+identity is already known from Discovery or RSS.
 
 ### current_metric_rollups
 
@@ -202,8 +215,9 @@ interpret the visible surface from Section 1.
 metric records. It is not the source of truth for identity, raw metrics,
 audience inference, buyer proof, outreach permission, or capture cadence.
 
-The current materializer reads platform account identity rows and platform
-metric rollup snapshots, then copies the allowed rollup payload into
+The current materializer reads platform account identity rows, the Registry's
+Bronze-derived onboarding projection, and platform metric rollup snapshots, then
+copies the allowed rollup payload into
 `current_metric_rollups`. It does not compute global longitudinal stats inside
 the registry read model.
 

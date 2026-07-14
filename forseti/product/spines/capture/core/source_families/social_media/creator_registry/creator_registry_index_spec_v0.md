@@ -40,6 +40,9 @@ It does not answer whether the creator is influential, currently fresh, a good
 fit, reachable, or cross-platform linked. Those facts come from sibling records
 and the profile-current view.
 
+It also records whether an account has completed initial content onboarding.
+That is a narrow operational fact, not a freshness or quality judgment.
+
 ## Stable Keys
 
 Use platform-account identity first, handles second:
@@ -63,6 +66,7 @@ Each `platform_accounts` row carries:
 - `identity_state`
 - `discovery_state`
 - `capture_state`
+- `onboarding`
 - `linkage_state`
 - `routing_decision`
 - `freshness`
@@ -70,9 +74,11 @@ Each `platform_accounts` row carries:
 - `source_pointers`
 - `non_claims`
 
-The current v0 index may be static JSON as long as tests prove it mirrors the
-identity ledger. A later lake-native or SQLite implementation should generate
-the same logical shape rather than teach Discovery/Capture a different one.
+The current v0 index is a deterministic materialized JSON projection. Tests
+must prove that its identity rows mirror the linkage ledger and that its
+onboarding rows derive from verified committed Bronze. A later lake-native or
+SQLite implementation should generate the same logical shape rather than teach
+Discovery/Capture a different one.
 
 ## Dedupe State Semantics
 
@@ -89,8 +95,31 @@ the same logical shape rather than teach Discovery/Capture a different one.
 - `identity_observed_profile_packet_available`: identity exists from a
   source-backed public profile packet, but no source-backed metric rollup is
   currently joined for this account.
-- future `never_captured`, `capture_stale`, `capture_blocked`, or `capture_fresh`
-  require a named Capture/Silver freshness producer.
+- `never_captured`: identity exists, but no official content capture has yet
+  qualified under the onboarding policy.
+- future `capture_stale`, `capture_blocked`, or `capture_fresh` require a named
+  Capture/Silver freshness producer.
+
+`onboarding` is separate from freshness and routing state:
+
+- `not_onboarded`: no qualifying official committed Bronze content packet can
+  be exactly attributed to the platform account. Its evidence fields are null.
+- `onboarded`: at least one qualifying packet is hash/size verified and exactly
+  attributable. The row carries the earliest qualifying capture time, packet
+  id, source family, source surface, and policy version.
+- Qualifying v0 surfaces are Instagram Reels grid packets, TikTok grid or
+  admitted video/comment/subtitle packets, and YouTube watch metadata/comments
+  packets. YouTube RSS, TikTok logged-out discovery snapshots, suggested-account
+  discovery packets, scratch/staging artifacts, failed attempts, and partial
+  uncommitted captures do not qualify.
+- The state is account-scoped and monotonic over immutable committed Bronze.
+  Recency, paused monitoring, and stale metrics remain separate fields.
+
+`run_creator_registry_onboarding_refresh.py` is the named read-only materializer.
+It scans committed manifests, verifies only the schema-owned JSON member needed
+for attribution, fails on ambiguous identity, and never writes the lake. The
+profile-current materializer consumes this index and must expose the identical
+onboarding block; individual capture runners do not flip registry state.
 
 `linkage_state` is inherited from the public-handle linkage ledger:
 
@@ -110,3 +139,32 @@ the same logical shape rather than teach Discovery/Capture a different one.
 - Repeat discovery of a known account should be preserved as evidence or signal,
   not discarded; the dedupe behavior is to avoid duplicate rows and duplicate
   work queues.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: "Creator onboarding is now an account-scoped, Bronze-evidenced materialized state in the Creator Registry, distinct from freshness and mirrored into creator_profile_current."
+  trigger: lifecycle_boundary
+  related_triggers: [architecture_doctrine, output_authority]
+  controlling_sources_updated:
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/validation-gates.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - forseti-harness/capture_spine/creator_profile_current/materialize.py
+    - forseti-harness/capture_spine/creator_profile_current/validation.py
+  intentionally_not_updated:
+    - {path: individual platform capture runners, reason: "Onboarding is derived centrally from committed Bronze so every runner need not maintain registry state."}
+    - {path: data-lake packet schemas, reason: "Existing committed packet identity and lineage fields are sufficient; no Bronze schema change is required."}
+    - {path: Creator Signal ranking surfaces, reason: "Onboarding is operational eligibility, not a ranking, fit, quality, or influence score."}
+  stale_language_search: 'rg -n "never_captured|onboarded|not_onboarded|capture_state|creator_profile_current" forseti/product/spines/capture/core/source_families/social_media/creator_registry forseti-harness/capture_spine/creator_profile_current forseti-harness/runners'
+  non_claims: [not validation, not readiness, not live capture authorization, not creator quality, not freshness]
+```

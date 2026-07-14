@@ -1,9 +1,10 @@
-"""Build the static creator-profile-current view from sibling source ledgers."""
+"""Build creator-profile-current from identity, onboarding, and metric sources."""
 
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Sequence
@@ -22,6 +23,10 @@ WRAPPER_KEY = "creator_profile_current_view"
 ACCOUNT_LEDGER_POINTER = (
     "forseti/product/spines/capture/core/source_families/social_media/creator_registry/"
     "creator_public_handle_linkage_ledger_v0.json"
+)
+CREATOR_REGISTRY_INDEX_POINTER = (
+    "forseti/product/spines/capture/core/source_families/social_media/creator_registry/"
+    "creator_registry_index_v0.json"
 )
 YOUTUBE_METRIC_SEED_POINTER = (
     "forseti/product/spines/capture/core/source_families/social_media/youtube/"
@@ -108,6 +113,7 @@ def load_json(path: str | Path) -> dict[str, Any]:
 def build_creator_profile_current_view_from_files(
     *,
     account_ledger_path: str | Path,
+    creator_registry_index_path: str | Path,
     metric_seed_path: str | Path | None = None,
     metric_seed_paths: Sequence[str | Path] | None = None,
     audience_profile_snapshot_path: str | Path | None = None,
@@ -115,7 +121,10 @@ def build_creator_profile_current_view_from_files(
     generated_at_utc: str,
 ) -> dict[str, Any]:
     account_path = Path(account_ledger_path)
+    registry_index_path = Path(creator_registry_index_path)
     account_document = load_json(account_path)
+    registry_document = load_json(registry_index_path)
+    onboarding_by_account = _onboarding_by_account_from_registry(registry_document)
     metric_paths = _normalize_metric_seed_paths(metric_seed_path=metric_seed_path, metric_seed_paths=metric_seed_paths)
     metric_seed_inputs = [_load_metric_seed_input(path) for path in metric_paths]
     audience_paths = _normalize_audience_snapshot_paths(
@@ -125,6 +134,7 @@ def build_creator_profile_current_view_from_files(
     audience_snapshot_inputs = [_load_audience_snapshot_input(path) for path in audience_paths]
     return build_creator_profile_current_view_document(
         account_ledger=account_document["creator_public_handle_linkage_ledger"],
+        onboarding_by_account=onboarding_by_account,
         metric_seeds=[seed_input["seed"] for seed_input in metric_seed_inputs],
         audience_profile_snapshots=[
             snapshot
@@ -134,6 +144,7 @@ def build_creator_profile_current_view_from_files(
         generated_at_utc=generated_at_utc,
         source_input_hashes={
             ACCOUNT_LEDGER_POINTER: _sha256_repo_text(account_path),
+            CREATOR_REGISTRY_INDEX_POINTER: _sha256_repo_text(registry_index_path),
             **{
                 seed_input["pointer"]: _sha256_repo_text(seed_input["path"])
                 for seed_input in metric_seed_inputs
@@ -151,6 +162,7 @@ def build_creator_profile_current_view_from_files(
 def build_creator_profile_current_view_document(
     *,
     account_ledger: dict[str, Any],
+    onboarding_by_account: Mapping[str, Mapping[str, Any]],
     metric_seed: dict[str, Any] | None = None,
     metric_seeds: Sequence[dict[str, Any]] | None = None,
     audience_profile_snapshots: Sequence[dict[str, Any]] | None = None,
@@ -163,6 +175,12 @@ def build_creator_profile_current_view_document(
     seeds = _normalize_metric_seeds(metric_seed=metric_seed, metric_seeds=metric_seeds)
     rollup_records = _collect_metric_rollup_records(seeds, metric_seed_inputs)
     accounts_by_id = {account["platform_account_id"]: account for account in accounts}
+    if set(onboarding_by_account) != set(accounts_by_id):
+        raise ValueError(
+            "Creator Registry onboarding rows must exactly match linkage-ledger accounts; "
+            f"missing={sorted(set(accounts_by_id) - set(onboarding_by_account))!r}, "
+            f"extra={sorted(set(onboarding_by_account) - set(accounts_by_id))!r}"
+        )
     rollups_by_subject = {record["rollup"]["profile_subject_id"]: record for record in rollup_records}
     audience_by_subject = _collect_audience_snapshots_by_subject(
         snapshots=audience_profile_snapshots or [],
@@ -199,6 +217,7 @@ def build_creator_profile_current_view_document(
             profiles.append(
                 _build_identity_only_platform_account_profile(
                     account=account,
+                    onboarding=onboarding_by_account[account_id],
                     account_index=account_index[account_id],
                     generated_at_utc=generated_at_utc,
                 )
@@ -207,6 +226,7 @@ def build_creator_profile_current_view_document(
         profiles.append(
             _build_platform_account_profile(
                 account=account,
+                onboarding=onboarding_by_account[account_id],
                 account_index=account_index[account_id],
                 rollup=rollup_record["rollup"],
                 rollup_index=rollup_index[account_id],
@@ -224,8 +244,9 @@ def build_creator_profile_current_view_document(
         "generated_at_utc": generated_at_utc,
         "source_policy_posture": (
             "Static creator-profile-current export derived from the public-handle "
-            "platform-account ledger and platform creator metric seeds. Profiles "
-            "are account-scoped unless promoted public-handle linkage exists."
+            "platform-account ledger, Bronze-derived Creator Registry onboarding "
+            "projection, and platform creator metric seeds. Profiles are account-scoped "
+            "unless promoted public-handle linkage exists."
         ),
         "authority_pointers": [
             "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
@@ -237,6 +258,11 @@ def build_creator_profile_current_view_document(
                 "source_pointer": ACCOUNT_LEDGER_POINTER,
                 "sha256": source_input_hashes[ACCOUNT_LEDGER_POINTER],
                 "role": "source-backed platform accounts and identity state",
+            },
+            {
+                "source_pointer": CREATOR_REGISTRY_INDEX_POINTER,
+                "sha256": source_input_hashes[CREATOR_REGISTRY_INDEX_POINTER],
+                "role": "account-level onboarding state derived from verified committed Bronze evidence",
             },
             *[
                 {
@@ -293,6 +319,7 @@ def dump_creator_profile_current_view(document: dict[str, Any]) -> str:
 def _build_platform_account_profile(
     *,
     account: dict[str, Any],
+    onboarding: Mapping[str, Any],
     account_index: int,
     rollup: dict[str, Any],
     rollup_index: int,
@@ -317,6 +344,7 @@ def _build_platform_account_profile(
         "identity_state": "single_platform_observed",
         "link_state_or_none": None,
         "review_state_or_none": None,
+        "onboarding": deepcopy(dict(onboarding)),
         "platform_accounts": [deepcopy(account)],
         "identity_evidence_summary": {
             "summary": (
@@ -370,6 +398,7 @@ def _build_platform_account_profile(
 def _build_identity_only_platform_account_profile(
     *,
     account: dict[str, Any],
+    onboarding: Mapping[str, Any],
     account_index: int,
     generated_at_utc: str,
 ) -> dict[str, Any]:
@@ -388,6 +417,7 @@ def _build_identity_only_platform_account_profile(
         "identity_state": "single_platform_observed",
         "link_state_or_none": None,
         "review_state_or_none": None,
+        "onboarding": deepcopy(dict(onboarding)),
         "platform_accounts": [deepcopy(account)],
         "identity_evidence_summary": {
             "summary": (
@@ -497,7 +527,36 @@ def _counts(profiles: list[dict[str, Any]]) -> dict[str, int]:
             for profile in profiles
             if any(rollup["platform_scope"] == "cross_platform" for rollup in profile["current_metric_rollups"])
         ),
+        "onboarded_profiles": sum(
+            1 for profile in profiles if profile["onboarding"]["onboarding_state"] == "onboarded"
+        ),
+        "not_onboarded_profiles": sum(
+            1
+            for profile in profiles
+            if profile["onboarding"]["onboarding_state"] == "not_onboarded"
+        ),
     }
+
+
+def _onboarding_by_account_from_registry(document: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
+    wrapper = document.get("creator_registry_index")
+    if not isinstance(wrapper, Mapping):
+        raise ValueError("creator_registry_index wrapper is required")
+    rows = wrapper.get("platform_accounts")
+    if not isinstance(rows, list):
+        raise ValueError("creator_registry_index platform_accounts must be a list")
+    result: dict[str, Mapping[str, Any]] = {}
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise ValueError("creator_registry_index platform account rows must be objects")
+        account_id = row.get("platform_account_id")
+        onboarding = row.get("onboarding")
+        if not isinstance(account_id, str) or not account_id or not isinstance(onboarding, Mapping):
+            raise ValueError("creator_registry_index row requires platform_account_id and onboarding")
+        if account_id in result:
+            raise ValueError(f"duplicate Creator Registry onboarding row: {account_id!r}")
+        result[account_id] = onboarding
+    return result
 
 
 def _normalize_metric_seed_paths(

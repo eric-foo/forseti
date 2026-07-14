@@ -1,1561 +1,68 @@
 {
   "creator_registry_index": {
-    "schema_version": "creator_registry_index_v0",
-    "index_id": "creator_registry_index_v0",
-    "index_mode": "static_known_public_account_dedupe_index",
-    "generated_at_utc": "2026-07-07T15:30:00Z",
-    "source_policy_posture": "Static creator-registry index generated from the public-handle linkage ledger. It is a Discovery/Capture dedupe and routing surface over known public platform accounts, including identity-only TikTok and Instagram rows whose metrics remain unavailable until separate source-backed metric observations exist. It is not metric authority, not raw capture storage, and not final cross-platform identity proof.",
+    "accepted_residuals": [
+      "Onboarding proves one qualifying committed capture for one platform account; it does not prove capture freshness, completeness across all content, or recurring monitoring.",
+      "Accounts without a qualifying packet remain not_onboarded even when discovery, RSS, challenge-limited profile, or scratch/staging evidence exists.",
+      "TikTok and Instagram handle-only attribution remains exact same-platform handle matching until a platform-native public account id is available; ambiguous registry keys fail the refresh.",
+      "The checked-in registry remains a generated static projection refreshed by an operator runner, not a runtime database."
+    ],
     "authority_pointers": [
       "forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md",
       "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_spec_v0.md",
       "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md",
       "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md"
     ],
-    "source_inputs": [
-      {
-        "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "9acc15c8d46430d120db6b11f051179e62786de38289bab11ab4d06be4acf4b1",
-        "role": "source-backed known public platform accounts and linkage state"
-      }
-    ],
-    "lookup_policy": {
-      "stable_key_priority": [
-        "platform_public_account_id_or_none",
-        "public_profile_url",
-        "normalized_public_handle"
-      ],
-      "handle_mutability_note": "Handles are mutable labels; prefer platform-native account ids when present.",
-      "discovery_preflight_rule": "Repeat observations of known accounts are preserved as signal but must attach to the existing registry row rather than open duplicate creator rows.",
-      "capture_preflight_rule": "Capture should use registry freshness/routing state to avoid duplicate work, then rely on Capture/Silver records for facts and metrics."
-    },
     "counts": {
-      "platform_accounts_total": 41,
       "creator_records_total": 2,
-      "known_account_rows_total": 41,
+      "known_account_rows_total": 51,
+      "platform_accounts_by_onboarding_state": {
+        "not_onboarded": 13,
+        "onboarded": 38
+      },
       "platform_accounts_by_platform": {
-        "youtube": 30,
         "instagram": 5,
-        "tiktok": 6
-      }
+        "tiktok": 6,
+        "youtube": 40
+      },
+      "platform_accounts_total": 51
     },
-    "platform_accounts": [
-      {
-        "platform_account_id": "acct_yt_fragrance_001",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCVvzGrPSok_sf8hfDhvTg7w",
-        "public_handle": "BowTieFragranceGuy",
-        "normalized_public_handle": "bowtiefragranceguy",
-        "public_profile_url": "https://www.youtube.com/channel/UCVvzGrPSok_sf8hfDhvTg7w",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_001",
-          "platform:youtube:public_account_id:UCVvzGrPSok_sf8hfDhvTg7w",
-          "platform:youtube:handle:bowtiefragranceguy",
-          "platform:youtube:url:https://www.youtube.com/channel/ucvvzgrpsok_sf8hfdhvtg7w"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_002",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UC0fOGtvT1x8irPUZOFdF2mA",
-        "public_handle": "ChaosFragrances",
-        "normalized_public_handle": "chaosfragrances",
-        "public_profile_url": "https://www.youtube.com/channel/UC0fOGtvT1x8irPUZOFdF2mA",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_002",
-          "platform:youtube:public_account_id:UC0fOGtvT1x8irPUZOFdF2mA",
-          "platform:youtube:handle:chaosfragrances",
-          "platform:youtube:url:https://www.youtube.com/channel/uc0fogtvt1x8irpuzofdf2ma"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_003",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCzhBUw8MLmUl8cPMx63sFuw",
-        "public_handle": "Cubaknow",
-        "normalized_public_handle": "cubaknow",
-        "public_profile_url": "https://www.youtube.com/channel/UCzhBUw8MLmUl8cPMx63sFuw",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_003",
-          "platform:youtube:public_account_id:UCzhBUw8MLmUl8cPMx63sFuw",
-          "platform:youtube:handle:cubaknow",
-          "platform:youtube:url:https://www.youtube.com/channel/uczhbuw8mlmul8cpmx63sfuw"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_004",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCcwPIKNTMO5S-Vd7z-RrIhg",
-        "public_handle": "CurlyFragrance",
-        "normalized_public_handle": "curlyfragrance",
-        "public_profile_url": "https://www.youtube.com/channel/UCcwPIKNTMO5S-Vd7z-RrIhg",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_004",
-          "platform:youtube:public_account_id:UCcwPIKNTMO5S-Vd7z-RrIhg",
-          "platform:youtube:handle:curlyfragrance",
-          "platform:youtube:url:https://www.youtube.com/channel/uccwpikntmo5s-vd7z-rrihg"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_005",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCIfiNVTfW49L7Z3lGLfIOeA",
-        "public_handle": "CurlyScents",
-        "normalized_public_handle": "curlyscents",
-        "public_profile_url": "https://www.youtube.com/channel/UCIfiNVTfW49L7Z3lGLfIOeA",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_005",
-          "platform:youtube:public_account_id:UCIfiNVTfW49L7Z3lGLfIOeA",
-          "platform:youtube:handle:curlyscents",
-          "platform:youtube:url:https://www.youtube.com/channel/ucifinvtfw49l7z3lglfioea"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_006",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UC88iYYngvMLb_3obJKMCI3w",
-        "public_handle": "DemiRawling",
-        "normalized_public_handle": "demirawling",
-        "public_profile_url": "https://www.youtube.com/channel/UC88iYYngvMLb_3obJKMCI3w",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_006",
-          "platform:youtube:public_account_id:UC88iYYngvMLb_3obJKMCI3w",
-          "platform:youtube:handle:demirawling",
-          "platform:youtube:url:https://www.youtube.com/channel/uc88iyyngvmlb_3objkmci3w"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_007",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCzH0Tal9pApj-F6KSGZHo4Q",
-        "public_handle": "FragranceKnowledge",
-        "normalized_public_handle": "fragranceknowledge",
-        "public_profile_url": "https://www.youtube.com/channel/UCzH0Tal9pApj-F6KSGZHo4Q",
-        "creator_record_id_or_none": "creator_fragranceknowledge_001",
-        "identity_state": "candidate_public_account_link",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "candidate_needs_review",
-        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_007",
-          "platform:youtube:public_account_id:UCzH0Tal9pApj-F6KSGZHo4Q",
-          "platform:youtube:handle:fragranceknowledge",
-          "platform:youtube:url:https://www.youtube.com/channel/uczh0tal9papj-f6ksgzho4q"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_008",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UC_Zj9atmpE2MQBtzTfqDFfw",
-        "public_handle": "FragranceView",
-        "normalized_public_handle": "fragranceview",
-        "public_profile_url": "https://www.youtube.com/channel/UC_Zj9atmpE2MQBtzTfqDFfw",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_008",
-          "platform:youtube:public_account_id:UC_Zj9atmpE2MQBtzTfqDFfw",
-          "platform:youtube:handle:fragranceview",
-          "platform:youtube:url:https://www.youtube.com/channel/uc_zj9atmpe2mqbtztfqdffw"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_009",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCULGc5bSAoCIUMc-hQpjCXw",
-        "public_handle": "funmimonet",
-        "normalized_public_handle": "funmimonet",
-        "public_profile_url": "https://www.youtube.com/channel/UCULGc5bSAoCIUMc-hQpjCXw",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_009",
-          "platform:youtube:public_account_id:UCULGc5bSAoCIUMc-hQpjCXw",
-          "platform:youtube:handle:funmimonet",
-          "platform:youtube:url:https://www.youtube.com/channel/uculgc5bsaociumc-hqpjcxw"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_010",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UC9IImcLkUdmURWtQhxu8VwQ",
-        "public_handle": "GentsScents",
-        "normalized_public_handle": "gentsscents",
-        "public_profile_url": "https://www.youtube.com/channel/UC9IImcLkUdmURWtQhxu8VwQ",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_010",
-          "platform:youtube:public_account_id:UC9IImcLkUdmURWtQhxu8VwQ",
-          "platform:youtube:handle:gentsscents",
-          "platform:youtube:url:https://www.youtube.com/channel/uc9iimclkudmurwtqhxu8vwq"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_011",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCzKrJ5NSA9o7RHYRG12kHZw",
-        "public_handle": "JeremyFragrance",
-        "normalized_public_handle": "jeremyfragrance",
-        "public_profile_url": "https://www.youtube.com/channel/UCzKrJ5NSA9o7RHYRG12kHZw",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_011",
-          "platform:youtube:public_account_id:UCzKrJ5NSA9o7RHYRG12kHZw",
-          "platform:youtube:handle:jeremyfragrance",
-          "platform:youtube:url:https://www.youtube.com/channel/uczkrj5nsa9o7rhyrg12khzw"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_012",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCflkhyQuNBeiw3__1TUXXNg",
-        "public_handle": "JusDeRose",
-        "normalized_public_handle": "jusderose",
-        "public_profile_url": "https://www.youtube.com/channel/UCflkhyQuNBeiw3__1TUXXNg",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_012",
-          "platform:youtube:public_account_id:UCflkhyQuNBeiw3__1TUXXNg",
-          "platform:youtube:handle:jusderose",
-          "platform:youtube:url:https://www.youtube.com/channel/ucflkhyqunbeiw3__1tuxxng"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_013",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCta4sjQtsMUtBCkI811ocfA",
-        "public_handle": "MilaLeBlanc",
-        "normalized_public_handle": "milaleblanc",
-        "public_profile_url": "https://www.youtube.com/channel/UCta4sjQtsMUtBCkI811ocfA",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_013",
-          "platform:youtube:public_account_id:UCta4sjQtsMUtBCkI811ocfA",
-          "platform:youtube:handle:milaleblanc",
-          "platform:youtube:url:https://www.youtube.com/channel/ucta4sjqtsmutbcki811ocfa"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_014",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCi42yeT0_OLeouUQhDBVZjQ",
-        "public_handle": "MonikaCioch",
-        "normalized_public_handle": "monikacioch",
-        "public_profile_url": "https://www.youtube.com/channel/UCi42yeT0_OLeouUQhDBVZjQ",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_014",
-          "platform:youtube:public_account_id:UCi42yeT0_OLeouUQhDBVZjQ",
-          "platform:youtube:handle:monikacioch",
-          "platform:youtube:url:https://www.youtube.com/channel/uci42yet0_oleouuqhdbvzjq"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_015",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCRGkzuXpYq4hCDGKe-9P50g",
-        "public_handle": "OliviaOlfactory",
-        "normalized_public_handle": "oliviaolfactory",
-        "public_profile_url": "https://www.youtube.com/channel/UCRGkzuXpYq4hCDGKe-9P50g",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_015",
-          "platform:youtube:public_account_id:UCRGkzuXpYq4hCDGKe-9P50g",
-          "platform:youtube:handle:oliviaolfactory",
-          "platform:youtube:url:https://www.youtube.com/channel/ucrgkzuxpyq4hcdgke-9p50g"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_016",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCArpB-dspQ5Ax3pJnj0Rnog",
-        "public_handle": "PostCologne",
-        "normalized_public_handle": "postcologne",
-        "public_profile_url": "https://www.youtube.com/channel/UCArpB-dspQ5Ax3pJnj0Rnog",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_016",
-          "platform:youtube:public_account_id:UCArpB-dspQ5Ax3pJnj0Rnog",
-          "platform:youtube:handle:postcologne",
-          "platform:youtube:url:https://www.youtube.com/channel/ucarpb-dspq5ax3pjnj0rnog"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_017",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UC_1GYaGHE0luMX0j6utkeHg",
-        "public_handle": "ProfessorPerfume",
-        "normalized_public_handle": "professorperfume",
-        "public_profile_url": "https://www.youtube.com/channel/UC_1GYaGHE0luMX0j6utkeHg",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_017",
-          "platform:youtube:public_account_id:UC_1GYaGHE0luMX0j6utkeHg",
-          "platform:youtube:handle:professorperfume",
-          "platform:youtube:url:https://www.youtube.com/channel/uc_1gyaghe0lumx0j6utkehg"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_018",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
-        "public_handle": "Redolessence",
-        "normalized_public_handle": "redolessence",
-        "public_profile_url": "https://www.youtube.com/channel/UCuSy0Z5UwvkMQ7lXRbUdOnQ",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_018",
-          "platform:youtube:public_account_id:UCuSy0Z5UwvkMQ7lXRbUdOnQ",
-          "platform:youtube:handle:redolessence",
-          "platform:youtube:url:https://www.youtube.com/channel/ucusy0z5uwvkmq7lxrbudonq"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_020",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCd7OAY06IuwYsUoWsn3gbuQ",
-        "public_handle": "ScentedMoments",
-        "normalized_public_handle": "scentedmoments",
-        "public_profile_url": "https://www.youtube.com/channel/UCd7OAY06IuwYsUoWsn3gbuQ",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_020",
-          "platform:youtube:public_account_id:UCd7OAY06IuwYsUoWsn3gbuQ",
-          "platform:youtube:handle:scentedmoments",
-          "platform:youtube:url:https://www.youtube.com/channel/ucd7oay06iuwysuowsn3gbuq"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_021",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UC8gjOYz9aonQqd5HwoTu2NQ",
-        "public_handle": "Scenteno",
-        "normalized_public_handle": "scenteno",
-        "public_profile_url": "https://www.youtube.com/channel/UC8gjOYz9aonQqd5HwoTu2NQ",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_021",
-          "platform:youtube:public_account_id:UC8gjOYz9aonQqd5HwoTu2NQ",
-          "platform:youtube:handle:scenteno",
-          "platform:youtube:url:https://www.youtube.com/channel/uc8gjoyz9aonqqd5hwotu2nq"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_022",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UC7yWwH6peQbpfLMVKKuR-xg",
-        "public_handle": "SchoolofScent",
-        "normalized_public_handle": "schoolofscent",
-        "public_profile_url": "https://www.youtube.com/channel/UC7yWwH6peQbpfLMVKKuR-xg",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_022",
-          "platform:youtube:public_account_id:UC7yWwH6peQbpfLMVKKuR-xg",
-          "platform:youtube:handle:schoolofscent",
-          "platform:youtube:url:https://www.youtube.com/channel/uc7ywwh6peqbpflmvkkur-xg"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_023",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCwpmex-DKwi6ARQlVa3-KcA",
-        "public_handle": "SimplyPutScents",
-        "normalized_public_handle": "simplyputscents",
-        "public_profile_url": "https://www.youtube.com/channel/UCwpmex-DKwi6ARQlVa3-KcA",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_023",
-          "platform:youtube:public_account_id:UCwpmex-DKwi6ARQlVa3-KcA",
-          "platform:youtube:handle:simplyputscents",
-          "platform:youtube:url:https://www.youtube.com/channel/ucwpmex-dkwi6arqlva3-kca"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_024",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCtBpe765Fy-USxg_L8hGDPg",
-        "public_handle": "SokiLondon",
-        "normalized_public_handle": "sokilondon",
-        "public_profile_url": "https://www.youtube.com/channel/UCtBpe765Fy-USxg_L8hGDPg",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_024",
-          "platform:youtube:public_account_id:UCtBpe765Fy-USxg_L8hGDPg",
-          "platform:youtube:handle:sokilondon",
-          "platform:youtube:url:https://www.youtube.com/channel/uctbpe765fy-usxg_l8hgdpg"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_025",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCMz0tE1qg5SwmrAF3Cshe0A",
-        "public_handle": "TheFragranceApprentice",
-        "normalized_public_handle": "thefragranceapprentice",
-        "public_profile_url": "https://www.youtube.com/channel/UCMz0tE1qg5SwmrAF3Cshe0A",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_025",
-          "platform:youtube:public_account_id:UCMz0tE1qg5SwmrAF3Cshe0A",
-          "platform:youtube:handle:thefragranceapprentice",
-          "platform:youtube:url:https://www.youtube.com/channel/ucmz0te1qg5swmraf3cshe0a"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_026",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCFarEEFsV90-pvUU0XdUdgQ",
-        "public_handle": "ThePerfumeGuy",
-        "normalized_public_handle": "theperfumeguy",
-        "public_profile_url": "https://www.youtube.com/channel/UCFarEEFsV90-pvUU0XdUdgQ",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_026",
-          "platform:youtube:public_account_id:UCFarEEFsV90-pvUU0XdUdgQ",
-          "platform:youtube:handle:theperfumeguy",
-          "platform:youtube:url:https://www.youtube.com/channel/ucfareefsv90-pvuu0xdudgq"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_027",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCyU1XUvAFqV2X1NVCcRqRNA",
-        "public_handle": "ThePerfumeNest",
-        "normalized_public_handle": "theperfumenest",
-        "public_profile_url": "https://www.youtube.com/channel/UCyU1XUvAFqV2X1NVCcRqRNA",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_027",
-          "platform:youtube:public_account_id:UCyU1XUvAFqV2X1NVCcRqRNA",
-          "platform:youtube:handle:theperfumenest",
-          "platform:youtube:url:https://www.youtube.com/channel/ucyu1xuvafqv2x1nvccrqrna"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_028",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCHqrJNnjF_3yHfVDatKl-NA",
-        "public_handle": "TheScented",
-        "normalized_public_handle": "thescented",
-        "public_profile_url": "https://www.youtube.com/channel/UCHqrJNnjF_3yHfVDatKl-NA",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_028",
-          "platform:youtube:public_account_id:UCHqrJNnjF_3yHfVDatKl-NA",
-          "platform:youtube:handle:thescented",
-          "platform:youtube:url:https://www.youtube.com/channel/uchqrjnnjf_3yhfvdatkl-na"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_029",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCCyE5usoGzgd_FNuqC1pkHQ",
-        "public_handle": "TheScentinel",
-        "normalized_public_handle": "thescentinel",
-        "public_profile_url": "https://www.youtube.com/channel/UCCyE5usoGzgd_FNuqC1pkHQ",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_029",
-          "platform:youtube:public_account_id:UCCyE5usoGzgd_FNuqC1pkHQ",
-          "platform:youtube:handle:thescentinel",
-          "platform:youtube:url:https://www.youtube.com/channel/uccye5usogzgd_fnuqc1pkhq"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_030",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UC4lKHUYqvm74znBF6qSnYig",
-        "public_handle": "TiffBenson",
-        "normalized_public_handle": "tiffbenson",
-        "public_profile_url": "https://www.youtube.com/channel/UC4lKHUYqvm74znBF6qSnYig",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_030",
-          "platform:youtube:public_account_id:UC4lKHUYqvm74znBF6qSnYig",
-          "platform:youtube:handle:tiffbenson",
-          "platform:youtube:url:https://www.youtube.com/channel/uc4lkhuyqvm74znbf6qsnyig"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_yt_fragrance_031",
-        "platform": "youtube",
-        "platform_public_account_id_or_none": "UCmYZrY_MVZy5Iiwlua029kg",
-        "public_handle": "TLTGReviews",
-        "normalized_public_handle": "tltgreviews",
-        "public_profile_url": "https://www.youtube.com/channel/UCmYZrY_MVZy5Iiwlua029kg",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_metric_seed_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-27T18:23:26Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-28T18:44:56Z",
-          "metrics_freshness_state_or_none": "partial"
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_yt_fragrance_031",
-          "platform:youtube:public_account_id:UCmYZrY_MVZy5Iiwlua029kg",
-          "platform:youtube:handle:tltgreviews",
-          "platform:youtube:url:https://www.youtube.com/channel/ucmyzry_mvzy5iiwlua029kg"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_ig_reels_001",
-        "platform": "instagram",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "hyram",
-        "normalized_public_handle": "hyram",
-        "public_profile_url": "https://www.instagram.com/hyram/",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-29T13:47:06Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-29T13:47:06Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_ig_reels_001",
-          "platform:instagram:handle:hyram",
-          "platform:instagram:url:https://www.instagram.com/hyram/"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/30"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_ig_reels_002",
-        "platform": "instagram",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "jeremyfragrance",
-        "normalized_public_handle": "jeremyfragrance",
-        "public_profile_url": "https://www.instagram.com/jeremyfragrance/",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-29T13:47:50Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-29T13:47:50Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_ig_reels_002",
-          "platform:instagram:handle:jeremyfragrance",
-          "platform:instagram:url:https://www.instagram.com/jeremyfragrance/"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/31"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_ig_reels_004",
-        "platform": "instagram",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "milanscents",
-        "normalized_public_handle": "milanscents",
-        "public_profile_url": "https://www.instagram.com/milanscents/",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-06-30T12:33:04Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-06-30T12:33:04Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_ig_reels_004",
-          "platform:instagram:handle:milanscents",
-          "platform:instagram:url:https://www.instagram.com/milanscents/"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/32"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_tiktok_fragrance_001",
-        "platform": "tiktok",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "funmimonet",
-        "normalized_public_handle": "funmimonet",
-        "public_profile_url": "https://www.tiktok.com/@funmimonet",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-07-03T08:41:47Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-07-03T08:41:47Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_tiktok_fragrance_001",
-          "platform:tiktok:handle:funmimonet",
-          "platform:tiktok:url:https://www.tiktok.com/@funmimonet"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/33"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_tiktok_fragrance_002",
-        "platform": "tiktok",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "redolessence",
-        "normalized_public_handle": "redolessence",
-        "public_profile_url": "https://www.tiktok.com/@redolessence",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-07-03T08:41:57Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-07-03T08:41:57Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_tiktok_fragrance_002",
-          "platform:tiktok:handle:redolessence",
-          "platform:tiktok:url:https://www.tiktok.com/@redolessence"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/34"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_tiktok_fragrance_003",
-        "platform": "tiktok",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "perfumerism",
-        "normalized_public_handle": "perfumerism",
-        "public_profile_url": "https://www.tiktok.com/@perfumerism",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-07-03T08:42:07Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-07-03T08:42:07Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_tiktok_fragrance_003",
-          "platform:tiktok:handle:perfumerism",
-          "platform:tiktok:url:https://www.tiktok.com/@perfumerism"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/35"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_tiktok_fragrance_004",
-        "platform": "tiktok",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "fragranceknowledge",
-        "normalized_public_handle": "fragranceknowledge",
-        "public_profile_url": "https://www.tiktok.com/@fragranceknowledge",
-        "creator_record_id_or_none": "creator_fragranceknowledge_001",
-        "identity_state": "candidate_public_account_link",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "candidate_needs_review",
-        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
-        "freshness": {
-          "identity_observed_at": "2026-07-07T15:01:16Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-07-07T15:01:16Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_tiktok_fragrance_004",
-          "platform:tiktok:handle:fragranceknowledge",
-          "platform:tiktok:url:https://www.tiktok.com/@fragranceknowledge"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/36"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_ig_fragrance_005",
-        "platform": "instagram",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "Fragranceknowledge",
-        "normalized_public_handle": "fragranceknowledge",
-        "public_profile_url": "https://instagram.com/Fragranceknowledge",
-        "creator_record_id_or_none": "creator_fragranceknowledge_001",
-        "identity_state": "candidate_public_account_link",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "candidate_needs_review",
-        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
-        "freshness": {
-          "identity_observed_at": "2026-07-07T15:01:16Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-07-07T15:01:16Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_ig_fragrance_005",
-          "platform:instagram:handle:fragranceknowledge",
-          "platform:instagram:url:https://instagram.com/fragranceknowledge"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/37"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_tiktok_fragrance_005",
-        "platform": "tiktok",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "noeldeyzel_fragrance",
-        "normalized_public_handle": "noeldeyzel_fragrance",
-        "public_profile_url": "https://www.tiktok.com/@noeldeyzel_fragrance",
-        "creator_record_id_or_none": "creator_noeldeyzel_fragrance_001",
-        "identity_state": "candidate_public_account_link",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "candidate_needs_review",
-        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
-        "freshness": {
-          "identity_observed_at": "2026-07-08T15:01:18Z",
-          "last_discovery_observed_at_or_none": "2026-07-08T15:01:18Z",
-          "last_capture_observed_at_or_none": "2026-07-08T15:01:18Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_tiktok_fragrance_005",
-          "platform:tiktok:handle:noeldeyzel_fragrance",
-          "platform:tiktok:url:https://www.tiktok.com/@noeldeyzel_fragrance"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/38",
-          "docs/review-inputs/noeldeyzel_fragrance_tiktok_creator_discovery_frontier_register_20260708.json",
-          "F:\\orca-data-lake\\raw\\8cc\\01KX13YSB6V0Y49D1H7Z3EAZ1K"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_ig_fragrance_006",
-        "platform": "instagram",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "noeldeyzel_fragrance",
-        "normalized_public_handle": "noeldeyzel_fragrance",
-        "public_profile_url": "https://www.instagram.com/noeldeyzel_fragrance/",
-        "creator_record_id_or_none": "creator_noeldeyzel_fragrance_001",
-        "identity_state": "candidate_public_account_link",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "candidate_needs_review",
-        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
-        "freshness": {
-          "identity_observed_at": "2026-07-08T15:11:47Z",
-          "last_discovery_observed_at_or_none": null,
-          "last_capture_observed_at_or_none": "2026-07-08T15:11:47Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_ig_fragrance_006",
-          "platform:instagram:handle:noeldeyzel_fragrance",
-          "platform:instagram:url:https://www.instagram.com/noeldeyzel_fragrance/"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/39",
-          "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      },
-      {
-        "platform_account_id": "acct_tiktok_fragrance_006",
-        "platform": "tiktok",
-        "platform_public_account_id_or_none": null,
-        "public_handle": "topfrag.official",
-        "normalized_public_handle": "topfrag.official",
-        "public_profile_url": "https://www.tiktok.com/@topfrag.official",
-        "creator_record_id_or_none": null,
-        "identity_state": "single_platform_observed",
-        "discovery_state": "known_account",
-        "capture_state": "identity_observed_profile_packet_available",
-        "linkage_state": "single_platform_observed",
-        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
-        "freshness": {
-          "identity_observed_at": "2026-07-08T18:52:19.366Z",
-          "last_discovery_observed_at_or_none": "2026-07-08T18:52:19.366Z",
-          "last_capture_observed_at_or_none": "2026-07-08T18:52:19.366Z",
-          "metrics_freshness_state_or_none": null
-        },
-        "lookup_keys": [
-          "platform_account_id:acct_tiktok_fragrance_006",
-          "platform:tiktok:handle:topfrag.official",
-          "platform:tiktok:url:https://www.tiktok.com/@topfrag.official"
-        ],
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/40",
-          "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json"
-        ],
-        "non_claims": [
-          "not current handle guarantee",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not audience authority",
-          "not contact or outreach authorization"
-        ]
-      }
-    ],
     "creator_records": [
       {
         "creator_record_id": "creator_fragranceknowledge_001",
+        "discovery_state": "known_candidate_linkage",
+        "evidence_ids": [
+          "ev_linkhub_fragranceknowledge_20260707_001"
+        ],
         "link_state": "candidate_public_account_link",
-        "review_state": "candidate_needs_review",
+        "non_claims": [
+          "not real-world identity proof",
+          "not non-public-handle join",
+          "not contact or outreach authorization",
+          "not follower or audience graph",
+          "not public person-level product surface",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not cross-platform metric rollup",
+          "not current handle guarantee"
+        ],
         "platform_account_ids": [
           "acct_yt_fragrance_007",
           "acct_tiktok_fragrance_004",
           "acct_ig_fragrance_005"
         ],
-        "evidence_ids": [
-          "ev_linkhub_fragranceknowledge_20260707_001"
-        ],
-        "discovery_state": "known_candidate_linkage",
+        "review_state": "candidate_needs_review",
         "routing_decision": "route_to_linkage_review_before_cross_platform_rollup_or_final_identity_use",
         "source_pointers": [
           "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/creator_records/0"
-        ],
-        "non_claims": [
-          "not real-world identity proof",
-          "not non-public-handle join",
-          "not contact or outreach authorization",
-          "not follower or audience graph",
-          "not public person-level product surface",
-          "not final cross-platform identity",
-          "not metric authority",
-          "not cross-platform metric rollup",
-          "not current handle guarantee"
         ]
       },
       {
         "creator_record_id": "creator_noeldeyzel_fragrance_001",
-        "link_state": "candidate_public_account_link",
-        "review_state": "candidate_needs_review",
-        "platform_account_ids": [
-          "acct_tiktok_fragrance_005",
-          "acct_ig_fragrance_006"
-        ],
+        "discovery_state": "known_candidate_linkage",
         "evidence_ids": [
           "ev_candidate_noeldeyzel_fragrance_20260708_001"
         ],
-        "discovery_state": "known_candidate_linkage",
-        "routing_decision": "route_to_linkage_review_before_cross_platform_rollup_or_final_identity_use",
-        "source_pointers": [
-          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/creator_records/1",
-          "docs/review-inputs/noeldeyzel_registry_match_preflight_receipt_20260708.json"
-        ],
+        "link_state": "candidate_public_account_link",
         "non_claims": [
           "not real-world identity proof",
           "not non-public-handle join",
@@ -1566,16 +73,32 @@
           "not metric authority",
           "not cross-platform metric rollup",
           "not current handle guarantee"
+        ],
+        "platform_account_ids": [
+          "acct_tiktok_fragrance_005",
+          "acct_ig_fragrance_006"
+        ],
+        "review_state": "candidate_needs_review",
+        "routing_decision": "route_to_linkage_review_before_cross_platform_rollup_or_final_identity_use",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/creator_records/1",
+          "docs/review-inputs/noeldeyzel_registry_match_preflight_receipt_20260708.json"
         ]
       }
     ],
-    "accepted_residuals": [
-      "Current registry rows are platform-account rows from source-backed YouTube, Instagram, and identity-only TikTok seeds.",
-      "TikTok rows currently carry identity/profile evidence only; no TikTok metric rollup or comment-body capture is admitted from logged-out challenge-limited runs.",
-      "Discovery repeat-observation events are not yet stored as their own append-only event family.",
-      "Capture freshness is a routing hint copied from current static source-backed rows, not a live recency SLA.",
-      "Candidate cross-platform creator records may exist as linkage-review rows; profile-current still remains platform-account scoped until promotion/materializer support exists."
-    ],
+    "generated_at_utc": "2026-07-14T17:13:44Z",
+    "index_id": "creator_registry_index_v0",
+    "index_mode": "materialized_known_public_account_dedupe_and_onboarding_index",
+    "lookup_policy": {
+      "capture_preflight_rule": "Capture should use registry freshness/routing state to avoid duplicate work, then rely on Capture/Silver records for facts and metrics.",
+      "discovery_preflight_rule": "Repeat observations of known accounts are preserved as signal but must attach to the existing registry row rather than open duplicate creator rows.",
+      "handle_mutability_note": "Handles are mutable labels; prefer platform-native account ids when present.",
+      "stable_key_priority": [
+        "platform_public_account_id_or_none",
+        "public_profile_url",
+        "normalized_public_handle"
+      ]
+    },
     "non_claims": [
       "not raw capture storage",
       "not metric authority",
@@ -1585,6 +108,2315 @@
       "not public person identity proof",
       "not SQLite adoption",
       "not live capture execution"
-    ]
+    ],
+    "onboarding_policy": {
+      "data_root_uuid": "01KW7N6ERSVVANCEZ8SD6YW3EQ",
+      "derivation_diagnostics": {
+        "attributable_registry_packet_count": 451,
+        "qualifying_packet_count": 475,
+        "unattributable_legacy_packet_count": 20,
+        "unattributable_legacy_packet_ids": [
+          "01KWBPW19TTG7VQM2EKKHMM0N7",
+          "01KWBPYB766MZ89C2D23VCS0DN",
+          "01KWH1TR2QY5VRNYTPNNJY18QV",
+          "01KWH25ZY1AYMGTY4CXWGDD3KD",
+          "01KWH26C3055EQSZB3ATZ1JZQ3",
+          "01KWH28XAAFDJKCKY2JX1QNT6W",
+          "01KWH2M783G77YJTJ64X2H3CT1",
+          "01KWH455Q8W9102WZ5NEJRYESJ",
+          "01KWHHJGAN2M2H6DD4E34BE6VG",
+          "01KWHHK6A89PB3C3E9MH4Q8CQY",
+          "01KWHHKTR140851M850J85QY1Y",
+          "01KWHHMFEBMCAKTMNCT5DEFJ5M",
+          "01KWHHN2D4M9H80HH77586QAVK",
+          "01KWHHNW0AJP31NZBCS81VBSWT",
+          "01KWJ08QGH5ZZQ1HV5WR69VBHM",
+          "01KWJ0K4NFBGNH8T1A05T590ZR",
+          "01KWJ0KGHTJYED1X0DFMWWPR84",
+          "01KWJ0PBDY085CGBWAPX1YHBHR",
+          "01KWJ11GTKT62R5GPNDM68DKDJ",
+          "01KWJ2GGZT42RY5Z8DCKSAEHS2"
+        ],
+        "unmatched_registry_packet_count": 4
+      },
+      "explicitly_non_qualifying_surfaces": [
+        "youtube_channel_rss_feed",
+        "tiktok_logged_out_profile_browser_snapshot",
+        "tiktok_profile_suggested_accounts_admission"
+      ],
+      "monotonicity": "onboarded does not regress when later packets disappear from a bounded feed",
+      "policy_version": "creator_registry_onboarding_v0",
+      "qualifying_source_surfaces": [
+        {
+          "source_family": "instagram_creator",
+          "source_surface": "ig_reels_grid_dom_passive_json"
+        },
+        {
+          "source_family": "tiktok",
+          "source_surface": "tiktok_creator_batch_comment_subtitle_admission"
+        },
+        {
+          "source_family": "tiktok",
+          "source_surface": "tiktok_creator_grid_window"
+        },
+        {
+          "source_family": "tiktok",
+          "source_surface": "tiktok_video_comment_subtitle_admission"
+        },
+        {
+          "source_family": "youtube",
+          "source_surface": "youtube_watch_metadata_comments"
+        }
+      ],
+      "state_semantics": "not_onboarded means no exactly attributable qualifying committed Bronze packet was found; onboarded means at least one such packet was verified"
+    },
+    "platform_accounts": [
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:13:16Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_001",
+          "platform:youtube:public_account_id:UCVvzGrPSok_sf8hfDhvTg7w",
+          "platform:youtube:handle:bowtiefragranceguy",
+          "platform:youtube:url:https://www.youtube.com/channel/ucvvzgrpsok_sf8hfdhvtg7w"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "bowtiefragranceguy",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH1N631Z4T3SMMCY7TG286B",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:13:16Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_001",
+        "platform_public_account_id_or_none": "UCVvzGrPSok_sf8hfDhvTg7w",
+        "public_handle": "BowTieFragranceGuy",
+        "public_profile_url": "https://www.youtube.com/channel/UCVvzGrPSok_sf8hfDhvTg7w",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:27:59Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_002",
+          "platform:youtube:public_account_id:UC0fOGtvT1x8irPUZOFdF2mA",
+          "platform:youtube:handle:chaosfragrances",
+          "platform:youtube:url:https://www.youtube.com/channel/uc0fogtvt1x8irpuzofdf2ma"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "chaosfragrances",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPTZN1BCKXGSYQ9DJW7TEE",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:27:59Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_002",
+        "platform_public_account_id_or_none": "UC0fOGtvT1x8irPUZOFdF2mA",
+        "public_handle": "ChaosFragrances",
+        "public_profile_url": "https://www.youtube.com/channel/UC0fOGtvT1x8irPUZOFdF2mA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:42:51Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_003",
+          "platform:youtube:public_account_id:UCzhBUw8MLmUl8cPMx63sFuw",
+          "platform:youtube:handle:cubaknow",
+          "platform:youtube:url:https://www.youtube.com/channel/uczhbuw8mlmul8cpmx63sfuw"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "cubaknow",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3BBGX6A2DZ16A17TSRCQ0",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:42:51Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_003",
+        "platform_public_account_id_or_none": "UCzhBUw8MLmUl8cPMx63sFuw",
+        "public_handle": "Cubaknow",
+        "public_profile_url": "https://www.youtube.com/channel/UCzhBUw8MLmUl8cPMx63sFuw",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T10:01:46Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_004",
+          "platform:youtube:public_account_id:UCcwPIKNTMO5S-Vd7z-RrIhg",
+          "platform:youtube:handle:curlyfragrance",
+          "platform:youtube:url:https://www.youtube.com/channel/uccwpikntmo5s-vd7z-rrihg"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "curlyfragrance",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH4E076VKH9VHVWKFZ3M2F4",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T10:01:46Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_004",
+        "platform_public_account_id_or_none": "UCcwPIKNTMO5S-Vd7z-RrIhg",
+        "public_handle": "CurlyFragrance",
+        "public_profile_url": "https://www.youtube.com/channel/UCcwPIKNTMO5S-Vd7z-RrIhg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:25:09Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_005",
+          "platform:youtube:public_account_id:UCIfiNVTfW49L7Z3lGLfIOeA",
+          "platform:youtube:handle:curlyscents",
+          "platform:youtube:url:https://www.youtube.com/channel/ucifinvtfw49l7z3lglfioea"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "curlyscents",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPNSBDE41BF78P29022AJ0",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:25:09Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_005",
+        "platform_public_account_id_or_none": "UCIfiNVTfW49L7Z3lGLfIOeA",
+        "public_handle": "CurlyScents",
+        "public_profile_url": "https://www.youtube.com/channel/UCIfiNVTfW49L7Z3lGLfIOeA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:37:36Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_006",
+          "platform:youtube:public_account_id:UC88iYYngvMLb_3obJKMCI3w",
+          "platform:youtube:handle:demirawling",
+          "platform:youtube:url:https://www.youtube.com/channel/uc88iyyngvmlb_3objkmci3w"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "demirawling",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH31RMX6NY3PJJ2N4HP5VQT",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:37:36Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_006",
+        "platform_public_account_id_or_none": "UC88iYYngvMLb_3obJKMCI3w",
+        "public_handle": "DemiRawling",
+        "public_profile_url": "https://www.youtube.com/channel/UC88iYYngvMLb_3obJKMCI3w",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": "creator_fragranceknowledge_001",
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:28:12Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "candidate_public_account_link",
+        "linkage_state": "candidate_needs_review",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_007",
+          "platform:youtube:public_account_id:UCzH0Tal9pApj-F6KSGZHo4Q",
+          "platform:youtube:handle:fragranceknowledge",
+          "platform:youtube:url:https://www.youtube.com/channel/uczh0tal9papj-f6ksgzho4q"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "fragranceknowledge",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPVC3PN1Z9DVRV1T5GP8Z8",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:28:12Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_007",
+        "platform_public_account_id_or_none": "UCzH0Tal9pApj-F6KSGZHo4Q",
+        "public_handle": "FragranceKnowledge",
+        "public_profile_url": "https://www.youtube.com/channel/UCzH0Tal9pApj-F6KSGZHo4Q",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:48:09Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_008",
+          "platform:youtube:public_account_id:UC_Zj9atmpE2MQBtzTfqDFfw",
+          "platform:youtube:handle:fragranceview",
+          "platform:youtube:url:https://www.youtube.com/channel/uc_zj9atmpe2mqbtztfqdffw"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "fragranceview",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3N29Q58SZ5ZP79QH5VEN9",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:48:09Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_008",
+        "platform_public_account_id_or_none": "UC_Zj9atmpE2MQBtzTfqDFfw",
+        "public_handle": "FragranceView",
+        "public_profile_url": "https://www.youtube.com/channel/UC_Zj9atmpE2MQBtzTfqDFfw",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:25:35Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_009",
+          "platform:youtube:public_account_id:UCULGc5bSAoCIUMc-hQpjCXw",
+          "platform:youtube:handle:funmimonet",
+          "platform:youtube:url:https://www.youtube.com/channel/uculgc5bsaociumc-hqpjcxw"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "funmimonet",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPPK2YN1822AXPDB37E9Y8",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:25:35Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_009",
+        "platform_public_account_id_or_none": "UCULGc5bSAoCIUMc-hQpjCXw",
+        "public_handle": "funmimonet",
+        "public_profile_url": "https://www.youtube.com/channel/UCULGc5bSAoCIUMc-hQpjCXw",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:08:59Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_010",
+          "platform:youtube:public_account_id:UC9IImcLkUdmURWtQhxu8VwQ",
+          "platform:youtube:handle:gentsscents",
+          "platform:youtube:url:https://www.youtube.com/channel/uc9iimclkudmurwtqhxu8vwq"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "gentsscents",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBNR61N28QRN3Z40FQ68MMR",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:08:59Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_010",
+        "platform_public_account_id_or_none": "UC9IImcLkUdmURWtQhxu8VwQ",
+        "public_handle": "GentsScents",
+        "public_profile_url": "https://www.youtube.com/channel/UC9IImcLkUdmURWtQhxu8VwQ",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:27:14Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_011",
+          "platform:youtube:public_account_id:UCzKrJ5NSA9o7RHYRG12kHZw",
+          "platform:youtube:handle:jeremyfragrance",
+          "platform:youtube:url:https://www.youtube.com/channel/uczkrj5nsa9o7rhyrg12khzw"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "jeremyfragrance",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2ERZRF52XWNGNVF1AD6Y1",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:27:14Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_011",
+        "platform_public_account_id_or_none": "UCzKrJ5NSA9o7RHYRG12kHZw",
+        "public_handle": "JeremyFragrance",
+        "public_profile_url": "https://www.youtube.com/channel/UCzKrJ5NSA9o7RHYRG12kHZw",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:33:26Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_012",
+          "platform:youtube:public_account_id:UCflkhyQuNBeiw3__1TUXXNg",
+          "platform:youtube:handle:jusderose",
+          "platform:youtube:url:https://www.youtube.com/channel/ucflkhyqunbeiw3__1tuxxng"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "jusderose",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2T4EZ0YZR6JCVEA51EKY3",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:33:26Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_012",
+        "platform_public_account_id_or_none": "UCflkhyQuNBeiw3__1TUXXNg",
+        "public_handle": "JusDeRose",
+        "public_profile_url": "https://www.youtube.com/channel/UCflkhyQuNBeiw3__1TUXXNg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:26:45Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_013",
+          "platform:youtube:public_account_id:UCta4sjQtsMUtBCkI811ocfA",
+          "platform:youtube:handle:milaleblanc",
+          "platform:youtube:url:https://www.youtube.com/channel/ucta4sjqtsmutbcki811ocfa"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "milaleblanc",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2DWCFQA74YFYWHN2WMBZG",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:26:45Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_013",
+        "platform_public_account_id_or_none": "UCta4sjQtsMUtBCkI811ocfA",
+        "public_handle": "MilaLeBlanc",
+        "public_profile_url": "https://www.youtube.com/channel/UCta4sjQtsMUtBCkI811ocfA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:33:55Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_014",
+          "platform:youtube:public_account_id:UCi42yeT0_OLeouUQhDBVZjQ",
+          "platform:youtube:handle:monikacioch",
+          "platform:youtube:url:https://www.youtube.com/channel/uci42yet0_oleouuqhdbvzjq"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "monikacioch",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2V0M1SAHGQHRE5Z8YGJ2Z",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:33:55Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_014",
+        "platform_public_account_id_or_none": "UCi42yeT0_OLeouUQhDBVZjQ",
+        "public_handle": "MonikaCioch",
+        "public_profile_url": "https://www.youtube.com/channel/UCi42yeT0_OLeouUQhDBVZjQ",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:33:41Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_015",
+          "platform:youtube:public_account_id:UCRGkzuXpYq4hCDGKe-9P50g",
+          "platform:youtube:handle:oliviaolfactory",
+          "platform:youtube:url:https://www.youtube.com/channel/ucrgkzuxpyq4hcdgke-9p50g"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "oliviaolfactory",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2TJ60N4JWPBAXF1DYXB95",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:33:41Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_015",
+        "platform_public_account_id_or_none": "UCRGkzuXpYq4hCDGKe-9P50g",
+        "public_handle": "OliviaOlfactory",
+        "public_profile_url": "https://www.youtube.com/channel/UCRGkzuXpYq4hCDGKe-9P50g",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:42:36Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_016",
+          "platform:youtube:public_account_id:UCArpB-dspQ5Ax3pJnj0Rnog",
+          "platform:youtube:handle:postcologne",
+          "platform:youtube:url:https://www.youtube.com/channel/ucarpb-dspq5ax3pjnj0rnog"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "postcologne",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3AXARXPZ0QSMTB40C8PK0",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:42:36Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_016",
+        "platform_public_account_id_or_none": "UCArpB-dspQ5Ax3pJnj0Rnog",
+        "public_handle": "PostCologne",
+        "public_profile_url": "https://www.youtube.com/channel/UCArpB-dspQ5Ax3pJnj0Rnog",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:28:23Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_017",
+          "platform:youtube:public_account_id:UC_1GYaGHE0luMX0j6utkeHg",
+          "platform:youtube:handle:professorperfume",
+          "platform:youtube:url:https://www.youtube.com/channel/uc_1gyaghe0lumx0j6utkehg"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "professorperfume",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPVPTRMZT68Y8H33V8WPA1",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:28:23Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_017",
+        "platform_public_account_id_or_none": "UC_1GYaGHE0luMX0j6utkeHg",
+        "public_handle": "ProfessorPerfume",
+        "public_profile_url": "https://www.youtube.com/channel/UC_1GYaGHE0luMX0j6utkeHg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:26:54Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_018",
+          "platform:youtube:public_account_id:UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+          "platform:youtube:handle:redolessence",
+          "platform:youtube:url:https://www.youtube.com/channel/ucusy0z5uwvkmq7lxrbudonq"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "redolessence",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPRZQBYPSXTKQKVEJFH59W",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:26:54Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_018",
+        "platform_public_account_id_or_none": "UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+        "public_handle": "Redolessence",
+        "public_profile_url": "https://www.youtube.com/channel/UCuSy0Z5UwvkMQ7lXRbUdOnQ",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:34:14Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_020",
+          "platform:youtube:public_account_id:UCd7OAY06IuwYsUoWsn3gbuQ",
+          "platform:youtube:handle:scentedmoments",
+          "platform:youtube:url:https://www.youtube.com/channel/ucd7oay06iuwysuowsn3gbuq"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "scentedmoments",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2VJGXZGR3ZWWXRJZGSDRJ",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:34:14Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_020",
+        "platform_public_account_id_or_none": "UCd7OAY06IuwYsUoWsn3gbuQ",
+        "public_handle": "ScentedMoments",
+        "public_profile_url": "https://www.youtube.com/channel/UCd7OAY06IuwYsUoWsn3gbuQ",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:33:12Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_021",
+          "platform:youtube:public_account_id:UC8gjOYz9aonQqd5HwoTu2NQ",
+          "platform:youtube:handle:scenteno",
+          "platform:youtube:url:https://www.youtube.com/channel/uc8gjoyz9aonqqd5hwotu2nq"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "scenteno",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2SP5TVMW4ZGSBAVDSE9B5",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:33:12Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_021",
+        "platform_public_account_id_or_none": "UC8gjOYz9aonQqd5HwoTu2NQ",
+        "public_handle": "Scenteno",
+        "public_profile_url": "https://www.youtube.com/channel/UC8gjOYz9aonQqd5HwoTu2NQ",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:24:33Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_022",
+          "platform:youtube:public_account_id:UC7yWwH6peQbpfLMVKKuR-xg",
+          "platform:youtube:handle:schoolofscent",
+          "platform:youtube:url:https://www.youtube.com/channel/uc7ywwh6peqbpflmvkkur-xg"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "schoolofscent",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPMNZVQ7AWVFM9RV1PW23X",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:24:33Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_022",
+        "platform_public_account_id_or_none": "UC7yWwH6peQbpfLMVKKuR-xg",
+        "public_handle": "SchoolofScent",
+        "public_profile_url": "https://www.youtube.com/channel/UC7yWwH6peQbpfLMVKKuR-xg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:43:05Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_023",
+          "platform:youtube:public_account_id:UCwpmex-DKwi6ARQlVa3-KcA",
+          "platform:youtube:handle:simplyputscents",
+          "platform:youtube:url:https://www.youtube.com/channel/ucwpmex-dkwi6arqlva3-kca"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "simplyputscents",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3BS3BAMVGCFHDD04FF18S",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:43:05Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_023",
+        "platform_public_account_id_or_none": "UCwpmex-DKwi6ARQlVa3-KcA",
+        "public_handle": "SimplyPutScents",
+        "public_profile_url": "https://www.youtube.com/channel/UCwpmex-DKwi6ARQlVa3-KcA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:26:00Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_024",
+          "platform:youtube:public_account_id:UCtBpe765Fy-USxg_L8hGDPg",
+          "platform:youtube:handle:sokilondon",
+          "platform:youtube:url:https://www.youtube.com/channel/uctbpe765fy-usxg_l8hgdpg"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "sokilondon",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPQAYT5C68C1YEMAVPMJAZ",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:26:00Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_024",
+        "platform_public_account_id_or_none": "UCtBpe765Fy-USxg_L8hGDPg",
+        "public_handle": "SokiLondon",
+        "public_profile_url": "https://www.youtube.com/channel/UCtBpe765Fy-USxg_L8hGDPg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:27:27Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_025",
+          "platform:youtube:public_account_id:UCMz0tE1qg5SwmrAF3Cshe0A",
+          "platform:youtube:handle:thefragranceapprentice",
+          "platform:youtube:url:https://www.youtube.com/channel/ucmz0te1qg5swmraf3cshe0a"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "thefragranceapprentice",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPT03FY3PYXZMFSPZNYN63",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:27:27Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_025",
+        "platform_public_account_id_or_none": "UCMz0tE1qg5SwmrAF3Cshe0A",
+        "public_handle": "TheFragranceApprentice",
+        "public_profile_url": "https://www.youtube.com/channel/UCMz0tE1qg5SwmrAF3Cshe0A",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:23:58Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_026",
+          "platform:youtube:public_account_id:UCFarEEFsV90-pvUU0XdUdgQ",
+          "platform:youtube:handle:theperfumeguy",
+          "platform:youtube:url:https://www.youtube.com/channel/ucfareefsv90-pvuu0xdudgq"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "theperfumeguy",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPKM2D159VRNKQVXM27CB5",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:23:58Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_026",
+        "platform_public_account_id_or_none": "UCFarEEFsV90-pvUU0XdUdgQ",
+        "public_handle": "ThePerfumeGuy",
+        "public_profile_url": "https://www.youtube.com/channel/UCFarEEFsV90-pvUU0XdUdgQ",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:27:00Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_027",
+          "platform:youtube:public_account_id:UCyU1XUvAFqV2X1NVCcRqRNA",
+          "platform:youtube:handle:theperfumenest",
+          "platform:youtube:url:https://www.youtube.com/channel/ucyu1xuvafqv2x1nvccrqrna"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "theperfumenest",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2EAW2HB4NCGP86KA9ZBB5",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:27:00Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_027",
+        "platform_public_account_id_or_none": "UCyU1XUvAFqV2X1NVCcRqRNA",
+        "public_handle": "ThePerfumeNest",
+        "public_profile_url": "https://www.youtube.com/channel/UCyU1XUvAFqV2X1NVCcRqRNA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:43:19Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_028",
+          "platform:youtube:public_account_id:UCHqrJNnjF_3yHfVDatKl-NA",
+          "platform:youtube:handle:thescented",
+          "platform:youtube:url:https://www.youtube.com/channel/uchqrjnnjf_3yhfvdatkl-na"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "thescented",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3C72V8HHTVDDN7EZ7GERK",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:43:19Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_028",
+        "platform_public_account_id_or_none": "UCHqrJNnjF_3yHfVDatKl-NA",
+        "public_handle": "TheScented",
+        "public_profile_url": "https://www.youtube.com/channel/UCHqrJNnjF_3yHfVDatKl-NA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:38:20Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_029",
+          "platform:youtube:public_account_id:UCCyE5usoGzgd_FNuqC1pkHQ",
+          "platform:youtube:handle:thescentinel",
+          "platform:youtube:url:https://www.youtube.com/channel/uccye5usogzgd_fnuqc1pkhq"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "thescentinel",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH333N35765JKXNYKFTJHJF",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:38:20Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_029",
+        "platform_public_account_id_or_none": "UCCyE5usoGzgd_FNuqC1pkHQ",
+        "public_handle": "TheScentinel",
+        "public_profile_url": "https://www.youtube.com/channel/UCCyE5usoGzgd_FNuqC1pkHQ",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-07-02T09:42:20Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_030",
+          "platform:youtube:public_account_id:UC4lKHUYqvm74znBF6qSnYig",
+          "platform:youtube:handle:tiffbenson",
+          "platform:youtube:url:https://www.youtube.com/channel/uc4lkhuyqvm74znbf6qsnyig"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "tiffbenson",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3ADTFRF5T3PPNNM9REVY6",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:42:20Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_030",
+        "platform_public_account_id_or_none": "UC4lKHUYqvm74znBF6qSnYig",
+        "public_handle": "TiffBenson",
+        "public_profile_url": "https://www.youtube.com/channel/UC4lKHUYqvm74znBF6qSnYig",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_metric_seed_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-27T18:23:26Z",
+          "last_capture_observed_at_or_none": "2026-06-30T07:26:28Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": "partial"
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_031",
+          "platform:youtube:public_account_id:UCmYZrY_MVZy5Iiwlua029kg",
+          "platform:youtube:handle:tltgreviews",
+          "platform:youtube:url:https://www.youtube.com/channel/ucmyzry_mvzy5iiwlua029kg"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "tltgreviews",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPR6TCN4VPMRBPFT02B58J",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:26:28Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_031",
+        "platform_public_account_id_or_none": "UCmYZrY_MVZy5Iiwlua029kg",
+        "public_handle": "TLTGReviews",
+        "public_profile_url": "https://www.youtube.com/channel/UCmYZrY_MVZy5Iiwlua029kg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-29T13:47:06Z",
+          "last_capture_observed_at_or_none": "2026-06-29T13:47:06Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_ig_reels_001",
+          "platform:instagram:handle:hyram",
+          "platform:instagram:url:https://www.instagram.com/hyram/"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "hyram",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KW9T4ESARHD545RRPGCWWY1P",
+          "evidence_source_family_or_none": "instagram_creator",
+          "evidence_source_surface_or_none": "ig_reels_grid_dom_passive_json",
+          "onboarded_at_or_none": "2026-06-29T13:47:06Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "instagram",
+        "platform_account_id": "acct_ig_reels_001",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "hyram",
+        "public_profile_url": "https://www.instagram.com/hyram/",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/30"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-29T13:47:50Z",
+          "last_capture_observed_at_or_none": "2026-06-29T13:47:50Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_ig_reels_002",
+          "platform:instagram:handle:jeremyfragrance",
+          "platform:instagram:url:https://www.instagram.com/jeremyfragrance/"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "jeremyfragrance",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KW9T5SGKBYD8HRVP3154F4Y8",
+          "evidence_source_family_or_none": "instagram_creator",
+          "evidence_source_surface_or_none": "ig_reels_grid_dom_passive_json",
+          "onboarded_at_or_none": "2026-06-29T13:47:50Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "instagram",
+        "platform_account_id": "acct_ig_reels_002",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "jeremyfragrance",
+        "public_profile_url": "https://www.instagram.com/jeremyfragrance/",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/31"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-06-30T12:33:04Z",
+          "last_capture_observed_at_or_none": "2026-06-30T12:33:05Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_ig_reels_004",
+          "platform:instagram:handle:milanscents",
+          "platform:instagram:url:https://www.instagram.com/milanscents/"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "milanscents",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWC89MF50H39PEQRG9V53FYY",
+          "evidence_source_family_or_none": "instagram_creator",
+          "evidence_source_surface_or_none": "ig_reels_grid_dom_passive_json",
+          "onboarded_at_or_none": "2026-06-30T12:33:05Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "instagram",
+        "platform_account_id": "acct_ig_reels_004",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "milanscents",
+        "public_profile_url": "https://www.instagram.com/milanscents/",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/32"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-03T08:41:47Z",
+          "last_capture_observed_at_or_none": "2026-07-03T08:41:47Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_001",
+          "platform:tiktok:handle:funmimonet",
+          "platform:tiktok:url:https://www.tiktok.com/@funmimonet"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "funmimonet",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWCYZ9P72W4SJD7NDPRQT0DB",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_batch_comment_subtitle_admission",
+          "onboarded_at_or_none": "2026-06-30T19:09:24Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "tiktok",
+        "platform_account_id": "acct_tiktok_fragrance_001",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "funmimonet",
+        "public_profile_url": "https://www.tiktok.com/@funmimonet",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/33"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-03T08:41:57Z",
+          "last_capture_observed_at_or_none": "2026-07-14T08:28:47Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_002",
+          "platform:tiktok:handle:redolessence",
+          "platform:tiktok:url:https://www.tiktok.com/@redolessence"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "redolessence",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXFVWBVQXTDY8APJ4PAP05A0",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_grid_window",
+          "onboarded_at_or_none": "2026-07-14T08:28:47Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "tiktok",
+        "platform_account_id": "acct_tiktok_fragrance_002",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "redolessence",
+        "public_profile_url": "https://www.tiktok.com/@redolessence",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/34"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-03T08:42:07Z",
+          "last_capture_observed_at_or_none": "2026-07-14T08:29:07Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_003",
+          "platform:tiktok:handle:perfumerism",
+          "platform:tiktok:url:https://www.tiktok.com/@perfumerism"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "perfumerism",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXFVWZ4RWRTNF4AVFPCMPDK4",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_grid_window",
+          "onboarded_at_or_none": "2026-07-14T08:29:07Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "tiktok",
+        "platform_account_id": "acct_tiktok_fragrance_003",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "perfumerism",
+        "public_profile_url": "https://www.tiktok.com/@perfumerism",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/35"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": "creator_fragranceknowledge_001",
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-07T15:01:16Z",
+          "last_capture_observed_at_or_none": "2026-07-07T15:01:16Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "candidate_public_account_link",
+        "linkage_state": "candidate_needs_review",
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_004",
+          "platform:tiktok:handle:fragranceknowledge",
+          "platform:tiktok:url:https://www.tiktok.com/@fragranceknowledge"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "fragranceknowledge",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "tiktok",
+        "platform_account_id": "acct_tiktok_fragrance_004",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "fragranceknowledge",
+        "public_profile_url": "https://www.tiktok.com/@fragranceknowledge",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/36"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": "creator_fragranceknowledge_001",
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-07T15:01:16Z",
+          "last_capture_observed_at_or_none": "2026-07-07T15:01:16Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "candidate_public_account_link",
+        "linkage_state": "candidate_needs_review",
+        "lookup_keys": [
+          "platform_account_id:acct_ig_fragrance_005",
+          "platform:instagram:handle:fragranceknowledge",
+          "platform:instagram:url:https://instagram.com/fragranceknowledge"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "fragranceknowledge",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "instagram",
+        "platform_account_id": "acct_ig_fragrance_005",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "Fragranceknowledge",
+        "public_profile_url": "https://instagram.com/Fragranceknowledge",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/37"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": "creator_noeldeyzel_fragrance_001",
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-08T15:01:18Z",
+          "last_capture_observed_at_or_none": "2026-07-12T11:09:16Z",
+          "last_discovery_observed_at_or_none": "2026-07-08T15:01:18Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "candidate_public_account_link",
+        "linkage_state": "candidate_needs_review",
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_005",
+          "platform:tiktok:handle:noeldeyzel_fragrance",
+          "platform:tiktok:url:https://www.tiktok.com/@noeldeyzel_fragrance"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "noeldeyzel_fragrance",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXB08SJ9FTW2YXFZJWG9XQDD",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_batch_comment_subtitle_admission",
+          "onboarded_at_or_none": "2026-07-12T11:09:16Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "tiktok",
+        "platform_account_id": "acct_tiktok_fragrance_005",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.tiktok.com/@noeldeyzel_fragrance",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/38",
+          "docs/review-inputs/noeldeyzel_fragrance_tiktok_creator_discovery_frontier_register_20260708.json",
+          "F:\\orca-data-lake\\raw\\8cc\\01KX13YSB6V0Y49D1H7Z3EAZ1K"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": "creator_noeldeyzel_fragrance_001",
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-08T15:11:47Z",
+          "last_capture_observed_at_or_none": "2026-07-08T15:11:47Z",
+          "last_discovery_observed_at_or_none": null,
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "candidate_public_account_link",
+        "linkage_state": "candidate_needs_review",
+        "lookup_keys": [
+          "platform_account_id:acct_ig_fragrance_006",
+          "platform:instagram:handle:noeldeyzel_fragrance",
+          "platform:instagram:url:https://www.instagram.com/noeldeyzel_fragrance/"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "noeldeyzel_fragrance",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "instagram",
+        "platform_account_id": "acct_ig_fragrance_006",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "noeldeyzel_fragrance",
+        "public_profile_url": "https://www.instagram.com/noeldeyzel_fragrance/",
+        "routing_decision": "dedupe_exact_platform_account_then_route_linkage_review_before_cross_platform_use",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/39",
+          "F:\\orca-data-lake\\raw\\c49\\01KX14HZ3PB4M8H0D09SD7CEMS"
+        ]
+      },
+      {
+        "capture_state": "identity_observed_profile_packet_available",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-08T18:52:19.366Z",
+          "last_capture_observed_at_or_none": "2026-07-12T18:35:25Z",
+          "last_discovery_observed_at_or_none": "2026-07-08T18:52:19.366Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_tiktok_fragrance_006",
+          "platform:tiktok:handle:topfrag.official",
+          "platform:tiktok:url:https://www.tiktok.com/@topfrag.official"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "topfrag.official",
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXBSSPVWSWFGJKQ6YZ6MQKJ1",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_batch_comment_subtitle_admission",
+          "onboarded_at_or_none": "2026-07-12T18:35:25Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "tiktok",
+        "platform_account_id": "acct_tiktok_fragrance_006",
+        "platform_public_account_id_or_none": null,
+        "public_handle": "topfrag.official",
+        "public_profile_url": "https://www.tiktok.com/@topfrag.official",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/40",
+          "docs/review-inputs/topfrag_official_tiktok_chowdakr_creator_discovery_frontier_register_20260709.json"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_032",
+          "platform:youtube:public_account_id:UCJ7EzNsSGFBx1w5KQqRzMqA",
+          "platform:youtube:handle:aaronterencehughes",
+          "platform:youtube:url:https://www.youtube.com/channel/ucj7eznssgfbx1w5kqqrzmqa"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "aaronterencehughes",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_032",
+        "platform_public_account_id_or_none": "UCJ7EzNsSGFBx1w5KQqRzMqA",
+        "public_handle": "aaronterencehughes",
+        "public_profile_url": "https://www.youtube.com/channel/UCJ7EzNsSGFBx1w5KQqRzMqA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/41"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_033",
+          "platform:youtube:public_account_id:UC6IMPkOWzhBHWlIW0ca1z_Q",
+          "platform:youtube:handle:aromatixrrt",
+          "platform:youtube:url:https://www.youtube.com/channel/uc6impkowzhbhwliw0ca1z_q"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "aromatixrrt",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_033",
+        "platform_public_account_id_or_none": "UC6IMPkOWzhBHWlIW0ca1z_Q",
+        "public_handle": "aromatixrrt",
+        "public_profile_url": "https://www.youtube.com/channel/UC6IMPkOWzhBHWlIW0ca1z_Q",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/42"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_034",
+          "platform:youtube:public_account_id:UCiC5uxWi4WGrR1Suo8I4PqA",
+          "platform:youtube:handle:calcologne",
+          "platform:youtube:url:https://www.youtube.com/channel/ucic5uxwi4wgrr1suo8i4pqa"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "calcologne",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_034",
+        "platform_public_account_id_or_none": "UCiC5uxWi4WGrR1Suo8I4PqA",
+        "public_handle": "calcologne",
+        "public_profile_url": "https://www.youtube.com/channel/UCiC5uxWi4WGrR1Suo8I4PqA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/43"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_035",
+          "platform:youtube:public_account_id:UCzi8yTLv2_lF22VqwfteRLA",
+          "platform:youtube:handle:eauderica",
+          "platform:youtube:url:https://www.youtube.com/channel/uczi8ytlv2_lf22vqwfterla"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "eauderica",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_035",
+        "platform_public_account_id_or_none": "UCzi8yTLv2_lF22VqwfteRLA",
+        "public_handle": "eauderica",
+        "public_profile_url": "https://www.youtube.com/channel/UCzi8yTLv2_lF22VqwfteRLA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/44"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_036",
+          "platform:youtube:public_account_id:UC-SMshzkuetzs4mNHZmJwUg",
+          "platform:youtube:handle:erinnicoletv",
+          "platform:youtube:url:https://www.youtube.com/channel/uc-smshzkuetzs4mnhzmjwug"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "erinnicoletv",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_036",
+        "platform_public_account_id_or_none": "UC-SMshzkuetzs4mNHZmJwUg",
+        "public_handle": "erinnicoletv",
+        "public_profile_url": "https://www.youtube.com/channel/UC-SMshzkuetzs4mNHZmJwUg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/45"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_037",
+          "platform:youtube:public_account_id:UCNDQy3YbPtp37i7B91f6kFQ",
+          "platform:youtube:handle:fbfragrances",
+          "platform:youtube:url:https://www.youtube.com/channel/ucndqy3ybptp37i7b91f6kfq"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "fbfragrances",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_037",
+        "platform_public_account_id_or_none": "UCNDQy3YbPtp37i7B91f6kFQ",
+        "public_handle": "fbfragrances",
+        "public_profile_url": "https://www.youtube.com/channel/UCNDQy3YbPtp37i7B91f6kFQ",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/46"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_038",
+          "platform:youtube:public_account_id:UCm10tytOAzlO42r9_4Oc8Eg",
+          "platform:youtube:handle:fragmental",
+          "platform:youtube:url:https://www.youtube.com/channel/ucm10tytoazlo42r9_4oc8eg"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "fragmental",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_038",
+        "platform_public_account_id_or_none": "UCm10tytOAzlO42r9_4Oc8Eg",
+        "public_handle": "fragmental",
+        "public_profile_url": "https://www.youtube.com/channel/UCm10tytOAzlO42r9_4Oc8Eg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/47"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_039",
+          "platform:youtube:public_account_id:UCTMtNhRZ8-QRTsyiojH8Zqg",
+          "platform:youtube:handle:fragranceflan",
+          "platform:youtube:url:https://www.youtube.com/channel/uctmtnhrz8-qrtsyiojh8zqg"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "fragranceflan",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_039",
+        "platform_public_account_id_or_none": "UCTMtNhRZ8-QRTsyiojH8Zqg",
+        "public_handle": "fragranceflan",
+        "public_profile_url": "https://www.youtube.com/channel/UCTMtNhRZ8-QRTsyiojH8Zqg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/48"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_040",
+          "platform:youtube:public_account_id:UCNn5SzNLEe2F9M04sn2aoDA",
+          "platform:youtube:handle:kafragrances",
+          "platform:youtube:url:https://www.youtube.com/channel/ucnn5sznlee2f9m04sn2aoda"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "kafragrances",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_040",
+        "platform_public_account_id_or_none": "UCNn5SzNLEe2F9M04sn2aoDA",
+        "public_handle": "kafragrances",
+        "public_profile_url": "https://www.youtube.com/channel/UCNn5SzNLEe2F9M04sn2aoDA",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/49"
+        ]
+      },
+      {
+        "capture_state": "never_captured",
+        "creator_record_id_or_none": null,
+        "discovery_state": "known_account",
+        "freshness": {
+          "identity_observed_at": "2026-07-15T00:45:00Z",
+          "last_capture_observed_at_or_none": null,
+          "last_discovery_observed_at_or_none": "2026-07-15T00:45:00Z",
+          "metrics_freshness_state_or_none": null
+        },
+        "identity_state": "single_platform_observed",
+        "linkage_state": "single_platform_observed",
+        "lookup_keys": [
+          "platform_account_id:acct_yt_fragrance_041",
+          "platform:youtube:public_account_id:UC-kG1xY0duJPDjvNkAiSODg",
+          "platform:youtube:handle:theperfumereviewr",
+          "platform:youtube:url:https://www.youtube.com/channel/uc-kg1xy0dujpdjvnkaisodg"
+        ],
+        "non_claims": [
+          "not current handle guarantee",
+          "not final cross-platform identity",
+          "not metric authority",
+          "not audience authority",
+          "not contact or outreach authorization"
+        ],
+        "normalized_public_handle": "theperfumereviewr",
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform": "youtube",
+        "platform_account_id": "acct_yt_fragrance_041",
+        "platform_public_account_id_or_none": "UC-kG1xY0duJPDjvNkAiSODg",
+        "public_handle": "theperfumereviewr",
+        "public_profile_url": "https://www.youtube.com/channel/UC-kG1xY0duJPDjvNkAiSODg",
+        "routing_decision": "dedupe_exact_platform_account_then_attach_new_discovery_evidence",
+        "source_pointers": [
+          "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/50"
+        ]
+      }
+    ],
+    "schema_version": "creator_registry_index_v0",
+    "source_inputs": [
+      {
+        "role": "source-backed known public platform accounts and linkage state",
+        "sha256": "809d271314495520d0cff7d5fbc1e32b8aecc6a294ca2b12f5c68981bf0536b4",
+        "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
+      }
+    ],
+    "source_policy_posture": "Creator Registry lookup and routing projection generated from the public-handle linkage ledger, with account onboarding derived from verified committed Bronze content-capture packets under an exact-identity policy. It is not metric authority, raw capture storage, freshness SLA, or final cross-platform identity proof."
   }
 }
