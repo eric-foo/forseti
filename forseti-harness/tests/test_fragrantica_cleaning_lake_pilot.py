@@ -277,6 +277,13 @@ def test_fragrantica_cleaning_emits_review_vote_metric_observations(tmp_path: Pa
             {"rating": 4, "longevity": 0, "sillage": 1},
             {"review_rating": 4, "review_sillage_vote": 1},
         ),
+        # Valid ordinal boundaries: rating/longevity lower (1) and upper (5), and
+        # sillage upper (4) — the exact line where sillage's 1..4 range must accept
+        # 4 while rejecting 5, and where rating/longevity's 1..5 range must accept 5.
+        (
+            {"rating": 1, "longevity": 5, "sillage": 4},
+            {"review_rating": 1, "review_longevity_vote": 5, "review_sillage_vote": 4},
+        ),
     ],
 )
 def test_fragrantica_review_vote_policy_emits_only_valid_observed_ordinals(
