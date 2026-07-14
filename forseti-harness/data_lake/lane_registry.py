@@ -60,8 +60,8 @@ LANE_ROLES: dict[str, LaneRole] = {
     "social_metric_observation_set_silver": LaneRole.SILVER_ENVELOPE,
     "tiktok_comment_attention_silver": LaneRole.SILVER_ENVELOPE,
     "retail_pdp_silver": LaneRole.SILVER_ENVELOPE,
-    # --- silver_lineage: grammar B (lineage kit + freeform payload); declared,
-    #     not reshaped. Reconcile with the envelope grammar later (see PR #456).
+    # --- silver_lineage: grammar B (lineage kit + freeform payload); frozen legacy
+    #     baseline, declared not reshaped. Reconciling it is a separate high-lock-in decision.
     "silver__cleaning__product_mentions": LaneRole.SILVER_LINEAGE,
     "silver__cleaning__product_mentions__set": LaneRole.SILVER_LINEAGE,
     "silver__cleaning__tiktok_audience_evidence": LaneRole.SILVER_LINEAGE,

@@ -25,7 +25,7 @@ authority_boundary: retrieval_only
 ## Direction Change Propagation — 2026-07-14
 
 ```yaml
-direction_change_propagation_2026_07_14:
+direction_change_propagation:
   doctrine_changed: >
     The original Cleaning-to-lake deferral is now historical for the landed
     source-specific per-packet writers. Basenotes, Fragrantica, and Parfumo may
@@ -58,7 +58,7 @@ direction_change_propagation_2026_07_14:
     Executed 2026-07-14. Remaining no-writer wording is explicitly marked as
     historical; Gate 1 is marked satisfied for the three landed source-specific
     writers; derived_retrieval remains a live deferred residual.
-  nonclaims:
+  non_claims:
     - not a universal Cleaning writer claim
     - not cross-packet dedupe or similarity authorization
     - not a derived_retrieval implementation authorization
