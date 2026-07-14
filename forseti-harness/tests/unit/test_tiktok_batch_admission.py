@@ -264,8 +264,10 @@ def test_write_omits_a_missing_stat_end_to_end_no_zero_fill(tmp_path: Path) -> N
     # the second video keeps its complete stats
     second = next(v for v in payload["videos"] if v["video_id"] == VIDEO_2)
     assert second["stats"]["diggCount"] == 90
-    # batch-summary sum still works (absent treated as 0 for the display aggregate only)
-    assert payload["batch_summary"]["stats_sums"]["diggCount"] == 90
+    # A partial aggregate would silently treat the missing value as zero, so the
+    # incomplete metric is omitted while complete metrics remain available.
+    assert "diggCount" not in payload["batch_summary"]["stats_sums"]
+    assert payload["batch_summary"]["stats_sums"]["playCount"] == 3000
 
 
 def test_write_tiktok_batch_packet_preserves_suggested_accounts_as_bronze(

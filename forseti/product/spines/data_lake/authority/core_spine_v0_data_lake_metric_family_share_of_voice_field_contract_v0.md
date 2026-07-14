@@ -52,11 +52,12 @@ Every number must recompute from committed records cited by ref.
 | Field | Semantics |
 | --- | --- |
 | `metric_family` | Literal `source_backed_brand_line_share_of_voice`. |
-| `family_schema_version` | This contract's field-schema version (`1` for v0); any field change bumps it. |
+| `family_schema_version` | This contract's field-schema version (`2`); any field change bumps it. |
 | `platform` | Exactly one platform (`instagram` / `youtube` / `tiktok` / …). Per-platform only — a readout spanning platforms is forbidden (medallion cross-platform identity limitation). |
 | `cohort` | Declared, never inferred: `{cohort_id, definition, member_basis: "captured_set", member_count, member_refs \| cohort_manifest_ref}`. The refs/manifest identify the captured source objects included in the cohort and must reconcile to `coverage.source_objects_in_scope`; cohort membership claims about uncaptured creators are unrepresentable. |
 | `coverage_window` | `{start, end, window_basis}` with `window_basis: capture_time \| source_publication_time`. `capture_time` is evaluated against `captured_at` or equivalent packet capture metadata (universally available — every packet records it). `source_publication_time` is evaluated only when a committed source-backed record carries source publication/event timing evidence (`observed_at`, `source_publication_or_event`, or a source-family equivalent); records lacking the selected basis are excluded from numerator AND denominator and counted under `coverage.window_basis_missing` — never silently dropped. If no source-backed record in scope has the selected basis in-window, the readout is `unavailable_with_reason` and emits no share rows. |
-| `selection_policy_versions` | Must include: extractor rubric version(s) of the consumed mention records, `silver_lineage_gate: "source_backed_complete"` (the live status literal), `family_schema_version`, `brand_grouping` (see Grouping), and `cohort_selection` (the version or manifest identity behind `cohort.member_refs` / `cohort_manifest_ref`). |
+| `product_mention_policy` | Required exact `{policy_version, policy_fingerprint_sha256}`; neither field may be omitted and no latest-policy fallback exists. |
+| `selection_policy_versions` | Must include the same exact `product_mention_policy`, `silver_lineage_gate: "source_backed_complete"` (the live status literal), `family_schema_version`, `brand_grouping` (see Grouping), and `cohort_selection` (the version or manifest identity behind `cohort.member_refs` / `cohort_manifest_ref`). |
 
 ## Grouping Fields
 
@@ -84,6 +85,7 @@ Every number must recompute from committed records cited by ref.
 
 - `mention_count` (numerator, per `{brand, line}` row): count of MENTION-LEVEL
   entries in source-backed, envelope-valid `transcript_product_mentions_silver`
+  selected under the readout's exact `product_mention_policy`
   records within scope. Each row must carry `mention_refs`: dereferenceable
   committed mention refs (`raw_anchor`, `lane`, `record_id`, `sha256`,
   `mention_id`, `source_pointer`, `start_ms`, `end_ms`) — every counted
@@ -108,7 +110,8 @@ Every number must recompute from committed records cited by ref.
 ## Coverage Fields (required block; prevents thin-scope readouts)
 
 `coverage`: `{packets_in_scope, packets_with_transcripts,
-mention_records_in_scope, mention_records_excluded_not_source_backed,
+mention_records_in_scope, product_mention_policy,
+selection_residual_count_lake_wide, selection_residuals_by_status,
 window_basis_missing (when window_basis is source_publication_time),
 source_objects_in_scope, source_objects_with_transcripts,
 source_backed_records_with_zero_mentions, cohort_selection_residuals}` — the
@@ -235,4 +238,26 @@ direction_change_propagation:
     - not validation or readiness
     - not view-build execution
     - findings closure bounded by the CA class-sweep + byte/scope checks in the review report
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Field schema v2 (2026-07-15) makes exact product-mention policy identity a
+    required readout input and disclosure. Numerator, denominator, zero
+    posture, and coverage are computed only from records selected by the shared
+    exact-policy selector. Policy mismatches and malformed/non-evidence records
+    remain visible as selection residuals; distinct same-policy siblings fail
+    closed rather than double-counting.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti-harness/data_lake/product_mention_selection.py
+    - forseti-harness/data_lake/sov_readout.py
+    - forseti-harness/tests/test_data_lake_sov_readout.py
+  non_claims:
+    - not validation or readiness
+    - not brand canonicalization or cohort selection
 ```

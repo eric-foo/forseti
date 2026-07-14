@@ -25,6 +25,7 @@ from cleaning.transcript_product_lake import (
     extract_products_into_lake,
     mentions_record_id,
     write_product_mentions_result_into_lake,
+    product_mentions_policy_fingerprint,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from data_lake.silver_lineage import SilverDerivedRef
@@ -63,7 +64,9 @@ class FakeTransport:
     def __init__(self, canned: str) -> None:
         self.canned = canned
 
+        self.calls = 0
     def post_json(self, url, headers, body, timeout_seconds):  # noqa: ANN001
+        self.calls += 1
         return self.canned
 
 
@@ -386,11 +389,9 @@ def test_runner_surfaces_unreadable_packet_asr_record_without_ack(tmp_path, monk
     assert list((data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*")) == []
 
 
-def test_rubric_version_grows_packet_obligation_without_llm_reextract(tmp_path, monkeypatch) -> None:
-    # F2 class (YouTube mirror): the extractor rubric is a processing-policy token
-    # in the obligation envelope — a rubric change re-surfaces the acked packet
-    # for a RE-CHECK and re-ack under the new fingerprint, without re-running
-    # extraction (the mentions record id keys on model, not rubric).
+def test_rubric_version_reextracts_to_distinct_policy_identity(tmp_path, monkeypatch) -> None:
+    # A policy change must not reuse the old completion identity: it re-extracts,
+    # writes a distinct record/set marker, and acks the new exact policy.
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _commit_asr_transcript(data_root)
     original_rubric = yt_runner.EXTRACTOR_RUBRIC_VERSION
@@ -402,13 +403,22 @@ def test_rubric_version_grows_packet_obligation_without_llm_reextract(tmp_path, 
 
     monkeypatch.setattr(yt_runner, "EXTRACTOR_RUBRIC_VERSION", "test-rubric-vnext")
     third = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
-    assert [r["status"] for r in third] == ["skipped_done"]
+    assert [r["status"] for r in third] == ["extracted"]
     acks = [
         json.loads(p.read_text(encoding="utf-8"))
         for p in (data_root.path / "acknowledgements").glob(f"**/{PRODUCT_MENTIONS_LANE}/*")
     ]
     assert len(acks) == 2
     assert {ack["obligation"]["rubric_version"] for ack in acks} == {original_rubric, "test-rubric-vnext"}
+    assert transport.calls == 2
+    records = [
+        json.loads(path.read_text(encoding="utf-8"))
+        for path in data_root.lane_dir(
+            subtree="derived", raw_anchor=first[0]["anchor"], lane=PRODUCT_MENTIONS_LANE
+        ).glob("*.json")
+    ]
+    assert len(records) == 2
+    assert {r["payload"]["observation"]["policy_version"] for r in records} == {original_rubric, "test-rubric-vnext"}
 
 
 # --- runner: caption path, end-to-end -----------------------------------------
@@ -476,7 +486,7 @@ def test_cues_from_asr_record_guards_non_list() -> None:
     assert cues_from_asr_record({"cues": good}) == good
 
 
-def test_mentions_record_id_keys_on_content_model_and_optional_source_key() -> None:
+def test_mentions_record_id_keys_on_content_model_source_and_policy() -> None:
     t1 = _transcript()
     t2 = TranscriptInput("vid12345678", _ANCHOR, "asr", [{"start_ms": 0, "end_ms": 1, "text": "totally other words"}])
     t3 = TranscriptInput(
@@ -493,14 +503,17 @@ def test_mentions_record_id_keys_on_content_model_and_optional_source_key() -> N
         _cues(),
         transcript_source_key="vid12345678:asr:deepcap-b",
     )
-    expected_no_key_id = f"mentions_m__{hashlib.sha256(t1.joined_text.encode('utf-8')).hexdigest()[:16]}.json"
-    assert mentions_record_id(t1, "m") == expected_no_key_id  # no-key legacy formula
+    policy_fingerprint = product_mentions_policy_fingerprint("rubric_v0")
+    expected_digest = hashlib.sha256(f"{policy_fingerprint}\x00{t1.joined_text}".encode("utf-8")).hexdigest()
+    expected_no_key_id = f"mentions_m__{expected_digest[:16]}__p{policy_fingerprint[:12]}.json"
+    assert mentions_record_id(t1, "m", policy_fingerprint_sha256=policy_fingerprint) == expected_no_key_id
     assert mentions_record_id(t1, "m") == mentions_record_id(t1, "m")  # stable across calls
     assert mentions_record_id(t1, "m") != mentions_record_id(t2, "m")  # content-keyed
     assert mentions_record_id(t1, "m1") != mentions_record_id(t1, "m2")  # model-keyed (R1 backfill)
     assert mentions_record_id(t3, "m") != mentions_record_id(t4, "m")  # exact source-keyed when present
 
 
+    assert mentions_record_id(t1, "m", policy_fingerprint_sha256="1" * 64) != mentions_record_id(t1, "m", policy_fingerprint_sha256="2" * 64)
 def test_runner_marks_zero_mention_transcript_done(tmp_path) -> None:
     # D5 filler-drop: the model finds no products -> still persisted + marked complete (idempotent).
     data_root = DataLakeRoot.for_test(tmp_path / "lake")

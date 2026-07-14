@@ -77,7 +77,9 @@ not changes to source precedence.
 | Validation gates and checker boundaries | `.agents/workflow-overlay/validation-gates.md` |
 | Technical diagnostics for recurring workflow or tooling failures | `docs/workflows/technical_difficulties_log_v0.md` |
 | Prompt or review-prompt work | `.agents/workflow-overlay/prompt-orchestration.md` |
-| Product direction, offer, ICP/wedge, or buyer proof | `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`, then the matching `forseti/product/spines/product_lead/` area |
+| Current product direction and initial form | `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md` |
+| Beauty product application, decision admission, and proof boundary | `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md` |
+| Offer, ICP/wedge, buyer proof, or GTM | Start with the current thesis above, then the matching `forseti/product/spines/product_lead/` area; buyer-specific bindings remain suspended until GTM rebinds them. |
 | Fragrance facts and per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` |
 | Ontology roster, namespaces, and typed links | `forseti/product/spines/foundation/ontology/ontology.yaml` |
 | Scanning, answer-engine, or search-interest work | `forseti/product/spines/scanning/README.md` |
@@ -231,7 +233,9 @@ section only selects the entry point.
 | Work | Start |
 | --- | --- |
 | Data Capture setup, source access, or pressure testing | `docs/workflows/data_capture_spine_consolidation_map_v0.md`, then the matching source-loading pack. |
-| Offer, ICP/wedge, or buyer proof | `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`, the matching `forseti/product/spines/product_lead/` area, and `.agents/workflow-overlay/product-proof.md`. |
+| Product direction or initial form | `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`, the Core Spine product contract, and `.agents/workflow-overlay/product-proof.md`. |
+| Beauty product application | `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md`, then the current thesis and nearest evidence-owner maps. |
+| Offer, ICP/wedge, buyer proof, or GTM | Start with the current thesis, then the matching `forseti/product/spines/product_lead/` area and `.agents/workflow-overlay/product-proof.md`; do not reactivate historical buyer bindings without a current GTM decision. |
 | Judgment run, evidence tier, or gate ownership | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`. |
 | Prompt or review-prompt work | `.agents/workflow-overlay/prompt-orchestration.md`, `.agents/workflow-overlay/template-registry.md`, then the target. |
 | Artifact retrievability or hygiene | `docs/workflows/artifact_retrievability_guide.md` and the owning overlay section. |

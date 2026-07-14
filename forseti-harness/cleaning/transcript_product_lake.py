@@ -51,14 +51,21 @@ LEGACY_PRODUCT_MENTIONS_SET_LANE = "silver__cleaning__product_mentions__set"
 # record (the producer is this Pass-1 extractor; its schema version is the rubric).
 PRODUCT_MENTIONS_PRODUCER_ID = "cleaning.transcript_product_extractor"
 
-# Record-SHAPE schema token (V4: vault-versioned; closes the weak-envelope residual
-# where this shape rode only the sibling EXTRACTOR_RUBRIC_VERSION policy token).
-# Added additively: earlier committed records lack the field and read as pre-token
-# vintage; no derivation-policy token was bumped, so nothing re-surfaces on cadence.
-PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v1"
-PRODUCT_MENTIONS_POLICY_FINGERPRINT = hashlib.sha256(
-    f"{PRODUCT_MENTIONS_PRODUCER_ID}\0{EXTRACTOR_RUBRIC_VERSION}".encode("utf-8")
-).hexdigest()
+# Record-SHAPE and durable-identity schema token. V2 binds record/completion identity
+# to the exact product-mention policy fingerprint; prior V1 records re-surface so the
+# current-policy record can be written under its distinct identity.
+PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v2"
+
+def product_mentions_policy_fingerprint(policy_version: str) -> str:
+    """Stable identity shared by record ids, payloads, and pickup obligations."""
+    return hashlib.sha256(
+        f"{PRODUCT_MENTIONS_PRODUCER_ID}\0{policy_version}".encode("utf-8")
+    ).hexdigest()
+
+
+PRODUCT_MENTIONS_POLICY_FINGERPRINT = product_mentions_policy_fingerprint(
+    EXTRACTOR_RUBRIC_VERSION
+)
 
 
 def build_transcript_source_lineage(
@@ -136,18 +143,27 @@ def cues_from_json3(raw: bytes) -> list[dict]:
     return cues
 
 
-def mentions_record_id(transcript: TranscriptInput, model: str) -> str:
-    """Deterministic per transcript source/content/model so re-runs check/skip the same record.
+def mentions_record_id(
+    transcript: TranscriptInput,
+    model: str,
+    *,
+    policy_fingerprint_sha256: str = PRODUCT_MENTIONS_POLICY_FINGERPRINT,
+) -> str:
+    """Deterministic per transcript source/content/model/policy.
 
     The model token is bounded so the id stays within the lake's 128-char _SAFE_SEGMENT limit
     for any model string; the full model is still recorded in the record payload + provenance.
     """
     token = re.sub(r"[^A-Za-z0-9_-]", "-", str(model))[:48]
-    digest_input = transcript.joined_text
+    if re.fullmatch(r"[0-9a-f]{64}", policy_fingerprint_sha256) is None:
+        raise ValueError("policy_fingerprint_sha256 must be lowercase 64-hex")
+    digest_input = (
+        f"{policy_fingerprint_sha256}\x00{transcript.joined_text}"
+    )
     if transcript.transcript_source_key:
         digest_input = f"{transcript.transcript_source_key}\x00{digest_input}"
     digest = hashlib.sha256(digest_input.encode("utf-8")).hexdigest()
-    return f"mentions_{token}__{digest[:16]}.json"
+    return f"mentions_{token}__{digest[:16]}__p{policy_fingerprint_sha256[:12]}.json"
 
 
 def _product_mentions_payload(
@@ -156,6 +172,8 @@ def _product_mentions_payload(
     result: TranscriptExtractionResult,
     model: str,
     extraction_backend: str,
+    policy_version: str,
+    policy_fingerprint_sha256: str,
     extraction_provenance: dict | None = None,
 ) -> dict:
     if transcript.source_lineage is None:
@@ -208,8 +226,8 @@ def _product_mentions_payload(
                     },
                 },
                 "observation_set_kind": "transcript_product_mentions",
-                "policy_version": EXTRACTOR_RUBRIC_VERSION,
-                "policy_fingerprint_sha256": PRODUCT_MENTIONS_POLICY_FINGERPRINT,
+                "policy_version": policy_version,
+                "policy_fingerprint_sha256": policy_fingerprint_sha256,
                 "row_count": len(rows),
                 "rows": rows,
             }
@@ -220,7 +238,7 @@ def _product_mentions_payload(
             "asr_record_id": transcript.asr_record_id,
             "transcript_source": transcript.transcript_source,
             "model": model,
-            "rubric_version": EXTRACTOR_RUBRIC_VERSION,
+            "rubric_version": policy_version,
             "extraction_backend": extraction_backend,
             "rejected_count": len(result.rejected),
             **({"extraction_provenance": dict(extraction_provenance)} if extraction_provenance else {}),
@@ -241,6 +259,8 @@ def write_product_mentions_result_into_lake(
     result: TranscriptExtractionResult,
     model: str,
     record_id: str | None = None,
+    policy_version: str = EXTRACTOR_RUBRIC_VERSION,
+    policy_fingerprint_sha256: str | None = None,
     extraction_backend: str,
     extraction_provenance: dict | None = None,
 ) -> dict[str, "object"]:
@@ -250,12 +270,21 @@ def write_product_mentions_result_into_lake(
     downstream projection reads one product-mention record shape. Re-appending the same
     record_id is refused by the lake (write-once); callers check completion before writing.
     """
-    rid = record_id or mentions_record_id(transcript, model)
+    policy_fingerprint_sha256 = policy_fingerprint_sha256 or product_mentions_policy_fingerprint(
+        policy_version
+    )
+    rid = record_id or mentions_record_id(
+        transcript,
+        model,
+        policy_fingerprint_sha256=policy_fingerprint_sha256,
+    )
     record = _product_mentions_payload(
         transcript=transcript,
         result=result,
         model=model,
         extraction_backend=extraction_backend,
+        policy_version=policy_version,
+        policy_fingerprint_sha256=policy_fingerprint_sha256,
         extraction_provenance=extraction_provenance,
     )
     record["record_id"] = rid
@@ -278,6 +307,8 @@ def extract_products_into_lake(
     model: str,
     api_key: str,
     record_id: str | None = None,
+    policy_version: str = EXTRACTOR_RUBRIC_VERSION,
+    policy_fingerprint_sha256: str | None = None,
     max_tokens: int = 2048,
 ) -> dict[str, "object"]:
     """Run Pass 1 for one transcript and append the silver mentions record-set.
@@ -299,5 +330,7 @@ def extract_products_into_lake(
         result=result,
         model=model,
         record_id=record_id,
+        policy_version=policy_version,
+        policy_fingerprint_sha256=policy_fingerprint_sha256,
         extraction_backend="provider_api",
     )
