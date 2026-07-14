@@ -1,8 +1,9 @@
-"""Build a SourceCapturePacket from a fetched YouTube watch-page metadata/comments result.
+"""Build a compact SourceCapturePacket from a YouTube watch/comments result.
 
 Network-free packet writer. The live fetcher owns YouTube-specific acquisition; this
-module stages the served watch HTML, the normalized watch capture JSON, and any raw
-``youtubei/v1/next`` comment response pages into the Source Capture Packet shape.
+module validates the acquisition-time watch/comment response bodies, then stages only
+the selected source-visible metadata and bounded comment rows. The enclosing served
+HTML and ``youtubei/v1/next`` response bodies are intentionally not persisted.
 
 Metric observations in the manifest carry the typed value/absence posture. The
 platform-specific route receipts (``ytInitialPlayerResponse``, ``microformat``,
@@ -17,6 +18,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+from urllib.parse import parse_qs, urlparse
 
 from source_capture.models import (
     CaptureModeCategory,
@@ -33,9 +35,12 @@ from source_capture.models import (
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
 
 SOURCE_SURFACE = "youtube_watch_metadata_comments"
-CAPTURE_SCHEMA_VERSION = "youtube_watch_metadata_comments_capture_v0"
+LEGACY_CAPTURE_SCHEMA_VERSION = "youtube_watch_metadata_comments_capture_v0"
+CAPTURE_SCHEMA_VERSION = "youtube_watch_metadata_comments_capture_v1"
 WATCH_HTML_NAME = "raw_watch.html"
 CAPTURE_JSON_NAME = "youtube_watch_capture.json"
+SELECTIVE_CAPTURE_POLICY_VERSION = "youtube_watch_selected_observables_v1"
+SELECTIVE_RETENTION_POSTURE = "not_persisted_after_validated_extraction"
 YOUTUBE_WATCH_METRIC_NAMES = ("view_count", "like_count", "comment_sample_count", "total_comment_count")
 
 YOUTUBE_WATCH_NON_CLAIMS = [
@@ -45,6 +50,8 @@ YOUTUBE_WATCH_NON_CLAIMS = [
     "not browser-rendered JS execution",
     "not complete comment graph capture",
     "not total comment count unless source-native exact count is exposed",
+    "not full served watch HTML or youtubei response-body preservation",
+    "not future-field replay from discarded source-response envelopes",
     "not zero-filled missing engagement metrics",
     "not ECR design",
     "not Cleaning implementation",
@@ -99,6 +106,16 @@ def write_youtube_watch_packet(
         return 5, f"refusing to build packet: {exc}"
     metric_receipts = packet.get("metric_receipts") if isinstance(packet.get("metric_receipts"), Mapping) else {}
 
+    for page in fetch.comment_page_bodies:
+        try:
+            _validate_comment_page(page)
+        except ValueError as exc:
+            return 5, f"refusing to build packet: {exc}"
+    try:
+        _validate_selected_comments(packet, received_page_count=len(fetch.comment_page_bodies))
+    except ValueError as exc:
+        return 5, f"refusing to build packet: {exc}"
+
     payload = {
         "capture_schema_version": CAPTURE_SCHEMA_VERSION,
         "platform": "youtube",
@@ -108,15 +125,22 @@ def write_youtube_watch_packet(
         "availability": availability,
         "metric_receipts": metric_receipts,
         "packet": packet,
-        "comment_page_filenames": [page.filename for page in fetch.comment_page_bodies],
+        "selected_observable_policy_version": SELECTIVE_CAPTURE_POLICY_VERSION,
+        "source_response_retention": {
+            "watch_html": {
+                "posture": SELECTIVE_RETENTION_POSTURE,
+                "received_byte_size": len(fetch.raw_watch_html),
+            },
+            "comment_pages": {
+                "posture": SELECTIVE_RETENTION_POSTURE,
+                "received_page_count": len(fetch.comment_page_bodies),
+                "received_byte_size": sum(len(page.raw_json_bytes) for page in fetch.comment_page_bodies),
+            },
+        },
     }
     staged_artifacts: list[tuple[str, bytes]] = [
-        (WATCH_HTML_NAME, fetch.raw_watch_html),
         (CAPTURE_JSON_NAME, (json.dumps(payload, indent=2, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")),
     ]
-    for page in fetch.comment_page_bodies:
-        _validate_comment_page(page)
-        staged_artifacts.append((page.filename, page.raw_json_bytes))
     file_ids = staged_file_id_map(staged_artifacts)
 
     publication = _string_or_none(metadata.get("publish_date"))
@@ -133,18 +157,23 @@ def write_youtube_watch_packet(
         f"youtube_watch_video_state:{video_state}; comments_state:{comments_state}; auth=logged_out"
     )
     archive = not_attempted("YouTube watch metadata/comments runner does not query archive/history services")
-    media = known_fact("served watch HTML and youtubei comment JSON preserved; video media bytes are out of scope")
+    media = known_fact(
+        "selected source-visible watch metadata and bounded comment rows preserved; "
+        "enclosing watch HTML/youtubei bodies and video media bytes are not persisted"
+    )
     recapture = not_applicable("no prior YouTube watch packet supplied")
 
     metadata_metrics = [metric_observations["view_count"], metric_observations["like_count"]]
     comments_metrics = [metric_observations["comment_sample_count"], metric_observations["total_comment_count"]]
-    comments_file_ids = [file_ids[CAPTURE_JSON_NAME]] + [file_ids[page.filename] for page in fetch.comment_page_bodies]
-    if not fetch.comment_page_bodies:
-        comments_file_ids.append(file_ids[WATCH_HTML_NAME])
+    comments_file_ids = [file_ids[CAPTURE_JSON_NAME]]
 
     slice_limitations = _slice_limitations(packet, metric_observations)
     comments_limitations = _comments_limitations(packet, metric_observations)
-    run_limitations = slice_limitations + comments_limitations
+    retention_limitations = [
+        "full_watch_html_not_persisted:selected_observables_are_canonical",
+        "raw_youtubei_comment_pages_not_persisted:selected_comment_rows_are_canonical",
+    ]
+    run_limitations = slice_limitations + comments_limitations + retention_limitations
 
     source_slices = [
         SourceCaptureSlice(
@@ -155,9 +184,9 @@ def write_youtube_watch_packet(
             archive_history_posture=archive,
             media_modality_posture=media,
             re_capture_relationship=recapture,
-            limitations=slice_limitations,
+            limitations=slice_limitations + [retention_limitations[0]],
             warning_notes=[],
-            preserved_file_ids=[file_ids[WATCH_HTML_NAME], file_ids[CAPTURE_JSON_NAME]],
+            preserved_file_ids=[file_ids[CAPTURE_JSON_NAME]],
             metric_observations=metadata_metrics,
         ),
         SourceCaptureSlice(
@@ -168,12 +197,25 @@ def write_youtube_watch_packet(
             archive_history_posture=archive,
             media_modality_posture=media,
             re_capture_relationship=recapture,
-            limitations=comments_limitations,
+            limitations=comments_limitations + [retention_limitations[1]],
             warning_notes=[],
             preserved_file_ids=comments_file_ids,
             metric_observations=comments_metrics,
         ),
     ]
+
+    served_video_id = _served_video_id_from_canonical(packet)
+    if served_video_id is None:
+        return 5, (
+            "subject_identity_unavailable: served YouTube canonical URL did not expose "
+            "a valid 11-character video id; no packet written"
+        )
+    if served_video_id != fetch.video_id:
+        return 5, (
+            "subject_identity_mismatch: requested YouTube video id "
+            f"{fetch.video_id!r} but served canonical identity was {served_video_id!r}; "
+            "no packet written"
+        )
 
     result = stage_and_write_packet(
         output_directory=output_directory,
@@ -185,8 +227,8 @@ def write_youtube_watch_packet(
         source_locator=known_fact(watch_url),
         decision_question=decision_question,
         capture_context=(
-            "YouTube logged-out watch-page metadata/comments capture; served HTML for player/microformat "
-            "metadata plus bounded youtubei_next comment sample when exposed"
+            "YouTube logged-out selected-observable watch metadata/comments capture; transient served HTML "
+            "for player/microformat extraction plus bounded youtubei_next comment rows when exposed"
         ),
         actor_audience_context=not_applicable("public video capture; no actor/audience modeling at capture"),
         capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
@@ -194,8 +236,8 @@ def write_youtube_watch_packet(
         session_identity=None,
         visible_mode_changes=[
             (
-                "youtube_watch_routes:metadata=ytInitialPlayerResponse/microformat;"
-                f"comments=youtubei_next;comment_pages={len(fetch.comment_page_bodies)}"
+                "youtube_watch_routes:metadata=ytInitialPlayerResponse/microformat;comments=youtubei_next;"
+                f"comment_pages={len(fetch.comment_page_bodies)};retention=selected_observables_only"
             ),
             f"youtube_watch_states:video={video_state};comments={comments_state}",
             f"youtube_watch_metric_postures:{_metric_posture_summary(metric_observations)}",
@@ -212,11 +254,32 @@ def write_youtube_watch_packet(
         limitations=run_limitations,
         receipt_summary=(
             f"YouTube watch metadata/comments packet for {fetch.video_id}: video_state={video_state}, "
-            f"comments_state={comments_state}, comment_pages={len(fetch.comment_page_bodies)}."
+            f"comments_state={comments_state}, comment_pages={len(fetch.comment_page_bodies)}, "
+            "retention=selected_observables_only."
         ),
         receipt_non_claims=YOUTUBE_WATCH_NON_CLAIMS,
     )
     return 0, result.output_directory
+
+
+def _served_video_id_from_canonical(packet: Mapping[str, Any]) -> str | None:
+    canonical_url = _string_or_none(packet.get("canonical_url"))
+    if canonical_url is None:
+        return None
+    parsed = urlparse(canonical_url)
+    host = (parsed.hostname or "").lower()
+    candidate: str | None = None
+    if host == "youtu.be":
+        candidate = parsed.path.strip("/").split("/", 1)[0]
+    elif host in {"youtube.com", "www.youtube.com", "m.youtube.com"}:
+        parts = [part for part in parsed.path.split("/") if part]
+        if parsed.path.rstrip("/") == "/watch":
+            candidate = next(iter(parse_qs(parsed.query).get("v", ())), None)
+        elif len(parts) == 2 and parts[0] in {"shorts", "embed"}:
+            candidate = parts[1]
+    if candidate is None or not re.fullmatch(r"[A-Za-z0-9_-]{11}", candidate):
+        return None
+    return candidate
 
 
 def _metric_observations(packet: Mapping[str, Any], *, capture_timestamp: str) -> dict[str, MetricObservation]:
@@ -332,6 +395,59 @@ def _validate_comment_page(page: YoutubeWatchCommentPage) -> None:
         raise ValueError(f"empty YouTube comment page body: {page.filename}")
 
 
+def _validate_selected_comments(packet: Mapping[str, Any], *, received_page_count: int) -> None:
+    comments = packet.get("comments")
+    if not isinstance(comments, list):
+        raise ValueError("selected comments must be a list")
+    engagement = packet.get("engagement") if isinstance(packet.get("engagement"), Mapping) else {}
+    expected = _int_or_none(engagement.get("comment_sample_count"))
+    if expected is not None and expected != len(comments):
+        raise ValueError(
+            f"comment_sample_count {expected} does not match selected comment row count {len(comments)}"
+        )
+    for index, comment in enumerate(comments, start=1):
+        if not isinstance(comment, Mapping):
+            raise ValueError(f"selected comment row {index} is not an object")
+        comment_id = _string_or_none(comment.get("comment_id"))
+        text = comment.get("text")
+        page_number = _int_or_none(comment.get("source_page_number"))
+        order_in_page = _int_or_none(comment.get("source_order_in_page"))
+        order_global = _int_or_none(comment.get("source_order_global"))
+        if comment_id is None:
+            raise ValueError(f"selected comment row {index} lacks comment_id")
+        if not isinstance(text, str):
+            raise ValueError(f"selected comment row {index} lacks verbatim text")
+        if page_number is None or page_number < 1:
+            raise ValueError(f"selected comment row {index} lacks source_page_number")
+        if order_in_page is None or order_in_page < 1:
+            raise ValueError(f"selected comment row {index} lacks source_order_in_page")
+        if order_global != index:
+            raise ValueError(
+                f"selected comment row {index} has non-contiguous source_order_global {order_global!r}"
+            )
+    coverage = packet.get("comment_capture_coverage")
+    if not isinstance(coverage, Mapping):
+        raise ValueError("selected capture lacks comment_capture_coverage")
+    pages_fetched = _int_or_none(coverage.get("pages_fetched"))
+    selected_count = _int_or_none(coverage.get("selected_comment_count"))
+    requested_limit = _int_or_none(coverage.get("requested_page_limit"))
+    ordering_posture = _string_or_none(coverage.get("ordering_posture"))
+    if pages_fetched != received_page_count:
+        raise ValueError(
+            f"comment coverage pages_fetched {pages_fetched!r} does not match received page count "
+            f"{received_page_count}"
+        )
+    if selected_count != len(comments):
+        raise ValueError(
+            f"comment coverage selected_comment_count {selected_count!r} does not match row count "
+            f"{len(comments)}"
+        )
+    if requested_limit is None or requested_limit < pages_fetched:
+        raise ValueError("comment coverage requested_page_limit is missing or below pages_fetched")
+    if ordering_posture != "source_default_order_as_served":
+        raise ValueError(f"unsupported comment ordering_posture {ordering_posture!r}")
+
+
 def _json_safe_dict(value: Mapping[str, Any]) -> dict[str, Any]:
     return json.loads(json.dumps(dict(value), ensure_ascii=False))
 
@@ -371,6 +487,9 @@ def _utc_now_z() -> str:
 __all__ = [
     "CAPTURE_JSON_NAME",
     "CAPTURE_SCHEMA_VERSION",
+    "LEGACY_CAPTURE_SCHEMA_VERSION",
+    "SELECTIVE_CAPTURE_POLICY_VERSION",
+    "SELECTIVE_RETENTION_POSTURE",
     "SOURCE_SURFACE",
     "WATCH_HTML_NAME",
     "YOUTUBE_WATCH_METRIC_NAMES",

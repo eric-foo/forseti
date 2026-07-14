@@ -236,11 +236,12 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
         ),
     },
     "run_source_capture_ig_reels_grid_packet.py": {
-        "status": "unbound",
-        "reason": (
-            "handle-shape normalization plus login/challenge-redirect detection fail "
-            "visibly and the served final_url is recorded, but the served "
-            "grid/web_profile_info identity is never compared to the requested handle"
+        "status": "bound",
+        "mechanism": (
+            "the normalized requested handle is compared case-insensitively with the "
+            "source-visible username parsed and preserved from web_profile_info before "
+            "slice/packet/lake publication; missing, invalid, or mismatched served identity "
+            "fails closed with a distinct diagnostic and no packet write"
         ),
     },
     "run_source_capture_media_packet.py": {
@@ -351,11 +352,12 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
         ),
     },
     "run_source_capture_youtube_watch_packet.py": {
-        "status": "unbound",
-        "reason": (
-            "platform_video_id is copied from the request after an id-format check; the "
-            "served watch HTML's canonical URL and channelId are preserved in the capture "
-            "JSON but never compared to the requested video id"
+        "status": "bound",
+        "mechanism": (
+            "the requested 11-character video id is compared exactly with the id parsed "
+            "from the source-visible served canonical URL immediately before packet/lake "
+            "publication; unavailable or mismatched served identity fails closed with a "
+            "distinct diagnostic and no packet write"
         ),
     },
 }

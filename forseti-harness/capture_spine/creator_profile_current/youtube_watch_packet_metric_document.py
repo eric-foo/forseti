@@ -60,6 +60,9 @@ from capture_spine.creator_profile_current.youtube_metric_seed import (
 from data_lake.root import raw_shard
 from source_capture.youtube_watch_packet import (
     CAPTURE_JSON_NAME,
+    CAPTURE_SCHEMA_VERSION,
+    LEGACY_CAPTURE_SCHEMA_VERSION,
+    SELECTIVE_RETENTION_POSTURE,
     SOURCE_SURFACE as YOUTUBE_WATCH_SOURCE_SURFACE,
     WATCH_HTML_NAME,
 )
@@ -101,15 +104,17 @@ class WatchCapture:
     """One verified watch-packet read for one admitted video: the selected
     packet id, its capture payload (``youtube_watch_capture.json``), the
     lake-relative pointer to that preserved payload file, and the
-    hash-checkable watch-HTML provenance from the packet manifest."""
+    hash-checkable canonical evidence provenance from the packet manifest."""
 
     packet_id: str
     video_id: str
     capture_timestamp: str
     payload: Mapping[str, Any]
     capture_json_pointer: str
-    watch_html_sha256: str
-    watch_byte_size: int
+    evidence_sha256: str
+    evidence_byte_size: int
+    evidence_hash_basis: str
+    capture_schema_version: str
 
 
 def discover_latest_watch_captures(
@@ -286,8 +291,11 @@ def build_youtube_watch_packet_metric_document(
         "source_inputs": [
             {
                 "source_pointer": captures[video_id].capture_json_pointer,
-                "sha256": captures[video_id].watch_html_sha256,
-                "role": "live YouTube watch packet (verified lake read; sha256 is the preserved watch HTML)",
+                "sha256": captures[video_id].evidence_sha256,
+                "role": (
+                    "live YouTube watch packet canonical evidence "
+                    f"({captures[video_id].evidence_hash_basis}; verified lake read)"
+                ),
             }
             for video_id in ordered_video_ids
         ],
@@ -396,11 +404,11 @@ def _load_watch_capture(data_root: "DataLakeRoot", packet_id: str) -> WatchCaptu
         preserved_by_name.setdefault(original_name, entry)
     capture_entry = preserved_by_name.get(CAPTURE_JSON_NAME)
     watch_entry = preserved_by_name.get(WATCH_HTML_NAME)
-    if capture_entry is None or watch_entry is None:
+    if capture_entry is None:
         raise WatchPacketMetricDocumentError(
             "invalid_watch_packet",
             packet_id,
-            f"packet does not preserve both {CAPTURE_JSON_NAME!r} and {WATCH_HTML_NAME!r}",
+            f"packet does not preserve {CAPTURE_JSON_NAME!r}",
         )
     try:
         payload = json.loads(loaded.bodies[capture_entry["file_id"]].decode("utf-8"))
@@ -418,6 +426,41 @@ def _load_watch_capture(data_root: "DataLakeRoot", packet_id: str) -> WatchCaptu
         raise WatchPacketMetricDocumentError(
             "invalid_watch_packet", packet_id, "capture payload lacks capture_timestamp"
         )
+    capture_schema_version = payload.get("capture_schema_version")
+    if capture_schema_version == CAPTURE_SCHEMA_VERSION:
+        retention = payload.get("source_response_retention")
+        retention = retention if isinstance(retention, Mapping) else {}
+        watch_retention = retention.get("watch_html")
+        comments_retention = retention.get("comment_pages")
+        watch_retention = watch_retention if isinstance(watch_retention, Mapping) else {}
+        comments_retention = comments_retention if isinstance(comments_retention, Mapping) else {}
+        if (
+            watch_retention.get("posture") != SELECTIVE_RETENTION_POSTURE
+            or comments_retention.get("posture") != SELECTIVE_RETENTION_POSTURE
+            or watch_entry is not None
+        ):
+            raise WatchPacketMetricDocumentError(
+                "invalid_watch_packet",
+                packet_id,
+                "selective v1 packet has inconsistent source-response retention posture",
+            )
+        evidence_entry = capture_entry
+        evidence_hash_basis = "source_captured_selective_payload_sha256"
+    elif capture_schema_version == LEGACY_CAPTURE_SCHEMA_VERSION:
+        if watch_entry is None:
+            raise WatchPacketMetricDocumentError(
+                "invalid_watch_packet",
+                packet_id,
+                f"legacy packet does not preserve {WATCH_HTML_NAME!r}",
+            )
+        evidence_entry = watch_entry
+        evidence_hash_basis = "source_captured_watch_html_sha256"
+    else:
+        raise WatchPacketMetricDocumentError(
+            "invalid_watch_packet",
+            packet_id,
+            f"unsupported capture_schema_version {capture_schema_version!r}",
+        )
     return WatchCapture(
         packet_id=packet_id,
         video_id=video_id,
@@ -426,8 +469,10 @@ def _load_watch_capture(data_root: "DataLakeRoot", packet_id: str) -> WatchCaptu
         capture_json_pointer=(
             f"raw/{raw_shard(packet_id)}/{packet_id}/{capture_entry['relative_packet_path']}"
         ),
-        watch_html_sha256=str(watch_entry["sha256"]),
-        watch_byte_size=int(watch_entry["size_bytes"]),
+        evidence_sha256=str(evidence_entry["sha256"]),
+        evidence_byte_size=int(evidence_entry["size_bytes"]),
+        evidence_hash_basis=evidence_hash_basis,
+        capture_schema_version=capture_schema_version,
     )
 
 
@@ -507,8 +552,10 @@ def _video_metric_row(
         "publish_date": metadata.get("publish_date"),
         "watch_url": capture.payload.get("watch_url"),
         "observed_at": capture.capture_timestamp,
-        "watch_html_sha256": capture.watch_html_sha256,
-        "watch_byte_size": capture.watch_byte_size,
+        "evidence_sha256": capture.evidence_sha256,
+        "evidence_byte_size": capture.evidence_byte_size,
+        "evidence_hash_basis": capture.evidence_hash_basis,
+        "capture_schema_version": capture.capture_schema_version,
         "metric_values": {
             metric: _observed_receipt_value(capture, metric)
             for metric in _ENGAGEMENT_METRIC_ORDER
@@ -567,9 +614,21 @@ def _metric_observation(
         "source_field": f"/metric_receipts/{metric}/value",
         "source_file": source_file,
         "source_row_id_or_none": f"{row['packet_id']}:{metric}",
-        "source_watch_html_sha256_or_none": row["watch_html_sha256"],
+        "source_evidence_sha256": row["evidence_sha256"],
+        "source_evidence_hash_basis": row["evidence_hash_basis"],
+        "source_evidence_byte_size": row["evidence_byte_size"],
+        "source_capture_schema_version": row["capture_schema_version"],
+        "source_watch_html_sha256_or_none": (
+            row["evidence_sha256"]
+            if row["evidence_hash_basis"] == "source_captured_watch_html_sha256"
+            else None
+        ),
         "source_shorts_html_sha256_or_none": None,
-        "source_watch_byte_size_or_none": row["watch_byte_size"],
+        "source_watch_byte_size_or_none": (
+            row["evidence_byte_size"]
+            if row["evidence_hash_basis"] == "source_captured_watch_html_sha256"
+            else None
+        ),
         "source_shorts_byte_size_or_none": None,
         "source_packet_id_or_none": row["packet_id"],
         "source_packet_pointer_or_none": None,

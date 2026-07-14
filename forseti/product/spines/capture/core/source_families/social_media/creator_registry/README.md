@@ -39,7 +39,8 @@ It is intentionally a folder, not one huge document. The parts update at
 different speeds and carry different authority:
 
 - `creator_registry_index_v0.json` is the current check-before-work list for
-  known public platform accounts and linked creator records.
+  known public platform accounts and linked creator records, plus the
+  deterministic account-level onboarding projection from committed Bronze.
 - `creator_public_handle_linkage_ledger_v0.json` is the identity/linkage ledger:
   public platform accounts, handle evidence, soft links, promoted links, and
   rejected links.
@@ -60,6 +61,11 @@ different speeds and carry different authority:
 - Metric observations, rollups, capture receipts, and future audience snapshots
   remain in their owning Capture/Silver producer records. They are not copied
   into the registry index as raw truth.
+
+Run `forseti-harness/runners/run_creator_registry_onboarding_refresh.py` after
+official captures to refresh `not_onboarded` / `onboarded` from exact committed
+packet evidence. The runner reads the lake but never writes it. Then run the
+profile-current materializer, which mirrors the same state for consumers.
 
 ## Placement
 

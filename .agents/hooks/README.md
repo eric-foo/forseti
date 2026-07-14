@@ -247,7 +247,10 @@ python .codex/hooks/forseti_guard_codex_adapter.py --selftest
    ```powershell
    pwsh .github/scripts/install-local-hooks.ps1
    ```
-   This sets `core.hooksPath` to `.githooks`, enabling:
+   This sets the effective `core.hooksPath` to `.githooks` in the active
+   worktree's config when `extensions.worktreeConfig` is enabled, otherwise in
+   clone-local config. Verification reads the effective value, so a foreign
+   higher-precedence worktree binding fails with both roots named. It enables:
    - `.githooks/pre-push` — blocks pushes targeting `main`, branch deletes, and
      non-fast-forward updates at Git's pre-push boundary, then mirrors the
      selected strict CI gates over the outgoing change (see the `pre_push_guard.py`

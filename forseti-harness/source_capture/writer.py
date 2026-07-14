@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import json
 import shutil
+from contextlib import nullcontext
 from pathlib import Path
 from typing import TYPE_CHECKING, Sequence
 
-from harness_utils import generate_ulid, hash_file, utc_now_z
+from harness_utils import generate_ulid, hash_file, staged_directory_publish, utc_now_z
 from source_capture.models import (
     OBLIGATION_CONTRACT_VERSION,
     SOURCE_CAPTURE_MANIFEST_VERSION,
@@ -96,121 +97,138 @@ def write_local_source_capture_packet(
             raise ValueError(f"input path is not a file: {path}")
 
     packet_id = generate_ulid()
+    final_output_directory: Path | None = None
     if data_root is not None:
         # Go-forward raw writes are staged off-tree, then atomically published to
         # the sharded write-once container <root>/raw/<packet_shard>/<packet_id>/ so
         # a partial packet never appears under raw/
         # (write-once + atomic publish per the write-boundary enforcement contract).
-        # output_directory stays available for legacy/test callers (incumbent path;
-        # migration of existing output is deferred).
-        output_directory = data_root.stage_raw_packet(packet_id)
-    assert output_directory is not None  # guaranteed by the exactly-one-target check above
+        materialization = nullcontext(data_root.stage_raw_packet(packet_id))
+    else:
+        assert output_directory is not None
+        final_output_directory = output_directory.resolve()
+        materialization = staged_directory_publish(final_output_directory)
 
-    _prepare_output_directory(output_directory)
-    raw_directory = output_directory / "raw"
-    raw_directory.mkdir(parents=True, exist_ok=True)
+    with materialization as materialization_directory:
+        output_directory = materialization_directory
+        _prepare_output_directory(output_directory)
+        raw_directory = output_directory / "raw"
+        raw_directory.mkdir(parents=True, exist_ok=True)
 
-    session_id = session_identity or generate_ulid()
-    captured_at = utc_now_z()
-    preserved_files = _copy_preserved_files(raw_directory, resolved_inputs)
-    packet_warnings = list(warnings or [])
-    packet_limitations = list(limitations or [])
+        session_id = session_identity or generate_ulid()
+        captured_at = utc_now_z()
+        preserved_files = _copy_preserved_files(raw_directory, resolved_inputs)
+        packet_warnings = list(warnings or [])
+        packet_limitations = list(limitations or [])
 
-    timing = PacketTiming(
-        source_publication_or_event=source_publication_or_event
-        or unknown_with_reason("local-file CLI did not receive source publication or event timing"),
-        source_edit_or_version=source_edit_or_version
-        or unknown_with_reason("local-file CLI did not receive source edit or version timing"),
-        capture_time=known_fact(captured_at),
-        archive_snapshot_time=archive_snapshot_time,
-        recapture_time=recapture_time
-        or not_applicable("first checkpoint local-file packet does not model an earlier capture by default"),
-        cutoff_posture=cutoff_posture
-        or unknown_with_reason("local-file CLI did not receive cutoff posture metadata"),
-    )
-    access = access_posture or known_fact("local_file_only")
-    archive = archive_history_posture or not_attempted(
-        "local-file CLI packages existing artifacts only and does not query archive or history services"
-    )
-    media = media_modality_posture or not_attempted(
-        "local-file CLI preserves supplied files but does not determine whether additional media capture was required"
-    )
-    recapture = re_capture_relationship or not_applicable(
-        "no re-capture relationship was supplied for this local packet"
-    )
-    packet_slices = (
-        list(source_slices)
-        if source_slices is not None
-        else [
-            SourceCaptureSlice(
-                slice_id="slice_01",
-                locator=source_locator,
-                timing=timing,
-                access_posture=access,
-                archive_history_posture=archive,
-                media_modality_posture=media,
-                re_capture_relationship=recapture,
-                limitations=packet_limitations,
-                warning_notes=packet_warnings,
-                preserved_file_ids=[item.file_id for item in preserved_files],
-            )
-        ]
-    )
-    if not packet_slices:
-        raise ValueError("at least one source slice is required")
+        timing = PacketTiming(
+            source_publication_or_event=source_publication_or_event
+            or unknown_with_reason(
+                "local-file CLI did not receive source publication or event timing"
+            ),
+            source_edit_or_version=source_edit_or_version
+            or unknown_with_reason("local-file CLI did not receive source edit or version timing"),
+            capture_time=known_fact(captured_at),
+            archive_snapshot_time=archive_snapshot_time,
+            recapture_time=recapture_time
+            or not_applicable(
+                "first checkpoint local-file packet does not model an earlier capture by default"
+            ),
+            cutoff_posture=cutoff_posture
+            or unknown_with_reason("local-file CLI did not receive cutoff posture metadata"),
+        )
+        access = access_posture or known_fact("local_file_only")
+        archive = archive_history_posture or not_attempted(
+            "local-file CLI packages existing artifacts only and does not query archive or history services"
+        )
+        media = media_modality_posture or not_attempted(
+            "local-file CLI preserves supplied files but does not determine whether additional media capture was required"
+        )
+        recapture = re_capture_relationship or not_applicable(
+            "no re-capture relationship was supplied for this local packet"
+        )
+        packet_slices = (
+            list(source_slices)
+            if source_slices is not None
+            else [
+                SourceCaptureSlice(
+                    slice_id="slice_01",
+                    locator=source_locator,
+                    timing=timing,
+                    access_posture=access,
+                    archive_history_posture=archive,
+                    media_modality_posture=media,
+                    re_capture_relationship=recapture,
+                    limitations=packet_limitations,
+                    warning_notes=packet_warnings,
+                    preserved_file_ids=[item.file_id for item in preserved_files],
+                )
+            ]
+        )
+        if not packet_slices:
+            raise ValueError("at least one source slice is required")
 
-    packet = SourceCapturePacket(
-        packet_id=packet_id,
-        manifest_version=SOURCE_CAPTURE_MANIFEST_VERSION,
-        obligation_contract_version=OBLIGATION_CONTRACT_VERSION,
-        source_family=source_family,
-        source_surface=source_surface,
-        source_locator=source_locator,
-        requested_decision_context=known_fact(decision_question),
-        capture_context=known_fact(capture_context),
-        actor_audience_context=actor_audience_context
-        or unknown_with_reason("actor or audience context was not supplied to the local-file CLI"),
-        capture_mode=capture_mode,
-        operator_category=operator_category,
-        session_identity=session_id,
-        visible_mode_changes=list(visible_mode_changes or []),
-        timing=timing,
-        access_posture=access,
-        archive_history_posture=archive,
-        media_modality_posture=media,
-        re_capture_relationship=recapture,
-        series_id=series_id,
-        cold_start_at=cold_start_at,
-        pre_coverage_history_posture=pre_coverage_history_posture,
-        intended_cadence=intended_cadence,
-        source_slices=packet_slices,
-        preserved_files=preserved_files,
-        warnings=packet_warnings,
-        limitations=packet_limitations,
-        receipt_metadata=ReceiptMetadata(
-            title="Source Capture Packet Receipt",
-            generated_at=captured_at,
-            summary=receipt_summary
-            or f"Local-file-only packet for {source_family} with {len(preserved_files)} preserved file(s).",
-            non_claims=list(receipt_non_claims if receipt_non_claims is not None else NON_CLAIMS),
-        ),
-    )
+        packet = SourceCapturePacket(
+            packet_id=packet_id,
+            manifest_version=SOURCE_CAPTURE_MANIFEST_VERSION,
+            obligation_contract_version=OBLIGATION_CONTRACT_VERSION,
+            source_family=source_family,
+            source_surface=source_surface,
+            source_locator=source_locator,
+            requested_decision_context=known_fact(decision_question),
+            capture_context=known_fact(capture_context),
+            actor_audience_context=actor_audience_context
+            or unknown_with_reason(
+                "actor or audience context was not supplied to the local-file CLI"
+            ),
+            capture_mode=capture_mode,
+            operator_category=operator_category,
+            session_identity=session_id,
+            visible_mode_changes=list(visible_mode_changes or []),
+            timing=timing,
+            access_posture=access,
+            archive_history_posture=archive,
+            media_modality_posture=media,
+            re_capture_relationship=recapture,
+            series_id=series_id,
+            cold_start_at=cold_start_at,
+            pre_coverage_history_posture=pre_coverage_history_posture,
+            intended_cadence=intended_cadence,
+            source_slices=packet_slices,
+            preserved_files=preserved_files,
+            warnings=packet_warnings,
+            limitations=packet_limitations,
+            receipt_metadata=ReceiptMetadata(
+                title="Source Capture Packet Receipt",
+                generated_at=captured_at,
+                summary=receipt_summary
+                or f"Local-file-only packet for {source_family} with {len(preserved_files)} preserved file(s).",
+                non_claims=list(
+                    receipt_non_claims if receipt_non_claims is not None else NON_CLAIMS
+                ),
+            ),
+        )
 
-    manifest_path = output_directory / "manifest.json"
-    receipt_path = output_directory / "receipt.md"
-    manifest_path.write_text(
-        f"{json.dumps(packet.model_dump(mode='json'), indent=2, sort_keys=True)}\n",
-        encoding="utf-8",
-    )
-    receipt_path.write_text(render_receipt(packet), encoding="utf-8", newline="\n")
-
-    if data_root is not None:
-        # Atomically publish the completed staging dir to raw/<packet_shard>/<packet_id>, then
-        # record the content-free availability fact (rebuildable from raw).
-        output_directory = data_root.publish_raw_packet(output_directory, packet_id)
         manifest_path = output_directory / "manifest.json"
         receipt_path = output_directory / "receipt.md"
-        data_root.record_availability(packet_id)
+        manifest_path.write_text(
+            f"{json.dumps(packet.model_dump(mode='json'), indent=2, sort_keys=True)}\n",
+            encoding="utf-8",
+        )
+        receipt_path.write_text(render_receipt(packet), encoding="utf-8", newline="\n")
+
+        if data_root is not None:
+            # Atomically publish the completed staging dir to raw/<packet_shard>/<packet_id>, then
+            # record the content-free availability fact (rebuildable from raw).
+            output_directory = data_root.publish_raw_packet(output_directory, packet_id)
+            manifest_path = output_directory / "manifest.json"
+            receipt_path = output_directory / "receipt.md"
+            data_root.record_availability(packet_id)
+
+    if final_output_directory is not None:
+        output_directory = final_output_directory
+        manifest_path = output_directory / "manifest.json"
+        receipt_path = output_directory / "receipt.md"
 
     return PacketWriteResult(
         output_directory=str(output_directory.resolve()),
