@@ -1,5 +1,20 @@
 # Silver Vault Legacy Record Convergence v0
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Forseti decision record (Silver Vault legacy-record convergence)
+scope: >
+  Binds the official Silver lanes, retired historical-lineage posture, reader
+  cutover, and re-derivation contract for product mentions and TikTok audience
+  evidence.
+use_when:
+  - Resolving current authority for product-mention or TikTok audience-evidence records.
+  - Checking how legacy grammar-B records remain audit-readable without reader fallback.
+stale_if:
+  - A later accepted decision changes these lane roles, reader selection, or re-derivation semantics.
+authority_boundary: retrieval_only
+```
+
 status: implemented contract for the product-mention and TikTok audience-evidence lanes
 
 authority: applies the Silver Vault Record Contract and Consumption Seam Contract to
