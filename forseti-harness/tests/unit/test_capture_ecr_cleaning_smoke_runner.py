@@ -6,7 +6,9 @@ from pathlib import Path
 
 import pytest
 
+import harness_utils
 from cleaning.models import CleaningPacket
+from ecr.models import EcrSourceSideReceiptArtifact
 from runners import run_capture_ecr_cleaning_smoke as smoke_runner
 from runners import run_cleaning_spine_periodic_audit as audit_runner
 from runners.run_capture_ecr_cleaning_smoke import (
@@ -139,6 +141,92 @@ def test_runner_writes_ecr_receipts_and_cleaning_packet_for_retail_and_reddit(
         for finding in summary["findings"]
     )
     assert "not_capture_execution" in summary["non_claims"]
+
+
+@pytest.mark.parametrize("failure_boundary", ["second_write", "third_write", "publish"])
+def test_smoke_cli_atomic_failure_leaves_no_final_set_and_retry_converges(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    failure_boundary: str,
+) -> None:
+    retail_packet_dir = _write_retail_packet_dir(tmp_path)
+    retail_projection_path = tmp_path / "retail_projection" / "retail_pdp_projection.json"
+    write_retail_pdp_projection(
+        packet_directory=retail_packet_dir,
+        output_path=retail_projection_path,
+    )
+    smoke_manifest_path = _write_smoke_manifest(
+        tmp_path,
+        retail_packet_dir=retail_packet_dir,
+        retail_projection_path=retail_projection_path,
+    )
+    output_dir = tmp_path / "smoke_outputs"
+    argv = [
+        "--smoke-manifest",
+        str(smoke_manifest_path),
+        "--output-dir",
+        str(output_dir),
+    ]
+
+    if failure_boundary in {"second_write", "third_write"}:
+        failed_write_number = 2 if failure_boundary == "second_write" else 3
+        original = smoke_runner._write_json
+        write_calls = 0
+
+        def fail_later_write(path: Path, payload: dict[str, object]) -> None:
+            nonlocal write_calls
+            write_calls += 1
+            if write_calls == failed_write_number:
+                raise OSError(f"injected output write {failed_write_number} failure")
+            original(path, payload)
+
+        monkeypatch.setattr(smoke_runner, "_write_json", fail_later_write)
+        restore = lambda: monkeypatch.setattr(smoke_runner, "_write_json", original)
+        expected_diagnostic = f"injected output write {failed_write_number} failure"
+    else:
+        original = harness_utils.os.rename
+
+        def fail_publish(*args: object, **kwargs: object) -> None:
+            raise OSError("injected smoke publish failure")
+
+        monkeypatch.setattr(harness_utils.os, "rename", fail_publish)
+        restore = lambda: monkeypatch.setattr(harness_utils.os, "rename", original)
+        expected_diagnostic = "injected smoke publish failure"
+
+    with pytest.raises(SystemExit) as exc_info:
+        smoke_runner.main(argv)
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert expected_diagnostic in captured.err
+    assert captured.out == ""
+    assert not output_dir.exists()
+    assert list(tmp_path.glob(".smoke_outputs.staging-*")) == []
+
+    restore()
+    assert smoke_runner.main(argv) == 0
+    capsys.readouterr()
+
+    assert sorted(path.name for path in output_dir.iterdir()) == [
+        "cleaning_packet.json",
+        "ecr_source_side_receipts.json",
+        "smoke_summary.json",
+    ]
+    cleaning_packet = CleaningPacket.model_validate_json(
+        (output_dir / "cleaning_packet.json").read_text(encoding="utf-8")
+    )
+    ecr_receipts = EcrSourceSideReceiptArtifact.model_validate_json(
+        (output_dir / "ecr_source_side_receipts.json").read_text(encoding="utf-8")
+    )
+    summary = _load_json(output_dir / "smoke_summary.json")
+    assert cleaning_packet.handles
+    assert len(ecr_receipts.receipts) == summary["counts"]["ecr_receipts"] == 1
+    assert set(summary["output_paths"].values()) == {
+        str(output_dir / "ecr_source_side_receipts.json"),
+        str(output_dir / "cleaning_packet.json"),
+        str(output_dir / "smoke_summary.json"),
+    }
 
 
 def test_runner_preserves_retail_projection_residuals_in_cleaning_handle(
@@ -942,6 +1030,9 @@ def test_runner_refuses_empty_manifest_and_existing_outputs(tmp_path: Path) -> N
             smoke_manifest_path=smoke_manifest_path,
             output_dir=output_dir,
         )
+
+    assert (output_dir / "cleaning_packet.json").read_text(encoding="utf-8") == "{}\n"
+    assert list(tmp_path.glob(".smoke_outputs.staging-*")) == []
 
 
 def test_retail_projection_slice_file_mismatch_refuses(tmp_path: Path) -> None:
