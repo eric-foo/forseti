@@ -9,7 +9,7 @@ scope: >
 use_when:
   - Reviewing the TikTok grid source-surface fence and legacy writer retirement.
   - Hardening the named implementation diff before Chief Architect adjudication.
-authority_boundary: prompt_only
+authority_boundary: retrieval_only
 ```
 
 ## What This Is For
