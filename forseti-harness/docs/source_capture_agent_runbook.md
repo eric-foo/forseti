@@ -199,6 +199,17 @@ marker does not clear, scripted actions stay suppressed and capture fails closed
 The agent must not drag or solve the puzzle, and any manual owner action is
 source-access intervention rather than clean capture.
 
+Before implementing or revising a live-browser route whose correctness depends
+on a new or changed UI transition (selector, control, navigation mode, or
+post-action state), run a bounded retained-session transition probe before
+patching runtime. Independently prove that the exact action target materializes
+and that its required postcondition holds without acting on an unrelated
+control. Do not begin end-to-end dogfood until every changed transition passes;
+a failed probe returns to diagnosis, not a partial runtime patch followed by
+repeated dogfood. This gate does not apply to pure parsing or ranking changes, or
+to a route whose target and postcondition already have current successful
+evidence.
+
 An account-risk warning, unexpected logged-out/comment-auth wall, or `/login`
 redirect is different from a CAPTCHA. It is a terminal account-safety stop:
 scripted actions are suppressed before the next pointer action, automatic retry
