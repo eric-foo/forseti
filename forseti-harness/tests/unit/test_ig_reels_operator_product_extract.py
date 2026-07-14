@@ -9,7 +9,6 @@ import pytest
 
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_SET_LANE
 from data_lake.root import DataLakeRoot
-from schemas.audience_comment_models import AudienceComment
 from runners import run_ig_reels_operator_product_extract as operator_runner
 from runners.run_ig_reels_operator_product_extract import (
     OPERATOR_BACKEND,
@@ -18,13 +17,7 @@ from runners.run_ig_reels_operator_product_extract import (
     import_operator_response,
 )
 from runners.run_ig_reels_product_extract import discover_transcript_candidates
-from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
-from source_capture.ig_reels_deep_capture_lake import (
-    DEEP_CAPTURE_SET_LANE,
-    REEL_TRANSCRIPT_LANE,
-    deep_capture_record_id,
-    write_reel_deep_capture_into_lake,
-)
+from source_capture.transcript.ig_reels_audio_packet import write_ig_reels_asr_transcript
 
 _SHORTCODE = "DZ69knlsDb1"
 
@@ -51,35 +44,27 @@ def _item(**over: Any) -> dict[str, Any]:
     return base
 
 
-def _commit_ig_deep_capture(data_root: DataLakeRoot) -> str:
-    result = ReelDeepCaptureResult(
-        reel_shortcode=_SHORTCODE,
-        comments=(
-            AudienceComment(
-                comment_id="c1",
-                reel_shortcode=_SHORTCODE,
-                author_username="zoe",
-                text="works",
-                like_count=1,
-                created_at_unix=1782400000,
-            ),
+def _commit_ig_audio_transcript(data_root: DataLakeRoot) -> tuple[str, str]:
+    code, message = write_ig_reels_asr_transcript(
+        shortcode=_SHORTCODE,
+        audio_bytes=b"operator-product-fixture",
+        audio_ext="m4a",
+        transcribe_fn=lambda _path: (
+            "transcribed",
+            _cues(),
+            {"tool": "faster-whisper", "model": "test"},
         ),
-        transcript_posture="transcribed",
-        transcript_cues=tuple(_cues()),
-        media_url_used="https://x.fbcdn.net/o1/v/clip.mp4",
-    )
-    write_reel_deep_capture_into_lake(
         data_root=data_root,
-        result=result,
-        generated_at="2026-06-29T00:01:00Z",
     )
-    return deep_capture_record_id(result)
+    assert code == 0
+    record_path = Path(message.split(" ")[0])
+    return record_path.parts[-3], record_path.name
 
 
 def test_operator_packet_export_and_import_writes_product_mentions(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
-    source_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    packet_id, asr_record_id = _commit_ig_audio_transcript(data_root)
+    source_key = f"{packet_id}:asr:{asr_record_id}"
     packet_path = tmp_path / "operator_packet.json"
 
     exported = export_operator_packet(
@@ -92,7 +77,7 @@ def test_operator_packet_export_and_import_writes_product_mentions(tmp_path) -> 
     assert exported["transcript_source_key"] == source_key
     assert packet_path.is_file()
     packet = json.loads(packet_path.read_text(encoding="utf-8"))
-    assert packet["transcript_identity"]["source_route"] == "deep_capture_render_audio"
+    assert packet["transcript_identity"]["source_route"] == "standalone_audio_packet"
     assert "Return ONLY the JSON array" in packet["prompt"]
 
     imported = import_operator_response(
@@ -107,9 +92,9 @@ def test_operator_packet_export_and_import_writes_product_mentions(tmp_path) -> 
     assert record["provenance"]["extraction_backend"] == OPERATOR_BACKEND
     assert record["provenance"]["extraction_provenance"]["operator_medium"] == "codex_subscription_or_manual_json"
     assert record["provenance"]["transcript_source_key"] == source_key
-    assert record["provenance"]["source_route"] == "deep_capture_render_audio"
-    assert record["derived_refs"][0]["lane"] == REEL_TRANSCRIPT_LANE
-    assert record["derived_refs"][0]["record_set_completion_lane"] == DEEP_CAPTURE_SET_LANE
+    assert record["provenance"]["source_route"] == "standalone_audio_packet"
+    assert record["derived_refs"][0]["lane"] == "transcript_asr"
+    assert record["derived_refs"][0]["record_set_completion_lane"] is None
 
     second = import_operator_response(
         data_root=data_root,
@@ -121,8 +106,8 @@ def test_operator_packet_export_and_import_writes_product_mentions(tmp_path) -> 
 
 def test_operator_import_rejects_stale_packet_digest(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
-    source_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    packet_id, asr_record_id = _commit_ig_audio_transcript(data_root)
+    source_key = f"{packet_id}:asr:{asr_record_id}"
     exported = export_operator_packet(data_root=data_root, transcript_source_key=source_key)
     packet = exported["packet"]
     packet["transcript_content_sha256"] = "0" * 64
@@ -137,8 +122,8 @@ def test_operator_import_rejects_stale_packet_digest(tmp_path) -> None:
 
 def test_build_operator_packet_carries_full_cues_without_writing(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
-    source_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    packet_id, asr_record_id = _commit_ig_audio_transcript(data_root)
+    source_key = f"{packet_id}:asr:{asr_record_id}"
     exported = export_operator_packet(data_root=data_root, transcript_source_key=source_key)
     packet = exported["packet"]
 
@@ -155,8 +140,8 @@ def test_build_operator_packet_carries_full_cues_without_writing(tmp_path) -> No
 
 def test_operator_cli_returns_nonzero_for_partial_cleanup(tmp_path, monkeypatch, capsys) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
-    source_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    packet_id, asr_record_id = _commit_ig_audio_transcript(data_root)
+    source_key = f"{packet_id}:asr:{asr_record_id}"
     packet = export_operator_packet(data_root=data_root, transcript_source_key=source_key)["packet"]
     imported = import_operator_response(
         data_root=data_root,

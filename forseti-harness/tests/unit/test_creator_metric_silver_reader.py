@@ -10,6 +10,7 @@ drift. The committed view, the seeds, and CI are untouched.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -29,10 +30,21 @@ from capture_spine.creator_profile_current.silver_subject_ref import (
     LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY,
 )
 from data_lake.root import DataLakeRoot
+from _creator_metric_silver_fixtures import commit_raw_packet
 
-PACKET_ID = "packet_fixture"
+PACKET_ID = "01J00000000000000000000002"
+RAW_BODY = b'{"fixture":"creator metric reader"}'
 GENERATED_AT = "2026-06-30T00:02:00Z"
 SEED_WRAPPER = "instagram_reels_creator_metric_seed"
+
+
+def _raw_anchor() -> dict[str, str]:
+    return {
+        "file_id": "file_01",
+        "relative_packet_path": "raw/01.json",
+        "sha256": hashlib.sha256(RAW_BODY).hexdigest(),
+        "hash_basis": "raw_stored_bytes",
+    }
 
 
 def _ledger_entry(account_id: str, handle: str) -> dict:
@@ -65,12 +77,7 @@ def _profile_row(username: str, value: int, capture_time: str) -> dict:
         "capture_time": capture_time,
         "coverage_window": {"start": None, "end": capture_time},
         "raw_ref": {"packet_id": PACKET_ID, "slice_id": "ig_reels_profile_00"},
-        "raw_anchor": {
-            "file_id": "file_01",
-            "relative_packet_path": "raw/01.json",
-            "sha256": "a" * 64,
-            "hash_basis": "raw_stored_bytes",
-        },
+        "raw_anchor": _raw_anchor(),
         "chosen_source_surface": "web_profile_info_json_metadata",
         "source_surface_count_candidates": [],
         "source_publication_or_event": None,
@@ -92,12 +99,7 @@ def _reel_row(username: str, shortcode: str, metric: str, value: int, capture_ti
         "capture_time": capture_time,
         "coverage_window": {"start": None, "end": capture_time},
         "raw_ref": {"packet_id": PACKET_ID, "slice_id": "ig_reels_grid_01"},
-        "raw_anchor": {
-            "file_id": "file_01",
-            "relative_packet_path": "raw/01.json",
-            "sha256": "a" * 64,
-            "hash_basis": "raw_stored_bytes",
-        },
+        "raw_anchor": _raw_anchor(),
         "chosen_source_surface": "clips_user_json_metadata",
         "source_surface_count_candidates": [],
         "source_publication_or_event": capture_time,
@@ -117,6 +119,7 @@ def _run(tmp_path: Path):
     projection = tmp_path / "projection.json"
     projection.write_text(json.dumps({"packet_id": PACKET_ID, "rows": _projection_rows()}), encoding="utf-8")
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    commit_raw_packet(data_root, packet_id=PACKET_ID, body=RAW_BODY)
     result = derive_creator_metric_silver_records_from_projections(
         data_root=data_root,
         projection_paths=[projection],
@@ -230,6 +233,7 @@ def _rollup_record(
         encoding="utf-8",
     )
     data_root = DataLakeRoot.for_test(base / "lake")
+    commit_raw_packet(data_root, packet_id=PACKET_ID, body=RAW_BODY)
     result = derive_creator_metric_silver_records_from_projections(
         data_root=data_root,
         projection_paths=[projection],

@@ -45,7 +45,9 @@ from capture_spine.creator_profile_current.silver_metric_snapshot import (
     validate_snapshot,
 )
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
-    derive_youtube_creator_metric_silver_records_from_seed_file,
+    DEFAULT_YOUTUBE_SEED_PATH,
+    YOUTUBE_SEED_WRAPPER_KEY,
+    derive_youtube_creator_metric_silver_records_from_seed,
 )
 from data_lake.root import DataLakeRoot
 from runners.run_creator_metric_rollup_snapshot import (
@@ -55,6 +57,7 @@ from runners.run_creator_metric_rollup_snapshot import (
     run_snapshot,
 )
 from runners.run_live_lake_freshness_gate import main as run_freshness_gate_main
+from runners import run_youtube_creator_metric_rollup_producer as youtube_producer_runner
 from runners.run_youtube_creator_metric_rollup_producer import (
     DEFAULT_ACCOUNT_LEDGER as _YT_ACCOUNT_LEDGER,
     _committed_seed_body as _committed_youtube_seed_body,
@@ -65,6 +68,7 @@ from runners.run_youtube_creator_metric_rollup_producer import (
 )
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
+from _creator_metric_silver_fixtures import materialize_youtube_seed_sources
 
 IG_ACCOUNT = "acct_ig_reels_001"
 IG_HANDLE = "hyram"
@@ -128,9 +132,13 @@ def _ig_producer_ledger(account_id: str, handle: str) -> dict:
     }
 
 
-def _ig_projection_rows(packet_id: str, username: str, views: tuple[int, int]) -> list[dict]:
+def _ig_projection_rows(
+    packet_id: str,
+    username: str,
+    views: tuple[int, int],
+    raw_anchor: dict[str, str],
+) -> list[dict]:
     cap = "2026-06-29T00:01:00Z"
-    raw_anchor = {"file_id": "f1", "relative_packet_path": "raw/01.json", "sha256": "a" * 64, "hash_basis": "raw_stored_bytes"}
 
     def reel(shortcode: str, metric: str, value: int) -> dict:
         return {
@@ -204,9 +212,21 @@ def _write_ig_rollup(
         capture_context="creator metric snapshot test",
     )
     packet_id = result.packet.packet_id
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    raw_anchor = {
+        "file_id": preserved["file_id"],
+        "relative_packet_path": preserved["relative_packet_path"],
+        "sha256": preserved["sha256"],
+        "hash_basis": preserved["hash_basis"],
+    }
     projection = tmp_path / f"ig_projection_{slot}.json"
     projection.write_text(
-        json.dumps({"packet_id": packet_id, "rows": _ig_projection_rows(packet_id, handle, views)}),
+        json.dumps(
+            {
+                "packet_id": packet_id,
+                "rows": _ig_projection_rows(packet_id, handle, views, raw_anchor),
+            }
+        ),
         encoding="utf-8",
     )
     derive_creator_metric_silver_records_from_projections(
@@ -229,9 +249,18 @@ def _ig_snapshot(data_root, generated_at, prior_manifest=None):
 
 # -- YouTube (account-anchored) end-to-end -----------------------------------
 
+def _write_yt_rollups(data_root: DataLakeRoot):
+    seed_document = json.loads(DEFAULT_YOUTUBE_SEED_PATH.read_text(encoding="utf-8-sig"))
+    seed_document = materialize_youtube_seed_sources(
+        data_root, seed_document, wrapper_key=YOUTUBE_SEED_WRAPPER_KEY
+    )
+    return derive_youtube_creator_metric_silver_records_from_seed(
+        data_root=data_root, seed_document=seed_document
+    )
+
 def test_bootstrap_account_anchored_snapshot_and_no_drift(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    result = derive_youtube_creator_metric_silver_records_from_seed_file(data_root=data_root)
+    result = _write_yt_rollups(data_root)
     accounts = sorted({_account_of(r) for r in result.rollup_records})
 
     run = generate_creator_metric_rollup_snapshot(
@@ -261,7 +290,7 @@ def test_bootstrap_account_anchored_snapshot_and_no_drift(tmp_path: Path) -> Non
 
 def test_metric_rollups_carry_no_provenance_keys(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    result = derive_youtube_creator_metric_silver_records_from_seed_file(data_root=data_root)
+    result = _write_yt_rollups(data_root)
     accounts = sorted({_account_of(r) for r in result.rollup_records})
     run = generate_creator_metric_rollup_snapshot(
         data_root, account_ledger=_yt_discovery_ledger(*accounts), platform="youtube", snapshot_generated_at=LATE
@@ -274,7 +303,7 @@ def test_metric_rollups_carry_no_provenance_keys(tmp_path: Path) -> None:
 def test_platform_filter_excludes_other_platform(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _write_ig_rollup(data_root, tmp_path, slot="a", generated_at=LATE)
-    yt = derive_youtube_creator_metric_silver_records_from_seed_file(data_root=data_root)
+    yt = _write_yt_rollups(data_root)
     yt_account = sorted({_account_of(r) for r in yt.rollup_records})[0]
     # ask for an instagram snapshot but pass a ledger holding BOTH platforms;
     # only the IG account is covered.
@@ -582,9 +611,23 @@ def test_ig_lake_path_rollups_equal_seed_builder_no_drift(tmp_path: Path) -> Non
         decision_question="equivalence",
         capture_context="no-drift equivalence gate",
     ).packet.packet_id
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    raw_anchor = {
+        "file_id": preserved["file_id"],
+        "relative_packet_path": preserved["relative_packet_path"],
+        "sha256": preserved["sha256"],
+        "hash_basis": preserved["hash_basis"],
+    }
     projection = tmp_path / "ig_projection.json"
     projection.write_text(
-        json.dumps({"packet_id": packet_id, "rows": _ig_projection_rows(packet_id, IG_HANDLE, (100, 300))}),
+        json.dumps(
+            {
+                "packet_id": packet_id,
+                "rows": _ig_projection_rows(
+                    packet_id, IG_HANDLE, (100, 300), raw_anchor
+                ),
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -614,7 +657,9 @@ def test_ig_lake_path_rollups_equal_seed_builder_no_drift(tmp_path: Path) -> Non
     assert snapshot_rollups == seed_rollups
 
 
-def test_youtube_capture_fed_lake_path_rollups_equal_committed_seed_no_drift(tmp_path: Path) -> None:
+def test_youtube_capture_fed_lake_path_rollups_equal_committed_seed_no_drift(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Capture-fed no-drift gate (CI, lake-free). YouTube's review-input captures
     ARE committed (unlike IG's projections, which are absent from the repo), so
     this proves a strong, account-for-account claim against the REAL registry data:
@@ -633,7 +678,21 @@ def test_youtube_capture_fed_lake_path_rollups_equal_committed_seed_no_drift(tmp
     fields are deliberately outside the no-drift contract."""
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
 
-    # capture-fed adapter: builder(committed captures) -> producer -> lake -> snapshot
+    # Capture-fed adapter: run the real builder over committed captures, then
+    # rebind only its private-lake provenance to verified temp-lake packet bytes.
+    real_builder = youtube_producer_runner.build_youtube_shorts_fragrance_creator_metric_seed_from_files
+
+    def materialized_builder(**kwargs):  # noqa: ANN003
+        document = real_builder(**kwargs)
+        return materialize_youtube_seed_sources(
+            data_root, document, wrapper_key=YOUTUBE_SEED_WRAPPER_KEY
+        )
+
+    monkeypatch.setattr(
+        youtube_producer_runner,
+        "build_youtube_shorts_fragrance_creator_metric_seed_from_files",
+        materialized_builder,
+    )
     result = run_youtube_producer(
         data_root,
         source_files=_committed_youtube_source_files(),

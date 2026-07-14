@@ -49,7 +49,7 @@ def _deep_result(
     )
 
 
-def test_orchestrator_exports_operator_packet_and_marks_lane_blocked(tmp_path) -> None:
+def test_orchestrator_surfaces_retired_deep_capture_and_blocks_downstream(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     packet_out = tmp_path / "operator_packet.json"
 
@@ -63,15 +63,6 @@ def test_orchestrator_exports_operator_packet_and_marks_lane_blocked(tmp_path) -
             result=result,
             generated_at="2026-06-29T00:01:00Z",
         )
-        ranked = RankedReel(
-            rank=1,
-            shortcode=_SHORTCODE,
-            engagement=10,
-            like_count=8,
-            comment_count=2,
-            view_count=100,
-        )
-        return [ranked], [CapturedReel(ranked=ranked, result=result, persisted="persisted: ok")]
 
     def projection_builder(**_kwargs):  # noqa: ANN001
         return {
@@ -95,33 +86,16 @@ def test_orchestrator_exports_operator_packet_and_marks_lane_blocked(tmp_path) -
     receipts = {receipt["lane"]: receipt for receipt in summary.to_dict()["receipts"]}
     assert summary.complete is False
     assert receipts["grid"]["status"] == "succeeded"
-    assert receipts["deep_capture"]["status"] == "succeeded"
-    expected_source_key = f"{_SHORTCODE}:asr:{deep_capture_record_id(_deep_result())}"
-    selected = receipts["deep_capture"]["outputs"]["selected_targets"]
-    assert [t["platform_item_id"] for t in selected] == [_SHORTCODE]
-    assert selected[0]["transcript_source_key"] == expected_source_key
-    assert receipts["deep_capture"]["outputs"]["eligible_count"] == 1
-    assert receipts["product_extract"]["status"] == "blocked_operator_action_required"
-    product_targets = receipts["product_extract"]["outputs"]["targets"]
-    assert product_targets[0]["status"] == "operator_packet_exported"
-    assert product_targets[0]["transcript_source_key"] == expected_source_key
-    assert receipts["projection"]["status"] == "incomplete"
-    derived = tmp_path / f"operator_packet.{_SHORTCODE}.json"
-    assert derived.is_file()
-    packet = json.loads(derived.read_text(encoding="utf-8"))
-    assert packet["transcript_identity"]["video_id"] == _SHORTCODE
+    assert receipts["deep_capture"]["status"] == "failed"
+    assert "eligible_bronze_required" in receipts["deep_capture"]["message"]
+    assert receipts["product_extract"]["status"] == "not_attempted"
+    assert receipts["projection"]["status"] == "not_attempted"
+    assert not any(path.name.startswith("operator_packet") for path in tmp_path.iterdir())
 
 
-def test_orchestrator_uses_new_exact_deep_capture_key_when_old_same_shortcode_exists(tmp_path) -> None:
+def test_orchestrator_does_not_create_exact_key_for_retired_deep_capture(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    old_result = _deep_result(comment_id="old")
-    write_reel_deep_capture_into_lake(
-        data_root=data_root,
-        result=old_result,
-        generated_at="2026-06-29T00:00:00Z",
-    )
     new_result = _deep_result(comment_id="new")
-    packet_out = tmp_path / "operator_packet.json"
 
     def deep_capture_runner(**_kwargs):  # noqa: ANN001
         write_reel_deep_capture_into_lake(
@@ -129,36 +103,28 @@ def test_orchestrator_uses_new_exact_deep_capture_key_when_old_same_shortcode_ex
             result=new_result,
             generated_at="2026-06-29T00:01:00Z",
         )
-        ranked = RankedReel(rank=1, shortcode=_SHORTCODE, engagement=1, like_count=1, comment_count=0)
-        return [ranked], [CapturedReel(ranked=ranked, result=new_result, persisted="persisted: ok")]
 
     summary = run_ig_reels_lane_orchestrator(
         data_root=data_root,
         handle="creator",
-        lanes=("deep_capture", "product_extract"),
-        operator_packet_out=packet_out,
+        lanes=("deep_capture",),
         deep_capture_runner=deep_capture_runner,
     )
 
     receipts = {receipt["lane"]: receipt for receipt in summary.to_dict()["receipts"]}
-    new_key = f"{_SHORTCODE}:asr:{deep_capture_record_id(new_result)}"
-    old_key = f"{_SHORTCODE}:asr:{deep_capture_record_id(old_result)}"
-    selected = receipts["deep_capture"]["outputs"]["selected_targets"]
-    assert selected[0]["transcript_source_key"] == new_key
-    assert receipts["product_extract"]["outputs"]["targets"][0]["transcript_source_key"] == new_key
-    derived = tmp_path / f"operator_packet.{_SHORTCODE}.json"
-    assert json.loads(derived.read_text(encoding="utf-8"))["transcript_identity"]["transcript_source_key"] == new_key
-    assert old_key != new_key
+    assert receipts["deep_capture"]["status"] == "failed"
+    assert "eligible_bronze_required" in receipts["deep_capture"]["message"]
+    record_id = deep_capture_record_id(new_result)
+    assert not data_root.record_path(
+        subtree="derived",
+        raw_anchor=_SHORTCODE,
+        lane="silver__capture__reel_transcript",
+        record_id=record_id,
+    ).exists()
 
 
 def test_orchestrator_does_not_fall_back_to_old_transcript_after_unpersisted_capture(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    old_result = _deep_result(comment_id="old")
-    write_reel_deep_capture_into_lake(
-        data_root=data_root,
-        result=old_result,
-        generated_at="2026-06-29T00:00:00Z",
-    )
     new_result = _deep_result(comment_id="new")
     packet_out = tmp_path / "operator_packet.json"
 
@@ -217,53 +183,35 @@ def test_orchestrator_requires_packet_path_for_operator_export(tmp_path) -> None
     assert receipt["residuals"] == ["ig_product_operator_packet_output_path_absent"]
 
 
-def test_orchestrator_keeps_explicit_target_when_deep_capture_selects_other_reel(tmp_path) -> None:
+def test_orchestrator_keeps_retired_capture_failure_visible_for_explicit_target(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    explicit_result = _deep_result(_SHORTCODE, comment_id="explicit")
-    write_reel_deep_capture_into_lake(
-        data_root=data_root,
-        result=explicit_result,
-        generated_at="2026-06-29T00:00:00Z",
-    )
     captured_shortcode = "DaALKgOsWn0"
     captured_result = _deep_result(captured_shortcode, comment_id="captured")
-    packet_out = tmp_path / "operator_packet.json"
 
     def deep_capture_runner(**_kwargs):  # noqa: ANN001
-        write_reel_deep_capture_into_lake(
-            data_root=data_root,
-            result=captured_result,
-            generated_at="2026-06-29T00:01:00Z",
-        )
         ranked = RankedReel(rank=1, shortcode=captured_shortcode, engagement=1, like_count=1, comment_count=0)
-        return [ranked], [CapturedReel(ranked=ranked, result=captured_result, persisted="persisted: ok")]
-
-    def projection_builder(**kwargs):  # noqa: ANN001
-        assert kwargs["platform_item_id"] == _SHORTCODE
-        return {"behavioral_completeness": {"status": "complete", "complete": True, "residuals": []}}
+        return [ranked], [
+            CapturedReel(
+                ranked=ranked,
+                result=captured_result,
+                persisted="persist-failed: ValueError: eligible_bronze_required",
+            )
+        ]
 
     summary = run_ig_reels_lane_orchestrator(
         data_root=data_root,
         handle="creator",
-        lanes=("deep_capture", "product_extract", "projection"),
+        lanes=("deep_capture",),
         platform_item_id=_SHORTCODE,
-        operator_packet_out=packet_out,
         deep_capture_runner=deep_capture_runner,
-        projection_builder=projection_builder,
     )
 
     receipts = {receipt["lane"]: receipt for receipt in summary.to_dict()["receipts"]}
-    explicit_key = f"{_SHORTCODE}:asr:{deep_capture_record_id(explicit_result)}"
-    captured_key = f"{captured_shortcode}:asr:{deep_capture_record_id(captured_result)}"
-    # The lane still fans out its OWN eligible reel (the captured one); the explicit selector then
-    # pins the explicit shortcode for the downstream lanes and flags the divergence.
-    assert receipts["deep_capture"]["outputs"]["selected_targets"][0]["transcript_source_key"] == captured_key
-    assert receipts["deep_capture"]["residuals"] == [
-        f"deep_capture_target_differs_from_explicit_platform_item:{_SHORTCODE}:{captured_shortcode}"
-    ]
-    assert receipts["product_extract"]["outputs"]["targets"][0]["transcript_source_key"] == explicit_key
-    derived = tmp_path / f"operator_packet.{_SHORTCODE}.json"
-    assert json.loads(derived.read_text(encoding="utf-8"))["transcript_identity"]["video_id"] == _SHORTCODE
+    deep = receipts["deep_capture"]
+    assert deep["status"] == "failed"
+    assert deep["outputs"]["persisted_count"] == 0
+    assert deep["outputs"]["selected_targets"] == []
+    assert any("eligible_bronze_required" in residual for residual in deep["residuals"])
 
 
 def test_orchestrator_fans_out_every_extraction_eligible_reel(tmp_path) -> None:
@@ -278,18 +226,16 @@ def test_orchestrator_fans_out_every_extraction_eligible_reel(tmp_path) -> None:
     ranked_results = [rank1, rank2, rank3, rank4]
 
     def deep_capture_runner(**_kwargs):  # noqa: ANN001
-        for result in ranked_results:
-            write_reel_deep_capture_into_lake(
-                data_root=data_root,
-                result=result,
-                generated_at="2026-06-29T00:01:00Z",
-            )
         ranked = [
             RankedReel(rank=index, shortcode=result.reel_shortcode, engagement=10 - index, like_count=1, comment_count=1)
             for index, result in enumerate(ranked_results, start=1)
         ]
         captured = [
-            CapturedReel(ranked=ranked[index], result=result, persisted="persisted: ok")
+            CapturedReel(
+                ranked=ranked[index],
+                result=result,
+                persisted="persist-failed: ValueError: eligible_bronze_required",
+            )
             for index, result in enumerate(ranked_results)
         ]
         return ranked, captured
@@ -312,22 +258,17 @@ def test_orchestrator_fans_out_every_extraction_eligible_reel(tmp_path) -> None:
 
     receipts = {receipt["lane"]: receipt for receipt in summary.to_dict()["receipts"]}
     deep = receipts["deep_capture"]["outputs"]
-    assert deep["persisted_count"] == 4
-    assert deep["eligible_count"] == 2
-    assert [t["platform_item_id"] for t in deep["selected_targets"]] == ["RANK2TRANS", "RANK4TRANS"]
+    assert receipts["deep_capture"]["status"] == "failed"
+    assert deep["persisted_count"] == 0
+    assert deep["eligible_count"] == 0
+    assert deep["selected_targets"] == []
     residuals = receipts["deep_capture"]["residuals"]
-    assert any(r.startswith("deep_capture_complete_not_extraction_eligible:RANK1RENDER:") for r in residuals)
-    assert any(r.startswith("deep_capture_complete_not_extraction_eligible:RANK3NOSPCH:") for r in residuals)
-    assert "orchestrator_product_projection_fan_out_targets:RANK2TRANS,RANK4TRANS" in residuals
+    assert sum("eligible_bronze_required" in residual for residual in residuals) == 4
 
-    # Both eligible reels are projected and packet-exported, in rank order; the empty top reel is neither.
-    assert projected == ["RANK2TRANS", "RANK4TRANS"]
-    assert receipts["product_extract"]["status"] == "blocked_operator_action_required"
-    product_ids = {t["video_id"] for t in receipts["product_extract"]["outputs"]["targets"]}
-    assert product_ids == {"RANK2TRANS", "RANK4TRANS"}
-    assert (tmp_path / "operator_packet.RANK2TRANS.json").is_file()
-    assert (tmp_path / "operator_packet.RANK4TRANS.json").is_file()
-    assert not (tmp_path / "operator_packet.RANK1RENDER.json").exists()
+    assert projected == []
+    assert receipts["product_extract"]["status"] == "not_attempted"
+    assert receipts["projection"]["status"] == "not_attempted"
+    assert not any(path.name.startswith("operator_packet") for path in tmp_path.iterdir())
 
 
 def test_orchestrator_fan_out_keeps_content_empty_when_no_reel_is_eligible(tmp_path) -> None:
@@ -339,19 +280,21 @@ def test_orchestrator_fan_out_keeps_content_empty_when_no_reel_is_eligible(tmp_p
     second = _deep_result("EMPTYTWO", comment_id="e2", posture="no_audio_handle", cues=[])
 
     def deep_capture_runner(**_kwargs):  # noqa: ANN001
-        for result in (first, second):
-            write_reel_deep_capture_into_lake(
-                data_root=data_root,
-                result=result,
-                generated_at="2026-06-29T00:01:00Z",
-            )
         ranked = [
             RankedReel(rank=1, shortcode="EMPTYONE", engagement=2, like_count=1, comment_count=1),
             RankedReel(rank=2, shortcode="EMPTYTWO", engagement=1, like_count=1, comment_count=0),
         ]
         return ranked, [
-            CapturedReel(ranked=ranked[0], result=first, persisted="persisted: ok"),
-            CapturedReel(ranked=ranked[1], result=second, persisted="persisted: ok"),
+            CapturedReel(
+                ranked=ranked[0],
+                result=first,
+                persisted="persist-failed: ValueError: eligible_bronze_required",
+            ),
+            CapturedReel(
+                ranked=ranked[1],
+                result=second,
+                persisted="persist-failed: ValueError: eligible_bronze_required",
+            ),
         ]
 
     summary = run_ig_reels_lane_orchestrator(
@@ -364,7 +307,8 @@ def test_orchestrator_fan_out_keeps_content_empty_when_no_reel_is_eligible(tmp_p
     )
 
     receipts = {receipt["lane"]: receipt for receipt in summary.to_dict()["receipts"]}
-    assert receipts["deep_capture"]["outputs"]["persisted_count"] == 2
+    assert receipts["deep_capture"]["status"] == "failed"
+    assert receipts["deep_capture"]["outputs"]["persisted_count"] == 0
     assert receipts["deep_capture"]["outputs"]["eligible_count"] == 0
     assert receipts["deep_capture"]["outputs"]["selected_targets"] == []
     assert receipts["product_extract"]["status"] == "not_attempted"

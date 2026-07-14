@@ -165,6 +165,7 @@ flag-only. Do not silently widen this set.
 
 - `forseti-harness/data_lake/lane_registry.py`
 - `forseti-harness/source_capture/ig_reels_deep_capture_lake.py`
+- `forseti-harness/runners/run_source_capture_ig_reels_creator_deep_capture.py`
 - `docs/decisions/silver_vault_legacy_record_convergence_v0.md`
 
 ### `[retrieval-home]`
@@ -179,16 +180,28 @@ flag-only. Do not silently widen this set.
 - `forseti-harness/tests/test_data_lake_rebuild_proof.py`
 - `forseti-harness/tests/test_data_lake_sov_readout.py`
 - `forseti-harness/tests/test_sov_extraction_quality_eval.py`
+- `forseti-harness/tests/contract/test_capture_runner_lake_seam_coverage.py`
 - `forseti-harness/tests/contract/test_policy_module_version_pins.py`
+- `forseti-harness/tests/unit/_creator_metric_silver_fixtures.py`
+- `forseti-harness/tests/unit/test_creator_metric_rollup_producer_runner.py`
+- `forseti-harness/tests/unit/test_creator_metric_silver_discovery.py`
 - `forseti-harness/tests/unit/test_creator_metric_silver_producer.py`
+- `forseti-harness/tests/unit/test_creator_metric_silver_reader.py`
+- `forseti-harness/tests/unit/test_creator_metric_silver_snapshot.py`
 - `forseti-harness/tests/unit/test_ig_reels_behavioral_lake.py`
+- `forseti-harness/tests/unit/test_ig_reels_creator_deep_capture.py`
 - `forseti-harness/tests/unit/test_ig_reels_deep_capture_lake.py`
+- `forseti-harness/tests/unit/test_ig_reels_lane_orchestrator.py`
+- `forseti-harness/tests/unit/test_ig_reels_operator_product_extract.py`
+- `forseti-harness/tests/unit/test_ig_reels_product_extract.py`
+- `forseti-harness/tests/unit/test_rollup_formula_revalidation.py`
 - `forseti-harness/tests/unit/test_silver_census_behavior.py`
 - `forseti-harness/tests/unit/test_silver_lane_registry_guard.py`
 - `forseti-harness/tests/unit/test_silver_lineage.py`
 - `forseti-harness/tests/unit/test_silver_record.py`
 - `forseti-harness/tests/unit/test_transcript_product_lake.py`
 - `forseti-harness/tests/unit/test_youtube_creator_metric_silver_producer.py`
+- `forseti-harness/tests/unit/test_youtube_creator_metric_rollup_producer_runner.py`
 
 The report destination is separately authorized output, not implementation patch
 scope. This prompt, `AGENTS.md`, overlay sources, the official Silver Vault
@@ -318,7 +331,7 @@ suite from `forseti-harness`:
 
 ```powershell
 $env:PYTHONDONTWRITEBYTECODE=1
-python -m pytest -p no:cacheprovider -q tests/unit/test_silver_record.py tests/unit/test_silver_lineage.py tests/unit/test_silver_census_behavior.py tests/unit/test_silver_lane_registry_guard.py tests/unit/test_ig_reels_deep_capture_lake.py tests/unit/test_ig_reels_behavioral_lake.py tests/unit/test_ig_reels_behavioral_projection.py tests/test_data_lake_indexes_rebuild.py tests/test_data_lake_rebuild_proof.py tests/test_data_lake_consumption.py tests/test_data_lake_sov_readout.py tests/test_sov_extraction_quality_eval.py tests/unit/test_creator_metric_silver_producer.py tests/unit/test_youtube_creator_metric_silver_producer.py tests/test_basenotes_native_pipeline_lake.py tests/test_parfumo_native_pipeline_lake.py tests/test_fragrantica_cleaning_lake_pilot.py tests/test_fragrantica_capture_to_silver_e2e.py tests/unit/test_basenotes_cleaning_catchup.py tests/unit/test_fragrantica_cleaning_catchup.py tests/unit/test_parfumo_cleaning_catchup.py tests/unit/test_fragrantica_cleaning_projection_integration.py tests/unit/test_parfumo_cleaning_projection_integration.py tests/test_retail_pdp_lake_pilot.py tests/unit/test_retail_pdp_silver.py tests/unit/test_tiktok_comment_attention_producer.py tests/unit/test_tiktok_audience_evidence_extract.py tests/unit/test_tiktok_grid_observation_producer.py tests/unit/test_transcript_product_lake.py tests/contract/test_data_lake_inventory_gate.py tests/contract/test_policy_module_version_pins.py
+python -m pytest -p no:cacheprovider -q tests/unit/test_silver_record.py tests/unit/test_silver_lineage.py tests/unit/test_silver_census_behavior.py tests/unit/test_silver_lane_registry_guard.py tests/unit/test_ig_reels_deep_capture_lake.py tests/unit/test_ig_reels_creator_deep_capture.py tests/unit/test_ig_reels_lane_orchestrator.py tests/unit/test_ig_reels_operator_product_extract.py tests/unit/test_ig_reels_product_extract.py tests/unit/test_ig_reels_behavioral_lake.py tests/unit/test_ig_reels_behavioral_projection.py tests/test_data_lake_indexes_rebuild.py tests/test_data_lake_rebuild_proof.py tests/test_data_lake_consumption.py tests/test_data_lake_sov_readout.py tests/test_sov_extraction_quality_eval.py tests/unit/test_creator_metric_silver_producer.py tests/unit/test_creator_metric_silver_reader.py tests/unit/test_creator_metric_silver_discovery.py tests/unit/test_creator_metric_silver_snapshot.py tests/unit/test_creator_metric_rollup_producer_runner.py tests/unit/test_youtube_creator_metric_silver_producer.py tests/unit/test_youtube_creator_metric_rollup_producer_runner.py tests/unit/test_rollup_formula_revalidation.py tests/test_basenotes_native_pipeline_lake.py tests/test_parfumo_native_pipeline_lake.py tests/test_fragrantica_cleaning_lake_pilot.py tests/test_fragrantica_capture_to_silver_e2e.py tests/unit/test_basenotes_cleaning_catchup.py tests/unit/test_fragrantica_cleaning_catchup.py tests/unit/test_parfumo_cleaning_catchup.py tests/unit/test_fragrantica_cleaning_projection_integration.py tests/unit/test_parfumo_cleaning_projection_integration.py tests/test_retail_pdp_lake_pilot.py tests/unit/test_retail_pdp_silver.py tests/unit/test_tiktok_comment_attention_producer.py tests/unit/test_tiktok_audience_evidence_extract.py tests/unit/test_tiktok_grid_observation_producer.py tests/unit/test_transcript_product_lake.py tests/contract/test_capture_runner_lake_seam_coverage.py tests/contract/test_silver_reader_selection_gate.py tests/contract/test_data_lake_inventory_gate.py tests/contract/test_policy_module_version_pins.py
 ```
 
 Also run `git diff --check`. Run the diff-scoped retrieval-header and DCP gates

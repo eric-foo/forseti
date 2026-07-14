@@ -21,7 +21,11 @@ from capture_spine.creator_profile_current.silver_metric_reader import (
 from capture_spine.creator_profile_current.silver_subject_ref import (
     platform_account_id_from_subject_ref,
 )
+from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
+    YOUTUBE_SEED_WRAPPER_KEY,
+)
 from data_lake.root import DataLakeRoot
+from runners import run_youtube_creator_metric_rollup_producer as youtube_runner
 from runners.run_youtube_creator_metric_rollup_producer import (
     DEFAULT_ACCOUNT_LEDGER,
     _load_account_ledger,
@@ -29,6 +33,7 @@ from runners.run_youtube_creator_metric_rollup_producer import (
     default_source_files,
     run_youtube_producer,
 )
+from _creator_metric_silver_fixtures import materialize_youtube_seed_sources
 
 
 def _account_of(record: dict) -> str:
@@ -46,8 +51,23 @@ def _yt_discovery_ledger(*account_ids: str) -> dict:
     }
 
 
-def test_run_youtube_producer_appends_discoverable_rollups(tmp_path: Path) -> None:
+def test_run_youtube_producer_appends_discoverable_rollups(
+    tmp_path: Path, monkeypatch
+) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    real_builder = youtube_runner.build_youtube_shorts_fragrance_creator_metric_seed_from_files
+
+    def materialized_builder(**kwargs):  # noqa: ANN003
+        document = real_builder(**kwargs)
+        return materialize_youtube_seed_sources(
+            data_root, document, wrapper_key=YOUTUBE_SEED_WRAPPER_KEY
+        )
+
+    monkeypatch.setattr(
+        youtube_runner,
+        "build_youtube_shorts_fragrance_creator_metric_seed_from_files",
+        materialized_builder,
+    )
 
     result = run_youtube_producer(
         data_root,

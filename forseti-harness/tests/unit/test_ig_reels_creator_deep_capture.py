@@ -393,7 +393,7 @@ def test_scan_then_select_end_to_end_offline() -> None:
     assert all(isinstance(c, CapturedReel) and c.ok for c in captured)
 
 
-def test_creator_main_persists_when_forseti_data_root_env_set(
+def test_creator_main_surfaces_retired_persistence_when_forseti_data_root_env_set(
     tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
@@ -429,12 +429,14 @@ def test_creator_main_persists_when_forseti_data_root_env_set(
         lambda _scratch, *, model: (lambda shortcode: _fake_result(shortcode)),
     )
 
-    assert creator_runner.main(["--handle", "creator", "--top-n", "1"]) == 0
+    assert creator_runner.main(["--handle", "creator", "--top-n", "1"]) == 1
 
     result = _fake_result("A")
     rid = deep_capture_record_id(result)
     assert seen == {"explicit": None}
-    assert "persisted:" in capsys.readouterr().out
-    assert root.is_record_set_complete(
+    output = capsys.readouterr().out
+    assert "persist-failed:" in output
+    assert "eligible_bronze_required" in output
+    assert not root.is_record_set_complete(
         subtree="derived", raw_anchor="A", record_id=rid, completion_lane=DEEP_CAPTURE_SET_LANE
     )

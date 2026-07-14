@@ -470,7 +470,6 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
     "source_capture/ig_reels_behavioral_lake.py": {
         "detection": "lane_dir",
         "posture": "set_marker_pinned",
-        "mechanism": "local:verify_silver_vault_record_sources",
         "reason": "deep-capture lanes read pinned record ids for historical audit; product-mention inputs remain all-siblings with explicit status labels and cannot become extracted authority without the current envelope plus physical source verification",
     },
     "youtube_capture/behavioral_projection.py": {

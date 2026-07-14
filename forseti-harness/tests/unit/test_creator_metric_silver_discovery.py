@@ -30,11 +30,14 @@ from capture_spine.creator_profile_current.silver_subject_ref import (
     platform_account_id_from_subject_ref,
 )
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
-    derive_youtube_creator_metric_silver_records_from_seed_file,
+    DEFAULT_YOUTUBE_SEED_PATH,
+    YOUTUBE_SEED_WRAPPER_KEY,
+    derive_youtube_creator_metric_silver_records_from_seed,
 )
 from data_lake.root import DataLakeRoot
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
+from _creator_metric_silver_fixtures import materialize_youtube_seed_sources
 
 IG_ACCOUNT = "acct_ig_reels_001"
 IG_HANDLE = "hyram"
@@ -59,7 +62,9 @@ def _account_of(record: dict) -> str:
 
 # -- Instagram (packet-anchored) fixtures -----------------------------------
 
-def _commit_ig_raw_packet(data_root: DataLakeRoot, tmp_path: Path, *, slot: str) -> str:
+def _commit_ig_raw_packet(
+    data_root: DataLakeRoot, tmp_path: Path, *, slot: str
+) -> tuple[str, dict[str, str]]:
     """Commit a minimal ``instagram_creator`` raw packet (records availability)
     and return its packet id -- the anchor the IG rollup binds to."""
     raw = tmp_path / f"ig_raw_{slot}.json"
@@ -73,17 +78,24 @@ def _commit_ig_raw_packet(data_root: DataLakeRoot, tmp_path: Path, *, slot: str)
         decision_question="creator metric discovery fixture",
         capture_context="creator metric silver discovery test",
     )
-    return result.packet.packet_id
-
-
-def _ig_projection_rows(packet_id: str, *, username: str, views: tuple[int, int]) -> list[dict]:
-    capture = "2026-06-29T00:01:00Z"
-    raw_anchor = {
-        "file_id": "file_01",
-        "relative_packet_path": "raw/01.json",
-        "sha256": "a" * 64,
-        "hash_basis": "raw_stored_bytes",
+    packet_id = result.packet.packet_id
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    return packet_id, {
+        "file_id": preserved["file_id"],
+        "relative_packet_path": preserved["relative_packet_path"],
+        "sha256": preserved["sha256"],
+        "hash_basis": preserved["hash_basis"],
     }
+
+
+def _ig_projection_rows(
+    packet_id: str,
+    *,
+    raw_anchor: dict[str, str],
+    username: str,
+    views: tuple[int, int],
+) -> list[dict]:
+    capture = "2026-06-29T00:01:00Z"
 
     def _reel(shortcode: str, metric: str, value: int) -> dict:
         return {
@@ -160,10 +172,17 @@ def _write_ig_rollup(
 ) -> str:
     """Commit an IG raw packet and derive its rollup (anchored to that packet)
     for one account. Returns the packet id."""
-    packet_id = _commit_ig_raw_packet(data_root, tmp_path, slot=slot)
+    packet_id, raw_anchor = _commit_ig_raw_packet(data_root, tmp_path, slot=slot)
     projection = tmp_path / f"ig_projection_{slot}.json"
     projection.write_text(
-        json.dumps({"packet_id": packet_id, "rows": _ig_projection_rows(packet_id, username=handle, views=views)}),
+        json.dumps(
+            {
+                "packet_id": packet_id,
+                "rows": _ig_projection_rows(
+                    packet_id, raw_anchor=raw_anchor, username=handle, views=views
+                ),
+            }
+        ),
         encoding="utf-8",
     )
     derive_creator_metric_silver_records_from_projections(
@@ -180,7 +199,13 @@ def _write_ig_rollup(
 def _write_yt_rollups(data_root: DataLakeRoot) -> set[str]:
     """Derive YT rollups from the real committed seed (account-anchored). Returns
     the set of YT account ids the seed covers."""
-    result = derive_youtube_creator_metric_silver_records_from_seed_file(data_root=data_root)
+    seed_document = json.loads(DEFAULT_YOUTUBE_SEED_PATH.read_text(encoding="utf-8-sig"))
+    seed_document = materialize_youtube_seed_sources(
+        data_root, seed_document, wrapper_key=YOUTUBE_SEED_WRAPPER_KEY
+    )
+    result = derive_youtube_creator_metric_silver_records_from_seed(
+        data_root=data_root, seed_document=seed_document
+    )
     return {_account_of(record) for record in result.rollup_records}
 
 

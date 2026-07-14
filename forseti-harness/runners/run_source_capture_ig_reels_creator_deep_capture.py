@@ -439,6 +439,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     for item in captured:
         print(f"  {_summary_line(item)}")
+    if any((item.persisted or "").startswith("persist-failed") for item in captured):
+        return 1
     return 0
 
 
