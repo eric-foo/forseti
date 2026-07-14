@@ -134,16 +134,20 @@ evidence, not a nicer biography.
 
 ## Calibration Patterns, Not Creator Buckets
 
-The three patterns below show the required specificity and commercial force.
+The four patterns below show the required specificity and commercial force.
 They are deliberately different. Derive another role when the evidence demands
 one; never force a creator into these patterns or paste their wording.
 
-Each pattern's **Good hiring line** calibrates the panel's product-meaning
-headline (what the creator makes the product mean), not the lead hire verdict.
-The panel's first line is still the controlling contract's hire verdict —
-`Hire <creator> when <campaign job>` — assembled from the pattern's **Campaign
-jobs**. Calibrate force and specificity from these lines; take the panel grammar
-from the controlling contract.
+The named first-screen examples below are owner-accepted phrasing calibrations
+from creator-isolated dogfood. This deck does not make them live creator claims
+or replace their evidence bindings, counterevidence, and capture limitations.
+
+Each pattern's hiring calibration shows the panel's product-meaning headline
+(what the creator makes the product mean) in context. The panel's first line is
+still the controlling contract's hire verdict — `Hire <creator> when <campaign
+job>` — assembled from the pattern's **Campaign jobs**. Calibrate force and
+specificity from these lines; take the panel grammar from the controlling
+contract.
 
 ### 1. Make The Product Earn Its Recommendation
 
@@ -156,7 +160,11 @@ from the controlling contract.
 - **Product meaning:** a recommendation that survived scrutiny.
 - **Mechanism:** visible standards, proof, comparison, and a verdict the audience
   can use as purchase reassurance.
-- **Good hiring line:** “Noel makes the product earn its recommendation.”
+- **Accepted first-screen calibration:** “Hire Noel when your fragrance range
+  must win the buyer's last three objections: Is it real? Is it worth it? Will
+  it work for me? He buys suspicious bottles, exposes failures beside the real
+  thing, and wears alternatives past the paper test—until the safest choice
+  feels like the obvious next bottle.”
 - **Campaign jobs:** proof-led launches, comparisons, reformulations, premium
   justification, or products that win under examination.
 - **Wrong hire:** a tightly controlled script that cannot tolerate scrutiny or a
@@ -176,9 +184,11 @@ from the controlling contract.
   about after the post.
 - **Mechanism:** creator-owned visual or verbal theatre that attracts
   participation and makes the product central to the ritual.
-- **Good hiring line:** “Cologne Crown makes bottles impossible to ignore and
-  easy to recall through spectacle, while translating them into simple
-  occasions and visceral benefits.”
+- **Accepted first-screen calibration:** “Hire Cologne Crown when your
+  high-projection masculine scent must become impossible to ignore and easy to
+  recall. He makes the atomizer the spectacle, gives the scent a blunt occasion
+  and Beast Mode verdict, then gets commenters demanding the next bottle at 50,
+  100—even 1,000 sprays.”
 - **Campaign jobs:** reveals, visually distinctive packaging, hero-product
   launches, memorable demonstrations, and spectacle-led awareness.
 - **Wrong hire:** utility-only copy, invisible packaging, or briefs that remove
@@ -205,6 +215,29 @@ from the controlling contract.
   economics collapse under direct scrutiny.
 - **Overclaim trap:** value debate does not prove the cheapest option wins or
   that the whole audience shares one price posture.
+
+### 4. Make The Product Get Used, Not Saved
+
+- **Evidence pattern:** the creator repeatedly demonstrates a distinctive use
+  style, while captured participants report trying, extending, or copying it.
+- **Buyer tension:** a product may be admired yet remain too precious, passive,
+  or forgettable to become part of how people actually use the category.
+- **Commercial role:** make generous, visible use the product's most desirable
+  role instead of careful preservation.
+- **Product meaning:** the bottle people reach for and spray through, not save.
+- **Mechanism:** a named, creator-specific application format makes product use
+  visible and gives participants something concrete to try or adapt.
+- **Accepted first-screen calibration:** “Hire Funmi when your fruit-forward
+  fragrance is built to be worn generously—and needs to become the bottle
+  people spray through, not save. Her rule of 20 carries it head to ankle—and
+  viewers try it, push it further, and copy it.”
+- **Campaign jobs:** fruit-forward or other truthfully aligned launches whose
+  formulation, size, price posture, instructions, and brand voice support
+  generous application.
+- **Wrong hire:** scarce, precious, safety-sensitive, or high-cost-to-deplete
+  products; briefs that remove the creator's recognizable use style.
+- **Overclaim trap:** reported adoption in captured comments does not prove that
+  most viewers copy the behavior or that increased use causes purchase.
 
 ## Acceptance Gates
 
@@ -247,7 +280,15 @@ not a demand to invent.
 
 Before treating a material calibration change as transferable, give a cold
 author the controlling contract, this deck, and a held-out creator evidence
-packet — not a prior profile or preferred answer. The result passes only when:
+packet — not a prior profile or preferred answer.
+
+The commercial-force test is whether an exact-match client would see the
+creator as unusually hard to substitute for the evidenced job. Do not ask a
+cold author to certify `commercial inevitability`: that wording can be mistaken
+for inevitable sales or campaign performance, which this system cannot prove.
+Use `exact-match must-hire fit` or `substitution-resistant fit` instead.
+
+The result passes only when:
 
 A creator named in this deck's calibration patterns is not held out. Testing a
 named example requires a scratch leave-one-example-out copy that preserves all
@@ -306,7 +347,13 @@ direction_change_propagation:
     evidence taxonomy, and claim ceiling are now prohibited from first-screen
     sales copy and translated into concrete action and buyer value instead.
     Dogfood also treats named calibration examples as contaminated unless a
-    recorded leave-one-example-out source is used.
+    recorded leave-one-example-out source is used. Owner-accepted Funmi,
+    Cologne Crown, and Noel calibrations now preserve product-specific hiring
+    conditions, creator-specific execution, and observed participant response
+    in forceful first-screen language. The cold-agent commercial-force test is
+    explicitly exact-match substitution resistance, never inevitable sales or
+    campaign performance; commissions use `exact-match must-hire fit` or
+    `substitution-resistant fit`, not `commercial inevitability`.
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:
@@ -329,15 +376,16 @@ direction_change_propagation:
     - path: docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
       reason: The prepare-only binding framework is not an active routine-task resolver; adding a Creator Signal binding would not make this calibration fire reliably.
   stale_language_search: >
-    rg -n -i "commercial projection|commercial panel|dual-value|behavioral response|audience-adopted|audience-demanded|audience habit|commercial language|first-screen sales vocabulary|calibration deck"
+    rg -n -i "commercial projection|commercial panel|dual-value|behavioral response|audience-adopted|audience-demanded|audience habit|commercial language|first-screen sales vocabulary|calibration deck|commercial inevitability|exact-match must-hire|substitution-resistant"
     forseti/product/spines/creator_signal docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-15 after the dual-value and commercial-language calibration
-    change. Defining dual-value, typed behavioral-response, prohibited
-    first-screen vocabulary, and language-pass rules is confined to this deck;
-    adjacent Creator Signal sources retain their existing product-meaning,
-    mechanism, aggression, and routing ownership without a conflicting habit or
-    copy rule.
+    Executed 2026-07-15 after the accepted creator calibrations and dogfood-test
+    wording were added. Defining dual-value, typed behavioral-response,
+    prohibited first-screen vocabulary, accepted phrasing calibration, and the
+    exact-match substitution test remains confined to this deck; adjacent
+    Creator Signal sources retain their existing product-meaning, mechanism,
+    aggression, claim-ceiling, and routing ownership without a conflicting
+    performance-guarantee or copy rule.
   non_claims:
     - not validation
     - not readiness
