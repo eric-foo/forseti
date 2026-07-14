@@ -14,7 +14,7 @@ from cleaning.audience_extractor import (
 from cleaning.transcript_product_extractor import TranscriptInput
 from schemas.tiktok_audience_evidence_models import TikTokAudienceEvidence, TikTokAudienceProfile
 
-RUBRIC_VERSION = "tiktok_audience_triangulation_v0"
+RUBRIC_VERSION = "tiktok_audience_triangulation_v1"
 _WS = re.compile(r"\s+")
 _FORBIDDEN_DEMOGRAPHIC = re.compile(
     r"\b(male|female|men|women|boy|girl|teen|gen z|millennial|income|wealthy|poor|asian|white|black)\b",
