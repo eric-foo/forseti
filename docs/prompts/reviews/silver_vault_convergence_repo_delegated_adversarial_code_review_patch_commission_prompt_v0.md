@@ -39,7 +39,8 @@ forseti_start_preflight:
     branch: codex/silver-vault-convergence
     base_commit: 3b41ca9853b5ebf72fc37075d050494d35ddf00d
     implementation_commit: cd636b68fd7e2f8bf9caf633e758353494127800
-    semantics: review the exact base..implementation diff; a later prompt-only descendant is allowed
+    review_target_revision: 4107d4eeb6f9ad6d2ddfa8c598d6a39bf76e5bce
+    semantics: review the named target files at the exact review target revision against base; later commission-prompt-only descendants are allowed
   dirty_state_allowance: receiver starts clean; only the named target set may become modified
   untracked_files_in_scope: no
   controlling_source_state: overlay and prompt-policy sources clean at implementation commit; implementation target is pinned
@@ -94,10 +95,12 @@ If your family is OpenAI/GPT lineage, unknown, or cannot be disclosed, return
 - Worktree: `C:/Users/vmon7/.codex/worktrees/f75f/orca`, or the operator-verified
   worktree rooted on `codex/silver-vault-convergence`.
 - Base: `3b41ca9853b5ebf72fc37075d050494d35ddf00d`.
-- Exact implementation revision:
-  `cd636b68fd7e2f8bf9caf633e758353494127800`.
-- Review `base..implementation revision`. A later descendant containing only
-  this commission prompt is allowed. Do not review a substitute checkout,
+- Core implementation commit: `cd636b68fd7e2f8bf9caf633e758353494127800`.
+- Exact review target revision (includes the required decision-header fix):
+  `4107d4eeb6f9ad6d2ddfa8c598d6a39bf76e5bce`.
+- Review the named target files at `base..review target revision`; the commission
+  prompt itself is not a review target. A later descendant containing only a
+  commission-prompt update is allowed. Do not review a substitute checkout,
   context summary, or recreated source.
 - Start clean. If the branch/revision, cleanliness, or verified write-root
   capability does not match, return the nearest explicit blocker and stop.
