@@ -2,27 +2,26 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Workflow record
+artifact_role: Retired workflow rehearsal (historical)
 scope: >
-  Non-conforming additive-upgrade intake rehearsal for the Creator Ledger,
-  using ideal/content-fit audience profile snapshots as the capability that
-  does not fit the initial routing matrix cleanly.
+  Historical additive-upgrade intake rehearsal that used the now-retired
+  ideal-audience snapshot path before audience triangulation became the current
+  Creator Registry enrichment.
 use_when:
-  - Demonstrating how to route a future Creator Ledger capability that does not map cleanly to one capability-routing row.
-  - Planning ideal/content-fit audience profile support without remigrating Creator Registry or creator_profile_current data.
-  - Checking that God Tier progress remains efficacy-oriented rather than audit-completeness-oriented.
+  - Auditing the historical PR #699 additive-upgrade rehearsal only.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
-  - forseti-harness/capture_spine/creator_profile_current/audience_triangulation_snapshot.py
-  - orca-harness/capture_spine/creator_profile_current/materialize.py
-  - orca-harness/capture_spine/creator_profile_current/validation.py
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
+superseded_by:
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
 stale_if:
-  - The Creator Ledger capability routing matrix adds an explicit audience-profile row.
-  - The ideal-audience snapshot schema or creator_profile_current materializer changes audience join semantics.
-  - A later accepted Creator Signal or audience-profile contract supersedes this rehearsal.
+  - The current audience-triangulation or Creator Registry contract is superseded.
 ```
+
+`RETIRED_SUPERSEDED_HISTORICAL_RECORD` — do not use this rehearsal to plan or
+operate current audience onboarding. The current route is the controlling
+audience-triangulation product contract named above.
 
 ## Purpose
 
@@ -50,9 +49,9 @@ Sources read for this rehearsal:
 - `creator_profile_current_record_contract_v0.md`: states the consumer-visible
   `ideal_audience_profile` surface is nullable/stubbed and not evidence that an
   actual audience was estimated.
-- `ideal_audience_snapshot.py`: defines
-  `creator_ideal_audience_profile_snapshot_v0`, requires source evidence ids,
-  preserves `actual_audience: not_estimated`, and validates subject identity.
+- Historical `ideal_audience_snapshot.py` source: retired. The current owner is
+  `forseti-harness/capture_spine/creator_profile_current/audience_triangulation_snapshot.py`;
+  this entry remains provenance for the retired rehearsal only.
 - `materialize.py`: can load optional audience snapshot documents, join them by
   profile subject, include their source hashes, and keep the read model as a
   generated profile-current view.

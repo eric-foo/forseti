@@ -171,11 +171,12 @@ Metric satellites:
 
 Audience satellites:
 
-- Ideal-audience Tier-1 fields may join into the current profile as content-fit
-  enrichment.
-- Tier-2-A aggregate audience demographic fields remain gated on a schema home
-  and sourced base-rate/data prerequisites.
-- Actual audience is not estimated by this view.
+- A validated audience-triangulation snapshot may join the current profile as
+  evidence-backed content-fit and observed-audience enrichment.
+- The snapshot preserves cited transcript/comment evidence, capture limitations,
+  and disagreement or missing-evidence states; engagement changes salience, not
+  truth status.
+- Actual follower demographics are not estimated by this view.
 
 Current profile view:
 
@@ -193,8 +194,8 @@ Current profile view:
 `creator_profile_current` supports two subject kinds:
 
 - `platform_account`: one public account on one supported platform. This is the
-  pre-linkage subject and may carry account-level metric rollups, ideal-audience
-  snapshots, limitations, and source drill-back.
+  pre-linkage subject and may carry account-level metric rollups, an
+  audience-triangulation snapshot, limitations, and source drill-back.
 - `creator_record`: a linked public account cluster from the public-handle
   linkage ledger. This subject exists only when account-link evidence spans at
   least two platforms.
@@ -387,7 +388,7 @@ Allowed dashboard use:
 - show identity-only account rows with explicit metric-unavailable limitations;
 - show latest average/aggregate influence metrics when source-backed rollups exist;
 - show the source window and freshness for each aggregate;
-- show the ideal-audience/content-fit profile when available;
+- show the validated audience-triangulation/content-fit profile when available;
 - show limitations and missing-data states;
 - drill back to source observations and evidence.
 
@@ -471,7 +472,8 @@ direction_change_propagation:
   doctrine_changed: >
     Orca now has an owner-directed creator-profile-current target view: the
     operator/dashboard one-stop creator surface is a derived join over sibling
-    identity, metric observation, metric rollup, and ideal-audience profile
+    identity, metric observation, metric rollup, and audience-triangulation
+    profile
     records, not one giant identity ledger; average views and engagement rate
     belong in metric rollups keyed to the creator/account spine, with SQLite or
     another storage engine deferred until real-row tests prove the sibling

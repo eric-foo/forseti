@@ -91,7 +91,7 @@ contract. Deep-history route source: `.../instagram/ig_reel_viewcount_capture_fe
 | **Transcript (ASR)** — timed cues + per-segment confidence | **LIVE (offline)** | `.../instagram/ig_reels_transcript_product_extraction_spec_v0.md` (Reels have no caption API → audio→whisper) |
 | **Product / brand / category mentions** — transcript → `ProductMention` → `silver__cleaning__product_mentions` | **LIVE (offline)** | same spec; core inherited from `.../youtube/youtube_transcript_product_extraction_spec_v0.md` |
 | **No-product reel** → `ProductMention: []` but an extraction record with `mention_count: 0` (typed absence, not silence) | **LIVE** | youtube spec D5 ("return `[]` when no product named"); `forseti-harness/cleaning/transcript_product_lake.py` |
-| Caption / hashtags / comment post-text | **separate seam** (`audience_extractor` / `audience_post_packet`), not the transcript path | `.../instagram/README.md` route map |
+| Caption / hashtags / comment post-text | **captured input only**; no current Instagram audience-inference seam (the implemented triangulation runtime is TikTok packet-scoped) | `forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md`; `.../instagram/README.md` route map |
 | Audio bytes (`.m4a` + sha256, for ASR) | **LIVE** | `.../instagram/ig_reels_audio_capture_recipe_card_v0.md` (no IG sound-object id/artist) |
 | Top comments (text/count) | lane exists | `.../instagram/README.md` deep-capture row |
 
@@ -106,8 +106,8 @@ attended — no at-scale crawl**.
 | **Metric rollups** (Silver) | `average_views`, `median_views`, `engagement_rate`, `average_like_count`, `average_comment_count` | **LIVE** (IG/YouTube; TikTok in harness, not yet in committed profile-current view) | `.../creator_registry/creator_metric_silver_record_contract_v0.md`; `forseti-harness/capture_spine/creator_profile_current/*.py` |
 | ↳ `posting_cadence`, `recent_velocity` | rate / trend fields | **DEFERRED** (schema-reserved, always `not_attempted`) | `.../creator_registry/creator_profile_current_record_contract_v0.md`; `.../creator_profile_current/rollup_formula_revalidation.py` (`_NEVER_COMPUTED_METRICS`) |
 | **Ideal audience / audience triangulation** | transcript/content read + observed captured-comment read + cited commercial projection | **BUILT·subscription-judgment** (packet-scoped Silver prerequisites, transient creator evidence bundle, cold subscription Judgment, strict snapshot validation, Creator Registry join; no model API) | `forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md`; `forseti-harness/runners/run_tiktok_creator_audience_triangulation.py`; `.agents/skills/creator-audience-triangulation/SKILL.md` |
-| ↳ audience `gender_skew` / `age_band` (Tier-2A) | demographic skew | **DEFERRED** (owner-gated behind ledger-schema home) | same spec §Tier-2-A; `forseti-harness/schemas/audience_inference_models.py` |
-| ↳ **actual** audience / follower demographics | — | **never** (`actual_audience` hardcoded `not_estimated`) | `forseti-harness/schemas/audience_inference_models.py` |
+| ↳ aggregate audience demographic claim | evidence-backed aggregate only | **NOT IMPLEMENTED** as a profile field; no invented demographic projection | `forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md`; `forseti-harness/schemas/tiktok_audience_evidence_models.py` |
+| ↳ **actual** audience / follower demographics | — | **never** (`actual_audience_demographics` is `not_estimated`) | `forseti-harness/schemas/tiktok_audience_evidence_models.py` |
 | **Creator-gender lean** | one soft `gender_lean ∈ [-1,1]` + confidence; **creator-only, never per-commenter** | **BUILT** (deterministic core); cue inference DEFERRED | `forseti-harness/scoring/creator_gender_fusion.py`; `docs/decisions/ig_creator_gender_demographic_signal_lane_scope_defer_v0.md` |
 | **Product-verdict fusion** | per (brand, line): verdict {positive/negative/mixed/unknown} + support/oppose scores; **no** engagement/demand meaning | **BUILT** (calibration owner-pending) | `forseti-harness/scoring/product_fusion.py`; `docs/decisions/product_verdict_fusion_calibration_surface_v0.md` |
 | **Share of voice** | brand/line share of **captured mentions** (not market total) | **LIVE** (bounded readout) | `forseti-harness/data_lake/sov_readout.py`; `.../data_lake/authority/core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md` |
@@ -128,7 +128,7 @@ vanity score, paid/unpaid or stealth-ad verdicts.
 ### Where it all surfaces to a buyer/operator
 
 `forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md`
-(owner-accepted) — stitches identity + aggregate influence + ideal-audience + freshness
+(owner-accepted) — stitches identity + aggregate influence + audience triangulation + freshness
 + limitations + drill-back; a "wind-calling / creator-fit summary" is allowed only as an
 operator summary over stamped inputs (never buyer proof, outreach, or lead list).
 

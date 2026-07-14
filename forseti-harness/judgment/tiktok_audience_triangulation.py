@@ -11,7 +11,9 @@ from schemas.tiktok_audience_evidence_models import CreatorAudienceTriangulation
 _MAJORITY_LANGUAGE = re.compile(r"\b(most|majority|nearly all|the audience as a whole)\b", re.I)
 _GUARANTEED_OUTCOME = re.compile(r"\b(guaranteed conversion|guaranteed roi|will convert|guarantees? sales)\b", re.I)
 _BANNED_FIRST_SCREEN = re.compile(r"\brituals?\b", re.I)
-_CREATOR_WIDE_EFFECT = re.compile(r"\b(generates engagement|makes products? memorable)\b", re.I)
+_CREATOR_WIDE_EFFECT = re.compile(
+    r"\b(generates (?:observed )?engagement|makes products? memorable)\b", re.I
+)
 
 
 def build_triangulation_prompt(bundle: Mapping[str, Any]) -> str:
@@ -146,6 +148,12 @@ def validate_triangulation_snapshot(
             raise ValueError("commercial projection guarantees an unobserved outcome")
         if _BANNED_FIRST_SCREEN.search(point.statement):
             raise ValueError("commercial projection uses banned first-screen vocabulary: ritual")
+    stamp = projection.robustness_stamp
+    if stamp is not None:
+        if _MAJORITY_LANGUAGE.search(stamp):
+            raise ValueError("robustness stamp uses unsupported majority language")
+        if _GUARANTEED_OUTCOME.search(stamp):
+            raise ValueError("robustness stamp guarantees an unobserved outcome")
     return snapshot
 
 

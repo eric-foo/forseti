@@ -205,6 +205,17 @@ def test_validator_rejects_majority_language_and_single_video_effect_claim() -> 
     with pytest.raises(ValueError, match="needs two videos"):
         parse_triangulation_response(json.dumps(response), bundle)
 
+    response = _response(bundle)
+    claim = response["judgment_claim_set"]["claims"][0]
+    first = bundle["comment_evidence"][0]
+    claim["statement"] = "The comparison format generates observed engagement."
+    claim["representative_evidence_ids"] = [first["evidence_id"]]
+    claim["all_support_evidence_ids"] = [first["evidence_id"]]
+    claim["source_video_ids"] = [first["video_id"]]
+    claim["support_scope"] = "single_video"
+    with pytest.raises(ValueError, match="needs two videos"):
+        parse_triangulation_response(json.dumps(response), bundle)
+
 
 def test_prepare_reads_packet_scoped_persisted_silver_and_uses_no_api(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
@@ -266,3 +277,73 @@ def test_prepare_reads_packet_scoped_persisted_silver_and_uses_no_api(tmp_path) 
         "status": "policy_mismatch",
     }]
     assert bundle_out.exists() and prompt_out.exists()
+
+
+def test_bundle_incomplete_when_comments_absent_but_transcript_present() -> None:
+    payload = _payload()
+    for video in payload["videos"]:
+        video["comments"]["comments"] = []
+    with pytest.raises(ValueError, match=r"INCOMPLETE_AUDIENCE_EVIDENCE.*comment"):
+        build_creator_audience_evidence_bundle(
+            creator_id="tiktok:@alpha",
+            profile_subject_id="platform_account:tiktok:alpha",
+            raw_anchor=RAW_ANCHOR,
+            batch_payload=payload,
+            comment_attention_records=[],
+            grid_observation_refs=[{"record_id": "grid-1", "video_id": "v1"}],
+            question="Who is this creator commercially useful for?",
+            evidence_cutoff=OBSERVED,
+        )
+
+
+def test_validator_rejects_claim_citing_unknown_evidence() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    claim = response["judgment_claim_set"]["claims"][0]
+    claim["all_support_evidence_ids"] = claim["all_support_evidence_ids"] + ["ttce_absent"]
+    claim["representative_evidence_ids"] = ["ttce_absent"]
+    with pytest.raises(ValueError, match="cites unknown evidence"):
+        parse_triangulation_response(json.dumps(response), bundle)
+
+
+def test_validator_rejects_response_for_a_different_creator() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    response["creator_id"] = "tiktok:@someoneelse"
+    with pytest.raises(ValueError, match="does not match evidence bundle"):
+        parse_triangulation_response(json.dumps(response), bundle)
+
+
+def test_validator_rejects_guaranteed_outcome_language() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    response["creator_signal_projection"]["hire_verdict"]["statement"] = (
+        "Hire her for guaranteed conversion."
+    )
+    with pytest.raises(ValueError, match="guarantees an unobserved outcome"):
+        parse_triangulation_response(json.dumps(response), bundle)
+
+
+def test_validator_rejects_non_not_estimated_demographics() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    response["actual_audience_demographics"] = "mostly_women_25_34"
+    with pytest.raises(ValueError):
+        parse_triangulation_response(json.dumps(response), bundle)
+
+
+def test_validator_language_guards_cover_robustness_stamp() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    response["creator_signal_projection"]["robustness_stamp"] = (
+        "Held after removing the top-liked comment; guaranteed conversion persists."
+    )
+    with pytest.raises(ValueError, match="guarantees an unobserved outcome"):
+        parse_triangulation_response(json.dumps(response), bundle)
+
+    response = _response(bundle)
+    response["creator_signal_projection"]["robustness_stamp"] = (
+        "Held for most of the audience after removing the top-liked comment."
+    )
+    with pytest.raises(ValueError, match="majority language"):
+        parse_triangulation_response(json.dumps(response), bundle)
