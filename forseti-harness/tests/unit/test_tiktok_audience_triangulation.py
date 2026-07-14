@@ -155,6 +155,35 @@ def test_validator_rejects_single_video_effect_and_majority_language() -> None:
         validate_triangulation_profile(profile, assembly)
 
 
+def test_validator_rejects_unclassified_comment_only_shopping_claim() -> None:
+    assembly = _assembly()
+    for row in assembly["comment_evidence"]:
+        row["semantic_labels"] = []
+        row["semantic_posture"] = "not_attempted"
+    profile = _profile(assembly)
+    first_row = assembly["comment_evidence"][0]
+    claim = profile["claims"][0]
+    claim.update(
+        {
+            "axis": "purchase_decision_stage",
+            "statement": "The comment asks where to buy the product.",
+            "commercial_implication": "Use an availability-led call to action.",
+            "modality": "observed_comments",
+            "relation": "audience_emergent",
+            "support_scope": "single_comment",
+            "representative_evidence_ids": [first_row["evidence_id"]],
+            "all_support_evidence_ids": [first_row["evidence_id"]],
+            "source_video_ids": [first_row["video_id"]],
+        }
+    )
+    with pytest.raises(ValueError, match="unclassified comments"):
+        validate_triangulation_profile(profile, assembly)
+
+    first_row["semantic_labels"] = ["availability_or_ownership"]
+    first_row["semantic_posture"] = "classified"
+    validate_triangulation_profile(profile, assembly)
+
+
 def test_runner_writes_two_new_scratch_files_and_counts_one_call(tmp_path) -> None:
     assembly = _assembly()
     profile = _profile(assembly)

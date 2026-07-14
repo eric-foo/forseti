@@ -97,6 +97,10 @@ def validate_triangulation_profile(
             ):
                 raise ValueError(f"claim {claim.claim_id} lacks aligned engagement support")
         if claim.axis in _SHOPPING_AXES and comment_rows and len(comment_rows) == len(support_rows):
+            if any(row.get("semantic_posture") != "classified" for row in comment_rows):
+                raise ValueError(
+                    f"claim {claim.claim_id} derives shopping meaning from unclassified comments"
+                )
             classified = [set(row.get("semantic_labels") or []) for row in comment_rows]
             if classified and all(labels and labels <= _WEAK_COMMENT_LABELS for labels in classified):
                 raise ValueError(f"claim {claim.claim_id} derives shopping meaning from weak reaction labels")
