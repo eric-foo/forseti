@@ -112,8 +112,10 @@ def run_gate(root: Path, script: str, gate_args: tuple[str, ...]) -> tuple[int, 
 
     A launch failure or timeout returns (-1, why): an unknown failure in a
     gating layer must not read as a pass (GATE FAIL bucket, validation-gates).
-    The checkers themselves stay fail-open on their own infra gaps (e.g. an
-    unresolvable origin/main), so those still exit 0 here.
+    Checker-owned infra behavior is preserved rather than normalized here. The
+    harness coupling contracts gate deliberately fails closed on an
+    unresolvable diff base or unlaunchable test, so an infra gap there blocks
+    the push.
     """
     try:
         res = subprocess.run(

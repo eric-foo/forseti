@@ -134,6 +134,19 @@ def test_harness_coupling_preserves_pytest_failure() -> None:
     assert coupling.run_contracts(REPO_ROOT, runner=failed_runner) == 7
 
 
+def test_harness_coupling_fails_closed_on_unresolvable_diff_base(
+    monkeypatch, capsys
+) -> None:
+    coupling = _load_harness_coupling()
+    zero_sha = "0" * 40
+    monkeypatch.setattr(coupling, "resolve_base_ref", lambda _base=None: zero_sha)
+
+    assert coupling.main(["--strict"]) == 2
+    captured = capsys.readouterr()
+    assert "GATE FAIL harness coupling contracts" in captured.err
+    assert f"{zero_sha}...HEAD" in captured.err
+
+
 def test_event_base_sha_precedes_github_branch_and_cli(
     monkeypatch,
 ) -> None:
