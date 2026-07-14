@@ -46,6 +46,7 @@ from data_lake.silver_lineage import (
     SOURCE_BACKED_COMPLETE_STATUS,
     silver_record_source_backed_status,
 )
+from data_lake.silver_record import SilverRecordError, validate_silver_vault_record
 
 VIEW_SCHEMA_VERSION = 1
 MANIFEST_SCHEMA_VERSION = 1
@@ -55,7 +56,7 @@ BUILT_VIEWS = ("by_mention", "undone")
 # The mentions lane the by_mention view indexes. String mirrored from the
 # CI-guarded lane registry (asserted below) rather than imported from
 # cleaning/, which would invert the base-layer boundary.
-MENTIONS_LANE = "silver__cleaning__product_mentions"
+MENTIONS_LANE = "transcript_product_mentions_silver"
 assert MENTIONS_LANE in LANE_ROLES, "by_mention source lane must stay registered"
 
 _UNDONE_SEMANTICS = (
@@ -125,6 +126,17 @@ def build_by_mention_view(root) -> tuple[dict, list[str]]:
                     {"raw_anchor": raw_anchor, "record_id": record_file.name, "status": "unreadable"}
                 )
                 continue
+            try:
+                validate_silver_vault_record(record)
+            except SilverRecordError:
+                residuals.append(
+                    {
+                        "raw_anchor": raw_anchor,
+                        "record_id": record_file.name,
+                        "status": "invalid_silver_envelope",
+                    }
+                )
+                continue
             status = silver_record_source_backed_status(record)
             if status != SOURCE_BACKED_COMPLETE_STATUS:
                 # Read-side Silver lineage gate: named residual, never evidence.
@@ -139,7 +151,11 @@ def build_by_mention_view(root) -> tuple[dict, list[str]]:
                 "record_id": record_file.name,
                 "sha256": sha256,
             }
-            for mention in record.get("mentions") or []:
+            payload = record.get("payload")
+            observation = payload.get("observation") if isinstance(payload, dict) else None
+            rows = observation.get("rows") if isinstance(observation, dict) else []
+            for row in rows or []:
+                mention = row.get("mention") if isinstance(row, dict) else None
                 if not isinstance(mention, dict):
                     continue
                 brand = str(mention.get("brand") or "unknown")

@@ -104,10 +104,10 @@ def test_operator_packet_export_and_import_writes_product_mentions(tmp_path) -> 
     assert imported["status"] == "extracted"
     assert imported["mention_count"] == 1
     record = json.loads(Path(imported["path"]).read_text(encoding="utf-8"))
-    assert record["extraction_backend"] == OPERATOR_BACKEND
-    assert record["extraction_provenance"]["operator_medium"] == "codex_subscription_or_manual_json"
-    assert record["transcript_source_key"] == source_key
-    assert record["source_route"] == "deep_capture_render_audio"
+    assert record["provenance"]["extraction_backend"] == OPERATOR_BACKEND
+    assert record["provenance"]["extraction_provenance"]["operator_medium"] == "codex_subscription_or_manual_json"
+    assert record["provenance"]["transcript_source_key"] == source_key
+    assert record["provenance"]["source_route"] == "deep_capture_render_audio"
     assert record["derived_refs"][0]["lane"] == REEL_TRANSCRIPT_LANE
     assert record["derived_refs"][0]["record_set_completion_lane"] == DEEP_CAPTURE_SET_LANE
 

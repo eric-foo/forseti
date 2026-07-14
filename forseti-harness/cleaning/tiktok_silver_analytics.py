@@ -15,6 +15,8 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Iterable, Mapping
 
+from capture_spine.creator_profile_current.tiktok_comment_attention_producer import mechanical_comment_attention
+
 from cleaning.audience_extractor import (
     RawApiProvider,
     Transport,
@@ -123,10 +125,10 @@ def comment_engagement_context(
 ) -> dict[str, Any]:
     """Build a mechanical engagement view; no credibility or impact verdicts."""
     video_id = str(video.get("video_id") or video.get("id") or "").strip()
-    stats = video.get("stats") if isinstance(video.get("stats"), Mapping) else {}
     comments_block = video.get("comments") if isinstance(video.get("comments"), Mapping) else {}
     comments = comments_block.get("comments") if isinstance(comments_block.get("comments"), list) else []
-    video_likes = stats.get("diggCount")
+    mechanics = mechanical_comment_attention(video)
+    mechanics_by_id = {row["comment_id"]: row for row in mechanics["comments"]}
     ordered = sorted(
         [row for row in comments if isinstance(row, Mapping)],
         key=lambda row: (-(row.get("digg_count") if type(row.get("digg_count")) is int else -1), str(row.get("cid") or "")),
@@ -134,7 +136,8 @@ def comment_engagement_context(
     rows: list[dict[str, Any]] = []
     for comment in ordered:
         comment_id = str(comment.get("cid") or f"source_order:{comment.get('source_order')}")
-        likes = comment.get("digg_count") if type(comment.get("digg_count")) is int else None
+        mechanical = mechanics_by_id[comment_id]
+        likes = mechanical["comment_likes"]
         labels = None
         semantic_key = f"{video_id}:{comment_id}"
         if semantic_labels and semantic_key in semantic_labels:
@@ -151,21 +154,26 @@ def comment_engagement_context(
                 "text": str(comment.get("text") or ""),
                 "comment_likes": likes,
                 "reply_count": comment.get("reply_comment_total") if type(comment.get("reply_comment_total")) is int else None,
-                "comment_like_to_video_like_ratio": (
-                    likes / video_likes
-                    if likes is not None and type(video_likes) is int and video_likes > 0
-                    else None
-                ),
+                "comment_like_to_video_like_ratio": mechanical["comment_like_to_video_like_ratio"],
+                "comment_like_to_video_like_ratio_posture": mechanical["comment_like_to_video_like_ratio_posture"],
+                "comment_like_to_video_comment_count_ratio": mechanical["comment_like_to_video_comment_count_ratio"],
+                "comment_like_to_video_comment_count_ratio_posture": mechanical["comment_like_to_video_comment_count_ratio_posture"],
+                "comment_like_rank_within_captured": mechanical["comment_like_rank_within_captured"],
+                "comment_like_percentile_within_captured": mechanical["comment_like_percentile_within_captured"],
                 "semantic_labels": labels,
                 "semantic_posture": "classified" if labels is not None else "not_attempted",
             }
         )
     return {
         "video_id": video_id,
-        "video_likes": video_likes if type(video_likes) is int else None,
+        "video_likes": mechanics["video_likes"],
+        "video_comment_count": mechanics["video_comment_count"],
+        "comment_observed_at": mechanics["comment_observed_at"],
+        "video_stats_observed_at": mechanics["video_stats_observed_at"],
+        "temporal_alignment": mechanics["temporal_alignment"],
         "captured_comment_count": len(comments),
-        "attention_metric": "comment_like_to_video_like_ratio",
-        "non_claims": ["not_full_comment_census", "not_comment_credibility", "not_decision_impact"],
+        "attention_metrics": ["comment_like_to_video_like_ratio", "comment_like_to_video_comment_count_ratio"],
+        "non_claims": ["not_full_comment_census", "not_comment_credibility", "not_decision_impact", "not_audience_share"],
         "comments": rows,
     }
 

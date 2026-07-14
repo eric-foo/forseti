@@ -266,8 +266,10 @@ conditions hold:
   one matching target worktree, branch/revision, dirty-state allowance, named
   file set, bounded patch authority, and validation route;
 - before receiver source loading, the dispatcher has selected a receiver
-  mechanism and verified its actual workspace/write root can write that target
-  worktree under `.agents/workflow-overlay/decision-routing.md`;
+  mechanism under `.agents/workflow-overlay/decision-routing.md`; an already
+  active receiver has verified target write capability, while an
+  operator-couriered external controller carries the two-root preflight and
+  fills receiver-only observations before it source-loads;
 - none of the **Full orchestration** routing conditions immediately above apply;
   and
 - there is no unresolved authority, target, state, or scope conflict.
@@ -284,7 +286,9 @@ Render one compact pointer-first prompt containing:
 
 1. the plain goal and what done looks like;
 2. the exact worktree, branch/revision, dirty-state allowance, named targets,
-   patch scope, receiver mechanism, and verified receiver write root/capability;
+   patch scope and receiver mechanism, plus the `launch_checkout` /
+   `effective_target_worktree` resolution and write-capability receipt (using
+   `operator_to_fill` only for observations the not-yet-launched receiver owns);
 3. the different-vendor controller constraint plus author/home family and
    delegate family, using `operator_to_fill` only for an inferable but genuinely
    operator-owned value;
@@ -695,8 +699,9 @@ Every escalated prompt must state:
 - `repo_map_decision: loaded | not_needed | unavailable`, plus `repo_map_reason`. Source-loading (`.agents/workflow-overlay/source-loading.md`) owns the read-pack rule; this field records the prompt author's routing decision and must not make the repo map a mandatory read;
 - workspace path or repository identifier;
 - expected branch, detached revision, or commit hash when source stability matters;
-- receiver mechanism and observed workspace/write root or equivalent capability
-  proof when the prompt commissions repo-changing work in another lane;
+- receiver mechanism, `launch_checkout`, `effective_target_worktree`, target
+  resolution method, direct write-capability proof, and no-concurrent-writer
+  status when the prompt commissions repo-changing work in another lane;
 - dirty-state allowance and whether untracked files are in scope;
 - controlling-source state when strict claims depend on Forseti overlay,
   source-loading, repo-map, prompt-policy, validation, or artifact-role files:
@@ -717,43 +722,55 @@ Every escalated prompt must state:
 
 ### Repo-Bound Review Target Resolution
 
-Repo-bound review and delegated-review prompts must treat a mismatch in the
-receiver's launch checkout as a routing condition, not permission to assume the
-receiver can reroot. For patch-authorized cross-lane work, the dispatcher first
-selects a worktree-rooted receiver and verifies its write root under
-`.agents/workflow-overlay/decision-routing.md`, before receiver source loading.
-The receiving preflight below verifies that binding and remains the discovery
-fallback for read-only work or an unexpected launch mismatch. The prompt states
-the target identity as either an exact revision/hash pin or required commit
-ancestry; exact pins remain exact, while an advancing lane head may continue
+Repo-bound review and delegated-review prompts use two roots: the receiver's
+`launch_checkout` and the commissioned `effective_target_worktree`. A mismatch
+between them is a resolution trigger, not an automatic blocker and not
+permission to assume rerooting. Patch-authorized cross-lane work first selects
+a receiver mechanism under `.agents/workflow-overlay/decision-routing.md`.
+An active receiver proves its capability before dispatch; an operator-couriered
+external controller may complete receiver-only observations during the
+receiving preflight below, before source loading. Prompts must not suppress this
+route merely because the future launch checkout is not yet observable.
+
+Target identity is an exact revision/hash pin or required commit ancestry. For
+uncommitted work it also includes the allowed dirty-file set and a target
+manifest or equivalent byte identity; branch and HEAD alone cannot identify
+dirty bytes. Exact pins remain exact, while an advancing lane head may continue
 only when the prompt explicitly uses ancestry semantics.
 
 Receiving preflight follows this order:
 
-1. Check the launch checkout against the commissioned target.
+1. Record the launch checkout and its harness write scope; check it against the
+   commissioned target.
 2. On mismatch, inspect registered worktrees (`git worktree list --porcelain`
    or a harness-equivalent registry) for the named branch, detached revision, or
    required ancestry before returning a blocker.
 3. When exactly one accessible worktree satisfies target identity, evaluate
-   cleanliness, untracked-file allowance, target paths, and required validation
-   in that worktree. Dirt in the unrelated launch/parent checkout is out of
-   scope and does not fail the target's clean-tree gate.
-4. Continue in the resolved worktree when the runtime is actually rooted there
-   or otherwise has demonstrated write capability. Naming or discovering the
-   path does not reroot a collaboration subagent. Patch-authorized work must use
-   the harness's worktree-rooted receiver mechanism before editing when
-   cross-worktree writes are guarded; if safe rerooting is unavailable, return
-   `BLOCKED_RECEIVER_REROOT_REQUIRED` with the resolved path, observed receiver
-   root/capability, and required reroot action instead of loading more sources,
-   reviewing or patching a substitute checkout, or bypassing the guard.
-5. Block only when the target worktree is absent, ambiguous, inaccessible, has
-   disallowed dirt, fails the exact revision or required-ancestry check, fails a
-   pinned target hash, or cannot be safely rerooted for authorized writes.
+   cleanliness, untracked-file allowance, target paths and required validation
+   there. For dirty targets, verify the named dirty-file set and target manifest.
+   Dirt in the unrelated launch checkout is out of scope.
+4. For repo-changing work, prove direct write capability to the effective target
+   and confirm no concurrent writer. A named path or successful read is not
+   proof. Sandboxed/guarded harnesses remain subject to their target-root and
+   lane-start write/index probe; an independent external controller may use a
+   different launch checkout only when its harness demonstrably permits direct
+   target writes.
+5. When capability is proven, bind the resolved path as
+   `effective_target_worktree`; use target-rooted tool workdirs, absolute paths,
+   and `git -C <effective_target_worktree>`. Never check out or reconstruct the
+   dirty target in the launch checkout. Recheck target identity immediately
+   before the first edit and stop as `BLOCKED_TARGET_DRIFT_DURING_REVIEW` on
+   change.
+6. Return `BLOCKED_RECEIVER_REROOT_REQUIRED` only when the target is absent,
+   ambiguous, inaccessible, byte-mismatched, not demonstrably writable,
+   concurrently changing, or guarded by a target-root requirement the receiver
+   cannot satisfy. Include the resolved path and failed capability fact.
 
 This resolver is discovery of the commissioned source, not permission to use an
 alternate branch, recreated copy, context pack, or summary as review evidence.
-It does not weaken exact hash/revision pins or dirty-state rules; it prevents an
-unrelated launch checkout from being mistaken for the commissioned target.
+It does not weaken exact hash/revision pins, dirty-state rules or write guards;
+it prevents both an unrelated launch checkout from being mistaken for the
+target and a valid external controller from blocking solely on its launch path.
 
 Rerun and patch prompts must also name the prior artifact, prior hash or revision, frozen decisions, mutable fields, and unresolved finding being retried.
 
@@ -840,7 +857,7 @@ Before using a generated Forseti prompt, apply these gates:
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
-4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters. Repo-changing cross-lane dispatch also records the receiver mechanism and observed write root/capability before receiver source loading; a launch-checkout mismatch routes through registered-worktree resolution, but path discovery alone never proves rerooting or write capability.
+4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters. Repo-changing cross-lane dispatch also records the receiver mechanism and the two-root resolution receipt before receiver source loading: launch checkout, effective target, resolution method, byte identity for dirty work, direct write proof and no-concurrent-writer status. A prompt fails this gate when it blocks solely because launch and target differ without attempting registered-worktree resolution, or when it treats path/read access as write proof.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source-capsule budget satisfied: source capsules stay within

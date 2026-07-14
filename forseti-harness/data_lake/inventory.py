@@ -373,6 +373,7 @@ NON_RAW_LAKE_TOUCHPOINT_CALLS = {
     "append_record",
     "append_record_set",
     "append_silver_record",
+    "append_silver_record_set",
     "catalog_coverage_census",
     "inspect_catalog",
     "is_record_set_complete",

@@ -20,6 +20,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/silver_vault_goal_frame_ratification_v0.md
+  - docs/decisions/silver_vault_legacy_record_convergence_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
@@ -69,6 +70,12 @@ For Silver work, start with the goal frame and Silver/Vault record contract in
 Silver Retrieval is the generated query/read layer over those records. Projection,
 ECR/SCR, and Cleaning processing artifacts may be referenced evidence, but their
 presence under `derived/` does not classify them as Silver.
+
+The implemented product-mention and TikTok audience-evidence convergence is
+routed by `docs/decisions/silver_vault_legacy_record_convergence_v0.md`: current
+writers/readers use the official envelope lanes, historical grammar-B records
+remain audit-readable only, and the synthesized audience profile is explicitly
+non-authoritative analysis.
 
 Current Bronze capability status is recorded in
 `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md`:

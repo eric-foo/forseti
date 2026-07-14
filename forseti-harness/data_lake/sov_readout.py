@@ -3,7 +3,7 @@
 Implements the field-level contract
 ``core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md``
 under the consumption seam contract's on-demand-first metrics policy: the
-readout is COMPUTED ON DEMAND from committed ``silver__cleaning__product_mentions``
+readout is COMPUTED ON DEMAND from committed ``transcript_product_mentions_silver``
 records (never from another index), and may optionally be materialized as a
 rebuildable, manifest-backed, non-authoritative cache under
 ``indexes/derived_retrieval/metric_family/<family>/<readout_id>/`` subject to
@@ -50,6 +50,7 @@ from data_lake.silver_lineage import (
     SOURCE_BACKED_COMPLETE_STATUS,
     silver_record_source_backed_status,
 )
+from data_lake.silver_record import SilverRecordError, validate_silver_vault_record
 
 METRIC_FAMILY = "source_backed_brand_line_share_of_voice"
 FAMILY_SCHEMA_VERSION = 1
@@ -307,6 +308,7 @@ def compute_sov_readout(root, spec: dict) -> tuple[dict, list[str]]:
     window_basis_missing = 0
     zero_mention_records = 0
     unreadable_lane_records = 0
+    invalid_silver_envelope_records = 0
     malformed_mention_entries = 0
 
     for raw_anchor in sorted(root.list_available()):
@@ -323,6 +325,11 @@ def compute_sov_readout(root, spec: dict) -> tuple[dict, list[str]]:
             if not isinstance(record, dict):
                 # Unattributable to any cohort; disclosed lake-wide, never dropped silently.
                 unreadable_lane_records += 1
+                continue
+            try:
+                validate_silver_vault_record(record)
+            except SilverRecordError:
+                invalid_silver_envelope_records += 1
                 continue
             source_object = record.get("source_object")
             if not isinstance(source_object, dict):
@@ -349,13 +356,21 @@ def compute_sov_readout(root, spec: dict) -> tuple[dict, list[str]]:
                 continue
             if not (window_start <= ts <= window_end):
                 continue  # outside the declared window: excluded by definition, not a residual
-            rubric_versions.add(str(record.get("rubric_version") or "unversioned"))
+            provenance = record.get("provenance")
+            rubric_versions.add(
+                str(provenance.get("rubric_version") or "unversioned")
+                if isinstance(provenance, dict)
+                else "unversioned"
+            )
             sha256 = hashlib.sha256(body).hexdigest()
-            mentions = record.get("mentions")
-            if not isinstance(mentions, list):
-                if mentions is not None:
+            payload = record.get("payload")
+            observation = payload.get("observation") if isinstance(payload, dict) else None
+            text_rows = observation.get("rows") if isinstance(observation, dict) else None
+            if not isinstance(text_rows, list):
+                if text_rows is not None:
                     malformed_mention_entries += 1
-                mentions = []
+                text_rows = []
+            mentions = [row.get("mention") for row in text_rows if isinstance(row, dict)]
             if not mentions:
                 zero_mention_records += 1
                 continue
@@ -391,6 +406,7 @@ def compute_sov_readout(root, spec: dict) -> tuple[dict, list[str]]:
             "members_without_committed_records": len(member_refs) - len(members_with_records)
         },
         "unreadable_mention_lane_records": unreadable_lane_records,
+        "invalid_silver_envelope_records": invalid_silver_envelope_records,
         "malformed_mention_entries": malformed_mention_entries,
     }
     selection_policy_versions = {

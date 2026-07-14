@@ -1743,6 +1743,7 @@ def _cadence_row_from_capture(
         capture_receipt["challenge_close_followthrough"] = True
     return {
         "video_id": video_id,
+        "observed_utc": observed_utc,
         "url_path": urlparse(video_url).path,
         "status": "completed",
         "creator_handle": creator_handle,

@@ -17,12 +17,9 @@ Two grammars, declared honestly:
   (``record_kind``/``payload_kind``/``payload.observation``). The validating
   front-door ``data_lake.silver_record.append_silver_record`` is the only
   sanctioned writer.
-- ``silver_lineage``: the SECOND, pre-existing silver grammar -- the
-  ``silver_lineage`` kit plus a freeform payload (transcript/IG product mentions
-  and the ``silver__capture__*`` set lanes). It is a frozen legacy baseline:
-  existing lanes remain readable, but a new Silver Authority lane must use the
-  envelope front door. Reconciling or migrating the legacy records is a separate
-  high-lock-in decision; this registry does not reshape history.
+- ``silver_lineage``: the remaining pre-existing grammar-B capture lanes.  The
+  migrated product/audience lanes are ``retired_silver_lineage``: their bytes
+  remain audit-readable, but current readers and writers never select them.
 
 ``FRONT_DOOR_PENDING`` records ``silver_envelope`` lanes whose producer has not
 yet been migrated onto the front-door, each with the reason. The guard permits a
@@ -37,6 +34,9 @@ from enum import Enum
 class LaneRole(str, Enum):
     SILVER_ENVELOPE = "silver_envelope"
     SILVER_LINEAGE = "silver_lineage"
+    RETIRED_SILVER_LINEAGE = "retired_silver_lineage"
+    ANALYTIC_PROFILE = "analytic_profile"
+    COMPLETION_MARKER = "completion_marker"
     CLEANING_AUDIT = "cleaning_audit"
     PROJECTION = "projection"
     ECR = "ecr"
@@ -59,15 +59,20 @@ LANE_ROLES: dict[str, LaneRole] = {
     "creator_metric_rollup_silver": LaneRole.SILVER_ENVELOPE,
     "social_metric_observation_set_silver": LaneRole.SILVER_ENVELOPE,
     "tiktok_comment_attention_silver": LaneRole.SILVER_ENVELOPE,
+    "transcript_product_mentions_silver": LaneRole.SILVER_ENVELOPE,
+    "tiktok_audience_evidence_silver": LaneRole.SILVER_ENVELOPE,
+    "transcript_product_mentions_completion": LaneRole.COMPLETION_MARKER,
+    "tiktok_audience_evidence_completion": LaneRole.COMPLETION_MARKER,
+    "tiktok_audience_profile_analysis": LaneRole.ANALYTIC_PROFILE,
+    "tiktok_audience_profile_analysis_completion": LaneRole.COMPLETION_MARKER,
     "retail_pdp_silver": LaneRole.SILVER_ENVELOPE,
-    # --- silver_lineage: grammar B (lineage kit + freeform payload); frozen legacy
-    #     baseline, declared not reshaped. Reconciling it is a separate high-lock-in decision.
-    "silver__cleaning__product_mentions": LaneRole.SILVER_LINEAGE,
-    "silver__cleaning__product_mentions__set": LaneRole.SILVER_LINEAGE,
-    "silver__cleaning__tiktok_audience_evidence": LaneRole.SILVER_LINEAGE,
-    "silver__cleaning__tiktok_audience_evidence__set": LaneRole.SILVER_LINEAGE,
-    "silver__cleaning__tiktok_audience_profile": LaneRole.SILVER_LINEAGE,
-    "silver__cleaning__tiktok_audience_profile__set": LaneRole.SILVER_LINEAGE,
+    # --- retired grammar-B cleaning lanes: history preserved, never current authority
+    "silver__cleaning__product_mentions": LaneRole.RETIRED_SILVER_LINEAGE,
+    "silver__cleaning__product_mentions__set": LaneRole.RETIRED_SILVER_LINEAGE,
+    "silver__cleaning__tiktok_audience_evidence": LaneRole.RETIRED_SILVER_LINEAGE,
+    "silver__cleaning__tiktok_audience_evidence__set": LaneRole.RETIRED_SILVER_LINEAGE,
+    "silver__cleaning__tiktok_audience_profile": LaneRole.RETIRED_SILVER_LINEAGE,
+    "silver__cleaning__tiktok_audience_profile__set": LaneRole.RETIRED_SILVER_LINEAGE,
     "silver__capture__audience_comments": LaneRole.SILVER_LINEAGE,
     "silver__capture__reel_transcript": LaneRole.SILVER_LINEAGE,
     "silver__capture__reel_deep_capture__set": LaneRole.SILVER_LINEAGE,
@@ -122,15 +127,20 @@ FRONT_DOOR_PENDING_BASELINE: frozenset[str] = frozenset()
 # and this baseline; expanding it silently is forbidden.
 SILVER_LINEAGE_LEGACY_BASELINE: frozenset[str] = frozenset(
     {
+        "silver__capture__audience_comments",
+        "silver__capture__reel_transcript",
+        "silver__capture__reel_deep_capture__set",
+    }
+)
+
+RETIRED_SILVER_LINEAGE_BASELINE: frozenset[str] = frozenset(
+    {
         "silver__cleaning__product_mentions",
         "silver__cleaning__product_mentions__set",
         "silver__cleaning__tiktok_audience_evidence",
         "silver__cleaning__tiktok_audience_evidence__set",
         "silver__cleaning__tiktok_audience_profile",
         "silver__cleaning__tiktok_audience_profile__set",
-        "silver__capture__audience_comments",
-        "silver__capture__reel_transcript",
-        "silver__capture__reel_deep_capture__set",
     }
 )
 
@@ -167,6 +177,16 @@ def validate_registry() -> list[str]:
             "lanes must use the silver_vault_record_v0 envelope front door. A deliberate "
             "legacy migration may shrink the baseline only with its migration evidence."
         )
+    retired_lanes = {
+        lane for lane, role in LANE_ROLES.items() if role is LaneRole.RETIRED_SILVER_LINEAGE
+    }
+    if retired_lanes != set(RETIRED_SILVER_LINEAGE_BASELINE):
+        errors.append(
+            "RETIRED_SILVER_LINEAGE lanes drifted from their historical baseline "
+            f"(added={sorted(retired_lanes - set(RETIRED_SILVER_LINEAGE_BASELINE))!r}, "
+            f"removed={sorted(set(RETIRED_SILVER_LINEAGE_BASELINE) - retired_lanes)!r}); "
+            "historical lanes remain audit-readable but must never regain current-reader authority."
+        )
     return errors
 
 
@@ -179,7 +199,7 @@ SILVER_LINEAGE_LANES = frozenset(
 SILVER_LANES = frozenset(
     lane
     for lane, role in LANE_ROLES.items()
-    if role in (LaneRole.SILVER_ENVELOPE, LaneRole.SILVER_LINEAGE)
+    if role in (LaneRole.SILVER_ENVELOPE, LaneRole.SILVER_LINEAGE, LaneRole.RETIRED_SILVER_LINEAGE)
 )
 
 
@@ -201,6 +221,7 @@ __all__ = [
     "FRONT_DOOR_PENDING",
     "FRONT_DOOR_PENDING_BASELINE",
     "SILVER_LINEAGE_LEGACY_BASELINE",
+    "RETIRED_SILVER_LINEAGE_BASELINE",
     "SILVER_ENVELOPE_LANES",
     "SILVER_LINEAGE_LANES",
     "SILVER_LANES",
