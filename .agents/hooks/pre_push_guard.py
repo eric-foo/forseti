@@ -7,7 +7,7 @@ Reads Git pre-push updates from stdin:
 
 Blocks pushes targeting main, branch deletions, non-fast-forward updates, and
 updates whose fast-forward safety cannot be verified. For allowed lane pushes
-it then mirrors selected strict CI gates (DOC_GATES below) so a forward-only
+it then mirrors selected strict CI gates (SELECTED_GATES below) so a forward-only
 gate miss -- e.g. a reviewer-authored docs/review-outputs report missing its
 retrieval header (PR #613), or a stale JSON source-input hash after a source
 ledger edit -- fails at the push boundary instead of costing a red CI round.
@@ -32,7 +32,7 @@ MAIN_REFS = {"main", "refs/heads/main"}
 # scopes represent the same net lane change. Rule
 # authority: .agents/workflow-overlay/validation-gates.md ("Enforcement
 # Placement"); each checker references its own rule owner.
-DOC_GATES = (
+SELECTED_GATES = (
     ("retrieval link check", (".agents/hooks/check_map_links.py", "--strict")),
     ("retrieval header index", (".agents/hooks/header_index.py", "--strict")),
     ("review-routing disposition", (".agents/hooks/check_review_routing.py", "--strict")),
@@ -45,11 +45,12 @@ DOC_GATES = (
     ),
     ("handoff-pointer resolution", (".agents/hooks/check_handoff_pointers.py", "--strict")),
     ("ontology tag validity", (".agents/hooks/check_ontology_tag_validity.py", "--strict")),
+    ("harness coupling contracts", (".agents/hooks/check_harness_coupling.py", "--strict")),
 )
 
-GATE_TIMEOUT_SECONDS = 120  # generous; the gates run in ~5s combined
+GATE_TIMEOUT_SECONDS = 120  # selected gates normally complete well below this
 
-DOC_GATE_AUTHORITY = (
+SELECTED_GATE_AUTHORITY = (
     ".agents/workflow-overlay/validation-gates.md (Enforcement Placement); "
     "these mirror the CI gates in .github/workflows/ci.yml."
 )
@@ -127,14 +128,14 @@ def run_gate(root: Path, script: str, gate_args: tuple[str, ...]) -> tuple[int, 
         return -1, f"could not run gate: {exc}"
 
 
-def doc_gate_reasons(root: Path, run=run_gate) -> list[str]:
-    """Block reasons from the mirrored strict doc gates (empty == all pass)."""
+def selected_gate_reasons(root: Path, run=run_gate) -> list[str]:
+    """Block reasons from the mirrored selected strict gates (empty == all pass)."""
     reasons: list[str] = []
-    for name, (script, *gate_args) in DOC_GATES:
+    for name, (script, *gate_args) in SELECTED_GATES:
         rc, output = run(root, script, tuple(gate_args))
         if rc != 0:
             reasons.append(
-                f"doc gate '{name}' failed (exit {rc}):\n{output.strip()}"
+                f"selected gate '{name}' failed (exit {rc}):\n{output.strip()}"
             )
     return reasons
 
@@ -167,7 +168,7 @@ def selftest() -> int:
             ok = False
         print(f"{status} {name} expect_block={expect_block} got_block={got_block}")
 
-    # Doc-gate decision cases with injected runners (no subprocess).
+    # Selected-gate decision cases with injected runners (no subprocess).
     root = repo_root()
 
     def all_pass(_root, _script, _args):
@@ -182,12 +183,12 @@ def selftest() -> int:
         return -1, "could not run gate: [Errno 2] No such file"
 
     gate_cases = [
-        ("doc gates all pass", all_pass, 0),
-        ("one doc gate fails", header_fails, 1),
-        ("gate launch failure blocks all", launch_failure, len(DOC_GATES)),
+        ("selected gates all pass", all_pass, 0),
+        ("one selected gate fails", header_fails, 1),
+        ("gate launch failure blocks all", launch_failure, len(SELECTED_GATES)),
     ]
     for name, runner, expect_count in gate_cases:
-        got = doc_gate_reasons(root, run=runner)
+        got = selected_gate_reasons(root, run=runner)
         status = "PASS" if len(got) == expect_count else "FAIL"
         if len(got) != expect_count:
             ok = False
@@ -206,10 +207,10 @@ def main(argv: list[str]) -> int:
         return block(reasons)
     updates = [u for u, err in iter_updates(stdin_text) if u]
     if updates:
-        gate_reasons = doc_gate_reasons(repo_root())
+        gate_reasons = selected_gate_reasons(repo_root())
         if gate_reasons:
-            return block(gate_reasons, authority=DOC_GATE_AUTHORITY)
-        print(f"pre-push gates: OK ({len(DOC_GATES)} gate(s))", file=sys.stderr)
+            return block(gate_reasons, authority=SELECTED_GATE_AUTHORITY)
+        print(f"pre-push gates: OK ({len(SELECTED_GATES)} gate(s))", file=sys.stderr)
     return 0
 
 
