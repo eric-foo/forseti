@@ -52,6 +52,8 @@ _ALLOWED_COUNTS_KEYS = frozenset(
         "profiles_with_ideal_audience_profiles",
         "engagement_rate_observed_profiles",
         "cross_platform_rollup_profiles",
+        "onboarded_profiles",
+        "not_onboarded_profiles",
     }
 )
 _ALLOWED_PROFILE_KEYS = frozenset(
@@ -65,6 +67,7 @@ _ALLOWED_PROFILE_KEYS = frozenset(
         "review_state_or_none",
         "platform_accounts",
         "identity_evidence_summary",
+        "onboarding",
         "current_metric_rollups",
         "ideal_audience_profile",
         "wind_calling_summary",
@@ -136,6 +139,16 @@ _ALLOWED_FRESHNESS_KEYS = frozenset(
 )
 _ALLOWED_IDENTITY_EVIDENCE_SUMMARY_KEYS = frozenset(
     {"summary", "account_pointer", "source_pointers"}
+)
+_ALLOWED_ONBOARDING_KEYS = frozenset(
+    {
+        "onboarding_state",
+        "onboarded_at_or_none",
+        "evidence_packet_id_or_none",
+        "evidence_source_family_or_none",
+        "evidence_source_surface_or_none",
+        "policy_version",
+    }
 )
 _ALLOWED_SOURCE_DRILL_BACK_KEYS = frozenset(
     {
@@ -254,6 +267,7 @@ def _validate_profiles(value: Any) -> list[Mapping[str, Any]]:
         _validate_identity_boundary(profile, subject_kind, subject_id)
         _validate_platform_accounts(profile["platform_accounts"], subject_kind, profile)
         _validate_identity_evidence_summary(profile["identity_evidence_summary"])
+        _validate_onboarding(profile["onboarding"])
         _validate_profile_non_claims(profile["non_claims"])
         _validate_str_list(profile["limitations"], "profile_limitations", allow_empty=False)
         rollups = _validate_rollups(profile["current_metric_rollups"], profile)
@@ -333,6 +347,31 @@ def _validate_identity_evidence_summary(value: Any) -> None:
     _validate_non_empty_str(value["summary"], "identity_evidence_summary.summary")
     _validate_non_empty_str(value["account_pointer"], "identity_evidence_summary.account_pointer")
     _validate_str_list(value["source_pointers"], "identity_evidence_summary.source_pointers", allow_empty=False)
+
+
+def _validate_onboarding(value: Any) -> None:
+    if not isinstance(value, Mapping):
+        _fail("invalid_onboarding", "onboarding must be a mapping")
+    _reject_unknown_keys(value, _ALLOWED_ONBOARDING_KEYS, "onboarding")
+    _require(value, tuple(_ALLOWED_ONBOARDING_KEYS), "onboarding")
+    state = value["onboarding_state"]
+    if state not in {"not_onboarded", "onboarded"}:
+        _fail("invalid_onboarding_state", "onboarding_state must be not_onboarded or onboarded")
+    _validate_non_empty_str(value["policy_version"], "onboarding.policy_version")
+    evidence_keys = (
+        "onboarded_at_or_none",
+        "evidence_packet_id_or_none",
+        "evidence_source_family_or_none",
+        "evidence_source_surface_or_none",
+    )
+    if state == "onboarded":
+        for key in evidence_keys:
+            _validate_non_empty_str(value[key], f"onboarding.{key}")
+    elif any(value[key] is not None for key in evidence_keys):
+        _fail(
+            "not_onboarded_has_evidence",
+            "not_onboarded profiles must not carry onboarding evidence",
+        )
 
 
 def _validate_unjoined_profile_surface(value: Any, context: str) -> None:
@@ -571,6 +610,16 @@ def _validate_counts(counts: Any, profiles: Sequence[Mapping[str, Any]]) -> None
             if any(rollup["platform_scope"] == "cross_platform" for rollup in profile["current_metric_rollups"])
         ),
         "cross_platform_rollup_profiles",
+    )
+    _assert_equal(
+        counts["onboarded_profiles"],
+        sum(1 for profile in profiles if profile["onboarding"]["onboarding_state"] == "onboarded"),
+        "onboarded_profiles",
+    )
+    _assert_equal(
+        counts["not_onboarded_profiles"],
+        sum(1 for profile in profiles if profile["onboarding"]["onboarding_state"] == "not_onboarded"),
+        "not_onboarded_profiles",
     )
 
 

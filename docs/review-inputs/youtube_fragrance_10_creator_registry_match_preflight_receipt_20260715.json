@@ -1,0 +1,187 @@
+{
+  "creator_registry_match_preflight_receipt": {
+    "accepted_residuals": [
+      "Exact preflight does not perform fuzzy display-name matching.",
+      "Exact preflight does not prove cross-platform creator identity.",
+      "Exact preflight does not prove discovery search quality.",
+      "Exact preflight does not refresh Silver metrics or mutate capture outputs."
+    ],
+    "generated_at_utc": "2026-07-15T00:45:00Z",
+    "non_claims": [
+      "not fuzzy identity resolver",
+      "not cross-platform linkage proof",
+      "not registry mutation",
+      "not live social search",
+      "not Silver metric refresh"
+    ],
+    "registry_source": {
+      "generated_at_utc": "2026-07-08T15:12:00Z",
+      "profiles_total": 41,
+      "schema_version": "creator_profile_current_view_v0",
+      "sha256": "addc5524b29089f6743520db08d51da2c924183ef99e3f130fdf97405f19959c",
+      "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json"
+    },
+    "results": [
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_001_aaron_terence_hughes",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "Aaron Terence Hughes",
+          "handles": ["aaronterencehughes"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UCJ7EzNsSGFBx1w5KQqRzMqA",
+          "profile_urls": ["https://youtube.com/@AaronTerenceHughes"]
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_002_aromatix",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "AROMATIX",
+          "handles": ["aromatixrrt"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UC6IMPkOWzhBHWlIW0ca1z_Q",
+          "profile_urls": ["https://youtube.com/@aromatixrrt"]
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_003_cal_cologne",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "Cal Cologne",
+          "handles": ["calcologne"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UCiC5uxWi4WGrR1Suo8I4PqA",
+          "profile_urls": ["https://youtube.com/@CalCologne"]
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_004_eau_d_erica",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "Eau D' Erica",
+          "handles": ["eauderica"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UCzi8yTLv2_lF22VqwfteRLA",
+          "profile_urls": ["https://youtube.com/@eauderica"]
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_005_erin_nicole_tv",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "Erin Nicole TV",
+          "handles": ["erinnicoletv"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UC-SMshzkuetzs4mNHZmJwUg",
+          "profile_urls": ["https://youtube.com/@ErinNicoleTV"]
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_006_fbfragrances",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "FBFragrances",
+          "handles": ["fbfragrances"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UCNDQy3YbPtp37i7B91f6kFQ",
+          "profile_urls": ["https://youtube.com/@FBFragrances"]
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_007_fragmental",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "FRAG-MENTAL",
+          "handles": ["fragmental"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UCm10tytOAzlO42r9_4Oc8Eg",
+          "profile_urls": ["https://youtube.com/@FRAGMENTAL"]
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_008_fragrance_flan",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "FragranceFlan",
+          "handles": ["fragranceflan"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UCTMtNhRZ8-QRTsyiojH8Zqg",
+          "profile_urls": ["https://youtube.com/@FragranceFlan"]
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_009_ka_fragrances",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "K&A Fragrances",
+          "handles": ["kafragrances"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UCNn5SzNLEe2F9M04sn2aoDA",
+          "profile_urls": ["https://youtube.com/@KAFragrances"]
+        }
+      },
+      {
+        "action_blockers": [],
+        "action_status": "allowed",
+        "allowed_next_actions": ["new_capture"],
+        "can_start_new_capture": true,
+        "candidate_id": "fragrance_youtube_scan_010_the_perfume_reviewer",
+        "decision": "new_candidate",
+        "normalized_candidate": {
+          "display_name_or_none": "The Perfume Reviewer",
+          "handles": ["theperfumereviewr"],
+          "platform_or_none": "youtube",
+          "platform_public_account_id_or_none": "UC-kG1xY0duJPDjvNkAiSODg",
+          "profile_urls": ["https://youtube.com/@theperfumereviewr"]
+        }
+      }
+    ],
+    "schema_version": "creator_registry_match_preflight_receipt_v0",
+    "summary": {
+      "ambiguous_matches": 0,
+      "blocked_actions": 0,
+      "existing_matches": 0,
+      "invalid_candidates": 0,
+      "new_candidates": 10,
+      "safe_to_capture_new": 10,
+      "total_candidates": 10
+    }
+  }
+}
