@@ -37,6 +37,7 @@ from source_capture.tiktok.creator_onboarding import (
     DEFAULT_MAX_GRID_SCROLL_PASSES,
     DEFAULT_SELECTION_COUNT,
     DEFAULT_WINDOW_SIZE,
+    GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT,
     TikTokCreatorOnboardingError,
     run_tiktok_creator_onboarding,
 )
@@ -56,6 +57,19 @@ DEFAULT_CREATOR_REGISTRY = (
     / "creator_registry/creator_profile_current_view_v0.json"
 )
 REGISTRY_PREFLIGHT_JSON_NAME = "creator_registry_match_preflight.json"
+
+
+def _onboarding_window_size(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("window size must be an integer") from exc
+    if parsed < GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT:
+        raise argparse.ArgumentTypeError(
+            "window size must be at least "
+            f"{GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT}"
+        )
+    return parsed
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -91,7 +105,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--session-profile-config", type=Path)
     parser.add_argument("--auth-state-root", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--window-size", type=int, default=DEFAULT_WINDOW_SIZE)
+    parser.add_argument(
+        "--window-size",
+        type=_onboarding_window_size,
+        default=DEFAULT_WINDOW_SIZE,
+        help=(
+            "Maximum frozen grid rows; must be at least the 27-video acquisition "
+            "minimum."
+        ),
+    )
     parser.add_argument(
         "--max-grid-scroll-passes",
         type=int,

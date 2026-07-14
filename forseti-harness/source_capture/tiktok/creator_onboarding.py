@@ -544,8 +544,15 @@ def run_tiktok_creator_onboarding(
         raise TikTokCreatorOnboardingError("session profile platform must be tiktok")
     if session_profile.browser_backend != TIKTOK_BROWSER_BACKEND_CHROME_CDP:
         raise TikTokCreatorOnboardingError("TikTok onboarding requires Chrome CDP")
-    if isinstance(window_size, bool) or not isinstance(window_size, int) or window_size <= 0:
-        raise TikTokCreatorOnboardingError("window_size must be a positive integer")
+    if (
+        isinstance(window_size, bool)
+        or not isinstance(window_size, int)
+        or window_size < GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT
+    ):
+        raise TikTokCreatorOnboardingError(
+            "window_size must be an integer of at least "
+            f"{GRID_ACQUISITION_SUFFICIENT_DOM_VIDEO_COUNT}"
+        )
     if (
         isinstance(selection_count, bool)
         or not isinstance(selection_count, int)

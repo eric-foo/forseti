@@ -188,6 +188,17 @@ def test_runner_defaults_cold_agents_to_retained_chrome_session_alias(tmp_path: 
 
     assert args.session_profile == "chowdakr_sg_tiktok"
 
+
+def test_onboarding_rejects_window_below_sufficient_dom_minimum(tmp_path: Path) -> None:
+    with pytest.raises(TikTokCreatorOnboardingError, match="at least 27"):
+        run_tiktok_creator_onboarding(
+            creator_handle="creator",
+            session_profile=_profile(),
+            output_dir=tmp_path,
+            window_size=26,
+        )
+
+
 def test_profile_item_list_predicate_is_exact_and_local() -> None:
     assert is_tiktok_profile_item_list_url(
         "https://www.tiktok.com/api/post/item_list/?cursor=30"
@@ -653,14 +664,18 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
             }
         ],
     )
+    grid_items = [
+        _item("1", 400, 20),
+        _item("2", 300, 60),
+        _item("3", 200, 10),
+        _item("4", 100, 5),
+    ] + [
+        _item(str(video_id), 100 - video_id, 1)
+        for video_id in range(5, 28)
+    ]
     grid = _capture(
-        ordered_ids=["1", "2", "3", "4"],
-        items=[
-            _item("1", 400, 20),
-            _item("2", 300, 60),
-            _item("3", 200, 10),
-            _item("4", 100, 5),
-        ],
+        ordered_ids=[str(video_id) for video_id in range(1, 28)],
+        items=grid_items,
     )
     engine = _FakeEngine(
         [suggested, _suggested_surface_closed_capture(), *_stable_grid_capture_sequence(grid)]
@@ -690,7 +705,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         session_profile=_profile(),
         output_dir=tmp_path,
         auth_state_root=tmp_path,
-        window_size=4,
+        window_size=27,
         selection_count=2,
         engine=engine,
         deep_capture_fn=deep_capture,
@@ -732,9 +747,9 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
     assert receipt["status"] == "complete"
     assert receipt["session_profile"] == "chowdakr_sg_tiktok"
-    assert receipt["window_size"] == 4
+    assert receipt["window_size"] == 27
     assert receipt["selection_count"] == 2
-    assert receipt["window_cap"] == 4
+    assert receipt["window_cap"] == 27
     assert receipt["suggested_accounts_status_or_none"] == "captured"
     assert receipt["suggested_surface_close_before_grid_or_none"]["status"] == "closed"
     assert receipt["suggested_surface_close_before_grid_or_none"]["close_clicked"] is True
@@ -1140,7 +1155,7 @@ def test_grid_below_sufficient_window_fails_before_deep_capture(
             session_profile=_profile(),
             output_dir=tmp_path,
             auth_state_root=tmp_path,
-            window_size=4,
+            window_size=27,
             engine=engine,
             selection_count=2,
             deep_capture_fn=deep_capture,
@@ -1378,6 +1393,20 @@ def test_onboarding_cli_defaults_to_fixed_top_eight_and_eight_thirteen_range() -
     assert args.cadence_min_gap_seconds == 8.0
     assert args.cadence_max_gap_seconds == 13.0
     assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.5
+
+
+def test_onboarding_cli_rejects_window_below_sufficient_dom_minimum() -> None:
+    with pytest.raises(SystemExit):
+        runner.build_parser().parse_args(
+            [
+                "--creator-handle",
+                "creator",
+                "--output-dir",
+                "out",
+                "--window-size",
+                "26",
+            ]
+        )
 
 
 def test_onboarding_cli_admission_passes_full_grid_and_selection(
@@ -1743,8 +1772,11 @@ def test_failed_run_receipt_separates_overlay_capture_from_deep_completion(
             _suggested_surface_closed_capture(),
                 *_stable_grid_capture_sequence(
                     _capture(
-                        ordered_ids=["1", "2"],
-                        items=[_item("1", 400, 20), _item("2", 300, 10)],
+                        ordered_ids=[str(video_id) for video_id in range(1, 28)],
+                        items=[
+                            _item(str(video_id), 1_000 - video_id, 1)
+                            for video_id in range(1, 28)
+                        ],
                     )
                 ),
             _visible_tiles_capture("1"),
@@ -1763,7 +1795,7 @@ def test_failed_run_receipt_separates_overlay_capture_from_deep_completion(
             session_profile=_profile(),
             output_dir=tmp_path,
             auth_state_root=tmp_path,
-            window_size=2,
+            window_size=27,
             selection_count=2,
             engine=engine,
             deep_capture_fn=fail_after_first_overlay,
