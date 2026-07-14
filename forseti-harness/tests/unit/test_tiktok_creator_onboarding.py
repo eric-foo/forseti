@@ -519,6 +519,13 @@ def test_grid_overlay_sequence_uses_logical_positions_and_mouse_wheel_pagination
         "down",
     ]
     assert receipt["targeted_tile_scroll_performed"] is False
+    # An advancing grid must not be misread as stalled: every wheel pass showed
+    # fresh-state progress, so no no-progress stop is recorded.
+    assert receipt["grid_pagination_stop_reason"] is None
+    assert [
+        row.get("progress_since_previous")
+        for row in receipt["grid_pagination_passes"]
+    ] == ["advanced", "selected_tile_visible"]
     assert "scrollIntoView" not in (
         onboarding.TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT
     )
@@ -573,6 +580,91 @@ def test_grid_overlay_sequence_fails_after_single_click_retry(tmp_path: Path) ->
 
     assert receipt["status"] == "failed"
     assert len(receipt["attempts"]) == 1
+
+
+def test_grid_overlay_sequence_stops_wheeling_on_short_grid_no_progress(
+    tmp_path: Path,
+) -> None:
+    # Reproduces the observed short/non-expanded grid: every wheel pass returns
+    # the same fresh state (scroll_y=0, unchanged logical range, unchanged
+    # document height) and never exposes the selected tile. The sequence must
+    # stop after a bounded number of no-value wheel passes and fail loudly,
+    # instead of burning the full pagination budget, and must take no wait.
+    short_grid = lambda: _visible_tiles_capture(
+        visible_min=1, visible_max=11, scroll_y=0, document_height=1605
+    )
+    engine = _FakeEngine([short_grid() for _ in range(4)])
+    receipt = _grid_overlay_receipt()
+    sleeps: list[float] = []
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        sleep_fn=sleeps.append,
+        pagination_pass_cap=10,
+        selected_grid_position=17,
+    )
+
+    with pytest.raises(
+        TikTokCreatorOnboardingError, match="bounded grid pagination exhausted"
+    ):
+        sequence(0, ["https://www.tiktok.com/@creator/video/1"])
+
+    assert sleeps == []
+    assert receipt["status"] == "failed"
+    assert receipt["grid_pagination_stop_reason"] == "no_progress_stall"
+    # Stopped at the stall limit, far short of the pass cap of 10.
+    assert receipt["grid_pagination_passes_executed"] == (
+        onboarding.GRID_PAGINATION_NO_PROGRESS_STALL_LIMIT
+    )
+    passes = receipt["grid_pagination_passes"]
+    assert [row["progress_since_previous"] for row in passes] == [
+        "no_progress" for _ in passes
+    ]
+    assert passes[-1]["outcome"] == "no_progress_stall_budget_stopped"
+    # Directionality is still derived from logical positions (17 is below 1..11).
+    assert {row["direction"] for row in passes} == {"down"}
+
+
+def test_grid_overlay_sequence_keeps_wheeling_while_grid_advances(
+    tmp_path: Path,
+) -> None:
+    # A grid that advances each pass (fresh state changes) must not be misread as
+    # stalled even past the stall limit; the sequence keeps paginating until the
+    # selected tile is exposed, then clicks it.
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture(visible_min=1, visible_max=3, scroll_y=0),
+            _visible_tiles_capture(visible_min=4, visible_max=6, scroll_y=780),
+            _visible_tiles_capture(visible_min=7, visible_max=9, scroll_y=1560),
+            _visible_tiles_capture(visible_min=10, visible_max=12, scroll_y=2340),
+            _visible_tiles_capture(
+                "1", visible_min=13, visible_max=15, scroll_y=3120
+            ),
+            _clicked_capture("1"),
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        pagination_pass_cap=6,
+        selected_grid_position=15,
+    )
+
+    _chosen_url, capture = sequence(
+        0, ["https://www.tiktok.com/@creator/video/1"]
+    )
+
+    assert capture.dom_observation["video_overlay_detected"] is True
+    assert receipt["status"] == "complete"
+    assert receipt["grid_pagination_stop_reason"] is None
+    assert receipt["grid_pagination_passes_executed"] == 4
+    assert [
+        row["progress_since_previous"]
+        for row in receipt["grid_pagination_passes"]
+    ] == ["advanced", "advanced", "advanced", "selected_tile_visible"]
 
 
 def test_grid_below_fixed_selection_count_fails_before_deep_capture(
@@ -956,6 +1048,7 @@ def _grid_overlay_receipt() -> dict[str, object]:
         "grid_pagination_total_pass_cap": 2,
         "grid_pagination_passes_executed": 0,
         "grid_pagination_passes": [],
+        "grid_pagination_stop_reason": None,
         "attempts": [],
         "retry_waits": [],
         "status": "in_progress",
@@ -1004,6 +1097,7 @@ def _visible_tiles_capture(
     visible_min: int | None = 1,
     visible_max: int | None = 3,
     scroll_y: int = 0,
+    document_height: int | None = None,
 ) -> BrowserPageObservationSuccess:
     capture = _capture(ordered_ids=[], items=[])
     capture.dom_observation["visible_selected_tiles"] = [
@@ -1017,6 +1111,7 @@ def _visible_tiles_capture(
     capture.dom_observation["visible_grid_position_min_or_none"] = visible_min
     capture.dom_observation["visible_grid_position_max_or_none"] = visible_max
     capture.dom_observation["scroll_y"] = scroll_y
+    capture.dom_observation["document_height"] = document_height
     return capture
 
 

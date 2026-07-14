@@ -62,6 +62,13 @@ DEFAULT_MAX_GRID_SCROLL_PASSES = 40
 INITIAL_DEEP_CAPTURE_WAIT_MIN_SECONDS = 8.0
 INITIAL_DEEP_CAPTURE_WAIT_MAX_SECONDS = 13.0
 GRID_ENTRY_RETRY_WAIT_SECONDS = 60.0
+# Consecutive fresh-state-unchanged wheel passes that show the grid is not
+# advancing under bounded wheel input. Reaching this cap stops the wheel bursts
+# and fails loudly instead of burning the full pagination budget on no-value
+# actions. It never triggers a wait: the only authorized 60-second wait is after
+# a failed matching-overlay materialization (creator discovery enforcement
+# placement doctrine), never in the grid-pagination path.
+GRID_PAGINATION_NO_PROGRESS_STALL_LIMIT = 3
 
 SleepFn = Callable[[float], None]
 MonotonicFn = Callable[[], float]
@@ -620,6 +627,7 @@ def run_tiktok_creator_onboarding(
             ),
             "grid_pagination_passes_executed": 0,
             "grid_pagination_passes": [],
+            "grid_pagination_stop_reason": None,
             "attempts": [],
             "retry_waits": [],
             "status": "in_progress",
@@ -1032,6 +1040,8 @@ class _GridOverlayCaptureSequence:
     def _paginate_until_visible(
         self, pending_video_ids: Sequence[str]
     ) -> list[dict[str, Any]]:
+        previous_fingerprint = self._grid_progress_fingerprint()
+        consecutive_no_progress = 0
         for lookup_pass_number in range(1, self.pagination_pass_cap + 1):
             total_pass_number = int(
                 self.receipt["grid_pagination_passes_executed"]
@@ -1061,22 +1071,51 @@ class _GridOverlayCaptureSequence:
                 pagination_passes.append(pass_receipt)
                 continue
             self._remember_grid_view(capture)
-            pass_receipt["wheel_action_or_none"] = capture.metadata.get(
-                "post_load_wheel_action"
-            )
+            wheel_action = capture.metadata.get("post_load_wheel_action")
+            pass_receipt["wheel_action_or_none"] = wheel_action
             pass_receipt["visible_grid_position_min_or_none"] = (
                 self.last_grid_view.get("visible_grid_position_min_or_none")
             )
             pass_receipt["visible_grid_position_max_or_none"] = (
                 self.last_grid_view.get("visible_grid_position_max_or_none")
             )
-            rows = _visible_grid_rows_from_capture(capture)
-            pass_receipt["outcome"] = (
-                "selected_tile_visible" if rows else "no_selected_tile_visible"
+            pass_receipt["scroll_y_or_none"] = self.last_grid_view.get("scroll_y")
+            pass_receipt["document_height_or_none"] = self.last_grid_view.get(
+                "document_height"
             )
-            pagination_passes.append(pass_receipt)
+            pass_receipt["actual_scroll_delta_y_px_or_none"] = (
+                wheel_action.get("actual_scroll_delta_y_px")
+                if isinstance(wheel_action, dict)
+                else None
+            )
+            rows = _visible_grid_rows_from_capture(capture)
             if rows:
+                pass_receipt["progress_since_previous"] = "selected_tile_visible"
+                pass_receipt["outcome"] = "selected_tile_visible"
+                pagination_passes.append(pass_receipt)
                 return rows
+            current_fingerprint = self._grid_progress_fingerprint()
+            if current_fingerprint != previous_fingerprint:
+                consecutive_no_progress = 0
+                pass_receipt["progress_since_previous"] = "advanced"
+            else:
+                consecutive_no_progress += 1
+                pass_receipt["progress_since_previous"] = "no_progress"
+            previous_fingerprint = current_fingerprint
+            pass_receipt["consecutive_no_progress_passes"] = consecutive_no_progress
+            if consecutive_no_progress >= GRID_PAGINATION_NO_PROGRESS_STALL_LIMIT:
+                # The grid is not advancing under bounded wheel input from its
+                # fresh state; stop rather than spend the rest of the budget on
+                # no-value wheel actions. Fail loud via the empty return; no
+                # wait is taken here (doctrine reserves the 60-second wait for a
+                # failed matching-overlay materialization only).
+                pass_receipt["outcome"] = "no_progress_stall_budget_stopped"
+                self.receipt["grid_pagination_stop_reason"] = "no_progress_stall"
+                pagination_passes.append(pass_receipt)
+                return []
+            pass_receipt["outcome"] = "no_selected_tile_visible"
+            pagination_passes.append(pass_receipt)
+        self.receipt["grid_pagination_stop_reason"] = "pass_cap_reached"
         return []
 
     def _remember_grid_view(self, capture: BrowserPageObservationSuccess) -> None:
@@ -1089,7 +1128,25 @@ class _GridOverlayCaptureSequence:
                 "visible_grid_position_max_or_none"
             ),
             "scroll_y": observation.get("scroll_y"),
+            "document_height": observation.get("document_height"),
         }
+
+    def _grid_progress_fingerprint(self) -> tuple[object, object, object, object]:
+        """Fresh-state grid signals used to detect a non-advancing grid.
+
+        Progress is measured from the grid's freshly observed state (scroll
+        position, document height, visible logical range) rather than from the
+        mere fact that a wheel burst was attempted, so a short/non-expanded grid
+        that does not move under wheel input is detectable.
+        """
+
+        view = self.last_grid_view
+        return (
+            view.get("visible_grid_position_min_or_none"),
+            view.get("visible_grid_position_max_or_none"),
+            view.get("scroll_y"),
+            view.get("document_height"),
+        )
 
     def _pagination_direction(self, pending_video_ids: Sequence[str]) -> str:
         pending_positions = [
