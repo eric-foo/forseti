@@ -10,9 +10,11 @@ if __package__ in {None, ""}:
 from cleaning.tiktok_audience_evidence_extractor import AudienceTranscript, RUBRIC_VERSION, extract_batch, pack_transcripts, synthesize_profiles
 from cleaning.tiktok_audience_evidence_lake import (
     AUDIENCE_EVIDENCE_LANE, AUDIENCE_EVIDENCE_SET_LANE, AUDIENCE_PROFILE_LANE, AUDIENCE_PROFILE_SET_LANE,
+    PROFILE_SCHEMA_VERSION, RECORD_SCHEMA_VERSION,
     audience_record_id, profile_record_id, write_profile, write_result,
 )
 from data_lake.consumption import append_ack, pickup, reconcile_availability_per_packet
+from data_lake.silver_record import validate_silver_vault_record
 from runners.run_tiktok_product_extract import _transcripts_for_packet
 from source_capture.tiktok.batch_packet import TIKTOK_BATCH_CAPTURE_JSON_NAME
 from schemas.tiktok_audience_evidence_models import TikTokAudienceEvidence
@@ -23,7 +25,9 @@ _ACK_NAMESPACE = AUDIENCE_EVIDENCE_LANE
 def _obligation(data_root, packet_id: str, model: str) -> dict:
     availability = data_root.read_availability(packet_id) or {}
     return {"obligation_schema": 1, "consumer": "tiktok_audience_evidence", "model": model,
-            "rubric_version": RUBRIC_VERSION, "manifest_sha256": str(availability.get("manifest_sha256") or "missing")}
+            "rubric_version": RUBRIC_VERSION, "record_schema_version": RECORD_SCHEMA_VERSION,
+            "profile_schema_version": PROFILE_SCHEMA_VERSION,
+            "manifest_sha256": str(availability.get("manifest_sha256") or "missing")}
 
 
 def _creator_id(data_root, packet_id: str) -> str:
@@ -85,12 +89,19 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
                           "record_id": rid, "video_id": transcript.video_id}
                 if data_root.is_record_set_complete(subtree="derived", raw_anchor=packet_id,
                                                     record_id=rid, completion_lane=AUDIENCE_EVIDENCE_SET_LANE):
-                    results.append({"packet_id": packet_id, "creator_id": creator, "video_id": transcript.video_id, "status": "skipped_done"})
-                    state["evidence"].append(marker)
                     record_path = data_root.record_path(subtree="derived", raw_anchor=packet_id, lane=AUDIENCE_EVIDENCE_LANE, record_id=rid)
                     body = record_path.read_bytes()
                     stored = json.loads(body.decode("utf-8"))
-                    state["rows"].extend(TikTokAudienceEvidence.model_validate(row) for row in stored.get("evidence", []))
+                    validate_silver_vault_record(stored)
+                    observation = ((stored.get("payload") or {}).get("observation") or {})
+                    stored_rows = [
+                        TikTokAudienceEvidence.model_validate(row["audience_evidence"])
+                        for row in observation.get("rows", [])
+                        if isinstance(row, dict) and isinstance(row.get("audience_evidence"), dict)
+                    ]
+                    results.append({"packet_id": packet_id, "creator_id": creator, "video_id": transcript.video_id, "status": "skipped_done"})
+                    state["evidence"].append(marker)
+                    state["rows"].extend(stored_rows)
                     state["record_refs"].append((rid, hashlib.sha256(body).hexdigest()))
                 elif data_root.record_path(subtree="derived", raw_anchor=packet_id,
                                            lane=AUDIENCE_EVIDENCE_LANE, record_id=rid).exists():

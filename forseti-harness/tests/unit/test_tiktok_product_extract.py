@@ -143,7 +143,10 @@ def test_runner_extracts_all_videos_then_acknowledged_rerun_is_empty(tmp_path: P
     )
     assert len(records) == 2
     payloads = [json.loads(path.read_text(encoding="utf-8")) for path in records]
-    assert {payload["video_id"] for payload in payloads} == {
+    assert {
+        payload["payload"]["observation"]["subject"]["ref"]["native_id"]
+        for payload in payloads
+    } == {
         "7650000000000000001",
         "7650000000000000002",
     }

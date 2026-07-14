@@ -201,7 +201,7 @@ contract.
   an empty backlog when stale-ack/grown-obligation work exists that only
   lane-side pickup can see.
 - `by_mention` view: exact `(brand, line)` strings from committed
-  `silver__cleaning__product_mentions` records mapped to record refs. Only
+  `transcript_product_mentions_silver` records mapped to record refs. Only
   records passing the read-side Silver lineage gate
   (`silver_record_source_backed_status == complete`) enter the evidence
   mapping; all others appear solely under a `residuals` section (ids +
@@ -228,7 +228,7 @@ contract.
   1. `source_backed_brand_line_share_of_voice` — per platform, cohort, and
      coverage window, the share of captured product-line mentions per
      brand/line, derived from source-backed-complete
-     `silver__cleaning__product_mentions` records; every figure traceable to
+     `transcript_product_mentions_silver` records; every figure traceable to
      transcript evidence, denominators are captured-evidence-only (never a
      "total market" implication).
   2. `movement_threshold_crossings` — declared-threshold movement/momentum

@@ -224,12 +224,13 @@ def test_runner_extracts_ig_transcript_then_skips_on_rerun(tmp_path) -> None:
     assert first[0]["asr_record_id"] == asr_record_id
 
     written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
-    assert written["mention_count"] == 1
-    assert written["mentions"][0]["start_ms"] == 3000  # CE5 timestamp from the cue
-    assert written["mentions"][0]["video_id"] == "DZ69knlsDb1"
-    assert written["transcript_source_key"] == source_key
-    assert written["source_route"] == "standalone_audio_packet"
-    assert written["asr_record_id"] == asr_record_id
+    assert written["payload"]["observation"]["row_count"] == 1
+    mention = written["payload"]["observation"]["rows"][0]["mention"]
+    assert mention["start_ms"] == 3000  # CE5 timestamp from the cue
+    assert mention["video_id"] == "DZ69knlsDb1"
+    assert written["provenance"]["transcript_source_key"] == source_key
+    assert written["provenance"]["source_route"] == "standalone_audio_packet"
+    assert written["provenance"]["asr_record_id"] == asr_record_id
     _assert_exact_transcript_lineage(
         written,
         source_surface="ig_reels_audio",
@@ -273,11 +274,11 @@ def test_runner_extracts_deep_capture_transcript_records(tmp_path) -> None:
     ]
 
     written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
-    assert written["transcript_anchor"] == "DZ69knlsDb1"
-    assert written["transcript_source"] == "asr"
-    assert written["transcript_source_key"] == deep_key
-    assert written["source_route"] == "deep_capture_render_audio"
-    assert written["asr_record_id"] == deep_record_id
+    assert written["raw_anchor"] == "DZ69knlsDb1"
+    assert written["provenance"]["transcript_source"] == "asr"
+    assert written["provenance"]["transcript_source_key"] == deep_key
+    assert written["provenance"]["source_route"] == "deep_capture_render_audio"
+    assert written["provenance"]["asr_record_id"] == deep_record_id
     _assert_exact_transcript_lineage(
         written,
         source_surface="ig_reels_deep_capture_render_audio",

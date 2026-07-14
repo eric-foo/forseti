@@ -98,7 +98,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/transcript_product_lake.py": (
         ("EXTRACTOR_RUBRIC_VERSION (cleaning/transcript_product_extractor.py)", "PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
-        "5e26f61b50082dd214ae6f2fe756308607a06009c09c84b33f9c95be1f2fddf4",
+        # Output-shaping: grammar-B payload migrated to the official Silver envelope;
+        # PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION bumped to v1 and now rides obligations.
+        "5552e030494eff9aaec29f8c16e8fc3eadc412caf3f66da165f6de819f39781c",
     ),
     "cleaning/tiktok_audience_evidence_extractor.py": (
         ("RUBRIC_VERSION",),
@@ -106,7 +108,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/tiktok_audience_evidence_lake.py": (
         ("RUBRIC_VERSION", "RECORD_SCHEMA_VERSION", "PROFILE_SCHEMA_VERSION"),
-        "9d206811e9cd63ddc40731a40c09a66bbf7af7d31e2f95c5abe4f4a0189e0e8c",
+        # Output-shaping: evidence moved to the envelope and the synthesized profile
+        # became explicitly non-authoritative analysis; schema tokens ride obligations.
+        "ac60324de1685d98a23c553de172f9f0c3425da682a8b0e42ba9d56cf2ae7278",
     ),
     "ecr/deriver.py": (
         ("ECR_DERIVER_VERSION",),
@@ -154,7 +158,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "runners/run_tiktok_product_extract.py": (
         ("EXTRACTOR_RUBRIC_VERSION", "TikTok cue-normalization and packet-obligation policy"),
-        "196a767f96e28ca2d9ab12eb453c2000ae7a6b0fc25c1b557ad7d5dc89cf1be9",
+        # Output-shaping obligation change: record schema version now re-surfaces
+        # packets for the envelope migration even when the extraction rubric is unchanged.
+        "054645d4501ed6084197efa3e34620b54dda7bb80e22ab6dda7907e23cc5414e",
     ),
 }
 
@@ -164,7 +170,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
 # accidentally drops the payload field itself.
 RECORD_SCHEMA_TOKEN_FIELD_SITES: dict[str, tuple[str, ...]] = {
     "cleaning/transcript_product_lake.py": (
-        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v0"',
+        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v1"',
         '"record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION',
     ),
     "source_capture/fragrance_review_coverage.py": (

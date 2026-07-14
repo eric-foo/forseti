@@ -22,6 +22,7 @@ import re
 from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION, TranscriptInput
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
+    PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
     PRODUCT_MENTIONS_SET_LANE,
     build_transcript_source_lineage,
     extract_products_into_lake,
@@ -113,6 +114,7 @@ def _packet_obligation(data_root, packet_id: str, model: str) -> dict:
         "consumer": _SEAM_CONSUMER,
         "model": model,
         "rubric_version": EXTRACTOR_RUBRIC_VERSION,
+        "record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
         "manifest_sha256": str(availability.get("manifest_sha256") or "missing"),
     }
 

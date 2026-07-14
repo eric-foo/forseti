@@ -76,7 +76,7 @@ silver producers `{projection, ecr, scr, cleaning}`, gold producer `{judgment}`.
 ```
 raw/<video-packet>/…                                          🥉 bronze
 derived/<video-packet>/silver__transcript__asr/<id>           🥈 silver (transcript; today plain `transcript_asr` — see Residual R7)
-derived/<video-packet>/silver__cleaning__product_mentions/<id> 🥈 silver (THIS spec, Pass 1)
+derived/<video-packet>/transcript_product_mentions_silver/<id> 🥈 Silver Vault (THIS spec, Pass 1)
 derived/<video-packet>/gold__judgment__product_verdict/<id>    🥇 gold   (Pass 2, DEFERRED)
 derived/<video-packet>/gold__judgment__transcript_summary/<id> 🥇 gold   (summary pass)
 ```
@@ -98,7 +98,7 @@ per-surface packets (watch / captions / audio) that share **no** raw anchor, so
   the exact captured bytes. (The cue timestamp is the traceability win transcripts
   have that captions-as-text alone do not.)
 - Read-side lineage eligibility: downstream consumers that treat
-  `silver__cleaning__product_mentions` as complete evidence must also require
+  `transcript_product_mentions_silver` as complete evidence must also require
   `silver_record_source_backed_status(record) == "source_backed_complete"`.
   A completion marker proves record-set membership only; it does not grandfather
   old no-lineage, invalid-lineage, or limitations-only records into source-backed
@@ -175,7 +175,7 @@ The cron/daemon is deferred, but the runner is built daemon-*ready* so wrapping 
 later is zero-rework (a cron just calls the runner on a timer). Acceptance:
 
 1. **Idempotent** — skips any transcript that already has a completed
-   `silver__cleaning__product_mentions` record-set (checks the completion marker).
+   `transcript_product_mentions_silver` record-set (checks the completion marker).
    Run twice → no double-write (the lake refuses overwrite anyway).
 2. **Stateless / resumable** — derives "what is not done yet" from the lake each
    run; no memory between runs; crash → just re-run.

@@ -123,12 +123,18 @@
     {
       "a2_fork_impact": "none",
       "call": "append_record_set",
-      "count": 2,
+      "count": 1,
       "module": "cleaning/tiktok_audience_evidence_lake.py"
     },
     {
       "a2_fork_impact": "none",
-      "call": "append_record_set",
+      "call": "append_silver_record_set",
+      "count": 1,
+      "module": "cleaning/tiktok_audience_evidence_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record_set",
       "count": 1,
       "module": "cleaning/transcript_product_lake.py"
     },
@@ -159,6 +165,12 @@
     {
       "a2_fork_impact": "none",
       "call": "append_record",
+      "count": 1,
+      "module": "data_lake/silver_record.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record_set",
       "count": 1,
       "module": "data_lake/silver_record.py"
     },
