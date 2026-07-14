@@ -104,12 +104,15 @@ def test_alias_constant_conflicts_are_unresolved() -> None:
     assert "LANE" not in consts
 
 
-def test_front_door_exemption_is_limited_to_append_silver_record() -> None:
+def test_front_door_exemption_is_limited_to_validating_front_door_functions() -> None:
     guard = _load_hook()
     registry = _load_registry()
     tree = ast.parse(
         "def append_silver_record(data_root, lane):\n"
         "    data_root.append_record(lane=lane)\n"
+        "\n"
+        "def append_silver_record_set(data_root, lane):\n"
+        "    data_root.append_record_set(members={lane: b'x'}, completion_lane='done')\n"
         "\n"
         "def other_helper(data_root):\n"
         '    data_root.append_record(lane="cleaning_fragrantica_silver")\n'
@@ -121,7 +124,7 @@ def test_front_door_exemption_is_limited_to_append_silver_record() -> None:
         registry,
         is_front_door_module=True,
     )
-    # append_silver_record's parameterized lane is exempt (not flagged unresolved);
+    # Both validating front doors are exempt (not flagged unresolved);
     # a sibling raw writer in the same module is NOT exempt.
     assert not unresolved
     assert [finding.code for finding in findings] == ["envelope_lane_bypass"]
@@ -179,16 +182,19 @@ def test_registry_freezes_legacy_lineage_lanes() -> None:
     registry = _load_registry()
     assert registry.SILVER_LINEAGE_LANES == registry.SILVER_LINEAGE_LEGACY_BASELINE
     assert registry.SILVER_LINEAGE_LANES == {
-        "silver__cleaning__product_mentions",
-        "silver__cleaning__product_mentions__set",
-        "silver__cleaning__tiktok_audience_evidence",
-        "silver__cleaning__tiktok_audience_evidence__set",
-        "silver__cleaning__tiktok_audience_profile",
-        "silver__cleaning__tiktok_audience_profile__set",
         "silver__capture__audience_comments",
         "silver__capture__reel_transcript",
         "silver__capture__reel_deep_capture__set",
     }
+    assert {
+        lane
+        for lane, role in registry.LANE_ROLES.items()
+        if role is registry.LaneRole.RETIRED_SILVER_LINEAGE
+    } == registry.RETIRED_SILVER_LINEAGE_BASELINE
+    assert {
+        "transcript_product_mentions_silver",
+        "tiktok_audience_evidence_silver",
+    } <= registry.SILVER_ENVELOPE_LANES
 
     registry.LANE_ROLES["silver__new_legacy_bypass"] = registry.LaneRole.SILVER_LINEAGE
     try:

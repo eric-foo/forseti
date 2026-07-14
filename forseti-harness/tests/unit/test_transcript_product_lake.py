@@ -99,7 +99,23 @@ def _caption_fetch() -> CaptionFetch:
 
 
 def _transcript() -> TranscriptInput:
-    return TranscriptInput("vid12345678", _ANCHOR, "asr", _cues())
+    lineage = build_transcript_source_lineage(
+        namespace="youtube",
+        source_surface="youtube_audio",
+        video_id="vid12345678",
+        derived_ref=SilverDerivedRef(
+            raw_anchor=_ANCHOR,
+            lane="transcript_asr",
+            record_id="asr_fixture.json",
+            sha256="b" * 64,
+            hash_basis="derived_record_bytes",
+        ),
+    )
+    return TranscriptInput("vid12345678", _ANCHOR, "asr", _cues(), source_lineage=lineage)
+
+
+def _stored_mentions(record: dict) -> list[dict]:
+    return [row["mention"] for row in record["payload"]["observation"]["rows"]]
 
 
 # --- json3 -> cues (timing preserved) ----------------------------------------
@@ -182,8 +198,8 @@ def test_driver_persists_to_silver_lane(tmp_path) -> None:
         subtree="derived", raw_anchor=_ANCHOR, record_id=rid, completion_lane=PRODUCT_MENTIONS_SET_LANE,
     )
     written = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
-    assert written["mention_count"] == 1
-    assert written["mentions"][0]["start_ms"] == 3000  # CE5 timestamp from the cue
+    assert written["payload"]["observation"]["row_count"] == 1
+    assert _stored_mentions(written)[0]["start_ms"] == 3000  # CE5 timestamp from the cue
 
 
 def test_operator_result_writer_reuses_silver_lane_shape(tmp_path) -> None:
@@ -201,10 +217,10 @@ def test_operator_result_writer_reuses_silver_lane_shape(tmp_path) -> None:
     )
 
     rec = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
-    assert rec["extraction_backend"] == "operator_codex_assisted"
-    assert rec["extraction_provenance"]["packet_kind"] == "ig_reels_operator_product_extract_v0"
-    assert rec["mention_count"] == 1
-    assert rec["mentions"][0]["video_id"] == "vid12345678"
+    assert rec["provenance"]["extraction_backend"] == "operator_codex_assisted"
+    assert rec["provenance"]["extraction_provenance"]["packet_kind"] == "ig_reels_operator_product_extract_v0"
+    assert rec["payload"]["observation"]["row_count"] == 1
+    assert _stored_mentions(rec)[0]["video_id"] == "vid12345678"
 
 
 def test_driver_refuses_duplicate_write(tmp_path) -> None:
@@ -227,9 +243,9 @@ def test_driver_persists_rejected_count(tmp_path) -> None:
         provider=_PROVIDER, model="m", api_key="k",
     )
     record = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
-    assert record["mention_count"] == 1
-    assert record["rejected_count"] == 1
-    assert record["rejected"][0]["index"] == "1"
+    assert record["payload"]["observation"]["row_count"] == 1
+    assert record["provenance"]["rejected_count"] == 1
+    assert "rejected" not in record  # processing rejects do not blur into Silver facts
 
 
 # --- runner: ASR path, end-to-end + idempotent --------------------------------
@@ -425,8 +441,8 @@ def test_runner_extracts_caption_transcript(tmp_path) -> None:
 
     record_path = next((data_root.path / "derived").glob(f"**/{PRODUCT_MENTIONS_LANE}/*"))
     record = json.loads(record_path.read_text(encoding="utf-8"))
-    assert record["mention_count"] == 1
-    mention = record["mentions"][0]
+    assert record["payload"]["observation"]["row_count"] == 1
+    mention = _stored_mentions(record)[0]
     assert mention["video_id"] == "vid12345678"
     assert mention["transcript_source"] == "caption"
     assert mention["source_pointer"] == "absolute beast in the heat"
@@ -577,17 +593,14 @@ def test_driver_persists_silver_lineage_in_place(tmp_path) -> None:
     assert rec["source_object"]["kind"] == "transcript"
 
 
-def test_driver_without_lineage_omits_lineage_fields(tmp_path) -> None:
-    # Additive: a producer that has not adopted lineage (e.g. the IG runner, Patch 3) still
-    # writes, and the record simply carries no lineage fields -- no fake/empty lineage.
+def test_driver_without_lineage_fails_closed(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    paths = extract_products_into_lake(
-        data_root=data_root, transcript=_transcript(), transport=FakeTransport(_anthropic([_item()])),
-        provider=_PROVIDER, model="m", api_key="k",
-    )
-    rec = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
-    for key in ("derived_refs", "raw_refs", "lineage_schema_version", "source_object"):
-        assert key not in rec
+    transcript = TranscriptInput("vid12345678", _ANCHOR, "asr", _cues())
+    with pytest.raises(ValueError, match="requires exact transcript lineage"):
+        extract_products_into_lake(
+            data_root=data_root, transcript=transcript, transport=FakeTransport(_anthropic([_item()])),
+            provider=_PROVIDER, model="m", api_key="k",
+        )
 
 
 def test_runner_asr_record_references_exact_transcript(tmp_path) -> None:

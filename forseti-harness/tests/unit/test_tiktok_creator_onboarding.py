@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -57,15 +58,25 @@ def _capture(
 ) -> BrowserPageObservationSuccess:
     dom: dict[str, object]
     if suggested is not None:
-        dom = {"suggested_accounts": suggested}
+        dom = {
+            "suggested_accounts": suggested,
+            "suggested_surface_detected": True,
+            "suggested_surface_root_count": 1,
+            "suggested_profile_anchor_count": len(suggested),
+            "relationship_dialog_detected": True,
+            "suggested_tab_detected": True,
+            "suggested_route": "followers_dialog_suggested_tab",
+        }
     else:
         dom = {
             "ordered_videos": [
                 {
                     "video_id": video_id,
                     "video_url": f"https://www.tiktok.com/@creator/video/{video_id}",
+                    "visible_in_viewport": True,
+                    "grid_position": index,
                 }
-                for video_id in ordered_ids
+                for index, video_id in enumerate(ordered_ids, start=1)
             ],
             "hydration_json_text": None,
         }
@@ -79,6 +90,7 @@ def _capture(
         metadata={
             "post_load_pointer_actions": [],
             "human_challenge_handoff_attempts": [],
+            "capture_timestamp": "2026-07-14T10:00:00Z",
             "lazy_load_scroll_passes_executed": 2,
             "lazy_load_scroll_stop_reason": "response_target_reached",
             "lazy_load_response_stop_condition_configured": True,
@@ -328,12 +340,15 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         deep_calls.append(dict(kwargs))
         assert kwargs["engine"] is engine
         assert (tmp_path / TIKTOK_ONBOARDING_SELECTION_JSON_NAME).is_file()
+        sequence = kwargs["page_capture_sequence_fn"]
+        sequence.receipt["status"] = "complete"
+        sequence.receipt["selected_video_ids_in_capture_order"] = ["1", "2"]
         return {
             "grid_result": {"response_items": []},
             "cadence_result": {
                 "requested_video_count": 2,
                 "completed_count": 2,
-                "results": [{}, {}],
+                "results": [{"video_id": "1"}, {"video_id": "2"}],
                 "failures": [],
             },
         }
@@ -350,6 +365,8 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         progress_fn=lambda event, fields: progress_events.append((event, fields)),
         cadence_min_gap_seconds=0,
         cadence_max_gap_seconds=0,
+        random_seed=7,
+        sleep_fn=lambda _seconds: None,
     )
 
     assert len(engine.calls) == 2
@@ -360,13 +377,14 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         "collect_grid",
         "freeze_window",
         "select",
+        "enter_grid_overlay_capture_sequence",
         "deep_capture",
         "close",
     ]
     assert progress_events[-2][1] == {"selected_count": 2}
     assert deep_calls[0]["video_urls"] == [
-        "https://www.tiktok.com/@creator/video/2",
         "https://www.tiktok.com/@creator/video/1",
+        "https://www.tiktok.com/@creator/video/2",
     ]
     assert "cloakbrowser_humanize" not in deep_calls[0]
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
@@ -380,6 +398,273 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert receipt["challenge_count"] == 0
     assert receipt["human_challenge_handoff_count"] == 0
     assert receipt["account_safety_stop"] is False
+    assert 8.0 <= receipt["initial_deep_capture_wait_or_none"]["planned_seconds"] <= 13.0
+    assert [row["phase"] for row in receipt["phase_chronology"]] == [
+        "onboarding_started",
+        "grid_and_selection_complete",
+        "first_deep_capture_released",
+        "grid_overlay_deep_capture_sequence_completed",
+        "deep_capture_completed",
+    ]
+    assert receipt["grid_deep_entry_or_none"]["status"] == "complete"
+    assert receipt["grid_deep_entry_or_none"]["targeted_tile_scroll_performed"] is False
+    assert receipt["grid_deep_entry_or_none"]["retry_waits"] == []
+    assert receipt["grid_deep_entry_or_none"]["direct_video_navigation_count"] == 0
+    assert deep_calls[0]["capture_route"] == "grid_tile_overlay"
+    assert callable(deep_calls[0]["page_capture_sequence_fn"])
+
+
+def test_grid_overlay_sequence_waits_60_seconds_after_failed_click_then_retries(
+    tmp_path: Path,
+) -> None:
+    not_ready = _clicked_capture("1", overlay_ready=False)
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture("1"),
+            not_ready,
+            _closed_overlay_capture(),
+            _visible_tiles_capture("1"),
+            _clicked_capture("1"),
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sleeps: list[float] = []
+    monotonic_values = iter((100.0, 160.0))
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        sleep_fn=sleeps.append,
+        monotonic_fn=lambda: next(monotonic_values),
+    )
+
+    chosen_url, capture = sequence(
+        0, ["https://www.tiktok.com/@creator/video/1"]
+    )
+
+    assert chosen_url.endswith("/video/1")
+    assert capture.dom_observation["video_overlay_detected"] is True
+    assert sleeps == [60.0]
+    assert receipt["retry_waits"] == [
+        {
+            "video_attempt_index": 0,
+            "planned_seconds": 60.0,
+            "actual_seconds": 60.0,
+            "observed_at_utc": "2026-07-14T10:00:00Z",
+        }
+    ]
+    assert receipt["attempts"][0]["outcome"] == (
+        "overlay_not_ready_or_identity_mismatch"
+    )
+    assert receipt["attempts"][1]["outcome"] == "overlay_ready"
+
+
+def test_grid_overlay_sequence_accepts_visible_overlay_without_item_struct(
+    tmp_path: Path,
+) -> None:
+    engine = _FakeEngine([_visible_tiles_capture("1"), _clicked_capture("1")])
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+    )
+
+    _chosen_url, capture = sequence(
+        0, ["https://www.tiktok.com/@creator/video/1"]
+    )
+
+    assert capture.dom_observation["hydration_json_text"] is None
+    assert receipt["attempts"][0]["item_struct_required"] is False
+    assert receipt["attempts"][0]["outcome"] == "overlay_ready"
+    assert receipt["status"] == "complete"
+
+
+def test_grid_overlay_sequence_uses_logical_positions_and_mouse_wheel_pagination(
+    tmp_path: Path,
+) -> None:
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture(visible_min=1, visible_max=3, scroll_y=0),
+            _visible_tiles_capture(visible_min=4, visible_max=6, scroll_y=600),
+            _visible_tiles_capture(
+                "1", visible_min=7, visible_max=9, scroll_y=1200
+            ),
+            _clicked_capture("1"),
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        pagination_pass_cap=2,
+        selected_grid_position=9,
+    )
+
+    sequence(0, ["https://www.tiktok.com/@creator/video/1"])
+
+    assert receipt["grid_pagination_passes_executed"] == 2
+    assert engine.calls[1]["post_load_action_script"] is None
+    assert engine.calls[2]["post_load_action_script"] is None
+    assert engine.calls[1]["post_load_wheel_action"].direction == "down"
+    assert engine.calls[2]["post_load_wheel_action"].direction == "down"
+    click_action = engine.calls[3]["post_load_pointer_actions"][0]
+    assert click_action.target_fraction_min == 0.15
+    assert click_action.target_fraction_max == 0.85
+    assert receipt["logical_grid_positions_remembered"] is True
+    assert receipt["absolute_pixel_positions_cached"] is False
+    assert [row["direction"] for row in receipt["grid_pagination_passes"]] == [
+        "down",
+        "down",
+    ]
+    assert receipt["targeted_tile_scroll_performed"] is False
+    # An advancing grid must not be misread as stalled: every wheel pass showed
+    # fresh-state progress, so no no-progress stop is recorded.
+    assert receipt["grid_pagination_stop_reason"] is None
+    assert [
+        row.get("progress_since_previous")
+        for row in receipt["grid_pagination_passes"]
+    ] == ["advanced", "selected_tile_visible"]
+    assert "scrollIntoView" not in (
+        onboarding.TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT
+    )
+
+
+def test_grid_overlay_sequence_wheels_up_for_earlier_logical_position(
+    tmp_path: Path,
+) -> None:
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture(visible_min=7, visible_max=9, scroll_y=1200),
+            _visible_tiles_capture(
+                "1", visible_min=1, visible_max=3, scroll_y=500
+            ),
+            _clicked_capture("1"),
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        pagination_pass_cap=1,
+        selected_grid_position=1,
+    )
+
+    sequence(0, ["https://www.tiktok.com/@creator/video/1"])
+
+    assert engine.calls[1]["post_load_wheel_action"].direction == "up"
+    assert receipt["grid_pagination_passes"][0]["direction"] == "up"
+
+
+def test_grid_overlay_sequence_fails_after_single_click_retry(tmp_path: Path) -> None:
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture("1"),
+            _clicked_capture("1", overlay_ready=False),
+            _closed_overlay_capture(),
+            _visible_tiles_capture(),
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        pagination_pass_cap=0,
+    )
+
+    with pytest.raises(TikTokCreatorOnboardingError, match="after one 60-second"):
+        sequence(0, ["https://www.tiktok.com/@creator/video/1"])
+
+    assert receipt["status"] == "failed"
+    assert len(receipt["attempts"]) == 1
+
+
+def test_grid_overlay_sequence_stops_wheeling_on_short_grid_no_progress(
+    tmp_path: Path,
+) -> None:
+    # Reproduces the observed short/non-expanded grid: every wheel pass returns
+    # the same fresh state (scroll_y=0, unchanged logical range, unchanged
+    # document height) and never exposes the selected tile. The sequence must
+    # stop after a bounded number of no-value wheel passes and fail loudly,
+    # instead of burning the full pagination budget, and must take no wait.
+    short_grid = lambda: _visible_tiles_capture(
+        visible_min=1, visible_max=11, scroll_y=0, document_height=1605
+    )
+    engine = _FakeEngine([short_grid() for _ in range(4)])
+    receipt = _grid_overlay_receipt()
+    sleeps: list[float] = []
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        sleep_fn=sleeps.append,
+        pagination_pass_cap=10,
+        selected_grid_position=17,
+    )
+
+    with pytest.raises(
+        TikTokCreatorOnboardingError, match="bounded grid pagination exhausted"
+    ):
+        sequence(0, ["https://www.tiktok.com/@creator/video/1"])
+
+    assert sleeps == []
+    assert receipt["status"] == "failed"
+    assert receipt["grid_pagination_stop_reason"] == "no_progress_stall"
+    # Stopped at the stall limit, far short of the pass cap of 10.
+    assert receipt["grid_pagination_passes_executed"] == (
+        onboarding.GRID_PAGINATION_NO_PROGRESS_STALL_LIMIT
+    )
+    passes = receipt["grid_pagination_passes"]
+    assert [row["progress_since_previous"] for row in passes] == [
+        "no_progress" for _ in passes
+    ]
+    assert passes[-1]["outcome"] == "no_progress_stall_budget_stopped"
+    # Directionality is still derived from logical positions (17 is below 1..11).
+    assert {row["direction"] for row in passes} == {"down"}
+
+
+def test_grid_overlay_sequence_keeps_wheeling_while_grid_advances(
+    tmp_path: Path,
+) -> None:
+    # A grid that advances each pass (fresh state changes) must not be misread as
+    # stalled even past the stall limit; the sequence keeps paginating until the
+    # selected tile is exposed, then clicks it.
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture(visible_min=1, visible_max=3, scroll_y=0),
+            _visible_tiles_capture(visible_min=4, visible_max=6, scroll_y=780),
+            _visible_tiles_capture(visible_min=7, visible_max=9, scroll_y=1560),
+            _visible_tiles_capture(visible_min=10, visible_max=12, scroll_y=2340),
+            _visible_tiles_capture(
+                "1", visible_min=13, visible_max=15, scroll_y=3120
+            ),
+            _clicked_capture("1"),
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        pagination_pass_cap=6,
+        selected_grid_position=15,
+    )
+
+    _chosen_url, capture = sequence(
+        0, ["https://www.tiktok.com/@creator/video/1"]
+    )
+
+    assert capture.dom_observation["video_overlay_detected"] is True
+    assert receipt["status"] == "complete"
+    assert receipt["grid_pagination_stop_reason"] is None
+    assert receipt["grid_pagination_passes_executed"] == 4
+    assert [
+        row["progress_since_previous"]
+        for row in receipt["grid_pagination_passes"]
+    ] == ["advanced", "advanced", "advanced", "selected_tile_visible"]
 
 
 def test_grid_below_fixed_selection_count_fails_before_deep_capture(
@@ -560,7 +845,7 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
                 "window_cap": 30,
                 "selected_count": 8,
                 "completed_deep_capture_count": 8,
-                "suggested_accounts_status_or_none": "blocked_or_empty",
+                "suggested_accounts_status_or_none": "not_visible",
             }
         ),
         encoding="utf-8",
@@ -599,11 +884,16 @@ def test_onboarding_cli_admission_passes_full_grid_and_selection(
     assert code == 0
     assert captured["grid_window_json"] == paths.grid_window_json_path.read_bytes()
     assert captured["selection_result_json"] == paths.selection_json_path.read_bytes()
+    assert (
+        captured["suggested_accounts_json"]
+        == paths.suggested_accounts_json_path.read_bytes()
+    )
     assert [row["role"] for row in captured["source_file_receipts"]] == [
         "grid_result_json",
         "cadence_result_json_1",
         "grid_window_json",
         "selection_result_json",
+        "suggested_accounts_json",
     ]
 
 
@@ -651,6 +941,345 @@ def test_suggested_receipt_preserves_clean_profile_external_links() -> None:
             "display_text_or_none": "My links",
         }
     ]
+    assert receipt["outer_ui_route"] == "followers_dialog_suggested_tab"
+    assert receipt["candidate_profiles_opened"] == 0
+    assert receipt["account_mutations_taken"] == 0
+    assert "internal CloakBrowser humanized pointer path" in receipt[
+        "attempt_receipt"
+    ]["outer_move_steps_semantics"]
+
+
+def test_suggested_dom_contract_targets_the_profile_surface_only() -> None:
+    script = onboarding.TIKTOK_SUGGESTED_ACCOUNTS_DOM_EXTRACT_SCRIPT
+
+    assert "exactSuggestedNodes" in script
+    assert "text.includes('following')" in script
+    assert "text.includes('followers')" in script
+    assert "profileAnchors" in script
+    assert "followers_dialog_suggested_tab" in script
+    assert "suggested accounts" in (
+        onboarding.TIKTOK_SUGGESTED_ACCOUNTS_FALLBACK_DOM_EXTRACT_SCRIPT.lower()
+    )
+    assert (
+        onboarding.TIKTOK_FOLLOWERS_ACTION.action_name
+        == "tiktok_creator_followers_count_v0"
+    )
+    assert (
+        onboarding.TIKTOK_RELATIONSHIP_SUGGESTED_TAB_ACTION.action_name
+        == "tiktok_relationship_dialog_suggested_tab_v0"
+    )
+    assert onboarding.TIKTOK_RELATIONSHIP_SUGGESTED_TAB_ACTION.text_markers == ()
+    assert (
+        onboarding.TIKTOK_RELATIONSHIP_SUGGESTED_TAB_ACTION.exact_text_markers
+        == ("suggested",)
+    )
+    assert "[role='dialog'] *" in (
+        onboarding.TIKTOK_RELATIONSHIP_SUGGESTED_TAB_ACTION.candidate_selector
+    )
+    assert "[aria-modal='true'] *" in (
+        onboarding.TIKTOK_RELATIONSHIP_SUGGESTED_TAB_ACTION.candidate_selector
+    )
+    assert onboarding.TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION.text_markers == ()
+    assert onboarding.TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION.exact_text_markers == (
+        "close",
+        "x",
+        "×",
+    )
+    assert (
+        onboarding.TIKTOK_SUGGESTED_VIEW_ALL_ACTION.exact_text_markers
+        == ("view all",)
+    )
+
+
+def _clicked_capture(
+    video_id: str, *, overlay_ready: bool = True
+) -> BrowserPageObservationSuccess:
+    capture = _capture(ordered_ids=[], items=[])
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": overlay_ready,
+            "visible_video_element_count": 1 if overlay_ready else 0,
+            "overlay_video_id_or_none": video_id if overlay_ready else None,
+            "overlay_creator_handle_or_none": "creator" if overlay_ready else None,
+        }
+    )
+    object.__setattr__(
+        capture,
+        "final_url",
+        f"https://www.tiktok.com/@creator/video/{video_id}",
+    )
+    capture.metadata["post_load_pointer_actions"] = [
+        {
+            "action_name": "tiktok_visible_selected_grid_video_v0",
+            "target_found": True,
+            "clicked": True,
+            "move_steps": 8,
+        }
+    ]
+    return capture
+
+
+def _closed_overlay_capture() -> BrowserPageObservationSuccess:
+    capture = _capture(ordered_ids=[], items=[])
+    capture.metadata["post_load_pointer_actions"] = [
+        {
+            "action_name": "tiktok_video_overlay_close_v0",
+            "target_found": True,
+            "clicked": True,
+            "move_steps": 6,
+        }
+    ]
+    return capture
+
+
+def _grid_overlay_receipt() -> dict[str, object]:
+    return {
+        "policy": "all_selected_via_visible_grid_tile_overlay_with_bounded_pagination",
+        "deep_capture_route": "grid_tile_overlay",
+        "direct_video_navigation_count": 0,
+        "targeted_tile_scroll_performed": False,
+        "grid_pagination_allowed": True,
+        "grid_pagination_input_method": "mouse_wheel_burst",
+        "logical_grid_positions_remembered": True,
+        "absolute_pixel_positions_cached": False,
+        "thumbnail_click_safe_inset_fraction": 0.15,
+        "grid_pagination_pass_cap_per_lookup": 2,
+        "grid_pagination_total_pass_cap": 2,
+        "grid_pagination_passes_executed": 0,
+        "grid_pagination_passes": [],
+        "grid_pagination_stop_reason": None,
+        "attempts": [],
+        "retry_waits": [],
+        "status": "in_progress",
+    }
+
+
+def _grid_overlay_sequence(
+    *,
+    tmp_path: Path,
+    engine: _FakeEngine,
+    receipt: dict[str, object],
+    sleep_fn=lambda _seconds: None,
+    monotonic_fn=lambda: 0.0,
+    pagination_pass_cap: int = 2,
+    selected_grid_position: int = 1,
+) -> object:
+    return onboarding._GridOverlayCaptureSequence(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        selected_video_ids=["1"],
+        window_by_id={
+            "1": {
+                "video_id": "1",
+                "video_url": "https://www.tiktok.com/@creator/video/1",
+                "visible_in_viewport": True,
+                "grid_position": selected_grid_position,
+                "views": 400,
+                "likes": 20,
+            }
+        },
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10.0,
+        settle_seconds=0.0,
+        pagination_pass_cap=pagination_pass_cap,
+        engine=engine,
+        rng=type("FirstChoice", (), {"choice": lambda _self, rows: rows[0]})(),
+        sleep_fn=sleep_fn,
+        monotonic_fn=monotonic_fn,
+        utc_now_fn=lambda: datetime(2026, 7, 14, 10, 0, tzinfo=UTC),
+        receipt=receipt,
+    )
+
+
+def _visible_tiles_capture(
+    *video_ids: str,
+    visible_min: int | None = 1,
+    visible_max: int | None = 3,
+    scroll_y: int = 0,
+    document_height: int | None = None,
+) -> BrowserPageObservationSuccess:
+    capture = _capture(ordered_ids=[], items=[])
+    capture.dom_observation["visible_selected_tiles"] = [
+        {
+            "video_id": video_id,
+            "video_url": f"https://www.tiktok.com/@creator/video/{video_id}",
+            "grid_position": index,
+        }
+        for index, video_id in enumerate(video_ids, start=1)
+    ]
+    capture.dom_observation["visible_grid_position_min_or_none"] = visible_min
+    capture.dom_observation["visible_grid_position_max_or_none"] = visible_max
+    capture.dom_observation["scroll_y"] = scroll_y
+    capture.dom_observation["document_height"] = document_height
+    return capture
+
+
+def test_suggested_receipt_distinguishes_visible_empty_from_not_visible() -> None:
+    visible = _capture(ordered_ids=[], items=[], suggested=[])
+    visible.dom_observation.update(
+        {
+            "suggested_surface_detected": True,
+            "suggested_surface_root_count": 1,
+            "suggested_profile_anchor_count": 0,
+        }
+    )
+    not_visible = _capture(ordered_ids=[], items=[], suggested=[])
+    not_visible.dom_observation.update(
+        {
+            "suggested_surface_detected": False,
+            "suggested_surface_root_count": 0,
+            "relationship_dialog_detected": False,
+            "suggested_tab_detected": False,
+        }
+    )
+
+    visible_receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator", capture=visible
+    )
+    not_visible_receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator", capture=not_visible
+    )
+
+    assert visible_receipt["status"] == "visible_empty"
+    assert visible_receipt["suggested_surface_root_count"] == 1
+    assert not_visible_receipt["status"] == "not_visible"
+
+
+def test_suggested_capture_uses_profile_view_all_only_after_primary_not_visible(
+    tmp_path: Path,
+) -> None:
+    primary_not_visible = _capture(ordered_ids=[], items=[])
+    fallback_captured = _capture(
+        ordered_ids=[],
+        items=[],
+        suggested=[
+            {
+                "handle": "fallback_creator",
+                "profile_url": "https://www.tiktok.com/@fallback_creator",
+            }
+        ],
+    )
+    engine = _FakeEngine([primary_not_visible, fallback_captured])
+
+    result = onboarding._capture_suggested_accounts(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10.0,
+        settle_seconds=0.0,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserPageObservationSuccess)
+    assert len(engine.calls) == 2
+    assert [
+        action.action_name for action in engine.calls[0]["post_load_pointer_actions"]
+    ] == [
+        "tiktok_creator_followers_count_v0",
+        "tiktok_relationship_dialog_suggested_tab_v0",
+    ]
+    assert [
+        action.action_name for action in engine.calls[1]["post_load_pointer_actions"]
+    ] == [
+        "tiktok_relationship_dialog_close_v0",
+        "tiktok_suggested_accounts_view_all_v0",
+    ]
+    assert result.metadata["suggested_outer_ui_route"] == (
+        "profile_suggested_accounts_view_all_fallback"
+    )
+
+
+def test_suggested_frontier_write_anchors_to_admitted_bronze_packet(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    suggested_path = tmp_path / "suggested.json"
+    suggested_path.write_text(
+        json.dumps(
+            {
+                "status": "captured",
+                "creator_handle": "creator",
+                "suggested_accounts": [
+                    {
+                        "handle": "freshfrag",
+                        "profile_url": "https://www.tiktok.com/@freshfrag",
+                        "display_text_or_none": "Fresh Frag",
+                    }
+                ],
+                "profile_external_links": [
+                    {"url": "https://linktr.ee/creator"}
+                ],
+                "outer_ui_route": "followers_dialog_suggested_tab_primary",
+                "attempt_receipt": {
+                    "capture_timestamp": "2026-07-14T10:00:00Z",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    captured: dict[str, object] = {}
+
+    def fake_build(**kwargs: object) -> dict[str, object]:
+        captured.update(kwargs)
+        return {"frontier": "validated"}
+
+    def fake_write(
+        register: object,
+        data_root: object,
+        *,
+        record_id: str,
+    ) -> Path:
+        captured["register"] = register
+        captured["data_root"] = data_root
+        captured["record_id"] = record_id
+        path = tmp_path / "frontier.json"
+        path.write_text("{}", encoding="utf-8")
+        return path
+
+    monkeypatch.setattr(
+        runner, "build_tiktok_creator_discovery_frontier_register", fake_build
+    )
+    monkeypatch.setattr(
+        runner, "write_tiktok_creator_discovery_frontier_register", fake_write
+    )
+    fake_root = object()
+    admitted = Path("F:/forseti-data-lake/raw/abc/01KXPACKET")
+
+    written = runner._write_suggested_frontier(
+        creator_handle="@Creator",
+        session_profile="chowdakr_sg_tiktok",
+        suggested_receipt_path=suggested_path,
+        admitted_path=admitted,
+        data_root=fake_root,
+    )
+
+    assert written == str(tmp_path / "frontier.json")
+    scan_receipt = captured["scan_receipt"]
+    assert scan_receipt["parent_grid_packet_id_or_none"] == "01KXPACKET"
+    assert scan_receipt["source_packet_id_or_none"] == "01KXPACKET"
+    assert scan_receipt["link_hub_url_or_none"] == "https://linktr.ee/creator"
+    assert captured["suggested_accounts"][0].handle == "freshfrag"
+    assert captured["suggested_accounts"][0].observed_sections == (
+        "followers_dialog_suggested_tab",
+    )
+    assert str(captured["prior_register_pointer"]).endswith(
+        "/raw/04_tiktok_suggested_accounts_attempt.json"
+    )
+
+    monkeypatch.setattr(
+        runner,
+        "write_tiktok_creator_discovery_frontier_register",
+        lambda *_args, **_kwargs: None,
+    )
+    with pytest.raises(RuntimeError, match="did not produce a frontier artifact"):
+        runner._write_suggested_frontier(
+            creator_handle="@Creator",
+            session_profile="chowdakr_sg_tiktok",
+            suggested_receipt_path=suggested_path,
+            admitted_path=admitted,
+            data_root=fake_root,
+        )
 
 
 @pytest.mark.parametrize(

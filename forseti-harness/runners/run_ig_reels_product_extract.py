@@ -55,6 +55,7 @@ if __package__ in {None, ""}:
 from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION, TranscriptInput
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
+    PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
     PRODUCT_MENTIONS_SET_LANE,
     build_transcript_source_lineage,
     cues_from_asr_record,
@@ -234,6 +235,7 @@ def _packet_obligation(data_root, packet_id: str, model: str) -> dict:
         "consumer": _SEAM_CONSUMER,
         "model": model,
         "rubric_version": EXTRACTOR_RUBRIC_VERSION,
+        "record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
         "asr_records": sorted(_asr_record_obligation_entries(data_root, packet_id)),
     }
 

@@ -1,4 +1,4 @@
-﻿# Validation Gates
+# Validation Gates
 
 ```yaml
 retrieval_header_version: 1
@@ -198,6 +198,110 @@ inherit this floor.
 - Resolver-visible skill-name snapshots are recorded before any skill adoption or promotion work.
 - Git status is reported when this workspace is a Git repo.
 
+## Conditional Cold-Agent Dogfood Gate
+
+This gate applies only inside an explicitly invoked `/fused` source-changing
+implementation turn. It targets operational-usability failures that can remain
+invisible when the author retains setup knowledge, implementation rationale,
+fixture familiarity, or the expected output in context. It is independent of
+delegated different-family review: cold dogfood tests use without author
+context; delegated review tests the implementation through a de-correlated code
+reviewer. Neither substitutes for the other.
+
+After focused tests and author-run validation, classify the implementation:
+
+- `applicable` when it introduces or materially changes a supported
+  user/operator workflow, CLI or runner, cross-layer integration,
+  model-generated output with a bound invariant, onboarding or capture chain,
+  safely exercisable external/lake boundary, or behavior whose usability is
+  not adequately represented by unit/contract tests; and a representative
+  non-production artifact can exercise the load-bearing path safely.
+- `not_applicable` for documentation-only work unless the documentation is the
+  supported entry point, mechanical refactors with unchanged behavior, narrow
+  fixes whose relevant risk is fully represented by deterministic tests, work
+  that cannot be exercised without live/production mutation, or work with no
+  representative local artifact. Record the exact skip reason and accepted
+  residual; do not convert an expected skip into `no_failure_found`.
+
+An applicable first pass uses a fresh agent with no forked authoring
+conversation. Give it only the goal, supported entry point, constraints, and
+artifact location. Do not give it an implementation-rationale dump, a
+sender-authored workflow walkthrough, or an expected answer.
+The agent must discover repository instructions and the actual supported
+workflow from the same operator-facing surfaces available to a real user:
+repository instructions, supported entry-point documentation or help, and
+produced artifacts or evidence. When source or documentation is itself the
+supported product or entry point, reading that source is realistic use and
+remains allowed. Otherwise, do not expose or inspect implementation internals,
+diffs, author notes, or tests unless the supported workflow itself requires
+them. The agent may read only those operator-facing surfaces and the supplied
+artifacts, and may write only to bounded scratch; it must not patch source or
+product artifacts, mutate live/production state, publish, or perform
+destructive actions. A different vendor is not required
+for coldness. The actor only needs enough capability to operate the supported
+entry point, inspect evidence, exercise product-quality judgment, and return a
+reproducible result. Current model/tier defaults stay operator/tooling-owned
+under `docs/decisions/subagent_model_tiering_doctrine_v0.md`; no model name or
+version belongs in this gate or Fused.
+
+The smallest complete first pass is one representative end-to-end happy path
+plus one falsification scenario aimed at the highest-risk seam. Add a second
+entity/artifact only when cross-entity isolation, batching, attribution, or
+aggregation is load-bearing. Do not expand the matrix unless the first pass
+finds a failure or names a specific coverage gap. One successful run is not
+validation, readiness, or proof of output quality.
+
+The cold return carries exactly one `cold_dogfood_status`:
+
+- `failure_found`: at least one decision-bearing deviation was observed;
+- `no_failure_found`: the bounded scenarios completed without one;
+- `blocked`: an applicable run could not start or complete for an unexpected
+  environment, tooling, evidence, or execution reason; Fused stops;
+- `not_applicable`: a named classification skip applies.
+
+The status preserves the first-pass or skip outcome; repair and replay do not
+overwrite it. Closeout separately records home adjudication and replay result.
+
+Each returned failure contains the exact entry point and command; environment
+and inputs; artifact/evidence paths; expected invariant; observed result;
+reproducibility; severity and user consequence; classification as
+implementation defect, usability defect, data limitation, or unsupported
+expectation; and screenshots/output excerpts only when decision-bearing.
+`no_failure_found`, `blocked`, and `not_applicable` still state the scenarios or
+classification basis and relevant residuals. The packet returns to the home
+lane in chat or bounded scratch by default; do not create a standalone report,
+ledger, template, or skill. Existing artifact and handoff contracts apply only
+when another consumer genuinely requires durable transport.
+
+Sequence and repair are bounded:
+
+1. run initial dogfood after focused tests/author validation and before a
+   carried `recommended` delegated review;
+2. keep first-pass detection separate from repair; the home lane adjudicates
+   reported deviations, makes at most one bounded repair batch, and asks the
+   same cold lane to replay only failed scenarios;
+3. an unresolved material failure or failed replay blocks Fused closeout;
+4. after delegated review and home adjudication, replay only affected dogfood
+   scenarios when a kept patch changes exercised runtime behavior, supported
+   entry points, setup/artifact discovery, evidence selection, output schema,
+   failure handling, attribution, batching, aggregation, or entity isolation;
+5. do not replay for comments, prose-only clarification, tests-only changes, or
+   mechanically irrelevant edits.
+
+A required review checkpoint keeps precedence. Fused must not pass a named
+checkpoint merely to reach dogfood. After the delegated return is adjudicated
+and implementation resumes, run applicable dogfood at the earliest safe point
+before later recommended review or strict closeout.
+
+The default cost cap is one cold-agent first-pass turn, the bounded scenarios
+above, one home repair batch, one replay of failed scenarios, and at most one
+post-review replay of affected scenarios. Broaden or make the gate mandatory
+only when observed cold-only material failures repeatedly escape the
+applicability classifier or cluster in a skipped class. Narrow it when a
+representative run history shows no decision-bearing cold-only findings and
+the added token/latency cost is not justified. These are owner steering
+triggers, not permission to add a telemetry ledger or silently change scope.
+
 ## Prompt Orchestration Gates
 
 - Overlay authority gate: `AGENTS.md` and `.agents/workflow-overlay/README.md`
@@ -210,10 +314,12 @@ inherit this floor.
 - Worktree preflight gate: prompts state workspace, revision or hash,
   dirty-state allowance, target scope, and edit permission only when repository
   state matters. Before a repo-changing cross-lane dispatch loads receiver
-  sources, resident judgment also verifies the chosen receiver mechanism is
-  actually rooted in, or demonstrably able to write, the commissioned worktree
-  under `.agents/workflow-overlay/decision-routing.md`; naming or registering a
-  worktree is not proof, and a mismatch reroutes or returns
+  sources, resident judgment also applies the two-root preflight in
+  `.agents/workflow-overlay/decision-routing.md`: resolve the launch checkout to
+  the unique effective target, verify dirty-byte identity when applicable,
+  prove direct write capability, and exclude concurrent writers. A launch-path
+  mismatch alone is not a blocker; naming or reading another worktree is not
+  write proof. Guarded receivers still reroot or return
   `BLOCKED_RECEIVER_REROOT_REQUIRED` without bypassing the guard.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Forseti
@@ -370,8 +476,10 @@ Receiver-mechanism selection is one such judgment rule: whether a commission is
 read-only, safe same-root contribution, or an independent repo-changing lane
 depends on the requested act and live harness capability. The existing Codex
 adapter deterministically blocks registered non-current-worktree writes at the
-write boundary; do not add a registry, daemon, or static prompt checker that
-pretends it can prove a future receiver's runtime root.
+write boundary. An independent external controller may use a different launch
+checkout only when it proves direct access to the exact effective target under
+the owning two-root rule. Do not add a registry, daemon, or static prompt
+checker that pretends it can prove a future receiver's runtime capability.
 
 Active instance: the retrieval-header check
 (`.agents/hooks/check_retrieval_header.py`, EP-06) enforces
@@ -592,64 +700,54 @@ markdown sibling of the EP-37 JSON gate. Registered in
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Smallest Complete Intervention now binds each separate durable artifact to
-    a distinct future consumer, outcome, or lifecycle and requires standalone
-    usability plus authority/currentness/next-source and lifecycle-router
-    reconciliation; semantic closeout stays resident judgment, while the
-    existing map/link gate deterministically checks only direct target existence
-    in the Artifact Roles and product-spine Doctrine Index live-router tables.
+    Fused now conditionally commissions a non-patching cold-agent dogfood pass
+    after focused author validation and before recommended delegated review,
+    with bounded home repair/replay and behavior-triggered post-review replay;
+    this validation owner binds applicability, isolation, evidence, cost, and
+    non-claim semantics while Fused only sequences the gate.
   trigger: workflow_authority
   related_triggers:
     - validation_philosophy
-    - output_authority
     - lifecycle_boundary
   controlling_sources_updated:
-    - AGENTS.md
     - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/artifact-roles.md
-    - docs/decisions/forseti_doctrine_index_v0.md
-    - .agents/hooks/check_map_links.py
-    - .agents/hooks/README.md
   downstream_surfaces_checked:
+    - AGENTS.md
     - CLAUDE.md
     - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/artifact-folders.md
-    - .agents/workflow-overlay/retrieval-metadata.md
     - .agents/workflow-overlay/prompt-orchestration.md
-    - docs/workflows/forseti_repo_map_v0.md
-    - .github/workflows/ci.yml
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/review-lanes.md
+    - docs/decisions/subagent_model_tiering_doctrine_v0.md
   intentionally_not_updated:
-    - path: CLAUDE.md
+    - path: AGENTS.md
       reason: >
-        It remains a shim importing AGENTS.md and must not duplicate the kernel
-        rule.
-    - path: .agents/workflow-overlay/retrieval-metadata.md
+        It already routes validation and Fused project behavior to overlay
+        owners; duplicating the gate in the kernel would fork authority.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
       reason: >
-        Retrieval headers remain retrieval-only and must not carry semantic
-        quality, authority, validation, currentness, or lifecycle claims.
-    - path: .agents/workflow-overlay/artifact-folders.md
+        A non-forked in-session cold execution dispatch is already covered by
+        the subagent contract, while cross-lane transport uses the existing
+        prompt contract; no new prompt artifact or output mode is needed.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
       reason: >
-        It already binds `forseti/product/` as the current product-artifact root
-        and records `docs/product/` as retired historical routing.
-    - path: docs/workflows/forseti_repo_map_v0.md
+        Cold-context execution and different-family review remain separate
+        controls, so the delegated review lifecycle is unchanged.
+    - path: docs/decisions/subagent_model_tiering_doctrine_v0.md
       reason: >
-        Its live product-tree route already points to `forseti/product/`; no map
-        target or section changed.
-    - path: .github/workflows/ci.yml
-      reason: >
-        The existing registered `check_map_links.py --strict` step runs C5; no
-        parallel gate or workflow change is needed.
+        It already owns current operator/tooling model selection; the dogfood
+        contract adds only a capability requirement and no concrete model.
   stale_language_search: >
-    rg -n "Product artifact.*[d]ocs/product|Product-lane doctrine.*[d]ocs/product|\| [p]roduct_lead/proof_charter/forseti_claim_defense_doctrine_v0\.md|\| [j]udgment_spine/judgment_spine_evidence_ladder_architecture_v0\.md|\| [d]ata_capture_spine/core_spine_v0_data_capture_spine_obligation_contract_v0\.md" AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md docs/decisions/forseti_doctrine_index_v0.md docs/workflows/forseti_repo_map_v0.md
+    rg -n -i "cold.agent|cold dogfood|dogfood|end.to.end|recommended review|review replay|model tier" AGENTS.md CLAUDE.md .agents/workflow-overlay docs/decisions/subagent_model_tiering_doctrine_v0.md
   non_claims:
     - not validation
     - not readiness
-    - not authority or currentness proof
-    - not semantic completeness proof
-    - not permission to create a new maintenance surface
+    - not proof of output quality
+    - not a substitute for delegated review
+    - not installed-skill or runtime deployment
 ```
 
 ```yaml

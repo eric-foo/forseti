@@ -13,6 +13,7 @@ import json
 from typing import Any
 
 from cleaning.audience_extractor import RawApiProvider
+from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE
 from data_lake.root import DataLakeRoot
 from runners.run_transcript_product_extract import run_extraction
 from source_capture.transcript.caption_packet import write_caption_packet
@@ -98,10 +99,10 @@ def test_runner_extracts_youtube_caption_then_skips_on_rerun(tmp_path) -> None:
     assert first[0]["video_id"] == _VIDEO_ID
     assert transport.calls == 1  # the runner actually called the cue-bearing transport
 
-    assert "silver__cleaning__product_mentions" in first[0]["path"]
+    assert PRODUCT_MENTIONS_LANE in first[0]["path"]
     written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
-    assert written["mention_count"] == 1
-    mention = written["mentions"][0]
+    assert written["payload"]["observation"]["row_count"] == 1
+    mention = written["payload"]["observation"]["rows"][0]["mention"]
     assert mention["brand"] == "Dior"
     assert mention["line"] == "Sauvage Elixir"
     assert mention["video_id"] == _VIDEO_ID

@@ -241,9 +241,13 @@ def _scan_tree(
             continue
         # Exemption is scoped to the front-door FUNCTION, not the module: a raw
         # writer added elsewhere in silver_record.py is not blessed.
+        front_door_functions = {
+            registry.SILVER_ENVELOPE_FRONT_DOOR_FUNC,
+            "append_silver_record_set",
+        }
         is_front_door_call = (
             is_front_door_module
-            and write_call.enclosing_function == registry.SILVER_ENVELOPE_FRONT_DOOR_FUNC
+            and write_call.enclosing_function in front_door_functions
         )
         for lane, excerpt, lineno, kind in _lane_args(call, consts):
             if lane is None:

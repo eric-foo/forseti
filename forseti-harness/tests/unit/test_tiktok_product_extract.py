@@ -10,7 +10,7 @@ from cleaning.audience_extractor import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE
 from data_lake.root import DataLakeRoot
 from runners.run_tiktok_product_extract import _transcripts_for_packet, run_extraction
-from test_tiktok_creator_metric_seed import _commit_batch_packet, _stats, _video
+from tiktok_batch_test_support import _commit_batch_packet, _stats, _video
 
 _PROVIDER = RawApiProvider.ANTHROPIC_MESSAGES
 
@@ -143,7 +143,10 @@ def test_runner_extracts_all_videos_then_acknowledged_rerun_is_empty(tmp_path: P
     )
     assert len(records) == 2
     payloads = [json.loads(path.read_text(encoding="utf-8")) for path in records]
-    assert {payload["video_id"] for payload in payloads} == {
+    assert {
+        payload["payload"]["observation"]["subject"]["ref"]["native_id"]
+        for payload in payloads
+    } == {
         "7650000000000000001",
         "7650000000000000002",
     }

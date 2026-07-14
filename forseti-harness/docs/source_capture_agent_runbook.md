@@ -204,13 +204,89 @@ preflight and session-alias resolution; do not precede it with separate registry
 alias, browser, or CDP probes unless it emits a blocker. Those duplicate checks
 add operator latency without improving the runner's failure visibility.
 
+On its first CDP capture, the runner adopts the most recently enumerated
+non-closed TikTok page even when it shows another creator/path. It never infers
+active focus, never adopts a cross-platform page, and creates one page only when
+no TikTok page exists. The adopted page navigates to the requested creator when
+needed; when normalized TikTok host/path already matches, scheme/query/fragment
+differences do not trigger another `goto`. The runner reuses that page and
+detaches without closing operator Chrome. Read `page_acquisition_policy`,
+`initial_platform_match_count`, `initial_exact_match_count`,
+`page_adoption_count`, `page_creation_count`, `page_navigation_count`, and
+`same_url_navigation_suppression_count` from the receipt. Duplicate TikTok pages
+use the disclosed latest-enumerated policy.
+
+Suggested-account discovery is modal-primary. The runner clicks the visible
+creator `Followers` count through `BrowserPagePointerAction`, waits for the
+visible relationship dialog, clicks that dialog's `Suggested` tab through the
+same action routing, and extracts profile rows only from that visible dialog.
+The retained CDP context is patched with CloakBrowser
+`resolve_config("careful")`; outer action `move_steps` disclose routing input,
+not CloakBrowser's internal humanized pointer path. Only when the modal route is
+not visible may the runner use the visible `Suggested accounts` heading plus
+exact `View All` fallback. Preserve `captured`, `visible_empty`, and
+`not_visible` distinctly. Never click Follow, open a candidate profile, like,
+or message.
+
+Establish the creator grid once on the acquired page. Suggested primary,
+fallback, relationship-modal close, grid collection, and every onboarding deep
+capture stay on that page; do not reload an already matching creator path or
+click Latest, Popular, or Oldest. After grid/pagination completion and selection, wait a
+randomized 8-13 seconds before the first deep capture. The onboarding receipt
+records planned and actual wait, UTC `observed_at`, and elapsed-seconds phase
+chronology. Select the top eight eligible videos by reach rank; record pinned
+state, but pinning never displaces reach ranking.
+
+For every selected video, intersect the pending selection with tiles that are
+CSS-visible and intersect the current viewport, randomly click one through
+`BrowserPagePointerAction` on the retained CloakBrowser-`careful` context,
+capture its matching video overlay, then click the overlay X to return to the
+creator grid. Resolve the chosen thumbnail rectangle immediately before the
+pointer action and click a randomized point within the 15-85 percent inset on
+both axes. Remember stable video IDs and logical grid positions, never absolute
+screen coordinates. If no pending selected tile is visible, compare those
+positions with the freshly observed visible range and use bounded small mouse-
+wheel bursts in the required direction. The wheel receipt distinguishes the
+CloakBrowser-humanized cursor move from the raw wheel burst. Do not use
+`scrollIntoView`, otherwise
+target-scroll a tile, or navigate to a selected video URL directly. If a click
+does not materialize the matching overlay, wait 60 seconds, recompute the visible
+subset, and retry once; a second failure stops loudly. Read
+`grid_deep_entry_or_none` for visible candidates, random choices, grid positions,
+pointer receipts, pagination/retry timing, final URLs,
+`logical_grid_positions_remembered=true`,
+`absolute_pixel_positions_cached=false`,
+`targeted_tile_scroll_performed=false`, and
+`direct_video_navigation_count=0`.
+
+The overlay URL plus clicked grid identity bind each video. Preserve structured
+metadata naturally present in profile-grid responses, initially exposed comments
+from page-owned comment responses or visible overlay DOM, and source-native
+subtitle tracks when available. Direct-page `itemStruct` is optional on this
+route. Record field provenance and preserve unavailable optional values as
+unavailable; do not manufacture zeroes. Direct-video capture remains a separate
+diagnostic/future collector capability and is never an onboarding fallback.
+Capture initially exposed top comments only: no comment pagination and no sticker
+reverse-image feature. Silent like/follow failure is operator-observed
+soft-restriction evidence only; do not run an automated state-changing probe or
+retry.
+
+With `--data-root`, a captured non-empty suggested result must return a non-null
+written frontier path; any packet or frontier write failure stops loudly.
+Validated external profile links may create sibling-channel linkage only through
+the existing Creator Registry identity contracts; this discovery runner does not
+infer those edges. A historical recapture requires `--prior-capture-pointer` and
+writes a separate Bronze supplement with
+`re_capture_relationship=supplement`; it never rewrites prior provenance.
+
 The runner emits flushed `tiktok_creator_onboarding_progress_json=` phase events
 and a `tiktok_creator_onboarding_blocker_json=` event before a fail-loud exit.
-Treat those events as the live status source. The deep-capture navigation policy
-is direct selected-video URLs in selection order on one reused page. It does not
-return to the creator grid, simulate address-bar typing, spoof a referrer, or add
-ceremonial pointer movement. After the batch, CDP detaches and the operator-owned
-Chrome remains open on the final selected video.
+Treat those events as the live status source. The runner returns from every
+captured overlay to the creator grid before choosing the next visible pending
+tile; it never simulates address-bar typing, spoofs a referrer, or directly loads
+a selected video URL. After the final capture, CDP detaches without closing the
+operator-owned Chrome; the final selected overlay remains open unless a blocker
+requires the page to remain at its supervised stop surface.
 
 The separate alias check below remains a diagnostic command for a blocker or an
 explicit session-health check; it is not a required preamble to onboarding.

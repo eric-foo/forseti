@@ -1,6 +1,6 @@
 """Read-only extraction-quality eval for the SoV pipeline (measurement, not gate).
 
-Measures, over EVERY committed ``silver__cleaning__product_mentions`` record in
+Measures, over EVERY committed ``transcript_product_mentions_silver`` record in
 the lake, the two things a share-of-voice reader cannot see from a readout
 alone:
 
@@ -49,6 +49,7 @@ from data_lake.silver_lineage import (
     SOURCE_BACKED_COMPLETE_STATUS,
     silver_record_source_backed_status,
 )
+from data_lake.silver_record import SilverRecordError, validate_silver_vault_record
 
 EVAL_SCHEMA_VERSION = 2
 LEAKED_SAMPLE_CAP = 20
@@ -67,6 +68,24 @@ def _is_named_brand(value: object) -> bool:
 
 def _brand_tally() -> dict[str, int]:
     return {"mentions": 0, "scanned": 0, "leaked": 0, "unscannable": 0}
+
+
+def _mentions_from_record(record: dict) -> tuple[list[dict], int]:
+    """Return official nested mention rows and their malformed-entry count."""
+    payload = record.get("payload")
+    observation = payload.get("observation") if isinstance(payload, dict) else None
+    rows = observation.get("rows") if isinstance(observation, dict) else None
+    if not isinstance(rows, list):
+        return [], 1 if rows is not None else 0
+    mentions: list[dict] = []
+    malformed = 0
+    for row in rows:
+        mention = row.get("mention") if isinstance(row, dict) else None
+        if isinstance(mention, dict):
+            mentions.append(mention)
+        else:
+            malformed += 1
+    return mentions, malformed
 
 
 def _transcript_text_from_json3(raw: bytes) -> str:
@@ -160,6 +179,16 @@ def run_eval(root: DataLakeRoot) -> dict:
             if not isinstance(record, dict):
                 records_unreadable += 1
                 continue
+            mentions, malformed = _mentions_from_record(record)
+            malformed_mention_entries += malformed
+            try:
+                validate_silver_vault_record(record)
+            except SilverRecordError:
+                records_by_gate_status["invalid_silver_envelope"] = (
+                    records_by_gate_status.get("invalid_silver_envelope", 0) + 1
+                )
+                mentions_excluded_not_source_backed += len(mentions)
+                continue
             status = silver_record_source_backed_status(record)
             records_by_gate_status[status] = records_by_gate_status.get(status, 0) + 1
             if record.get("captured_at"):
@@ -169,22 +198,9 @@ def run_eval(root: DataLakeRoot) -> dict:
             if status != SOURCE_BACKED_COMPLETE_STATUS:
                 # Gate-failing records are never scanned, but their mention
                 # entries land in an explicit counted class (adjudicated F3).
-                mentions = record.get("mentions")
-                if isinstance(mentions, list):
-                    for mention in mentions:
-                        if isinstance(mention, dict):
-                            mentions_excluded_not_source_backed += 1
-                        else:
-                            malformed_mention_entries += 1
-                elif mentions is not None:
-                    malformed_mention_entries += 1
+                mentions_excluded_not_source_backed += len(mentions)
                 continue
 
-            mentions = record.get("mentions")
-            if not isinstance(mentions, list):
-                if mentions is not None:
-                    malformed_mention_entries += 1
-                mentions = []
             named_mentions: list[tuple[dict, str]] = []
             for mention in mentions:
                 if not isinstance(mention, dict):

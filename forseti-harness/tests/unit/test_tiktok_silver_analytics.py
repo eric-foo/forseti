@@ -20,8 +20,10 @@ from runners.run_tiktok_silver_analytics import build_readout
 def _video() -> dict:
     return {
         "video_id": "v1",
+        "stats_observed_utc": "2026-07-01T00:00:00Z",
         "stats": {"diggCount": 1000, "commentCount": 100},
         "comments": {
+            "observed_utc": "2026-07-01T00:00:00Z",
             "comments": [
                 {"cid": "c1", "text": "Love YSL Y", "digg_count": 100, "reply_comment_total": 2},
                 {"cid": "c2", "text": "No way", "digg_count": 10, "reply_comment_total": 7},
@@ -44,8 +46,11 @@ def test_comment_context_uses_comment_like_to_video_like_ratio() -> None:
     view = comment_engagement_context(_video(), {"v1:c1": ["product_relevant"], "v1:c2": ["disagreement"]})
     assert view["comments"][0]["comment_id"] == "c1"
     assert view["comments"][0]["comment_like_to_video_like_ratio"] == pytest.approx(0.1)
+    assert view["comments"][0]["comment_like_to_video_comment_count_ratio"] == pytest.approx(1.0)
+    assert view["comments"][0]["comment_like_rank_within_captured"] == 1
+    assert view["comments"][0]["comment_like_percentile_within_captured"] == pytest.approx(1.0)
     assert "captured_comment_coverage_ratio" not in view
-    assert "like_percentile_within_captured" not in view["comments"][0]
+    assert view["temporal_alignment"] == "same_capture_observation"
     assert "not_decision_impact" in view["non_claims"]
 
 
