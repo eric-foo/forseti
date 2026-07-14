@@ -445,6 +445,11 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "all_siblings",
         "reason": "counts every source-backed mentions record; policy re-derivation double-count is a flagged unit (c) design input, recorded not adjudicated",
     },
+    "data_lake/silver_census.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
+    },
     "runners/run_capture_ecr_cleaning_smoke.py": {
         "detection": "lane_dir",
         "posture": "fail_closed_singleton",
