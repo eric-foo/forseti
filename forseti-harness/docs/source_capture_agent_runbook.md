@@ -151,6 +151,16 @@ registry identity; `ambiguous_match` and `invalid_candidate` stop the capture
 until resolved. A manual visual scan of the registry or projection is useful
 orientation, but it is not a substitute for the preflight receipt.
 
+Routine TikTok onboarding dogfood must choose a candidate from a prior
+Suggested/frontier receipt that is not an exact Creator Registry match and run
+with the default `creator_intent=new_capture`. If preflight returns
+`existing_match`, choose another eligible Suggested candidate rather than
+silently switching to `update_existing`. Use `update_existing` only when the
+test's stated subject is recapture, supplement provenance, or an existing
+creator regression. The Creator Registry remains identity/current-profile
+authority, not a dogfood-run history; use the preflight receipt and capture
+receipts together rather than adding a false onboarding-complete identity flag.
+
 For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 
 - `free_account_created_session`
@@ -241,13 +251,24 @@ For every selected video, intersect the pending selection with tiles that are
 CSS-visible and intersect the current viewport, randomly click one through
 `BrowserPagePointerAction` on the retained CloakBrowser-`careful` context,
 capture its matching video overlay, then click the overlay X to return to the
-creator grid. Resolve the chosen thumbnail rectangle immediately before the
-pointer action and click a randomized point within the 15-85 percent inset on
-both axes. Remember stable video IDs and logical grid positions, never absolute
+creator grid. Resolve the chosen tile's link-routed view-count footer immediately
+before the pointer action and click a randomized point within that footer's
+15-85 percent inset on both axes. Treat the tile as actionable only when that
+footer itself intersects the viewport; partial thumbnail visibility is not
+enough. Do not click the thumbnail body after the
+humanized move activates TikTok's hover-preview `<video>`; that surface may
+consume the click as playback without opening an overlay. Remember stable video
+IDs and logical grid positions, never absolute
 screen coordinates. If no pending selected tile is visible, compare those
 positions with the freshly observed visible range and use bounded small mouse-
-wheel bursts in the required direction. The wheel receipt distinguishes the
-CloakBrowser-humanized cursor move from the raw wheel burst. Do not use
+wheel bursts covering 20-35 percent of the viewport in the required direction.
+Before wheeling through a frozen logical range, compare the live loaded video-ID
+order with the frozen window. Once the live grid has loaded through that
+window's bound, zero identity overlap is `frozen_window_identity_drift` and must
+stop immediately. A non-consecutive repeated grid-state fingerprint is
+`progress_cycle` and must also stop rather than reverse direction indefinitely.
+The wheel receipt distinguishes the CloakBrowser-humanized cursor move from the
+raw wheel burst. Do not use
 `scrollIntoView`, otherwise
 target-scroll a tile, or navigate to a selected video URL directly. If a click
 does not materialize the matching overlay, wait 60 seconds, recompute the visible
@@ -258,6 +279,13 @@ pointer receipts, pagination/retry timing, final URLs,
 `absolute_pixel_positions_cached=false`,
 `targeted_tile_scroll_performed=false`, and
 `direct_video_navigation_count=0`.
+
+After Suggested extraction, close the relationship or View All surface and
+verify the close before grid collection. No grid wheel burst or tile click is
+allowed while that surface remains open. Read
+`suggested_surface_close_before_grid_or_none` for the close action and
+post-close modal state; a required close that does not click, or any Suggested
+modal still visible afterward, stops loudly before the first grid interaction.
 
 The overlay URL plus clicked grid identity bind each video. Preserve structured
 metadata naturally present in profile-grid responses, initially exposed comments
