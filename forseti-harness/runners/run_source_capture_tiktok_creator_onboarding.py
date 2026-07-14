@@ -62,8 +62,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Attempt suggested-account capture, freeze a bounded TikTok creator grid, "
-            "select the reach-proven top eight, and deep-capture it sequentially "
-            "through the already-running dedicated Chrome CDP session."
+            "select the reach-proven top eight, and deep-capture every selection through "
+            "a visible grid-tile overlay on the already-running dedicated Chrome CDP session."
         ),
         epilog=(
             "Cold-agent default session alias: chowdakr_sg_tiktok. "
@@ -116,6 +116,13 @@ def build_parser() -> argparse.ArgumentParser:
     admission.add_argument("--admit-output", type=Path)
     admission.add_argument("--data-root")
     parser.add_argument("--batch-label", default="tiktok_creator_onboarding")
+    parser.add_argument(
+        "--prior-capture-pointer",
+        help=(
+            "Optional prior Bronze packet pointer. When supplied, this run writes a "
+            "separate supplement and never rewrites the prior packet provenance."
+        ),
+    )
     parser.add_argument(
         "--decision-question",
         default=(
@@ -233,6 +240,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                         "suggested_accounts_json",
                     ),
                 ],
+                prior_capture_pointer=args.prior_capture_pointer,
             )
         except Exception as exc:
             _emit_blocker("ADMISSION_FAILED", "admission")
@@ -272,6 +280,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return 3
 
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
+    browser_lifecycle = receipt.get("browser_lifecycle")
+    if not isinstance(browser_lifecycle, dict):
+        browser_lifecycle = {}
     print(
         SUMMARY_PREFIX
         + json.dumps(
@@ -291,6 +302,37 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "suggested_accounts_status": receipt[
                     "suggested_accounts_status_or_none"
                 ],
+                "suggested_outer_ui_route": receipt.get(
+                    "suggested_outer_ui_route_or_none"
+                ),
+                "page_acquisition_policy": browser_lifecycle.get(
+                    "page_acquisition_policy"
+                ),
+                "initial_platform_match_count": browser_lifecycle.get(
+                    "initial_platform_match_count"
+                ),
+                "initial_exact_match_count": browser_lifecycle.get(
+                    "initial_exact_match_count"
+                ),
+                "page_adoption_count": browser_lifecycle.get(
+                    "page_adoption_count"
+                ),
+                "page_creation_count": browser_lifecycle.get(
+                    "page_creation_count"
+                ),
+                "page_navigation_count": browser_lifecycle.get(
+                    "page_navigation_count"
+                ),
+                "same_url_navigation_suppression_count": browser_lifecycle.get(
+                    "same_url_navigation_suppression_count"
+                ),
+                "humanized_input_preset": browser_lifecycle.get(
+                    "humanized_input_preset"
+                ),
+                "initial_deep_capture_wait": receipt.get(
+                    "initial_deep_capture_wait_or_none"
+                ),
+                "grid_deep_entry": receipt.get("grid_deep_entry_or_none"),
                 "output_dir": str(args.output_dir),
                 "admitted_path_or_none": admitted_path,
                 "suggested_frontier_path_or_none": frontier_path,
@@ -410,11 +452,11 @@ def _write_suggested_frontier(
             "handle": handle,
             "url": f"https://www.tiktok.com/@{handle}",
         },
-        source_surface="tiktok_profile_suggested_accounts_existing_chrome_cdp",
+        source_surface="tiktok_followers_dialog_suggested_existing_chrome_cdp",
         captured_at_utc=capture_timestamp,
         method_mode="existing_chrome_cdp_dom_extraction",
         access_mode="owner_authorized_retained_session_screen_light_dom_read",
-        extraction_method="dom_visible_suggested_account_cards",
+        extraction_method="visible_dialog_suggested_profile_rows_or_profile_fallback",
         browser_session_label_or_none=session_profile,
         parent_grid_packet_id_or_none=packet_id,
         parent_grid_packet_path_or_none=str(admitted_path),
@@ -449,13 +491,11 @@ def _write_suggested_frontier(
             "no_screenshot_chat_output",
         ),
     ).to_dict()
-    view_all_action = suggested_receipt.get("attempt_receipt", {}).get(
-        "view_all_action"
-    )
+    outer_ui_route = suggested_receipt.get("outer_ui_route")
     observed_sections = (
-        ("profile_suggested_view_all",)
-        if isinstance(view_all_action, dict) and view_all_action.get("clicked") is True
-        else ("suggested_accounts",)
+        ("followers_dialog_suggested_tab",)
+        if outer_ui_route == "followers_dialog_suggested_tab_primary"
+        else ("profile_suggested_accounts_view_all_fallback",)
     )
     observations = [
         SuggestedAccountObservation(
@@ -485,7 +525,16 @@ def _write_suggested_frontier(
         data_root,
         record_id=f"{register_id}.json",
     )
-    return str(written)
+    if written is None:
+        raise RuntimeError(
+            "captured suggested accounts did not produce a frontier artifact"
+        )
+    written_path = Path(written)
+    if not written_path.is_file():
+        raise RuntimeError(
+            f"suggested frontier writer returned a missing artifact: {written_path}"
+        )
+    return str(written_path)
 
 
 if __name__ == "__main__":

@@ -318,6 +318,49 @@ def test_write_tiktok_batch_packet_preserves_suggested_accounts_as_bronze(
     )["suggested_accounts"][0]["handle"] == "freshfrag"
 
 
+def test_historical_recapture_is_written_as_a_separate_bronze_supplement(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "supplement_packet"
+    prior = "bronze/tiktok/prior-packet"
+
+    code, _message = write_tiktok_batch_packet(
+        creator_handle="@funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=_grid_payload(),
+        cadence_result_jsons=[_cadence_payload()],
+        output_directory=output,
+        capture_timestamp="2026-06-30T17:02:46Z",
+        prior_capture_pointer=prior,
+    )
+
+    assert code == 0
+    manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["re_capture_relationship"]["status"] == "known"
+    assert manifest["re_capture_relationship"]["value"] == "supplement"
+    payload = json.loads(
+        (output / "raw" / "01_tiktok_batch_capture.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert payload["historical_recapture"] == {
+        "re_capture_relationship": "supplement",
+        "prior_capture_pointer": prior,
+        "prior_provenance_mutated": False,
+    }
+
+
+def _overlay_contract() -> dict[str, object]:
+    return {
+        **_contract(),
+        "video_navigation_mode": "grid_tile_overlay_sequence",
+        "grid_tile_overlay_navigation": True,
+        "return_to_grid_between_videos": True,
+        "direct_video_navigation": False,
+        "item_struct_required": False,
+    }
+
+
 def test_write_tiktok_batch_packet_preserves_sanitized_batch_payload(tmp_path: Path) -> None:
     output = tmp_path / "batch_packet"
 
@@ -884,6 +927,44 @@ def test_tiktok_batch_rejects_forbidden_staging_contract(tmp_path: Path) -> None
             cadence_result_jsons=[_cadence_payload()],
             output_directory=output,
             decision_question="admit TikTok creator batch",
+        )
+
+
+def test_tiktok_batch_accepts_grid_overlay_contract_without_item_struct_requirement(
+    tmp_path: Path,
+) -> None:
+    grid = json.loads(_grid_payload().decode("utf-8"))
+    cadence = json.loads(_cadence_payload().decode("utf-8"))
+    grid["capture_contract"] = _overlay_contract()
+    cadence["capture_contract"] = _overlay_contract()
+
+    code, _message = write_tiktok_batch_packet(
+        creator_handle="funmimonet",
+        creator_profile_url=PROFILE_URL,
+        grid_result_json=json.dumps(grid).encode("utf-8"),
+        cadence_result_jsons=[json.dumps(cadence).encode("utf-8")],
+        output_directory=tmp_path / "overlay_packet",
+    )
+
+    assert code == 0
+
+
+def test_tiktok_batch_rejects_overlay_contract_with_direct_navigation(
+    tmp_path: Path,
+) -> None:
+    grid = json.loads(_grid_payload().decode("utf-8"))
+    grid["capture_contract"] = {
+        **_overlay_contract(),
+        "direct_video_navigation": True,
+    }
+
+    with pytest.raises(ValueError, match="direct_video_navigation=false"):
+        write_tiktok_batch_packet(
+            creator_handle="funmimonet",
+            creator_profile_url=PROFILE_URL,
+            grid_result_json=json.dumps(grid).encode("utf-8"),
+            cadence_result_jsons=[_cadence_payload()],
+            output_directory=tmp_path / "invalid_overlay_packet",
         )
 
 

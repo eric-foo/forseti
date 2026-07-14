@@ -3188,3 +3188,120 @@ def test_chrome_cdp_session_detaches_without_closing_context_or_page(
     assert engine.lifecycle_receipt["close_policy"] == (
         "detach_only_leave_browser_and_page_open"
     )
+
+
+def test_chrome_cdp_session_adopts_latest_tiktok_page_and_discloses_exact_matches() -> None:
+    class FakePage:
+        def __init__(self, url: str, *, closed: bool = False) -> None:
+            self.url = url
+            self.closed = closed
+
+        def is_closed(self) -> bool:
+            return self.closed
+
+    unrelated = FakePage("https://www.tiktok.com/@someone_else")
+    first_exact = FakePage("http://www.tiktok.com/@Creator/?from=old#grid")
+    closed_exact = FakePage("https://www.tiktok.com/@creator", closed=True)
+    latest_exact = FakePage("https://tiktok.com/@creator?lang=en")
+
+    class FakeContext:
+        pages = [unrelated, first_exact, closed_exact, latest_exact]
+
+        def new_page(self) -> FakePage:
+            raise AssertionError("an exact target page must be adopted")
+
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+    engine._real_context = FakeContext()
+    engine._pending_requested_page_url = "https://www.tiktok.com/@CREATOR/"
+
+    assert engine._get_or_create_page() is latest_exact
+    assert engine._get_or_create_page() is latest_exact
+    receipt = engine.lifecycle_receipt
+    assert receipt["page_acquisition_policy"] == "adopt_same_platform_else_create"
+    assert receipt["initial_platform_match_count"] == 3
+    assert receipt["initial_exact_match_count"] == 2
+    assert receipt["page_adoption_count"] == 1
+    assert receipt["page_creation_count"] == 0
+    assert receipt["adopted_page_enumeration_index_or_none"] == 3
+    assert receipt["duplicate_platform_match_policy"] == (
+        "adopt_most_recently_enumerated_non_closed_platform_match"
+    )
+
+
+def test_chrome_cdp_session_adopts_latest_unrelated_tiktok_page() -> None:
+    class FakePage:
+        def __init__(self, url: str) -> None:
+            self.url = url
+
+        def is_closed(self) -> bool:
+            return False
+
+    unrelated_creator = FakePage("https://www.tiktok.com/@someone_else")
+    unrelated_path = FakePage("https://www.tiktok.com/@creator/video/123")
+    created = FakePage("about:blank")
+
+    class FakeContext:
+        pages = [unrelated_creator, unrelated_path]
+
+        def new_page(self) -> FakePage:
+            return created
+
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+    engine._real_context = FakeContext()
+    engine._pending_requested_page_url = "https://www.tiktok.com/@creator"
+
+    assert engine._get_or_create_page() is unrelated_path
+    receipt = engine.lifecycle_receipt
+    assert receipt["initial_platform_match_count"] == 2
+    assert receipt["initial_exact_match_count"] == 0
+    assert receipt["page_adoption_count"] == 1
+    assert receipt["page_creation_count"] == 0
+
+
+def test_chrome_cdp_session_creates_only_when_no_tiktok_page_exists() -> None:
+    class FakePage:
+        def __init__(self, url: str) -> None:
+            self.url = url
+
+        def is_closed(self) -> bool:
+            return False
+
+    created = FakePage("about:blank")
+
+    class FakeContext:
+        pages = [FakePage("https://example.com/"), FakePage("https://chatgpt.com/")]
+
+        def new_page(self) -> FakePage:
+            return created
+
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+    engine._real_context = FakeContext()
+    engine._pending_requested_page_url = "https://www.tiktok.com/@creator"
+
+    assert engine._get_or_create_page() is created
+    receipt = engine.lifecycle_receipt
+    assert receipt["initial_platform_match_count"] == 0
+    assert receipt["page_adoption_count"] == 0
+    assert receipt["page_creation_count"] == 1
+
+
+def test_chrome_cdp_session_suppresses_same_target_navigation_only() -> None:
+    class FakePage:
+        def __init__(self) -> None:
+            self.url = "https://www.tiktok.com/@creator?lang=en#grid"
+            self.goto_calls: list[str] = []
+
+        def goto(self, url: str, **_kwargs: object) -> str:
+            self.goto_calls.append(url)
+            self.url = url
+            return "navigated"
+
+    page = FakePage()
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+
+    assert engine._navigate_page(page, "http://tiktok.com/@CREATOR/") is None
+    assert engine._navigate_page(page, "https://www.tiktok.com/@other") == "navigated"
+    assert page.goto_calls == ["https://www.tiktok.com/@other"]
+    receipt = engine.lifecycle_receipt
+    assert receipt["same_url_navigation_suppression_count"] == 1
+    assert receipt["page_navigation_count"] == 1

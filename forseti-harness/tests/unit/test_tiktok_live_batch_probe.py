@@ -3007,6 +3007,125 @@ def _success_observation(
     )
 
 
+def test_overlay_route_uses_grid_metadata_without_item_struct() -> None:
+    video_id = "7390000000000000001"
+    capture = _success_observation(
+        video_id=video_id,
+        response=_comment_response(video_id=video_id),
+    )
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": False,
+            "visible_comment_candidates": [],
+            "subtitle_tracks": [],
+        }
+    )
+    sequence_calls: list[tuple[int, list[str]]] = []
+
+    def capture_from_grid(
+        index: int, pending_urls: list[str]
+    ) -> tuple[str, BrowserPageObservationSuccess]:
+        sequence_calls.append((index, list(pending_urls)))
+        return pending_urls[0], capture
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
+        logged_out=True,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=capture_from_grid,
+        grid_candidates_by_video_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": f"https://www.tiktok.com/@funmi/video/{video_id}",
+                "desc": "Grid description",
+                "createTime": 1710000000,
+                "author": {"id": "author-1", "uniqueId": "funmi"},
+                "stats": {
+                    "playCount": 1000,
+                    "diggCount": 50,
+                    "commentCount": 42,
+                    "shareCount": 3,
+                    "collectCount": 2,
+                },
+                "music": {"id": "music-1", "title": "Original sound"},
+            }
+        },
+        sleep_fn=lambda _seconds: None,
+    )
+
+    assert sequence_calls == [
+        (0, [f"https://www.tiktok.com/@funmi/video/{video_id}"])
+    ]
+    assert result["cadence_result"]["completed_count"] == 1
+    row = result["cadence_result"]["results"][0]
+    assert row["capture_receipt"]["deep_capture_route"] == "grid_tile_overlay"
+    assert row["capture_receipt"]["item_struct_present"] is False
+    assert row["capture_receipt"]["comment_outcome"] == "captured"
+    assert row["capture_receipt"]["overlay_evidence"]["ready"] is True
+    assert result["grid_result"]["response_items"][0]["desc"] == "Grid description"
+    contract = result["cadence_result"]["capture_contract"]
+    assert contract["video_navigation_mode"] == "grid_tile_overlay_sequence"
+    assert contract["direct_video_navigation"] is False
+    assert contract["item_struct_required"] is False
+
+
+def test_overlay_route_preserves_visible_empty_comment_outcome() -> None:
+    video_id = "7390000000000000001"
+    capture = _success_observation(video_id=video_id, responses=[])
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": True,
+            "visible_comment_candidates": [],
+        }
+    )
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[video_url],
+        logged_out=True,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=lambda _index, _pending: (video_url, capture),
+        grid_candidates_by_video_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": video_url,
+                "author": {"uniqueId": "funmi"},
+                "stats": {"playCount": 1000, "diggCount": 50},
+            }
+        },
+        sleep_fn=lambda _seconds: None,
+    )
+
+    assert result["cadence_result"]["completed_count"] == 1
+    assert result["cadence_result"]["failures"] == []
+    assert (
+        result["cadence_result"]["results"][0]["capture_receipt"][
+            "comment_outcome"
+        ]
+        == "visible_empty"
+    )
+
+
 def _live_pointer_action_sequence_receipt() -> list[dict[str, object]]:
     return [_retry_action_receipt(), _benign_overlay_action_receipt(), *_pointer_action_sequence_receipt()]
 

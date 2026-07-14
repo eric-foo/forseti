@@ -6,7 +6,7 @@ import time
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Mapping, Sequence
 from urllib.parse import parse_qsl, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
@@ -54,6 +54,19 @@ TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
 () => {
   const hydration = document.querySelector('#__UNIVERSAL_DATA_FOR_REHYDRATION__');
   const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+  const visible = (node) => {
+    if (!node) return false;
+    const style = window.getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return style.visibility !== 'hidden' && style.display !== 'none' &&
+      rect.width > 0 && rect.height > 0;
+  };
+  const modalCandidates = Array.from(
+    document.querySelectorAll('[aria-modal="true"],[role="dialog"]')
+  ).filter((node) => visible(node));
+  const overlayRoot = modalCandidates.find((node) =>
+    Array.from(node.querySelectorAll('video')).some((video) => visible(video))
+  ) || null;
   const candidateSelectors = [
     '[data-e2e="comment-item"]',
     '[data-e2e*="comment-level"]',
@@ -74,7 +87,7 @@ TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
   const candidates = [];
   const seen = new Set();
   for (const selector of candidateSelectors) {
-    for (const node of Array.from(document.querySelectorAll(selector))) {
+    for (const node of Array.from((overlayRoot || document).querySelectorAll(selector))) {
       const rect = node.getBoundingClientRect();
       if (!rect || rect.width <= 0 || rect.height <= 0) {
         continue;
@@ -104,9 +117,51 @@ TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
       break;
     }
   }
+  const visibleVideos = Array.from(
+    (overlayRoot || document).querySelectorAll('video')
+  ).filter((video) => visible(video));
+  const pathMatch = String(location.pathname || '').match(/\/video\/(\d+)/);
+  let overlayCreatorHandle = null;
+  if (overlayRoot) {
+    for (const anchor of Array.from(overlayRoot.querySelectorAll('a[href*="/@"]'))) {
+      const href = String(anchor.href || anchor.getAttribute('href') || '');
+      const match = href.match(/\/@([^/?#]+)/);
+      if (match) {
+        overlayCreatorHandle = match[1].toLowerCase();
+        break;
+      }
+    }
+  }
+  const overlayText = normalizeText(overlayRoot ? overlayRoot.innerText : '');
+  const commentSurfaceDetected = Boolean(
+    overlayRoot && (
+      candidates.length > 0 ||
+      /\bcomments?\s*(?:\(|\d|$)/i.test(overlayText) ||
+      /no comments yet/i.test(overlayText)
+    )
+  );
+  const subtitleTracks = [];
+  for (const track of Array.from((overlayRoot || document).querySelectorAll('video track'))) {
+    subtitleTracks.push({
+      kind: String(track.kind || track.getAttribute('kind') || '').trim() || null,
+      label: String(track.label || track.getAttribute('label') || '').trim() || null,
+      srclang: String(track.srclang || track.getAttribute('srclang') || '').trim() || null,
+      src: String(track.src || track.getAttribute('src') || '').trim() || null
+    });
+  }
   return {
     hydration_json_text: hydration ? hydration.textContent : null,
-    visible_comment_candidates: candidates
+    visible_comment_candidates: candidates,
+    video_overlay_detected: Boolean(overlayRoot),
+    visible_video_element_count: visibleVideos.length,
+    overlay_video_id_or_none: pathMatch ? pathMatch[1] : null,
+    overlay_creator_handle_or_none: overlayCreatorHandle,
+    comment_surface_detected: commentSurfaceDetected,
+    comment_surface_visible_empty: Boolean(
+      commentSurfaceDetected && candidates.length === 0 &&
+      (/no comments yet/i.test(overlayText) || /\bcomments?\s*\(?0\)?\b/i.test(overlayText))
+    ),
+    subtitle_tracks: subtitleTracks
   };
 }
 """.strip()
@@ -193,6 +248,10 @@ _TIKTOK_VIDEO_URL_RE = re.compile(r"^/@(?P<handle>[^/]+)/video/(?P<video_id>\d+)
 JsonObject = dict[str, Any]
 SleepFn = Callable[[float], None]
 SubtitleFetchFn = Callable[[str], bytes]
+PageCaptureSequenceFn = Callable[
+    [int, Sequence[str]],
+    tuple[str, BrowserPageObservationSuccess | BrowserSnapshotFailure],
+]
 
 
 @dataclass(frozen=True)
@@ -314,6 +373,9 @@ def run_tiktok_live_batch_probe(
     engine: BrowserPageObservationEngine | None = None,
     sleep_fn: SleepFn = time.sleep,
     subtitle_fetcher: SubtitleFetchFn | None = None,
+    capture_route: str = "direct_video_url",
+    page_capture_sequence_fn: PageCaptureSequenceFn | None = None,
+    grid_candidates_by_video_id: Mapping[str, JsonObject] | None = None,
 ) -> JsonObject:
     normalized_browser_backend = browser_backend.strip().lower()
     if engine is None and normalized_browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER:
@@ -370,6 +432,9 @@ def run_tiktok_live_batch_probe(
                 engine=observation_engine,
                 sleep_fn=sleep_fn,
                 subtitle_fetcher=subtitle_fetcher,
+                capture_route=capture_route,
+                page_capture_sequence_fn=page_capture_sequence_fn,
+                grid_candidates_by_video_id=grid_candidates_by_video_id,
             )
         finally:
             observation_engine.close()
@@ -386,6 +451,19 @@ def run_tiktok_live_batch_probe(
     if not normalized_video_urls:
         raise ValueError("at least one TikTok video URL is required")
     subtitle_fetcher = subtitle_fetcher or _fetch_subtitle_webvtt
+    if capture_route not in {"direct_video_url", "grid_tile_overlay"}:
+        raise ValueError(
+            "capture_route must be 'direct_video_url' or 'grid_tile_overlay'"
+        )
+    if capture_route == "direct_video_url":
+        if page_capture_sequence_fn is not None or grid_candidates_by_video_id is not None:
+            raise ValueError(
+                "direct_video_url capture does not accept overlay capture inputs"
+            )
+    elif page_capture_sequence_fn is None or grid_candidates_by_video_id is None:
+        raise ValueError(
+            "grid_tile_overlay capture requires page_capture_sequence_fn and grid candidates"
+        )
     browser_backend = normalized_browser_backend
     if browser_backend not in (
         TIKTOK_BROWSER_BACKEND_DEFAULT,
@@ -447,48 +525,65 @@ def run_tiktok_live_batch_probe(
     results: list[JsonObject] = []
     grid_items: list[JsonObject] = []
 
-    for index, video_url in enumerate(normalized_video_urls):
+    pending_video_urls = list(normalized_video_urls)
+    for index in range(len(normalized_video_urls)):
         if index > 0:
             sleep_fn(cadence_plan.planned_waits_seconds[index - 1])
 
+        if page_capture_sequence_fn is None:
+            video_url = pending_video_urls.pop(0)
+            video_id = _video_id_from_tiktok_url(video_url)
+            capture_result = fetch_browser_page_observation_capture(
+                url=video_url,
+                dom_extract_script=TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
+                dom_extract_arg=None,
+                response_url_predicate=is_tiktok_comment_list_url,
+                post_load_pointer_actions=_tiktok_live_pointer_actions(
+                    video_id=video_id,
+                    random_seed=random_seed,
+                    allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
+                    allow_challenge_close_followthrough=allow_challenge_close_followthrough,
+                ),
+                timeout_seconds=timeout_seconds,
+                wait_until=wait_until,
+                viewport_width=viewport_width,
+                viewport_height=viewport_height,
+                max_response_bytes=max_response_bytes,
+                settle_seconds=settle_seconds,
+                selector_timeout_seconds=selector_timeout_seconds,
+                storage_state_path=storage_state_path,
+                headless=False,
+                browser_channel=browser_channel,
+                browser_backend=browser_backend,
+                cloakbrowser_humanize=cloakbrowser_humanize,
+                human_challenge_handoff_markers=(
+                    TIKTOK_CHALLENGE_TEXT_MARKERS if human_challenge_handoff else ()
+                ),
+                human_challenge_handoff_after_action_names=(
+                    _tiktok_human_challenge_handoff_after_action_names()
+                    if human_challenge_handoff
+                    else ()
+                ),
+                human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
+                human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
+                engine=engine,
+            )
+        else:
+            selected_url, capture_result = page_capture_sequence_fn(
+                index, tuple(pending_video_urls)
+            )
+            video_url = _normalize_video_url(
+                selected_url, expected_handle=normalized_handle
+            )
+            if video_url not in pending_video_urls:
+                raise ValueError(
+                    "page_capture_sequence_fn returned a video outside the pending selection"
+                )
+            pending_video_urls.remove(video_url)
+            video_id = _video_id_from_tiktok_url(video_url)
+
         attempts += 1
-        video_id = _video_id_from_tiktok_url(video_url)
         observed_utc = utc_now_z()
-        capture_result = fetch_browser_page_observation_capture(
-            url=video_url,
-            dom_extract_script=TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT,
-            dom_extract_arg=None,
-            response_url_predicate=is_tiktok_comment_list_url,
-            post_load_pointer_actions=_tiktok_live_pointer_actions(
-                video_id=video_id,
-                random_seed=random_seed,
-                allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
-                allow_challenge_close_followthrough=allow_challenge_close_followthrough,
-            ),
-            timeout_seconds=timeout_seconds,
-            wait_until=wait_until,
-            viewport_width=viewport_width,
-            viewport_height=viewport_height,
-            max_response_bytes=max_response_bytes,
-            settle_seconds=settle_seconds,
-            selector_timeout_seconds=selector_timeout_seconds,
-            storage_state_path=storage_state_path,
-            headless=False,
-            browser_channel=browser_channel,
-            browser_backend=browser_backend,
-            cloakbrowser_humanize=cloakbrowser_humanize,
-            human_challenge_handoff_markers=(
-                TIKTOK_CHALLENGE_TEXT_MARKERS if human_challenge_handoff else ()
-            ),
-            human_challenge_handoff_after_action_names=(
-                _tiktok_human_challenge_handoff_after_action_names()
-                if human_challenge_handoff
-                else ()
-            ),
-            human_challenge_handoff_timeout_seconds=human_challenge_handoff_timeout_seconds,
-            human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
-            engine=engine,
-        )
 
         if isinstance(capture_result, BrowserSnapshotFailure):
             failures.append(
@@ -636,11 +731,40 @@ def run_tiktok_live_batch_probe(
             challenge_close_followthrough_count += 1
 
         item_struct = _extract_item_struct(capture_result.dom_observation)
+        overlay_evidence = (
+            _overlay_surface_evidence(
+                capture_result,
+                expected_creator_handle=normalized_handle,
+                expected_video_id=video_id,
+            )
+            if capture_route == "grid_tile_overlay"
+            else {}
+        )
+        overlay_ready = overlay_evidence.get("ready") is True
         blocker_triage = classify_tiktok_capture(
             capture_result,
             item_struct_present=item_struct is not None,
+            visible_surface_ready=(overlay_ready if capture_route == "grid_tile_overlay" else None),
         )
-        if item_struct is None:
+        if capture_route == "grid_tile_overlay" and not overlay_ready:
+            failures.append(
+                _failure_entry(
+                    video_url=video_url,
+                    video_id=video_id,
+                    observed_utc=observed_utc,
+                    reason="grid_overlay_identity_or_readiness_mismatch",
+                    detail=(
+                        "The grid-clicked TikTok overlay did not prove matching video, "
+                        "creator, and visible-video readiness; the probe stopped."
+                    ),
+                    blocker_triage={
+                        **_blocker_triage_receipt(blocker_triage),
+                        "overlay_evidence": overlay_evidence,
+                    },
+                )
+            )
+            break
+        if capture_route == "direct_video_url" and item_struct is None:
             # C6 names an empty/stripped shell as a genuine-block symptom alongside
             # captcha text and 403 HTML; stop like a detected challenge instead of
             # hammering the remaining cadence-planned videos.
@@ -682,7 +806,7 @@ def run_tiktok_live_batch_probe(
             )
             break
 
-        item_video_id = str(item_struct.get("id") or "").strip()
+        item_video_id = str(item_struct.get("id") or "").strip() if item_struct else ""
         if item_video_id and item_video_id != video_id:
             failures.append(
                 _failure_entry(
@@ -695,11 +819,32 @@ def run_tiktok_live_batch_probe(
             )
             continue
 
-        grid_candidate = _grid_candidate_from_item_struct(
-            item_struct,
-            creator_handle=normalized_handle,
-            video_url=video_url,
-        )
+        if capture_route == "grid_tile_overlay":
+            assert grid_candidates_by_video_id is not None
+            source_grid_candidate = grid_candidates_by_video_id.get(video_id)
+            if not isinstance(source_grid_candidate, dict):
+                failures.append(
+                    _failure_entry(
+                        video_url=video_url,
+                        video_id=video_id,
+                        observed_utc=observed_utc,
+                        reason="grid_candidate_missing_for_overlay_capture",
+                        detail="No source grid candidate was bound to the clicked overlay video.",
+                    )
+                )
+                break
+            grid_candidate = _grid_candidate_from_profile_grid_item(
+                source_grid_candidate,
+                creator_handle=normalized_handle,
+                video_url=video_url,
+            )
+        else:
+            assert item_struct is not None
+            grid_candidate = _grid_candidate_from_item_struct(
+                item_struct,
+                creator_handle=normalized_handle,
+                video_url=video_url,
+            )
         row = _cadence_row_from_capture(
             item_struct=item_struct,
             creator_handle=normalized_handle,
@@ -713,6 +858,8 @@ def run_tiktok_live_batch_probe(
             challenge_close_action=challenge_close_action,
             challenge_close_followthrough_allowed=allow_challenge_close_followthrough,
             subtitle_fetcher=subtitle_fetcher,
+            capture_route=capture_route,
+            overlay_evidence=overlay_evidence,
         )
         assert_no_sensitive_tiktok_material(row)
         assert_no_sensitive_tiktok_material(grid_candidate)
@@ -721,6 +868,7 @@ def run_tiktok_live_batch_probe(
         if (
             _first_int(comment_receipt.get("admitted_comment_response_count"), 0) == 0
             and _first_int(comment_receipt.get("dom_visible_comment_candidate_count"), 0) == 0
+            and comment_receipt.get("comment_outcome") != "visible_empty"
         ):
             failures.append(
                 _failure_entry(
@@ -729,9 +877,9 @@ def run_tiktok_live_batch_probe(
                     observed_utc=observed_utc,
                     reason=TIKTOK_COMMENT_ROUTE_NO_RESPONSE_REASON,
                     detail=(
-                        "No page-owned TikTok /api/comment/list response was observed after "
-                        "the bounded comments/more-like-this/comments route-opening action, "
-                        "and no DOM-visible comment candidates were found; this row remained "
+                        "No page-owned TikTok comment response or DOM-visible comment "
+                        "candidate was observed, and the surface did not prove visible empty; "
+                        "this row remained "
                         "incomplete and the batch continued."
                     ),
                     blocker_triage=_comment_route_zero_yield_blocker_triage(
@@ -788,6 +936,7 @@ def run_tiktok_live_batch_probe(
             allow_challenge_close_followthrough=allow_challenge_close_followthrough,
             session_engine_reused=session_engine_reused,
             account_safety_pre_action_circuit_breaker=account_safety_pre_action_circuit_breaker,
+            capture_route=capture_route,
         ),
         "response_items": grid_items,
         "run_complete_utc": run_complete_utc,
@@ -817,6 +966,7 @@ def run_tiktok_live_batch_probe(
             allow_challenge_close_followthrough=allow_challenge_close_followthrough,
             session_engine_reused=session_engine_reused,
             account_safety_pre_action_circuit_breaker=account_safety_pre_action_circuit_breaker,
+            capture_route=capture_route,
         ),
         "cadence_plan": cadence_plan.to_dict(),
         "results": results,
@@ -1497,7 +1647,7 @@ def _build_probe_cadence_plan(
 
 def _cadence_row_from_capture(
     *,
-    item_struct: JsonObject,
+    item_struct: JsonObject | None,
     creator_handle: str,
     video_url: str,
     video_id: str,
@@ -1509,10 +1659,17 @@ def _cadence_row_from_capture(
     challenge_close_action: JsonObject | None = None,
     challenge_close_followthrough_allowed: bool = False,
     subtitle_fetcher: SubtitleFetchFn | None = None,
+    capture_route: str = "direct_video_url",
+    overlay_evidence: JsonObject | None = None,
 ) -> JsonObject:
-    subtitle_infos = _sanitize_subtitle_infos(_subtitle_infos_from_item_struct(item_struct))
+    subtitle_source = item_struct or _subtitle_source_from_dom_tracks(
+        capture_result.dom_observation
+    )
+    subtitle_infos = _sanitize_subtitle_infos(
+        _subtitle_infos_from_item_struct(subtitle_source)
+    )
     subtitle_capture = _subtitle_capture_from_item_struct(
-        item_struct,
+        subtitle_source,
         subtitle_fetcher=subtitle_fetcher or _fetch_subtitle_webvtt,
     )
     matched_comment_response_count = sum(
@@ -1528,6 +1685,14 @@ def _cadence_row_from_capture(
     challenge_close_action = _as_dict(challenge_close_action)
     challenge_close_clicked = _first_bool(challenge_close_action.get("clicked")) is True
     challenge_close_accepted = _challenge_close_accepted(challenge_close_action)
+    dom_observation = _as_dict(capture_result.dom_observation)
+    comment_outcome = (
+        "captured"
+        if comment_list_responses or dom_visible_comments
+        else "visible_empty"
+        if dom_observation.get("comment_surface_visible_empty") is True
+        else "not_visible"
+    )
     capture_receipt = {
         "page_url_sha256": _sha256_text(video_url),
         "final_url_sha256": _sha256_text(capture_result.final_url),
@@ -1540,6 +1705,19 @@ def _cadence_row_from_capture(
         "comment_response_cap": comment_response_cap,
         "comment_selection_policy": TIKTOK_COMMENT_SELECTION_POLICY,
         "dom_visible_comment_candidate_count": len(dom_visible_comments),
+        "comment_outcome": comment_outcome,
+        "deep_capture_route": capture_route,
+        "item_struct_present": item_struct is not None,
+        "field_provenance": {
+            "identity": "clicked_grid_anchor_plus_navigation_url",
+            "structured_video_metadata": (
+                "profile_grid_item_response"
+                if capture_route == "grid_tile_overlay"
+                else "direct_video_item_struct"
+            ),
+            "visible_comments": "page_owned_comment_response_then_overlay_dom",
+            "subtitles": "source_native_track_or_item_struct_when_available",
+        },
         "warning_count": len(capture_result.warning_notes),
         "limitation_count": len(capture_result.limitation_notes),
     }
@@ -1555,6 +1733,8 @@ def _cadence_row_from_capture(
         capture_receipt["human_challenge_handoff"] = True
     if dom_visible_comments and not comment_list_responses:
         capture_receipt["comment_capture_fallback"] = "dom_visible_comment_candidates_v0"
+    if capture_route == "grid_tile_overlay":
+        capture_receipt["overlay_evidence"] = dict(overlay_evidence or {})
     if challenge_close_action:
         capture_receipt["challenge_close_action"] = challenge_close_action
         if challenge_close_clicked:
@@ -2013,6 +2193,121 @@ def _grid_candidate_from_item_struct(
     return _drop_none(item)
 
 
+def _grid_candidate_from_profile_grid_item(
+    source_item: JsonObject,
+    *,
+    creator_handle: str,
+    video_url: str,
+) -> JsonObject:
+    video_id = _first_str(source_item.get("video_id"), source_item.get("id")) or ""
+    expected_video_id = _video_id_from_tiktok_url(video_url)
+    if video_id != expected_video_id:
+        raise ValueError("profile grid candidate id does not match clicked video URL")
+    author = _as_dict(source_item.get("author"))
+    author_handle = _first_str(
+        author.get("uniqueId"),
+        author.get("unique_id"),
+        source_item.get("authorUniqueId"),
+        source_item.get("author_unique_id"),
+    )
+    if author_handle and author_handle.lstrip("@").lower() != creator_handle.lower():
+        raise ValueError("profile grid candidate author does not match creator")
+    return _drop_none(
+        {
+            "id": video_id,
+            "desc": _first_str(source_item.get("desc"), ""),
+            "createTime": _first_int(
+                source_item.get("createTime"), source_item.get("create_time")
+            ),
+            "stats": dict(_as_dict(source_item.get("stats"))),
+            "author": _normalize_author(author, creator_handle),
+            "authorUniqueId": author_handle or creator_handle,
+            "music": _normalize_music(_as_dict(source_item.get("music"))),
+            "url_path": urlparse(video_url).path,
+            "source_response_path": _first_str(
+                source_item.get("source_response_path"), urlparse(video_url).path
+            ),
+            "source_response_url_sha256": _first_str(
+                source_item.get("source_response_url_sha256"),
+                _sha256_text(video_url),
+            ),
+            "decoded_aweme_id_create_time_utc": decoded_aweme_id_create_time_utc(
+                video_id
+            ),
+        }
+    )
+
+
+def _overlay_surface_evidence(
+    capture_result: BrowserPageObservationSuccess,
+    *,
+    expected_creator_handle: str,
+    expected_video_id: str,
+) -> JsonObject:
+    dom = _as_dict(capture_result.dom_observation)
+    observed_video_id = _first_str(dom.get("overlay_video_id_or_none"))
+    observed_creator = _first_str(dom.get("overlay_creator_handle_or_none"))
+    try:
+        normalized_final_url = _normalize_video_url(
+            capture_result.final_url, expected_handle=expected_creator_handle
+        )
+    except ValueError:
+        normalized_final_url = None
+    final_url_video_id = (
+        _video_id_from_tiktok_url(normalized_final_url)
+        if normalized_final_url is not None
+        else None
+    )
+    creator_match = (
+        observed_creator.lstrip("@").lower() == expected_creator_handle.lower()
+        if observed_creator
+        else None
+    )
+    evidence: JsonObject = {
+        "video_overlay_detected": dom.get("video_overlay_detected") is True,
+        "visible_video_element_count": _first_int(
+            dom.get("visible_video_element_count"), 0
+        ),
+        "expected_video_id": expected_video_id,
+        "overlay_video_id_or_none": observed_video_id,
+        "final_url_video_id_or_none": final_url_video_id,
+        "overlay_creator_handle_or_none": observed_creator,
+        "overlay_creator_match_or_none": creator_match,
+        "comment_surface_detected": dom.get("comment_surface_detected") is True,
+        "item_struct_required": False,
+    }
+    evidence["ready"] = bool(
+        evidence["video_overlay_detected"]
+        and (_first_int(evidence["visible_video_element_count"], 0) or 0) > 0
+        and observed_video_id == expected_video_id
+        and final_url_video_id == expected_video_id
+        and creator_match is not False
+    )
+    return evidence
+
+
+def _subtitle_source_from_dom_tracks(dom_observation: object) -> JsonObject:
+    tracks: list[JsonObject] = []
+    for raw in _as_list(_as_dict(dom_observation).get("subtitle_tracks")):
+        track = _as_dict(raw)
+        src = _first_str(track.get("src"))
+        if not src:
+            continue
+        tracks.append(
+            _drop_none(
+                {
+                    "Url": src,
+                    "Format": _first_str(track.get("kind"), "webvtt"),
+                    "LanguageCodeName": _first_str(
+                        track.get("srclang"), track.get("label")
+                    ),
+                    "Source": "visible_video_track",
+                }
+            )
+        )
+    return {"video": {"subtitleInfos": tracks}}
+
+
 def _normalize_stats(stats: JsonObject) -> JsonObject:
     return {
         "playCount": _first_int(stats.get("playCount"), stats.get("play_count"), 0),
@@ -2246,6 +2541,12 @@ def _extract_item_struct(dom_observation: object) -> JsonObject | None:
     return found if isinstance(found, dict) else None
 
 
+def tiktok_video_dom_has_item_struct(dom_observation: object) -> bool:
+    """Return whether a captured TikTok video DOM exposes source item detail."""
+
+    return _extract_item_struct(dom_observation) is not None
+
+
 def _find_first_item_struct(value: Any) -> JsonObject | None:
     if isinstance(value, dict):
         item_info = value.get("itemInfo")
@@ -2307,6 +2608,7 @@ def _capture_contract(
     allow_challenge_close_followthrough: bool = False,
     session_engine_reused: bool = False,
     account_safety_pre_action_circuit_breaker: bool = False,
+    capture_route: str = "direct_video_url",
 ) -> JsonObject:
     session_mode_value = (
         TIKTOK_LOGGED_OUT_SESSION_MODE
@@ -2316,21 +2618,30 @@ def _capture_contract(
     if session_mode_value is None:
         raise ValueError("session_mode is required unless logged_out is true")
     return {
-        "video_navigation_mode": "direct_selected_url_sequence",
+        "video_navigation_mode": (
+            "grid_tile_overlay_sequence"
+            if capture_route == "grid_tile_overlay"
+            else "direct_selected_url_sequence"
+        ),
         "video_page_reuse_policy": (
             "one_page_sequential_navigation"
             if session_engine_reused
             else "capture_engine_defined"
         ),
         "terminal_page_policy": (
-            "leave_last_selected_video_open"
+            "leave_last_selected_video_overlay_open"
+            if session_engine_reused and capture_route == "grid_tile_overlay"
+            else "leave_last_selected_video_open"
             if session_engine_reused
             else "capture_engine_defined"
         ),
         "pointer_movement_policy": "meaningful_page_actions_only",
         "address_bar_simulation": False,
         "referrer_spoofing": False,
-        "return_to_grid_between_videos": False,
+        "return_to_grid_between_videos": capture_route == "grid_tile_overlay",
+        "direct_video_navigation": capture_route == "direct_video_url",
+        "grid_tile_overlay_navigation": capture_route == "grid_tile_overlay",
+        "item_struct_required": capture_route == "direct_video_url",
         "account_safety_pre_action_circuit_breaker": (
             account_safety_pre_action_circuit_breaker
         ),
@@ -2520,6 +2831,7 @@ __all__ = [
     "TIKTOK_DISMISS_BENIGN_OVERLAY_POINTER_ACTION_NAME",
     "TIKTOK_COMMENT_SURFACE_TOGGLE_POINTER_SEQUENCE_NAME",
     "TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT",
+    "tiktok_video_dom_has_item_struct",
     "TikTokLiveBatchProbeOutputPaths",
     "detect_tiktok_challenge",
     "is_tiktok_comment_list_url",

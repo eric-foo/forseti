@@ -1636,16 +1636,47 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         self._humanize_context_fn = humanize_context_fn
         self._context_settings: dict[str, object] | None = None
         self._closed = False
+        self._pending_requested_page_url: str | None = None
+        self._initial_page_count: int | None = None
+        self._initial_platform_match_count: int | None = None
+        self._initial_exact_match_count: int | None = None
+        self._adopted_page_enumeration_index_or_none: int | None = None
+        self._page_adoption_count = 0
         self._page_creation_count = 0
+        self._page_navigation_count = 0
+        self._same_url_navigation_suppression_count = 0
         self._capture_attempt_count = 0
         self._capture_success_count = 0
 
     def capture_page_observation(self, **kwargs: object) -> BrowserPageObservationSuccess:
         if self._closed:
             raise RuntimeError("Chrome CDP page-observation session is already closed")
+        requested_url = kwargs.get("url")
+        if self._real_page is None and isinstance(requested_url, str):
+            self._pending_requested_page_url = requested_url
         self._capture_attempt_count += 1
         result = super().capture_page_observation(**kwargs)
         self._capture_success_count += 1
+        result.metadata.update(
+            {
+                "page_acquisition_policy": "adopt_same_platform_else_create",
+                "initial_platform_match_count": self._initial_platform_match_count,
+                "initial_exact_match_count": self._initial_exact_match_count,
+                "page_adoption_count": self._page_adoption_count,
+                "page_creation_count": self._page_creation_count,
+                "page_navigation_count": self._page_navigation_count,
+                "same_url_navigation_suppression_count": (
+                    self._same_url_navigation_suppression_count
+                ),
+                "humanized_pointer_layer": (
+                    "cloakbrowser.patch_context(resolve_config('careful'))"
+                ),
+                "outer_move_steps_semantics": (
+                    "BrowserPagePointerAction routing input; not the internal "
+                    "CloakBrowser humanized pointer path"
+                ),
+            }
+        )
         return result
 
     def _launch_page_observation_browser(
@@ -1716,9 +1747,51 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
             if callable(is_closed) and is_closed():
                 self._real_page = None
         if self._real_page is None:
-            self._real_page = self._real_context.new_page()  # type: ignore[attr-defined]
-            self._page_creation_count += 1
+            if self._initial_platform_match_count is None:
+                requested_identity = _normalized_tiktok_target_identity(
+                    self._pending_requested_page_url
+                )
+                requested_is_tiktok = _is_tiktok_platform_url(
+                    self._pending_requested_page_url
+                )
+                enumerated_pages = list(getattr(self._real_context, "pages", ()))
+                self._initial_page_count = len(enumerated_pages)
+                platform_matches: list[tuple[int, object]] = []
+                exact_matches: list[tuple[int, object]] = []
+                for index, page in enumerate(enumerated_pages):
+                    is_closed = getattr(page, "is_closed", None)
+                    if callable(is_closed) and is_closed():
+                        continue
+                    page_url = getattr(page, "url", None)
+                    if requested_is_tiktok and _is_tiktok_platform_url(page_url):
+                        platform_matches.append((index, page))
+                    if (
+                        requested_identity is not None
+                        and _normalized_tiktok_target_identity(page_url)
+                        == requested_identity
+                    ):
+                        exact_matches.append((index, page))
+                self._initial_platform_match_count = len(platform_matches)
+                self._initial_exact_match_count = len(exact_matches)
+                if platform_matches:
+                    selected_index, self._real_page = platform_matches[-1]
+                    self._adopted_page_enumeration_index_or_none = selected_index
+                    self._page_adoption_count += 1
+            if self._real_page is None:
+                self._real_page = self._real_context.new_page()  # type: ignore[attr-defined]
+                self._page_creation_count += 1
         return self._real_page
+
+    def _navigate_page(self, page: object, url: str, **kwargs: object) -> object:
+        current_identity = _normalized_tiktok_target_identity(
+            getattr(page, "url", None)
+        )
+        requested_identity = _normalized_tiktok_target_identity(url)
+        if current_identity is not None and current_identity == requested_identity:
+            self._same_url_navigation_suppression_count += 1
+            return None
+        self._page_navigation_count += 1
+        return page.goto(url, **kwargs)  # type: ignore[attr-defined]
 
     @property
     def lifecycle_receipt(self) -> dict[str, object]:
@@ -1726,7 +1799,22 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
             "engine": "chrome_cdp_page_observation_session",
             "browser_attach_count": 1 if self._real_browser is not None else 0,
             "context_acquisition_count": 1 if self._real_context is not None else 0,
+            "page_acquisition_policy": "adopt_same_platform_else_create",
+            "initial_page_count": self._initial_page_count,
+            "initial_platform_match_count": self._initial_platform_match_count,
+            "initial_exact_match_count": self._initial_exact_match_count,
+            "duplicate_platform_match_policy": (
+                "adopt_most_recently_enumerated_non_closed_platform_match"
+            ),
+            "adopted_page_enumeration_index_or_none": (
+                self._adopted_page_enumeration_index_or_none
+            ),
+            "page_adoption_count": self._page_adoption_count,
             "page_creation_count": self._page_creation_count,
+            "page_navigation_count": self._page_navigation_count,
+            "same_url_navigation_suppression_count": (
+                self._same_url_navigation_suppression_count
+            ),
             "page_reuse_policy": "reuse_one_runner_page_until_detached",
             "capture_attempt_count": self._capture_attempt_count,
             "capture_success_count": self._capture_success_count,
@@ -1838,6 +1926,9 @@ class CloakBrowserPageObservationSessionEngine(_CloakBrowserPageObservationEngin
             self._page_creation_count += 1
         return self._real_page
 
+    def _navigate_page(self, page: object, url: str, **kwargs: object) -> object:
+        return page.goto(url, **kwargs)  # type: ignore[attr-defined]
+
     @property
     def lifecycle_receipt(self) -> dict[str, object]:
         return {
@@ -1882,7 +1973,9 @@ class _SessionContextProxy:
         self._page_proxy: _SessionPageProxy | None = None
 
     def new_page(self) -> object:
-        self._page_proxy = _SessionPageProxy(self._owner._get_or_create_page())
+        self._page_proxy = _SessionPageProxy(
+            self._owner._get_or_create_page(), owner=self._owner
+        )
         return self._page_proxy
 
     def close(self) -> None:
@@ -1892,8 +1985,9 @@ class _SessionContextProxy:
 
 
 class _SessionPageProxy:
-    def __init__(self, page: object) -> None:
+    def __init__(self, page: object, owner: object | None = None) -> None:
         self._page = page
+        self._owner = owner
         self._listeners: list[tuple[str, object]] = []
         self._routes: list[tuple[str, object]] = []
 
@@ -1907,6 +2001,12 @@ class _SessionPageProxy:
     def route(self, pattern: str, handler: object) -> object:
         self._routes.append((pattern, handler))
         return self._page.route(pattern, handler)  # type: ignore[attr-defined]
+
+    def goto(self, url: str, **kwargs: object) -> object:
+        navigate = getattr(self._owner, "_navigate_page", None)
+        if callable(navigate):
+            return navigate(self._page, url, **kwargs)
+        return self._page.goto(url, **kwargs)  # type: ignore[attr-defined]
 
     def detach_capture_bindings(self) -> None:
         remove_listener = getattr(self._page, "remove_listener", None)
@@ -1940,6 +2040,29 @@ class _EngineResult:
 
 class _BrowserSnapshotDependencyUnavailable(RuntimeError):
     pass
+
+
+def _normalized_tiktok_target_identity(value: object) -> tuple[str, str] | None:
+    """Return the scheme/query/fragment-insensitive TikTok host/path identity."""
+
+    if not isinstance(value, str) or not value.strip():
+        return None
+    parsed = urlparse(value)
+    host = parsed.hostname.lower() if parsed.hostname else ""
+    if host == "www.tiktok.com":
+        host = "tiktok.com"
+    if host != "tiktok.com":
+        return None
+    path = parsed.path.rstrip("/").lower() or "/"
+    return host, path
+
+
+def _is_tiktok_platform_url(value: object) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
+    parsed = urlparse(value)
+    host = parsed.hostname.lower() if parsed.hostname else ""
+    return host == "tiktok.com" or host.endswith(".tiktok.com")
 
 
 def _validate_http_url(url: str) -> str:
@@ -2076,6 +2199,7 @@ _POINTER_ACTION_TARGET_SCRIPT = r"""
     const fields = [
       node.getAttribute('aria-label'),
       node.getAttribute('title'),
+      node.getAttribute('href'),
       dataE2E,
       node.getAttribute('data-testid'),
       node.getAttribute('data-test-id'),

@@ -420,6 +420,30 @@ def test_fixed_selection_count_is_recorded_and_applied() -> None:
     assert selection["selection_summary"]["selection_count"] == 8
 
 
+def test_fixed_selection_count_is_strict_reach_rank_and_only_records_pinned() -> None:
+    items = [
+        {**_item("reach_one", 1_000, 10), "pinned_visible": False},
+        {**_item("reach_two", 900, 9), "pinned_visible": False},
+        {**_item("pinned_low", 100, 50), "pinned_visible": True},
+    ]
+
+    selection = build_tiktok_grid_video_selection(
+        items, expected_item_count=3, selection_count=2
+    )
+
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == [
+        "reach_one",
+        "reach_two",
+    ]
+    assert selection["selection_summary"][
+        "selected_video_ids_in_review_priority_order"
+    ] == ["reach_one", "reach_two"]
+    by_id = {row["video_id"]: row for row in selection["ranked_items"]}
+    assert by_id["pinned_low"]["pinned_visible"] is True
+    assert by_id["pinned_low"]["selected"] is False
+    assert selection["selection_summary"]["range_override_count"] == 0
+
+
 @pytest.mark.parametrize("selection_count", [0, -1, 11, True, 1.5])
 def test_fixed_selection_count_rejects_invalid_values(selection_count: object) -> None:
     with pytest.raises(TikTokGridVideoSelectionError, match="selection_count"):

@@ -75,6 +75,7 @@ def write_tiktok_batch_packet(
     batch_label: str = "tiktok_creator_batch",
     source_file_receipts: Sequence[JsonObject] | None = None,
     capture_timestamp: str | None = None,
+    prior_capture_pointer: str | None = None,
 ) -> tuple[int, str]:
     """Write a sanitized TikTok creator batch packet from parsed staging JSON."""
 
@@ -82,6 +83,8 @@ def write_tiktok_batch_packet(
     profile_url = _canonical_creator_profile_url(creator_profile_url, handle)
     if not cadence_result_jsons:
         raise ValueError("At least one cadence result JSON input is required")
+    if prior_capture_pointer is not None and not prior_capture_pointer.strip():
+        raise ValueError("prior_capture_pointer must be non-empty when supplied")
 
     payload = _build_payload(
         creator_handle=handle,
@@ -105,6 +108,12 @@ def write_tiktok_batch_packet(
         creator_handle=handle,
         suggested_accounts_json=suggested_accounts_json,
     )
+    if prior_capture_pointer is not None:
+        payload["historical_recapture"] = {
+            "re_capture_relationship": "supplement",
+            "prior_capture_pointer": prior_capture_pointer,
+            "prior_provenance_mutated": False,
+        }
     assert_no_sensitive_tiktok_material(payload)
 
     payload_bytes = json_dumps_sanitized(payload)
@@ -124,11 +133,20 @@ def write_tiktok_batch_packet(
     summary = payload["batch_summary"]
     window = summary.get("create_time_utc_range") or "unknown create-time window"
 
+    recapture = (
+        known_fact("supplement")
+        if prior_capture_pointer is not None
+        else not_applicable("no prior TikTok batch admission packet supplied")
+    )
     timing = PacketTiming(
         source_publication_or_event=known_fact(f"creator batch window UTC: {window}"),
         source_edit_or_version=not_applicable("TikTok batch admission packet does not model source edit/version timing"),
         capture_time=known_fact(payload["capture_timestamp"]),
-        recapture_time=not_applicable("no prior TikTok batch admission packet supplied"),
+        recapture_time=(
+            known_fact(payload["capture_timestamp"])
+            if prior_capture_pointer is not None
+            else not_applicable("no prior TikTok batch admission packet supplied")
+        ),
         cutoff_posture=not_applicable("cutoff posture does not apply to parsed TikTok staging admission"),
     )
     access = known_fact(
@@ -136,7 +154,6 @@ def write_tiktok_batch_packet(
     )
     archive = not_attempted("TikTok batch admission packet does not query archive/history services")
     media = known_fact("parsed comments/source-native WebVTT/profile-list fields preserved; no raw media bytes")
-    recapture = not_applicable("no prior TikTok batch admission packet supplied")
     limitations = list(TIKTOK_BATCH_NON_CLAIMS)
 
     source_slices = [
@@ -867,6 +884,24 @@ def _validate_staging_contracts(
         for key in required_true:
             if contract.get(key) is not True:
                 raise ValueError(f"capture_contract[{index}] must indicate {key}=true")
+        navigation_mode = contract.get("video_navigation_mode")
+        if navigation_mode == "grid_tile_overlay_sequence":
+            required_overlay_values = {
+                "grid_tile_overlay_navigation": True,
+                "return_to_grid_between_videos": True,
+                "direct_video_navigation": False,
+                "item_struct_required": False,
+            }
+            for key, expected in required_overlay_values.items():
+                if contract.get(key) is not expected:
+                    raise ValueError(
+                        f"capture_contract[{index}] overlay route must indicate "
+                        f"{key}={str(expected).lower()}"
+                    )
+        elif navigation_mode not in {None, "direct_selected_url_sequence"}:
+            raise ValueError(
+                f"capture_contract[{index}] has unsupported video_navigation_mode"
+            )
 
     superseded_failures, unsuperseded_by_payload = _classify_cadence_failures(
         cadence_payloads
