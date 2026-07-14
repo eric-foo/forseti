@@ -10,7 +10,7 @@ use_when:
   - Comparing future ICP, commercial-frame, or deliverable-shape decisions against this hypothesis.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md # controlling thesis and candidate-universe reset (2026-07-12)
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md # controlling thesis; Decision Sprint form bound, buyer/decision unbound (2026-07-14)
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # superseded — historical consumer-demand thesis
   - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
@@ -49,9 +49,9 @@ input_hashes:
 Status: `SUSPENDED_PENDING_CANDIDATE_UNIVERSE_RESET`.
 
 Its generic offer mechanics remain reusable, but its consumer-demand buyer,
-first-proof offer, and beauty-wedge bindings are not current after
-`docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md`. A new
-candidate/wedge must explicitly rebind any reused offer language. It is not a
+first-proof offer, and beauty-wedge bindings are not current under
+`docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`. A new GTM
+buyer/decision binding must explicitly rebind any reused offer language. It is not a
 hard lock, accepted commercial offer, buyer validation,
 willingness-to-pay proof, repeatability proof, product readiness, feature
 readiness, implementation readiness, or commercial readiness.

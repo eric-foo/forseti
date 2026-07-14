@@ -17,7 +17,7 @@ use_when:
   - Comparing its access and calibration constraints only after a later candidate reselects this lane.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
   - docs/research/forseti_demand_signal_backtest_probe_findings_v0.md
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   - docs/decisions/forseti_unbackfillable_signal_moat_doctrine_v0.md # nonresolving: on PR #832 until that PR merges; Class A/B/C vocabulary used here

@@ -2,18 +2,17 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Decision record (controlling product thesis — owner-ratified direction)
+artifact_role: Decision record (superseded product thesis — historical)
 scope: >
-  Forseti's terminal-capability direction: an institutional evidence-adjudication
-  and decision-learning layer whose epistemic heart is decision-relative evidence
-  weighting, with human judgment usable now and outcome-calibrated AI judgment as
-  the compounding destination. Resets the candidate universe without selecting a
-  terminal market, first wedge, buyer, product form, or business model.
+  Historical 2026-07-12 terminal-capability reset that established institutional
+  evidence adjudication, decision-relative evidence weighting, human judgment
+  now, and outcome-calibrated Judgment later before the successor selected
+  beauty-first decision adjudication and the Decision Sprint product form.
 use_when:
-  - Anchoring Forseti terminal-company, niche, buyer, or product-form planning.
-  - Deciding what Judgment Spine capability is central and what remains supporting.
-  - Regenerating the candidate universe after the 2026-07-12 product-direction reset.
+  - Reviewing the historical capability reset and its preserved factual constraints.
+  - Tracing why decision-relative evidence weighting remains central in the successor thesis.
 authority_boundary: retrieval_only
+superseded_by: docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
 supersedes:
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
@@ -31,7 +30,12 @@ stale_if:
 
 ## Status
 
-`OWNER_LOCKED_DIRECTION` — adopted by the owner in-thread on 2026-07-12.
+`SUPERSEDED_BY_PRODUCT_THESIS_V3` — adopted on 2026-07-12 and superseded on
+2026-07-14 by
+`docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`.
+
+The body below is preserved as point-in-time product doctrine and factual
+context. It no longer controls the first application or product form.
 
 This locks the capability center and the decision to regenerate the candidate
 universe. It does **not** select a terminal industry, buyer, first wedge,
@@ -286,7 +290,7 @@ direction_change_propagation:
     - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md
     - forseti/product/spines/judgment/learning_loops/near_half/near_half_signal_reliability_ledger_v0.md
     - docs/workflows/forseti_research_engine_map_v0.md
-    - docs/workflows/forseti_terminal_candidate_universe_reset_handoff_v0.md
+    - docs/workflows/forseti_terminal_candidate_universe_reset_handoff_v0.md # consumed and deleted 2026-07-14 under checkpoint lifecycle
     - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
     - forseti/product/spines/creator_signal/README.md
   intentionally_not_updated:

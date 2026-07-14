@@ -1,21 +1,45 @@
 # Core Spine v0 Product Contract
 
-- Status: PROPOSED_FREEZE
+```yaml
+retrieval_header_version: 1
+artifact_role: Product artifact (Core Spine product contract)
+scope: >
+  Market-agnostic contract for Forseti decision adjudication, the initial
+  Decision Sprint, evidence admission/refusal, buyer-facing decision artifacts,
+  and the gated path toward recurring and software-supported product forms.
+use_when:
+  - Defining the reusable product contract beneath a vertical application.
+  - Checking whether an evidence workflow produces a decision outcome rather than research alone.
+  - Separating the initial Decision Sprint from later Decision Desk and platform hypotheses.
+authority_boundary: retrieval_only
+open_next:
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
+  - forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md
+  - forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md
+stale_if:
+  - The controlling thesis changes the product center or initial product form.
+  - Proof shows the Decision Sprint cannot produce a useful action from an admitted evidence world.
+```
+
+- Status: PRODUCT_DIRECTION_AND_INITIAL_FORM_BOUND
 - Artifact type: Product artifact
 - Scope: Market-agnostic Core Spine contract for Forseti v0
-- Source basis: current owner direction, `docs/decisions/turn_08_product_thesis_v0.md`, `docs/workflows/turn_08_workflow_bedrock_maximization.md`, `forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md`
+- Source basis: current owner direction; `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`; `forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md`
 - Implementation authorized: no
 
 ## Product Bet
 
-Core Spine v0 is Forseti's reusable decision-evidence spine. It turns public market
-signals into clean, classified, source-backed, and constrained decision
-evidence without becoming a generic OSINT platform, deck shop, or `jb`-specific
-finance-career intelligence tool.
+Core Spine v0 is Forseti's reusable decision-adjudication spine. It turns
+decision-relevant public, purchased/entitled, and authorized private evidence
+into an inspectable, constrained action without becoming a generic OSINT
+platform, research shop, dashboard, deck shop, or `jb`-specific intelligence
+tool.
 
-Core Spine owns market-agnostic evidence mechanics. Satellites own
-decision-specific context, language, source maps, buyers, success criteria, and
-kill criteria.
+Core Spine owns market-agnostic decision and evidence mechanics. Satellites own
+domain context, language, source behavior, entities, and application-specific
+relevance. Buyer, first decision family, offer, price, and distribution are
+bound only by an accepted GTM/product-proof surface; a pre-GTM application
+profile may leave them explicitly unselected.
 
 ## Core Rule
 
@@ -55,6 +79,7 @@ Core Spine v0 requires only these product objects:
 | Object | Purpose |
 | --- | --- |
 | Decision frame | Keeps analysis tied to allocation value. |
+| Evidence admission or hold record | States whether external/purchased evidence is sufficient, bounded private context is required, or a decisive input is missing. |
 | Evidence unit | Makes every claim inspectable. |
 | Signal integrity assessment | Prevents cited-noise theater, copied-language overcounting, and manipulation blind spots. |
 | Signal use classification | Uses `engagement_logic_registry_v0.md` to classify what a signal can support. |
@@ -65,7 +90,7 @@ Core Spine v0 requires only these product objects:
 
 ## Satellite Requirements
 
-Each satellite must provide:
+Each production-bound satellite must provide:
 
 - decision type;
 - domain language;
@@ -78,11 +103,17 @@ Each satellite must provide:
 - what actor or competitor behavior matters;
 - outcome or backtest target when available.
 
+A pre-GTM application profile may leave buyer, first decision family, and
+commercial success criteria `UNKNOWN` while still binding domain assets,
+admission rules, evidence families, and non-claims. It must not silently fill
+those commercial fields from historical artifacts.
+
 ## Decision Artifact Model
 
-Raw public market signals are not final evidence. Core Spine must clean,
-classify, source-back, and constrain messy or contradictory public inputs
-before they can support a decision artifact.
+Raw signals are not final evidence. Core Spine must admit, clean, classify,
+source-back, and constrain messy or contradictory eligible inputs before they
+can support a decision artifact. Missing decisive evidence produces a visible
+hold, not an invented answer.
 
 The decision memo remains the reasoning substrate, minimum viable artifact,
 proof gate, and backtest artifact. It carries the recommendation, evidence
@@ -99,10 +130,31 @@ the recommendation easier to circulate and decide from, but it must be derived
 from the memo and evidence appendix. A deck cannot introduce unsupported
 claims, hide uncertainty, or outrun the source-backed evidence boundary.
 
-Core is the repeatable decision spine. Satellites adapt the spine to buyer,
-industry, decision family, competitor set, and source families. Bespoke work is
-permitted only as bounded final adaptation; overage or repeated custom work is
-consulting-risk evidence unless it reveals a repeatable decision family.
+Core is the repeatable decision spine. Satellites adapt the spine to industry,
+decision family, competitor set, and source families; GTM/product-proof binds
+the buyer. Bespoke work is permitted only as bounded final adaptation; overage
+or repeated custom work is consulting-risk evidence unless it reveals a
+repeatable decision family.
+
+## Initial Product Form And Evolution
+
+The initial product form is a **Decision Sprint**: one admitted Decision Frame,
+one evidence cutoff, one deadline-bound decision artifact, and one reveal or
+outcome plan. The minimum buyer-facing package is the decision memo, mandatory
+evidence appendix, evidence-world/gap note, decision trace, and reversal
+conditions. A derived executive deck is optional and cannot outrun that
+substrate.
+
+The Sprint is complete only when it changes or defends an action, or truthfully
+holds because a decisive input is missing. Source volume, a research report, a
+dashboard, a feed, or a forecast without that action is incomplete.
+
+A recurring Decision Desk is a later hypothesis gated on repeated admitted
+decisions, recurring buyer cadence, reusable evidence structures, observable
+reveals/outcomes, and bounded analyst labor. A software system or platform is
+later still and is earned only when stable interfaces reduce labor, improve
+consistency, or increase throughput without hiding uncertainty or missingness.
+This progression is not implementation authorization.
 
 ## What Must Not Be Hardcoded From `jb`
 
@@ -116,25 +168,24 @@ Do not promote these into core:
 
 `jb` may validate method usefulness. It does not define Forseti product authority.
 
-## Product Proof Weights
+## Product Proof Contract
 
-| Proof component | Weight | Purpose |
-| --- | ---: | --- |
-| Client 0 `jb` decision artifact plan | 30% | Tests concrete decision usefulness through the memo substrate, evidence appendix, and any deck-ready shape. |
-| Source-quality and engagement evidence standard | 25% | Tests the core differentiator. |
-| Core Spine contract | 15% | Establishes the reusable boundary. |
-| Shadow satellite portability check | 15% | Tests non-`jb` generality. |
-| Backtest replay | 15% | Tests timestamp discipline and outcome calibration. |
+Product proof must test the same decision family the paid Sprint would serve.
+The smallest credible proof combines a predeclared Decision Frame, a sealed
+pre-cutoff Sprint artifact, a later reveal or outcome, explicit production-
+transfer limits, and—when live buyer work is authorized—observable decision- or
+budget-adjacent behavior. No component receives a fixed numeric weight before
+evidence supports one.
 
-Backtesting is super core. It should be used to sharpen the evidence standard
-and produce marketing examples, while keeping internal calibration separate
-from cherry-picked demos.
+Backtesting is core product learning. It sharpens the evidence standard and
+exposes misses, but must remain separate from cherry-picked demonstrations and
+cannot by itself prove buyer pull or WTP.
 
 ## Backtesting Contract
 
 Internal backtest question:
 
-> Given only public evidence available before date X, would Forseti have produced
+> Given only eligible evidence genuinely available before date X, would Forseti have produced
 > a useful decision memo before the outcome was obvious?
 
 For backtests, the decision memo remains the correct artifact because it
@@ -177,9 +228,10 @@ rubrics, but not built as v0 runtime machinery.
 
 ## Product Verdict
 
-Current verdict: `NEEDS_PRODUCT_ARTIFACT`.
+Current verdict: `PRODUCT_DIRECTION_AND_INITIAL_FORM_BOUND`.
 
-This file is a proposed product artifact. Feature planning is not appropriate
-until the Core Spine contract, evidence standard, Client 0 proof plan,
-shadow-satellite checks, backtest contract, fail-capable validation gates, and
-explicit feature-planning authorization are accepted.
+The contract and initial Decision Sprint form are bound. The first buyer,
+decision family, buyer proof, WTP, repeatability, distribution, production
+economics, Decision Desk, and software form remain unproven. Feature or runtime
+implementation still requires a separately accepted scope and explicit
+authorization.

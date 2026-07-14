@@ -54,15 +54,18 @@ needs its own explicit owner authorization.
    the nearest controlling product doc(s) for the specific decision. Use
    `docs/workflows/forseti_repo_map_v0.md` to choose among many docs.
 3. Controlling product sources, opened as the decision needs them:
-   - Current product thesis and first-proof wedge: resolve through the repo
-     map's "Product Anchor Files" table (route, don't restate — wedge facts
-     pinned in this file have rotted before). As of the 2026-07-12 reset the
-     thesis is
-     `docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md`
-     (evidence adjudication and decision learning; OWNER_LOCKED_DIRECTION).
-     No first-proof wedge is selected. The consumer-demand thesis and
-     beauty-first wedge are historical inputs only; the repo-map row and the
-     records' own supersession banners govern, not this line.
+   - Current product thesis and first application: resolve through the repo
+     map's decisive-file routes (route, don't restate — product facts pinned in
+     this file have rotted before). As of 2026-07-14 the thesis is
+     `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`
+     (beauty-first decision adjudication; Decision Sprint initial form). The
+     exact first beauty buyer and decision family remain unselected for GTM.
+     The evidence-adjudication reset, consumer-demand thesis, and prior
+     beauty-first wedge are historical inputs only; current router rows and
+     the records' own supersession banners govern, not this line.
+   - `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md`
+     — current beauty application, admission universe, evidence model, product
+     form, proof boundary, and transfer test; not buyer or GTM authority.
    - `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md` — suspended
      buyer/offer binding; generic offer mechanics only until re-bound.
    - `forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md` —

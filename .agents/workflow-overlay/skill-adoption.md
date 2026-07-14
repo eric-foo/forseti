@@ -150,9 +150,9 @@ skill-governance action under the Protected Skill Boundary.
   the old command/path remains as a thin compatibility wrapper for one
   transition window.
   - Source path: `.agents/skills/forseti-product-lead/SKILL.md` (Forseti-local).
-  - Source sha256: `dd258da3989118d4bceed4da326197c0e6cfcf9d5aecadfca5dc5fb5eb09f50a`
-    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-12 after the
-    controlling-thesis route was refreshed; `.agents` source and `.claude`
+  - Source sha256: `452a37e9bd4378261bb12c27fd04971de4537b3da2226860eff65e259319562e`
+    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-14 after the
+    controlling-thesis and beauty-application routes were refreshed; `.agents` source and `.claude`
     deployment copy were byte-identical at verification. Commit blob is
     reread-required after closeout).
     Reread-required if the file changes; pin freshness enforced by

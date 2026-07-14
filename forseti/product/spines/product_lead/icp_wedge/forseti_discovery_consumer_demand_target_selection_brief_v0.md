@@ -18,7 +18,7 @@ use_when:
   - Harvesting factual qualification constraints after fresh verification.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md    owns the live substrate gate + disqualifiers
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md
   - .agents/workflow-overlay/product-proof.md

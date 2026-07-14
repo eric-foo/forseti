@@ -10,7 +10,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md # controlling thesis and candidate-universe reset (2026-07-12)
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md # controlling thesis and Decision Sprint form (2026-07-14)
+  - forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md # first application; buyer and decision family unselected
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # superseded — historical beauty-first wedge
   - forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md  # superseded — historical (path updated 2026-06-12; phase-2 migration)
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md  # path updated 2026-06-12 (phase-2 migration); owns the Demand-Substrate Hard Gate
@@ -28,9 +29,9 @@ input_hashes:
 
 ## Status And Boundary
 
-Status: `GENERIC_ROLE_REUSABLE_FIRST_PROOF_BINDING_SUSPENDED`
+Status: `GENERIC_ROLE_REUSABLE_PRODUCT_FORM_BOUND_BUYER_BINDING_SUSPENDED`
 
-Product planning verdict: `NEEDS_CANDIDATE_AND_BUYER_REBIND`.
+Product planning verdict: `NEEDS_BUYER_AND_DECISION_FAMILY_REBIND`.
 
 Readiness verdict: not currently routed to product-fit testing; not
 buyer-validated, feature-ready, implementation-ready, or commercially ready.
@@ -39,7 +40,25 @@ This charter defines a bounded Forseti Product Proof Lead. It is not a full Prod
 
 This artifact is docs-first only. It does not authorize software implementation, automation, packages, tests, dashboards, source maps, data-spine designs, commits, pushes, PRs, collection pipelines, or feature planning.
 
-## Candidate-Universe Reset (2026-07-12)
+## Current Product-Form Binding (2026-07-14)
+
+The controlling thesis now binds a beauty-first decision-adjudication product
+and a bounded Decision Sprint as its initial form. Product Proof Lead may design
+the same-decision proof contract and reusable Sprint artifact now, but proof
+execution and market contact remain blocked until GTM selects and binds the
+exact beauty buyer and first decision family.
+
+The live proof object is one admitted Decision Frame, evidence-world/gap note,
+decision memo, evidence appendix, decision trace, reversal conditions, and
+reveal/outcome plan. Public and purchased/entitled evidence may provide the
+initial baseline; authorized private context is admitted only when the decision
+requires it. Missing decisive context produces a hold.
+
+All buyer-, family-, ranking-, offer-, and market-specific material below is
+historical unless a current section expressly rebinds it. Its generic proof,
+pull, trust, kill, graduation, and consulting-risk mechanics remain reusable.
+
+## Historical Candidate-Universe Reset (2026-07-12)
 
 The bounded Product Proof Lead role, proof discipline, pull standard, and
 kill/graduation mechanics remain reusable. The consumer-demand first-proof
@@ -130,22 +149,18 @@ make the memo credible.
 
 No public web research was used. Archived contaminated replay outputs were not read.
 
-## Role Purpose
+## Current Role Purpose
 
 The Forseti Product Proof Lead owns the buyer-proof loop for one narrow question:
 
-Can a real decision owner at an indie/DTC beauty / personal-care brand (Brand) facing
-a live consumer-demand allocation decision — where internal data is not
-conclusive — use a Forseti decision artifact to reduce allocation risk before
-committing inventory, retail/channel, launch, or pricing budget, after Forseti
-captures, cleans, integrity-labels, classifies (costly behavior, never
-engagement/resonance volume alone), and constrains messy public demand signals, fused
-with org-level (Org) org-motion corroboration, into inspectable decision evidence
-with an explicit action ceiling?
+Can the selected beauty decision owner use one admitted Forseti Decision Sprint
+to make, narrow, sequence, delay, defend, or hold the selected consequential
+decision more effectively than the current substitute, with inspectable
+evidence, an explicit action ceiling, and honest missingness?
 
-The engine for this work is outside-in market and competitive intelligence;
-beauty consumer-demand allocation is its first application per the ratified
-thesis and wedge (2026-06-12).
+GTM must supply the selected buyer, decision family, current substitute, timing,
+and budget consequence before this question is executed. Historical indie/DTC
+consumer-demand specifics below do not fill those fields.
 
 The minimum viable artifact is a manual decision memo (Memo) plus evidence appendix. The premium buyer-facing artifact is an executive-grade decision deck derived from that memo and appendix. The first commercial next-step hypothesis is a fixed-scope paid decision sprint, not validated commercial readiness.
 
@@ -182,7 +197,7 @@ The Product Proof Lead does not own:
 - Broad market research, generic social listening, person-level dossiers (exception: internal wind-caller (WindCaller) calibration per `docs/decisions/wind_caller_calibration_carveout_v0.md` — bounded to ≤10 own operating/capture accounts (starting ≤5); subject-creator roster uncapped (all-in-vertical); active = attended; passive = bounded self-terminating runs (carve-out 2026-06-15 amendment); pre-commercial, internal only; external/product person-level boundary unchanged), outreach lists, data-broker activity, manipulation, fake reviews, botting, or deceptive competitive tactics.
 - Revalidation of the accepted method replay packet or use of archived contaminated replay outputs.
 
-## First Proof Lane
+## Historical First Proof Lane (not current buyer authority)
 
 Recommended first buyer segment:
 

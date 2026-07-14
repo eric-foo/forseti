@@ -10,7 +10,7 @@ use_when:
   - Distinguishing the parent Judgment Spine goal from the v0.14 Judgment Harness spec.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
   - docs/research/judgment-spine/judgment_spine_thesis_operating_contract_v0.md
   - forseti/product/spines/judgment/demand_read/c2_weighting/judgment_spine_c2_in_case_evidence_weighting_doctrine_v0.md
   - docs/research/judgment-spine/README.md

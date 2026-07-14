@@ -17,7 +17,7 @@ use_when:
   - Harvesting factual CI competitor, buyer, or product-form observations after fresh verification.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md      # controlling thesis; candidate universe reopened
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md      # controlling thesis; beauty first, Decision Sprint bound, GTM buyer/decision unbound
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md            # superseded historical thesis
   - forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md   # the broad decisions-as-a-service offer this lane gives an identity to
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md  # pull/kill/graduation grammar (reuse; demand gate does NOT transfer)

@@ -14,7 +14,7 @@ use_when:
   - Separating market-agnostic Judgment core work from fragrance-specific satellite work.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
   - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
   - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
   - docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md

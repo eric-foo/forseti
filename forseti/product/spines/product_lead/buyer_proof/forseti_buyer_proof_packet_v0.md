@@ -10,7 +10,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/product-proof.md
-  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md # controlling thesis and candidate-universe reset (2026-07-12)
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md # controlling thesis; buyer and decision family remain unbound (2026-07-14)
   - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # superseded — historical beauty-first wedge
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # superseded — historical consumer-demand thesis
