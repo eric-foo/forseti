@@ -6,8 +6,9 @@ artifact_role: Spine front-door (Creator Signal product/signal spine)
 scope: >
   Front-door for the Creator Signal spine: the product-facing interpretation and
   presentation layer for creator intelligence, including creator profile surface
-  contracts, operator/buyer information architecture, claim language, freshness,
-  limitation display, and source drill-back over Capture-owned creator records.
+  contracts, audience triangulation, commercial creator-fit projection,
+  operator/buyer information architecture, claim language, freshness, limitation
+  display, and source drill-back over Capture-owned creator records.
 use_when:
   - Entering the Creator Signal spine or deciding whether a creator-intelligence surface is Creator Signal-owned.
   - Checking how a current creator profile may be shown to an Orca operator or buyer.
@@ -16,11 +17,13 @@ authority_boundary: retrieval_only
 open_next:
   - docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md
   - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
 stale_if:
   - The Creator Signal spine identity or product_signal kind is amended.
   - The creator intelligence profile surface is superseded.
   - Capture current-view, identity, metric rollup, or ideal-audience ownership changes.
+  - The audience-triangulation or maximum-defensible-aggression contract changes.
 ```
 
 ## What this spine is
@@ -33,10 +36,11 @@ visible?
 It consumes the low-level Capture current view; it does not replace it.
 
 - **Consumes:** public-handle identity linkage, platform account links, metric
-  observations, metric rollups, ideal-audience snapshots, freshness fields, and
-  source pointers.
+  observations, metric rollups, content-fit evidence, captured participating-
+  audience evidence, Judgment claim sets, freshness fields, and source pointers.
 - **Owns:** product-facing layout, grouping, claim language, limitation display,
-  freshness display, and source drill-back expectations.
+  freshness display, commercial creator-fit projection, and source drill-back
+  expectations.
 - **Does not own:** identity ledger rows, metric computation, audience inference
   schemas, SQLite/data-lake storage, live capture, source access, outreach,
   contact enrichment, lead lists, public directories, or dashboard runtime code.
@@ -49,6 +53,7 @@ Binding authority:
 | Path | Role |
 | --- | --- |
 | `creator_intelligence_profile_surface_v0.md` | First product surface contract for the one-stop creator intelligence profile. |
+| `creator_audience_triangulation_and_commercial_projection_v0.md` | Controlling split and copy contract for content-fit evidence, observed participating-audience evidence, Judgment fusion, and maximally aggressive buyer-facing creator fit. |
 | `aphrodite_carveout_charter_v0.md` | Ratified Aphrodite product spine, including the 2026-07-12 amendment: accountable human Signals judgment, reopened first-unit decision, independent Studio lane, and strategic raw-registry export boundary. |
 | `aphrodite_derived_claim_provenance_contract_v0.md` | Display/claim-language contract: derived (LLM-extracted) creator claims must carry derivation provenance to be shown; discharges charter pre-build gate 1. |
 | `aphrodite_vetting_sprint_panel_design_v0.md` | Adjudicated five-panel display design (2026-07-05, Mini God Tier): fit matrix (no composite score), dupe-space roll-up rule, buyer-segment lead variants, gameability countermeasures, accepted residuals. Display target for the depth-layer build and the D-1 dress rehearsal. |
