@@ -23,6 +23,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationSuccess,
     BrowserPagePointerAction,
     BrowserPageResponse,
+    BrowserPageWheelAction,
     BrowserSnapshotFailure,
     ChromeCdpPageObservationSessionEngine,
     fetch_browser_page_observation_capture,
@@ -205,6 +206,7 @@ TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT = r"""
     : []);
   const seen = new Set();
   const rows = [];
+  const visibleGridPositions = [];
   let gridPosition = 0;
   for (const anchor of Array.from(document.querySelectorAll('a[href*="/video/"]'))) {
     const href = String(anchor.href || anchor.getAttribute('href') || '');
@@ -212,7 +214,6 @@ TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT = r"""
     if (!match || match[1].toLowerCase() !== creator || seen.has(match[2])) continue;
     seen.add(match[2]);
     gridPosition += 1;
-    if (!selected.has(match[2])) continue;
     const style = window.getComputedStyle(anchor);
     const box = anchor.getBoundingClientRect();
     const intersectsViewport = box.bottom > 0 && box.right > 0 &&
@@ -220,6 +221,8 @@ TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT = r"""
     const visible = style.visibility !== 'hidden' && style.display !== 'none' &&
       box.width > 0 && box.height > 0 && intersectsViewport;
     if (!visible) continue;
+    visibleGridPositions.push(gridPosition);
+    if (!selected.has(match[2])) continue;
     rows.push({
       video_id: match[2],
       video_url: href,
@@ -231,31 +234,15 @@ TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT = r"""
     visible_selected_tiles: rows,
     selected_video_count: selected.size,
     tile_scroll_performed: false,
+    visible_grid_position_min_or_none: visibleGridPositions.length
+      ? Math.min(...visibleGridPositions) : null,
+    visible_grid_position_max_or_none: visibleGridPositions.length
+      ? Math.max(...visibleGridPositions) : null,
     scroll_y: Math.max(0, Math.round(window.scrollY || 0)),
     viewport_height: Math.max(0, Math.round(window.innerHeight || 0)),
     document_height: Math.max(0, Math.round(document.documentElement.scrollHeight || 0))
   };
 }
-""".strip()
-
-TIKTOK_GRID_PAGINATION_ACTION_SCRIPT = r"""
-(arg) => new Promise((resolve) => {
-  const direction = String((arg && arg.direction) || 'down');
-  const viewport = Math.max(1, window.innerHeight || 1);
-  const step = Math.max(1, Math.round(viewport * 0.85));
-  const before = Math.max(0, Math.round(window.scrollY || 0));
-  if (direction === 'top') {
-    window.scrollTo({top: 0, left: 0, behavior: 'auto'});
-  } else {
-    window.scrollBy({top: step, left: 0, behavior: 'auto'});
-  }
-  window.setTimeout(() => resolve({
-    direction,
-    before_scroll_y: before,
-    after_scroll_y: Math.max(0, Math.round(window.scrollY || 0)),
-    step_px: step
-  }), 650);
-})
 """.strip()
 
 TIKTOK_FOLLOWERS_ACTION = BrowserPagePointerAction(
@@ -623,11 +610,16 @@ def run_tiktok_creator_onboarding(
             "direct_video_navigation_count": 0,
             "targeted_tile_scroll_performed": False,
             "grid_pagination_allowed": True,
+            "grid_pagination_input_method": "mouse_wheel_burst",
+            "logical_grid_positions_remembered": True,
+            "absolute_pixel_positions_cached": False,
+            "thumbnail_click_safe_inset_fraction": 0.15,
             "grid_pagination_pass_cap_per_lookup": max_grid_scroll_passes,
             "grid_pagination_total_pass_cap": (
                 max_grid_scroll_passes * len(selected_video_ids)
             ),
             "grid_pagination_passes_executed": 0,
+            "grid_pagination_passes": [],
             "attempts": [],
             "retry_waits": [],
             "status": "in_progress",
@@ -918,6 +910,7 @@ class _GridOverlayCaptureSequence:
         self.receipt = receipt
         self.current_overlay_url: str | None = None
         self.capture_order: list[str] = []
+        self.last_grid_view: dict[str, object] = {}
 
     def __call__(
         self, index: int, pending_video_urls: Sequence[str]
@@ -1033,6 +1026,7 @@ class _GridOverlayCaptureSequence:
         )
         if isinstance(capture, BrowserSnapshotFailure):
             return []
+        self._remember_grid_view(capture)
         return _visible_grid_rows_from_capture(capture)
 
     def _paginate_until_visible(
@@ -1042,7 +1036,7 @@ class _GridOverlayCaptureSequence:
             total_pass_number = int(
                 self.receipt["grid_pagination_passes_executed"]
             ) + 1
-            direction = "top" if lookup_pass_number == 1 else "down"
+            direction = self._pagination_direction(pending_video_ids)
             capture = _capture_visible_selected_grid_tiles(
                 profile_url=self.profile_url,
                 creator_handle=self.creator_handle,
@@ -1054,12 +1048,72 @@ class _GridOverlayCaptureSequence:
                 pagination_direction=direction,
             )
             self.receipt["grid_pagination_passes_executed"] = total_pass_number
+            pagination_passes = self.receipt["grid_pagination_passes"]
+            assert isinstance(pagination_passes, list)
+            pass_receipt: dict[str, object] = {
+                "lookup_pass_number": lookup_pass_number,
+                "total_pass_number": total_pass_number,
+                "direction": direction,
+                "wheel_action_or_none": None,
+            }
             if isinstance(capture, BrowserSnapshotFailure):
+                pass_receipt["outcome"] = f"capture_failed:{capture.failure_kind.value}"
+                pagination_passes.append(pass_receipt)
                 continue
+            self._remember_grid_view(capture)
+            pass_receipt["wheel_action_or_none"] = capture.metadata.get(
+                "post_load_wheel_action"
+            )
+            pass_receipt["visible_grid_position_min_or_none"] = (
+                self.last_grid_view.get("visible_grid_position_min_or_none")
+            )
+            pass_receipt["visible_grid_position_max_or_none"] = (
+                self.last_grid_view.get("visible_grid_position_max_or_none")
+            )
             rows = _visible_grid_rows_from_capture(capture)
+            pass_receipt["outcome"] = (
+                "selected_tile_visible" if rows else "no_selected_tile_visible"
+            )
+            pagination_passes.append(pass_receipt)
             if rows:
                 return rows
         return []
+
+    def _remember_grid_view(self, capture: BrowserPageObservationSuccess) -> None:
+        observation = capture.dom_observation
+        self.last_grid_view = {
+            "visible_grid_position_min_or_none": observation.get(
+                "visible_grid_position_min_or_none"
+            ),
+            "visible_grid_position_max_or_none": observation.get(
+                "visible_grid_position_max_or_none"
+            ),
+            "scroll_y": observation.get("scroll_y"),
+        }
+
+    def _pagination_direction(self, pending_video_ids: Sequence[str]) -> str:
+        pending_positions = [
+            int(self.window_by_id[video_id]["grid_position"])
+            for video_id in pending_video_ids
+            if video_id in self.window_by_id
+            and self.window_by_id[video_id].get("grid_position") is not None
+        ]
+        visible_min = self.last_grid_view.get("visible_grid_position_min_or_none")
+        visible_max = self.last_grid_view.get("visible_grid_position_max_or_none")
+        if pending_positions and isinstance(visible_min, (int, float)) and isinstance(
+            visible_max, (int, float)
+        ):
+            above = [position for position in pending_positions if position < visible_min]
+            below = [position for position in pending_positions if position > visible_max]
+            if above and below:
+                up_gap = visible_min - max(above)
+                down_gap = min(below) - visible_max
+                return "up" if up_gap <= down_gap else "down"
+            if above:
+                return "up"
+            if below:
+                return "down"
+        return "up" if float(self.last_grid_view.get("scroll_y") or 0) > 0 else "down"
 
     def _close_current_overlay(self, pending_video_ids: Sequence[str]) -> None:
         assert self.current_overlay_url is not None
@@ -1155,8 +1209,8 @@ def _capture_visible_selected_grid_tiles(
     engine: BrowserPageObservationEngine,
     pagination_direction: str | None = None,
 ) -> BrowserPageObservationSuccess | BrowserSnapshotFailure:
-    if pagination_direction not in {None, "top", "down"}:
-        raise ValueError("pagination_direction must be top, down, or None")
+    if pagination_direction not in {None, "up", "down"}:
+        raise ValueError("pagination_direction must be up, down, or None")
     return fetch_browser_page_observation_capture(
         url=profile_url,
         dom_extract_script=TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT,
@@ -1165,13 +1219,11 @@ def _capture_visible_selected_grid_tiles(
             "selected_video_ids": list(selected_video_ids),
         },
         response_url_predicate=lambda _: False,
-        post_load_action_script=(
-            TIKTOK_GRID_PAGINATION_ACTION_SCRIPT
-            if pagination_direction is not None
-            else None
-        ),
-        post_load_action_arg=(
-            {"direction": pagination_direction}
+        post_load_wheel_action=(
+            BrowserPageWheelAction(
+                action_name="tiktok_grid_mouse_wheel_pagination_v0",
+                direction=pagination_direction,
+            )
             if pagination_direction is not None
             else None
         ),
@@ -1205,6 +1257,8 @@ def _click_visible_selected_grid_tile(
         text_markers=(chosen_video_id,),
         wait_after_ms=2500,
         prefer_smallest_match=True,
+        target_fraction_min=0.15,
+        target_fraction_max=0.85,
     )
     return fetch_browser_page_observation_capture(
         url=profile_url,

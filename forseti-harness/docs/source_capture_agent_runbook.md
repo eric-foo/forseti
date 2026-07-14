@@ -241,13 +241,21 @@ For every selected video, intersect the pending selection with tiles that are
 CSS-visible and intersect the current viewport, randomly click one through
 `BrowserPagePointerAction` on the retained CloakBrowser-`careful` context,
 capture its matching video overlay, then click the overlay X to return to the
-creator grid. If no pending selected tile is visible, bounded normal-grid
-viewport pagination may expose it. Do not use `scrollIntoView`, otherwise
+creator grid. Resolve the chosen thumbnail rectangle immediately before the
+pointer action and click a randomized point within the 15-85 percent inset on
+both axes. Remember stable video IDs and logical grid positions, never absolute
+screen coordinates. If no pending selected tile is visible, compare those
+positions with the freshly observed visible range and use bounded small mouse-
+wheel bursts in the required direction. The wheel receipt distinguishes the
+CloakBrowser-humanized cursor move from the raw wheel burst. Do not use
+`scrollIntoView`, otherwise
 target-scroll a tile, or navigate to a selected video URL directly. If a click
 does not materialize the matching overlay, wait 60 seconds, recompute the visible
 subset, and retry once; a second failure stops loudly. Read
 `grid_deep_entry_or_none` for visible candidates, random choices, grid positions,
 pointer receipts, pagination/retry timing, final URLs,
+`logical_grid_positions_remembered=true`,
+`absolute_pixel_positions_cached=false`,
 `targeted_tile_scroll_performed=false`, and
 `direct_video_navigation_count=0`.
 

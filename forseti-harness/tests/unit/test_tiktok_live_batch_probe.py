@@ -13,6 +13,7 @@ from source_capture.adapters.browser_snapshot import (
     PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
     BrowserPagePointerAction,
     BrowserPageResponse,
+    BrowserPageWheelAction,
 )
 from source_capture.auth_state import (
     AuthenticatedSessionMode,
@@ -73,6 +74,7 @@ class _FakeObservationEngine:
         response_url_predicate: Callable[[str], bool],
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
+        post_load_wheel_action: BrowserPageWheelAction | None = None,
         post_load_pointer_action: BrowserPagePointerAction | None = None,
         post_load_pointer_actions: tuple[BrowserPagePointerAction, ...] = (),
         selector: str | None = None,
@@ -95,6 +97,7 @@ class _FakeObservationEngine:
                 "headless": headless,
                 "storage_state_path": storage_state_path,
                 "post_load_action_script": post_load_action_script,
+                "post_load_wheel_action": post_load_wheel_action,
                 "post_load_pointer_action": post_load_pointer_action,
                 "post_load_pointer_actions": post_load_pointer_actions,
                 "response_predicate_matches_comment_list": response_url_predicate(

@@ -226,9 +226,16 @@ fallback, modal close, grid collection, and every onboarding deep capture remain
 on the same page without reloading the same creator or clicking Latest, Popular,
 or Oldest. After the existing randomized 8-13 second wait, each selected video is
 opened by randomly choosing among currently viewport-visible selected grid tiles.
+Resolve the chosen tile's current rectangle immediately before the pointer action,
+then click a randomized point within the central 70 percent of its thumbnail
+(15-85 percent on each axis); do not cache absolute screen coordinates.
 After capture, close the overlay back to the creator grid before choosing the next
 tile. If fewer selected tiles are currently visible, bounded normal-grid viewport
-pagination may expose them; never target-scroll a tile into view. If a pointer
+pagination may expose them. Remember stable video identities and logical grid
+positions, compare them with the freshly observed visible position range, and use
+receipt-backed small mouse-wheel bursts in the required direction; never
+target-scroll a tile into view. The receipt distinguishes the CloakBrowser-
+humanized cursor move from the raw bounded wheel burst. If a pointer
 click does not materialize the matching visible video overlay, wait 60 seconds,
 recompute the visible subset, and retry once; a second failure stops loudly.
 The overlay URL plus clicked grid identity bind the video, profile-grid responses
@@ -360,10 +367,13 @@ direction_change_propagation:
     reuses the latest non-closed TikTok page at platform scope, suppresses same-path
     reloads, keeps Suggested-to-grid work on that page, and opens every selected
     video through a random currently visible selected grid tile, returning to the
-    grid between overlays. Bounded normal-grid pagination may expose selected
-    tiles, but targeted tile scrolling and direct-video onboarding navigation are
-    forbidden; a failed overlay materialization gets one receipt-backed 60-second
-    retry. Grid/API plus overlay evidence replaces a mandatory direct `itemStruct`.
+    grid between overlays. Each chosen thumbnail is freshly measured and clicked
+    at a randomized point inside its 15-85 percent safe inset. Bounded normal-grid
+    pagination remembers logical positions and uses receipt-backed small mouse-
+    wheel bursts without caching screen coordinates; targeted tile scrolling and
+    direct-video onboarding navigation are forbidden. A failed overlay
+    materialization gets one receipt-backed 60-second retry. Grid/API plus overlay
+    evidence replaces a mandatory direct `itemStruct`.
     Account mutations and candidate
     opens remain forbidden; captured data-root runs fail loud without a frontier,
     and historical recaptures supplement rather than rewrite Bronze provenance.

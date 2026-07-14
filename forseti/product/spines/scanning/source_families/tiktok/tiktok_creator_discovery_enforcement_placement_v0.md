@@ -54,7 +54,7 @@ identity, region, endorsement, account safety, or metric quality.
 | Load AGENTS.md and workflow overlay before repo work | Doctrine plus existing workflow gates | Existing doctrine; partially hook-backed for durable artifacts | Read AGENTS.md and .agents/workflow-overlay/README.md before scan work | Source hierarchy/judgment trigger; not fully inferable from output JSON. |
 | Use intended warmed browser/session; do not close it at lane end | Code plus doctrine/runbook | Existing Chrome CDP session adapter detaches without closing operator Chrome | State intended surface and leave it open unless owner asks otherwise | Session choice and operator intent remain live-context judgment; detach behavior is mechanical. |
 | Avoid duplicate/wrong ordinary Chrome tabs | Code plus doctrine/runbook | Existing Chrome CDP session adapter adopts the most recently enumerated non-closed TikTok page regardless of creator/path, never adopts a cross-platform page, and creates only when no TikTok page exists | Verify `page_acquisition_policy=adopt_same_platform_else_create`, platform/exact match counts, and adoption/creation/navigation counts | Platform matching, latest-enumerated selection, and same-path navigation suppression are mechanical; no active-focus claim is made. |
-| Keep Suggested-to-grid continuity and minimize deep-capture footprint | Code plus doctrine/runbook | Onboarding suppresses same-profile reloads, performs no sort-tab click, closes the relationship modal, opens every selected video through a currently visible selected grid tile, and closes each overlay back to the retained grid | Require one 8-13 second pre-entry wait, random choice among visible selected tiles, bounded normal-grid pagination only when needed, zero targeted tile scroll, zero direct-video onboarding navigation, and at most one 60-second retry after failed matching-overlay materialization | Viewport intersection, pagination/retry bounds, return-to-grid, and receipt shape are mechanical; the product preference for normal grid-to-overlay use is doctrine. |
+| Keep Suggested-to-grid continuity and minimize deep-capture footprint | Code plus doctrine/runbook | Onboarding suppresses same-profile reloads, performs no sort-tab click, closes the relationship modal, opens every selected video through a currently visible selected grid tile, and closes each overlay back to the retained grid | Require one 8-13 second pre-entry wait, random choice among visible selected tiles, a freshly resolved thumbnail rectangle with randomized 15-85% inset click, bounded logical-position-guided mouse-wheel pagination only when needed, no cached screen coordinates, zero targeted tile scroll, zero direct-video onboarding navigation, and at most one 60-second retry after failed matching-overlay materialization | Viewport intersection, pointer geometry, pagination/retry bounds, return-to-grid, and receipt shape are mechanical; the product preference for normal grid-to-overlay use is doctrine. |
 | Bind overlay evidence without mandatory direct-video hydration | Code plus doctrine/runbook | The clicked grid identity and overlay URL bind the video; profile-grid responses supply available structured metadata; page-owned comment responses and visible overlay DOM supply initially exposed comments; direct `itemStruct` is optional | Preserve naturally available fields with per-field provenance, distinguish captured/visible-empty/not-visible comments, never zero-fill unavailable optional metrics, and fail on identity mismatch | Evidence availability differs between normal grid overlays and direct URLs; validators must model that reality rather than forcing the direct-page shape. |
 | Parent platform profile/grid capture when entering seed profile | Code plus doctrine | Register validator and scan receipt validator built; future runner optional | Require a parent profile/grid packet pointer or explicit not-captured reason in the receipt/register | Presence of packet pointer is mechanical; deciding capture posture is doctrine. |
 | Suggested-account graphing on the retained humanized CDP surface | Code plus doctrine | Onboarding runner clicks visible creator `Followers`, waits for the visible relationship dialog, clicks that dialog's `Suggested` tab, and extracts only visible-dialog profile rows; visible `Suggested accounts` + exact `View All` is fallback only | Record the outer UI route separately from CloakBrowser `careful` pointer humanization and preserve `captured`, `visible_empty`, and `not_visible` distinctly before sibling-channel/link-hub work | Route precedence and source-visible outcome semantics are doctrine; action/receipt shape is mechanical. |
@@ -130,8 +130,14 @@ is worth scanning. Those stay doctrine/resident judgment.
    video captures. Do not reload an already matching creator path or click Latest,
    Popular, or Oldest. After the 8-13 second wait, open each selected video by
    randomly clicking a currently viewport-visible selected grid tile, capture the
-   matching overlay, and close back to the grid. If selected tiles are not visible,
-   use only bounded normal-grid viewport pagination; never target-scroll a tile.
+   matching overlay, and close back to the grid. Resolve that tile's current
+   rectangle immediately before clicking and choose a randomized point within its
+   15-85 percent inset on both axes; never cache absolute screen coordinates. If
+   selected tiles are not visible, remember their stable identities and logical
+   grid positions, compare them with the freshly visible position range, and use
+   only bounded small mouse-wheel bursts in the required direction. Distinguish
+   CloakBrowser's humanized cursor move from the raw wheel burst in receipts; never
+   target-scroll a tile.
    If a click does not materialize the matching overlay, wait 60 seconds,
    recompute, and retry once, then stop loudly. Never fall back to direct-video
    navigation. Preserve available grid/API, URL, overlay DOM, comment-response,
@@ -155,9 +161,12 @@ direction_change_propagation:
     as fallback. Retained CDP now adopts the latest TikTok page at platform scope,
     suppresses same-path reloads, preserves one-page Suggested-to-grid continuity,
     and opens every selected video through a random currently visible selected
-    grid tile, returning to the grid after each overlay. Bounded normal-grid
-    pagination is allowed only to expose selected tiles; targeted tile scrolling
-    and direct-video onboarding navigation are forbidden. One 60-second retry is
+    grid tile, returning to the grid after each overlay. The thumbnail rectangle
+    is freshly resolved and the click is randomized within its 15-85 percent safe
+    inset. Bounded normal-grid pagination remembers logical positions and uses
+    receipt-backed small mouse-wheel bursts without caching screen coordinates;
+    targeted tile scrolling and direct-video onboarding navigation are forbidden.
+    One 60-second retry is
     allowed only after failed matching-overlay materialization. Grid/API, URL,
     overlay DOM, comment-response, and subtitle-track evidence are preserved with
     provenance while direct `itemStruct` remains optional. Account mutation and

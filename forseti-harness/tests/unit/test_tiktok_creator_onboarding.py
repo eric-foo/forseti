@@ -480,14 +480,16 @@ def test_grid_overlay_sequence_accepts_visible_overlay_without_item_struct(
     assert receipt["status"] == "complete"
 
 
-def test_grid_overlay_sequence_uses_bounded_normal_grid_pagination(
+def test_grid_overlay_sequence_uses_logical_positions_and_mouse_wheel_pagination(
     tmp_path: Path,
 ) -> None:
     engine = _FakeEngine(
         [
-            _visible_tiles_capture(),
-            _visible_tiles_capture(),
-            _visible_tiles_capture("1"),
+            _visible_tiles_capture(visible_min=1, visible_max=3, scroll_y=0),
+            _visible_tiles_capture(visible_min=4, visible_max=6, scroll_y=600),
+            _visible_tiles_capture(
+                "1", visible_min=7, visible_max=9, scroll_y=1200
+            ),
             _clicked_capture("1"),
         ]
     )
@@ -497,17 +499,56 @@ def test_grid_overlay_sequence_uses_bounded_normal_grid_pagination(
         engine=engine,
         receipt=receipt,
         pagination_pass_cap=2,
+        selected_grid_position=9,
     )
 
     sequence(0, ["https://www.tiktok.com/@creator/video/1"])
 
     assert receipt["grid_pagination_passes_executed"] == 2
-    assert engine.calls[1]["post_load_action_arg"] == {"direction": "top"}
-    assert engine.calls[2]["post_load_action_arg"] == {"direction": "down"}
+    assert engine.calls[1]["post_load_action_script"] is None
+    assert engine.calls[2]["post_load_action_script"] is None
+    assert engine.calls[1]["post_load_wheel_action"].direction == "down"
+    assert engine.calls[2]["post_load_wheel_action"].direction == "down"
+    click_action = engine.calls[3]["post_load_pointer_actions"][0]
+    assert click_action.target_fraction_min == 0.15
+    assert click_action.target_fraction_max == 0.85
+    assert receipt["logical_grid_positions_remembered"] is True
+    assert receipt["absolute_pixel_positions_cached"] is False
+    assert [row["direction"] for row in receipt["grid_pagination_passes"]] == [
+        "down",
+        "down",
+    ]
     assert receipt["targeted_tile_scroll_performed"] is False
     assert "scrollIntoView" not in (
         onboarding.TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT
     )
+
+
+def test_grid_overlay_sequence_wheels_up_for_earlier_logical_position(
+    tmp_path: Path,
+) -> None:
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture(visible_min=7, visible_max=9, scroll_y=1200),
+            _visible_tiles_capture(
+                "1", visible_min=1, visible_max=3, scroll_y=500
+            ),
+            _clicked_capture("1"),
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        pagination_pass_cap=1,
+        selected_grid_position=1,
+    )
+
+    sequence(0, ["https://www.tiktok.com/@creator/video/1"])
+
+    assert engine.calls[1]["post_load_wheel_action"].direction == "up"
+    assert receipt["grid_pagination_passes"][0]["direction"] == "up"
 
 
 def test_grid_overlay_sequence_fails_after_single_click_retry(tmp_path: Path) -> None:
@@ -907,9 +948,14 @@ def _grid_overlay_receipt() -> dict[str, object]:
         "direct_video_navigation_count": 0,
         "targeted_tile_scroll_performed": False,
         "grid_pagination_allowed": True,
+        "grid_pagination_input_method": "mouse_wheel_burst",
+        "logical_grid_positions_remembered": True,
+        "absolute_pixel_positions_cached": False,
+        "thumbnail_click_safe_inset_fraction": 0.15,
         "grid_pagination_pass_cap_per_lookup": 2,
         "grid_pagination_total_pass_cap": 2,
         "grid_pagination_passes_executed": 0,
+        "grid_pagination_passes": [],
         "attempts": [],
         "retry_waits": [],
         "status": "in_progress",
@@ -924,6 +970,7 @@ def _grid_overlay_sequence(
     sleep_fn=lambda _seconds: None,
     monotonic_fn=lambda: 0.0,
     pagination_pass_cap: int = 2,
+    selected_grid_position: int = 1,
 ) -> object:
     return onboarding._GridOverlayCaptureSequence(
         profile_url="https://www.tiktok.com/@creator",
@@ -934,7 +981,7 @@ def _grid_overlay_sequence(
                 "video_id": "1",
                 "video_url": "https://www.tiktok.com/@creator/video/1",
                 "visible_in_viewport": True,
-                "grid_position": 1,
+                "grid_position": selected_grid_position,
                 "views": 400,
                 "likes": 20,
             }
@@ -952,7 +999,12 @@ def _grid_overlay_sequence(
     )
 
 
-def _visible_tiles_capture(*video_ids: str) -> BrowserPageObservationSuccess:
+def _visible_tiles_capture(
+    *video_ids: str,
+    visible_min: int | None = 1,
+    visible_max: int | None = 3,
+    scroll_y: int = 0,
+) -> BrowserPageObservationSuccess:
     capture = _capture(ordered_ids=[], items=[])
     capture.dom_observation["visible_selected_tiles"] = [
         {
@@ -962,6 +1014,9 @@ def _visible_tiles_capture(*video_ids: str) -> BrowserPageObservationSuccess:
         }
         for index, video_id in enumerate(video_ids, start=1)
     ]
+    capture.dom_observation["visible_grid_position_min_or_none"] = visible_min
+    capture.dom_observation["visible_grid_position_max_or_none"] = visible_max
+    capture.dom_observation["scroll_y"] = scroll_y
     return capture
 
 

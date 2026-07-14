@@ -19,6 +19,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserContextResponsesSuccess,
     BrowserPageObservationSuccess,
     BrowserPagePointerAction,
+    BrowserPageWheelAction,
     BrowserPageResponse,
     BrowserSnapshotFailure,
     BrowserSnapshotFailureKind,
@@ -149,8 +150,9 @@ class _FakeObservationMouse:
         self.page = page
         self.moves: list[tuple[float, float, int]] = []
         self.clicks: list[tuple[float, float]] = []
+        self.wheels: list[tuple[float, float]] = []
 
-    def move(self, x: float, y: float, *, steps: int) -> None:
+    def move(self, x: float, y: float, *, steps: int = 1) -> None:
         self.moves.append((x, y, steps))
         self.page.event_log.append(f"mouse_move:{steps}")
 
@@ -158,6 +160,11 @@ class _FakeObservationMouse:
         self.clicks.append((x, y))
         self.page.event_log.append("mouse_click")
         self.page.emit_response_once()
+
+    def wheel(self, delta_x: float, delta_y: float) -> None:
+        self.wheels.append((delta_x, delta_y))
+        self.page.scroll_y = max(0.0, self.page.scroll_y + delta_y)
+        self.page.event_log.append("mouse_wheel")
 
 
 class _FakeObservationPage:
@@ -178,6 +185,7 @@ class _FakeObservationPage:
     ) -> None:
         self.event_log = event_log
         self.height = height
+        self.scroll_y = 0.0
         self.url = "https://example.com/source"
         self.response_callback: object | None = None
         self.route_bindings: list[tuple[str, object]] = []
@@ -249,6 +257,16 @@ class _FakeObservationPage:
         return _FakeObservationLocator(self.event_log)
 
     def evaluate(self, script: str, arg: object | None = None) -> object:
+        if "viewport_width" in script and "viewport_height" in script:
+            self.event_log.append("wheel_viewport_lookup")
+            return {
+                "scroll_y": self.scroll_y,
+                "viewport_width": 1280,
+                "viewport_height": 720,
+            }
+        if "scroll_y: Math.max" in script:
+            self.event_log.append("wheel_after_lookup")
+            return {"scroll_y": self.scroll_y}
         if "scrollTo" in script:
             self.event_log.append("scroll")
             self.emit_response_once()
@@ -1692,6 +1710,11 @@ def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_re
     assert receipt["page_text_gate_matched"] is True
     assert receipt["page_text_matched_marker"] == "drag the slider"
     assert receipt["selection_strategy"] == "top_right"
+    assert receipt["target_geometry_freshly_resolved"] is True
+    assert receipt["target_box_width"] == 100.0
+    assert receipt["target_box_height"] == 50.0
+    assert 0.35 <= receipt["click_fraction_x"] <= 0.65
+    assert 0.35 <= receipt["click_fraction_y"] <= 0.65
     assert "x" not in receipt
     assert "y" not in receipt
     assert result.metadata["post_load_action_executed"] is True
@@ -1701,6 +1724,50 @@ def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_re
     assert event_log.index("mouse_click") < event_log.index("wait:2500")
     assert event_log.index("wait:2500") < event_log.index("inner_text")
     assert event_log.index("dom_extract") < event_log.index("response_text")
+
+
+def test_playwright_page_observation_runs_bounded_wheel_burst_before_dom(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(event_log)
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda _: False,
+        post_load_wheel_action=BrowserPageWheelAction(
+            action_name="test_grid_wheel_v0",
+            direction="down",
+            viewport_fraction_min=0.75,
+            viewport_fraction_max=0.75,
+            wheel_chunk_px_min=30,
+            wheel_chunk_px_max=30,
+            wheel_pause_ms_min=10,
+            wheel_pause_ms_max=10,
+            settle_ms_min=500,
+            settle_ms_max=500,
+            random_seed=11,
+        ),
+    )
+
+    receipt = result.metadata["post_load_wheel_action"]
+    assert receipt["completed"] is True
+    assert receipt["input_method"] == "page.mouse.wheel_burst"
+    assert receipt["planned_delta_y_px"] == 540
+    assert receipt["actual_scroll_delta_y_px"] == 540
+    assert receipt["wheel_event_count"] == 18
+    assert len(page.mouse.wheels) == 18
+    assert all(delta_x == 0 and 0 < delta_y <= 30 for delta_x, delta_y in page.mouse.wheels)
+    assert result.metadata["post_load_action_executed"] is True
+    assert event_log.index("wheel_viewport_lookup") < event_log.index("mouse_move:1")
+    assert event_log.index("mouse_wheel") < event_log.index("dom_extract")
 
 
 
