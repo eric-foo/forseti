@@ -1,9 +1,8 @@
 """Deterministic reach-first selection for TikTok creator-grid onboarding.
 
-Selection starts with a configured fraction or fixed count by observed view count. An
-outside video may replace an original selection only when it retains at least
-80% of that incumbent's views and has at least 20% higher like rate. Range
-overrides never become new comparison anchors, preventing reach-floor erosion.
+Fractional selection supports the existing bounded like-rate override. Fixed-count
+onboarding selection is strict reach rank: pinned state is recorded but never changes
+membership or order.
 """
 from __future__ import annotations
 
@@ -13,7 +12,7 @@ from fractions import Fraction
 from typing import Any
 
 TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION = "tiktok_grid_video_selection_v1"
-TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION = "tiktok_reach_first_fixed_count_v1"
+TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION = "tiktok_reach_ranked_fixed_count_v2"
 TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION = "tiktok_reach_first_top_fraction_v3"
 _DEFAULT_SELECTION_FRACTION = Fraction(1, 4)
 _MINIMUM_VIEW_RETENTION_PERCENT = 80
@@ -76,20 +75,28 @@ def build_tiktok_grid_video_selection(
     )
     baseline_selected = reach_order[:resolved_selection_count]
     baseline_cutoff_view_count = baseline_selected[-1]["view_count"]
-    selected, range_overrides = _apply_boundary_range_overrides(
-        baseline_selected=baseline_selected,
-        challengers=reach_order[resolved_selection_count:],
-    )
+    if selection_count is not None:
+        selected = list(baseline_selected)
+        range_overrides: list[dict[str, Any]] = []
+    else:
+        selected, range_overrides = _apply_boundary_range_overrides(
+            baseline_selected=baseline_selected,
+            challengers=reach_order[resolved_selection_count:],
+        )
     selected_ids = {item["video_id"] for item in selected}
     replaced_ids = {receipt["replaced_video_id"] for receipt in range_overrides}
-    review_order = sorted(
-        selected,
-        key=lambda item: (
-            -_like_rate_fraction(item),
-            -item["view_count"],
-            -item["like_count"],
-            item["video_id"],
-        ),
+    review_order = (
+        list(selected)
+        if selection_count is not None
+        else sorted(
+            selected,
+            key=lambda item: (
+                -_like_rate_fraction(item),
+                -item["view_count"],
+                -item["like_count"],
+                item["video_id"],
+            ),
+        )
     )
     review_ranks = {
         item["video_id"]: index for index, item in enumerate(review_order, start=1)
@@ -156,14 +163,22 @@ def build_tiktok_grid_video_selection(
                 "but exclude rows whose playCount/diggCount cannot support the ranking recipe."
             ),
             "membership_rule": (
-                "Start with the configured fraction or fixed count by view_count. An outside "
-                "video may replace an original view-selected incumbent only when it retains "
-                "at least 80% of that incumbent's views and has at least 20% higher "
-                "like_rate."
+                "Select the fixed count strictly by eligible view_count reach rank; pinned "
+                "state is recorded but never changes membership."
+                if selection_count is not None
+                else "Start with the configured fraction by view_count. An outside video "
+                "may replace an original view-selected incumbent only when it retains at "
+                "least 80% of that incumbent's views and has at least 20% higher like_rate."
             ),
             "review_priority_rule": (
-                "Within the selected set only, order like_rate descending, then "
+                "Use the same eligible reach order as membership."
+                if selection_count is not None
+                else "Within the selected set only, order like_rate descending, then "
                 "view_count descending."
+            ),
+            "pinned_video_rule": (
+                "Pinned videos remain eligible and pinned state is recorded, but pinning "
+                "does not displace reach ranking."
             ),
             "negligible_reach_guard": (
                 "Range overrides compare only against original view-selected incumbents; "
@@ -366,6 +381,7 @@ def _normalize_item(item: dict[str, Any], *, index: int) -> dict[str, Any]:
         ),
         "selection_eligible": eligible,
         "selection_ineligibility_reason_or_none": ineligibility_reason,
+        "pinned_visible": item.get("pinned_visible") is True,
         "_source_index": index,
     }
 

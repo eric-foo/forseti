@@ -144,6 +144,35 @@ def test_blocker_triage_hydration_without_item_struct_is_empty_shell() -> None:
     assert triage.reason == "missing_item_struct_or_empty_shell"
 
 
+def test_blocker_triage_visible_overlay_does_not_require_item_struct() -> None:
+    triage = classify_tiktok_blocker(
+        final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+        title="TikTok",
+        visible_text="video and comments loaded",
+        hydration_present=False,
+        item_struct_present=False,
+        visible_surface_ready=True,
+    )
+
+    assert triage.blocker_class == TIKTOK_BLOCKER_CLASS_NO_BLOCKER
+    assert triage.action == TIKTOK_BLOCKER_ACTION_CONTINUE
+    assert triage.to_receipt()["visible_surface_ready"] is True
+
+
+def test_blocker_triage_challenge_still_stops_on_visible_overlay() -> None:
+    triage = classify_tiktok_blocker(
+        final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+        title="Verify to continue",
+        visible_text="Drag the slider to verify to continue",
+        hydration_present=False,
+        item_struct_present=False,
+        visible_surface_ready=True,
+    )
+
+    assert triage.blocker_class == TIKTOK_BLOCKER_CLASS_CHALLENGE_OR_SECURITY
+    assert triage.action == TIKTOK_BLOCKER_ACTION_STOP
+
+
 def test_blocker_triage_close_text_without_candidate_does_not_stop() -> None:
     triage = classify_tiktok_blocker(
         final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
