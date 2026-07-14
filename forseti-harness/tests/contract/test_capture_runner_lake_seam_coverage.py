@@ -127,10 +127,6 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
             "capture_spine/creator_profile_current/youtube_silver_metric_producer.py",
             "source_surface_catalog_rows",
         ): 1,
-        (
-            "capture_spine/creator_profile_current/tiktok_silver_metric_producer.py",
-            "append_silver_record",
-        ): 2,
         ("cleaning/basenotes_lake.py", "append_record"): 1,
         ("cleaning/basenotes_lake.py", "append_silver_record"): 1,
         ("cleaning/fragrantica_lake.py", "append_record"): 1,
