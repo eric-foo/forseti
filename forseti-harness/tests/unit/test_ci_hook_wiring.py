@@ -14,9 +14,11 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 CI_PATH = REPO_ROOT / ".github" / "workflows" / "ci.yml"
 PRE_PUSH_PATH = REPO_ROOT / ".agents" / "hooks" / "pre_push_guard.py"
 HOOKS_DIR = REPO_ROOT / ".agents" / "hooks"
+HARNESS_COUPLING_PATH = HOOKS_DIR / "check_harness_coupling.py"
 EVENT_BASE_SHA = "1" * 40
 DIFF_BASE_RESOLVERS = (
     ("check_source_input_hashes.py", "resolve_base_ref", False),
+    ("check_harness_coupling.py", "resolve_base_ref", False),
     ("header_index.py", "resolve_base_ref", True),
     ("check_search_surface_google_route.py", "resolve_base", False),
     ("check_csb_scanning_artifact.py", "resolve_base_ref", False),
@@ -34,6 +36,14 @@ DIFF_BASE_RESOLVERS = (
 
 def _load_pre_push_guard():
     spec = importlib.util.spec_from_file_location("pre_push_guard", PRE_PUSH_PATH)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_harness_coupling():
+    spec = importlib.util.spec_from_file_location("check_harness_coupling", HARNESS_COUPLING_PATH)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -65,19 +75,20 @@ def test_every_pre_push_gate_is_the_same_command_ci_runs() -> None:
     }
     mirrored = {
         "python " + " ".join((script, *args))
-        for _name, (script, *args) in guard.DOC_GATES
+        for _name, (script, *args) in guard.SELECTED_GATES
     }
     assert mirrored <= ci_commands
 
 
 def test_observed_fast_failure_classes_are_mirrored_pre_push() -> None:
     guard = _load_pre_push_guard()
-    names = {name for name, _command in guard.DOC_GATES}
+    names = {name for name, _command in guard.SELECTED_GATES}
     assert {
         "prompt output-mode",
         "review-output provenance",
         "handoff-pointer resolution",
         "ontology tag validity",
+        "harness coupling contracts",
     } <= names
 
 
@@ -98,6 +109,42 @@ def test_ci_uses_public_runner_cpu_capacity_without_splitting_test_files() -> No
         "-n 4 --dist=loadfile"
     ) in ci_text
 
+
+def test_harness_coupling_trigger_scope() -> None:
+    coupling = _load_harness_coupling()
+    assert coupling.path_triggers_gate("forseti-harness/src/forseti_harness/example.py")
+    assert coupling.path_triggers_gate(
+        "forseti-harness/data_lake/lake_touchpoint_inventory_v0.json"
+    )
+    assert not coupling.path_triggers_gate("forseti-harness/data_lake/other.json")
+    assert not coupling.path_triggers_gate("docs/decisions/example.md")
+
+
+def test_harness_coupling_preserves_pytest_failure() -> None:
+    coupling = _load_harness_coupling()
+
+    class FailedResult:
+        returncode = 7
+
+    def failed_runner(_command, *, cwd, timeout):
+        assert cwd == REPO_ROOT / "forseti-harness"
+        assert timeout == coupling.TIMEOUT_SECONDS
+        return FailedResult()
+
+    assert coupling.run_contracts(REPO_ROOT, runner=failed_runner) == 7
+
+
+def test_harness_coupling_fails_closed_on_unresolvable_diff_base(
+    monkeypatch, capsys
+) -> None:
+    coupling = _load_harness_coupling()
+    zero_sha = "0" * 40
+    monkeypatch.setattr(coupling, "resolve_base_ref", lambda _base=None: zero_sha)
+
+    assert coupling.main(["--strict"]) == 2
+    captured = capsys.readouterr()
+    assert "GATE FAIL harness coupling contracts" in captured.err
+    assert f"{zero_sha}...HEAD" in captured.err
 
 
 def test_event_base_sha_precedes_github_branch_and_cli(
