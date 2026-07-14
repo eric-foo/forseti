@@ -116,6 +116,14 @@ guard, and owner steering all stay.
   needs the relevant owner/safety confirmation -- no harness prompt is not the same
   as permission. Verification reads and owner course-corrections are the valuable
   friction and remain.
+- **Separate credential failure from sandbox failure.** Do not ask the owner to
+  reauthenticate from a `gh auth status`, API, keyring, or network failure
+  observed only in a restricted sandbox or credential context. First repeat the
+  smallest read-only authentication check in the per-operation escalated context
+  used for GitHub actions. Ask for reauthentication only when that check
+  independently reports missing or invalid credentials; report escalation or
+  network denial as an access blocker, not an authentication failure. Never print
+  credentials or tokens.
 - **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.
