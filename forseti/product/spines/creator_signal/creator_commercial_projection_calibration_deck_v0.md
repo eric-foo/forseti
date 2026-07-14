@@ -38,6 +38,28 @@ Do not summarize the evidence. Convert it:
 > non-obvious evidence → buyer tension → creator-specific commercial role →
 > product meaning → repeatable mechanism → campaign jobs → wrong-hire boundary
 
+### Dual-Value Scan Before Compression
+
+Before choosing the strongest commercial line, derive two candidates separately:
+
+- **Desired state / product meaning:** the identity, feeling, confidence,
+  decision state, or social meaning the creator makes the product represent.
+- **Behavioral response:** classify the strongest supported subtype instead of
+  blending them:
+  - **audience-adopted behavior** when captured participants report copying,
+    practicing, or intending to try a selection, application, layering,
+    testing, comparison, or wearing behavior;
+  - **audience-demanded creator ritual** when captured participants repeatedly
+    request that the creator perform or escalate the behavior.
+
+Do not let the strongest candidate erase the other. When both are independently
+supported, preserve both on the first screen: state what the creator makes
+people want and the exact behavioral response the creator earns. When only one
+is supported, use it without inventing the other. A recurring creator ritual or
+format is a mechanism; repeated requests may prove demand for that ritual, but
+only reported practice, copying, or intended self-adoption supports an audience
+habit.
+
 Use these questions in order:
 
 1. **What can the buyer learn here that views, likes, category, or creator bio
@@ -146,12 +168,17 @@ A commercial panel is not ready unless all of these pass:
    the hire verdict false or materially weaker.
 3. **Mechanism gate:** the role is tied to a repeatable creator-specific content
    machine and an evidenced response, not a personality adjective.
-4. **Claim-ceiling gate:** every material sentence binds to evidence and keeps
+4. **Dual-value gate:** the author separately checked desired product meaning
+   and behavioral response. When both are independently evidenced, both survive
+   first-screen compression; the behavioral response is typed as participant
+   adoption or demand for a creator ritual, and the panel never converts the
+   latter into an audience habit.
+5. **Claim-ceiling gate:** every material sentence binds to evidence and keeps
    conversion, prevalence, demographic, and guarantee claims inside the
    controlling contract.
-5. **Campaign-action gate:** the buyer can name a brief to commission and a
+6. **Campaign-action gate:** the buyer can name a brief to commission and a
    brief to avoid after reading the panel.
-6. **Non-copy gate:** the panel derives its own role from the creator's evidence;
+7. **Non-copy gate:** the panel derives its own role from the creator's evidence;
    it does not reuse an example's role or signature line merely because it fits
    grammatically.
 
@@ -167,10 +194,18 @@ Before treating a material calibration change as transferable, give a cold
 author the controlling contract, this deck, and a held-out creator evidence
 packet — not a prior profile or preferred answer. The result passes only when:
 
+A creator named in this deck's calibration patterns is not held out. Testing a
+named example requires a scratch leave-one-example-out copy that preserves all
+other rules while excluding that creator's pattern; record the exclusion and
+never report a full-deck run on a named example as a clean cold pass.
+
 - the first-screen verdict is substitution-resistant and commercially stronger
   than a transcript/comments summary;
 - every material claim has exact claim/evidence and source-video bindings;
 - the author derives a creator-specific role without copying an example;
+- the author reports the separate desired-state and behavioral-response scan
+  results, preserves both on the first screen when both are supported, and
+  distinguishes participant adoption from demand for a creator ritual;
 - the output names concrete campaign jobs and a wrong-hire boundary;
 - uncertainty and sparse or biased capture remain visible in the evidence
   drawer rather than weakening every first-screen sentence;
@@ -194,21 +229,26 @@ buyer demand, creator performance, conversion, or production readiness.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Cold commercial-panel authors must load a subordinate calibration deck that
-    teaches the evidence-to-buyer-value transformation, creator-specific role
-    derivation, and non-copying gates while leaving claim authority in the
-    controlling audience-triangulation contract.
+    Cold commercial-panel authors now run a dual-value scan before compression:
+    desired product meaning and behavioral response are derived separately,
+    both survive the first screen when independently supported, and a recurring
+    creator ritual cannot silently become an audience habit: participant
+    adoption and demand for creator performance remain distinct. Dogfood also
+    treats named calibration examples as contaminated unless a recorded
+    leave-one-example-out source is used.
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:
-    - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
     - forseti/product/spines/creator_signal/creator_commercial_projection_calibration_deck_v0.md
   downstream_surfaces_checked:
+    - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
     - forseti/product/spines/creator_signal/README.md
     - docs/workflows/forseti_repo_map_v0.md
     - .agents/workflow-overlay/source-loading.md
     - AGENTS.md
   intentionally_not_updated:
+    - path: forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+      reason: The controlling contract already requires product meaning, mechanism, evidence binding, and maximum-defensible aggression; this change calibrates how a cold author preserves two independently supported value axes.
     - path: docs/workflows/forseti_repo_map_v0.md
       reason: The map already routes the Creator Signal directory; the spine README owns per-artifact discovery.
     - path: .agents/workflow-overlay/source-loading.md
@@ -218,13 +258,13 @@ direction_change_propagation:
     - path: docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
       reason: The prepare-only binding framework is not an active routine-task resolver; adding a Creator Signal binding would not make this calibration fire reliably.
   stale_language_search: >
-    rg -n -i "commercial projection|commercial panel|maximum-defensible|purchase insurance|calibration deck"
+    rg -n -i "commercial projection|commercial panel|dual-value|behavioral response|audience-adopted|audience-demanded|audience habit|calibration deck"
     forseti/product/spines/creator_signal docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-14 during delegated-review adjudication. Hits are current
-    contract, deck, profile-surface, and spine-router language; “purchase
-    insurance” appears only in the controlling contract's prohibition against
-    copying one formulation across creators. No stale doctrine surface found.
+    Executed 2026-07-15 after the dual-value calibration change. Defining
+    dual-value and typed behavioral-response language is confined to this deck;
+    adjacent Creator Signal sources retain their existing product-meaning,
+    mechanism, and routing ownership without a conflicting habit rule.
   non_claims:
     - not validation
     - not readiness
