@@ -452,6 +452,10 @@ def _normalize_video_row(
             grid_candidate.get("decoded_aweme_id_create_time_utc"),
             decoded_aweme_id_create_time_utc(video_id),
         ),
+        "stats_observed_utc": _first_str(
+            row.get("observed_utc"),
+            comments.get("observed_utc"),
+        ),
         "stats": _normalize_stats(source_stats),
         "source_text": {
             "desc": desc,
