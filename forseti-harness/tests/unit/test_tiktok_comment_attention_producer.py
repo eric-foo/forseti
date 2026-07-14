@@ -17,7 +17,7 @@ from data_lake.root import DataLakeRoot
 from data_lake.silver_lineage import SOURCE_BACKED_COMPLETE_STATUS, silver_record_source_backed_status
 from runners import run_tiktok_comment_attention_producer as runner
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
-from test_tiktok_creator_metric_seed import CAPTURE_T1, _commit_batch_packet, _stats, _video
+from tiktok_batch_test_support import CAPTURE_T1, _commit_batch_packet, _stats, _video
 from test_tiktok_grid_observation_producer import _admit_grid
 
 

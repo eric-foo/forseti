@@ -19,6 +19,7 @@ if __package__ in {None, ""}:
 from capture_spine.creator_profile_current.tiktok_grid_observation_producer import (
     SOCIAL_METRIC_OBSERVATION_SET_LANE,
     TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT,
+    TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE,
     derive_tiktok_grid_observation_set,
 )
 from data_lake.consumption import append_ack, pickup, reconcile_availability_per_packet
@@ -43,18 +44,19 @@ def _grid_input(
     data_root: DataLakeRoot, packet_id: str
 ) -> tuple[dict[str, Any], dict[str, Any], str, str] | None:
     loaded = data_root.load_raw_packet(packet_id)
+    source_surface = str(loaded.manifest.get("source_surface") or "")
+    if source_surface != TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE:
+        return None
     matches = [
         item
         for item in loaded.manifest.get("preserved_files", [])
         if isinstance(item, Mapping)
-        and Path(str(item.get("relative_packet_path") or "")).name.endswith(
-            TIKTOK_GRID_WINDOW_JSON_NAME
-        )
+        and _staged_artifact_name(item) == TIKTOK_GRID_WINDOW_JSON_NAME
     ]
-    if not matches:
-        return None
     if len(matches) != 1:
-        raise ValueError(f"packet {packet_id} carries multiple TikTok grid windows")
+        raise ValueError(
+            f"packet {packet_id} requires exactly one {TIKTOK_GRID_WINDOW_JSON_NAME}"
+        )
     preserved = dict(matches[0])
     file_id = str(preserved.get("file_id") or "")
     body = loaded.bodies.get(file_id)
@@ -76,8 +78,17 @@ def _grid_input(
             "hash_basis": "raw_stored_bytes",
         },
         observed_at,
-        str(loaded.manifest.get("source_surface") or "unknown"),
+        source_surface,
     )
+
+
+def _staged_artifact_name(preserved: Mapping[str, Any]) -> str:
+    """Recover the canonical staged name from ``raw/NN_<name>`` storage."""
+    stored_name = Path(str(preserved.get("relative_packet_path") or "")).name
+    ordinal, separator, staged_name = stored_name.partition("_")
+    if separator and len(ordinal) == 2 and ordinal.isdigit():
+        return staged_name
+    return stored_name
 
 
 def _observed_at(payload: Mapping[str, Any], manifest: Mapping[str, Any]) -> str:
@@ -115,7 +126,7 @@ def run_tiktok_grid_observations(*, data_root: DataLakeRoot) -> list[dict[str, A
             if grid_input is None:
                 evidence = [
                     {
-                        "kind": "not_applicable_no_tiktok_grid_window",
+                        "kind": "not_applicable_non_grid_source_surface",
                         "manifest_sha256": item.obligation["manifest_sha256"],
                         "policy_fingerprint_sha256": (
                             TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT

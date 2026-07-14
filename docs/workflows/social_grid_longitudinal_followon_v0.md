@@ -34,6 +34,14 @@ policy-fingerprinted Silver `MetricObservationSet`; an exact-policy reader must
 recover repeated observations by platform-native video ID. Do not start a
 second platform until those mechanics pass in scratch.
 
+TikTok's current authoritative path is
+`run_tiktok_grid_observation_producer.py` over packets declaring
+`source_surface=tiktok_creator_grid_window`. Other TikTok packet surfaces are
+acknowledged as not applicable even when they preserve an embedded copy of the
+grid artifact. The former batch metric/rollup writer is retired; its immutable
+historical records are not migrated or deleted and are not the current
+longitudinal grid-history authority.
+
 “Grid” is not the portable abstraction. Instagram and TikTok expose profile
 grids, while YouTube's cheap daily surface is an RSS enumeration. The shared
 unit is an **account-window observation packet**: one account, one capture time,
