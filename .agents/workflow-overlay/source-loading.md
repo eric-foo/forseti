@@ -153,7 +153,7 @@ Use source packs instead of whole-folder reads.
 | --- | --- | --- |
 | `S0 overlay` | Any Forseti project work. | Current instruction, `AGENTS.md`, overlay README, source-of-truth, and source-loading when relevant. |
 | `S1 map` | Choosing files or preventing context bloat. | `S0` plus `docs/workflows/forseti_repo_map_v0.md`. |
-| `S2 product anchor` | Product architecture, value proposition, offer, or CA setup. | `S1` plus product thesis, offer hypothesis, buyer proof packet, Core Spine product contract, and the nearest boundary note. |
+| `S2 product anchor` | Product architecture, value proposition, offer, or CA setup. | `S1` plus the current product thesis, `.agents/workflow-overlay/product-proof.md`, Core Spine product contract, and the nearest application or boundary note. For beauty, add the beauty decision-adjudication product profile. Add the offer hypothesis and buyer-proof packet only after GTM binds a current buyer and decision family; their historical consumer-demand bindings are not anchors. |
 | `S3 target deepening` | A specific artifact family needs details. | `S2` plus only the named target artifact, its `open_next` files, and targeted sections from adjacent artifacts. |
 | `S4 historical/review` | Reviewing prior outcomes, adversarial reports, replays, or method-validation history. | Explicitly named review, replay, research, or historical files only. Never default. |
 
@@ -369,12 +369,17 @@ Start with:
 
 Then open only the targeted sections needed for the CA prompt:
 
-- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`: thesis (the
-  bet), value proposition, strategic center, and central-read sections.
-- `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md`: core offer
-  hypothesis, mechanism, fit diagnostic, and non-claims sections.
-- `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`: proof standard,
-  target buyer, signal surface, disqualifiers, and not-build boundaries.
+- `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`: current
+  product direction, decision admission contract, Decision Sprint form,
+  decision-relevant evidence posture, learning path, and non-claims sections.
+- `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md`:
+  beauty admission universe, evidence model, current assets and ownership,
+  same-decision proof contract, and transfer test when beauty is in scope.
+- `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md` and
+  `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
+  only after GTM explicitly rebinds a buyer and decision family; their generic
+  proof grammar remains reusable, but their consumer-demand buyer and offer
+  bindings are historical and suspended.
 - `forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md`:
   purpose, decision, layer rules, and future ECR/Evidence Unit boundaries.
 - `forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`: product bet,

@@ -16,10 +16,10 @@ authority_boundary: retrieval_only
 - Legacy name: Orca; rename policy: `docs/decisions/forseti_rename_migration_policy_v0.md`
 - Stage: bounded implementation permitted when explicitly authorized; otherwise docs/decision work remains the default
 - Relationship to `jb`: separate workspace; no inherited project authority
-- Product/domain purpose: outside-in strategic intelligence system for public market signals and evidence-backed allocation decisions
-- Target users/operators: companies and teams making product, positioning, pricing, growth, and competitive decisions; `jb` is the first internal Client 0 for method validation
+- Product/domain purpose: decision adjudication and decision learning for consequential company decisions, first applied in beauty through a bounded Decision Sprint
+- Target users/operators: accountable decision owners who must act across heterogeneous, conflicting, biased, incomplete, or differently timed evidence; the exact first beauty buyer and decision family remain open for GTM selection
 - Implementation status: bounded implementations may be authorized by current turn or accepted Forseti decision; source-access tooling first tranche is currently authorized by `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md`
-- Current product thesis source: `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` (owner-ratified 2026-06-12; supersedes `turn_08_product_thesis_v0.md`)
+- Current product thesis source: `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md` (owner-ratified direction 2026-07-14; supersedes the market-unselected evidence-adjudication reset while preserving its capability center)
 
 ## Authority Boundary
 
