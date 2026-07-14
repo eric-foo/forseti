@@ -154,7 +154,7 @@
       "a2_fork_impact": "none",
       "call": "lane_dir",
       "count": 1,
-      "module": "data_lake/derived_retrieval_views.py"
+      "module": "data_lake/product_mention_selection.py"
     },
     {
       "a2_fork_impact": "none",
@@ -167,12 +167,6 @@
       "call": "append_record_set",
       "count": 1,
       "module": "data_lake/silver_record.py"
-    },
-    {
-      "a2_fork_impact": "none",
-      "call": "lane_dir",
-      "count": 1,
-      "module": "data_lake/sov_readout.py"
     },
     {
       "a2_fork_impact": "none",
@@ -239,12 +233,6 @@
       "call": "is_record_set_complete",
       "count": 1,
       "module": "runners/run_source_capture_ig_reels_deep_capture.py"
-    },
-    {
-      "a2_fork_impact": "none",
-      "call": "lane_dir",
-      "count": 1,
-      "module": "runners/run_sov_extraction_quality_eval.py"
     },
     {
       "a2_fork_impact": "none",
@@ -537,8 +525,8 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
-          "reason": "handle-shape normalization plus login/challenge-redirect detection fail visibly and the served final_url is recorded, but the served grid/web_profile_info identity is never compared to the requested handle",
-          "status": "unbound"
+          "mechanism": "the normalized requested handle is compared case-insensitively with the source-visible username parsed and preserved from web_profile_info before slice/packet/lake publication; missing, invalid, or mismatched served identity fails closed with a distinct diagnostic and no packet write",
+          "status": "bound"
         },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_ig_reels_grid_packet.py"
@@ -654,8 +642,8 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
-          "reason": "platform_video_id is copied from the request after an id-format check; the served watch HTML's canonical URL and channelId are preserved in the capture JSON but never compared to the requested video id",
-          "status": "unbound"
+          "mechanism": "the requested 11-character video id is compared exactly with the id parsed from the source-visible served canonical URL immediately before packet/lake publication; unavailable or mismatched served identity fails closed with a distinct diagnostic and no packet write",
+          "status": "bound"
         },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_youtube_watch_packet.py"

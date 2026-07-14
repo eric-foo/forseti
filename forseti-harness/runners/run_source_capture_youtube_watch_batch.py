@@ -144,6 +144,7 @@ def run_youtube_watch_batch(
     4 = circuit break or active cooldown; 2 = sweep finished but incomplete
     (per-video failures named in the summary)."""
     _validate_inputs(
+        comment_pages=comment_pages,
         pace_seconds=pace_seconds,
         break_after_failures=break_after_failures,
         break_after_nonplayable=break_after_nonplayable,
@@ -310,11 +311,14 @@ def run_youtube_watch_batch(
 
 def _validate_inputs(
     *,
+    comment_pages: int,
     pace_seconds: float,
     break_after_failures: int,
     break_after_nonplayable: int,
     cooldown_seconds: float,
 ) -> None:
+    if comment_pages <= 0:
+        raise ValueError("comment_pages must be greater than zero")
     if pace_seconds < 0:
         raise ValueError("pace_seconds must be zero or greater")
     if break_after_failures <= 0:

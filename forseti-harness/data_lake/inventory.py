@@ -236,11 +236,12 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
         ),
     },
     "run_source_capture_ig_reels_grid_packet.py": {
-        "status": "unbound",
-        "reason": (
-            "handle-shape normalization plus login/challenge-redirect detection fail "
-            "visibly and the served final_url is recorded, but the served "
-            "grid/web_profile_info identity is never compared to the requested handle"
+        "status": "bound",
+        "mechanism": (
+            "the normalized requested handle is compared case-insensitively with the "
+            "source-visible username parsed and preserved from web_profile_info before "
+            "slice/packet/lake publication; missing, invalid, or mismatched served identity "
+            "fails closed with a distinct diagnostic and no packet write"
         ),
     },
     "run_source_capture_media_packet.py": {
@@ -351,11 +352,12 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
         ),
     },
     "run_source_capture_youtube_watch_packet.py": {
-        "status": "unbound",
-        "reason": (
-            "platform_video_id is copied from the request after an id-format check; the "
-            "served watch HTML's canonical URL and channelId are preserved in the capture "
-            "JSON but never compared to the requested video id"
+        "status": "bound",
+        "mechanism": (
+            "the requested 11-character video id is compared exactly with the id parsed "
+            "from the source-visible served canonical URL immediately before packet/lake "
+            "publication; unavailable or mismatched served identity fails closed with a "
+            "distinct diagnostic and no packet write"
         ),
     },
 }
@@ -433,25 +435,26 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "infrastructure",
         "reason": "ack-lane seam reader; reads every ack by contract, not a data consumer",
     },
-    "data_lake/derived_retrieval_views.py": {
+    "data_lake/product_mention_selection.py": {
         "detection": "lane_dir",
-        "posture": "all_siblings",
-        "reason": "rebuildable inspection views only, never pickup authority; residuals disclosed per record",
+        "posture": "selection_rule",
+        "mechanism": "shared:select_current_record_per_subject",
+        "reason": "single exact-policy product-mention reader; all consumers bind version plus fingerprint, residuals remain visible, and ambiguous same-policy siblings fail closed",
     },
-    "data_lake/sov_readout.py": {
-        "detection": "lane_dir",
+    "data_lake/silver_census.py": {
+        "detection": "declared_free_walk",
         "posture": "all_siblings",
-        "reason": "counts every source-backed mentions record; policy re-derivation double-count is a flagged unit (c) design input, recorded not adjudicated",
+        "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
+    },
+    "data_lake/silver_census.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
     },
     "runners/run_capture_ecr_cleaning_smoke.py": {
         "detection": "lane_dir",
         "posture": "fail_closed_singleton",
         "reason": "exactly one transcribed transcript_asr record per anchor or raise",
-    },
-    "runners/run_sov_extraction_quality_eval.py": {
-        "detection": "lane_dir",
-        "posture": "all_siblings",
-        "reason": "quality eval over the full committed record population by design",
     },
     "runners/run_transcript_product_extract.py": {
         "detection": "lane_dir",

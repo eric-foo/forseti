@@ -61,8 +61,9 @@ FRAGRANTICA_CLEANING_METHOD_ID = "fragrantica_cleaning_method_v0"
 REVIEW_TEXT_NORMALIZATION_RULE = "fragrantica_review_text_whitespace_normalization"
 REVIEW_VOTE_CARRY_RULE = "fragrantica_source_visible_vote_field_carry"
 FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = (
-    "fragrantica_cleaning_silver_metricobservation_v1"
+    "fragrantica_cleaning_silver_metricobservation_v2"
 )
+FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION = "fragrantica_review_vote_valid_ordinal_v1"
 
 # Review-vote metrics emitted as post-cleaned Silver MetricObservations:
 # (vote_field, metric_name, unit). Non-numeric votes (gender/relation) and the
@@ -72,6 +73,11 @@ _REVIEW_VOTE_METRIC_SPECS: tuple[tuple[str, str, str], ...] = (
     ("longevity", "review_longevity_vote", "fragrantica_vote_ordinal"),
     ("sillage", "review_sillage_vote", "fragrantica_vote_ordinal"),
 )
+_REVIEW_VOTE_VALID_RANGES: dict[str, range] = {
+    "rating": range(1, 6),
+    "longevity": range(1, 6),
+    "sillage": range(1, 5),
+}
 
 # Reviewer-driven anti-lock-in guard (FCR-04 closure): the audit pack's
 # discriminator fields are local to cleaning_audit_pack_v0 and confer no lake-wide
@@ -311,7 +317,14 @@ def fragrantica_post_cleaned_silver_metric_records(
             continue
         for vote_field, metric_name, unit in _REVIEW_VOTE_METRIC_SPECS:
             value = votes.get(vote_field)
-            if isinstance(value, bool) or not isinstance(value, (int, float)):
+            # Fragrantica uses integer zero as the unset sentinel for these
+            # review votes. Only source-valid ordinals are observations; zero,
+            # null, booleans, floats, strings, and out-of-range integers are
+            # omitted rather than serialized as facts.
+            if (
+                type(value) is not int
+                or value not in _REVIEW_VOTE_VALID_RANGES[vote_field]
+            ):
                 continue
             records.append(
                 _post_cleaned_metric_record(
@@ -459,6 +472,7 @@ def _post_cleaned_metric_record(
         },
         "provenance": {
             "cleaning_method_id": FRAGRANTICA_CLEANING_METHOD_ID,
+            "review_vote_policy_version": FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION,
         },
         "non_claims": sorted(
             {
@@ -587,6 +601,7 @@ __all__ = [
     "DISCRIMINATOR_LOCALITY_NON_CLAIM",
     "FRAGRANTICA_CLEANING_AUDIT_LANE",
     "FRAGRANTICA_CLEANING_METHOD_ID",
+    "FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION",
     "FRAGRANTICA_CLEANING_SILVER_LANE",
     "FragranticaCleaningLakeResult",
     "derive_fragrantica_cleaning_into_lake",

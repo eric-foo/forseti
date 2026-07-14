@@ -97,6 +97,28 @@ def _creator_ledger() -> dict:
     }
 
 
+def _write_registry_index(path: Path, account_ledger: dict, *, observed_at: str) -> None:
+    rows = []
+    for index, account in enumerate(account_ledger["platform_accounts"], start=1):
+        rows.append(
+            {
+                "platform_account_id": account["platform_account_id"],
+                "onboarding": {
+                    "onboarding_state": "onboarded",
+                    "onboarded_at_or_none": observed_at,
+                    "evidence_packet_id_or_none": f"fixture_packet_{index}",
+                    "evidence_source_family_or_none": "youtube",
+                    "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+                    "policy_version": "creator_registry_onboarding_v0",
+                },
+            }
+        )
+    path.write_text(
+        json.dumps({"creator_registry_index": {"platform_accounts": rows}}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def _observed_receipt(value: int) -> dict:
     return {
         "posture": "observed",
@@ -129,6 +151,7 @@ def _commit_packet(
         "video_id": video_id,
         "surface_type": "watch",
         "watch_url": f"https://www.youtube.com/watch?v={video_id}",
+        "canonical_url": f"https://www.youtube.com/watch?v={video_id}",
         "channel": {"channel_id": channel_id, "author": "fixture"},
         "metadata": {"title": f"fixture {video_id}", "publish_date": "2026-06-20"},
         "engagement": {
@@ -144,6 +167,14 @@ def _commit_packet(
             "comment_sample_count": _unavailable_receipt("comments not sampled in fixture"),
         },
         "comments_posture": "comments_not_exposed",
+        "comments": [],
+        "comment_capture_coverage": {
+            "requested_page_limit": 1,
+            "pages_fetched": 0,
+            "selected_comment_count": 0,
+            "continuation_remaining_after_stop": False,
+            "ordering_posture": "source_default_order_as_served",
+        },
         "receipts": {"http_status": 200, "retrieval_time_utc": captured_at},
     }
     code, _output = write_youtube_watch_packet(
@@ -294,8 +325,11 @@ def test_live_recapture_loop_snapshot_freshness_view_and_revalidation(tmp_path: 
         json.dumps({"creator_public_handle_linkage_ledger": account_ledger}, indent=2) + "\n",
         encoding="utf-8",
     )
+    registry_index_path = tmp_path / "creator_registry_index_v0.json"
+    _write_registry_index(registry_index_path, account_ledger, observed_at=CAPTURE_T1)
     view = build_creator_profile_current_view_from_files(
         account_ledger_path=ledger_path,
+        creator_registry_index_path=registry_index_path,
         metric_seed_paths=[snapshot_path],
         generated_at_utc=RUN_T2,
     )  # validates internally; raising == the live rollup shape broke the view contract
@@ -357,8 +391,11 @@ def test_operator_exclusions_flow_into_silver_rollup_limitations(tmp_path: Path)
         json.dumps({"creator_public_handle_linkage_ledger": account_ledger}, indent=2) + "\n",
         encoding="utf-8",
     )
+    registry_index_path = tmp_path / "creator_registry_index_v0.json"
+    _write_registry_index(registry_index_path, account_ledger, observed_at=CAPTURE_T1)
     view = build_creator_profile_current_view_from_files(
         account_ledger_path=ledger_path,
+        creator_registry_index_path=registry_index_path,
         metric_seed_paths=[snapshot_path],
         generated_at_utc=RUN_T1,
     )

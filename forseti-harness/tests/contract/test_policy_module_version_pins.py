@@ -73,9 +73,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION",
             "FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION",
             "FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION",
+            "FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION",
             "FRAGRANTICA_CLEANING_METHOD_ID",
         ),
-        "6ba53c8c2ee91bdf727fb2d690763aaa7ef2519c8ac6742cfc106df324c186e5",
+        "126f4252d35453c341516e2148287134bdeaf2caded0647c8f4116ce16cee875",
     ),
     "cleaning/models.py": (
         ("CLEANING_CORE_VERSION",),
@@ -100,9 +101,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/transcript_product_lake.py": (
         ("EXTRACTOR_RUBRIC_VERSION (cleaning/transcript_product_extractor.py)", "PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
-        # Output-shaping: grammar-B payload migrated to the official Silver envelope;
-        # PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION bumped to v1 and now rides obligations.
-        "5552e030494eff9aaec29f8c16e8fc3eadc412caf3f66da165f6de819f39781c",
+        # Output-shaping: the official Silver envelope is retained, while durable
+        # record/completion identity now binds the full policy fingerprint; the
+        # PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION bump to v2 re-surfaces V1 records.
+        "10cc4eb51d7f8c5307d02eb96ff606c70d8af70318574ef3ce59641093b3ea99",
     ),
     "cleaning/tiktok_audience_evidence_extractor.py": (
         ("RUBRIC_VERSION",),
@@ -174,7 +176,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
 # accidentally drops the payload field itself.
 RECORD_SCHEMA_TOKEN_FIELD_SITES: dict[str, tuple[str, ...]] = {
     "cleaning/transcript_product_lake.py": (
-        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v1"',
+        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v2"',
         '"record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION',
     ),
     "source_capture/fragrance_review_coverage.py": (

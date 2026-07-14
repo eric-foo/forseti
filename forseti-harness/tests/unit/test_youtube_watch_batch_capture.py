@@ -91,6 +91,7 @@ def _write_real_packet(
         "video_id": video_id,
         "surface_type": "watch",
         "watch_url": f"https://www.youtube.com/watch?v={video_id}",
+        "canonical_url": f"https://www.youtube.com/watch?v={video_id}",
         "channel": {"channel_id": ALPHA_CHANNEL, "author": "fixture"},
         "metadata": {"title": f"fixture {video_id}", "publish_date": "2026-06-20"},
         "engagement": {"view_count": 100} if playable else {},
@@ -104,6 +105,14 @@ def _write_real_packet(
             "comment_sample_count": _unavailable_receipt("not exposed in fixture"),
         },
         "comments_posture": "comments_not_exposed",
+        "comments": [],
+        "comment_capture_coverage": {
+            "requested_page_limit": 1,
+            "pages_fetched": 0,
+            "selected_comment_count": 0,
+            "continuation_remaining_after_stop": False,
+            "ordering_posture": "source_default_order_as_served",
+        },
         "receipts": {"http_status": 200, "retrieval_time_utc": captured_at},
     }
     return write_youtube_watch_packet(
