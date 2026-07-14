@@ -18,6 +18,7 @@ open_next:
   - docs/decisions/forseti_creator_signal_spine_promotion_binding_v0.md
   - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
   - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+  - forseti/product/spines/creator_signal/creator_commercial_projection_calibration_deck_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
 stale_if:
   - The Creator Signal spine identity or product_signal kind is amended.
@@ -54,6 +55,7 @@ Binding authority:
 | --- | --- |
 | `creator_intelligence_profile_surface_v0.md` | First product surface contract for the one-stop creator intelligence profile. |
 | `creator_audience_triangulation_and_commercial_projection_v0.md` | Controlling split and copy contract for content-fit evidence, observed participating-audience evidence, Judgment fusion, and maximally aggressive buyer-facing creator fit. |
+| `creator_commercial_projection_calibration_deck_v0.md` | Required authoring companion: evidence-to-commercial-role transformation, calibration patterns, and held-out dogfood gate for cold panel authors. |
 | `aphrodite_carveout_charter_v0.md` | Ratified Aphrodite product spine, including the 2026-07-12 amendment: accountable human Signals judgment, reopened first-unit decision, independent Studio lane, and strategic raw-registry export boundary. |
 | `aphrodite_derived_claim_provenance_contract_v0.md` | Display/claim-language contract: derived (LLM-extracted) creator claims must carry derivation provenance to be shown; discharges charter pre-build gate 1. |
 | `aphrodite_vetting_sprint_panel_design_v0.md` | Adjudicated five-panel display design (2026-07-05, Mini God Tier): fit matrix (no composite score), dupe-space roll-up rule, buyer-segment lead variants, gameability countermeasures, accepted residuals. Display target for the depth-layer build and the D-1 dress rehearsal. |

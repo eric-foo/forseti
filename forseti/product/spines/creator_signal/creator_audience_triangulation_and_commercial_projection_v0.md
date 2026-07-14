@@ -16,6 +16,7 @@ use_when:
   - Writing buyer-facing creator copy from transcript/content and captured-comment evidence.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/creator_signal/creator_commercial_projection_calibration_deck_v0.md
   - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
   - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
   - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
@@ -38,6 +39,15 @@ it pays you back.”
 This fixes product and presentation doctrine. It does not authorize runtime or
 schema changes, capture, model/API use, publishing, outreach, or buyer contact,
 and it is not buyer proof, validation, or a performance guarantee.
+
+## Required Authoring Companion
+
+Any actor that creates or materially rewrites the buyer-facing commercial panel
+must also read
+`creator_commercial_projection_calibration_deck_v0.md`. This contract remains
+the authority for what may be claimed; the companion teaches the evidence-to-
+commercial-copy transformation and is not a substitute claim source. A cold
+actor must not draft from this contract alone.
 
 ## Product Job
 
@@ -239,12 +249,15 @@ direction_change_propagation:
     audience, and fused commercial creator fit; Silver/mechanical layers prepare
     dated evidence while Judgment owns fusion and Creator Signal presents the
     strongest evidence-supported buyer copy under a maximum-defensible-aggression
-    rule inside the complete creator registry.
+    rule inside the complete creator registry. Commercial-panel authors must load
+    the subordinate calibration deck so routine cold actors can reproduce the
+    evidence-to-buyer-value transformation without treating examples as claims.
   trigger: product_doctrine
   related_triggers:
     - architecture_doctrine
   controlling_sources_updated:
     - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+    - forseti/product/spines/creator_signal/creator_commercial_projection_calibration_deck_v0.md
     - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/creator_signal/README.md
