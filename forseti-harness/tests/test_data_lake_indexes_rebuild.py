@@ -12,6 +12,7 @@ import hashlib
 from pathlib import Path
 
 from data_lake.canonical_json import canonical_record_bytes
+import pytest
 from data_lake.consumption import append_ack
 from data_lake.derived_retrieval_views import (
     MENTIONS_LANE,
@@ -27,11 +28,17 @@ from data_lake.silver_lineage import (
     SilverSourceObject,
 )
 from data_lake.silver_record import silver_content_hash
+from data_lake.sibling_selection import SiblingSelectionError
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
 _STAMP = {"generation_id": "0" * 32, "generated_at": "2026-07-02T00:00:00+00:00"}
 _NS = "projection_ig"
+_POLICY = {"policy_version": "v0", "policy_fingerprint_sha256": "a" * 64}
+_POLICY_ARGS = [
+    "--product-mention-policy-version", "v0",
+    "--product-mention-policy-fingerprint-sha256", "a" * 64,
+]
 
 
 def _commit_packet(root: DataLakeRoot, tmp_path: Path, body: str) -> str:
@@ -110,12 +117,13 @@ def _write_mentions_record(
             "observation": {
                 "subject": {"ref_type": "entity_key", "ref": {"namespace": "youtube", "kind": "public_content_object", "native_id": "vid1"}},
                 "observation_set_kind": "transcript_product_mentions",
-                "policy_version": "v0",
-                "policy_fingerprint_sha256": "a" * 64,
+                "policy_version": record.get("policy_version", "v0"),
+                "policy_fingerprint_sha256": record.get("policy_fingerprint_sha256", "a" * 64),
                 "row_count": len(rows),
                 "rows": rows,
             }
         },
+        "provenance": {"transcript_source_key": record.get("transcript_source_key", record_id)},
     }
     record["content_hash"] = "sha256:" + silver_content_hash(record)
     root.append_record(
@@ -164,7 +172,7 @@ def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     first, second = _seeded_root(root, tmp_path)
 
-    report = rebuild_derived_retrieval(root, stamp=_STAMP)
+    report = rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
     assert report["status"] == "rebuilt"
     assert report["views"] == ["by_mention", "undone"]
     assert report["deferred_views"] == ["by_creator"]
@@ -213,15 +221,77 @@ def test_by_mention_gates_unreadable_records(tmp_path: Path) -> None:
         record_id="m_corrupt.json",
         data=b"{not json",
     )
-    view, _refs = build_by_mention_view(root)
+    view, _refs = build_by_mention_view(root, product_mention_policy=_POLICY)
     assert view["mentions"] == {}
     assert view["residuals"][0]["status"] == "unreadable"
 
 
+def test_by_mention_selects_only_the_requested_policy(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "alpha")
+    _write_mentions_record(
+        root,
+        pid,
+        "old.json",
+        {
+            "mentions": [{"brand": "Old", "line": "Excluded"}],
+            "policy_version": "old",
+            "policy_fingerprint_sha256": "b" * 64,
+            "transcript_source_key": "same-source",
+            **_complete_lineage_fields(pid),
+        },
+    )
+    _write_mentions_record(
+        root,
+        pid,
+        "current.json",
+        {
+            "mentions": [{"brand": "Current", "line": "Included"}],
+            "transcript_source_key": "same-source",
+            **_complete_lineage_fields(pid),
+        },
+    )
+
+    view, _refs = build_by_mention_view(root, product_mention_policy=_POLICY)
+
+    assert set(view["mentions"]) == {"Current"}
+    assert view["selection_policy"] == _POLICY
+    assert [residual["status"] for residual in view["residuals"]] == ["policy_mismatch"]
+
+
+def test_by_mention_distinct_same_policy_siblings_fail_closed(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "alpha")
+    for record_id, brand in (("a.json", "A"), ("b.json", "B")):
+        _write_mentions_record(
+            root,
+            pid,
+            record_id,
+            {
+                "mentions": [{"brand": brand, "line": "line"}],
+                "transcript_source_key": "same-source",
+                **_complete_lineage_fields(pid),
+            },
+        )
+
+    with pytest.raises(SiblingSelectionError, match="ambiguous_sibling_derivation"):
+        build_by_mention_view(root, product_mention_policy=_POLICY)
+
+
+def test_by_mention_requires_exact_policy_identity(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    with pytest.raises(ValueError, match="policy_version"):
+        build_by_mention_view(
+            root,
+            product_mention_policy={
+                "policy_fingerprint_sha256": "a" * 64,
+            },
+        )
+
 def test_prove_rebuildability_green_then_tamper_fails(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     _seeded_root(root, tmp_path)
-    rebuild_derived_retrieval(root, stamp=_STAMP)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
 
     proof = prove_derived_retrieval_rebuildability(root)
     assert proof["status"] == "proven"
@@ -242,7 +312,7 @@ def test_prove_detects_source_change_since_generation(tmp_path: Path) -> None:
     # the stored view no longer matches a regeneration -> drift is reported.
     root = DataLakeRoot.for_test(tmp_path / "lake")
     _seeded_root(root, tmp_path)
-    rebuild_derived_retrieval(root, stamp=_STAMP)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
     assert prove_derived_retrieval_rebuildability(root)["status"] == "proven"
 
     _commit_packet(root, tmp_path, "gamma")
@@ -266,7 +336,7 @@ def test_runner_cli_fails_closed_on_in_repo_root(tmp_path: Path, capsys) -> None
     # refuse it (write-boundary fail-closed rule), exit 2, and write nothing.
     from runners.run_data_lake_indexes_rebuild import main
 
-    assert main(["--root", str(tmp_path / "lake"), "--target", "all"]) == 2
+    assert main(["--root", str(tmp_path / "lake"), "--target", "all", *_POLICY_ARGS]) == 2
     report = json.loads(capsys.readouterr().out)
     assert report["status"] == "error"
 
@@ -280,7 +350,7 @@ def test_runner_cli_rebuild_then_prove(tmp_path: Path, capsys, monkeypatch) -> N
     # verified test root to exercise the runner's rebuild/prove flow itself.
     monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(lambda **_kwargs: root))
 
-    assert main(["--root", str(root.path), "--target", "all"]) == 0
+    assert main(["--root", str(root.path), "--target", "all", *_POLICY_ARGS]) == 0
     report = json.loads(capsys.readouterr().out)
     assert report["status"] == "ok"
     assert report["availability"]["status"] == "rebuilt"

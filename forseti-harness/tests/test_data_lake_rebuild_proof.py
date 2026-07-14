@@ -10,6 +10,7 @@ from source_capture.writer import write_local_source_capture_packet
 
 _STAMP = {"generation_id": "0" * 32, "generated_at": "2026-07-02T00:00:00+00:00"}
 
+_POLICY = {"policy_version": "v0", "policy_fingerprint_sha256": "a" * 64}
 
 def _capture(root: DataLakeRoot, tmp_path: Path, body: str):
     src = tmp_path / f"{body}.json"
@@ -45,7 +46,7 @@ def test_indexes_rebuild_byte_identical_from_authoritative_truth(tmp_path: Path)
     packet_ids = [_capture(root, tmp_path, body).packet.packet_id for body in ("alpha", "beta", "gamma")]
 
     indexes = root.path / "indexes"
-    rebuild_derived_retrieval(root, stamp=_STAMP)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
     before = _snapshot(indexes)
     assert {f"availability/{packet_id}.json" for packet_id in packet_ids} <= set(before)
     assert "derived_retrieval/object_level/undone/view.json" in before
@@ -53,7 +54,7 @@ def test_indexes_rebuild_byte_identical_from_authoritative_truth(tmp_path: Path)
 
     shutil.rmtree(indexes)  # wipe the entire cache tier
     assert root.rebuild_availability() == 3
-    rebuild_derived_retrieval(root, stamp=_STAMP)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
 
     after = _snapshot(root.path / "indexes")
     assert after == before, "an index did not rebuild byte-identically -> it is smuggling non-rebuildable state"

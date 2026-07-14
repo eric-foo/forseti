@@ -43,15 +43,14 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cleaning.transcript_product_lake import cues_from_json3
-from data_lake.derived_retrieval_views import MENTIONS_LANE
-from data_lake.root import DataLakeRoot, DataLakeRootError
-from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
-    silver_record_source_backed_status,
+from data_lake.product_mention_selection import (
+    MENTIONS_LANE,
+    normalize_product_mention_policy,
+    select_product_mention_records,
 )
-from data_lake.silver_record import SilverRecordError, validate_silver_vault_record
+from data_lake.root import DataLakeRoot, DataLakeRootError
 
-EVAL_SCHEMA_VERSION = 2
+EVAL_SCHEMA_VERSION = 3
 LEAKED_SAMPLE_CAP = 20
 
 NON_CLAIMS = [
@@ -141,8 +140,12 @@ def _resolve_transcript(root: DataLakeRoot, record: dict) -> tuple[str | None, s
     return text, "resolved_caption_json3"
 
 
-def run_eval(root: DataLakeRoot) -> dict:
+def run_eval(root: DataLakeRoot, *, product_mention_policy: dict[str, str]) -> dict:
     """The full eval report as a dict, computed purely from committed material."""
+    selection = select_product_mention_records(
+        root,
+        policy=normalize_product_mention_policy(product_mention_policy),
+    )
     packet_ids = sorted(root.list_available())
     packets_by_family: dict[str, int] = {}
     for packet_id in packet_ids:
@@ -150,14 +153,16 @@ def run_eval(root: DataLakeRoot) -> dict:
         family = str(entry.get("source_family") or "unknown")
         packets_by_family[family] = packets_by_family.get(family, 0) + 1
 
-    records_total = 0
-    records_unreadable = 0
-    records_by_gate_status: dict[str, int] = {}
+    records_by_selection_status: dict[str, int] = {
+        "selected_exact_policy": len(selection.selected)
+    }
+    for residual in selection.residuals:
+        status = str(residual["status"])
+        records_by_selection_status[status] = records_by_selection_status.get(status, 0) + 1
     records_by_transcript_disposition: dict[str, int] = {}
     records_with_captured_at = 0
     records_with_observed_at = 0
     malformed_mention_entries = 0
-    mentions_excluded_not_source_backed = 0
     mentions_named = 0
     mentions_unknown_or_blank = 0
     named_scanned_present = 0
@@ -166,89 +171,64 @@ def run_eval(root: DataLakeRoot) -> dict:
     per_brand: dict[str, dict[str, int]] = {}
     leaked_samples: list[dict] = []
 
-    for raw_anchor in packet_ids:
-        lane_dir = root.lane_dir(subtree="derived", raw_anchor=raw_anchor, lane=MENTIONS_LANE)
-        if not lane_dir.is_dir():
-            continue
-        for record_file in sorted(p for p in lane_dir.iterdir() if p.is_file()):
-            records_total += 1
-            try:
-                record = json.loads(record_file.read_bytes().decode("utf-8"))
-            except ValueError:
-                record = None
-            if not isinstance(record, dict):
-                records_unreadable += 1
-                continue
-            mentions, malformed = _mentions_from_record(record)
-            malformed_mention_entries += malformed
-            try:
-                validate_silver_vault_record(record)
-            except SilverRecordError:
-                records_by_gate_status["invalid_silver_envelope"] = (
-                    records_by_gate_status.get("invalid_silver_envelope", 0) + 1
-                )
-                mentions_excluded_not_source_backed += len(mentions)
-                continue
-            status = silver_record_source_backed_status(record)
-            records_by_gate_status[status] = records_by_gate_status.get(status, 0) + 1
-            if record.get("captured_at"):
-                records_with_captured_at += 1
-            if record.get("observed_at"):
-                records_with_observed_at += 1
-            if status != SOURCE_BACKED_COMPLETE_STATUS:
-                # Gate-failing records are never scanned, but their mention
-                # entries land in an explicit counted class (adjudicated F3).
-                mentions_excluded_not_source_backed += len(mentions)
-                continue
+    for selected in selection.selected:
+        raw_anchor = selected.raw_anchor
+        record = selected.record
+        mentions, malformed = _mentions_from_record(record)
+        malformed_mention_entries += malformed
+        if record.get("captured_at"):
+            records_with_captured_at += 1
+        if record.get("observed_at"):
+            records_with_observed_at += 1
 
-            named_mentions: list[tuple[dict, str]] = []
-            for mention in mentions:
-                if not isinstance(mention, dict):
-                    malformed_mention_entries += 1
-                    continue
-                if _is_named_brand(mention.get("brand")):
-                    brand = str(mention.get("brand")).strip()
-                    mentions_named += 1
-                    named_mentions.append((mention, brand))
-                    per_brand.setdefault(brand, _brand_tally())["mentions"] += 1
-                else:
-                    mentions_unknown_or_blank += 1
-
-            if not named_mentions:
-                records_by_transcript_disposition["not_attempted_no_named_mentions"] = (
-                    records_by_transcript_disposition.get("not_attempted_no_named_mentions", 0)
-                    + 1
-                )
+        named_mentions: list[tuple[dict, str]] = []
+        for mention in mentions:
+            if not isinstance(mention, dict):
+                malformed_mention_entries += 1
                 continue
+            if _is_named_brand(mention.get("brand")):
+                brand = str(mention.get("brand")).strip()
+                mentions_named += 1
+                named_mentions.append((mention, brand))
+                per_brand.setdefault(brand, _brand_tally())["mentions"] += 1
+            else:
+                mentions_unknown_or_blank += 1
 
-            transcript, disposition = _resolve_transcript(root, record)
-            records_by_transcript_disposition[disposition] = (
-                records_by_transcript_disposition.get(disposition, 0) + 1
+        if not named_mentions:
+            records_by_transcript_disposition["not_attempted_no_named_mentions"] = (
+                records_by_transcript_disposition.get("not_attempted_no_named_mentions", 0)
+                + 1
             )
-            if transcript is None:
-                named_unscannable += len(named_mentions)
-                for _mention, brand in named_mentions:
-                    per_brand[brand]["unscannable"] += 1
-                continue
-            transcript_folded = transcript.casefold()
-            for mention, brand in named_mentions:
-                tally = per_brand[brand]
-                tally["scanned"] += 1
-                if brand.casefold() in transcript_folded:
-                    named_scanned_present += 1
-                else:
-                    named_scanned_leaked += 1
-                    tally["leaked"] += 1
-                    if len(leaked_samples) < LEAKED_SAMPLE_CAP:
-                        leaked_samples.append(
-                            {
-                                "raw_anchor": raw_anchor,
-                                "record_id": record_file.name,
-                                "mention_id": str(mention.get("mention_id") or ""),
-                                "brand": brand,
-                                "line": str(mention.get("line") or ""),
-                            }
-                        )
+            continue
+
+        transcript, disposition = _resolve_transcript(root, record)
+        records_by_transcript_disposition[disposition] = (
+            records_by_transcript_disposition.get(disposition, 0) + 1
+        )
+        if transcript is None:
+            named_unscannable += len(named_mentions)
+            for _mention, brand in named_mentions:
+                per_brand[brand]["unscannable"] += 1
+            continue
+        transcript_folded = transcript.casefold()
+        for mention, brand in named_mentions:
+            tally = per_brand[brand]
+            tally["scanned"] += 1
+            if brand.casefold() in transcript_folded:
+                named_scanned_present += 1
+            else:
+                named_scanned_leaked += 1
+                tally["leaked"] += 1
+                if len(leaked_samples) < LEAKED_SAMPLE_CAP:
+                    leaked_samples.append(
+                        {
+                            "raw_anchor": raw_anchor,
+                            "record_id": selected.record_id,
+                            "mention_id": str(mention.get("mention_id") or ""),
+                            "brand": brand,
+                            "line": str(mention.get("line") or ""),
+                        }
+                    )
 
     scanned = named_scanned_present + named_scanned_leaked
     return {
@@ -257,13 +237,13 @@ def run_eval(root: DataLakeRoot) -> dict:
         "substrate": {
             "packets_total": len(packet_ids),
             "packets_by_source_family": dict(sorted(packets_by_family.items())),
-            "mention_records_total": records_total,
-            "mention_records_unreadable": records_unreadable,
-            "mention_records_by_gate_status": dict(sorted(records_by_gate_status.items())),
+            "product_mention_policy": selection.policy,
+            "mention_records_total": len(selection.source_refs),
+            "mention_records_selected_exact_policy": len(selection.selected),
+            "mention_records_by_selection_status": dict(sorted(records_by_selection_status.items())),
             "records_with_captured_at": records_with_captured_at,
             "records_with_observed_at": records_with_observed_at,
             "malformed_mention_entries": malformed_mention_entries,
-            "mentions_excluded_not_source_backed": mentions_excluded_not_source_backed,
             "mentions_named_brand": mentions_named,
             "mentions_unknown_or_blank_brand": mentions_unknown_or_blank,
         },
@@ -305,8 +285,18 @@ def main(argv: list[str] | None = None) -> int:
         "--out",
         help="Optional file path (outside the data root) to also write the JSON report to.",
     )
-    args = parser.parse_args(argv)
 
+    parser.add_argument(
+        "--product-mention-policy-version",
+        required=True,
+        help="Exact transcript-product-mention policy version to evaluate.",
+    )
+    parser.add_argument(
+        "--product-mention-policy-fingerprint-sha256",
+        required=True,
+        help="Exact lowercase 64-hex transcript-product-mention policy fingerprint.",
+    )
+    args = parser.parse_args(argv)
     try:
         root = DataLakeRoot.resolve(explicit=args.data_root)
         if args.out:
@@ -319,8 +309,14 @@ def main(argv: list[str] | None = None) -> int:
                 raise DataLakeRootError(
                     f"--out must not write inside the data root (read-only eval): {out_path}"
                 )
-        report = run_eval(root)
-    except DataLakeRootError as exc:
+        report = run_eval(
+            root,
+            product_mention_policy={
+                "policy_version": args.product_mention_policy_version,
+                "policy_fingerprint_sha256": args.product_mention_policy_fingerprint_sha256,
+            },
+        )
+    except (DataLakeRootError, ValueError) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
 

@@ -115,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
             view, _source_refs = compute_sov_readout(root, _load_spec(args.spec))
             report["status"] = "computed"
             report["readout"] = view
-    except DataLakeRootError as exc:
+    except (DataLakeRootError, ValueError) as exc:
         report["status"] = "error"
         report["error"] = str(exc)
         print(json.dumps(report, indent=2, sort_keys=True))
