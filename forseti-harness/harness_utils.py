@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import secrets
+import shutil
+import tempfile
 import time
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 import yaml
 
@@ -32,6 +36,40 @@ def sha256_bytes(data: bytes) -> str:
 
 def hash_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
+
+
+@contextmanager
+def staged_directory_publish(destination: Path) -> Iterator[Path]:
+    """Build a complete directory off-tree, then publish it with one rename."""
+
+    final_directory = destination.resolve()
+    _require_empty_or_absent_directory(final_directory)
+    final_directory.parent.mkdir(parents=True, exist_ok=True)
+    staging_directory = Path(
+        tempfile.mkdtemp(
+            prefix=f".{final_directory.name}.staging-",
+            dir=final_directory.parent,
+        )
+    )
+
+    try:
+        yield staging_directory
+        _require_empty_or_absent_directory(final_directory)
+        if final_directory.exists():
+            final_directory.rmdir()
+        os.rename(staging_directory, final_directory)
+    except BaseException:
+        shutil.rmtree(staging_directory, ignore_errors=True)
+        raise
+
+
+def _require_empty_or_absent_directory(destination: Path) -> None:
+    if not destination.exists():
+        return
+    if not destination.is_dir():
+        raise ValueError(f"output path is not a directory: {destination}")
+    if any(destination.iterdir()):
+        raise ValueError(f"refusing to overwrite non-empty output directory: {destination}")
 
 
 def canonical_yaml_dump(data: Any) -> str:
