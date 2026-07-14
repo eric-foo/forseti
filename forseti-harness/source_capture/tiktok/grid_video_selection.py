@@ -12,7 +12,7 @@ from fractions import Fraction
 from typing import Any
 
 TIKTOK_GRID_VIDEO_SELECTION_SCHEMA_VERSION = "tiktok_grid_video_selection_v1"
-TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION = "tiktok_reach_ranked_fixed_count_v2"
+TIKTOK_GRID_VIDEO_SELECTION_FIXED_COUNT_POLICY_VERSION = "tiktok_reach_ranked_fixed_count_v3"
 TIKTOK_GRID_VIDEO_SELECTION_POLICY_VERSION = "tiktok_reach_first_top_fraction_v3"
 _DEFAULT_SELECTION_FRACTION = Fraction(1, 4)
 _MINIMUM_VIEW_RETENTION_PERCENT = 80
@@ -50,7 +50,15 @@ def build_tiktok_grid_video_selection(
             f"expected {expected_item_count} items, received {len(items)}"
         )
 
-    normalized = [_normalize_item(item, index=index) for index, item in enumerate(items)]
+    fixed_count_mode = selection_count is not None
+    normalized = [
+        _normalize_item(
+            item,
+            index=index,
+            require_like_count=not fixed_count_mode,
+        )
+        for index, item in enumerate(items)
+    ]
     video_ids = [item["video_id"] for item in normalized]
     if len(set(video_ids)) != len(video_ids):
         raise TikTokGridVideoSelectionError("duplicate video_id values are not allowed")
@@ -67,10 +75,14 @@ def build_tiktok_grid_video_selection(
     reach_order = sorted(
         eligible,
         key=lambda item: (
-            -item["view_count"],
-            -_like_rate_fraction(item),
-            -item["like_count"],
-            item["video_id"],
+            (-item["view_count"], item["video_id"])
+            if fixed_count_mode
+            else (
+                -item["view_count"],
+                -_like_rate_fraction(item),
+                -item["like_count"],
+                item["video_id"],
+            )
         ),
     )
     baseline_selected = reach_order[:resolved_selection_count]
@@ -157,9 +169,15 @@ def build_tiktok_grid_video_selection(
             "selection_count_rounding": (
                 None if selection_count is not None else "ceil_with_minimum_one"
             ),
-            "required_metrics": ["playCount", "diggCount"],
+            "required_metrics": (
+                ["playCount"] if fixed_count_mode else ["playCount", "diggCount"]
+            ),
             "ineligible_row_rule": (
                 "Preserve source-owned grid rows in the grid artifact and selection receipt, "
+                "but exclude rows whose playCount cannot support fixed-count reach ranking. "
+                "Naturally available diggCount remains useful context but is not required."
+                if fixed_count_mode
+                else "Preserve source-owned grid rows in the grid artifact and selection receipt, "
                 "but exclude rows whose playCount/diggCount cannot support the ranking recipe."
             ),
             "membership_rule": (
@@ -193,7 +211,11 @@ def build_tiktok_grid_video_selection(
             ),
             "minimum_view_retention_percent": _MINIMUM_VIEW_RETENTION_PERCENT,
             "minimum_like_rate_lift_percent": _MINIMUM_LIKE_RATE_LIFT_PERCENT,
-            "like_rate_recipe": "diggCount / playCount",
+            "like_rate_recipe": (
+                "diggCount / playCount when naturally available; not required for fixed-count membership"
+                if fixed_count_mode
+                else "diggCount / playCount"
+            ),
         },
         "coverage": {
             "expected_item_count": expected_item_count,
@@ -335,7 +357,12 @@ def _like_rate_fraction(item: dict[str, Any]) -> Fraction:
     return Fraction(item["like_count"], item["view_count"])
 
 
-def _normalize_item(item: dict[str, Any], *, index: int) -> dict[str, Any]:
+def _normalize_item(
+    item: dict[str, Any],
+    *,
+    index: int,
+    require_like_count: bool,
+) -> dict[str, Any]:
     if not isinstance(item, dict):
         raise TikTokGridVideoSelectionError(f"item {index} must be an object")
     stats = item.get("stats")
@@ -358,13 +385,14 @@ def _normalize_item(item: dict[str, Any], *, index: int) -> dict[str, Any]:
         metric_name="diggCount",
         keys=("diggCount", "digg_count", "like_count"),
     )
-    ineligibility_reason = view_reason or like_reason
+    ineligibility_reason = view_reason or (like_reason if require_like_count else None)
     if ineligibility_reason is None and view_count == 0:
         ineligibility_reason = "playCount_zero"
     if (
         ineligibility_reason is None
         and view_count is not None
         and like_count is not None
+        and require_like_count
         and like_count > view_count
     ):
         ineligibility_reason = "diggCount_exceeds_playCount"
@@ -376,7 +404,7 @@ def _normalize_item(item: dict[str, Any], *, index: int) -> dict[str, Any]:
         "like_count": like_count,
         "like_rate": (
             round(like_count / view_count, 6)
-            if eligible and view_count is not None and like_count is not None
+            if view_count not in (None, 0) and like_count is not None
             else None
         ),
         "selection_eligible": eligible,

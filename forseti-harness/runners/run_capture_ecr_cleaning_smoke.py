@@ -44,7 +44,7 @@ from ecr.models import (  # noqa: E402
     EcrSourceSideReceipt,
     EcrSourceSideReceiptArtifact,
 )
-from harness_utils import hash_file, utc_now_z  # noqa: E402
+from harness_utils import hash_file, staged_directory_publish, utc_now_z  # noqa: E402
 from source_capture.models import PreservedFile, SourceCapturePacket  # noqa: E402
 from source_capture.ig_projection import IgCreatorMomentumProjectionPacket  # noqa: E402
 from source_capture.reddit_consolidation import (  # noqa: E402
@@ -170,8 +170,6 @@ def run_capture_ecr_cleaning_smoke(
             + ", ".join(str(path) for path in existing_outputs)
         )
 
-    output_dir.mkdir(parents=True, exist_ok=True)
-
     generated_at = utc_now_z()
     handles: list[CleaningInputHandle] = []
     receipts: list[EcrSourceSideReceipt] = []
@@ -271,9 +269,10 @@ def run_capture_ecr_cleaning_smoke(
         "non_claims": NON_CLAIMS,
     }
 
-    _write_json(output_paths["ecr_source_side_receipts"], ecr_payload)
-    _write_json(output_paths["cleaning_packet"], cleaning_payload)
-    _write_json(output_paths["smoke_summary"], summary_payload)
+    with staged_directory_publish(output_dir) as staging_directory:
+        _write_json(staging_directory / ECR_OUTPUT_NAME, ecr_payload)
+        _write_json(staging_directory / CLEANING_OUTPUT_NAME, cleaning_payload)
+        _write_json(staging_directory / SUMMARY_OUTPUT_NAME, summary_payload)
 
     return {key: str(path) for key, path in output_paths.items()}
 
@@ -1626,7 +1625,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             output_dir=args.output_dir,
             include_cleaning_transform_smoke=args.include_cleaning_transform_smoke,
         )
-    except (ValueError, ValidationError) as exc:
+    except (OSError, ValueError, ValidationError) as exc:
         parser.exit(status=2, message=f"capture/ECR/Cleaning smoke failed: {exc}\n")
 
     print(json.dumps(outputs, indent=2, sort_keys=True))

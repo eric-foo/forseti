@@ -61,20 +61,38 @@ def _metadata_packet(**overrides: Any) -> dict[str, Any]:
         },
         "availability": {"video_state": "playable", "comments_state": "comments_sample_captured"},
         "metric_receipts": {
-            "view_count": _metric_observed(1200, "ytInitialPlayerResponse.videoDetails.viewCount", "raw_watch.html"),
+            "view_count": _metric_observed(1200, "ytInitialPlayerResponse.videoDetails.viewCount", "youtube_watch_capture.json"),
             "like_count": _metric_observed(
-                34, "ytInitialPlayerResponse.microformat.playerMicroformatRenderer.likeCount", "raw_watch.html"
+                34, "ytInitialPlayerResponse.microformat.playerMicroformatRenderer.likeCount", "youtube_watch_capture.json"
             ),
             "comment_sample_count": _metric_observed(
-                1, "youtubei_next.commentEntityPayload", "youtubei_next_page_01.json"
+                1, "youtubei_next.commentEntityPayload", "youtube_watch_capture.json"
             ),
             "total_comment_count": _metric_observed(
-                12, "youtubei_next.commentsHeaderRenderer.countText", "youtubei_next_page_01.json"
+                12, "youtubei_next.commentsHeaderRenderer.countText", "youtube_watch_capture.json"
             ),
         },
         "comments_posture": "comments_sample_captured",
         "comment_count_text": "12 comments",
-        "comments": [{"author": "A", "text": "wear test?", "published_time": "1 day ago", "like_count": 2}],
+        "comments": [
+            {
+                "comment_id": "comment-001",
+                "author": "A",
+                "text": "wear test?",
+                "published_time": "1 day ago",
+                "like_count": 2,
+                "source_page_number": 1,
+                "source_order_in_page": 1,
+                "source_order_global": 1,
+            }
+        ],
+        "comment_capture_coverage": {
+            "requested_page_limit": 1,
+            "pages_fetched": 1,
+            "selected_comment_count": 1,
+            "continuation_remaining_after_stop": False,
+            "ordering_posture": "source_default_order_as_served",
+        },
         "receipts": {"http_status": 200, "retrieval_time_utc": "2026-06-21T00:00:00Z"},
     }
     packet.update(overrides)
@@ -274,7 +292,7 @@ def test_projection_from_lake_discovers_watch_metadata_packet_by_video_id(tmp_pa
     metadata = projection["metadata_capture"]
     assert metadata["capture_packet_id"] == watch_packet_id
     assert metadata["source_surface"] == "youtube_watch_metadata_comments"
-    assert metadata["capture_schema_version"] == "youtube_watch_metadata_comments_capture_v0"
+    assert metadata["capture_schema_version"] == "youtube_watch_metadata_comments_capture_v1"
     assert metadata["metadata"]["title"] == "Fragrance review"
     assert metadata["comments"]["posture"] == "comments_sample_captured"
     assert metadata["comments"]["sample_count"] == 1

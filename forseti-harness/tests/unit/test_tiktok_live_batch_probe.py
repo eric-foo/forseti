@@ -3082,6 +3082,65 @@ def test_overlay_route_uses_grid_metadata_without_item_struct() -> None:
     assert contract["item_struct_required"] is False
 
 
+def test_overlay_route_preserves_dom_view_provenance_without_zero_filling_engagement() -> None:
+    video_id = "7390000000000000001"
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+    capture = _success_observation(video_id=video_id, response=_comment_response(video_id=video_id))
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": False,
+            "visible_comment_candidates": [],
+            "subtitle_tracks": [],
+        }
+    )
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[video_url],
+        logged_out=True,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=lambda _index, _pending: (video_url, capture),
+        grid_candidates_by_video_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": video_url,
+                "author": {"uniqueId": "funmi"},
+                "stats": {"playCount": 31_800},
+                "grid_view_count": {
+                    "raw_text_or_none": "31.8K",
+                    "parsed_approximate_count_or_none": 31_800,
+                    "source": "profile_grid_dom_view_count_footer",
+                    "source_display_precision": "rounded_compact",
+                    "used_for_play_count": True,
+                },
+            }
+        },
+        sleep_fn=lambda _seconds: None,
+    )
+
+    grid_candidate = result["grid_result"]["response_items"][0]
+    assert grid_candidate["stats"] == {"playCount": 31_800}
+    assert grid_candidate["grid_view_count"]["raw_text_or_none"] == "31.8K"
+    field_provenance = result["cadence_result"]["results"][0]["capture_receipt"][
+        "field_provenance"
+    ]
+    assert field_provenance["play_count"] == (
+        "profile_grid_dom_view_count_footer_rounded_compact"
+    )
+    assert field_provenance["structured_video_metadata"] == (
+        "profile_grid_item_response_with_rounded_dom_view_fallback"
+    )
+
+
 def test_overlay_route_preserves_visible_empty_comment_outcome() -> None:
     video_id = "7390000000000000001"
     capture = _success_observation(video_id=video_id, responses=[])

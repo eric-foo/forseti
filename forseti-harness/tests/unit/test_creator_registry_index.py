@@ -80,12 +80,13 @@ def test_creator_registry_index_counts_and_contract() -> None:
     registry = _registry()
 
     assert registry["schema_version"] == "creator_registry_index_v0"
-    assert registry["index_mode"] == "static_known_public_account_dedupe_index"
+    assert registry["index_mode"] == "materialized_known_public_account_dedupe_and_onboarding_index"
     assert registry["counts"] == {
-        "platform_accounts_total": 41,
+        "platform_accounts_total": 51,
         "creator_records_total": 2,
-        "known_account_rows_total": 41,
-        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 6, "youtube": 30},
+        "known_account_rows_total": 51,
+        "platform_accounts_by_platform": {"instagram": 5, "tiktok": 6, "youtube": 40},
+        "platform_accounts_by_onboarding_state": {"not_onboarded": 13, "onboarded": 38},
     }
     assert [record["creator_record_id"] for record in registry["creator_records"]] == [
         "creator_fragranceknowledge_001",
@@ -178,6 +179,8 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
         if source_account["platform_account_id"] in profile_packet_account_ids:
             assert indexed["capture_state"] == "identity_observed_profile_packet_available"
             assert indexed["freshness"]["metrics_freshness_state_or_none"] is None
+        elif source_account["platform_account_id"] >= "acct_yt_fragrance_032":
+            assert indexed["capture_state"] == "never_captured"
         else:
             assert indexed["capture_state"] == "identity_observed_metric_seed_available"
         assert indexed["freshness"]["identity_observed_at"] == source_account["handle_observed_at"]
@@ -187,6 +190,25 @@ def test_creator_registry_index_mirrors_public_handle_ledger_accounts() -> None:
                 key.startswith(f"platform:{source_account['platform']}:public_account_id:")
                 for key in indexed["lookup_keys"]
             )
+
+
+def test_creator_registry_index_onboarding_is_exact_and_evidence_coupled() -> None:
+    accounts = {row["platform_account_id"]: row for row in _registry()["platform_accounts"]}
+    new_ids = {f"acct_yt_fragrance_{number:03d}" for number in range(32, 42)}
+
+    assert all(accounts[account_id]["onboarding"]["onboarding_state"] == "not_onboarded" for account_id in new_ids)
+    for row in accounts.values():
+        onboarding = row["onboarding"]
+        evidence = (
+            onboarding["onboarded_at_or_none"],
+            onboarding["evidence_packet_id_or_none"],
+            onboarding["evidence_source_family_or_none"],
+            onboarding["evidence_source_surface_or_none"],
+        )
+        if onboarding["onboarding_state"] == "onboarded":
+            assert all(isinstance(value, str) and value for value in evidence)
+        else:
+            assert evidence == (None, None, None, None)
 
 
 def test_creator_registry_index_source_hash_matches_public_handle_ledger() -> None:

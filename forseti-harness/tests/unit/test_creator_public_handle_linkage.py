@@ -79,7 +79,7 @@ def test_product_public_handle_ledger_seed_loads_and_validates() -> None:
 
     wrapper = _wrapper(loaded)
     assert wrapper["ledger_mode"] == "public_handle_ledger"
-    assert len(wrapper["platform_accounts"]) == 41
+    assert len(wrapper["platform_accounts"]) == 51
     assert len(wrapper["account_link_evidence"]) == 2
     assert len(wrapper["creator_records"]) == 2
     assert "not populated creator ledger" not in wrapper["non_claims"]
