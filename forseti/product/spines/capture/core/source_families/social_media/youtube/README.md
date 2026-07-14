@@ -45,7 +45,7 @@ Open `youtube_capture_agent_playbook_v0.md` first for YouTube run posture and
 
 YouTube long-form and Shorts share a source-family route for public metadata and
 comments. The default deep-capture packet retains two source-default-order comment
-page as selected structured Bronze and records the discarded response-envelope
+pages as selected structured Bronze and records the discarded response-envelope
 posture explicitly. Captions and ASR are separate acquisition routes into raw
 artifacts; downstream readable/clean product mentions belong to Cleaning/Silver.
 
