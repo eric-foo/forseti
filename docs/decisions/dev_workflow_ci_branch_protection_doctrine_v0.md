@@ -36,6 +36,10 @@ Accepted 2026-06-09 (owner sign-off, eric-foo); amended 2026-06-09 to record the
   server gate was established.
 - Agent and local Git guards remain defense in depth; they are no longer the
   only preventive boundary and do not weaken the server gate.
+- **Completed-work-unit landing default (owner-directed 2026-07-15):** the lane
+  author self-merges its own PR after the work unit is complete and all required
+  validation, review, and adjudication gates are satisfied. Human landing is a
+  fail-closed fallback or an explicit owner hold, not the routine gate.
 
 This state is an observed GitHub API readback, not a correctness or readiness claim.
 
@@ -272,52 +276,43 @@ At that historical point, this record did not assert that any server-side gate w
      is a behavioral/doctrine rule, not code — it is "live" only insofar as agents follow it, and it
      asserts **no** proven long-run bound on worktree/branch count (that outcome is unproven until the
      rule runs across several lanes). Owner-gated; lands via a per-lane PR off `main` (squash).
-11. **Standing self-label policy — when the lane author applies the opt-in marker.** Items 7 and 9 keep
-   `agent-automerge` an **opt-in marker** and the bot/guard act only on labeled PRs — that mechanism is
-   **unchanged**. This item adds the lane author's **standing policy for *when* to apply that marker**: a
-   lane author applies `agent-automerge` to its **own** CLEAN + green PR **by default for routine,
-   low-risk changes** it judges safe to land unattended, and **withholds** it — leaving the PR for owner
-   review — for higher-risk changes. The marker stays a deliberate, per-PR judgment (it is **not**
-   auto-applied by path or automation); this item only sets the default *direction* of that judgment, so
-   routine work lands unattended while the human gate is preserved exactly where it matters. It shifts
-   the routine-work default from "wait for the owner" to "land unattended," not the merge mechanism.
-   - **Apply by default (safe to land unattended) when ALL hold:** it is the author's **own** lane work,
-     scoped and traceable to the request; CLEAN + green; and a routine low-risk change — additive
-     documentation, decisions/prompts/reviews/migration notes the author is confident in, or a small
-     scoped code change with clear test coverage — that needs no human diff-review.
-   - **Withhold (leave for owner review) when ANY hold:** it touches enforcement/safety surfaces (the
-     EP-01/EP-03 guard, hooks, `.claude/settings.json`, CI or auto-merge workflows, this
-     branch-protection doctrine), makes a contested doctrine/tradeoff decision, carries high downstream
-     lock-in (schema, interface, persisted data shape), the author is uncertain, or the owner asked to
-     review it. **When in doubt, withhold.**
-   - **Authority unchanged:** this grants **no new merge authority** — item 7's guard (CLEAN + green +
-     label, fail-closed) and the per-lane / accepted-handoff authorization required to open the PR at all
-     are unchanged. The owner can always remove the label to hold a PR, and can still CLI-merge anything
-     directly. Unlabeled, non-CLEAN, or non-green PRs still go to a human (item 7) — unchanged.
-   - **Why author judgment, not a path Action:** "safe to land unattended" is a **content judgment**, not
-     a mechanically-checkable path fact, so per the overlay's Enforcement Placement principle
-     (`.agents/workflow-overlay/decision-routing.md`) it belongs in an actor-carried rule, not a
-     deterministic substrate. A path-scoped auto-label Action (deterministic; would apply to every PR,
-     including human- or other-harness-opened ones) remains an explicit **optional follow-on**,
-     deliberately not taken here.
-   - **Liveness / non-claims:** a behavioral/doctrine rule, not code — "live" only insofar as agents
-     follow it; it does **not** assert that auto-landed PRs are correct (CI is a test-suite signal only;
-     main is not deployed and a bad merge is reversible by a follow-up PR). Owner-gated; lands via a
-     per-lane PR off `main` (squash).
-12. **Up-to-date-before-merge — adopted MGT (bot-as-default + forward-ref annotation + red-main
-   detector).** Recurring red `push:main` CI from **combination breaks** — two independently-green PRs
-   that break when combined (e.g. one adds an `open_next` reference, another renames/removes the target).
-   **Root cause:** the up-to-date (`behind_by == 0`) check is enforced for **only one of three** merge
-   paths — the bot (item 9). The in-session guard (item 7) checks CLEAN+green+label but **not** up-to-date
-   (documented residual), and a human / other-harness raw `gh pr merge` checks nothing. CI tests
-   merge-with-base **at PR time**, so a PR merged while behind is never re-tested against current `main`.
-   Rationale + full option analysis: the up-to-date-merge enforcement proposal (PR #129). This adopts the
-   **mini-god-tier** target — most of the complete fix's value at a fraction of its cost, foregone limit
-   named:
-   - **Bot-as-default merge path.** Routine PRs land via the bot (apply `agent-automerge`; the bot
-     enforces `behind_by == 0` + green + mergeable); raw `gh pr merge` is reserved for urgent fixes. This
-     puts up-to-date enforcement on the default path **for free** (item 9's bot is proven) and extends
-     item 11 (self-label) from agents to the default merge habit.
+11. **Standing completed-work-unit self-merge policy — the lane author lands its own completed
+   work unit.** Items 7 and 9 keep `agent-automerge` as the opt-in marker and keep their
+   mechanical guardrails. This item changes the lane author's standing policy: after its own work
+   unit is complete, the author applies `agent-automerge` and self-merges the PR by default through
+   the direct, guard-visible item-7 route. A human landing is no longer required merely because the
+   completed work touched doctrine, enforcement, safety, CI, or another high-risk surface.
+   - **Completion is load-bearing:** the commissioned scope is satisfied; required validation is
+     green; every required commissioned or delegated review has returned; the home/Chief Architect
+     has adjudicated the findings and any returned patch; and no unresolved material issue or
+     owner-decision blocker remains. For `/fused`, the delegated review return and home
+     adjudication are part of the work unit, so implementation alone is not merge-ready.
+   - **Default land action:** for the author's own completed lane, apply `agent-automerge` and use a
+     direct `gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti` so the protected-action
+     guard can inspect it. The required server gate still enforces an up-to-date head and green
+     `forseti-harness-tests`; item 7 still requires CLEAN + green + label and fails closed.
+   - **Stop or leave for a human when ANY hold:** the owner explicitly requested a hold or
+     pre-merge review; PR authorship is not the acting agent's; a required review or adjudication is
+     incomplete; a material issue or owner decision remains; completion cannot be verified; or the
+     protected-action guard/server gate refuses the merge. Risk may add a completion gate, but once
+     that gate is satisfied it is not by itself a reason to withhold landing.
+   - **Authority boundary:** this grants standing closeout authority only for the agent author's own
+     commissioned work-unit PR. It does not authorize merging another actor's PR, bypassing the
+     guard, treating CI as content approval, or expanding the commissioned scope.
+   - **Liveness / non-claims:** this is a behavioral/doctrine rule. It does not assert that a merged
+     change is correct, that CI proves review acceptance, or that any specific PR has satisfied
+     completion until those facts are freshly observed.
+
+12. **Up-to-date-before-merge — adopted MGT (strict server gate + forward-ref annotation +
+   red-main detector).** The original combination-break risk came from merge paths that could land a
+   PR without retesting it against current `main`. The 2026-07-11 strict branch-protection gate now
+   requires the head to be up to date and `forseti-harness-tests` green for every ordinary GitHub
+   merge path. The completed-work-unit self-merge default in item 11 therefore changes the actor, not
+   the up-to-date safety floor.
+   - **Merge-path default.** The lane author directly self-merges its own completed work-unit PR
+     through item 7. The item-9 bot remains an unattended option for routine PRs that also satisfy
+     its narrower risk-router policy. Both paths remain subject to the strict server gate; direct
+     self-merge is not an urgent-fix exception and does not bypass up-to-date or green CI.
    - **Forward-ref annotation discipline (closes the class up-to-date cannot).** An `open_next` /
      `derived_from` link to a file **intentionally not yet on `main`** (a branch-only forward-reference)
      MUST carry a trailing `# nonresolving: <reason>` comment, which `.agents/hooks/check_map_links.py`
@@ -329,11 +324,11 @@ At that historical point, this record did not assert that any server-side gate w
      goes green — so a break landed via an unenforced path is fixed in minutes, not discovered by the
      next lane. **Liveness:** code-backed, **not yet proven** on a live red `main` (the first real
      failure proves it). Detective, **not** preventive.
-   - **Downgraded (not adopted now):** *O2a* — add `behind_by == 0` to the EP-03 in-session guard's
-     self-merge allowance; covers only the rare agent in-session self-merge (agents route through the bot
-     by default) at the cost of editing the frozen, enforcement-lane-owned guard. *O2b* — make
-     `.github/scripts/merge-when-green.ps1` refuse when behind; a substrate that fires only if the helper
-     is used, so a raw `gh pr merge` bypasses it. Revisit either if agents become the primary mergers.
+   - **No separate in-session up-to-date hook added:** the earlier O2a proposal to duplicate
+     `behind_by == 0` inside EP-03 is no longer necessary for the ordinary merge path because strict
+     branch protection now enforces the same condition harness-agnostically. O2b, adding the check to
+     the human helper, remains unnecessary for the same reason. The protected-action guard continues
+     to provide the independent CLEAN + green + label floor.
    - **Server-side end-state adopted 2026-07-11:** classic branch protection now requires
      `forseti-harness-tests` with `strict: true`, requires a PR, includes administrators,
      and disables force-push/deletion. Zero required approvals preserves the accepted
@@ -373,8 +368,9 @@ At that historical point, this record did not assert that any server-side gate w
    while implementation stayed split behind a packet-mandated owner fork); (b) authority is
    deliberately withheld for a mid-chain owner fork (the second bullet above); (c) high-lock-in
    probe-first slicing per the Smallest Complete Intervention rule (`AGENTS.md`).
-   **Boundaries:** this rule governs PR *topology*, not merge *authority* — items 7/9/11 and the
-   human gate on landing to `main` are unchanged, and pre-granting implementation authority remains
+   **Boundaries:** this rule governs PR *topology*, not merge *authority* — items 7/9/11 govern
+   landing, including the completed-work-unit self-merge default, and pre-granting implementation
+   authority remains
    an owner choice recorded in the commissioning artifact, never an agent default. It is not a
    license for big-bang PRs: item 13's cadence and the Smallest Complete Intervention rule still
    govern work-unit size; this item only fixes where the PR boundary sits relative to the owner
@@ -461,58 +457,6 @@ four-worker plus scan-reuse result before its own live run.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Separates GitHub remote readback and native metadata from tracked-file publication: an existing
-    lane branch publishes repository files through local edit, commit, and ordinary `git push` to
-    its configured origin; connector file uploads are not a push-permission gate, and an export
-    refusal is prevented by choosing the correct route before the connector call.
-  trigger: workflow_authority
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/safety-rules.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/validation-gates.md
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Already says verified work-unit commit/push/PR preparation proceeds without a typed
-        instruction and treats the harness permission prompt as the irreversibility gate; this
-        decision now owns the narrower tool route, so duplicating it in the kernel would fork it.
-    - path: .agents/workflow-overlay/safety-rules.md
-      reason: >
-        Already points commit/push policy to this decision and says the workflow proceeds without a
-        typed instruction at verified work-unit completion; authorization strength is unchanged.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        Owns prompt artifacts and receiver contracts, not publication tooling for tracked files.
-    - path: .agents/workflow-overlay/decision-routing.md
-      reason: >
-        Owns uncertainty and delegation routing; the publication route is a clear lifecycle rule in
-        the existing developer-workflow owner.
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        Repository hooks cannot observe or classify an MCP connector call before it happens; this is
-        judgment-based route selection, so no fake deterministic gate is added.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: >
-        Already indexes the developer-workflow decision at file level; no route or owner moved.
-  stale_language_search: >
-    rg -n -i "connector for the read/write path|connector.*tracked|tracked.*connector|chat permission gate|unverified-destination" AGENTS.md .agents/workflow-overlay docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-  non_claims:
-    - not validation
-    - not readiness
-    - not a bypass of connector export refusals
-    - not new commit, push, PR, or merge authority
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
     Published lane branches now update from main by fetch plus merge, never rebase,
     because force-push is prohibited; the protected-action guard blocks explicit
     published-branch rebase starts before they create an unpushable history.
@@ -557,6 +501,75 @@ direction_change_propagation:
     - not validation or readiness
     - not proof that every harness loads the local guard
     - not prevention of opaque-script or deliberately bypassed rebases
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The agent author now self-merges its own PR by default after the commissioned
+    work unit is complete; completion includes all required validation, review,
+    and home/Chief Architect adjudication (for /fused, the delegate return and
+    adjudication), while a human landing becomes a fail-closed fallback or
+    explicit owner hold rather than the routine gate.
+  trigger: workflow_authority
+  related_triggers:
+    - lifecycle_boundary
+    - review_authority
+  controlling_sources_updated:
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - AGENTS.md
+    - .agents/workflow-overlay/safety-rules.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/hooks/README.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: CLAUDE.md
+      reason: >
+        It remains a shim importing AGENTS.md and must not duplicate Forseti policy.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
+      reason: >
+        It already requires delegated review adjudication before the single land
+        step; the changed doctrine makes that land step agent-executable rather
+        than changing review mechanics.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: >
+        Existing Fused closeout gates already block unresolved material review or
+        replay failures; no validation criterion changed.
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        Review authority and Chief Architect adjudication ownership are unchanged.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        It already collapses commit, push, PR, and merge into the post-adjudication
+        land step; this decision changes who may execute it, not its shape.
+    - path: .agents/hooks/README.md
+      reason: >
+        The protected-action mechanism and fail-closed behavior are unchanged.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        It already routes branch/merge doctrine to this decision; no owner moved.
+  stale_language_search: >
+    Targeted remote-main search for "self-merge", "human-gated", "human gate",
+    "merge authority", "agent-automerge", "work unit complete", and "adjudication"
+    across AGENTS.md, CLAUDE.md, .agents/workflow-overlay, .agents/hooks/README.md,
+    this decision, and docs/workflows/forseti_repo_map_v0.md.
+  stale_language_search_result: >
+    AGENTS.md and safety-rules.md contained the stale human-gated default and were
+    updated. Item 11 and item 14 in this decision contained the stale
+    low-risk-only/bot-default policy and were updated. Remaining human references
+    describe the fail-closed fallback, explicit owner holds, historical state, or
+    the human-only helper; review/adjudication surfaces remain same-direction.
+  non_claims:
+    - not validation or readiness
+    - not proof that a specific PR is complete
+    - not authority to merge another actor's PR
+    - not authority to bypass branch protection or the protected-action guard
 ```
 
 Older direction_change_propagation receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
