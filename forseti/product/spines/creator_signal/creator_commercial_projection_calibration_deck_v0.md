@@ -85,6 +85,23 @@ language:
   the evidence drawer. They substantiate the commercial language rather than
   replacing it with analytical prose.
 
+Do not use these internal terms as first-screen sales vocabulary:
+
+- *ritual*;
+- *mechanism*;
+- *behavioral response*;
+- *audience-adopted behavior* or *audience-demanded creator ritual*;
+- *desired state* or *product meaning*;
+- *evidence taxonomy*; or
+- *claim ceiling*.
+
+These terms remain valid for internal classification and the evidence drawer.
+On the first screen, translate them into the concrete action and value they
+stand for: *full-body application viewers copy*, *spray spectacle viewers ask
+to see pushed further*, *side-by-side test buyers return for*, or the
+creator-specific equivalent. Name what happens and why a matching client should
+care; never sell the analytical label itself.
+
 The language pass may increase force, specificity, and emotional charge. It may
 not invent conversion, prevalence, causality beyond the evidenced relationship,
 or a product outcome the evidence cannot support.
@@ -208,6 +225,7 @@ A commercial panel is not ready unless all of these pass:
 5. **Commercial-language gate:** the first screen leads with an active verb, a
    concrete buyer or product consequence, and emotionally legible wording. It
    does not make evidence taxonomy or workflow language carry the sales copy,
+   contains none of the first-screen internal terms listed above,
    and it survives contrast against at least one materially different supported
    headline rather than polishing the first analytical claim by default.
 6. **Claim-ceiling gate:** every material sentence binds to evidence and keeps
@@ -247,6 +265,9 @@ never report a full-deck run on a named example as a clean cold pass.
   supported headline candidates, and the selected post-pass line, so the run
   proves that active verbs and emotionally legible consequences sharpened the
   strongest commercial outcome without changing its evidence ceiling;
+- the selected first screen contains none of the internal vocabulary prohibited
+  by the Commercial Language Pass; any leak is reported as a failed language
+  pass rather than defended as evidence precision;
 - the output names concrete campaign jobs and a wrong-hire boundary;
 - uncertainty and sparse or biased capture remain visible in the evidence
   drawer rather than weakening every first-screen sentence;
@@ -280,9 +301,12 @@ direction_change_propagation:
     evidence drawer; headline and supporting line may preserve the two signals
     without overloading one sentence. Authors contrast materially different
     supported headlines before selecting the strongest commercial consequence,
-    rather than merely polishing their first analytical claim. Dogfood also
-    treats named calibration examples as contaminated unless a recorded
-    leave-one-example-out source is used.
+    rather than merely polishing their first analytical claim. Internal labels
+    such as `ritual`, `mechanism`, behavioral-response types, product meaning,
+    evidence taxonomy, and claim ceiling are now prohibited from first-screen
+    sales copy and translated into concrete action and buyer value instead.
+    Dogfood also treats named calibration examples as contaminated unless a
+    recorded leave-one-example-out source is used.
   trigger: product_doctrine
   related_triggers: []
   controlling_sources_updated:
@@ -305,14 +329,15 @@ direction_change_propagation:
     - path: docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
       reason: The prepare-only binding framework is not an active routine-task resolver; adding a Creator Signal binding would not make this calibration fire reliably.
   stale_language_search: >
-    rg -n -i "commercial projection|commercial panel|dual-value|behavioral response|audience-adopted|audience-demanded|audience habit|commercial language|calibration deck"
+    rg -n -i "commercial projection|commercial panel|dual-value|behavioral response|audience-adopted|audience-demanded|audience habit|commercial language|first-screen sales vocabulary|calibration deck"
     forseti/product/spines/creator_signal docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
     Executed 2026-07-15 after the dual-value and commercial-language calibration
-    change. Defining dual-value, typed behavioral-response, and first-screen
-    language-pass rules is confined to this deck; adjacent Creator Signal
-    sources retain their existing product-meaning, mechanism, aggression, and
-    routing ownership without a conflicting habit or copy rule.
+    change. Defining dual-value, typed behavioral-response, prohibited
+    first-screen vocabulary, and language-pass rules is confined to this deck;
+    adjacent Creator Signal sources retain their existing product-meaning,
+    mechanism, aggression, and routing ownership without a conflicting habit or
+    copy rule.
   non_claims:
     - not validation
     - not readiness
