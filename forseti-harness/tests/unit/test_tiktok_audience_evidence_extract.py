@@ -214,6 +214,57 @@ def test_runner_skips_already_written_profile_after_crash_before_ack(tmp_path) -
     assert transport.calls == 0
 
 
+def test_runner_rejects_tampered_completed_evidence_before_skip_or_profile(tmp_path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _commit_batch_packet(
+        root,
+        handle="alpha",
+        videos=[_caption_video("v1", "compare affordable alternatives", "alpha")],
+    )
+    creator = "tiktok:@alpha"
+    transcripts, _ = __import__(
+        "runners.run_tiktok_product_extract", fromlist=["_transcripts_for_packet"]
+    )._transcripts_for_packet(root, packet_id)
+    item = AudienceTranscript(creator, transcripts[0])
+    rows = [{
+        "creator_id": creator,
+        "video_id": "v1",
+        "audience_layer": "beneficiary_content_fit",
+        "dimension": "value_sought",
+        "label": "comparison-led alternative evaluation",
+        "content_pillar": "comparisons",
+        "vote": 1,
+        "source_pointer": "compare affordable alternatives",
+        "possible_negation_or_irony": False,
+    }]
+    extraction = parse_response(json.dumps(rows), [item], model="model")[(creator, "v1")]
+    paths = write_result(data_root=root, item=item, result=extraction, model="model")
+    record_path = paths[AUDIENCE_EVIDENCE_LANE]
+    stored = json.loads(record_path.read_text(encoding="utf-8"))
+    stored["content_hash"] = "sha256:" + "0" * 64
+    record_path.write_text(json.dumps(stored, sort_keys=True) + "\n", encoding="utf-8")
+
+    class Transport:
+        calls = 0
+
+        def post_json(self, *args, **kwargs):
+            self.calls += 1
+            raise AssertionError("tampered evidence must not reach profile synthesis")
+
+    transport = Transport()
+    result = run_extraction(
+        data_root=root,
+        transport=transport,
+        provider=RawApiProvider.OPENAI_RESPONSES,
+        model="model",
+        api_key="secret",
+    )
+
+    assert transport.calls == 0
+    assert [row["status"] for row in result] == ["discovery_failed"]
+    assert "SilverRecordError: Silver content hash mismatch" in result[0]["error"]
+
+
 def test_runner_batches_two_creators_in_one_call_and_second_cycle_zero(tmp_path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     p1 = _commit_batch_packet(root, handle="alpha", videos=[_caption_video("v1", "compare affordable alternatives", "alpha")])

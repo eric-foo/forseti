@@ -161,6 +161,8 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("runners/run_tiktok_audience_evidence_extract.py", "is_record_set_complete"): 2,
         ("runners/run_tiktok_audience_evidence_extract.py", "record_path"): 3,
         ("cleaning/tiktok_audience_evidence_lake.py", "append_record_set"): 1,
+        ("cleaning/tiktok_audience_evidence_lake.py", "append_silver_record_set"): 1,
+        ("cleaning/transcript_product_lake.py", "append_silver_record_set"): 1,
         ("runners/run_transcript_product_extract.py", "is_record_set_complete"): 1,
         ("runners/run_transcript_product_extract.py", "lane_dir"): 2,
         ("runners/run_transcript_product_extract.py", "record_path"): 1,

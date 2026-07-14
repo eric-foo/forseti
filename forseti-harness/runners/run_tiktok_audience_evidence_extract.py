@@ -14,6 +14,7 @@ from cleaning.tiktok_audience_evidence_lake import (
     audience_record_id, profile_record_id, write_profile, write_result,
 )
 from data_lake.consumption import append_ack, pickup, reconcile_availability_per_packet
+from data_lake.silver_record import validate_silver_vault_record
 from runners.run_tiktok_product_extract import _transcripts_for_packet
 from source_capture.tiktok.batch_packet import TIKTOK_BATCH_CAPTURE_JSON_NAME
 from schemas.tiktok_audience_evidence_models import TikTokAudienceEvidence
@@ -88,17 +89,19 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
                           "record_id": rid, "video_id": transcript.video_id}
                 if data_root.is_record_set_complete(subtree="derived", raw_anchor=packet_id,
                                                     record_id=rid, completion_lane=AUDIENCE_EVIDENCE_SET_LANE):
-                    results.append({"packet_id": packet_id, "creator_id": creator, "video_id": transcript.video_id, "status": "skipped_done"})
-                    state["evidence"].append(marker)
                     record_path = data_root.record_path(subtree="derived", raw_anchor=packet_id, lane=AUDIENCE_EVIDENCE_LANE, record_id=rid)
                     body = record_path.read_bytes()
                     stored = json.loads(body.decode("utf-8"))
+                    validate_silver_vault_record(stored)
                     observation = ((stored.get("payload") or {}).get("observation") or {})
-                    state["rows"].extend(
+                    stored_rows = [
                         TikTokAudienceEvidence.model_validate(row["audience_evidence"])
                         for row in observation.get("rows", [])
                         if isinstance(row, dict) and isinstance(row.get("audience_evidence"), dict)
-                    )
+                    ]
+                    results.append({"packet_id": packet_id, "creator_id": creator, "video_id": transcript.video_id, "status": "skipped_done"})
+                    state["evidence"].append(marker)
+                    state["rows"].extend(stored_rows)
                     state["record_refs"].append((rid, hashlib.sha256(body).hexdigest()))
                 elif data_root.record_path(subtree="derived", raw_anchor=packet_id,
                                            lane=AUDIENCE_EVIDENCE_LANE, record_id=rid).exists():

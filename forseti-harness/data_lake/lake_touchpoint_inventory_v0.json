@@ -127,6 +127,18 @@
       "module": "cleaning/tiktok_audience_evidence_lake.py"
     },
     {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record_set",
+      "count": 1,
+      "module": "cleaning/tiktok_audience_evidence_lake.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record_set",
+      "count": 1,
+      "module": "cleaning/transcript_product_lake.py"
+    },
+    {
       "a2_fork_impact": "packet_index",
       "call": "inspect_catalog",
       "count": 2,
