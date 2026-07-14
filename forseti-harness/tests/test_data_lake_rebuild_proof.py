@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
-from data_lake.derived_retrieval_views import rebuild_derived_retrieval
+from data_lake.derived_retrieval_views import (
+    prove_derived_retrieval_rebuildability,
+    rebuild_derived_retrieval,
+)
 from data_lake.root import DataLakeRoot
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
@@ -58,3 +62,34 @@ def test_indexes_rebuild_byte_identical_from_authoritative_truth(tmp_path: Path)
 
     after = _snapshot(root.path / "indexes")
     assert after == before, "an index did not rebuild byte-identically -> it is smuggling non-rebuildable state"
+
+
+def test_prove_classifies_malformed_stored_policy_as_unreadable_manifest(tmp_path: Path) -> None:
+    # A by_mention manifest whose stored product_mention_policy is present but
+    # malformed (not lowercase 64-hex) is manifest corruption. Prove must classify
+    # it as a per-view failed_unreadable_manifest -- consistent with a missing key
+    # -- rather than raising and aborting the whole proof run (which would lose the
+    # per-view accounting the proof exists to produce).
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    _capture(root, tmp_path, "alpha")
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
+
+    manifest_path = (
+        root.path
+        / "indexes"
+        / "derived_retrieval"
+        / "object_level"
+        / "by_mention"
+        / "manifest.json"
+    )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["selection_policy_versions"]["product_mention_policy"][
+        "policy_fingerprint_sha256"
+    ] = "not-64-hex"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = prove_derived_retrieval_rebuildability(root)
+
+    assert result["results"]["by_mention"] == "failed_unreadable_manifest"
+    assert result["status"] == "failed"
+    assert "by_mention" in result["failures"]

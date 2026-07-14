@@ -286,7 +286,9 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
                 "generated_at": stored_manifest["generated_at"],
             }
             product_mention_policy = (
-                stored_manifest["selection_policy_versions"]["product_mention_policy"]
+                normalize_product_mention_policy(
+                    stored_manifest["selection_policy_versions"]["product_mention_policy"]
+                )
                 if view_name == "by_mention"
                 else None
             )
