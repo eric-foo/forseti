@@ -185,9 +185,10 @@ one quotation alone represents the observed participant set.
 ## Robustness Stamp
 
 The premium stamp is a buyer-visible receipt, not decoration. It may say that a
-conclusion held after removing the top-liked comment or highest-performing video
-only when those ablations were actually run against the same creator evidence
-and the result was recorded.
+conclusion held after removing the top-liked admissible evidence-bearing comment
+or highest-performing video only when those ablations were actually run against
+the same creator evidence and the result was recorded. Removing an empty or
+otherwise inference-filtered raw comment does not count as a comment ablation.
 
 If a conclusion weakens, commercialize the uncertainty: name the angle as a
 bounded test with success criteria instead of deleting it or presenting it as
