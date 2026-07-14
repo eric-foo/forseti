@@ -70,6 +70,13 @@ The three patterns below show the required specificity and commercial force.
 They are deliberately different. Derive another role when the evidence demands
 one; never force a creator into these patterns or paste their wording.
 
+Each pattern's **Good hiring line** calibrates the panel's product-meaning
+headline (what the creator makes the product mean), not the lead hire verdict.
+The panel's first line is still the controlling contract's hire verdict —
+`Hire <creator> when <campaign job>` — assembled from the pattern's **Campaign
+jobs**. Calibrate force and specificity from these lines; take the panel grammar
+from the controlling contract.
+
 ### 1. Make The Product Earn Its Recommendation
 
 - **Evidence pattern:** the creator repeatedly tests, compares, challenges, or
@@ -148,6 +155,12 @@ A commercial panel is not ready unless all of these pass:
    it does not reuse an example's role or signature line merely because it fits
    grammatically.
 
+If honest evidence cannot clear a gate, do not manufacture specificity to pass
+it. Withhold the claim, downgrade to the strongest evidenced alternate job, or
+name the angle a bounded test — using the claim-withholding, alternate-job, and
+robustness-stamp rules in the controlling contract. A gate is a readiness bar,
+not a demand to invent.
+
 ## Cold-Agent Dogfood Gate
 
 Before treating a material calibration change as transferable, give a cold
@@ -207,6 +220,11 @@ direction_change_propagation:
   stale_language_search: >
     rg -n -i "commercial projection|commercial panel|maximum-defensible|purchase insurance|calibration deck"
     forseti/product/spines/creator_signal docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-14 during delegated-review adjudication. Hits are current
+    contract, deck, profile-surface, and spine-router language; “purchase
+    insurance” appears only in the controlling contract's prohibition against
+    copying one formulation across creators. No stale doctrine surface found.
   non_claims:
     - not validation
     - not readiness

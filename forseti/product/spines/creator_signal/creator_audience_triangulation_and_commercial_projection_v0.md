@@ -177,11 +177,12 @@ transcript/comments summary. Those explain the verdict; they are not the verdict
 
 Before accepting the panel:
 
-- Name one evidence-backed **decision-confidence role** the creator performs:
-  reducing buying risk, narrowing choice, justifying value, reassuring a recent purchase,
-  making an unfamiliar option safe to consider, clarifying a trade-off, or
-  validating identity. State the creator-specific mechanism; do not paste the
-  same “purchase insurance” formulation across creators.
+- Name one evidence-backed **decision-confidence role** the creator performs,
+  such as reducing buying risk, narrowing choice, justifying value, reassuring a
+  recent purchase, making an unfamiliar option safe to consider, clarifying a
+  trade-off, validating identity, or another evidence-supported decision-
+  confidence role. State the creator-specific mechanism; do not paste the same
+  “purchase insurance” formulation across creators.
 - If no decision-confidence role is supported, name the strongest evidenced
   alternate job — such as attention and recall, discovery, participation, or
   category debate — instead of inventing purchase influence.
