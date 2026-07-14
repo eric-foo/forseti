@@ -97,11 +97,12 @@ def _commit_tiktok_packet(
     *,
     source_surface: str,
     grid_window_json: bytes | None = None,
+    grid_artifact_name: str = "tiktok_grid_window.json",
 ) -> str:
     observed_at = "2026-07-12T00:00:00Z"
     staged = [("tiktok_batch_capture.json", b'{"videos":[]}')]
     if grid_window_json is not None:
-        staged.append(("tiktok_grid_window.json", grid_window_json))
+        staged.append((grid_artifact_name, grid_window_json))
     file_ids = staged_file_id_map(staged)
     timing = PacketTiming(
         source_publication_or_event=known_fact("fixture TikTok packet"),
@@ -498,6 +499,42 @@ def test_runner_does_not_ack_declared_grid_packet_missing_exact_grid_file(
         raw_anchor=packet_id,
         ack_namespace=SOCIAL_METRIC_OBSERVATION_SET_LANE,
     ) == []
+
+
+def test_runner_rejects_suffix_lookalike_grid_filename(tmp_path: Path) -> None:
+    # A declared grid packet whose artifact only *ends with* the canonical name
+    # (``decoy_tiktok_grid_window.json``) must not derive Silver: staged-name
+    # recovery compares the exact canonical name, not a suffix. Under the prior
+    # ``endswith`` match this lookalike would have derived from the decoy file.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _commit_tiktok_packet(
+        data_root,
+        source_surface=runner.TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE,
+        grid_window_json=_grid_bytes(
+            observed_at="2026-07-12T00:00:00Z",
+            play_count=100,
+            like_count=10,
+            comment_count=2,
+        ),
+        grid_artifact_name="decoy_tiktok_grid_window.json",
+    )
+
+    result = runner.run_catchup(data_root=data_root)
+
+    assert result[0]["packet_id"] == packet_id
+    assert result[0]["status"] == "failed"
+    assert "requires exactly one tiktok_grid_window.json" in result[0]["error"]
+    assert find_acks(
+        data_root,
+        raw_anchor=packet_id,
+        ack_namespace=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+    ) == []
+    assert not data_root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+        record_id=observation_set_record_id(packet_id),
+    ).exists()
 
 
 def test_runner_does_not_ack_when_silver_persistence_fails(
