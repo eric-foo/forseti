@@ -41,14 +41,14 @@ def _packet(
     canonical_url: str | None = f"https://www.youtube.com/watch?v={_VIDEO_ID}",
 ) -> dict[str, object]:
     metric_receipts = {
-        "view_count": _metric_observed(1200, "ytInitialPlayerResponse.videoDetails.viewCount", "raw_watch.html"),
-        "like_count": _metric_observed(like, "ytInitialPlayerResponse.microformat.playerMicroformatRenderer.likeCount", "raw_watch.html")
+        "view_count": _metric_observed(1200, "ytInitialPlayerResponse.videoDetails.viewCount", "youtube_watch_capture.json"),
+        "like_count": _metric_observed(like, "ytInitialPlayerResponse.microformat.playerMicroformatRenderer.likeCount", "youtube_watch_capture.json")
         if like is not None
         else _metric_gap("microformat.likeCount was not exposed"),
-        "comment_sample_count": _metric_observed(1, "youtubei_next.commentEntityPayload", "youtubei_next_page_*.json")
+        "comment_sample_count": _metric_observed(1, "youtubei_next.commentEntityPayload", "youtube_watch_capture.json")
         if comments_state == "comments_sample_captured"
         else _metric_gap("served watch route did not expose a comments continuation token"),
-        "total_comment_count": _metric_observed(total_comments, "youtubei_next.commentsHeaderRenderer.countText", "youtubei_next_page_01.json")
+        "total_comment_count": _metric_observed(total_comments, "youtubei_next.commentsHeaderRenderer.countText", "youtube_watch_capture.json")
         if total_comments is not None
         else _metric_gap("source-native total comment count was not exposed as an exact count"),
     }
@@ -77,7 +77,28 @@ def _packet(
         "metric_receipts": metric_receipts,
         "comments_posture": comments_state,
         "comment_count_text": "12 comments" if total_comments is not None else None,
-        "comments": [{"author": "A", "text": "wear test?", "published_time": "1 day ago", "like_count": 2, "reply_count": 1}],
+        "comment_capture_coverage": {
+            "requested_page_limit": 1,
+            "pages_fetched": 1 if comments_state == "comments_sample_captured" else 0,
+            "selected_comment_count": 1 if comments_state == "comments_sample_captured" else 0,
+            "continuation_remaining_after_stop": False,
+            "ordering_posture": "source_default_order_as_served",
+        },
+        "comments": [
+            {
+                "comment_id": "comment-001",
+                "author": "A",
+                "text": "wear test?",
+                "published_time": "1 day ago",
+                "like_count": 2,
+                "reply_count": 1,
+                "source_page_number": 1,
+                "source_order_in_page": 1,
+                "source_order_global": 1,
+            }
+        ]
+        if comments_state == "comments_sample_captured"
+        else [],
         "receipts": {"http_status": 200, "retrieval_time_utc": _CAPTURE_TS, "auth": "logged_out", "js_executed": False},
     }
 
@@ -110,9 +131,7 @@ def test_write_youtube_watch_packet_records_metrics_states_and_route_receipts(tm
     assert packet.source_family == "youtube"
     assert packet.source_surface == "youtube_watch_metadata_comments"
     assert [item.relative_packet_path for item in packet.preserved_files] == [
-        "raw/01_raw_watch.html",
-        "raw/02_youtube_watch_capture.json",
-        "raw/03_youtubei_next_page_01.json",
+        "raw/01_youtube_watch_capture.json",
     ]
 
     metadata_metrics = {obs["metric"]: obs for obs in manifest["source_slices"][0]["metric_observations"]}
@@ -122,17 +141,46 @@ def test_write_youtube_watch_packet_records_metrics_states_and_route_receipts(tm
     assert comments_metrics["comment_sample_count"]["value"] == 1
     assert comments_metrics["total_comment_count"]["value"] == 12
 
-    payload_path = output / "raw" / "02_youtube_watch_capture.json"
+    payload_path = output / "raw" / "01_youtube_watch_capture.json"
     payload = json.loads(payload_path.read_text(encoding="utf-8"))
-    assert payload["capture_schema_version"] == "youtube_watch_metadata_comments_capture_v0"
+    assert payload["capture_schema_version"] == "youtube_watch_metadata_comments_capture_v1"
+    assert payload["selected_observable_policy_version"] == "youtube_watch_selected_observables_v1"
+    assert payload["source_response_retention"]["watch_html"] == {
+        "posture": "not_persisted_after_validated_extraction",
+        "received_byte_size": len(b"<html>ytInitialPlayerResponse</html>"),
+    }
+    assert payload["source_response_retention"]["comment_pages"]["received_page_count"] == 1
     assert payload["availability"]["comments_state"] == "comments_sample_captured"
     assert payload["metric_receipts"]["total_comment_count"]["source_route"] == "youtubei_next.commentsHeaderRenderer"
     assert payload["packet"]["comments"][0]["like_count"] == 2
+    assert not (output / "raw" / "raw_watch.html").exists()
+    assert not any("youtubei_next_page" in path.name for path in (output / "raw").iterdir())
     assert (
         "youtube_watch_metric_postures:"
         "view_count=observed;like_count=observed;comment_sample_count=observed;total_comment_count=observed"
     ) in manifest["visible_mode_changes"]
     assert not any("view_count=0" in item for item in manifest["visible_mode_changes"])
+
+
+def test_selected_comment_rows_require_identity_text_and_source_order(tmp_path: Path) -> None:
+    output = tmp_path / "yt_watch_bad_selected_comment"
+    packet = _packet()
+    del packet["comments"][0]["comment_id"]
+
+    code, message = write_youtube_watch_packet(
+        YoutubeWatchFetch(
+            video_id=_VIDEO_ID,
+            raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
+            packet=packet,
+            comment_page_bodies=(),
+        ),
+        output_directory=output,
+        decision_question="capture YouTube watch metrics",
+    )
+
+    assert code == 5
+    assert "selected comment row 1 lacks comment_id" in message
+    assert not output.exists()
 
 
 def test_missing_like_and_total_comment_counts_are_gaps_not_zeroes(tmp_path: Path) -> None:
@@ -303,7 +351,7 @@ def test_youtube_watch_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
 
     def fake_fetcher(video_id: str, *, comment_pages: int) -> _Fetched:
         assert video_id == _VIDEO_ID
-        assert comment_pages == 1
+        assert comment_pages == 2
         return _Fetched(
             packet=_packet(),
             raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
@@ -316,7 +364,6 @@ def test_youtube_watch_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
         video_id=_VIDEO_ID,
         data_root=root,
         decision_question="capture YouTube watch metrics",
-        comment_pages=1,
         capture_fetcher=fake_fetcher,
     )
 
@@ -346,7 +393,9 @@ def test_youtube_watch_runner_rejects_unbound_served_identity_before_publication
         return _Fetched(
             packet=packet,
             raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
-            comment_page_bodies=(),
+            comment_page_bodies=(
+                YoutubeWatchCommentPage(filename="youtubei_next_page_01.json", raw_json_bytes=b"{}"),
+            ),
         )
 
     output = tmp_path / f"yt_watch_{expected_state}"

@@ -210,7 +210,7 @@ def test_fetch_youtube_watch_observes_total_comment_count_from_panel_badge(monke
     assert receipt["value"] == 38
     assert receipt["source_path"] == COMMENTS_PANEL_BADGE_SOURCE_PATH
     assert receipt["source_route"] == "ytInitialData"
-    assert receipt["artifact"] == "raw_watch.html"
+    assert receipt["artifact"] == "youtube_watch_capture.json"
     assert fetch.packet["engagement"]["total_comment_count"] == 38
     assert fetch.packet["comments_panel_count_text"] == "38"
     # no continuation token in the fixture: the sample stays a loud gap, never zero
@@ -247,3 +247,100 @@ def test_fetch_youtube_watch_absent_badge_keeps_continuation_gap_reason(monkeypa
     assert "Comments panel badge" in receipt["reason"]
     assert receipt["routes_checked"] == [COMMENTS_PANEL_BADGE_SOURCE_PATH]
     assert fetch.packet["comments_panel_count_text"] is None
+
+
+def test_fetch_preserves_full_selected_comment_identity_order_and_creator_markers(monkeypatch):
+    long_text = "full selected comment " + ("x" * 450)
+    html = _watch_html(badge_text="1") + (
+        '<script>var ytcfg = {"INNERTUBE_API_KEY":"key",'
+        '"INNERTUBE_CONTEXT_CLIENT_VERSION":"1.0"};</script>'
+    ).encode("utf-8")
+    response = {
+        "onResponseReceivedEndpoints": [
+            {
+                "reloadContinuationItemsCommand": {
+                    "continuationItems": [
+                        {
+                            "commentThreadRenderer": {
+                                "renderingPriority": "RENDERING_PRIORITY_PINNED_COMMENT",
+                                "commentViewModel": {
+                                    "commentViewModel": {
+                                        "commentId": "comment-1",
+                                        "pinnedText": "Pinned by @creator",
+                                    }
+                                },
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "frameworkUpdates": {
+            "entityBatchUpdate": {
+                "mutations": [
+                    {
+                        "payload": {
+                            "commentEntityPayload": {
+                                "properties": {
+                                    "commentId": "comment-1",
+                                    "content": {"content": long_text},
+                                    "publishedTime": "2 hours ago",
+                                    "replyLevel": "COMMENT_REPLY_LEVEL_TOP_LEVEL",
+                                    "toolbarStateKey": "toolbar-1",
+                                },
+                                "author": {
+                                    "displayName": "A",
+                                    "channelId": "UC-commenter",
+                                    "isCreator": False,
+                                    "isVerified": True,
+                                },
+                                "toolbar": {"likeCountNotliked": 7, "replyCount": 2},
+                            }
+                        }
+                    },
+                    {
+                        "payload": {
+                            "engagementToolbarStateEntityPayload": {
+                                "key": "toolbar-1",
+                                "heartState": "TOOLBAR_HEART_STATE_HEARTED",
+                            }
+                        }
+                    },
+                ]
+            }
+        },
+    }
+    raw_response = json.dumps(response).encode("utf-8")
+    monkeypatch.setattr(capture_youtube_v0, "http_get", _fake_http_get(html))
+    monkeypatch.setattr(capture_youtube_v0, "comment_panel_token", lambda _data: "token")
+    monkeypatch.setattr(
+        capture_youtube_v0,
+        "youtubei_next_raw",
+        lambda *_args: (200, "https://www.youtube.com/youtubei/v1/next", raw_response, response),
+    )
+    monkeypatch.setattr(capture_youtube_v0, "next_token", lambda _response: None)
+
+    fetch = fetch_youtube_watch("abcdefghijk", comment_pages=1)
+
+    comment = fetch.packet["comments"][0]
+    assert comment["comment_id"] == "comment-1"
+    assert comment["text"] == long_text
+    assert len(comment["text"]) > 300
+    assert comment["author_channel_id"] == "UC-commenter"
+    assert comment["author_is_verified"] is True
+    assert comment["pinned_text"] == "Pinned by @creator"
+    assert comment["heart_state"] == "TOOLBAR_HEART_STATE_HEARTED"
+    assert (comment["source_page_number"], comment["source_order_in_page"], comment["source_order_global"]) == (
+        1,
+        1,
+        1,
+    )
+    assert fetch.packet["comment_capture_coverage"] == {
+        "requested_page_limit": 1,
+        "pages_fetched": 1,
+        "selected_comment_count": 1,
+        "continuation_remaining_after_stop": False,
+        "ordering_posture": "source_default_order_as_served",
+    }
+    assert "raw_body_sha256" not in fetch.packet["receipts"]
+    assert "raw_body_sha256" not in fetch.packet["comment_page_receipts"][0]
