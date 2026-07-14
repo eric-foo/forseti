@@ -150,7 +150,7 @@ At that historical point, this record did not assert that any server-side gate w
    the hard no-force-push rule. Prefer the explicit pair `git fetch origin main`
    then `git merge --no-edit origin/main`; do not rely on a plain `git pull`, whose
    behavior can be changed by local rebase configuration.
-7. **Defense-in-depth enforcement — structure B′ (guard-verified CLEAN self-merge; else human-landed).**
+7. **Defense-in-depth enforcement — verified own-PR self-merge; else human-landed.**
    With the server gate active, agents still prepare green PRs. An agent may self-merge
    its own PR with a direct `gh pr merge <N>`, but **only when the protected-action guard
    (`.agents/hooks/guard_protected_actions.py`) confirms the PR is `mergeStateStatus == CLEAN`, every
@@ -185,7 +185,17 @@ At that historical point, this record did not assert that any server-side gate w
    **human's** check-then-merge tool; agents must **not** use it to self-merge — it wraps `gh pr merge`
    inside a script subprocess the PreToolUse guard does **not** see (hooks fire on the agent's direct
    tool call, not on grandchild processes), so running it would **bypass the CLEAN/label
-   verification**. Agents self-merge only via a direct `gh pr merge <N>`, which the guard inspects.
+   verification**. In a shell route covered by the protected-action guard, agents self-merge only
+   via a direct `gh pr merge <N>`, which the guard inspects.
+
+   **Harness-native merge route.** A purpose-built GitHub merge action that does not traverse the
+   local shell hook may be used by the lane author for its own completed PR only after the agent
+   applies `agent-automerge` and freshly verifies authorship, the exact head SHA, CLEAN/mergeable
+   state, an up-to-date head, green required checks, and every item-11 completion gate. The merge
+   call must bind the expected head SHA so a moved PR fails atomically; GitHub's strict branch
+   protection remains the harness-agnostic enforcement. Missing, ambiguous, stale, or changed state
+   fails closed to a human landing. This does not authorize a lower-level `gh api .../merge`
+   shell bypass or a helper-script subprocess hidden from the protected-action guard.
 
    **GitHub remote-access and publication routing.** A `gh` / GitHub API failure that names
    `127.0.0.1:9`, or connection-refused to a local proxy/discard port, is sandbox egress refusal,
@@ -287,10 +297,12 @@ At that historical point, this record did not assert that any server-side gate w
      has adjudicated the findings and any returned patch; and no unresolved material issue or
      owner-decision blocker remains. For `/fused`, the delegated review return and home
      adjudication are part of the work unit, so implementation alone is not merge-ready.
-   - **Default land action:** for the author's own completed lane, apply `agent-automerge` and use a
-     direct `gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti` so the protected-action
-     guard can inspect it. The required server gate still enforces an up-to-date head and green
-     `forseti-harness-tests`; item 7 still requires CLEAN + green + label and fails closed.
+   - **Default land action:** for the author's own completed lane, apply `agent-automerge` and use
+     item 7's merge route: direct `gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`
+     when the protected-action guard covers the shell, or the bounded harness-native route with an
+     expected-head-SHA lock. The required server gate still enforces an up-to-date head and green
+     `forseti-harness-tests`; item 7 still requires the same own-PR, CLEAN/mergeable, green, labeled,
+     freshly verified state and fails closed.
    - **Stop or leave for a human when ANY hold:** the owner explicitly requested a hold or
      pre-merge review; PR authorship is not the acting agent's; a required review or adjudication is
      incomplete; a material issue or owner decision remains; completion cannot be verified; or the
@@ -550,7 +562,9 @@ direction_change_propagation:
         land step; this decision changes who may execute it, not its shape.
     - path: .agents/hooks/README.md
       reason: >
-        The protected-action mechanism and fail-closed behavior are unchanged.
+        The protected-action mechanism and fail-closed behavior are unchanged;
+        the decision now separately binds a purpose-built harness-native route
+        that does not traverse the local shell hook.
     - path: docs/workflows/forseti_repo_map_v0.md
       reason: >
         It already routes branch/merge doctrine to this decision; no owner moved.
