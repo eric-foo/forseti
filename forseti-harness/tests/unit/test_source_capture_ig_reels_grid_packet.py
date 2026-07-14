@@ -24,6 +24,7 @@ def _fake_capture(**_kwargs):
         "data": {
             "user": {
                 "id": "5802114508",
+                "username": "HyRaM",
                 "full_name": "Hyram",
                 "biography": "Just your average skin care addict",
                 "external_url": "https://example.test/video",
@@ -146,6 +147,7 @@ def test_reels_grid_runner_writes_packet_without_item_page_fanout(tmp_path: Path
     }
     payload = json.loads((output / "raw" / "01_ig_reels_grid_capture.json").read_text(encoding="utf-8"))
     assert payload["creator_profile_snapshot"]["bio"] == "Just your average skin care addict"
+    assert payload["creator_profile_snapshot"]["served_username"] == "HyRaM"
     assert payload["creator_profile_snapshot"]["bio_links"] == [
         {"title": "Video", "url": "https://example.test/video"}
     ]
@@ -451,6 +453,67 @@ def test_run_returns_exit_3_and_writes_no_packet_on_capture_failure(tmp_path: Pa
     assert exit_code == 3
     assert "capture failed" in message.lower()
     assert not (output / "manifest.json").exists()
+
+
+def _fake_capture_with_served_username(username: str | None):
+    result = _fake_capture()
+    web_response = result.passive_json_responses[0]
+    web_profile = json.loads(web_response.body_text or "{}")
+    user = web_profile["data"]["user"]
+    if username is None:
+        user.pop("username", None)
+    else:
+        user["username"] = username
+    return replace(
+        result,
+        passive_json_responses=[
+            replace(web_response, body_text=json.dumps(web_profile)),
+            *result.passive_json_responses[1:],
+        ],
+    )
+
+
+@pytest.mark.parametrize(
+    ("served_username", "expected_state"),
+    [
+        ("another_creator", "subject_identity_mismatch"),
+        (None, "subject_identity_unavailable"),
+    ],
+)
+def test_reels_grid_runner_rejects_unbound_served_identity_before_publication(
+    tmp_path: Path,
+    served_username: str | None,
+    expected_state: str,
+) -> None:
+    capture = _fake_capture_with_served_username(served_username)
+
+    def fake_capture(**_kwargs):
+        return capture
+
+    output = tmp_path / f"ig_reels_{expected_state}"
+    exit_code, message = run_source_capture_ig_reels_grid_packet(
+        handle="hyram",
+        output_directory=output,
+        decision_question="capture hyram reels grid",
+        capture_fetcher=fake_capture,
+    )
+
+    assert exit_code == 5
+    assert expected_state in message
+    assert not output.exists()
+
+    root = DataLakeRoot.for_test(tmp_path / f"forseti-data-{expected_state}")
+    lake_before = sorted(path.relative_to(root.path).as_posix() for path in root.path.rglob("*"))
+    exit_code, message = run_source_capture_ig_reels_grid_packet(
+        handle="hyram",
+        data_root=root,
+        decision_question="capture hyram reels grid",
+        capture_fetcher=fake_capture,
+    )
+
+    assert exit_code == 5
+    assert expected_state in message
+    assert sorted(path.relative_to(root.path).as_posix() for path in root.path.rglob("*")) == lake_before
 
 
 def test_detect_ig_block_covers_each_access_block_reason() -> None:

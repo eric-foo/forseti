@@ -73,9 +73,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION",
             "FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION",
             "FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION",
+            "FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION",
             "FRAGRANTICA_CLEANING_METHOD_ID",
         ),
-        "6ba53c8c2ee91bdf727fb2d690763aaa7ef2519c8ac6742cfc106df324c186e5",
+        "126f4252d35453c341516e2148287134bdeaf2caded0647c8f4116ce16cee875",
     ),
     "cleaning/models.py": (
         ("CLEANING_CORE_VERSION",),

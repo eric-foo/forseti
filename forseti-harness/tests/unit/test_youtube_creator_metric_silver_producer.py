@@ -84,6 +84,7 @@ def _youtube_watch_packet(*, view_count: int) -> dict:
         "video_id": YOUTUBE_AR_PROOF_VIDEO_ID,
         "surface_type": "watch",
         "watch_url": f"https://www.youtube.com/watch?v={YOUTUBE_AR_PROOF_VIDEO_ID}",
+        "canonical_url": f"https://www.youtube.com/watch?v={YOUTUBE_AR_PROOF_VIDEO_ID}",
         "channel": {"channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw", "author": "JeremyFragrance"},
         "metadata": {
             "title": "UNIQUE BLUE, By SUPERZ",
