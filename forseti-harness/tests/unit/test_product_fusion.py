@@ -1,6 +1,6 @@
 """Pass-2 product verdict fusion: determinism + verdict-rule + abstention tests.
 
-All synthetic mentions; no LLM, no network. Mirrors test_audience_fusion's discipline.
+All synthetic mentions; no LLM and no network.
 """
 from __future__ import annotations
 

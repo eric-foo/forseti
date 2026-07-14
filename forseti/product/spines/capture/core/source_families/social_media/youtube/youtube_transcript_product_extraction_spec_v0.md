@@ -20,7 +20,6 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_video_capture_surface_findings_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
   - orca-harness/cleaning/audience_extractor.py
   - orca-harness/ecr/lake.py
   - orca-harness/data_lake/root.py
@@ -49,7 +48,8 @@ same input shape (flat text + ms-timed cues). YouTube is the first lane; the spe
 lives here because that is the active lane and mirrors where the IG audience spec
 sits. IG/TikTok adoption is a separate lane (a Named Upgrade), not v0.
 
-This mirrors the IG audience-inference pattern (`ig_creator_ideal_audience_inference_spec_v0.md`)
+This uses the shared raw-model transport pattern while remaining product extraction,
+not audience inference.
 deliberately — same LLM-reads/code-decides doctrine, same two-pass lake flow, same
 evidence-with-a-source-pointer discipline — adapted from audience positioning to
 product mentions/verdicts. The reusable transport + parse + guard machinery is

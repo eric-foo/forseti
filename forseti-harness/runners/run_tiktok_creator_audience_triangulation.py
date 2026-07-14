@@ -1,20 +1,44 @@
-"""Build one scratch Gold-ready assembly and one validated TikTok audience profile."""
+"""Prepare and validate one subscription-only creator-audience triangulation."""
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from cleaning.audience_extractor import RawApiProvider, Transport
-from evidence_binding.tiktok_audience_triangulation import build_gold_ready_audience_evidence
-from runners.run_memorization_probe_raw_api import UrllibJsonTransport
-from judgment.tiktok_audience_triangulation import build_triangulation_prompt, triangulate_audience
+from capture_spine.creator_profile_current.tiktok_comment_attention_producer import (
+    COMMENT_ATTENTION_LANE,
+    COMMENT_ATTENTION_POLICY_FINGERPRINT,
+    COMMENT_ATTENTION_RECIPE_VERSION,
+)
+from capture_spine.creator_profile_current.tiktok_grid_observation_producer import (
+    SOCIAL_METRIC_OBSERVATION_SET_LANE,
+    TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT,
+    TIKTOK_GRID_OBSERVATION_POLICY_VERSION,
+)
+from data_lake.root import DataLakeRoot, DataLakeRootError
+from data_lake.silver_lineage import (
+    SOURCE_BACKED_COMPLETE_STATUS,
+    silver_record_source_backed_status,
+)
+from data_lake.silver_record import SilverRecordError, validate_silver_vault_record
+from evidence_binding.tiktok_audience_triangulation import (
+    ASSEMBLY_RECEIPT_LANE,
+    build_assembly_receipt,
+    build_creator_audience_evidence_bundle,
+)
+from judgment.tiktok_audience_triangulation import (
+    build_triangulation_prompt,
+    parse_triangulation_response,
+)
+from source_capture.tiktok.batch_packet import (
+    TIKTOK_BATCH_CAPTURE_JSON_NAME,
+    TIKTOK_BATCH_CAPTURE_SURFACE,
+)
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -24,119 +48,303 @@ def _load_object(path: Path) -> dict[str, Any]:
     return value
 
 
-def _evidence_rows(paths: list[Path]) -> list[Mapping[str, Any]]:
-    rows: list[Mapping[str, Any]] = []
-    for path in paths:
-        value: Any = json.loads(path.read_text(encoding="utf-8"))
-        if isinstance(value, dict):
-            value = value.get("evidence")
-        if not isinstance(value, list) or not all(isinstance(row, Mapping) for row in value):
-            raise ValueError(f"transcript evidence must be a list or evidence wrapper: {path}")
-        rows.extend(value)
-    return rows
-
-
-def _write_new_json(path: Path, value: Mapping[str, Any]) -> None:
+def _write_new(path: Path, text: str) -> None:
     if path.exists():
         raise FileExistsError(f"refusing to replace existing output: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("x", encoding="utf-8", newline="\n") as handle:
-        json.dump(value, handle, ensure_ascii=False, indent=2, sort_keys=True)
-        handle.write("\n")
+    path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def run_triangulation(
+def _write_new_json(path: Path, value: Mapping[str, Any]) -> None:
+    _write_new(path, json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+
+
+def _read_lane(data_root: DataLakeRoot, *, raw_anchor: str, lane: str) -> list[dict[str, Any]]:
+    directory = data_root.lane_dir(subtree="derived", raw_anchor=raw_anchor, lane=lane)
+    if not directory.is_dir():
+        return []
+    records: list[dict[str, Any]] = []
+    for path in sorted(directory.iterdir()):
+        if not path.is_file():
+            continue
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(value, dict):
+            raise ValueError(f"derived record must be an object: {path}")
+        records.append(value)
+    return records
+
+
+def _record_id(record: Mapping[str, Any]) -> str:
+    return str(record.get("record_id") or "<missing-record-id>")
+
+
+def _silver_eligibility_residual(
+    record: Mapping[str, Any], *, lane: str
+) -> dict[str, Any] | None:
+    try:
+        validate_silver_vault_record(record)
+    except SilverRecordError:
+        return {"lane": lane, "record_id": _record_id(record), "status": "invalid_silver_envelope"}
+    status = silver_record_source_backed_status(record)
+    if status != SOURCE_BACKED_COMPLETE_STATUS:
+        return {"lane": lane, "record_id": _record_id(record), "status": status}
+    return None
+
+
+def _select_comment_attention_records(
+    records: Sequence[Mapping[str, Any]],
+) -> tuple[list[Mapping[str, Any]], list[dict[str, Any]]]:
+    selected: list[Mapping[str, Any]] = []
+    residuals: list[dict[str, Any]] = []
+    for record in records:
+        ineligible = _silver_eligibility_residual(record, lane=COMMENT_ATTENTION_LANE)
+        if ineligible is not None:
+            residuals.append(ineligible)
+            continue
+        provenance = record.get("provenance") if isinstance(record.get("provenance"), Mapping) else {}
+        actual_version = provenance.get("calculation_recipe_version")
+        actual_fingerprint = provenance.get("policy_fingerprint_sha256")
+        if (
+            actual_version != COMMENT_ATTENTION_RECIPE_VERSION
+            or actual_fingerprint != COMMENT_ATTENTION_POLICY_FINGERPRINT
+        ):
+            residuals.append({
+                "lane": COMMENT_ATTENTION_LANE,
+                "record_id": _record_id(record),
+                "status": "policy_mismatch",
+                "actual_policy_version": actual_version,
+                "actual_policy_fingerprint_sha256": actual_fingerprint,
+            })
+            continue
+        selected.append(record)
+    return selected, residuals
+
+
+def _select_grid_observation_records(
+    records: Sequence[Mapping[str, Any]],
+) -> tuple[list[Mapping[str, Any]], list[dict[str, Any]]]:
+    selected: list[Mapping[str, Any]] = []
+    residuals: list[dict[str, Any]] = []
+    for record in records:
+        ineligible = _silver_eligibility_residual(
+            record, lane=SOCIAL_METRIC_OBSERVATION_SET_LANE
+        )
+        if ineligible is not None:
+            residuals.append(ineligible)
+            continue
+        payload = record.get("payload") if isinstance(record.get("payload"), Mapping) else {}
+        observation = (
+            payload.get("observation") if isinstance(payload.get("observation"), Mapping) else {}
+        )
+        actual_version = observation.get("policy_version")
+        actual_fingerprint = observation.get("policy_fingerprint_sha256")
+        if (
+            actual_version != TIKTOK_GRID_OBSERVATION_POLICY_VERSION
+            or actual_fingerprint != TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT
+        ):
+            residuals.append({
+                "lane": SOCIAL_METRIC_OBSERVATION_SET_LANE,
+                "record_id": _record_id(record),
+                "status": "policy_mismatch",
+                "actual_policy_version": actual_version,
+                "actual_policy_fingerprint_sha256": actual_fingerprint,
+            })
+            continue
+        selected.append(record)
+    if len(selected) > 1:
+        raise ValueError("ambiguous current-policy TikTok grid-observation records")
+    return selected, residuals
+
+
+def select_current_audience_silver_records(
     *,
+    comment_attention_records: Sequence[Mapping[str, Any]],
+    grid_observation_records: Sequence[Mapping[str, Any]],
+) -> tuple[list[Mapping[str, Any]], list[Mapping[str, Any]], list[dict[str, Any]]]:
+    attention, attention_residuals = _select_comment_attention_records(
+        comment_attention_records
+    )
+    grid, grid_residuals = _select_grid_observation_records(grid_observation_records)
+    return attention, grid, attention_residuals + grid_residuals
+
+
+def _load_batch(data_root: DataLakeRoot, packet_id: str) -> dict[str, Any]:
+    loaded = data_root.load_raw_packet(packet_id)
+    if loaded.manifest.get("source_surface") != TIKTOK_BATCH_CAPTURE_SURFACE:
+        raise ValueError(f"packet {packet_id} is not a TikTok creator batch admission")
+    matches = [
+        row
+        for row in loaded.manifest.get("preserved_files", [])
+        if isinstance(row, Mapping)
+        and str(row.get("relative_packet_path") or "").endswith(TIKTOK_BATCH_CAPTURE_JSON_NAME)
+    ]
+    if len(matches) != 1:
+        raise ValueError(f"packet {packet_id} requires exactly one preserved TikTok batch JSON")
+    body = loaded.bodies.get(str(matches[0].get("file_id") or ""))
+    if body is None:
+        raise ValueError(f"packet {packet_id} TikTok batch body is absent")
+    value = json.loads(body.decode("utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"packet {packet_id} TikTok batch body must be an object")
+    return value
+
+
+def _grid_refs(records: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            "record_id": row.get("record_id"),
+            "content_hash": row.get("content_hash"),
+            "policy_fingerprint_sha256": (
+                row.get("payload", {}).get("observation", {}).get("policy_fingerprint_sha256")
+                if isinstance(row.get("payload"), Mapping)
+                else None
+            ),
+        }
+        for row in records
+    ]
+
+
+def prepare_subscription_judgment(
+    *,
+    data_root: DataLakeRoot,
+    packet_id: str,
     creator_id: str,
-    batch_payloads: list[Mapping[str, Any]],
-    transcript_evidence: list[Mapping[str, Any]],
+    profile_subject_id: str,
     question: str,
     evidence_cutoff: str,
-    semantic_labels: Mapping[str, Any] | None,
-    assembly_out: Path,
-    profile_out: Path,
-    transport: Transport,
-    provider: RawApiProvider,
-    model: str,
-    api_key: str,
-    max_tokens: int = 4096,
+    bundle_out: Path,
+    prompt_out: Path,
 ) -> dict[str, Any]:
-    if assembly_out.resolve() == profile_out.resolve():
-        raise ValueError("assembly_out and profile_out must be different files")
-    assembly = build_gold_ready_audience_evidence(
+    if bundle_out.resolve() == prompt_out.resolve():
+        raise ValueError("bundle_out and prompt_out must be different files")
+    batch = _load_batch(data_root, packet_id)
+    attention_records = _read_lane(
+        data_root, raw_anchor=packet_id, lane=COMMENT_ATTENTION_LANE
+    )
+    grid_records = _read_lane(
+        data_root, raw_anchor=packet_id, lane=SOCIAL_METRIC_OBSERVATION_SET_LANE
+    )
+    attention, grid_records, silver_residuals = select_current_audience_silver_records(
+        comment_attention_records=attention_records,
+        grid_observation_records=grid_records,
+    )
+    if not attention:
+        raise ValueError(
+            "SILVER_AUDIENCE_EVIDENCE_REQUIRED: run the packet-scoped TikTok comment-attention producer"
+        )
+    if not grid_records:
+        raise ValueError(
+            "SILVER_AUDIENCE_EVIDENCE_REQUIRED: run the packet-scoped TikTok grid-observation producer"
+        )
+    bundle = build_creator_audience_evidence_bundle(
         creator_id=creator_id,
-        batch_payloads=batch_payloads,
-        transcript_evidence=transcript_evidence,
+        profile_subject_id=profile_subject_id,
+        raw_anchor=packet_id,
+        batch_payload=batch,
+        comment_attention_records=attention,
+        grid_observation_refs=_grid_refs(grid_records),
         question=question,
         evidence_cutoff=evidence_cutoff,
-        semantic_labels=semantic_labels,
+        silver_selection_residuals=silver_residuals,
     )
-    _write_new_json(assembly_out, assembly)
-    profile = triangulate_audience(
-        assembly=assembly,
-        transport=transport,
-        provider=provider,
-        model=model,
-        api_key=api_key,
-        max_tokens=max_tokens,
+    _write_new_json(bundle_out, bundle)
+    _write_new(prompt_out, build_triangulation_prompt(bundle) + "\n")
+
+    receipt = build_assembly_receipt(bundle)
+    receipt_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=ASSEMBLY_RECEIPT_LANE,
+        record_id=str(receipt["record_id"]),
     )
-    profile_document = {
-        "profile": profile.model_dump(mode="json"),
-        "run_receipt": {
-            "creator_id": assembly["creator_id"],
-            "model": model,
-            "provider": provider.value,
-            "gold_model_call_count": 1,
-            "prompt_utf8_bytes": len(build_triangulation_prompt(assembly).encode("utf-8")),
-            "assembly_utf8_bytes": assembly["assembly_receipt"]["serialized_utf8_bytes"],
-        },
+    receipt_bytes = json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+    if receipt_path.exists():
+        if receipt_path.read_bytes() != receipt_bytes:
+            raise ValueError("existing audience assembly receipt differs")
+    else:
+        data_root.append_record(
+            subtree="derived",
+            raw_anchor=packet_id,
+            lane=ASSEMBLY_RECEIPT_LANE,
+            record_id=str(receipt["record_id"]),
+            data=receipt_bytes,
+        )
+    return {
+        "status": "SUBSCRIPTION_JUDGMENT_REQUIRED",
+        "creator_id": bundle["creator_id"],
+        "profile_subject_id": bundle["profile_subject_id"],
+        "packet_id": packet_id,
+        "bundle_id": bundle["bundle_id"],
+        "bundle_hash": bundle["bundle_hash"],
+        "bundle_out": str(bundle_out),
+        "prompt_out": str(prompt_out),
+        "assembly_receipt_record_id": receipt["record_id"],
+        "silver_selection_residual_count": len(silver_residuals),
+        "model_api_calls": 0,
     }
-    _write_new_json(profile_out, profile_document)
-    return profile_document
+
+
+def validate_subscription_judgment(
+    *, bundle_path: Path, response_path: Path, snapshot_out: Path
+) -> dict[str, Any]:
+    bundle = _load_object(bundle_path)
+    response_text = response_path.read_text(encoding="utf-8")
+    snapshot = parse_triangulation_response(response_text, bundle)
+    document = snapshot.model_dump(mode="json")
+    _write_new_json(snapshot_out, document)
+    return {
+        "status": "validated",
+        "creator_id": snapshot.creator_id,
+        "profile_subject_id": snapshot.profile_subject_id,
+        "snapshot_id": snapshot.snapshot_id,
+        "snapshot_out": str(snapshot_out),
+        "model_api_calls": 0,
+    }
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--creator-id", required=True)
-    parser.add_argument("--batch", type=Path, action="append", required=True)
-    parser.add_argument("--transcript-evidence", type=Path, action="append", default=[])
-    parser.add_argument("--comment-labels", type=Path)
-    parser.add_argument("--question", required=True)
-    parser.add_argument("--evidence-cutoff", required=True)
-    parser.add_argument("--assembly-out", type=Path, required=True)
-    parser.add_argument("--profile-out", type=Path, required=True)
-    parser.add_argument("--provider", choices=[item.value for item in RawApiProvider], required=True)
-    parser.add_argument("--model", required=True)
-    parser.add_argument("--api-key-env", required=True)
-    parser.add_argument("--max-tokens", type=int, default=4096)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    prepare = subparsers.add_parser("prepare")
+    prepare.add_argument("--data-root", required=True)
+    prepare.add_argument("--packet-id", required=True)
+    prepare.add_argument("--creator-id", required=True)
+    prepare.add_argument("--profile-subject-id", required=True)
+    prepare.add_argument("--question", required=True)
+    prepare.add_argument("--evidence-cutoff", required=True)
+    prepare.add_argument("--bundle-out", type=Path, required=True)
+    prepare.add_argument("--prompt-out", type=Path, required=True)
+    validate = subparsers.add_parser("validate")
+    validate.add_argument("--bundle", type=Path, required=True)
+    validate.add_argument("--response", type=Path, required=True)
+    validate.add_argument("--snapshot-out", type=Path, required=True)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
-        api_key = os.environ.get(args.api_key_env, "")
-        if not api_key:
-            raise ValueError(f"environment variable {args.api_key_env} is missing or blank")
-        result = run_triangulation(
-            creator_id=args.creator_id,
-            batch_payloads=[_load_object(path) for path in args.batch],
-            transcript_evidence=_evidence_rows(args.transcript_evidence),
-            question=args.question,
-            evidence_cutoff=args.evidence_cutoff,
-            semantic_labels=_load_object(args.comment_labels) if args.comment_labels else None,
-            assembly_out=args.assembly_out,
-            profile_out=args.profile_out,
-            transport=UrllibJsonTransport(),
-            provider=RawApiProvider(args.provider),
-            model=args.model,
-            api_key=api_key,
-            max_tokens=args.max_tokens,
-        )
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        if args.command == "prepare":
+            result = prepare_subscription_judgment(
+                data_root=DataLakeRoot.resolve(explicit=args.data_root),
+                packet_id=args.packet_id,
+                creator_id=args.creator_id,
+                profile_subject_id=args.profile_subject_id,
+                question=args.question,
+                evidence_cutoff=args.evidence_cutoff,
+                bundle_out=args.bundle_out,
+                prompt_out=args.prompt_out,
+            )
+        else:
+            result = validate_subscription_judgment(
+                bundle_path=args.bundle,
+                response_path=args.response,
+                snapshot_out=args.snapshot_out,
+            )
+    except (DataLakeRootError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
-    print(json.dumps({"status": "written", **result["run_receipt"]}, indent=2, sort_keys=True))
+    print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
 

@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from cleaning.audience_extractor import RawApiProvider
+from cleaning.raw_model_transport import RawApiProvider
 from cleaning.transcript_product_extractor import TranscriptInput, parse_mentions
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,

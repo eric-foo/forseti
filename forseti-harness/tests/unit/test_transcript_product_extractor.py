@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from cleaning.audience_extractor import RawApiProvider
+from cleaning.raw_model_transport import RawApiProvider
 from cleaning.transcript_product_extractor import (
     TranscriptInput,
     build_extraction_prompt,

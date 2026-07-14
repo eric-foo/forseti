@@ -26,7 +26,7 @@ open_next:
   - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_momentum_pipeline_architecture_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_reels_transcript_product_extraction_spec_v0.md
 stale_if:
@@ -963,7 +963,7 @@ extracted product mentions, so it rides Pass 2 for free.
 **Tier-2A audience demographics** (`gender_skew`, `age_band`) — separately
 owner-gated behind a ledger-schema home (council-confirmed 2026-06-23; legal gate
 cleared; still no ledger home). Referenced, **not designed** here
-(`ig_creator_ideal_audience_inference_spec_v0.md`, Tier-2-A slice).
+(the current audience-triangulation contract keeps demographics `not_estimated`).
 
 ## Cross-recipe dependency map
 

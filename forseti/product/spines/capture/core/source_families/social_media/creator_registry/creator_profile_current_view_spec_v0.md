@@ -7,14 +7,14 @@ scope: >
   Owner-directed architecture contract for the current creator profile view: a
   one-stop operator/dashboard surface that joins channel-neutral public account
   subjects, optional public-handle identity linkage, per-content metric
-  observations, aggregate metric rollups, and ideal-audience profile snapshots
+  observations, aggregate metric rollups, and validated audience-triangulation snapshots
   without turning the identity ledger into one giant ledger.
   This is not runtime storage, not SQLite adoption, not a live dashboard, not
   capture execution, and not a public person-level product surface.
 use_when:
   - Designing the one-stop creator/account profile surface for internal creator intelligence.
   - Deciding where average views, engagement rate, and other aggregate creator metrics belong.
-  - Checking the boundary between the public-handle identity ledger, metric observations, metric rollups, ideal-audience enrichment, and future SQLite/data-lake storage.
+  - Checking the boundary between the public-handle identity ledger, metric observations, metric rollups, audience triangulation, and future SQLite/data-lake storage.
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
@@ -24,7 +24,7 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_seed_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
   - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
@@ -32,7 +32,7 @@ open_next:
 stale_if:
   - The creator public-handle linkage ledger moves to SQLite or another database schema.
   - A later accepted artifact defines a different creator profile view, dashboard contract, or creator-intelligence surface without explicitly reconciling with this spec and the Creator Signal surface.
-  - Metric rollup storage, ideal-audience schema home, or Data Lake physicalization is adopted in a way that supersedes this view contract.
+  - Metric rollup storage, audience-triangulation schema home, or Data Lake physicalization is adopted in a way that supersedes this view contract.
   - The wind-caller carve-out changes public stats, aggregate audience, or person-level surface boundaries.
 authority_boundary: retrieval_only
 ```
@@ -83,7 +83,7 @@ orca_start_preflight:
     - .agents/workflow-overlay/validation-gates.md
     - docs/decisions/wind_caller_calibration_carveout_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
-    - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+    - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
 ```
@@ -135,9 +135,9 @@ creator_metric_rollups
   -> average views, engagement rate, velocity, cadence
   -> computed over windows from metric observations
 
-creator_ideal_audience_profile_snapshots
-  -> ideal/content-fit audience fields and evidence pointers
-  -> actual audience remains not_estimated unless separately authorized
+creator_audience_triangulation_snapshots
+  -> validated transcript/comment Judgment claims and commercial projection
+  -> exact bundle/evidence binding; demographics remain not_estimated
 
 creator_profile_current
   -> current one-stop joined view for one platform_account or linked creator_record
@@ -272,27 +272,22 @@ creator_metric_rollup:
 ```
 
 ```yaml
-creator_ideal_audience_profile_snapshot:
-  audience_profile_snapshot_id: required stable id
-  profile_subject_kind: required enum platform_account, creator_record
-  profile_subject_id: required subject id matching profile_subject_kind
-  platform_account_ids: required list
-  creator_record_id_or_none: nullable linkage-ledger id, required when profile_subject_kind is creator_record
-  platform_scope: required enum instagram, tiktok, youtube, cross_platform
-  observation_window_start: required timestamp
-  observation_window_end: required timestamp
-  actual_audience: required literal not_estimated
-  tier_1_profile:
-    segment: nullable label with support band
-    audience_role: nullable label with support band
-    purchase_intent: nullable label with support band
-    skill_level: nullable label with support band
-    price_tier: nullable label with support band
-  tier_2a_profile_or_none: nullable gated aggregate-audience slice
-  evidence_ids: required list
-  fusion_config_version: required version
-  computed_at: required timestamp
+creator_audience_triangulation_snapshot:
+  snapshot_id: required stable id over canonical validated content
+  profile_subject_kind: required literal platform_account
+  profile_subject_id: required platform-account subject id
+  platform_account_id: required and equal to profile_subject_id
+  creator_id: required creator-isolated TikTok identity
+  platform_scope: required literal tiktok
+  generated_at: required timestamp
+  evidence_cutoff: required timestamp
+  input_bundle_id: required creator evidence bundle id
+  input_bundle_hash: required creator evidence bundle hash
+  judgment_claim_set: required cited claims, agreements, contradictions, and missing evidence
+  creator_signal_projection: required hire verdict, product advantage, creator-specific execution, observed response, campaign jobs, briefing instructions, and wrong-hire boundary
+  actual_audience_demographics: required literal not_estimated
   limitations: required list
+  non_claims: required list
 ```
 
 ```yaml
@@ -314,7 +309,7 @@ creator_profile_current:
     evidence_source_surface_or_none: required only when onboarded
     policy_version: required version
   current_metric_rollups: required list; may be empty for identity-only platform_account rows with no source-backed metric rollup yet
-  ideal_audience_profile: nullable latest allowed profile snapshot
+  audience_triangulation: nullable latest validated audience-triangulation snapshot
   wind_calling_summary: nullable derived operator summary
   freshness:
     identity_updated_at: required timestamp
@@ -441,7 +436,7 @@ When physicalized, SQLite tables can map directly from the sibling shapes:
 - `account_link_evidence`
 - `creator_metric_observations`
 - `creator_metric_rollups`
-- `creator_ideal_audience_profile_snapshots`
+- `creator_audience_triangulation_snapshots`
 - `creator_profile_current`
 
 Data Lake owns storage/derived-result mechanics when adopted. This product
@@ -499,7 +494,7 @@ direction_change_propagation:
     - .agents/workflow-overlay/decision-routing.md
     - .agents/workflow-overlay/validation-gates.md
     - docs/decisions/wind_caller_calibration_carveout_v0.md
-    - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+    - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
   intentionally_not_updated:

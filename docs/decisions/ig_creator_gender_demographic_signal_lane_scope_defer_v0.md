@@ -16,7 +16,7 @@ use_when:
   - Confirming that downstream creator-gender lane slices still require explicit bounded owner authorization.
 authority_boundary: retrieval_only
 open_next:
-  - orca-harness/scoring/audience_fusion.py            # the soft-aggregation shape this lane is modeled on
+  - forseti-harness/scoring/creator_gender_fusion.py   # the live deterministic soft-aggregation owner
   - orca-harness/scoring/product_fusion.py             # the product-STANCE lane this must NOT fold into
   - docs/decisions/product_verdict_fusion_calibration_surface_v0.md  # Pass-1<->Pass-2 calibration context the deferral waits on
   - orca-harness/cleaning/transcript_product_extractor.py  # parse_mentions: the agent-in-the-loop inference exemplar (cleaning zone)

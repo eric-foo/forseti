@@ -456,6 +456,12 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "fail_closed_singleton",
         "reason": "exactly one transcribed transcript_asr record per anchor or raise",
     },
+    "runners/run_tiktok_creator_audience_triangulation.py": {
+        "detection": "lane_dir",
+        "posture": "selection_rule",
+        "mechanism": "local:select_current_audience_silver_records",
+        "reason": "selects source-backed grid-observation and comment-attention records under the current exact policy, names policy mismatches as residuals, and fails closed on ambiguous current evidence",
+    },
     "runners/run_transcript_product_extract.py": {
         "detection": "lane_dir",
         "posture": "all_siblings",

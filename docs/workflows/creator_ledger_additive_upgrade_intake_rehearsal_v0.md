@@ -15,7 +15,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_ledger_operational_evolution_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_record_contract_v0.md
-  - orca-harness/capture_spine/creator_profile_current/ideal_audience_snapshot.py
+  - forseti-harness/capture_spine/creator_profile_current/audience_triangulation_snapshot.py
   - orca-harness/capture_spine/creator_profile_current/materialize.py
   - orca-harness/capture_spine/creator_profile_current/validation.py
 stale_if:

@@ -313,6 +313,26 @@ def test_history_reader_fails_loud_on_wrong_policy_record_at_exact_policy_path(
         )
 
 
+def test_runner_packet_selector_does_not_drain_unrelated_pending_packet(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    selected = _admit_grid(
+        data_root, observed_at="2026-07-12T00:00:00Z", play_count=100,
+        like_count=10, comment_count=2,
+    )
+    unrelated = _admit_grid(
+        data_root, observed_at="2026-07-13T00:00:00Z", play_count=200,
+        like_count=20, comment_count=4,
+    )
+
+    result = runner.run_catchup(data_root=data_root, packet_ids=[selected])
+
+    assert [row["packet_id"] for row in result if row["status"] == "derived"] == [selected]
+    unrelated_lane = data_root.lane_dir(
+        subtree="derived", raw_anchor=unrelated, lane=SOCIAL_METRIC_OBSERVATION_SET_LANE
+    )
+    assert not unrelated_lane.exists()
+
+
 def test_main_exit_code_fails_on_availability_reconcile_failure(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -383,7 +403,7 @@ def test_runner_acknowledges_non_grid_tiktok_packet_as_not_applicable(
     assert runner.pending_packets(data_root=data_root) == []
 
 
-def test_runner_ignores_embedded_grid_copy_in_batch_packet(tmp_path: Path) -> None:
+def test_runner_derives_embedded_grid_copy_in_batch_packet(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     packet_id = _commit_tiktok_packet(
         data_root,
@@ -396,16 +416,16 @@ def test_runner_ignores_embedded_grid_copy_in_batch_packet(tmp_path: Path) -> No
         ),
     )
 
-    assert runner.run_catchup(data_root=data_root) == [
-        {"packet_id": packet_id, "status": "not_applicable"}
-    ]
+    result = runner.run_catchup(data_root=data_root)
+    assert result[0]["packet_id"] == packet_id
+    assert result[0]["status"] == "derived"
     record_path = data_root.record_path(
         subtree="derived",
         raw_anchor=packet_id,
         lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
         record_id=observation_set_record_id(packet_id),
     )
-    assert not record_path.exists()
+    assert record_path.is_file()
 
 
 def test_mixed_grid_and_batch_catchup_is_idempotent_and_queryable(
@@ -429,7 +449,7 @@ def test_mixed_grid_and_batch_catchup_is_idempotent_and_queryable(
         data_root,
         source_surface=TIKTOK_BATCH_CAPTURE_SURFACE,
         grid_window_json=_grid_bytes(
-            observed_at="2026-07-13T00:00:00Z",
+            observed_at="2026-07-14T00:00:00Z",
             play_count=999,
             like_count=99,
             comment_count=9,
@@ -442,7 +462,7 @@ def test_mixed_grid_and_batch_catchup_is_idempotent_and_queryable(
     assert sorted(row["status"] for row in first) == [
         "derived",
         "derived",
-        "not_applicable",
+        "derived",
     ]
     assert second == []
     for anchor in grid_anchors:
@@ -452,12 +472,12 @@ def test_mixed_grid_and_batch_catchup_is_idempotent_and_queryable(
             lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
             record_id=observation_set_record_id(anchor),
         ).is_file()
-    assert not data_root.record_path(
+    assert data_root.record_path(
         subtree="derived",
         raw_anchor=batch_anchor,
         lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
         record_id=observation_set_record_id(batch_anchor),
-    ).exists()
+    ).is_file()
     history = read_social_metric_history(
         data_root=data_root,
         lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
@@ -470,12 +490,14 @@ def test_mixed_grid_and_batch_catchup_is_idempotent_and_queryable(
     assert [point.observed_at for point in history["101"]] == [
         "2026-07-12T00:00:00Z",
         "2026-07-13T00:00:00Z",
+        "2026-07-14T00:00:00Z",
     ]
     assert [
         point.metrics["view_count"]["metric_value"] for point in history["101"]
     ] == [
         100,
         150,
+        999,
     ]
     assert runner.pending_packets(data_root=data_root) == []
 

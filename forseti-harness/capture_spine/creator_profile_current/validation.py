@@ -16,8 +16,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from capture_spine.creator_profile_current.ideal_audience_snapshot import (
-    validate_creator_ideal_audience_profile_snapshot,
+from capture_spine.creator_profile_current.audience_triangulation_snapshot import (
+    validate_creator_audience_triangulation_snapshot,
 )
 from capture_spine.creator_public_handle_linkage.models import CreatorPublicHandleLinkageError
 from capture_spine.creator_public_handle_linkage.validation import assert_no_forbidden_output_fields
@@ -49,7 +49,7 @@ _ALLOWED_COUNTS_KEYS = frozenset(
         "platform_account_profiles",
         "creator_record_profiles",
         "profiles_with_metric_rollups",
-        "profiles_with_ideal_audience_profiles",
+        "profiles_with_audience_triangulation",
         "engagement_rate_observed_profiles",
         "cross_platform_rollup_profiles",
         "onboarded_profiles",
@@ -69,7 +69,7 @@ _ALLOWED_PROFILE_KEYS = frozenset(
         "identity_evidence_summary",
         "onboarding",
         "current_metric_rollups",
-        "ideal_audience_profile",
+        "audience_triangulation",
         "wind_calling_summary",
         "freshness",
         "source_drill_back",
@@ -271,7 +271,7 @@ def _validate_profiles(value: Any) -> list[Mapping[str, Any]]:
         _validate_profile_non_claims(profile["non_claims"])
         _validate_str_list(profile["limitations"], "profile_limitations", allow_empty=False)
         rollups = _validate_rollups(profile["current_metric_rollups"], profile)
-        _validate_ideal_audience_profile(profile["ideal_audience_profile"], profile)
+        _validate_audience_triangulation(profile["audience_triangulation"], profile)
         _validate_unjoined_profile_surface(profile["wind_calling_summary"], "wind_calling_summary")
         _validate_source_drill_back(profile["source_drill_back"], profile["identity_evidence_summary"], rollups)
         _validate_freshness(profile["freshness"])
@@ -379,30 +379,25 @@ def _validate_unjoined_profile_surface(value: Any, context: str) -> None:
         _fail(f"unsupported_{context}", f"{context} is not joined into creator_profile_current_view_v0")
 
 
-def _validate_ideal_audience_profile(value: Any, profile: Mapping[str, Any]) -> None:
+def _validate_audience_triangulation(value: Any, profile: Mapping[str, Any]) -> None:
     if value is None:
         return
     if not isinstance(value, Mapping):
-        _fail("invalid_ideal_audience_profile", "ideal_audience_profile must be an object or null")
+        _fail("invalid_audience_triangulation", "audience_triangulation must be an object or null")
     try:
-        snapshot = validate_creator_ideal_audience_profile_snapshot(value)
+        snapshot = validate_creator_audience_triangulation_snapshot(value)
     except ValueError as exc:
-        _fail("invalid_ideal_audience_profile", f"invalid ideal_audience_profile snapshot: {exc}")
+        _fail("invalid_audience_triangulation", f"invalid audience_triangulation snapshot: {exc}")
     if snapshot["profile_subject_kind"] != profile["profile_subject_kind"]:
-        _fail("ideal_audience_profile_subject_mismatch", "ideal_audience_profile subject kind must match profile")
+        _fail("audience_triangulation_subject_mismatch", "audience_triangulation subject kind must match profile")
     if snapshot["profile_subject_id"] != profile["profile_subject_id"]:
-        _fail("ideal_audience_profile_subject_mismatch", "ideal_audience_profile subject id must match profile")
+        _fail("audience_triangulation_subject_mismatch", "audience_triangulation subject id must match profile")
     if profile["profile_subject_kind"] == "platform_account":
-        if snapshot["platform_account_ids"] != [profile["platform_account_id_or_none"]]:
+        if snapshot["platform_account_id"] != profile["platform_account_id_or_none"]:
             _fail(
-                "ideal_audience_profile_subject_mismatch",
-                "platform_account ideal_audience_profile must point at the same platform account",
+                "audience_triangulation_subject_mismatch",
+                "audience_triangulation must point at the same platform account",
             )
-    elif snapshot["creator_record_id_or_none"] != profile["creator_record_id_or_none"]:
-        _fail(
-            "ideal_audience_profile_subject_mismatch",
-            "creator_record ideal_audience_profile must point at the same creator record",
-        )
 
 
 def _validate_rollups(value: Any, profile: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -586,9 +581,9 @@ def _validate_counts(counts: Any, profiles: Sequence[Mapping[str, Any]]) -> None
         "profiles_with_metric_rollups",
     )
     _assert_equal(
-        counts["profiles_with_ideal_audience_profiles"],
-        sum(1 for profile in profiles if profile["ideal_audience_profile"] is not None),
-        "profiles_with_ideal_audience_profiles",
+        counts["profiles_with_audience_triangulation"],
+        sum(1 for profile in profiles if profile["audience_triangulation"] is not None),
+        "profiles_with_audience_triangulation",
     )
     _assert_equal(
         counts["engagement_rate_observed_profiles"],

@@ -21,7 +21,7 @@ open_next:
   - docs/research/aphrodite_creator_capture_strategy_v0.md                        # the grid-heartbeat + deep-capture + promotion strategy
   - docs/workflows/aphrodite_proposed_creator_stats_design_handoff_v0.md          # nonresolving: external-worktree packet, never committed; the design lane it opened is discharged by the design spec on PR #787 — forseti/product/spines/capture/core/source_families/social_media/instagram/aphrodite_proposed_creator_stats_design_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_profile_grid_dom_engagement_recon_and_spec_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
   - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
 branch_or_commit: >
   Field statuses read against current main-line source specs + forseti-harness
@@ -105,7 +105,7 @@ attended — no at-scale crawl**.
 | --- | --- | --- | --- |
 | **Metric rollups** (Silver) | `average_views`, `median_views`, `engagement_rate`, `average_like_count`, `average_comment_count` | **LIVE** (IG/YouTube; TikTok in harness, not yet in committed profile-current view) | `.../creator_registry/creator_metric_silver_record_contract_v0.md`; `forseti-harness/capture_spine/creator_profile_current/*.py` |
 | ↳ `posting_cadence`, `recent_velocity` | rate / trend fields | **DEFERRED** (schema-reserved, always `not_attempted`) | `.../creator_registry/creator_profile_current_record_contract_v0.md`; `.../creator_profile_current/rollup_formula_revalidation.py` (`_NEVER_COMPUTED_METRICS`) |
-| **Ideal-audience profile** (content-fit) | per pillar: `segment`, `audience_role`, `purchase_intent`, `skill_level`, `price_tier` + support bands + evidence | **BUILT·gated** (Pass-1 LLM extractor + Pass-2 deterministic fusion + snapshot + runner; live LLM wiring gated) | `.../instagram/ig_creator_ideal_audience_inference_spec_v0.md`; `forseti-harness/scoring/audience_fusion.py`; `.../creator_profile_current/ideal_audience_snapshot.py`; `forseti-harness/cleaning/audience_extractor.py` |
+| **Ideal audience / audience triangulation** | transcript/content read + observed captured-comment read + cited commercial projection | **BUILT·subscription-judgment** (packet-scoped Silver prerequisites, transient creator evidence bundle, cold subscription Judgment, strict snapshot validation, Creator Registry join; no model API) | `forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md`; `forseti-harness/runners/run_tiktok_creator_audience_triangulation.py`; `.agents/skills/creator-audience-triangulation/SKILL.md` |
 | ↳ audience `gender_skew` / `age_band` (Tier-2A) | demographic skew | **DEFERRED** (owner-gated behind ledger-schema home) | same spec §Tier-2-A; `forseti-harness/schemas/audience_inference_models.py` |
 | ↳ **actual** audience / follower demographics | — | **never** (`actual_audience` hardcoded `not_estimated`) | `forseti-harness/schemas/audience_inference_models.py` |
 | **Creator-gender lean** | one soft `gender_lean ∈ [-1,1]` + confidence; **creator-only, never per-commenter** | **BUILT** (deterministic core); cue inference DEFERRED | `forseti-harness/scoring/creator_gender_fusion.py`; `docs/decisions/ig_creator_gender_demographic_signal_lane_scope_defer_v0.md` |

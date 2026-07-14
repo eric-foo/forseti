@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from cleaning.audience_extractor import RawApiProvider
+from cleaning.raw_model_transport import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE
 from data_lake.root import DataLakeRoot
 from runners.run_transcript_product_extract import run_extraction

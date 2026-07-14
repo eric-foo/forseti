@@ -7,7 +7,7 @@ records; the LLM never emits the final verdict — that is Pass 2's deterministi
 job (`scoring/`, deferred).
 
 Provider plumbing (raw HTTP through an injectable transport, no openai/anthropic SDK) is
-reused from `cleaning.audience_extractor` (same proven endpoint allow-list + forbidden-keys
+reused from `cleaning.raw_model_transport` (same proven endpoint allow-list + forbidden-keys
 guard), so tests run fully offline with a fake transport and no credentials.
 
 The CE5+CE9 fusion (the core): the LLM supplies the verbatim QUOTE (and product fields) but
@@ -30,7 +30,7 @@ from pydantic import ValidationError
 if TYPE_CHECKING:
     from data_lake.silver_lineage import SilverLineage
 
-from cleaning.audience_extractor import (
+from cleaning.raw_model_transport import (
     RawApiProvider,
     Transport,
     build_headers,
