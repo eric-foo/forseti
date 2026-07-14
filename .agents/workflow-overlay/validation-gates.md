@@ -47,6 +47,14 @@ inherit this floor.
   an explicit CLI base, then local `origin/main`. The local pre-push mirror
   deliberately leaves the CI variable unset and scans outgoing
   `origin/main...HEAD`; this event contract changes CI scope, not hook scope.
+- Harness coupling contract preflight: when the exact CI event diff (or local
+  outgoing `origin/main...HEAD` diff) touches `forseti-harness/**/*.py` or the
+  generated `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json`,
+  `.agents/hooks/check_harness_coupling.py --strict` runs the existing
+  `test_data_lake_inventory_gate.py` and `test_policy_module_version_pins.py`
+  contract files before the full suite. Diff-resolution and launch errors fail
+  closed. The adapter adds no test rule and a pass is not full-suite validation,
+  readiness, approval, or proof that every CI failure is prevented.
 - No software implementation directories are present unless explicitly authorized.
 - `AGENTS.md` and overlay files do not encode `jb` project-specific authority as Forseti rules.
 - Material authority, source-scope, edit-permission, and repository-state checks
@@ -576,10 +584,11 @@ gate). Registered in `.github/workflows/ci.yml` and `.githooks/commit-msg`;
 
 **Local pre-push selected-gate mirror** (`.agents/hooks/pre_push_guard.py`, the
 policy behind the `.githooks/pre-push` adapter). For a push whose update lines
-pass the guard's safety checks, the guard runs nine strict CI gates over the
+pass the guard's safety checks, the guard runs ten selected strict CI gates over the
 outgoing `origin/main...HEAD` change: retrieval links and headers, review
 routing and review-output provenance, source-input and markdown hash freshness,
-prompt output mode, handoff-pointer resolution, and ontology tag validity.
+prompt output mode, handoff-pointer resolution, ontology tag validity, and the
+conditional harness coupling contracts.
 The same checker modes run in `.github/workflows/ci.yml`; CI supplies its
 exact event base while pre-push supplies local `origin/main`; the mirror adds
 no rule. A
@@ -593,6 +602,22 @@ nested worktrees to a tracked, diff-scoped gate. Local Git hook only: bypassable
 with `--no-verify`; it does not see GitHub API merges; CI remains the
 authoritative boundary. A green pre-push is not validation, readiness, approval,
 or proof that every CI step will pass.
+
+**Harness coupling contract preflight**
+(`.agents/hooks/check_harness_coupling.py`). This is a conditional adapter over
+the two existing contract files named in Current Gates, not a new validation
+rule. It runs in CI immediately before the full suite and in the local pre-push
+selected-gate mirror. The trigger is deliberately broad across harness Python
+because policy-module pins can be affected through imports and deliberately
+narrow across non-Python data to the generated inventory snapshot. A 2026-07-15
+sample of the latest 100 `ci` workflow runs found 96 completed runs and six
+failures; three of the six failures were stale generated-inventory or
+policy-module-pin coupling. No SHA in the sample both failed and later passed,
+so blanket retry had no supporting evidence. The two contract files completed
+in about 8.6 seconds locally versus about 79 seconds for the full harness suite.
+This placement is the smallest complete response to the repeated fast coupling
+class; other isolated failures remain visible in the authoritative full suite.
+
 
 **Source-input hash freshness gate** (`.agents/hooks/check_source_input_hashes.py`,
 EP-37). Diff-scoped, forward-only CI gate plus local pre-push mirror for the
@@ -697,58 +722,6 @@ markdown sibling of the EP-37 JSON gate. Registered in
 
 ## Direction Change Propagation
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Fused now conditionally commissions a non-patching cold-agent dogfood pass
-    after focused author validation and before recommended delegated review,
-    with bounded home repair/replay and behavior-triggered post-review replay;
-    this validation owner binds applicability, isolation, evidence, cost, and
-    non-claim semantics while Fused only sequences the gate.
-  trigger: workflow_authority
-  related_triggers:
-    - validation_philosophy
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - CLAUDE.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/review-lanes.md
-    - docs/decisions/subagent_model_tiering_doctrine_v0.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        It already routes validation and Fused project behavior to overlay
-        owners; duplicating the gate in the kernel would fork authority.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        A non-forked in-session cold execution dispatch is already covered by
-        the subagent contract, while cross-lane transport uses the existing
-        prompt contract; no new prompt artifact or output mode is needed.
-    - path: .agents/workflow-overlay/delegated-review-patch.md
-      reason: >
-        Cold-context execution and different-family review remain separate
-        controls, so the delegated review lifecycle is unchanged.
-    - path: docs/decisions/subagent_model_tiering_doctrine_v0.md
-      reason: >
-        It already owns current operator/tooling model selection; the dogfood
-        contract adds only a capability requirement and no concrete model.
-  stale_language_search: >
-    rg -n -i "cold.agent|cold dogfood|dogfood|end.to.end|recommended review|review replay|model tier" AGENTS.md CLAUDE.md .agents/workflow-overlay docs/decisions/subagent_model_tiering_doctrine_v0.md
-  non_claims:
-    - not validation
-    - not readiness
-    - not proof of output quality
-    - not a substitute for delegated review
-    - not installed-skill or runtime deployment
-```
 
 ```yaml
 direction_change_propagation:
@@ -816,6 +789,61 @@ direction_change_propagation:
     - not proof that every admitted row is semantically correct
     - not a mechanical T1-admission checker
     - not an amendment to the repo-map architecture decision
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Local pre-push now conditionally mirrors the existing data-lake inventory
+    and policy-module pin contract tests when outgoing changes touch harness
+    Python or the generated inventory snapshot; CI runs the identical
+    diff-scoped adapter before the full suite.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_harness_coupling.py
+    - .agents/hooks/pre_push_guard.py
+    - .github/workflows/ci.yml
+  downstream_surfaces_checked:
+    - .agents/hooks/README.md
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - .agents/workflow-overlay/decision-routing.md
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - AGENTS.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The kernel already routes validation and CI behavior to the overlay;
+        duplicating the trigger or test list there would fork authority.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        This is a placement extension of existing deterministic pytest
+        substrates, not a new rule or enforcement-placement handle.
+    - path: full-suite pre-push policy
+      reason: >
+        An approximately 79-second gate on every push is not justified by the
+        repeated approximately 8.6-second coupling failure class.
+    - path: retry policy
+      reason: >
+        The 100-run sample contained no same-SHA failure followed by success;
+        retry would hide deterministic defects without observed flake evidence.
+  stale_language_search: >
+    rg -n -i "nine strict CI gates|DOC_GATES|doc gate|harness coupling"
+    .agents .github forseti-harness/tests
+  stale_language_search_result: >
+    Executed 2026-07-15 on the authoring branch. No `nine strict CI gates` or
+    `DOC_GATES` hits remain. Harness-coupling hits are confined to the new
+    checker, selected-gate wiring, CI step, registry, doctrine, and focused
+    tests. The remaining `doc gate` hits are the independent existing
+    `.github/scripts/run-doc-gates.ps1` runner, not stale pre-push naming.
+  non_claims:
+    - not full test-suite validation
+    - not readiness or approval
+    - not proof all CI failures are prevented
+    - not a retry or flake-masking policy
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
