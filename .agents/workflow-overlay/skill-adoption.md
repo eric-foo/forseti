@@ -150,13 +150,11 @@ skill-governance action under the Protected Skill Boundary.
   the old command/path remains as a thin compatibility wrapper for one
   transition window.
   - Source path: `.agents/skills/forseti-product-lead/SKILL.md` (Forseti-local).
-  - Source sha256: `c8b38c9bcb991b30dd13baeda9d420fe02bc412a8dae9b6a56ac59a9f2cec58c`
-    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-10 so the pin
+  - Source sha256: `8a625c668113feba25849999ab4b2585d4534c43645a033146dec17f28c312d2`
+    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-14 so the pin
     is checkout-independent, superseding the raw-CRLF Get-FileHash value
     observed 2026-07-08; `.agents` source and `.claude` deployment copy are
-    byte-identical; git content blob
-    `b4e05b63c86ca793418409821a94e27519525e28` on both copies, re-verified
-    2026-07-10).
+    byte-identical, re-verified in the working tree 2026-07-14).
     Reread-required if the file changes; pin freshness enforced by
     `.agents/hooks/check_hash_pin_freshness.py`.
   - Compatibility wrapper path: `.agents/skills/orca-product-lead/SKILL.md` with
@@ -170,12 +168,14 @@ skill-governance action under the Protected Skill Boundary.
     re-verified 2026-07-10).
     The wrapper loads the sibling `forseti-product-lead` skill and carries no
     product method of its own.
-  - Scope: prepares — does not freeze, run outreach, produce, or build — any
-    Forseti product decision (value proposition, offer, ICP / first-proof wedge,
-    buyer-proof design, positioning / packaging, deliverable shape, pull / kill /
-    graduation). A thin router into Forseti product authority; defers every fact
-    to `AGENTS.md`, the overlay, and the decision records; fails visibly when
-    authority is missing.
+  - Scope: prepares — does not freeze, run outreach, produce, or build — an
+    explicitly requested Forseti value-proposition, offer, ICP / first-proof
+    wedge, buyer-proof, positioning / packaging, deliverable-shape, or pull /
+    kill / graduation decision. Creator onboarding, data capture / data-spine,
+    feature scope, implementation, tooling, automation, dashboards, repository
+    orientation, and generic mentions of product or decisions do not trigger it.
+    A thin router into Forseti product authority; defers every fact to `AGENTS.md`,
+    the overlay, and the decision records; fails visibly when authority is missing.
   - Shadow name: distinct from the resolver-visible jb-scoped `product-lead`.
   - Collision (checked 2026-07-05): no repo-local, project-level Claude,
     user-level Codex, user-level Agents, or user-level Claude skill folder named
@@ -243,7 +243,11 @@ direction_change_propagation:
     to primary `forseti-product-lead`; `/orca-product-lead` remains as a thin
     project-local compatibility wrapper for one transition window, while source,
     deployment copy, hash pins, collision evidence, rollback, and live route docs
-    now bind the Forseti-primary skill ID.
+    now bind the Forseti-primary skill ID. Its resolver-facing trigger is narrowed
+    to explicit value proposition, offer, ICP / wedge, buyer-proof, positioning,
+    packaging / deliverable, or pull / kill / graduation decisions; creator
+    onboarding, data capture / data-spine, implementation, and generic product or
+    decision wording no longer qualify.
   trigger: workflow_authority
   related_triggers:
     - lifecycle_boundary
@@ -277,7 +281,7 @@ direction_change_propagation:
         Start-preflight alias retirement remains explicitly deferred; this lane
         only migrates the product-lead skill command/path.
   stale_language_search: >
-    rg -n "orca-product-lead|forseti-product-lead|orca_start_preflight|forseti_start_preflight"
+    rg -n "orca-product-lead|forseti-product-lead|orca_start_preflight|forseti_start_preflight|any Forseti product decision|what should the next product move be"
     AGENTS.md CLAUDE.md README.md .agents .claude docs/decisions docs/workflows docs/prompts
   stale_language_search_result: >
     Executed 2026-07-05 in codex/forseti-product-lead-skill-identity. Counts in
@@ -292,7 +296,11 @@ direction_change_propagation:
     hits are the explicitly deferred alias and historical prompt/review
     consumers; no start-preflight retirement is claimed. A stale-phrase scan for
     old "frozen compatibility" wording returned only two hits in the older
-    stale-reference audit record, treated as superseded provenance.
+    stale-reference audit record, treated as superseded provenance. Re-executed
+    2026-07-14 for the trigger correction: the former broad trigger phrases
+    `any Forseti product decision` and `what should the next product move be`
+    have no live hits in the source or deployment skill copies; remaining hits,
+    if any, are this receipt's search command or historical provenance.
   non_claims:
     - not validation
     - not readiness

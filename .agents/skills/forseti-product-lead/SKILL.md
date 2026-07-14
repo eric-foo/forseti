@@ -1,6 +1,6 @@
 ---
 name: forseti-product-lead
-description: "Forseti product-lead reasoning for any Forseti product decision - value prop, offer, ICP/wedge, buyer-proof, positioning, packaging, pull/kill/graduation. Prepares the decision for owner sign-off."
+description: "Forseti product-lead reasoning only when the user asks to decide or review value proposition, offer, ICP/first-proof wedge, buyer-proof, positioning, packaging/deliverable, or buyer-pull/kill/graduation. Do not trigger for feature scope, implementation, creator onboarding, data capture/data-spine, tooling, automation, dashboards, repo orientation, or generic mentions of product or decisions."
 ---
 
 # forseti-product-lead (Forseti-local, accepted)
@@ -38,12 +38,15 @@ Use when the turn is a Forseti product decision or review such as: confirming or
 revising the value proposition or offer; selecting or adjusting an ICP / first-
 proof wedge; designing or reviewing a buyer-proof loop; framing positioning,
 packaging, or deliverable shape; or judging buyer pull, kill, or graduation.
+A generic mention of Forseti, product, creator, onboarding, data, or a decision is
+not sufficient; the requested act must be one of those named product-direction
+layers.
 
 Do not use for: running outreach or live buyer contact; producing a memo or
 executive deck; commercial-frame / pricing lock; roadmap, feature scope,
-implementation, tooling, dashboard, data-spine, scoring, or automation work;
-or generic repo orientation. Each of those is owned by a separate lane and
-needs its own explicit owner authorization.
+implementation, creator onboarding, data capture, tooling, dashboard, data-spine,
+scoring, or automation work; or generic repo orientation. Each of those is owned
+by a separate lane and needs its own explicit owner authorization.
 
 ## Load step (smallest sufficient source pack)
 
@@ -161,10 +164,9 @@ courier state only when useful.
   `forseti-product-lead`; active in-thread resolver did not expose a
   `forseti-product-lead` skill before this change. Existing `product-lead`
   remains jb-scoped and is not imported.
-- Trigger examples: "make a Forseti product decision", "review this ICP / wedge",
-  "design the buyer-proof loop", "is this buyer pull or praise?", "frame
-  Forseti's packaging / deliverable", "what should the next product move be
-  (decision framing)?"
+- Trigger examples: "review this ICP / first-proof wedge", "design the
+  buyer-proof loop", "is this buyer pull or praise?", "frame Forseti's packaging
+  / deliverable", "should this offer graduate or be killed?"
 - Source boundary: not Forseti authority; defers all Forseti facts to `AGENTS.md`
   and `.agents/workflow-overlay/`; fails visibly when that authority is missing.
 - Overlay loaded for migration: README, decision-routing, source-of-truth,
