@@ -23,6 +23,7 @@ from test_tiktok_grid_observation_producer import _admit_grid
 
 def _comment_video(*, video_likes: int = 1000) -> dict:
     video = _video("7655162561783975199", stats=_stats(10000, video_likes, 100))
+    video["stats_observed_utc"] = CAPTURE_T1
     video["comments"] = {
         "posture": "captured_page_owned_response",
         "observed_utc": CAPTURE_T1,
@@ -67,6 +68,10 @@ def test_builds_source_backed_ratio_observations_with_policy_fingerprint() -> No
     assert observation["metric_value"] == 0.05
     assert observation["numerator"]["metric_value"] == 50
     assert observation["denominator"]["metric_value"] == 1000
+    assert observation["temporal_pairing"]["alignment"] == "same_capture_observation"
+    assert observation["engagement_context"]["comment_like_to_video_comment_count_ratio"] == 0.5
+    assert observation["engagement_context"]["comment_like_rank_within_captured"] == 1
+    assert observation["engagement_context"]["comment_like_percentile_within_captured"] == 1.0
     assert records[0]["provenance"]["policy_fingerprint_sha256"] == COMMENT_ATTENTION_POLICY_FINGERPRINT
     assert silver_record_source_backed_status(records[0]) == SOURCE_BACKED_COMPLETE_STATUS
     canonical = dict(records[0])
@@ -97,6 +102,40 @@ def test_zero_video_likes_is_unavailable_not_zero() -> None:
     assert observation["metric_value"] is None
     assert observation["metric_posture"]["kind"] == "unavailable_with_reason"
     assert observation["metric_posture"]["reason_code"] == "video_like_count_zero_denominator"
+
+
+def test_unaligned_video_stats_are_retained_but_not_used() -> None:
+    video = _comment_video()
+    video["stats_observed_utc"] = "2026-07-01T00:00:00Z"
+    observation = build_comment_attention_records(
+        raw_anchor="01TESTPACKET",
+        batch_payload={"capture_timestamp": CAPTURE_T1, "videos": [video]},
+        raw_file_ref={"file_id": "file-1", "relative_packet_path": "raw/x.json", "sha256": "a" * 64},
+    )[0]["payload"]["observation"]
+    assert observation["metric_value"] is None
+    assert observation["metric_posture"]["reason_code"] == "temporal_alignment_unproven"
+    assert observation["numerator"]["metric_value"] == 50
+    assert observation["denominator"]["metric_value"] == 1000
+
+
+def test_comment_without_native_cid_uses_dom_fallback_without_crash() -> None:
+    # DOM-captured top-level comments can lack a native cid; the record falls back
+    # to a dom:{video}:{source_order} id. The mechanics lookup must still resolve
+    # such comments instead of KeyError-ing.
+    video = _comment_video()
+    del video["comments"]["comments"][0]["cid"]
+    records = build_comment_attention_records(
+        raw_anchor="01TESTPACKET",
+        batch_payload={"capture_timestamp": CAPTURE_T1, "videos": [video]},
+        raw_file_ref={"file_id": "file-1", "relative_packet_path": "raw/x.json", "sha256": "a" * 64},
+    )
+    fallback = records[0]
+    assert fallback["source_object"]["native_id"] == f"dom:{fallback['provenance']['video_id']}:0"
+    assert fallback["provenance"]["comment_id"] is None
+    observation = fallback["payload"]["observation"]
+    assert observation["metric_value"] == 0.05
+    assert observation["metric_posture"]["kind"] == "observed"
+    assert observation["engagement_context"]["comment_like_rank_within_captured"] == 1
 
 
 def test_runner_appends_once_and_ack_skips_unchanged_packet(tmp_path) -> None:
