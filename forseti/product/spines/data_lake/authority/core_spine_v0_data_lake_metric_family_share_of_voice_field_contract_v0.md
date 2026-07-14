@@ -83,7 +83,7 @@ Every number must recompute from committed records cited by ref.
 ## Numerator / Denominator / Share Fields
 
 - `mention_count` (numerator, per `{brand, line}` row): count of MENTION-LEVEL
-  entries in `source_backed_complete` `silver__cleaning__product_mentions`
+  entries in source-backed, envelope-valid `transcript_product_mentions_silver`
   records within scope. Each row must carry `mention_refs`: dereferenceable
   committed mention refs (`raw_anchor`, `lane`, `record_id`, `sha256`,
   `mention_id`, `source_pointer`, `start_ms`, `end_ms`) — every counted

@@ -8,6 +8,7 @@ weaker semantics, and a prove-rebuildability that fails on tampered bytes
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 from data_lake.canonical_json import canonical_record_bytes
@@ -25,6 +26,7 @@ from data_lake.silver_lineage import (
     SilverRawRef,
     SilverSourceObject,
 )
+from data_lake.silver_record import silver_content_hash
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
@@ -71,7 +73,51 @@ def _complete_lineage_fields(packet_id: str) -> dict:
 def _write_mentions_record(
     root: DataLakeRoot, raw_anchor: str, record_id: str, record: dict
 ) -> None:
-    # silver_lineage-grammar lane (grammar B): raw append is the declared write path.
+    mentions = record.pop("mentions", [])
+    rows = []
+    for index, mention in enumerate(mentions):
+        quote = f"quote {index}"
+        rows.append(
+            {
+                "row_id": f"mention-{index}",
+                "text_artifact_type": "transcript_quote",
+                "text_value": quote,
+                "text_ref": None,
+                "text_hash": "sha256:" + hashlib.sha256(quote.encode()).hexdigest(),
+                "text_posture": {"kind": "observed", "reason_code": None, "reason_detail": None},
+                "mention": mention,
+            }
+        )
+    record = {
+        "record_id": record_id,
+        "raw_anchor": raw_anchor,
+        "lane_namespace": MENTIONS_LANE,
+        "producer_id": record.get("producer_id", "test.producer"),
+        "schema_version": "silver_vault_record_v0",
+        "producer_schema_version": record.get("producer_schema_version", "v0"),
+        "content_hash": "",
+        "content_hash_basis": "canonical_json_excluding_content_hash",
+        "record_kind": "observation",
+        "payload_kind": "TextObservationSet",
+        "producer_row_kind": "transcript_product_mentions",
+        "source_surface": record.get("source_surface", "youtube_captions"),
+        "observed_at": record.get("observed_at"),
+        "captured_at": record.get("captured_at"),
+        "raw_refs": record.get("raw_refs", []),
+        "derived_refs": record.get("derived_refs", []),
+        **{key: value for key, value in record.items() if key not in {"producer_id", "producer_schema_version", "source_surface", "observed_at", "captured_at", "raw_refs", "derived_refs"}},
+        "payload": {
+            "observation": {
+                "subject": {"ref_type": "entity_key", "ref": {"namespace": "youtube", "kind": "public_content_object", "native_id": "vid1"}},
+                "observation_set_kind": "transcript_product_mentions",
+                "policy_version": "v0",
+                "policy_fingerprint_sha256": "a" * 64,
+                "row_count": len(rows),
+                "rows": rows,
+            }
+        },
+    }
+    record["content_hash"] = "sha256:" + silver_content_hash(record)
     root.append_record(
         subtree="derived",
         raw_anchor=raw_anchor,
@@ -133,7 +179,7 @@ def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     assert "Homme Intense" in by_mention["mentions"]["Dior"]
     assert "Ghost" not in by_mention["mentions"]
     assert by_mention["residual_count"] == 1
-    assert by_mention["residuals"][0]["status"] == "source_lineage_missing"
+    assert by_mention["residuals"][0]["status"] == "invalid_silver_envelope"
     assert by_mention["residuals"][0]["raw_anchor"] == second
 
     # undone view: adopted-namespace backlog only, weaker semantics stated in-body,

@@ -13,6 +13,8 @@ from data_lake.root import DataLakeRoot, raw_shard
 from data_lake.silver_record import (
     SilverRecordError,
     append_silver_record,
+    append_silver_record_set,
+    silver_content_hash,
     validate_silver_vault_record,
 )
 
@@ -21,30 +23,55 @@ _SILVER_LANE = "cleaning_fragrantica_silver"
 
 
 def _text_record() -> dict:
-    return {
+    record = {
         "record_id": "rec_text.json",
         "raw_anchor": _PACKET_ID,
+        "lane_namespace": _SILVER_LANE,
+        "producer_id": "test.silver",
         "schema_version": "silver_vault_record_v0",
+        "producer_schema_version": "test_v0",
         "record_kind": "observation",
         "payload_kind": "TextObservation",
-        "content_hash": "sha256:deadbeef",
+        "producer_row_kind": "test_text",
+        "source_surface": "test_surface",
+        "observed_at": "2026-07-14T00:00:00Z",
+        "captured_at": "2026-07-14T00:00:00Z",
+        "raw_refs": [{"packet_id": _PACKET_ID}],
+        "derived_refs": [],
+        "content_hash": "",
+        "content_hash_basis": "canonical_json_excluding_content_hash",
         "payload": {
             "observation": {
                 "text_artifact_type": "review_body",
                 "text_value": "This perfume died young.",
+                "text_ref": None,
+                "text_hash": "sha256:cf4cba9b20b36e4795eb1e25cb44ec847ba2e8cf862166985fefdfae5d2ef5ee",
+                "text_posture": {"kind": "observed", "reason_code": None, "reason_detail": None},
             }
         },
     }
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+    return record
 
 
 def _metric_record() -> dict:
-    return {
+    record = {
         "record_id": "rec_metric.json",
         "raw_anchor": _PACKET_ID,
+        "lane_namespace": _SILVER_LANE,
+        "producer_id": "test.silver",
         "schema_version": "silver_vault_record_v0",
+        "producer_schema_version": "test_v0",
         "record_kind": "observation",
         "payload_kind": "MetricObservation",
-        "content_hash": "sha256:deadbeef",
+        "producer_row_kind": "test_metric",
+        "source_surface": "test_surface",
+        "observed_at": "2026-07-14T00:00:00Z",
+        "captured_at": "2026-07-14T00:00:00Z",
+        "raw_refs": [{"packet_id": _PACKET_ID}],
+        "derived_refs": [],
+        "content_hash": "",
+        "content_hash_basis": "canonical_json_excluding_content_hash",
         "payload": {
             "observation": {
                 "metric_name": "review_rating",
@@ -53,16 +80,28 @@ def _metric_record() -> dict:
             }
         },
     }
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+    return record
 
 
 def _metric_set_record() -> dict:
-    return {
+    record = {
         "record_id": "rec_metric_set.json",
         "raw_anchor": _PACKET_ID,
+        "lane_namespace": _SILVER_LANE,
+        "producer_id": "test.silver",
         "schema_version": "silver_vault_record_v0",
+        "producer_schema_version": "test_v0",
         "record_kind": "observation",
         "payload_kind": "MetricObservationSet",
-        "content_hash": "sha256:deadbeef",
+        "producer_row_kind": "test_metric_set",
+        "source_surface": "test_surface",
+        "observed_at": "2026-07-14T00:00:00Z",
+        "captured_at": "2026-07-14T00:00:00Z",
+        "raw_refs": [{"packet_id": _PACKET_ID}],
+        "derived_refs": [],
+        "content_hash": "",
+        "content_hash_basis": "canonical_json_excluding_content_hash",
         "payload": {
             "observation": {
                 "subject": {
@@ -105,6 +144,12 @@ def _metric_set_record() -> dict:
             }
         },
     }
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+    return record
+
+
+def _rehash(record: dict) -> None:
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
 
 
 def test_validate_accepts_well_formed_text_and_metric_observations() -> None:
@@ -147,6 +192,30 @@ def test_validate_rejects_wrong_schema_version() -> None:
     record = _text_record()
     record["schema_version"] = "cleaning_audit_pack_v0"
     with pytest.raises(SilverRecordError, match="schema_version"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_rejects_missing_common_header_field() -> None:
+    record = _text_record()
+    del record["producer_id"]
+    with pytest.raises(SilverRecordError, match="producer_id"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_rejects_content_hash_mismatch() -> None:
+    record = _text_record()
+    record["payload"]["observation"]["text_value"] = "changed after hashing"
+    record["payload"]["observation"]["text_hash"] = (
+        "sha256:831963f00e4e78b71be17b656210f4375b11e23063b44e150f6eee7684cc5c06"
+    )
+    with pytest.raises(SilverRecordError, match="content hash mismatch"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_rejects_record_without_source_lineage() -> None:
+    record = _text_record()
+    record["raw_refs"] = []
+    with pytest.raises(SilverRecordError, match="at least one resolvable"):
         validate_silver_vault_record(record)
 
 
@@ -207,6 +276,7 @@ def test_validate_accepts_non_observed_metric_with_reason_detail(kind: str) -> N
         "reason_detail": "metric not rendered in the captured surface",
     }
     observation["metric_value"] = None
+    _rehash(record)
     validate_silver_vault_record(record)
 
 
@@ -264,3 +334,37 @@ def test_append_silver_record_refuses_to_persist_a_blurred_record(tmp_path: Path
     # The blurred record never reached disk (validation raised before the write).
     lane_dir = root.path / "derived" / raw_shard(_PACKET_ID) / _PACKET_ID / _SILVER_LANE
     assert not lane_dir.exists() or not list(lane_dir.glob("*.json"))
+
+
+def test_append_silver_record_rejects_header_target_mismatch(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    record = _text_record()
+    with pytest.raises(SilverRecordError, match="write binding mismatch"):
+        append_silver_record(
+            root,
+            raw_anchor=_PACKET_ID,
+            lane="some_other_silver",
+            record_id=record["record_id"],
+            record=record,
+        )
+
+
+def test_append_silver_record_set_validates_all_members_before_write(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    valid = _text_record()
+    invalid = _text_record()
+    invalid["record_id"] = valid["record_id"]
+    invalid["lane_namespace"] = "second_silver"
+    invalid["raw_refs"] = []
+    _rehash(invalid)
+    with pytest.raises(SilverRecordError, match="at least one resolvable"):
+        append_silver_record_set(
+            root,
+            raw_anchor=_PACKET_ID,
+            record_id=valid["record_id"],
+            records={_SILVER_LANE: valid, "second_silver": invalid},
+            completion_lane="silver_test_completion",
+        )
+    assert not root.lane_dir(
+        subtree="derived", raw_anchor=_PACKET_ID, lane=_SILVER_LANE
+    ).exists()
