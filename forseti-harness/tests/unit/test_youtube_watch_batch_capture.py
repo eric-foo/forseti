@@ -91,6 +91,7 @@ def _write_real_packet(
         "video_id": video_id,
         "surface_type": "watch",
         "watch_url": f"https://www.youtube.com/watch?v={video_id}",
+        "canonical_url": f"https://www.youtube.com/watch?v={video_id}",
         "channel": {"channel_id": ALPHA_CHANNEL, "author": "fixture"},
         "metadata": {"title": f"fixture {video_id}", "publish_date": "2026-06-20"},
         "engagement": {"view_count": 100} if playable else {},
