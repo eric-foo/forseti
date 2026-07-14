@@ -282,10 +282,10 @@ def validate_tiktok_creator_discovery_scan_receipt(receipt: Mapping[str, Any]) -
     if receipt.get("candidate_profiles_opened") != 0:
         _fail("candidate_profile_open_forbidden", "scan receipt must not open candidate profiles")
     follow_unfollow_actions_taken = int(receipt.get("follow_unfollow_actions_taken"))
-    if follow_unfollow_actions_taken > 1:
+    if follow_unfollow_actions_taken > 0:
         _fail(
-            "follow_unfollow_limit_exceeded",
-            "scan receipt may record at most one owner-authorized root follow action",
+            "follow_unfollow_action_forbidden",
+            "creator discovery scan receipt must record zero follow/unfollow actions",
         )
     if receipt.get("screenshots_emitted_to_chat") != 0:
         _fail("screenshot_chat_output_forbidden", "scan receipt must not emit screenshots to chat")

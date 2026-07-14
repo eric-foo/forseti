@@ -3,6 +3,7 @@
 The metric is deliberately mechanical:
 
     comment_like_to_video_like_ratio = comment_like_count / video_like_count
+    comment_like_to_video_comment_count_ratio = comment_like_count / video_comment_count
 
 It does not decide whether a comment is credible, relevant, or important.  Those
 are later Cleaning/Judgment concerns.  Missing or zero denominators fail loud via
@@ -33,14 +34,18 @@ if TYPE_CHECKING:
 
 COMMENT_ATTENTION_LANE = "tiktok_comment_attention_silver"
 COMMENT_ATTENTION_METRIC = "comment_like_to_video_like_ratio"
-COMMENT_ATTENTION_RECIPE_VERSION = "tiktok_comment_attention_ratio_v0"
-COMMENT_ATTENTION_PRODUCER_SCHEMA_VERSION = "tiktok_comment_attention_metric_observation_v0"
+COMMENT_AMPLIFICATION_METRIC = "comment_like_to_video_comment_count_ratio"
+COMMENT_ATTENTION_RECIPE_VERSION = "tiktok_comment_attention_ratio_v1"
+COMMENT_ATTENTION_PRODUCER_SCHEMA_VERSION = "tiktok_comment_attention_metric_observation_v1"
 COMMENT_ATTENTION_POLICY_FINGERPRINT = hashlib.sha256(
     json.dumps(
         {
             "recipe_version": COMMENT_ATTENTION_RECIPE_VERSION,
             "numerator": "captured_comment.digg_count",
             "denominator": "video.stats.diggCount",
+            "secondary_denominator": "video.stats.commentCount",
+            "temporal_pairing": "same_per_video_capture_observation_required",
+            "rank_scope": "captured_top_level_comments_with_valid_like_count",
             "zero_denominator": "unavailable_with_reason",
             "rounding": "none_binary64_division",
         },
@@ -70,29 +75,99 @@ def _record_id(raw_anchor: str, video_id: str, comment_id: str) -> str:
     return f"comment_attention_{digest}.json"
 
 
-def _posture(comment_likes: object, video_likes: object) -> tuple[float | None, dict[str, Any]]:
+def _posture(
+    comment_likes: object,
+    denominator: object,
+    *,
+    denominator_name: str,
+    temporally_aligned: bool,
+) -> tuple[float | None, dict[str, Any]]:
+    if not temporally_aligned:
+        return None, {
+            "kind": "unavailable_with_reason",
+            "reason_code": "temporal_alignment_unproven",
+            "reason_detail": "comment and video metric observations were not proven to share one capture observation",
+        }
     if type(comment_likes) is not int or comment_likes < 0:
         return None, {
             "kind": "unavailable_with_reason",
             "reason_code": "comment_like_count_unavailable",
             "reason_detail": "captured comment did not carry a non-negative integer like count",
         }
-    if type(video_likes) is not int or video_likes < 0:
+    if type(denominator) is not int or denominator < 0:
         return None, {
             "kind": "unavailable_with_reason",
-            "reason_code": "video_like_count_unavailable",
-            "reason_detail": "video did not carry a non-negative integer like count",
+            "reason_code": f"{denominator_name}_unavailable",
+            "reason_detail": f"video did not carry a non-negative integer {denominator_name}",
         }
-    if video_likes == 0:
+    if denominator == 0:
         return None, {
             "kind": "unavailable_with_reason",
-            "reason_code": "video_like_count_zero_denominator",
-            "reason_detail": "comment attention ratio is undefined when video like count is zero",
+            "reason_code": f"{denominator_name}_zero_denominator",
+            "reason_detail": f"ratio is undefined when {denominator_name} is zero",
         }
-    return comment_likes / video_likes, {
+    return comment_likes / denominator, {
         "kind": "observed",
         "reason_code": None,
         "reason_detail": None,
+    }
+
+
+def mechanical_comment_attention(video: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the one authoritative mechanical comment-attention projection."""
+    stats = video.get("stats") if isinstance(video.get("stats"), Mapping) else {}
+    comments_block = video.get("comments") if isinstance(video.get("comments"), Mapping) else {}
+    comments = comments_block.get("comments") if isinstance(comments_block.get("comments"), list) else []
+    comment_observed_at = str(comments_block.get("observed_utc") or "").strip() or None
+    stats_observed_at = str(video.get("stats_observed_utc") or "").strip() or None
+    temporally_aligned = bool(comment_observed_at and stats_observed_at and comment_observed_at == stats_observed_at)
+    ranked = sorted(
+        [row for row in comments if isinstance(row, Mapping) and type(row.get("digg_count")) is int],
+        key=lambda row: (-row["digg_count"], str(row.get("cid") or f"source_order:{row.get('source_order')}")),
+    )
+    rank_by_id = {
+        str(row.get("cid") or f"source_order:{row.get('source_order')}"): index + 1
+        for index, row in enumerate(ranked)
+    }
+    rows: list[dict[str, Any]] = []
+    for comment in comments:
+        if not isinstance(comment, Mapping):
+            continue
+        comment_id = str(comment.get("cid") or f"source_order:{comment.get('source_order')}")
+        likes = comment.get("digg_count")
+        attention, attention_posture = _posture(
+            likes,
+            stats.get("diggCount"),
+            denominator_name="video_like_count",
+            temporally_aligned=temporally_aligned,
+        )
+        amplification, amplification_posture = _posture(
+            likes,
+            stats.get("commentCount"),
+            denominator_name="video_comment_count",
+            temporally_aligned=temporally_aligned,
+        )
+        rank = rank_by_id.get(comment_id)
+        percentile = None if rank is None else (1.0 if len(ranked) == 1 else 1.0 - ((rank - 1) / (len(ranked) - 1)))
+        rows.append(
+            {
+                "comment_id": comment_id,
+                "comment_likes": likes if type(likes) is int else None,
+                "comment_like_to_video_like_ratio": attention,
+                "comment_like_to_video_like_ratio_posture": attention_posture,
+                "comment_like_to_video_comment_count_ratio": amplification,
+                "comment_like_to_video_comment_count_ratio_posture": amplification_posture,
+                "comment_like_rank_within_captured": rank,
+                "comment_like_percentile_within_captured": percentile,
+            }
+        )
+    return {
+        "video_likes": stats.get("diggCount") if type(stats.get("diggCount")) is int else None,
+        "video_comment_count": stats.get("commentCount") if type(stats.get("commentCount")) is int else None,
+        "comment_observed_at": comment_observed_at,
+        "video_stats_observed_at": stats_observed_at,
+        "temporal_alignment": "same_capture_observation" if temporally_aligned else "unproven",
+        "comments": rows,
     }
 
 
@@ -119,7 +194,9 @@ def build_comment_attention_records(
         comments = comment_block.get("comments")
         if not isinstance(comments, list):
             continue
-        observed_at = str(comment_block.get("observed_utc") or captured_at or "").strip() or None
+        observed_at = str(comment_block.get("observed_utc") or "").strip() or None
+        mechanics = mechanical_comment_attention(video)
+        mechanics_by_id = {row["comment_id"]: row for row in mechanics["comments"]}
         for comment_index, comment in enumerate(comments):
             if not isinstance(comment, Mapping):
                 raise ValueError(
@@ -129,7 +206,12 @@ def build_comment_attention_records(
             native_comment_id = str(comment.get("cid") or "").strip()
             comment_id = native_comment_id or f"dom:{video_id}:{source_order}"
             comment_likes = comment.get("digg_count")
-            value, metric_posture = _posture(comment_likes, video_likes)
+            # Key mechanics by the same scheme mechanical_comment_attention uses
+            # (native cid, else source-order), not the record's dom-fallback id,
+            # so comments without a native cid resolve instead of KeyError-ing.
+            mechanical = mechanics_by_id[str(comment.get("cid") or f"source_order:{source_order}")]
+            value = mechanical["comment_like_to_video_like_ratio"]
+            metric_posture = mechanical["comment_like_to_video_like_ratio_posture"]
             record_id = _record_id(raw_anchor, video_id, comment_id)
             record: dict[str, Any] = {
                 "record_id": record_id,
@@ -194,6 +276,17 @@ def build_comment_attention_records(
                             "metric_name": "video_like_count",
                             "metric_value": video_likes if type(video_likes) is int else None,
                         },
+                        "temporal_pairing": {
+                            "comment_observed_at": mechanics["comment_observed_at"],
+                            "video_stats_observed_at": mechanics["video_stats_observed_at"],
+                            "alignment": mechanics["temporal_alignment"],
+                        },
+                        "engagement_context": {
+                            "comment_like_to_video_comment_count_ratio": mechanical["comment_like_to_video_comment_count_ratio"],
+                            "comment_like_to_video_comment_count_ratio_posture": mechanical["comment_like_to_video_comment_count_ratio_posture"],
+                            "comment_like_rank_within_captured": mechanical["comment_like_rank_within_captured"],
+                            "comment_like_percentile_within_captured": mechanical["comment_like_percentile_within_captured"],
+                        },
                     }
                 },
                 "provenance": {
@@ -210,6 +303,7 @@ def build_comment_attention_records(
                             "not comment relevance, credibility, or decision impact",
                             "not a calibrated prioritization threshold",
                             "not a full comment census",
+                            "not audience share or agreement probability",
                         )
                     )
                 ),
@@ -262,9 +356,11 @@ def derive_comment_attention_silver_records(
 __all__ = [
     "COMMENT_ATTENTION_LANE",
     "COMMENT_ATTENTION_METRIC",
+    "COMMENT_AMPLIFICATION_METRIC",
     "COMMENT_ATTENTION_POLICY_FINGERPRINT",
     "COMMENT_ATTENTION_RECIPE_VERSION",
     "CommentAttentionSilverResult",
     "build_comment_attention_records",
     "derive_comment_attention_silver_records",
+    "mechanical_comment_attention",
 ]

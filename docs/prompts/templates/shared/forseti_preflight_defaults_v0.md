@@ -52,6 +52,13 @@ below. Routine prompts do not inherit this list.
   parent/launch checkout. Repo-bound review mismatch handling is owned by
   `.agents/workflow-overlay/prompt-orchestration.md` -> "Repo-Bound Review
   Target Resolution".
+- **receiver_target_resolution**: for repo-changing cross-lane work, record the
+  receiver mechanism, `launch_checkout`, `effective_target_worktree`, resolution
+  method, direct write-capability proof, and no-concurrent-writer status. Dirty
+  work also records its allowed dirty-file set plus a target manifest or
+  equivalent byte identity. Receiver-only observations in an
+  operator-couriered prompt may be `operator_to_fill`, but must be completed
+  before source loading.
 
 - **authorization_basis**: what authorizes this unit of work (current turn,
   accepted handoff, owner decision, etc.).

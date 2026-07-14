@@ -489,12 +489,11 @@ def test_scan_receipt_rejects_candidate_open_and_screenshot() -> None:
         assert exc_info.value.code == code
 
 
-def test_scan_receipt_allows_one_root_follow_but_rejects_more() -> None:
-    validate_tiktok_creator_discovery_scan_receipt(_scan_receipt(follow_unfollow_actions_taken=1))
-    receipt = _scan_receipt(follow_unfollow_actions_taken=2)
+def test_scan_receipt_rejects_any_follow_or_unfollow_action() -> None:
+    receipt = _scan_receipt(follow_unfollow_actions_taken=1)
     with pytest.raises(TikTokCreatorDiscoveryFrontierError) as exc_info:
         validate_tiktok_creator_discovery_scan_receipt(receipt)
-    assert exc_info.value.code == "follow_unfollow_limit_exceeded"
+    assert exc_info.value.code == "follow_unfollow_action_forbidden"
 
 
 def test_scan_receipt_rejects_wrong_schema_version() -> None:
