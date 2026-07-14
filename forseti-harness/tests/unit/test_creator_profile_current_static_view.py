@@ -50,6 +50,18 @@ ACCOUNT_LEDGER_PATH = (
     / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
+CREATOR_REGISTRY_INDEX_PATH = (
+    ROOT
+    / "forseti"
+    / "product"
+    / "spines"
+    / "capture"
+    / "core"
+    / "source_families"
+    / "social_media"
+    / "creator_registry"
+    / "creator_registry_index_v0.json"
+)
 YOUTUBE_METRIC_SEED_PATH = (
     ROOT
     / "forseti"
@@ -208,13 +220,15 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
 
     assert view["schema_version"] == "creator_profile_current_view_v0"
     assert view["counts"] == {
-        "profiles_total": 41,
-        "platform_account_profiles": 41,
+        "profiles_total": 51,
+        "platform_account_profiles": 51,
         "creator_record_profiles": 0,
         "profiles_with_metric_rollups": 33,
         "profiles_with_ideal_audience_profiles": 0,
         "engagement_rate_observed_profiles": 31,
         "cross_platform_rollup_profiles": 0,
+        "onboarded_profiles": 38,
+        "not_onboarded_profiles": 13,
     }
     assert {profile["platform_accounts"][0]["platform"] for profile in view["profiles"]} == {"youtube", "instagram", "tiktok"}
 
@@ -228,6 +242,7 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         assert profile["review_state_or_none"] is None
         assert profile["ideal_audience_profile"] is None
         assert profile["wind_calling_summary"] is None
+        assert profile["onboarding"]["onboarding_state"] in {"not_onboarded", "onboarded"}
         if not profile["current_metric_rollups"]:
             assert profile["freshness"]["metrics_computed_at_or_none"] is None
             assert profile["source_drill_back"]["metric_rollup_pointer"] is None
@@ -280,6 +295,16 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> No
         "acct_tiktok_fragrance_005",
         "acct_ig_fragrance_006",
         "acct_tiktok_fragrance_006",
+        "acct_yt_fragrance_032",
+        "acct_yt_fragrance_033",
+        "acct_yt_fragrance_034",
+        "acct_yt_fragrance_035",
+        "acct_yt_fragrance_036",
+        "acct_yt_fragrance_037",
+        "acct_yt_fragrance_038",
+        "acct_yt_fragrance_039",
+        "acct_yt_fragrance_040",
+        "acct_yt_fragrance_041",
     }
     assert set(rollups_by_subject).issubset(set(accounts_by_id))
     assert set(accounts_by_id) - set(rollups_by_subject) == identity_only_ids
@@ -316,6 +341,7 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> No
 def test_creator_profile_current_materializer_matches_checked_in_view() -> None:
     generated = build_creator_profile_current_view_from_files(
         account_ledger_path=ACCOUNT_LEDGER_PATH,
+        creator_registry_index_path=CREATOR_REGISTRY_INDEX_PATH,
         metric_seed_paths=METRIC_SEED_PATHS,
         generated_at_utc=_view()["generated_at_utc"],
     )
@@ -339,6 +365,7 @@ def test_creator_profile_current_materializer_optionally_joins_ideal_audience_sn
 
     generated = build_creator_profile_current_view_from_files(
         account_ledger_path=ACCOUNT_LEDGER_PATH,
+        creator_registry_index_path=CREATOR_REGISTRY_INDEX_PATH,
         metric_seed_paths=METRIC_SEED_PATHS,
         audience_profile_snapshot_paths=(snapshot_path,),
         generated_at_utc=_view()["generated_at_utc"],
@@ -365,6 +392,7 @@ def test_creator_profile_current_source_hashes_are_current() -> None:
 
     expected_paths = {
         "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json": ACCOUNT_LEDGER_PATH,
+        "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json": CREATOR_REGISTRY_INDEX_PATH,
         "forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": YOUTUBE_SNAPSHOT_PATH,
         "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json": INSTAGRAM_SNAPSHOT_PATH,
     }
@@ -482,6 +510,25 @@ def test_creator_profile_validator_rejects_metric_smuggling_into_identity_eviden
     identity_summary["engagement_rate"] = 0.42
 
     _assert_validation_code(document, "unknown_field")
+
+
+def test_creator_profile_validator_rejects_unknown_onboarding_state() -> None:
+    document = _bad_view_document()
+    document["creator_profile_current_view"]["profiles"][0]["onboarding"]["onboarding_state"] = "pending"
+
+    _assert_validation_code(document, "invalid_onboarding_state")
+
+
+def test_creator_profile_validator_rejects_not_onboarded_evidence() -> None:
+    document = _bad_view_document()
+    profile = next(
+        profile
+        for profile in document["creator_profile_current_view"]["profiles"]
+        if profile["onboarding"]["onboarding_state"] == "not_onboarded"
+    )
+    profile["onboarding"]["evidence_packet_id_or_none"] = "fake_packet"
+
+    _assert_validation_code(document, "not_onboarded_has_evidence")
 
 
 def test_creator_profile_validator_rejects_malformed_ideal_audience_profile() -> None:

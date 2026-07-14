@@ -306,6 +306,13 @@ creator_profile_current:
   review_state_or_none: nullable from identity ledger; required whenever link_state_or_none is present
   platform_accounts: required joined public handles
   identity_evidence_summary: required short summary and pointers
+  onboarding:
+    onboarding_state: required enum not_onboarded, onboarded
+    onboarded_at_or_none: required timestamp only when onboarded
+    evidence_packet_id_or_none: required committed Bronze packet id only when onboarded
+    evidence_source_family_or_none: required only when onboarded
+    evidence_source_surface_or_none: required only when onboarded
+    policy_version: required version
   current_metric_rollups: required list; may be empty for identity-only platform_account rows with no source-backed metric rollup yet
   ideal_audience_profile: nullable latest allowed profile snapshot
   wind_calling_summary: nullable derived operator summary
@@ -331,6 +338,16 @@ Identity-state mapping:
   account-scoped until a human-reviewed promoted link exists.
 - Rejected links may be shown only as limitation/disambiguation context; they
   must not collapse accounts or produce `creator_record` aggregate rollups.
+
+Onboarding-state mapping:
+
+- The profile copies the exact account-level `onboarding` block from
+  `creator_registry_index_v0.json`; it does not infer or independently mutate it.
+- `onboarded` means a complete, verified, official committed Bronze content
+  packet was exactly attributed to the account. It does not mean fresh,
+  high-quality, representative, influential, or fully analyzed.
+- `not_onboarded` keeps all evidence fields null. Discovery snapshots, RSS,
+  scratch/staging artifacts, and failed or partial attempts do not flip it.
 
 ## Aggregate Influence Rules
 
@@ -453,56 +470,6 @@ This spec does not:
 - claim buyer proof, validation, readiness, or commercial usefulness.
 
 ## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Channel-neutral creator profile patch: single-platform public accounts may seed
-    creator_profile_current as platform_account subjects; soft links live as
-    candidate_public_account_link rows until human review; identity_state mirrors
-    the linkage-ledger link_state when present; metric observations and account
-    rollups are account-primary before promoted linkage, and cross-platform
-    creator_record rollups require probable_public_account_link or
-    declared_public_account_link evidence.
-  trigger: architecture_doctrine
-  related_triggers:
-    - product_doctrine
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
-    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
-    - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_observation_ledger_spec_v0.md
-    - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md
-    - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/validation-gates.md
-    - orca-harness/capture_spine/creator_public_handle_linkage/validation.py
-    - orca-harness/tests/unit/test_creator_public_handle_linkage.py
-  intentionally_not_updated:
-    - path: orca-harness/capture_spine/creator_public_handle_linkage/
-      reason: >
-        Existing validator already enforces candidate_needs_review for candidate
-        links, human/non-LLM evidence for final links, and the at-least-two-platform
-        creator_record rule.
-    - path: forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json
-      reason: >
-        Product ledger scaffold stays empty; this patch changes contract semantics
-        only and adds no real rows.
-  stale_language_search: >
-    rg -n "creator_record_id|candidate_public_account_link|candidate_needs_review|profile_subject_kind|platform_account_id|identity_state|cross_platform_candidate"
-    forseti/product/spines/capture/core/source_families/social_media forseti/product/spines/creator_signal orca-harness
-  non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not SQLite adoption
-    - not live capture authorization
-    - not dashboard implementation
-    - not real-world identity proof
-```
 
 ```yaml
 direction_change_propagation:
