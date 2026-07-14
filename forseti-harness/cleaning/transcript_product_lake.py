@@ -51,11 +51,10 @@ LEGACY_PRODUCT_MENTIONS_SET_LANE = "silver__cleaning__product_mentions__set"
 # record (the producer is this Pass-1 extractor; its schema version is the rubric).
 PRODUCT_MENTIONS_PRODUCER_ID = "cleaning.transcript_product_extractor"
 
-# Record-SHAPE schema token (V4: vault-versioned; closes the weak-envelope residual
-# where this shape rode only the sibling EXTRACTOR_RUBRIC_VERSION policy token).
-# Added additively: earlier committed records lack the field and read as pre-token
-# vintage; no derivation-policy token was bumped, so nothing re-surfaces on cadence.
-PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v1"
+# Record-SHAPE and durable-identity schema token. V2 binds record/completion identity
+# to the exact product-mention policy fingerprint; prior V1 records re-surface so the
+# current-policy record can be written under its distinct identity.
+PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v2"
 
 def product_mentions_policy_fingerprint(policy_version: str) -> str:
     """Stable identity shared by record ids, payloads, and pickup obligations."""
