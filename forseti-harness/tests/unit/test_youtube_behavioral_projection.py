@@ -49,6 +49,7 @@ def _metadata_packet(**overrides: Any) -> dict[str, Any]:
         "video_id": _VIDEO_ID,
         "surface_type": "watch",
         "watch_url": f"https://www.youtube.com/watch?v={_VIDEO_ID}",
+        "canonical_url": f"https://www.youtube.com/watch?v={_VIDEO_ID}",
         "channel": {"channel_id": "UC_fixture", "author": "Reviewer"},
         "metadata": {"title": "Fragrance review", "length_seconds": 42, "publish_date": "2026-06-20"},
         "engagement": {

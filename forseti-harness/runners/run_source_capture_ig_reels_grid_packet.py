@@ -153,6 +153,25 @@ def run_source_capture_ig_reels_grid_packet(
         profile_handle=profile_handle,
         reels_url=reels_url,
     )
+    served_username = _string_or_none(profile_snapshot.get("served_username"))
+    if served_username is None:
+        return 5, (
+            "subject_identity_unavailable: web_profile_info did not expose a served "
+            "Instagram username; no packet written"
+        )
+    try:
+        normalized_served_username = _normalize_handle(served_username)
+    except ValueError:
+        return 5, (
+            "subject_identity_unavailable: web_profile_info exposed an invalid served "
+            "Instagram username; no packet written"
+        )
+    if normalized_served_username.casefold() != profile_handle.casefold():
+        return 5, (
+            "subject_identity_mismatch: requested Instagram handle "
+            f"{profile_handle!r} but web_profile_info served {served_username!r}; "
+            "no packet written"
+        )
 
     capture_timestamp = _string_or_none(capture.metadata.get("capture_timestamp"))
     capture_time_fact = (
@@ -413,6 +432,7 @@ def _profile_snapshot_from_passive_responses(
     snapshot: dict[str, object] = {
         "platform": "instagram",
         "source_profile": profile_handle,
+        "served_username": None,
         "numeric_id": None,
         "capture_timestamp_utc": capture.metadata.get("capture_timestamp"),
         "capture_context_label": SOURCE_SURFACE,
@@ -447,6 +467,7 @@ def _profile_snapshot_from_passive_responses(
             continue
         snapshot.update(
             {
+                "served_username": _string_or_none(user.get("username")),
                 "numeric_id": _string_or_none(user.get("id")),
                 "display_name": _string_or_none(user.get("full_name")),
                 "bio": _string_or_none(user.get("biography")),
