@@ -7,7 +7,8 @@ scope: >
   Front-door for the data_lake shared_foundation spine: the cross-layer storage
   contracts (raw-packet preservation, keyed retrievability, Attachment Record,
   passive Availability Index, append-only derived-result/ack attachment),
-  medallion/gold-readiness contract, and physicality-location contract that
+  Silver/Vault Authority and Retrieval contracts, medallion/gold-readiness
+  contract, and physicality-location contract that
   other spines depend on. R2 populated the spine with the lake contracts and
   canonical mechanics map; the medallion contract now locks the non-physical
   bronze/silver/pre-gold/gold-ready/gold semantics, and placement closeout keeps
@@ -18,6 +19,9 @@ use_when:
   - Checking the R2-populated authority/workflow routing and placement closeout status.
 authority_boundary: retrieval_only
 open_next:
+  - docs/decisions/silver_vault_goal_frame_ratification_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
   - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_bronze_lake_owner_explainer_v0.md
@@ -26,6 +30,7 @@ open_next:
 stale_if:
   - The Bronze MGT baseline declaration is amended or superseded.
   - The Data Lake medallion/gold-readiness contract is amended.
+  - The Silver/Vault goal, record contract, or consumption seam is amended.
   - The data_lake spine shape or its shared_foundation kind is amended.
   - A later accepted placement decision moves the repo-structure migration planning docs into the spine.
 ```
@@ -58,6 +63,12 @@ layer.
 
 The binding authority is
 `docs/decisions/forseti_data_lake_spine_promotion_binding_v0.md`.
+
+For Silver work, start with the goal frame and Silver/Vault record contract in
+`open_next`. Silver Authority is the append-only, source-backed fact record;
+Silver Retrieval is the generated query/read layer over those records. Projection,
+ECR/SCR, and Cleaning processing artifacts may be referenced evidence, but their
+presence under `derived/` does not classify them as Silver.
 
 Current Bronze capability status is recorded in
 `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_full_gt_declaration_v0.md`:

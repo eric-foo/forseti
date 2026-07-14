@@ -73,7 +73,7 @@ Only Judgment writes gold interpretation.
 | Layer | Forseti meaning | Owned by | Must not become |
 | --- | --- | --- | --- |
 | Bronze | Raw `SourceCapturePacket` bundles, preserved files, packet/slice/file handles, hashes, and source-visible attachment material. | Source Capture and Data Lake. | Cleaned truth, entity identity, salience, or Judgment input by shortcut. |
-| Silver | Projection rows/receipts, ECR integrity records, SCR content records, Cleaning ledgers/views, and mechanical derived features over raw. | Projection, ECR/SCR, Cleaning, or a future mechanical derivation owner. | Credibility, bot/fake/paid labels, source value, Signal Integrity, or action meaning. |
+| Silver | Eligible source-backed entity, relationship, or observation facts written as `silver_vault_record_v0` under Silver Authority; generated query tables and read models are Silver Retrieval, not new authority. Projection receipts, ECR/SCR records, and Cleaning audit packs may supply provenance but are not Silver merely because they are derived. | The producer owning the mechanical fact, through the Silver/Vault contract and validating front door. | Processing-audit evidence mislabeled as fact authority; credibility, bot/fake/paid labels, source value, Signal Integrity, or action meaning. |
 | Pre-gold | Mechanical candidate records such as Spike Alerts or Movement Alerts. | Future designated mechanical derivation owner; stored as append-only derived records. | Gold, Judgment, or proof that the movement is viral, artificial, coordinated, paid, credible, or not credible. |
 | Gold-ready | Decision-bounded evidence assemblies and receipts that gather raw/silver/pre-gold evidence for a specific question. | Future assembly owner; Judgment consumes by reference. | Final verdict, credibility call, exclusion, Signal Use, Decision Strength, or Action Ceiling. |
 | Gold | Judgment-owned interpretation and decision-use output. | Judgment. | Data Lake, Cleaning, ECR/SCR, or precompute output. |
@@ -89,9 +89,11 @@ Public-reaction engagement follows the same epistemic boundary:
   views, shares, comment counts, reply counts, score state, visible sort/rank,
   metric posture, and source-exposed missingness in raw packets or attachment
   material.
-- **Silver:** Projection rows, ECR/SCR records, Cleaning ledgers/views, or
-  mechanical `engagement_context` records that normalize, preserve, summarize,
-  or group those raw facts without deciding meaning. Silver may preserve
+- **Silver:** eligible source-backed `silver_vault_record_v0` observations or
+  relationships that normalize, preserve, summarize, or group those raw facts
+  without deciding meaning. Projection receipts, ECR/SCR records, and Cleaning
+  audit packs remain referenced processing evidence unless separately promoted
+  as eligible Silver facts through the official envelope. Silver may preserve
   source-visible resonance qualifiers such as direction, visible audience-fit
   basis, baseline context, and discount reasons, but not their Judgment effect.
 - **Pre-gold:** mechanical candidate alerts only, such as an outside-usual-range
@@ -224,9 +226,10 @@ was used. It does not decide meaning.
 1. Data Lake owns raw preservation, by-key findability, attachment references,
    passive availability, and logical derived attachment points. It does not own
    medallion interpretation.
-2. Projection, ECR/SCR, Cleaning, and mechanical derivation may produce silver
-   or pre-gold records only when the record is traceable, append-only, and
-   non-Judgment.
+2. Projection, ECR/SCR, and Cleaning may produce derived processing evidence.
+   A source-backed fact becomes Silver Authority only through the official
+   `silver_vault_record_v0` envelope; traceable, append-only, and non-Judgment
+   are necessary but not sufficient to classify every derived artifact as Silver.
 3. Cleaning may preserve exact mechanical duplicate/timing/context evidence, but
    it must not decide independence, credibility, artificial amplification,
    botting, copying intent, exclusion, or demand support.
@@ -299,8 +302,10 @@ the lake into Judgment or a dossier system.
 direction_change_propagation:
   doctrine_changed: >
     Data Lake Medallion Gold-Readiness Contract v0 locks the non-physical
-    medallion semantics lane: Bronze is raw capture; Silver is projection,
-    ECR/SCR, Cleaning, and mechanical derived features; Pre-gold is mechanical
+    medallion semantics lane: Bronze is raw capture; Silver Authority is the
+    official source-backed entity/relationship/observation envelope and Silver
+    Retrieval is its generated read layer. Projection, ECR/SCR, and Cleaning
+    artifacts are not automatically Silver. Pre-gold is mechanical
     Spike/Movement Alerts; Gold-ready is decision-bounded evidence assembly;
     Gold remains Judgment-only, while actor timing retrieval is allowed only as
     on-demand exact-identifier event evidence and not as a dossier.
@@ -311,6 +316,8 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
     - forseti/product/spines/data_lake/README.md
+    - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
     - docs/workflows/forseti_repo_map_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
@@ -324,6 +331,9 @@ direction_change_propagation:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
     - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
     - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+    - docs/decisions/cleaning_spine_data_lake_representation_defer_v0.md
+    - docs/workflows/topfrag_silver_lake_mechanics_handoff_v0.md
+    - docs/workflows/topfrag_silver_lake_mechanics_test_report_v0.md
     - docs/workflows/ecr_spine_submap_v0.md
     - docs/decisions/data_capture_spine_deleted_comment_signal_retrieval_scoped_doctrine_decision_v0.md
   intentionally_not_updated:
@@ -338,23 +348,15 @@ direction_change_propagation:
         The storage contract remains the non-selecting physicalization blocker
         owner. This contract references derived records and receipts logically
         but does not choose their physical home.
-    - path: forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
-      reason: >
-        The mechanics map remains the raw-to-derived flow map. This contract
-        adds medallion/gold-readiness semantics without changing the flow.
-    - path: forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
-      reason: >
-        Cleaning already forbids credibility, independence, botting,
-        artificial-amplification, exclusion, and Decision Strength effects.
-        This contract consumes that boundary for the Data Lake medallion lane.
   stale_language_search: >
-    rg -n "Spike Alert|Movement Alert|GoldReady|gold-ready|pre-gold|usual-range|person dossier|dossier|bot-like|fake review|paid activity|coordination|virality"
-    forseti/product/spines/data_lake docs/workflows/forseti_repo_map_v0.md
+    rg -n "Silver is projection|Silver is .*ECR|Silver is .*Cleaning|Projection rows, ECR|Cleaning ledgers/views|not a Silver fact record|Silver Authority|Silver Retrieval"
+    forseti/product/spines/data_lake forseti/product/spines/cleaning docs/workflows docs/decisions
   stale_language_search_result: >
-    Executed 2026-06-21 after edits. Hits were confined to this contract and
-    the Data Lake README pointer text. No searched live data-lake source uses
-    Spike Alert as Judgment, gold-ready as gold, or actor timing retrieval as
-    persistent actor profiling.
+    Executed 2026-07-14 after reconciliation. Remaining Projection/ECR/Cleaning
+    hits are either historical receipts, explicit non-Silver processing-audit
+    boundaries, or this contract's corrected distinction; TopFrag's
+    "Silver mechanics" title is retained as historical workflow naming and now
+    carries an explicit terminology note.
   non_claims:
     - not validation
     - not readiness
@@ -364,4 +366,6 @@ direction_change_propagation:
     - not queue/runtime design
     - not Judgment run authorization
     - not person-dossier authorization
+    - not historical Silver record migration
+    - not universal Silver V1-V5 conformance
 ```

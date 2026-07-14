@@ -34,6 +34,22 @@ from data_lake.inventory import HARNESS_ROOT as _HARNESS_ROOT
 # module path -> (version token(s) the changer must consider, pinned sha256 of
 # LF-normalized source bytes).
 POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
+    "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py": (
+        (
+            "COMMENT_ATTENTION_RECIPE_VERSION",
+            "COMMENT_ATTENTION_PRODUCER_SCHEMA_VERSION",
+            "COMMENT_ATTENTION_POLICY_FINGERPRINT",
+        ),
+        "65c7aba1cc571fa452be8baecb58942edda0fdb186bb22260503a61bbb1be9f2",
+    ),
+    "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py": (
+        (
+            "TIKTOK_GRID_OBSERVATION_POLICY_VERSION",
+            "TIKTOK_GRID_OBSERVATION_PRODUCER_SCHEMA_VERSION",
+            "TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT",
+        ),
+        "e1714a525c01eddf23f0498993b6d8b987b9dd6aaf078f98354ec1acfe706acd",
+    ),
     "cleaning/basenotes.py": (
         ("BASENOTES_CLEANING_METHOD_ID (cleaning/basenotes_lake.py)",),
         "947303e81e95122488bd7ad4c9577503881cb663b1a5f77b63ad792209658333",
@@ -84,6 +100,14 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ("EXTRACTOR_RUBRIC_VERSION (cleaning/transcript_product_extractor.py)", "PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
         "5e26f61b50082dd214ae6f2fe756308607a06009c09c84b33f9c95be1f2fddf4",
     ),
+    "cleaning/tiktok_audience_evidence_extractor.py": (
+        ("RUBRIC_VERSION",),
+        "766539714680f3d111d3faeaf451c1b8a339645bac1856fa932169e3066a6e30",
+    ),
+    "cleaning/tiktok_audience_evidence_lake.py": (
+        ("RUBRIC_VERSION", "RECORD_SCHEMA_VERSION", "PROFILE_SCHEMA_VERSION"),
+        "9d206811e9cd63ddc40731a40c09a66bbf7af7d31e2f95c5abe4f4a0189e0e8c",
+    ),
     "ecr/deriver.py": (
         ("ECR_DERIVER_VERSION",),
         "b94920e25627537b1cca0503cad52130982de3f5d9a53122e14978912b27b273",
@@ -127,6 +151,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Pin bumped: added a bounded yt-dlp subprocess timeout (liveness guard). NOT output-shaping
         # -- only the hang-failure path changes; a successful Reel bestaudio download derives identically.
         "3f2bcd15d3f201fc30fe066d4ebfd0e6b2c592e7e7a85ad9209253095204ee57",
+    ),
+    "runners/run_tiktok_product_extract.py": (
+        ("EXTRACTOR_RUBRIC_VERSION", "TikTok cue-normalization and packet-obligation policy"),
+        "196a767f96e28ca2d9ab12eb453c2000ae7a6b0fc25c1b557ad7d5dc89cf1be9",
     ),
 }
 
