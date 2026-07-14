@@ -4,6 +4,8 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 
+import pytest
+
 from data_lake.root import DataLakeRoot, raw_shard
 from runners.run_source_capture_youtube_watch_packet import run_source_capture_youtube_watch_packet
 from source_capture.models import SourceCapturePacket
@@ -31,7 +33,13 @@ def _metric_gap(reason: str) -> dict[str, object]:
     return {"posture": "unavailable_with_reason", "reason": reason, "routes_checked": ["fixture_route"]}
 
 
-def _packet(*, like: int | None = 34, total_comments: int | None = 12, comments_state: str = "comments_sample_captured") -> dict[str, object]:
+def _packet(
+    *,
+    like: int | None = 34,
+    total_comments: int | None = 12,
+    comments_state: str = "comments_sample_captured",
+    canonical_url: str | None = f"https://www.youtube.com/watch?v={_VIDEO_ID}",
+) -> dict[str, object]:
     metric_receipts = {
         "view_count": _metric_observed(1200, "ytInitialPlayerResponse.videoDetails.viewCount", "youtube_watch_capture.json"),
         "like_count": _metric_observed(like, "ytInitialPlayerResponse.microformat.playerMicroformatRenderer.likeCount", "youtube_watch_capture.json")
@@ -48,7 +56,7 @@ def _packet(*, like: int | None = 34, total_comments: int | None = 12, comments_
         "video_id": _VIDEO_ID,
         "surface_type": "long_form",
         "watch_url": f"https://www.youtube.com/watch?v={_VIDEO_ID}",
-        "canonical_url": f"https://www.youtube.com/watch?v={_VIDEO_ID}",
+        "canonical_url": canonical_url,
         "channel": {"channel_id": "UC_fixture", "author": "Reviewer"},
         "metadata": {"title": "Fragrance review", "length_seconds": 42, "publish_date": "2026-06-20"},
         "engagement": {
@@ -364,3 +372,53 @@ def test_youtube_watch_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
     assert packet_dir.parent == root.path / "raw" / raw_shard(packet_dir.name)
     assert root.find_packet(packet_dir.name) is not None
     assert root.read_availability(packet_dir.name) is not None
+
+
+@pytest.mark.parametrize(
+    ("canonical_url", "expected_state"),
+    [
+        ("https://www.youtube.com/watch?v=other123456", "subject_identity_mismatch"),
+        (None, "subject_identity_unavailable"),
+    ],
+)
+def test_youtube_watch_runner_rejects_unbound_served_identity_before_publication(
+    tmp_path: Path,
+    canonical_url: str | None,
+    expected_state: str,
+) -> None:
+    packet = _packet(canonical_url=canonical_url)
+
+    def fake_fetcher(_video_id: str, *, comment_pages: int) -> _Fetched:
+        assert comment_pages == 1
+        return _Fetched(
+            packet=packet,
+            raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
+            comment_page_bodies=(),
+        )
+
+    output = tmp_path / f"yt_watch_{expected_state}"
+    code, message = run_source_capture_youtube_watch_packet(
+        video_id=_VIDEO_ID,
+        output_directory=output,
+        decision_question="capture YouTube watch metrics",
+        comment_pages=1,
+        capture_fetcher=fake_fetcher,
+    )
+
+    assert code == 5
+    assert expected_state in message
+    assert not output.exists()
+
+    root = DataLakeRoot.for_test(tmp_path / f"forseti-data-{expected_state}")
+    lake_before = sorted(path.relative_to(root.path).as_posix() for path in root.path.rglob("*"))
+    code, message = run_source_capture_youtube_watch_packet(
+        video_id=_VIDEO_ID,
+        data_root=root,
+        decision_question="capture YouTube watch metrics",
+        comment_pages=1,
+        capture_fetcher=fake_fetcher,
+    )
+
+    assert code == 5
+    assert expected_state in message
+    assert sorted(path.relative_to(root.path).as_posix() for path in root.path.rglob("*")) == lake_before

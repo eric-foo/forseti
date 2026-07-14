@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+from urllib.parse import parse_qs, urlparse
 
 from source_capture.models import (
     CaptureModeCategory,
@@ -203,6 +204,19 @@ def write_youtube_watch_packet(
         ),
     ]
 
+    served_video_id = _served_video_id_from_canonical(packet)
+    if served_video_id is None:
+        return 5, (
+            "subject_identity_unavailable: served YouTube canonical URL did not expose "
+            "a valid 11-character video id; no packet written"
+        )
+    if served_video_id != fetch.video_id:
+        return 5, (
+            "subject_identity_mismatch: requested YouTube video id "
+            f"{fetch.video_id!r} but served canonical identity was {served_video_id!r}; "
+            "no packet written"
+        )
+
     result = stage_and_write_packet(
         output_directory=output_directory,
         data_root=data_root,
@@ -246,6 +260,26 @@ def write_youtube_watch_packet(
         receipt_non_claims=YOUTUBE_WATCH_NON_CLAIMS,
     )
     return 0, result.output_directory
+
+
+def _served_video_id_from_canonical(packet: Mapping[str, Any]) -> str | None:
+    canonical_url = _string_or_none(packet.get("canonical_url"))
+    if canonical_url is None:
+        return None
+    parsed = urlparse(canonical_url)
+    host = (parsed.hostname or "").lower()
+    candidate: str | None = None
+    if host == "youtu.be":
+        candidate = parsed.path.strip("/").split("/", 1)[0]
+    elif host in {"youtube.com", "www.youtube.com", "m.youtube.com"}:
+        parts = [part for part in parsed.path.split("/") if part]
+        if parsed.path.rstrip("/") == "/watch":
+            candidate = next(iter(parse_qs(parsed.query).get("v", ())), None)
+        elif len(parts) == 2 and parts[0] in {"shorts", "embed"}:
+            candidate = parts[1]
+    if candidate is None or not re.fullmatch(r"[A-Za-z0-9_-]{11}", candidate):
+        return None
+    return candidate
 
 
 def _metric_observations(packet: Mapping[str, Any], *, capture_timestamp: str) -> dict[str, MetricObservation]:
