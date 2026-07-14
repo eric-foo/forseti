@@ -14,7 +14,7 @@ from source_capture.models import (
     CaptureModeCategory, PacketTiming, SourceCaptureSlice, known_fact, not_applicable, not_attempted,
 )
 from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
-from test_tiktok_creator_metric_seed import _commit_batch_packet, _stats, _video
+from tiktok_batch_test_support import _commit_batch_packet, _stats, _video
 
 
 def _transcript(creator: str, video: str, text: str) -> AudienceTranscript:

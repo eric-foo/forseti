@@ -18,8 +18,17 @@ from capture_spine.creator_profile_current.tiktok_grid_observation_producer impo
 from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot
 from runners import run_tiktok_grid_observation_producer as runner
+from source_capture.models import (
+    CaptureModeCategory,
+    PacketTiming,
+    SourceCaptureSlice,
+    known_fact,
+    not_applicable,
+    not_attempted,
+)
+from source_capture.packet_assembly import stage_and_write_packet, staged_file_id_map
+from source_capture.tiktok.batch_packet import TIKTOK_BATCH_CAPTURE_SURFACE
 from source_capture.tiktok.grid_packet import write_tiktok_grid_packet
-from test_tiktok_creator_metric_seed import _commit_batch_packet, _stats, _video
 
 
 def _grid_bytes(
@@ -81,6 +90,73 @@ def _admit_grid(
     )
     assert code == 0
     return Path(packet_dir).name
+
+
+def _commit_tiktok_packet(
+    data_root: DataLakeRoot,
+    *,
+    source_surface: str,
+    grid_window_json: bytes | None = None,
+    grid_artifact_name: str = "tiktok_grid_window.json",
+) -> str:
+    observed_at = "2026-07-12T00:00:00Z"
+    staged = [("tiktok_batch_capture.json", b'{"videos":[]}')]
+    if grid_window_json is not None:
+        staged.append((grid_artifact_name, grid_window_json))
+    file_ids = staged_file_id_map(staged)
+    timing = PacketTiming(
+        source_publication_or_event=known_fact("fixture TikTok packet"),
+        source_edit_or_version=not_applicable("fixture TikTok packet"),
+        capture_time=known_fact(observed_at),
+        recapture_time=not_applicable("fixture TikTok packet"),
+        cutoff_posture=not_applicable("fixture TikTok packet"),
+    )
+    access = known_fact("fixture sanitized TikTok packet")
+    archive = not_attempted("fixture does not query archives")
+    media = known_fact("fixture parsed fields only")
+    recapture = not_applicable("fixture TikTok packet")
+    result = stage_and_write_packet(
+        data_root=data_root,
+        staged_artifacts=staged,
+        source_slices=[
+            SourceCaptureSlice(
+                slice_id="tiktok_fixture_01",
+                locator=known_fact("https://www.tiktok.com/@creator"),
+                timing=timing,
+                access_posture=access,
+                archive_history_posture=archive,
+                media_modality_posture=media,
+                re_capture_relationship=recapture,
+                limitations=["fixture only"],
+                warning_notes=[],
+                preserved_file_ids=[file_ids[name] for name, _body in staged],
+            )
+        ],
+        source_family="tiktok",
+        source_surface=source_surface,
+        source_locator=known_fact("https://www.tiktok.com/@creator"),
+        decision_question="fixture TikTok Silver source-surface routing",
+        capture_context="fixture TikTok packet",
+        actor_audience_context=not_applicable("fixture TikTok packet"),
+        capture_mode=CaptureModeCategory.AUTOMATED_EXTRACTION,
+        operator_category="fixture",
+        session_identity=None,
+        visible_mode_changes=[],
+        source_publication_or_event=timing.source_publication_or_event,
+        source_edit_or_version=timing.source_edit_or_version,
+        cutoff_posture=timing.cutoff_posture,
+        recapture_time=timing.recapture_time,
+        access_posture=access,
+        archive_history_posture=archive,
+        media_modality_posture=media,
+        re_capture_relationship=recapture,
+        warnings=[],
+        limitations=["fixture only"],
+        receipt_summary="fixture TikTok packet",
+        receipt_non_claims=("fixture only",),
+    )
+    data_root.rebuild_availability()
+    return Path(result.output_directory).name
 
 
 def test_runner_materializes_two_capture_history_with_missing_distinct_from_zero(
@@ -290,9 +366,8 @@ def test_runner_acknowledges_non_grid_tiktok_packet_as_not_applicable(
     tmp_path: Path,
 ) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    packet_id = _commit_batch_packet(
-        data_root,
-        videos=[_video("7655162561783975199", stats=_stats(100, 10, 2))],
+    packet_id = _commit_tiktok_packet(
+        data_root, source_surface=TIKTOK_BATCH_CAPTURE_SURFACE
     )
 
     assert runner.run_catchup(data_root=data_root) == [
@@ -304,8 +379,162 @@ def test_runner_acknowledges_non_grid_tiktok_packet_as_not_applicable(
         ack_namespace=SOCIAL_METRIC_OBSERVATION_SET_LANE,
     )
     assert len(acks) == 1
-    assert acks[0]["evidence"][0]["kind"] == "not_applicable_no_tiktok_grid_window"
+    assert acks[0]["evidence"][0]["kind"] == "not_applicable_non_grid_source_surface"
     assert runner.pending_packets(data_root=data_root) == []
+
+
+def test_runner_ignores_embedded_grid_copy_in_batch_packet(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _commit_tiktok_packet(
+        data_root,
+        source_surface=TIKTOK_BATCH_CAPTURE_SURFACE,
+        grid_window_json=_grid_bytes(
+            observed_at="2026-07-12T00:00:00Z",
+            play_count=100,
+            like_count=10,
+            comment_count=2,
+        ),
+    )
+
+    assert runner.run_catchup(data_root=data_root) == [
+        {"packet_id": packet_id, "status": "not_applicable"}
+    ]
+    record_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+        record_id=observation_set_record_id(packet_id),
+    )
+    assert not record_path.exists()
+
+
+def test_mixed_grid_and_batch_catchup_is_idempotent_and_queryable(
+    tmp_path: Path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    grid_anchors = [
+        _admit_grid(
+            data_root,
+            observed_at=observed_at,
+            play_count=play_count,
+            like_count=like_count,
+            comment_count=comment_count,
+        )
+        for observed_at, play_count, like_count, comment_count in (
+            ("2026-07-12T00:00:00Z", 100, 10, 2),
+            ("2026-07-13T00:00:00Z", 150, 15, 3),
+        )
+    ]
+    batch_anchor = _commit_tiktok_packet(
+        data_root,
+        source_surface=TIKTOK_BATCH_CAPTURE_SURFACE,
+        grid_window_json=_grid_bytes(
+            observed_at="2026-07-13T00:00:00Z",
+            play_count=999,
+            like_count=99,
+            comment_count=9,
+        ),
+    )
+
+    first = runner.run_catchup(data_root=data_root)
+    second = runner.run_catchup(data_root=data_root)
+
+    assert sorted(row["status"] for row in first) == [
+        "derived",
+        "derived",
+        "not_applicable",
+    ]
+    assert second == []
+    for anchor in grid_anchors:
+        assert data_root.record_path(
+            subtree="derived",
+            raw_anchor=anchor,
+            lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+            record_id=observation_set_record_id(anchor),
+        ).is_file()
+    assert not data_root.record_path(
+        subtree="derived",
+        raw_anchor=batch_anchor,
+        lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+        record_id=observation_set_record_id(batch_anchor),
+    ).exists()
+    history = read_social_metric_history(
+        data_root=data_root,
+        lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+        policy_fingerprint=TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT,
+        record_id_for_anchor=observation_set_record_id,
+        platform="tiktok",
+        account_native_id="creator",
+        content_native_ids=["101"],
+    )
+    assert [point.observed_at for point in history["101"]] == [
+        "2026-07-12T00:00:00Z",
+        "2026-07-13T00:00:00Z",
+    ]
+    assert [
+        point.metrics["view_count"]["metric_value"] for point in history["101"]
+    ] == [
+        100,
+        150,
+    ]
+    assert runner.pending_packets(data_root=data_root) == []
+
+
+def test_runner_does_not_ack_declared_grid_packet_missing_exact_grid_file(
+    tmp_path: Path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _commit_tiktok_packet(
+        data_root,
+        source_surface=runner.TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE,
+    )
+
+    result = runner.run_catchup(data_root=data_root)
+
+    assert result[0]["packet_id"] == packet_id
+    assert result[0]["status"] == "failed"
+    assert "requires exactly one tiktok_grid_window.json" in result[0]["error"]
+    assert find_acks(
+        data_root,
+        raw_anchor=packet_id,
+        ack_namespace=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+    ) == []
+
+
+def test_runner_rejects_suffix_lookalike_grid_filename(tmp_path: Path) -> None:
+    # A declared grid packet whose artifact only *ends with* the canonical name
+    # (``decoy_tiktok_grid_window.json``) must not derive Silver: staged-name
+    # recovery compares the exact canonical name, not a suffix. Under the prior
+    # ``endswith`` match this lookalike would have derived from the decoy file.
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _commit_tiktok_packet(
+        data_root,
+        source_surface=runner.TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE,
+        grid_window_json=_grid_bytes(
+            observed_at="2026-07-12T00:00:00Z",
+            play_count=100,
+            like_count=10,
+            comment_count=2,
+        ),
+        grid_artifact_name="decoy_tiktok_grid_window.json",
+    )
+
+    result = runner.run_catchup(data_root=data_root)
+
+    assert result[0]["packet_id"] == packet_id
+    assert result[0]["status"] == "failed"
+    assert "requires exactly one tiktok_grid_window.json" in result[0]["error"]
+    assert find_acks(
+        data_root,
+        raw_anchor=packet_id,
+        ack_namespace=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+    ) == []
+    assert not data_root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+        record_id=observation_set_record_id(packet_id),
+    ).exists()
 
 
 def test_runner_does_not_ack_when_silver_persistence_fails(
