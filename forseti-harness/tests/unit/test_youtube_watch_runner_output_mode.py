@@ -44,7 +44,7 @@ def test_youtube_watch_runner_ignores_env_data_root_when_output_is_explicit(
         assert kwargs["output_directory"] == output
         assert kwargs["data_root"] is None
         assert kwargs["decision_question"]
-        assert kwargs["comment_pages"] == 2
+        assert kwargs["comment_pages"] == 1
         return 0, str(output)
 
     monkeypatch.setattr(runner, "run_source_capture_youtube_watch_packet", fake_run)

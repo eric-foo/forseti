@@ -110,6 +110,13 @@ def _youtube_watch_packet(*, view_count: int) -> dict:
         },
         "comments_posture": "comments_not_exposed",
         "comments": [],
+        "comment_capture_coverage": {
+            "requested_page_limit": 1,
+            "pages_fetched": 0,
+            "selected_comment_count": 0,
+            "continuation_remaining_after_stop": False,
+            "ordering_posture": "source_default_order_as_served",
+        },
         "receipts": {"http_status": 200, "retrieval_time_utc": YOUTUBE_AR_PROOF_CAPTURED_AT},
     }
 
@@ -128,11 +135,11 @@ def _commit_youtube_watch_packet(data_root: DataLakeRoot, *, view_count: int) ->
     assert code == 0
     packet_id = Path(output_dir).name
     preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
-    assert preserved["relative_packet_path"].endswith("raw_watch.html")
+    assert preserved["relative_packet_path"].endswith("youtube_watch_capture.json")
     return packet_id, preserved
 
 
-def _single_observation_seed_document(*, packet_id: str, watch_hash: str, view_count: int) -> dict:
+def _single_observation_seed_document(*, packet_id: str, evidence_hash: str, view_count: int) -> dict:
     seed_document = _committed_seed_document()
     seed = deepcopy(seed_document[YOUTUBE_SEED_WRAPPER_KEY])
     seed_observation = deepcopy(seed["metric_observations"][0])
@@ -140,8 +147,11 @@ def _single_observation_seed_document(*, packet_id: str, watch_hash: str, view_c
         {
             "source_packet_id_or_none": packet_id,
             "source_packet_pointer_or_none": None,
-            "source_watch_html_sha256_or_none": watch_hash,
-            "source_watch_byte_size_or_none": len(YOUTUBE_AR_PROOF_WATCH_HTML),
+            "source_evidence_sha256": evidence_hash,
+            "source_evidence_hash_basis": "source_captured_selective_payload_sha256",
+            "source_evidence_byte_size": 1,
+            "source_watch_html_sha256_or_none": None,
+            "source_watch_byte_size_or_none": None,
             "source_pointer": "youtube_watch_packet_fixture#/metric_receipts/view_count",
             "source_field": "/metric_receipts/view_count/value",
             "source_file": "youtube_watch_packet_fixture",
@@ -253,7 +263,7 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
     packet_id, preserved = _commit_youtube_watch_packet(data_root, view_count=view_count)
     assert rebuild_catalog(data_root)["status"] == "rebuilt"
     seed_document = _single_observation_seed_document(
-        packet_id=packet_id, watch_hash=preserved["sha256"], view_count=view_count
+        packet_id=packet_id, evidence_hash=preserved["sha256"], view_count=view_count
     )
 
     result = derive_youtube_creator_metric_silver_records_from_seed(
@@ -285,7 +295,7 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
     }
     assert raw_ref["source_family"] == "youtube"
     assert raw_ref["source_surface"] == "youtube_watch_metadata_comments"
-    assert raw_ref["payload_kind"] == "html_body"
+    assert raw_ref["payload_kind"] == "json_body"
     assert "lineage_limitations" not in record
 
 
@@ -293,7 +303,7 @@ def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     assert rebuild_catalog(data_root)["status"] == "rebuilt"
     seed_document = _single_observation_seed_document(
-        packet_id="01KWYTARPROOFFALLBACK0001", watch_hash="f" * 64, view_count=479
+        packet_id="01KWYTARPROOFFALLBACK0001", evidence_hash="f" * 64, view_count=479
     )
 
     result = derive_youtube_creator_metric_silver_records_from_seed(
@@ -316,7 +326,7 @@ def test_ambiguous_bronze_attachment_record_stays_visible_when_requested(tmp_pat
     view_count = 479
     packet_id, preserved = _commit_youtube_watch_packet(data_root, view_count=view_count)
     seed_document = _single_observation_seed_document(
-        packet_id=packet_id, watch_hash=preserved["sha256"], view_count=view_count
+        packet_id=packet_id, evidence_hash=preserved["sha256"], view_count=view_count
     )
     seed_observation = seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_observations"][0]
     ambiguous_candidates = [
@@ -483,7 +493,7 @@ def test_observation_missing_source_hash_fails_closed() -> None:
     seed_document = _committed_seed_document()
     seed_obs = dict(seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_observations"][0])
     seed_obs["source_watch_html_sha256_or_none"] = None
-    with pytest.raises(ValueError, match="source_watch_html_sha256_or_none"):
+    with pytest.raises(ValueError, match="source evidence sha256"):
         build_metric_observation_record(seed_observation=seed_obs)
 
 

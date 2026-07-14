@@ -9,7 +9,10 @@ subsets, latest-packet-per-video selection, and every fail-closed path
 non-integer receipt value)."""
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -20,6 +23,7 @@ from capture_spine.creator_profile_current.youtube_watch_packet_metric_document 
     YOUTUBE_WATCH_PACKET_METRIC_RECIPE_VERSION,
     YOUTUBE_WATCH_PACKET_METRIC_REGISTRY_VERSION,
     WatchPacketMetricDocumentError,
+    _load_watch_capture,
     build_youtube_watch_packet_metric_document,
     discover_latest_watch_captures,
 )
@@ -91,7 +95,7 @@ def _observed_receipt(value: int) -> dict:
         "value": value,
         "source_route": "ytInitialPlayerResponse",
         "source_path": "ytInitialPlayerResponse.videoDetails",
-        "artifact": "raw_watch.html",
+        "artifact": "youtube_watch_capture.json",
     }
 
 
@@ -134,6 +138,14 @@ def _fetch_packet(
         "availability": {"video_state": "playable", "comments_state": "comments_not_exposed"},
         "metric_receipts": receipts,
         "comments_posture": "comments_not_exposed",
+        "comments": [],
+        "comment_capture_coverage": {
+            "requested_page_limit": 1,
+            "pages_fetched": 0,
+            "selected_comment_count": 0,
+            "continuation_remaining_after_stop": False,
+            "ordering_posture": "source_default_order_as_served",
+        },
         "receipts": {"http_status": 200, "retrieval_time_utc": T1},
     }
 
@@ -196,6 +208,46 @@ def _build(data_root: DataLakeRoot, **overrides) -> dict:
     return build_youtube_watch_packet_metric_document(data_root, **kwargs)
 
 
+def test_legacy_v0_watch_html_packet_remains_readable() -> None:
+    packet_id = "01KWYTLEGACYWATCHPACKET001"
+    watch_body = b"<html>legacy watch evidence</html>"
+    capture_body = json.dumps(
+        {
+            "capture_schema_version": "youtube_watch_metadata_comments_capture_v0",
+            "platform_video_id": "vidLegacy01",
+            "capture_timestamp": T1,
+            "metric_receipts": {},
+            "packet": {},
+        }
+    ).encode("utf-8")
+    loaded = SimpleNamespace(
+        manifest={
+            "preserved_files": [
+                {
+                    "file_id": "capture",
+                    "relative_packet_path": "raw/01_youtube_watch_capture.json",
+                    "sha256": hashlib.sha256(capture_body).hexdigest(),
+                    "size_bytes": len(capture_body),
+                },
+                {
+                    "file_id": "watch",
+                    "relative_packet_path": "raw/02_raw_watch.html",
+                    "sha256": hashlib.sha256(watch_body).hexdigest(),
+                    "size_bytes": len(watch_body),
+                },
+            ]
+        },
+        bodies={"capture": capture_body, "watch": watch_body},
+    )
+    fake_root = SimpleNamespace(load_raw_packet=lambda _packet_id: loaded)
+
+    capture = _load_watch_capture(fake_root, packet_id)
+
+    assert capture.evidence_sha256 == hashlib.sha256(watch_body).hexdigest()
+    assert capture.evidence_hash_basis == "source_captured_watch_html_sha256"
+    assert capture.evidence_byte_size == len(watch_body)
+
+
 def test_builds_engagement_bearing_document_from_live_packets(tmp_path: Path) -> None:
     data_root = _lake_with_default_captures(tmp_path)
     document = _build(data_root)
@@ -255,14 +307,17 @@ def test_observations_carry_lake_packet_provenance(tmp_path: Path) -> None:
         assert observation["source_file"].endswith("youtube_watch_capture.json")
         metric = observation["metric_name"]
         assert observation["source_pointer"] == f"{observation['source_file']}#/metric_receipts/{metric}"
-        # The provenance hash is the preserved watch HTML's manifest sha256.
+        # Selective v1 provenance is the canonical compact payload itself.
         loaded = data_root.load_raw_packet(packet_id)
-        watch_entry = next(
+        evidence_entry = next(
             entry
             for entry in loaded.manifest["preserved_files"]
-            if str(entry["relative_packet_path"]).endswith("raw_watch.html")
+            if str(entry["relative_packet_path"]).endswith("youtube_watch_capture.json")
         )
-        assert observation["source_watch_html_sha256_or_none"] == watch_entry["sha256"]
+        assert observation["source_evidence_sha256"] == evidence_entry["sha256"]
+        assert observation["source_evidence_hash_basis"] == "source_captured_selective_payload_sha256"
+        assert observation["source_evidence_byte_size"] == evidence_entry["size_bytes"]
+        assert observation["source_watch_html_sha256_or_none"] is None
 
 
 def test_engagement_unavailable_when_no_video_exposes_inputs(tmp_path: Path) -> None:

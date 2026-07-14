@@ -34,7 +34,7 @@ Open `youtube_capture_agent_playbook_v0.md` first for YouTube run posture and
 | Layer | Current home | What to confirm |
 | --- | --- | --- |
 | Access / method | `youtube_capture_agent_playbook_v0.md`; `youtube_capture_recon_v0.md` | Public-only route; served HTML embedded `ytInitialPlayerResponse`; `youtubei/v1/next` comment continuations; anonymous Chrome-impersonating transport. |
-| Watch metadata/comments packet | `orca-harness/source_capture/youtube_watch_packet.py`; runner `run_source_capture_youtube_watch_packet.py` | SourceCapturePacket writes for watch-page metadata/comments, availability states, metric observations, and route receipts. |
+| Watch metadata/comments packet | `forseti-harness/source_capture/youtube_watch_packet.py`; runner `run_source_capture_youtube_watch_packet.py` | Selective-structured SourceCapturePacket writes for source-visible watch metadata, full bounded comment bodies/identity/engagement/order, availability states, metric observations, coverage, and route receipts. Capture v1 does not persist enclosing watch HTML or raw youtubei response bodies; historical v0 packets remain readable. |
 | Captions / ASR packets | `orca-harness/source_capture/transcript/youtube_captions.py`; `caption_packet.py`; `asr_packet.py`; runners `run_source_capture_youtube_caption_packet.py`, `run_source_capture_youtube_asr_packet.py` | Raw transcript acquisition and ASR fallback staging; readable product extraction is downstream Cleaning. |
 | Creator observations / metric rollups | `youtube_creator_observation_ledger_spec_v0.md`, metric seed/snapshot JSONs; runners `run_youtube_creator_metric_rollup_producer.py`, `run_youtube_watch_packet_metric_rollup_producer.py` | Source-backed creator/channel observations and metric rollups over admitted packets; not cross-platform identity proof. |
 | Audience post-text Cleaning seam | `orca-harness/source_capture/audience_post_packet.py`; `orca-harness/cleaning/audience_post_input.py`; `orca-harness/cleaning/audience_extractor.py`; `docs/prompts/handoffs/youtube_post_ecr_cleaning_adapter_architecture_handoff_v0.md` | Post-text packets use the platform as `source_family` and `youtube_post_text` as the source surface; the deterministic adapter feeds Pass-1 audience extraction and is not a fake top-level source family. |
@@ -44,8 +44,10 @@ Open `youtube_capture_agent_playbook_v0.md` first for YouTube run posture and
 ## Current Posture
 
 YouTube long-form and Shorts share a source-family route for public metadata and
-comments. Captions and ASR are acquisition routes into raw artifacts; downstream
-readable/clean product mentions belong to Cleaning/Silver.
+comments. The default deep-capture packet retains one source-default-order comment
+page as selected structured Bronze and records the discarded response-envelope
+posture explicitly. Captions and ASR are separate acquisition routes into raw
+artifacts; downstream readable/clean product mentions belong to Cleaning/Silver.
 
 ## Non-Claims
 

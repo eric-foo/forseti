@@ -49,7 +49,7 @@ It is a costume, not a lockpick: it accesses nothing gated and defeats no authen
 
 ## ENFORCED BY CODE (the implementation guarantees these)
 
-Current implementation: `orca-harness/youtube_capture/` (tracked code; captured data gitignored).
+Current implementation: `forseti-harness/youtube_capture/` (tracked code; captured data gitignored).
 - **Single network entry point:** all fetches go through `stealth_client.http_get`; capture +
   shorts scripts import it. Don't call `urllib`/`requests` directly for YouTube.
 - **Chrome impersonation:** `stealth_client` uses `curl_cffi` `impersonate="chrome"` (matched
@@ -61,8 +61,12 @@ Current implementation: `orca-harness/youtube_capture/` (tracked code; captured 
   never hardcode or log proxy endpoints when that rung is used.
 - **Loud non-stealth guard:** `STEALTH_OK` is false and a stderr WARNING fires if it falls back to
   urllib (detectable as Python) — never run the fallback at volume silently.
+- **Selective structured retention:** the live route receives served watch HTML and bounded
+  `youtubei` comment responses transiently, but capture v1 admits only exact selected metadata,
+  full bounded comment bodies/identity/engagement/source order, coverage, and route receipts. The
+  default is one source-default-order comment page. Full response envelopes are not persisted.
 - **Route-health from receipts, not a canary:** each packet records `comments_posture`
-  (`captured`/`empty`/`disabled`); a volume run records walls/429s. (A standalone canary was tried
+  (`comments_sample_captured`/`comments_not_exposed`/`comments_disabled`); a volume run records walls/429s. (A standalone canary was tried
   and dropped as redundant.)
 
 ## YOU MUST FOLLOW (not code-enforceable — judgment)
@@ -94,10 +98,47 @@ Current implementation: `orca-harness/youtube_capture/` (tracked code; captured 
 
 ## Where the code lives / reuse
 
-The implementation is tracked at `orca-harness/youtube_capture/`; generated packets and route outputs
-remain gitignored (`orca-harness/youtube_capture/packets/`, `shorts_scroll_runs/`, `route_guard.json`).
+The implementation is tracked at `forseti-harness/youtube_capture/`; generated packets and route outputs
+remain gitignored (`forseti-harness/youtube_capture/packets/`, `shorts_scroll_runs/`, `route_guard.json`).
 The durable code can be reused across fresh clones, but public YouTube capture still stays bounded,
 anonymous, human-rate, and subject to per-operation network approval.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    YouTube watch/comment capture v1 changes the default durable evidence posture from full served
+    HTML plus raw youtubei response bodies to a selective structured SourceCapturePacket. Exact
+    selected metadata, full bounded comment bodies/identity/engagement/source order, capture
+    coverage, limitations, and route receipts remain canonical; enclosing response bodies are
+    transient and explicitly not persisted. Historical v0 packets remain readable.
+  trigger: lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_capture_agent_playbook_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/youtube/README.md
+  downstream_surfaces_checked:
+    - forseti-harness/youtube_capture/capture_youtube_v0.py
+    - forseti-harness/source_capture/youtube_watch_packet.py
+    - forseti-harness/runners/run_source_capture_youtube_watch_packet.py
+    - forseti-harness/runners/run_source_capture_youtube_watch_batch.py
+    - forseti-harness/capture_spine/creator_profile_current/youtube_watch_packet_metric_document.py
+    - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+  intentionally_not_updated:
+    - path: forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
+      reason: >
+        This is not a projection promoted into raw authority. It is an explicitly fidelity-limited
+        automated-extraction capture whose selected source-visible observables are the admitted raw
+        packet; projection remains a re-derivable downstream view.
+    - path: historical v0 SourceCapturePackets
+      reason: Immutable historical packets remain unchanged and readable through the legacy path.
+  non_claims:
+    - not full source-response preservation
+    - not future-field replay from discarded response envelopes
+    - not deletion or mutation of historical Bronze
+    - not transcript or media capture
+    - not Silver readiness beyond the verified dual-read lineage seam
+```
 
 ## Non-claims
 

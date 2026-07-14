@@ -1,9 +1,10 @@
 """CLI: capture YouTube watch-page metadata/comments into a SourceCapturePacket.
 
-Thin wrapper: fetch the incumbent logged-out watch-page route, then stage served HTML,
-normalized metric/availability receipts, and bounded raw youtubei comment pages into a
-contract-compliant SourceCapturePacket. The packet writer is network-free and unit-tested;
-this runner owns live acquisition and the data-lake seam.
+Thin wrapper: fetch the incumbent logged-out watch-page route, then stage selected
+source-visible metadata, metric/availability receipts, and bounded comment rows into a
+contract-compliant SourceCapturePacket. Enclosing HTML/youtubei bodies remain transient.
+The packet writer is network-free and unit-tested; this runner owns live acquisition and
+the data-lake seam.
 """
 from __future__ import annotations
 
@@ -31,11 +32,13 @@ def run_source_capture_youtube_watch_packet(
     output_directory: Path | None = None,
     data_root=None,
     decision_question: str,
-    comment_pages: int = 2,
+    comment_pages: int = 1,
     capture_fetcher: Callable[..., object] = fetch_youtube_watch,
 ) -> tuple[int, str]:
     if (output_directory is None) == (data_root is None):
         raise ValueError("exactly one of output_directory or data_root is required")
+    if comment_pages <= 0:
+        raise ValueError("comment_pages must be greater than zero")
 
     fetched = capture_fetcher(video_id, comment_pages=comment_pages)
     comment_pages_out = tuple(
@@ -72,7 +75,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--decision-question",
         default="Capture YouTube public watch-page metadata/comments for creator-momentum signal collection.",
     )
-    parser.add_argument("--comment-pages", type=int, default=2)
+    parser.add_argument("--comment-pages", type=int, default=1)
     return parser
 
 

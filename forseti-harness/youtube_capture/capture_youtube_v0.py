@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""Bounded YouTube public-metadata capture v0 (tracked code; captured data gitignored).
+"""Bounded YouTube public-metadata capture (tracked code; captured data gitignored).
 
 Proven route (see source_families/social_media/youtube/youtube_capture_recon_v0.md):
   - metadata: embedded `ytInitialPlayerResponse` in served HTML (logged-out, no JS)
   - comments: `youtubei/v1/next` panel-scoped continuation (same route long-form + Shorts)
 
-Persists one packet per video to ./packets/<video_id>/. Public read-only; no auth; no scheduler.
+Persists one selected-observable packet per video to ./packets/<video_id>/. The
+served watch/comment response bodies are acquisition-time inputs only and are not
+written by this module. Public read-only; no auth; no scheduler.
 Tracked at forseti-harness/youtube_capture/. Helpers here are reused by shorts_scroll_capture_v0.py.
 """
-import re, json, os, hashlib, datetime, urllib.request
+import re, json, os, datetime, urllib.request
 from dataclasses import dataclass, field
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "packets")
-COMMENT_PAGES = 2  # bounded
+COMMENT_PAGES = 1  # bounded top/default-order comment page
 VIDEOS = ["dQw4w9WgXcQ", "-0FVExAgmps", "84id2dzpwU0", "__fmDj0ZJ1Q"]  # longform, short, comments-off, recent
 
 
@@ -351,6 +353,62 @@ def detect_surface(vid):
         return "unknown"
 
 
+def _comment_thread_metadata(response):
+    """Return source-visible thread display facts keyed by comment id."""
+    metadata = {}
+    for thread in collect(response, "commentThreadRenderer"):
+        if not isinstance(thread, dict):
+            continue
+        outer = thread.get("commentViewModel") or {}
+        view = outer.get("commentViewModel") if isinstance(outer, dict) else {}
+        if not isinstance(view, dict):
+            continue
+        comment_id = view.get("commentId")
+        if not isinstance(comment_id, str) or not comment_id:
+            continue
+        pinned_text = view.get("pinnedText")
+        rendering_priority = thread.get("renderingPriority")
+        metadata[comment_id] = {
+            "pinned_text": pinned_text if isinstance(pinned_text, str) else None,
+            "rendering_priority": (
+                rendering_priority if isinstance(rendering_priority, str) else None
+            ),
+        }
+    return metadata
+
+
+def _comment_heart_states(response):
+    """Return source-native creator-heart states keyed by toolbar-state key."""
+    states = {}
+    for state in collect(response, "engagementToolbarStateEntityPayload"):
+        if not isinstance(state, dict):
+            continue
+        key = state.get("key")
+        heart_state = state.get("heartState")
+        if isinstance(key, str) and key and isinstance(heart_state, str):
+            states[key] = heart_state
+    return states
+
+
+def _content_attachment_labels(content):
+    """Preserve compact public labels for emoji/sticker-style comment attachments."""
+    if not isinstance(content, dict):
+        return []
+    labels = []
+    for run in content.get("attachmentRuns") or []:
+        if not isinstance(run, dict):
+            continue
+        element = run.get("element")
+        properties = element.get("properties") if isinstance(element, dict) else None
+        accessibility = (
+            properties.get("accessibilityProperties") if isinstance(properties, dict) else None
+        )
+        label = accessibility.get("label") if isinstance(accessibility, dict) else None
+        if isinstance(label, str) and label:
+            labels.append(label)
+    return labels
+
+
 def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
     status, final_url, raw = http_get(f"https://www.youtube.com/watch?v={vid}")
     html = raw.decode("utf-8", "replace")
@@ -395,7 +453,9 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
             "comments_state_reason": None,
         },
         "metric_receipts": {
-            "view_count": _metric_observed(view_count, view_count_source_path, artifact="raw_watch.html")
+            "view_count": _metric_observed(
+                view_count, view_count_source_path, artifact="youtube_watch_capture.json"
+            )
             if view_count is not None
             else _metric_unavailable(
                 "view count was not exposed in ytInitialPlayerResponse or served HTML regex fallback",
@@ -405,7 +465,9 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
                     "served_html.regex.first_viewCount",
                 ],
             ),
-            "like_count": _metric_observed(like_count, like_count_source_path, artifact="raw_watch.html")
+            "like_count": _metric_observed(
+                like_count, like_count_source_path, artifact="youtube_watch_capture.json"
+            )
             if like_count is not None
             else _metric_unavailable(
                 "microformat.likeCount was not exposed; abbreviated accessibility text is preserved separately when present",
@@ -420,9 +482,11 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
             "source_url": final_url,
             "http_status": status,
             "retrieval_time_utc": capture_time,
-            "byte_size": len(raw),
-            "raw_body_sha256": hashlib.sha256(raw).hexdigest(),
-            "extraction": "served_html:ytInitialPlayerResponse + youtubei/v1/next",
+            "source_response_byte_size": len(raw),
+            "extraction": (
+                "selected source-visible fields from served_html:ytInitialPlayerResponse "
+                "+ youtubei/v1/next; enclosing response bodies are not persistence inputs"
+            ),
             "auth": "logged_out", "js_executed": False,
         },
     }
@@ -447,6 +511,7 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
         )
     elif api_key and ver:
         page, got = 0, []
+        page_receipts = []
         while token and page < comment_pages:
             resp_status, resp_final_url, resp_raw, resp = youtubei_next_raw(api_key, ver, token)
             page_name = f"youtubei_next_page_{page + 1:02d}.json"
@@ -470,12 +535,45 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
                         pkt["engagement"]["total_comment_count_source_path"] = (
                             "youtubei_next.commentsHeaderRenderer.countText"
                         )
-            for p in collect(resp, "commentEntityPayload"):
+            thread_metadata = _comment_thread_metadata(resp)
+            heart_states = _comment_heart_states(resp)
+            page_rows = []
+            for source_order_in_page, p in enumerate(collect(resp, "commentEntityPayload"), start=1):
                 props, auth, tb = p.get("properties", {}), p.get("author", {}), p.get("toolbar", {})
-                got.append({"author": auth.get("displayName"), "author_channel_id": auth.get("channelId"),
-                            "text": (props.get("content", {}) or {}).get("content", "")[:300],
-                            "published_time": props.get("publishedTime"),
-                            "like_count": tb.get("likeCountNotliked"), "reply_count": tb.get("replyCount")})
+                content = props.get("content", {}) or {}
+                comment_id = props.get("commentId")
+                thread = thread_metadata.get(comment_id, {})
+                heart_state = heart_states.get(props.get("toolbarStateKey"))
+                row = {
+                    "comment_id": comment_id,
+                    "author": auth.get("displayName"),
+                    "author_channel_id": auth.get("channelId"),
+                    "author_is_creator": auth.get("isCreator"),
+                    "author_is_verified": auth.get("isVerified"),
+                    "text": content.get("content", ""),
+                    "content_attachment_labels": _content_attachment_labels(content),
+                    "published_time": props.get("publishedTime"),
+                    "reply_level": props.get("replyLevel"),
+                    "like_count": tb.get("likeCountNotliked"),
+                    "reply_count": tb.get("replyCount"),
+                    "pinned_text": thread.get("pinned_text"),
+                    "rendering_priority": thread.get("rendering_priority"),
+                    "heart_state": heart_state,
+                    "source_page_number": page + 1,
+                    "source_order_in_page": source_order_in_page,
+                    "source_order_global": len(got) + len(page_rows) + 1,
+                }
+                page_rows.append(row)
+            got.extend(page_rows)
+            page_receipts.append(
+                {
+                    "page_number": page + 1,
+                    "http_status": resp_status,
+                    "final_url": resp_final_url,
+                    "source_response_byte_size": len(resp_raw),
+                    "selected_comment_count": len(page_rows),
+                }
+            )
             page += 1
             token = next_token(resp)
         pkt["comments"] = got
@@ -492,8 +590,9 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
         pkt["metric_receipts"]["comment_sample_count"] = _metric_observed(
             len(got),
             "youtubei_next.commentEntityPayload",
-            artifact="youtubei_next_page_*.json",
+            artifact="youtube_watch_capture.json",
         )
+        pkt["comment_page_receipts"] = page_receipts
     else:
         comments_state = "comments_not_exposed"
         comments_reason = "comments continuation token was present but INNERTUBE_API_KEY/clientVersion was not exposed"
@@ -512,9 +611,7 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
         pkt["metric_receipts"]["total_comment_count"] = _metric_observed(
             pkt["engagement"]["total_comment_count"],
             total_source_path,
-            artifact="raw_watch.html"
-            if total_source_path.startswith("ytInitialData")
-            else "youtubei_next_page_01.json",
+            artifact="youtube_watch_capture.json",
         )
     elif panel_comment_count_text is not None:
         pkt["metric_receipts"]["total_comment_count"] = _metric_unavailable(
@@ -533,16 +630,14 @@ def fetch_youtube_watch(vid, *, comment_pages=COMMENT_PAGES):
             f"{comments_reason}; the Comments panel badge in served HTML also did not expose a count",
             routes_checked=total_comment_routes,
         )
-    pkt["comment_page_receipts"] = [
-        {
-            "filename": page.filename,
-            "http_status": page.http_status,
-            "final_url": page.final_url,
-            "byte_size": len(page.raw_json_bytes),
-            "raw_body_sha256": hashlib.sha256(page.raw_json_bytes).hexdigest(),
-        }
-        for page in comment_page_bodies
-    ]
+    pkt.setdefault("comment_page_receipts", [])
+    pkt["comment_capture_coverage"] = {
+        "requested_page_limit": comment_pages,
+        "pages_fetched": len(comment_page_bodies),
+        "selected_comment_count": len(pkt["comments"]),
+        "continuation_remaining_after_stop": bool(token),
+        "ordering_posture": "source_default_order_as_served",
+    }
     return YoutubeWatchFetchResult(
         packet=pkt,
         raw_watch_html=raw,
@@ -555,11 +650,6 @@ def capture(vid):
     pkt = result.packet
     d = os.path.join(OUT, vid)
     os.makedirs(d, exist_ok=True)
-    with open(os.path.join(d, "raw_watch.html"), "wb") as f:
-        f.write(result.raw_watch_html)
-    for page in result.comment_page_bodies:
-        with open(os.path.join(d, page.filename), "wb") as f:
-            f.write(page.raw_json_bytes)
     with open(os.path.join(d, "packet.json"), "w", encoding="utf-8") as f:
         json.dump(pkt, f, ensure_ascii=False, indent=2)
     return pkt

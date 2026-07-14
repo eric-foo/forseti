@@ -109,6 +109,14 @@ def _commit_packet(
             "comment_sample_count": _unavailable_receipt("comments not sampled in fixture"),
         },
         "comments_posture": "comments_not_exposed",
+        "comments": [],
+        "comment_capture_coverage": {
+            "requested_page_limit": 1,
+            "pages_fetched": 0,
+            "selected_comment_count": 0,
+            "continuation_remaining_after_stop": False,
+            "ordering_posture": "source_default_order_as_served",
+        },
         "receipts": {"http_status": 200, "retrieval_time_utc": CAPTURE_T1},
     }
     code, _output = write_youtube_watch_packet(
