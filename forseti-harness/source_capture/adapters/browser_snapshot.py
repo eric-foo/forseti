@@ -1010,12 +1010,18 @@ class _PlaywrightBrowserSnapshotEngine:
                     dom_observation: object = None
                     if not dom_extract_after_lazy_load:
                         dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
-                    lazy_load_scroll_result = _run_bounded_lazy_load_scrolls(
-                        page,
-                        scroll_passes=lazy_load_scroll_passes,
-                        scroll_step_px=lazy_load_scroll_step_px,
-                        stop_condition=response_stop_reached,
-                    )
+                    if pointer_actions_suppressed:
+                        lazy_load_scroll_result = _LazyLoadScrollResult(
+                            executed_passes=0,
+                            stop_reason="scripted_actions_suppressed",
+                        )
+                    else:
+                        lazy_load_scroll_result = _run_bounded_lazy_load_scrolls(
+                            page,
+                            scroll_passes=lazy_load_scroll_passes,
+                            scroll_step_px=lazy_load_scroll_step_px,
+                            stop_condition=response_stop_reached,
+                        )
                     if dom_extract_after_lazy_load:
                         dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
                     responses = _read_observed_page_responses(
@@ -1468,12 +1474,18 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
                 dom_observation: object = None
                 if not dom_extract_after_lazy_load:
                     dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
-                lazy_load_scroll_result = _run_bounded_lazy_load_scrolls(
-                    page,
-                    scroll_passes=lazy_load_scroll_passes,
-                    scroll_step_px=lazy_load_scroll_step_px,
-                    stop_condition=response_stop_reached,
-                )
+                if pointer_actions_suppressed:
+                    lazy_load_scroll_result = _LazyLoadScrollResult(
+                        executed_passes=0,
+                        stop_reason="scripted_actions_suppressed",
+                    )
+                else:
+                    lazy_load_scroll_result = _run_bounded_lazy_load_scrolls(
+                        page,
+                        scroll_passes=lazy_load_scroll_passes,
+                        scroll_step_px=lazy_load_scroll_step_px,
+                        stop_condition=response_stop_reached,
+                    )
                 if dom_extract_after_lazy_load:
                     dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
                 responses = _read_observed_page_responses(

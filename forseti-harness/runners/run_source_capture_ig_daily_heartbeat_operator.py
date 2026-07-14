@@ -36,11 +36,12 @@ class OperatorSessionResult:
     planned_count: int
     selected_count: int
     heartbeat_exit_code: int
+    effective_exit_code: int
     plan_created: bool
 
     @property
     def exit_code(self) -> int:
-        return self.heartbeat_exit_code
+        return self.effective_exit_code
 
     def message(self) -> str:
         return str(self.daily_summary_path)
@@ -142,6 +143,7 @@ def run_operator_session(
         planned_count=planned_count,
         selected_count=session_result.selected_count,
         heartbeat_exit_code=session_result.heartbeat_exit_code,
+        effective_exit_code=session_result.effective_exit_code,
         plan_created=plan_created,
     )
 
