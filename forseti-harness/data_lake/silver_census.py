@@ -21,6 +21,14 @@ from typing import Any, Mapping
 
 from data_lake.lane_registry import LaneRole, SILVER_LANES, role_of
 from data_lake.root import EPOCH_MARKER_FILENAME, LEGACY_EPOCH_MARKER_FILENAME
+from data_lake.creator_metric_lineage import (
+    EXCLUDED as CREATOR_METRIC_EXCLUDED,
+    HISTORICAL_COMPATIBLE as CREATOR_METRIC_HISTORICAL_COMPATIBLE,
+    OBSERVATION_LANE as CREATOR_METRIC_OBSERVATION_LANE,
+    ROLLUP_LANE as CREATOR_METRIC_ROLLUP_LANE,
+    SOURCE_BACKED_COMPLETE as CREATOR_METRIC_SOURCE_BACKED_COMPLETE,
+    build_creator_metric_lineage_index,
+)
 from data_lake.silver_record import (
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
     validate_silver_vault_record,
@@ -49,6 +57,10 @@ _ADDITIVE_FIELDS = (
     "not_attempted_states",
     "excluded_invalid_observed_metric_values",
     "historical_unqualified_metric_values",
+    "creator_metric_source_backed_complete_records",
+    "creator_metric_historical_compatible_records",
+    "creator_metric_excluded_records",
+    "current_source_backed_creator_metric_records",
     "unclassified_silver_records",
     "duplicate_observation_units_suppressed",
     "conflicting_observation_units",
@@ -604,6 +616,16 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
         if isinstance(manifest.get("packet_id"), str)
     }
     accumulator = _Accumulator()
+    creator_metric_lineage = build_creator_metric_lineage_index(data_root)
+    creator_metric_lanes = {
+        CREATOR_METRIC_OBSERVATION_LANE,
+        CREATOR_METRIC_ROLLUP_LANE,
+    }
+    creator_metric_status_fields = {
+        CREATOR_METRIC_SOURCE_BACKED_COMPLETE: "creator_metric_source_backed_complete_records",
+        CREATOR_METRIC_HISTORICAL_COMPATIBLE: "creator_metric_historical_compatible_records",
+        CREATOR_METRIC_EXCLUDED: "creator_metric_excluded_records",
+    }
     lane_counts: Counter[str] = Counter()
     derived = root / "derived"
     if derived.is_dir():
@@ -652,6 +674,16 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                         {"kind": "silver_record_invalid", "path": relative, "error": f"{type(exc).__name__}: {exc}"}
                     )
                     continue
+                if lane in creator_metric_lanes:
+                    lineage = creator_metric_lineage.classification_for_path(path)
+                    accumulator.increment(creator_metric_status_fields[lineage.status], context)
+                    if lineage.current_source_backed_eligible:
+                        accumulator.increment("current_source_backed_creator_metric_records", context)
+                    else:
+                        # The record remains in the stored-record and lineage
+                        # classification totals, but its observation values are
+                        # not current source-backed census evidence.
+                        continue
                 _classify_record(
                     accumulator,
                     record,
@@ -682,6 +714,11 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
     }
     if not all(reconciliation.values()):
         raise AssertionError(f"Silver census reconciliation failed: {reconciliation}")
+    lineage_reconciliation = creator_metric_lineage.reconciliation()
+    if not lineage_reconciliation["exact_reconciliation"]:
+        raise AssertionError(
+            f"creator-metric lineage reconciliation failed: {lineage_reconciliation}"
+        )
     return {
         "schema_version": CENSUS_SCHEMA_VERSION,
         "counting_unit": "unique subject + observation type/metric + observed time + policy + lineage anchor",
@@ -703,6 +740,7 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
             for dimension, groups in accumulator.groups.items()
         },
         "lane_states": _lane_states(lane_counts, manifests),
+        "creator_metric_lineage": lineage_reconciliation,
         "reconciliation": reconciliation,
         "errors": sorted(accumulator.errors, key=lambda item: _canonical(item)),
     }

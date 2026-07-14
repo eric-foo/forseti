@@ -11,8 +11,8 @@ from data_lake.silver_census import (
 )
 from data_lake.silver_record import append_silver_record, silver_content_hash
 
-PACKET = "01TESTSILVERCENSUSPKT01"
-PARFUMO_PACKET = "01TESTSILVERCENSUSPKT02"
+PACKET = "01KW2MJM01Y0936VNECWB3MHSD"
+PARFUMO_PACKET = "01KW2MJM01Y0936VNECWB3MHSE"
 OBSERVED_AT = "2026-07-15T00:00:00Z"
 
 
@@ -26,6 +26,10 @@ def _manifest(
 ) -> None:
     container = root.path / "raw" / raw_shard(packet_id) / packet_id
     container.mkdir(parents=True)
+    body = (f"census fixture {packet_id}").encode()
+    evidence = container / "raw" / "evidence.json"
+    evidence.parent.mkdir()
+    evidence.write_bytes(body)
     (container / "manifest.json").write_text(
         json.dumps(
             {
@@ -38,6 +42,15 @@ def _manifest(
                     "reason": None,
                 },
                 "timing": {"capture_time": {"status": "known", "value": OBSERVED_AT}},
+                "preserved_files": [
+                    {
+                        "file_id": "file_01",
+                        "relative_packet_path": "raw/evidence.json",
+                        "size_bytes": len(body),
+                        "sha256": hashlib.sha256(body).hexdigest(),
+                        "hash_basis": "raw_stored_bytes",
+                    }
+                ],
             },
             sort_keys=True,
         ),
@@ -75,7 +88,15 @@ def _record(
         "source_surface": "test_surface",
         "observed_at": OBSERVED_AT,
         "captured_at": OBSERVED_AT,
-        "raw_refs": [{"packet_id": PACKET}],
+        "raw_refs": [
+            {
+                "packet_id": PACKET,
+                "file_id": "file_01",
+                "relative_packet_path": "raw/evidence.json",
+                "sha256": hashlib.sha256(f"census fixture {PACKET}".encode()).hexdigest(),
+                "hash_basis": "raw_stored_bytes",
+            }
+        ],
         "derived_refs": [],
         "content_hash": "",
         "content_hash_basis": "canonical_json_excluding_content_hash",
