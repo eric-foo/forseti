@@ -32,7 +32,7 @@ def run_source_capture_youtube_watch_packet(
     output_directory: Path | None = None,
     data_root=None,
     decision_question: str,
-    comment_pages: int = 1,
+    comment_pages: int = 2,
     capture_fetcher: Callable[..., object] = fetch_youtube_watch,
 ) -> tuple[int, str]:
     if (output_directory is None) == (data_root is None):
@@ -75,7 +75,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--decision-question",
         default="Capture YouTube public watch-page metadata/comments for creator-momentum signal collection.",
     )
-    parser.add_argument("--comment-pages", type=int, default=1)
+    parser.add_argument("--comment-pages", type=int, default=2)
     return parser
 
 

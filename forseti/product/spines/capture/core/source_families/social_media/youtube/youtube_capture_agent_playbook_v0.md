@@ -64,7 +64,7 @@ Current implementation: `forseti-harness/youtube_capture/` (tracked code; captur
 - **Selective structured retention:** the live route receives served watch HTML and bounded
   `youtubei` comment responses transiently, but capture v1 admits only exact selected metadata,
   full bounded comment bodies/identity/engagement/source order, coverage, and route receipts. The
-  default is one source-default-order comment page. Full response envelopes are not persisted.
+  default is two source-default-order comment pages. Full response envelopes are not persisted.
 - **Route-health from receipts, not a canary:** each packet records `comments_posture`
   (`comments_sample_captured`/`comments_not_exposed`/`comments_disabled`); a volume run records walls/429s. (A standalone canary was tried
   and dropped as redundant.)

@@ -126,7 +126,7 @@ def run_youtube_watch_batch(
     *,
     creator_ledger: Mapping[str, Any],
     decision_question: str = DEFAULT_DECISION_QUESTION,
-    comment_pages: int = 1,
+    comment_pages: int = 2,
     pace_seconds: float = DEFAULT_PACE_SECONDS,
     break_after_failures: int = DEFAULT_BREAK_AFTER_FAILURES,
     break_after_nonplayable: int = DEFAULT_BREAK_AFTER_NONPLAYABLE,
@@ -482,7 +482,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--creator-ledger", type=Path, default=DEFAULT_CREATOR_LEDGER)
     parser.add_argument("--data-root", default=None, help="Lake root; defaults to FORSETI_DATA_ROOT (legacy ORCA_DATA_ROOT).")
     parser.add_argument("--decision-question", default=DEFAULT_DECISION_QUESTION)
-    parser.add_argument("--comment-pages", type=int, default=1)
+    parser.add_argument("--comment-pages", type=int, default=2)
     parser.add_argument("--pace-seconds", type=float, default=DEFAULT_PACE_SECONDS)
     parser.add_argument("--break-after-failures", type=int, default=DEFAULT_BREAK_AFTER_FAILURES)
     parser.add_argument(

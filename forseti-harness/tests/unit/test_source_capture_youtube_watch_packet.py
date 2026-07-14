@@ -343,7 +343,7 @@ def test_youtube_watch_runner_can_commit_to_data_lake(tmp_path: Path) -> None:
 
     def fake_fetcher(video_id: str, *, comment_pages: int) -> _Fetched:
         assert video_id == _VIDEO_ID
-        assert comment_pages == 1
+        assert comment_pages == 2
         return _Fetched(
             packet=_packet(),
             raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
