@@ -96,7 +96,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--max-grid-scroll-passes",
         type=int,
         default=DEFAULT_MAX_GRID_SCROLL_PASSES,
-        help="Safety cap only; collection stops earlier when the response target is reached.",
+        help=(
+            "Safety cap per selected-tile lookup during deep-capture grid pagination; "
+            "initial acquisition uses zero wheels for an already-loaded 27-video "
+            "window, otherwise stops after its first sufficient new DOM batch."
+        ),
     )
     parser.add_argument("--timeout-seconds", type=float, default=30.0)
     parser.add_argument("--settle-seconds", type=float, default=2.0)
