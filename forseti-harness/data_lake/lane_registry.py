@@ -19,10 +19,10 @@ Two grammars, declared honestly:
   sanctioned writer.
 - ``silver_lineage``: the SECOND, pre-existing silver grammar -- the
   ``silver_lineage`` kit plus a freeform payload (transcript/IG product mentions
-  and the ``silver__capture__*`` set lanes). Batch 1 DECLARES it; it does not
-  reshape those records onto the envelope. Reconciling the envelope and
-  lineage-kit grammars is a high-lock-in fork deferred to a later batch,
-  coordinated with PR #456.
+  and the ``silver__capture__*`` set lanes). It is a frozen legacy baseline:
+  existing lanes remain readable, but a new Silver Authority lane must use the
+  envelope front door. Reconciling or migrating the legacy records is a separate
+  high-lock-in decision; this registry does not reshape history.
 
 ``FRONT_DOOR_PENDING`` records ``silver_envelope`` lanes whose producer has not
 yet been migrated onto the front-door, each with the reason. The guard permits a
@@ -116,6 +116,25 @@ FRONT_DOOR_PENDING: dict[str, str] = {}
 FRONT_DOOR_PENDING_BASELINE: frozenset[str] = frozenset()
 
 
+# Exact legacy grammar-B set accepted before the Silver/Vault envelope became the
+# only route for new Silver Authority lanes. Equality is deliberate: a migration
+# may shrink this set only through a reviewed edit that changes both the registry
+# and this baseline; expanding it silently is forbidden.
+SILVER_LINEAGE_LEGACY_BASELINE: frozenset[str] = frozenset(
+    {
+        "silver__cleaning__product_mentions",
+        "silver__cleaning__product_mentions__set",
+        "silver__cleaning__tiktok_audience_evidence",
+        "silver__cleaning__tiktok_audience_evidence__set",
+        "silver__cleaning__tiktok_audience_profile",
+        "silver__cleaning__tiktok_audience_profile__set",
+        "silver__capture__audience_comments",
+        "silver__capture__reel_transcript",
+        "silver__capture__reel_deep_capture__set",
+    }
+)
+
+
 def validate_registry() -> list[str]:
     """Registry invariants the no-blur guard enforces before scanning: the
     FRONT_DOOR_PENDING allowlist has not drifted from its named baseline, and
@@ -136,11 +155,26 @@ def validate_registry() -> list[str]:
             errors.append(f"FRONT_DOOR_PENDING lane {lane!r} is not declared as silver_envelope.")
         if not reason.strip():
             errors.append(f"FRONT_DOOR_PENDING lane {lane!r} has no migration reason.")
+    lineage_lanes = {
+        lane for lane, role in LANE_ROLES.items() if role is LaneRole.SILVER_LINEAGE
+    }
+    lineage_baseline = set(SILVER_LINEAGE_LEGACY_BASELINE)
+    if lineage_lanes != lineage_baseline:
+        errors.append(
+            "SILVER_LINEAGE lanes drifted from SILVER_LINEAGE_LEGACY_BASELINE "
+            f"(added={sorted(lineage_lanes - lineage_baseline)!r}, "
+            f"removed={sorted(lineage_baseline - lineage_lanes)!r}); new Silver Authority "
+            "lanes must use the silver_vault_record_v0 envelope front door. A deliberate "
+            "legacy migration may shrink the baseline only with its migration evidence."
+        )
     return errors
 
 
 SILVER_ENVELOPE_LANES = frozenset(
     lane for lane, role in LANE_ROLES.items() if role is LaneRole.SILVER_ENVELOPE
+)
+SILVER_LINEAGE_LANES = frozenset(
+    lane for lane, role in LANE_ROLES.items() if role is LaneRole.SILVER_LINEAGE
 )
 SILVER_LANES = frozenset(
     lane
@@ -166,7 +200,9 @@ __all__ = [
     "LANE_ROLES",
     "FRONT_DOOR_PENDING",
     "FRONT_DOOR_PENDING_BASELINE",
+    "SILVER_LINEAGE_LEGACY_BASELINE",
     "SILVER_ENVELOPE_LANES",
+    "SILVER_LINEAGE_LANES",
     "SILVER_LANES",
     "SILVER_ENVELOPE_FRONT_DOOR_MODULE",
     "SILVER_ENVELOPE_FRONT_DOOR_FUNC",

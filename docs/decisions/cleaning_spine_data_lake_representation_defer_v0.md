@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Architecture decision (recommendation pending owner sign-off) -- the Cleaning spine's Data Lake representation, its v0 deferral, and the triggers that un-defer it.
+artifact_role: Historical architecture decision with a live residual boundary -- the Cleaning spine's Data Lake representation, the v0 deferral, and the remaining cross-packet trigger.
 scope: >
   How a cleaned record is represented in the Data Lake and why Cleaning lake-wiring
   is deferred in v0, with the concrete triggers that un-defer it. Cross-spine
@@ -13,8 +13,8 @@ use_when:
   - Confirming the per-packet vs cross-packet representation boundary for cleaned records.
 open_next:
   - docs/decisions/cleaning_derived_record_anchor_contract_v0.md
-  - orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
-  - orca/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+  - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
 stale_if:
   - The owner adopts, amends, or rejects this recommendation.
   - A Cleaning transform-ledger / cleaned-record producer or a cross-packet dedupe deriver lands.
@@ -22,29 +22,76 @@ stale_if:
 authority_boundary: retrieval_only
 ```
 
+## Direction Change Propagation — 2026-07-14
+
+```yaml
+direction_change_propagation_2026_07_14:
+  doctrine_changed: >
+    The original Cleaning-to-lake deferral is now historical for the landed
+    source-specific per-packet writers. Basenotes, Fragrantica, and Parfumo may
+    persist Cleaning audit packs plus eligible facts through the Silver/Vault
+    envelope; audit packs remain processing evidence, not Silver Authority.
+    Cross-packet dedupe, similarity, assembly, and derived_retrieval stay deferred.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/cleaning_spine_data_lake_representation_defer_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/data_lake/README.md
+    - forseti/product/spines/data_lake/workflows/core_spine_v0_data_lake_mechanics_map_v0.md
+    - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - forseti-harness/cleaning/basenotes_lake.py
+    - forseti-harness/cleaning/fragrantica_lake.py
+    - forseti-harness/cleaning/parfumo_lake.py
+  intentionally_not_updated:
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+      reason: >
+        It already states the controlling Silver Authority/audit-pack boundary
+        and explicitly excludes Cleaning audit packs from Silver fact records.
+  stale_language_search: >
+    rg -n "no persisted Cleaning lake writer|cleaning->lake WRITER|Gate 1|derived_retrieval"
+    docs/decisions/cleaning_spine_data_lake_representation_defer_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-14. Remaining no-writer wording is explicitly marked as
+    historical; Gate 1 is marked satisfied for the three landed source-specific
+    writers; derived_retrieval remains a live deferred residual.
+  nonclaims:
+    - not a universal Cleaning writer claim
+    - not cross-packet dedupe or similarity authorization
+    - not a derived_retrieval implementation authorization
+    - not historical record migration
+```
+
 ## Status
 
-`RECOMMENDATION_PENDING_OWNER_SIGNOFF`, `PARTIALLY_UN-DEFERRED_2026-06-27` (cleaning INPUT-anchor for derived records only; see Amendment below). Produced by an architecture-planning pass (standard profile, 3 option subagents) and hardened by a de-correlated (non-Claude) adversarial artifact review (verdict: SOUND; findings AR-01/AR-02/AR-03 adjudicated and folded in). Recommends DEFER. Does not authorize any Cleaning build -- Cleaning stays separately gated per `.agents/workflow-overlay/safety-rules.md`.
+`HISTORICAL_DECISION_WITH_LIVE_RESIDUAL`, `PER_PACKET_WRITER_TRIGGER_OBSERVED_2026-07-14`. The original recommendation and its 2026-06-27 input-anchor amendment remain provenance. Current source now contains per-source Cleaning audit-pack and eligible Silver-fact writers, so this record no longer defers those landed paths. Cross-packet dedupe and the generated `derived_retrieval` view remain deferred.
 
 ## Decision
 
-**Defer wiring the Cleaning spine into the Data Lake in v0. Lock the representation architecture now so the lake home is pre-decided, and un-defer on the triggers below.**
+**Historical decision:** defer the v0 wiring while locking its representation. **Current residual:** landed per-packet writers are no longer deferred; only cross-packet dedupe/assembly and its governed retrieval view remain behind the trigger below.
+
+## Amendment 2026-07-14 -- per-packet writer trigger observed
+
+Gate 1 has fired in current code: `forseti-harness/cleaning/{basenotes,fragrantica,parfumo}_lake.py` persist per-source Cleaning audit packs and eligible Silver facts. Their audit packs remain processing evidence, not Silver Authority; eligible fact records use the official Silver/Vault envelope. This amendment does not invent a generic Cleaning writer and does not un-defer cross-packet dedupe, similarity, assembly, or `derived_retrieval`.
 
 ## Amendment 2026-06-27 -- partial un-defer (cleaning INPUT-anchor for derived records)
 
 The owner un-deferred **only** the cleaning INPUT-anchor for derived records: a first-class `derived_record` Cleaning input anchor for lake-resident derived records that have no preserved-file substrate (the ASR `youtube_audio` -> `transcript_asr` surface), plus the injected `DataLakeRoot` read access the periodic audit + smoke runner need to resolve and re-hash that derived record. This is the read-side input-anchor slice only; its full contract, integrity framing, and acceptance criteria are in `cleaning_derived_record_anchor_contract_v0.md`.
 
-What this amendment does **not** un-defer (still deferred by this doc): the cleaning->lake **WRITER** (Gate 1's `orca-harness/cleaning/lake.py` per-packet producer), **cross-packet dedupe** (Gate 2's drop-`packet_id` semantic + governed-consumer requirement), and the **`derived_retrieval` view** (Satellite B). Those remain gated as written below; the un-defer is bounded to the input-anchor + audit lake-read coupling and does not satisfy Gate 1 or Gate 2.
+At the time of this 2026-06-27 amendment, the cleaning->lake writer, cross-packet dedupe, and `derived_retrieval` view were still deferred. The 2026-07-14 amendment above records that the per-packet writer trigger later fired; the cross-packet surfaces remain deferred.
 
-## Why Defer
+## Historical Rationale For Deferral
 
-Cleaning's derivation is dormant in the harness:
+At the time of the original decision, Cleaning's derivation was dormant in the harness. The following bullets are historical evidence, not current-state claims:
 
-- A projection->handle adapter exists (`orca-harness/cleaning/projection.py:14`) but produces raw-keyed handles only -- there is **no transform-ledger / cleaned-record producer and no persisted Cleaning lake writer**.
-- The only mechanical dedupe (`orca-harness/cleaning/core.py:15`) includes `packet_id` in the identity key, so it cannot group across captures; `indexes/derived_retrieval` population is build-deferred.
-- Cross-packet **exact-identity** dedupe is **allowed by contract** (`orca/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md:269-278`) but **not implemented**; **similarity / near-match** dedupe is owner-deferred (OD-4, same contract :265-283).
+- A projection->handle adapter existed (`forseti-harness/cleaning/projection.py`) but produced raw-keyed handles only; at that point there was **no transform-ledger / cleaned-record producer and no persisted Cleaning lake writer**.
+- The only mechanical dedupe (`forseti-harness/cleaning/core.py`) included `packet_id` in the identity key, so it could not group across captures; `indexes/derived_retrieval` population was build-deferred.
+- Cross-packet **exact-identity** dedupe was **allowed by contract** (`forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md`) but **not implemented**; **similarity / near-match** dedupe was owner-deferred (OD-4, same contract).
 
-Wiring Cleaning now, in any shape, would persist near-empty records ("empty-record theatre"): no current cleaning value and no consumer. Deferring is the smallest-complete move. The gap is implementation, not doctrine.
+At that time, wiring Cleaning in any shape would have persisted near-empty records ("empty-record theatre"): there was no current cleaning value and no consumer. Deferring was the smallest-complete move. The gap was implementation, not doctrine.
 
 ## Locked Representation Architecture (the shape, for when un-deferred)
 
@@ -54,13 +101,13 @@ Wiring Cleaning now, in any shape, would persist near-empty records ("empty-reco
   - **(B) `derived_retrieval` view** -- a non-authoritative, rebuildable reverse-lookup / cluster cache over the per-packet records (`derived_layout_contract:134`); **full-rebuild only** (a new packet can change clusters globally, so incremental update is a fake-success trap).
 - **Persistence-boundary implication (AR-02):** the in-memory `CleaningPacket` is **not** the per-packet authoritative object (it can hold handles from multiple packets and carries no packet invariant). The lake writer must **split / validate Cleaning output by raw anchor** to produce per-packet records.
 - **Invariants to preserve:** cross-packet artifacts **reference, never restate** per-packet truth; each epistemic kind stays a sibling lane; raw is immutable and re-verified on read.
-- **Engagement-context implication:** a future cleaned `engagement_context` record is a per-packet Cleaning-derived Silver record under this same shape, not Gold and not a new storage tier. It may preserve source-visible resonance qualifiers such as direction, visible audience-fit basis, baseline context, and discount reasons, but not their Judgment effect. Cross-packet engagement comparisons, resonance-context candidates, or clusters wait for the same assembly / `derived_retrieval` triggers as other cross-packet Cleaning output.
+- **Engagement-context implication:** a future cleaned `engagement_context` fact may enter Silver Authority only through the official envelope, not merely because Cleaning derived it. It is not Gold or a new storage tier. It may preserve source-visible resonance qualifiers such as direction, visible audience-fit basis, baseline context, and discount reasons, but not their Judgment effect. Cross-packet engagement comparisons, resonance-context candidates, or clusters wait for the same assembly / `derived_retrieval` triggers as other cross-packet Cleaning output.
 
 ## Un-Defer Triggers (how to "unclear")
 
 Condition-triggered, not date-based. Two independent gates.
 
-**Gate 1 -- per-packet cleaning record.** Un-defer when a real per-packet cleaning producer exists (transform-ledger entries, or within-packet exact-identity). Then: build the deriver + producer -> add `orca-harness/cleaning/lake.py` (splitting by raw anchor) -> `derived/<packet_id>/cleaning/<record-id>.json`, mirroring `orca-harness/ecr/lake.py`.
+**Gate 1 -- per-packet cleaning record (`SATISFIED` for the landed source-specific writers).** A real per-packet producer now exists for Basenotes, Fragrantica, and Parfumo. This does not imply a universal Cleaning writer or cross-source coverage.
 
 **Gate 2 -- cross-packet (A and/or B).** Un-defer when **both** hold:
 

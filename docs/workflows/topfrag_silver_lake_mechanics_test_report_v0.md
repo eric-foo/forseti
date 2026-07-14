@@ -33,6 +33,12 @@ forseti_start_preflight:
 
 ## Outcome
 
+Terminology note (2026-07-14): “Silver mechanics” in this historical report
+describes the tested integrity, lineage, sibling-selection, and read behavior.
+The authoritative current terms are Silver Authority for governed fact records
+and Silver Retrieval for generated read models; this report does not make
+Projection, ECR, Cleaning audit artifacts, or scratch analytics authoritative.
+
 The scratch mechanics test passed over the exact eight selected TopFrag video ids. The run wrote only to `C:\tmp\topfrag-silver-mechanics-d486d942`; it did not write the live data lake, mutate Creator Registry, recapture TikTok, or create Gold/Judgment output.
 
 One bounded defect blocked the first attempt: the multi-receipt batch-admission gate rejected the recovery receipt because it retained a failed video-6 attempt even though a later receipt completed that same video. The correction now permits only a strictly later `status=completed` row for the same video to supersede a failure and persists a sanitized supersession receipt. Missing, same-time, or older completions still fail closed.
