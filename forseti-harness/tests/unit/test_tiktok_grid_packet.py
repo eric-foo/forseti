@@ -59,6 +59,20 @@ def test_grid_packet_preserves_supplied_grid_bytes_exactly(tmp_path: Path) -> No
     assert (packet_dir / preserved["relative_packet_path"]).read_bytes() == raw
 
 
+def test_grid_packet_preserves_supplied_session_identity(tmp_path: Path) -> None:
+    code, packet_dir_text = write_tiktok_grid_packet(
+        grid_window_json=_grid_bytes(),
+        output_directory=tmp_path / "packet-with-session",
+        session_identity="01TESTHEARTBEATATTEMPT",
+    )
+
+    assert code == 0
+    manifest = json.loads(
+        (Path(packet_dir_text) / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["session_identity"] == "01TESTHEARTBEATATTEMPT"
+
+
 def test_grid_packet_requires_explicit_observed_time_when_receipt_has_none(
     tmp_path: Path,
 ) -> None:

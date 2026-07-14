@@ -7,11 +7,9 @@ derived lanes must carry a declared selection posture in
 ``data_lake.inventory.SILVER_READER_SELECTION_POSTURES``, so a NEW reader cannot
 appear without stating how it picks among siblings.
 
-Detection honesty: ``lane_dir``-calling readers are enforced mechanically against the
-same tracked-source discovery that feeds the touchpoint counter gate. Readers whose
-walks are path-based or indirect (getattr) are hand-declared with
-``detection: declared_free_walk`` -- mechanical free-walk detection is a NAMED
-residual of this gate, not a silent claim.
+Detection honesty: ``lane_dir``-calling readers and direct derived-root traversal are
+enforced mechanically against tracked production source. Narrow indirect (getattr)
+and record-path readers remain classified by the explicit path-based census below.
 """
 from __future__ import annotations
 
@@ -20,17 +18,13 @@ import ast
 from data_lake.inventory import (
     HARNESS_ROOT,
     SILVER_READER_SELECTION_POSTURES,
+    derived_root_traversal_files,
     lane_dir_reader_files,
     non_raw_lake_touchpoints,
     silver_reader_posture_problems,
 )
 
 _PATH_BASED_TOUCHPOINT_CALLS = {"is_record_set_complete", "record_path"}
-_DECLARED_FREE_WALK_WITHOUT_TOUCHPOINT = {
-    # Direct filesystem discovery of derived projection files; no DataLakeRoot
-    # touchpoint appears in the unit (b) AST census.
-    "capture_spine/creator_profile_current/instagram_metric_seed.py",
-}
 _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
     "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py": (
         "producer checks its own deterministic current-policy record id for "
@@ -117,6 +111,12 @@ def test_declared_free_walk_readers_exist_as_tracked_files() -> None:
     )
 
 
+def test_direct_derived_root_walks_are_mechanically_censused() -> None:
+    detected = derived_root_traversal_files()
+    assert "capture_spine/creator_profile_current/rollup_formula_revalidation.py" in detected
+    assert detected <= _declared("declared_free_walk")
+
+
 def test_path_based_reader_census_is_declared_or_explicitly_excluded() -> None:
     """Unit (b)'s path-based lake touchpoint census must not become an invisible
     reader registry bypass.
@@ -138,7 +138,7 @@ def test_path_based_reader_census_is_declared_or_explicitly_excluded() -> None:
     }
     expected_declared = (
         path_based - set(_PATH_BASED_TOUCHPOINT_EXCLUSIONS)
-    ) | _DECLARED_FREE_WALK_WITHOUT_TOUCHPOINT
+    ) | derived_root_traversal_files()
 
     undeclared = sorted(expected_declared - _declared("declared_free_walk"))
     assert not undeclared, (
@@ -151,7 +151,7 @@ def test_path_based_reader_census_is_declared_or_explicitly_excluded() -> None:
     stale = sorted(_declared("declared_free_walk") - expected_declared)
     assert not stale, (
         "declared_free_walk posture(s) are no longer backed by the unit (b) "
-        "path-based reader census or the explicit filesystem-walk list:\n"
+        "path-based reader census or the derived-root traversal detector:\n"
         f"  {stale}"
     )
 

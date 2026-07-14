@@ -283,6 +283,34 @@ requires the page to remain at its supervised stop surface.
 The separate alias check below remains a diagnostic command for a blocker or an
 explicit session-health check; it is not a required preamble to onboarding.
 
+For recurring TikTok grid monitoring, use the daily heartbeat operator instead
+of creator onboarding. The input is an explicit active roster; each row must
+name `platform: tiktok`, a stable `platform_account_id`, the current public
+`handle`, `monitoring_status: active`, and `cadence: daily`. This runner captures
+only the bounded creator grid, freezes it before packet admission, and reports
+completion only after verified Bronze admission. It does not collect suggested
+accounts, comments, subtitles, or deep captures, and it does not run Silver or
+install a scheduler.
+
+```powershell
+python runners/run_source_capture_tiktok_daily_heartbeat_operator.py `
+  --active-roster "<active-tiktok-roster.json>" `
+  --run-control-root "<run-control-root>" `
+  --plan-date "<YYYY-MM-DD>" `
+  --bucket 1 `
+  --lane-id lane_1 `
+  --lane-count 1 `
+  --data-root "<verified-data-root>" `
+  --session-profile "chowdakr_sg_tiktok"
+```
+
+Run additional bucket/lane invocations externally as needed. Reusing the same
+date plan is idempotent for terminal creators; retries require an explicit
+`--retry-status` and `succeeded` is never retryable. A missing or malformed
+receipt, attempt mismatch, or unverified success packet makes the operator exit
+nonzero. After an account-safety or unresolved-challenge stop, remaining
+creators are recorded as skipped-before-attempt rather than fabricated failures.
+
 Validate the machine-local alias without opening a browser:
 
 ```powershell

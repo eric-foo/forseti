@@ -526,7 +526,7 @@ def run_tiktok_creator_onboarding(
 
         stage = "collect_grid"
         _notify_progress(progress_fn, stage)
-        grid_capture = _capture_creator_grid(
+        grid_capture = capture_tiktok_creator_grid(
             profile_url=profile_url,
             creator_handle=normalized_handle,
             storage_state_path=storage_state_path,
@@ -1307,7 +1307,7 @@ def _visible_grid_rows_from_capture(
     ]
 
 
-def _capture_creator_grid(
+def capture_tiktok_creator_grid(
     *,
     profile_url: str,
     creator_handle: str,
@@ -1341,6 +1341,10 @@ def _capture_creator_grid(
         human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
         engine=engine,
     )
+
+
+# Compatibility alias for tests and callers that used the pre-public seam.
+_capture_creator_grid = capture_tiktok_creator_grid
 
 
 def build_tiktok_grid_window(
@@ -1831,6 +1835,7 @@ __all__ = [
     "TikTokCreatorOnboardingError",
     "TikTokCreatorOnboardingOutputPaths",
     "build_tiktok_grid_window",
+    "capture_tiktok_creator_grid",
     "is_tiktok_profile_item_list_url",
     "run_tiktok_creator_onboarding",
 ]

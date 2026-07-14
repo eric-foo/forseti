@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "review_id": "shared-social-heartbeat-adversarial-code-review-v0",
+  "review_report_path": "docs/review-outputs/shared_social_heartbeat_adversarial_code_review_v0.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "claude-opus-4-8",
+  "authored_by": "openai-gpt-5-codex",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "OpenAI Codex / GPT-5",
+  "accepted_net_new_material_findings": 1,
+  "decision_changed": "yes",
+  "closure_state": "closed",
+  "report_lines": 402,
+  "turn_count": "unknown",
+  "evidence_pointers": [
+    "docs/review-outputs/shared_social_heartbeat_adversarial_code_review_v0.md",
+    "forseti-harness/source_capture/social_heartbeat_run_control.py",
+    "forseti-harness/tests/unit/test_social_heartbeat_run_control.py",
+    "forseti-harness/tests/unit/test_tiktok_daily_heartbeat.py",
+    "forseti-harness/tests/unit/test_source_capture_browser_snapshot.py"
+  ],
+  "completed_at": "2026-07-14"
+}

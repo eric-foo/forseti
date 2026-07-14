@@ -84,12 +84,17 @@ not changes to source precedence.
 | Any LinkedIn task | `forseti/product/spines/scanning/source_families/linkedin/data_capture_spine_linkedin_lane_index_v0.md` |
 | Data Capture or source-access orientation | `docs/workflows/data_capture_spine_consolidation_map_v0.md` |
 | Known source capture-to-lake route | `forseti/product/spines/capture/core/source_families/README.md` |
+| Silver/Vault authoritative records, retrieval, or reader rules | `docs/decisions/silver_vault_goal_frame_ratification_v0.md`, then `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md` and `forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md` |
 | Source-capture access / anti-blocking components | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` |
 | ECR source-side orientation | `docs/workflows/ecr_spine_submap_v0.md` |
 | Judgment Spine orientation or claim/gate routing | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` |
 | Cross-spine research-engine grouping | `docs/workflows/forseti_research_engine_map_v0.md` |
 | Repo-map architecture and T1/T2/T3 boundary | `docs/decisions/forseti_repo_map_architecture_mgt_v0.md` |
 | Rename compatibility boundary | `docs/decisions/forseti_compatibility_migration_boundary_v0.md` |
+
+The Silver/Vault row is a decisive-fast-route T1 entry. The generic Data Lake
+area row is insufficient for a cold reader because it does not distinguish
+Silver Authority from generated Silver Retrieval or from other derived artifacts.
 
 ## Active Hooks
 

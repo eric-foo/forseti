@@ -86,6 +86,10 @@ EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
     "run_source_capture_tiktok_creator_onboarding.py": (
         "supervised live onboarding stages first; durable lake admission requires explicit --data-root"
     ),
+    "run_source_capture_tiktok_daily_heartbeat.py": (
+        "live grid capture is invoked by the operator/control wrapper, which supplies an "
+        "explicit output_root or resolved data_root; this adapter does not use ambient admission"
+    ),
 }
 # Orchestrator runners that forward data_root into raw-packet sub-runners
 # instead of calling a packet writer directly. Declared, not auto-discovered.
@@ -299,6 +303,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "artifacts still lack an end-to-end served author identity proof"
         ),
     },
+    "run_source_capture_tiktok_daily_heartbeat.py": {
+        "status": "unbound",
+        "reason": (
+            "the frozen plan is stably keyed by platform_account_id and the grid seam "
+            "checks author/DOM URLs plus canonical creator/video URL shape against the "
+            "planned handle, but the served grid does not expose and verify the numeric "
+            "platform_account_id; a stale handle-to-account roster binding remains visible"
+        ),
+    },
     "run_source_capture_tiktok_video_packet.py": {
         "status": "unbound",
         "reason": (
@@ -384,8 +397,8 @@ A2_FORK_IMPACT_VALUES = ("manifest_shape", "packet_index", "none")
 
 # --- silver/derived reader selection postures (V3: consumer-enumerated) ---------
 # Every production file that walks derived lanes (detected via its `lane_dir`
-# touchpoint, or hand-declared below when its walk is indirect/path-based and
-# invisible to call detection) must declare HOW it selects among sibling records.
+# touchpoint or a direct traversal rooted at ``data_root.path / "derived"``) must
+# declare HOW it selects among sibling records.
 # The reader gate (tests/contract/test_silver_reader_selection_gate.py) keeps this
 # registry exact, so a NEW reader cannot appear without declaring its posture.
 # Postures classify observed behavior; they are not correctness verdicts.
@@ -399,9 +412,8 @@ SILVER_READER_POSTURES = (
 )
 
 # detection: "lane_dir" entries are enforced against the mechanical touchpoint
-# census; "declared_free_walk" entries are hand-declared readers whose walks are
-# path-based or indirect (getattr) and thus invisible to call detection --
-# mechanical free-walk detection is a NAMED residual, not silently claimed.
+# census; "declared_free_walk" entries are enforced against direct derived-root
+# traversal plus the narrow indirect/path-based census in the contract gate.
 SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
     "capture_spine/creator_profile_current/social_metric_history_reader.py": {
         "detection": "declared_free_walk",
@@ -461,6 +473,11 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "mechanism": "shared:select_current_record_per_subject",
         "reason": "path-based derived-tree discovery (sha-deduped) feeding data_lake.sibling_selection fail-closed per-username selection",
     },
+    "capture_spine/creator_profile_current/rollup_formula_revalidation.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "independent formula audit intentionally revalidates every creator-metric observation and rollup record across all anchors; it never selects pickup authority",
+    },
     "runners/run_ig_reels_product_extract.py": {
         "detection": "declared_free_walk",
         "posture": "all_siblings",
@@ -516,6 +533,45 @@ def lane_dir_reader_files() -> set[str]:
         for (file_path, call_name) in non_raw_lake_touchpoints()
         if call_name == "lane_dir"
     }
+
+
+def derived_root_traversal_files() -> set[str]:
+    """Tracked production files that traverse a directly bound derived root.
+
+    This closes the census gap for readers that bypass ``DataLakeRoot.lane_dir``
+    with ``derived = data_root.path / "derived"`` followed by ``derived.iterdir``
+    (or glob/rglob). It intentionally does not infer arbitrary path dataflow.
+    """
+    readers: set[str] = set()
+    traversal_calls = {"iterdir", "glob", "rglob"}
+    for path in tracked_harness_python_files():
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        root_names: set[str] = set()
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            value = node.value
+            if not (
+                isinstance(value, ast.BinOp)
+                and isinstance(value.op, ast.Div)
+                and isinstance(value.right, ast.Constant)
+                and value.right.value == "derived"
+            ):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            root_names.update(target.id for target in targets if isinstance(target, ast.Name))
+        if any(
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in traversal_calls
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id in root_names
+            for node in ast.walk(tree)
+        ):
+            readers.add(path.relative_to(HARNESS_ROOT).as_posix())
+    # A reader already covered by the stricter lane_dir census keeps that
+    # detection class even if the same module also performs a direct traversal.
+    return readers - lane_dir_reader_files()
 
 
 STRUCTURAL_EXCLUSIONS: tuple[dict[str, str], ...] = (

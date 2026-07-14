@@ -173,3 +173,27 @@ def test_registry_pins_envelope_lanes_and_pending_baseline() -> None:
     assert "creator_metric_silver" not in registry.FRONT_DOOR_PENDING
     # Every pending lane (none) is a real envelope lane.
     assert set(registry.FRONT_DOOR_PENDING) <= set(registry.SILVER_ENVELOPE_LANES)
+
+
+def test_registry_freezes_legacy_lineage_lanes() -> None:
+    registry = _load_registry()
+    assert registry.SILVER_LINEAGE_LANES == registry.SILVER_LINEAGE_LEGACY_BASELINE
+    assert registry.SILVER_LINEAGE_LANES == {
+        "silver__cleaning__product_mentions",
+        "silver__cleaning__product_mentions__set",
+        "silver__cleaning__tiktok_audience_evidence",
+        "silver__cleaning__tiktok_audience_evidence__set",
+        "silver__cleaning__tiktok_audience_profile",
+        "silver__cleaning__tiktok_audience_profile__set",
+        "silver__capture__audience_comments",
+        "silver__capture__reel_transcript",
+        "silver__capture__reel_deep_capture__set",
+    }
+
+    registry.LANE_ROLES["silver__new_legacy_bypass"] = registry.LaneRole.SILVER_LINEAGE
+    try:
+        assert any(
+            "SILVER_LINEAGE lanes drifted" in error for error in registry.validate_registry()
+        )
+    finally:
+        del registry.LANE_ROLES["silver__new_legacy_bypass"]

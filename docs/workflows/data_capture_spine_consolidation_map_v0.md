@@ -47,6 +47,7 @@ stale_if:
 | Check vendor pricing-page source-family route map | `forseti/product/spines/capture/core/source_families/vendor_pricing_page/README.md` |
 | Check Instagram public creator/reels capture route map | `forseti/product/spines/capture/core/source_families/social_media/instagram/README.md` |
 | Check TikTok public/sessioned capture, admission, and projection route map | `forseti/product/spines/capture/core/source_families/social_media/tiktok/README.md` |
+| Check shared Instagram/TikTok daily grid-heartbeat control and operator routing | `forseti-harness/source_capture/social_heartbeat_run_control.py`, then the platform README (`social_media/instagram/README.md` or `social_media/tiktok/README.md`) and `forseti-harness/docs/source_capture_agent_runbook.md` |
 | Check YouTube public watch/Shorts/transcript capture route map | `forseti/product/spines/capture/core/source_families/social_media/youtube/README.md` |
 | Check bounded Reddit candidate/capture/consolidation route map | `forseti/product/spines/capture/core/source_families/social_media/reddit/README.md` |
 | Check whether a source-access build or backend is authorized | `docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md` |

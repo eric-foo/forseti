@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -47,6 +48,43 @@ class _FakeHeartbeatResult:
 
     def message(self) -> str:
         return "fake heartbeat complete"
+
+
+def _write_success_receipt(kwargs: dict[str, object], *, handle: str | None = None) -> None:
+    roster = _read_json(Path(kwargs["roster_path"]))
+    row = roster["creators"][0]
+    attempt_id = row["attempt_id"]
+    packet_id = f"packet_{attempt_id}"
+    packet_dir = Path(kwargs["output_root"]) / "test_packets" / str(attempt_id)
+    packet_dir.mkdir(parents=True, exist_ok=True)
+    body = b"test packet body"
+    (packet_dir / "body.bin").write_bytes(body)
+    _write_json(
+        packet_dir / "manifest.json",
+        {
+            "packet_id": packet_id,
+            "session_identity": attempt_id,
+            "preserved_files": [
+                {"relative_packet_path": "body.bin", "sha256": hashlib.sha256(body).hexdigest()}
+            ],
+        },
+    )
+    Path(kwargs["receipt_jsonl"]).write_text(
+        json.dumps(
+            {
+                "run_id": "run_test",
+                "attempt_id": attempt_id,
+                "partition_key": row["stable_partition_key"],
+                "status": "succeeded",
+                "creator": {"handle": handle or row["handle"]},
+                "packet_id": packet_id,
+                "packet_pointer": str(packet_dir),
+            },
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def test_plan_day_uses_registry_sidecar_and_writes_navigable_control_folder(tmp_path: Path) -> None:
@@ -178,20 +216,7 @@ def test_run_session_writes_roster_skips_terminal_attempts_and_appends_outcomes(
     def fake_heartbeat_runner(**kwargs: object) -> _FakeHeartbeatResult:
         roster = _read_json(Path(kwargs["roster_path"]))
         assert [row["handle"] for row in roster["creators"]] == ["two"]
-        receipt_path = Path(kwargs["receipt_jsonl"])
-        receipt_path.write_text(
-            json.dumps(
-                {
-                    "run_id": "run_001",
-                    "status": "succeeded",
-                    "creator": {"handle": "two"},
-                    "packet_pointer": "packet_two",
-                },
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        _write_success_receipt(kwargs)
         return _FakeHeartbeatResult()
 
     result = control.run_session(
@@ -245,21 +270,7 @@ def test_run_session_matches_receipt_by_partition_key_when_handle_differs(tmp_pa
     )
 
     def fake_heartbeat_runner(**kwargs: object) -> _FakeHeartbeatResult:
-        receipt_path = Path(kwargs["receipt_jsonl"])
-        receipt_path.write_text(
-            json.dumps(
-                {
-                    "run_id": "run_key",
-                    "status": "succeeded",
-                    "partition_key": "platform_account_id:acct_one",
-                    "creator": {"handle": "@ONE"},
-                    "packet_pointer": "packet_one",
-                },
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        _write_success_receipt(kwargs, handle="@ONE")
         return _FakeHeartbeatResult()
 
     result = control.run_session(
@@ -299,20 +310,7 @@ def test_run_session_leases_only_requested_lane_within_bucket(tmp_path: Path) ->
     def fake_heartbeat_runner(**kwargs: object) -> _FakeHeartbeatResult:
         roster = _read_json(Path(kwargs["roster_path"]))
         assert [row["handle"] for row in roster["creators"]] == ["lane_one"]
-        receipt_path = Path(kwargs["receipt_jsonl"])
-        receipt_path.write_text(
-            json.dumps(
-                {
-                    "run_id": "run_lane",
-                    "status": "succeeded",
-                    "creator": {"handle": "lane_one"},
-                    "packet_pointer": "packet_lane_one",
-                },
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        _write_success_receipt(kwargs)
         return _FakeHeartbeatResult()
 
     result = control.run_session(
@@ -357,19 +355,7 @@ def test_run_session_isolates_session_artifacts_per_lane_within_bucket(tmp_path:
 
     def make_fake(handle: str):
         def fake_heartbeat_runner(**kwargs: object) -> _FakeHeartbeatResult:
-            Path(kwargs["receipt_jsonl"]).write_text(
-                json.dumps(
-                    {
-                        "run_id": f"run_{handle}",
-                        "status": "succeeded",
-                        "creator": {"handle": handle},
-                        "packet_pointer": f"packet_{handle}",
-                    },
-                    sort_keys=True,
-                )
-                + "\n",
-                encoding="utf-8",
-            )
+            _write_success_receipt(kwargs, handle=handle)
             return _FakeHeartbeatResult()
 
         return fake_heartbeat_runner
@@ -514,21 +500,7 @@ def test_operator_session_plans_runs_one_bucket_and_summarizes(tmp_path: Path) -
     def fake_heartbeat_runner(**kwargs: object) -> _FakeHeartbeatResult:
         assert Path(kwargs["output_root"]) == tmp_path / "packets"
         assert kwargs["data_root"] is None
-        receipt_path = Path(kwargs["receipt_jsonl"])
-        receipt_path.write_text(
-            json.dumps(
-                {
-                    "run_id": "run_operator",
-                    "status": "succeeded",
-                    "partition_key": "platform_account_id:acct_operator_one",
-                    "creator": {"handle": "operator_one"},
-                    "packet_pointer": "packet_operator_one",
-                },
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        _write_success_receipt(kwargs)
         return _FakeHeartbeatResult()
 
     result = operator_runner.run_operator_session(
@@ -665,21 +637,7 @@ def test_operator_session_reuses_plan_created_concurrently(
         raise ValueError("daily plan already exists")
 
     def fake_heartbeat_runner(**kwargs: object) -> _FakeHeartbeatResult:
-        receipt_path = Path(kwargs["receipt_jsonl"])
-        receipt_path.write_text(
-            json.dumps(
-                {
-                    "run_id": "run_operator_race",
-                    "status": "succeeded",
-                    "partition_key": stable_key,
-                    "creator": {"handle": "operator_race"},
-                    "packet_pointer": "packet_operator_race",
-                },
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
+        _write_success_receipt(kwargs)
         return _FakeHeartbeatResult()
 
     monkeypatch.setattr(operator_runner.control, "plan_day", racing_plan_day)
