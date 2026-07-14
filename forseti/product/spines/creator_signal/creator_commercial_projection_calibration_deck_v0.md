@@ -60,6 +60,35 @@ format is a mechanism; repeated requests may prove demand for that ritual, but
 only reported practice, copying, or intended self-adoption supports an audience
 habit.
 
+### Commercial Language Pass
+
+Evidence discipline controls what the panel may say; it should not control how
+the first screen sounds. After deriving the claims, rewrite them in buyer
+language:
+
+- Lead with the commercial change the creator produces, using an active,
+  consequential verb such as *makes*, *turns*, *wins*, *removes*, or *protects*.
+  The examples calibrate force, not a vocabulary bank to paste.
+- Use emotionally legible consequences licensed by the evidence — attention,
+  recall, confidence, desire, relief, status, or tension when supported —
+  instead of leading with internal labels such as *behavioral response*,
+  *audience-demanded ritual*, or *product meaning*.
+- Draft at least two materially different, evidence-backed headline candidates
+  from the strongest buyer or product outcomes, then choose the one with the
+  greatest commercial force inside the claim ceiling. A polished description
+  of what the creator does is not enough when the same evidence supports a more
+  valuable consequence for the product or buyer.
+- Do not compress every supported signal into one sentence. Put the strongest
+  buyer outcome in the headline; use a second first-screen line for the
+  audience response when it makes the promise more credible or valuable.
+- Keep evidence taxonomy, exact bindings, counterevidence, and claim ceilings in
+  the evidence drawer. They substantiate the commercial language rather than
+  replacing it with analytical prose.
+
+The language pass may increase force, specificity, and emotional charge. It may
+not invent conversion, prevalence, causality beyond the evidenced relationship,
+or a product outcome the evidence cannot support.
+
 Use these questions in order:
 
 1. **What can the buyer learn here that views, likes, category, or creator bio
@@ -130,7 +159,9 @@ from the controlling contract.
   about after the post.
 - **Mechanism:** creator-owned visual or verbal theatre that attracts
   participation and makes the product central to the ritual.
-- **Good hiring line:** “Cologne Crown makes the product impossible to ignore.”
+- **Good hiring line:** “Cologne Crown makes bottles impossible to ignore and
+  easy to recall through spectacle, while translating them into simple
+  occasions and visceral benefits.”
 - **Campaign jobs:** reveals, visually distinctive packaging, hero-product
   launches, memorable demonstrations, and spectacle-led awareness.
 - **Wrong hire:** utility-only copy, invisible packaging, or briefs that remove
@@ -170,15 +201,21 @@ A commercial panel is not ready unless all of these pass:
    machine and an evidenced response, not a personality adjective.
 4. **Dual-value gate:** the author separately checked desired product meaning
    and behavioral response. When both are independently evidenced, both survive
-   first-screen compression; the behavioral response is typed as participant
-   adoption or demand for a creator ritual, and the panel never converts the
-   latter into an audience habit.
-5. **Claim-ceiling gate:** every material sentence binds to evidence and keeps
+   on the first screen, whether in one line or a headline-plus-supporting-line
+   hierarchy; the behavioral response is typed as participant adoption or
+   demand for a creator ritual, and the panel never converts the latter into an
+   audience habit.
+5. **Commercial-language gate:** the first screen leads with an active verb, a
+   concrete buyer or product consequence, and emotionally legible wording. It
+   does not make evidence taxonomy or workflow language carry the sales copy,
+   and it survives contrast against at least one materially different supported
+   headline rather than polishing the first analytical claim by default.
+6. **Claim-ceiling gate:** every material sentence binds to evidence and keeps
    conversion, prevalence, demographic, and guarantee claims inside the
    controlling contract.
-6. **Campaign-action gate:** the buyer can name a brief to commission and a
+7. **Campaign-action gate:** the buyer can name a brief to commission and a
    brief to avoid after reading the panel.
-7. **Non-copy gate:** the panel derives its own role from the creator's evidence;
+8. **Non-copy gate:** the panel derives its own role from the creator's evidence;
    it does not reuse an example's role or signature line merely because it fits
    grammatically.
 
@@ -206,6 +243,10 @@ never report a full-deck run on a named example as a clean cold pass.
 - the author reports the separate desired-state and behavioral-response scan
   results, preserves both on the first screen when both are supported, and
   distinguishes participant adoption from demand for a creator ritual;
+- the author reports the analytical claim, at least two materially different
+  supported headline candidates, and the selected post-pass line, so the run
+  proves that active verbs and emotionally legible consequences sharpened the
+  strongest commercial outcome without changing its evidence ceiling;
 - the output names concrete campaign jobs and a wrong-hire boundary;
 - uncertainty and sparse or biased capture remain visible in the evidence
   drawer rather than weakening every first-screen sentence;
@@ -233,7 +274,13 @@ direction_change_propagation:
     desired product meaning and behavioral response are derived separately,
     both survive the first screen when independently supported, and a recurring
     creator ritual cannot silently become an audience habit: participant
-    adoption and demand for creator performance remain distinct. Dogfood also
+    adoption and demand for creator performance remain distinct. A separate
+    commercial language pass now converts those bounded claims into active,
+    emotionally legible buyer language while leaving evidence taxonomy in the
+    evidence drawer; headline and supporting line may preserve the two signals
+    without overloading one sentence. Authors contrast materially different
+    supported headlines before selecting the strongest commercial consequence,
+    rather than merely polishing their first analytical claim. Dogfood also
     treats named calibration examples as contaminated unless a recorded
     leave-one-example-out source is used.
   trigger: product_doctrine
@@ -248,7 +295,7 @@ direction_change_propagation:
     - AGENTS.md
   intentionally_not_updated:
     - path: forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
-      reason: The controlling contract already requires product meaning, mechanism, evidence binding, and maximum-defensible aggression; this change calibrates how a cold author preserves two independently supported value axes.
+      reason: The controlling contract already requires product meaning, mechanism, evidence binding, and maximum-defensible aggression; this change calibrates how a cold author preserves two independently supported value axes and turns them into emotionally legible first-screen copy.
     - path: docs/workflows/forseti_repo_map_v0.md
       reason: The map already routes the Creator Signal directory; the spine README owns per-artifact discovery.
     - path: .agents/workflow-overlay/source-loading.md
@@ -258,13 +305,14 @@ direction_change_propagation:
     - path: docs/decisions/distillation_doctrine_orca_spine_bindings_v0.md
       reason: The prepare-only binding framework is not an active routine-task resolver; adding a Creator Signal binding would not make this calibration fire reliably.
   stale_language_search: >
-    rg -n -i "commercial projection|commercial panel|dual-value|behavioral response|audience-adopted|audience-demanded|audience habit|calibration deck"
+    rg -n -i "commercial projection|commercial panel|dual-value|behavioral response|audience-adopted|audience-demanded|audience habit|commercial language|calibration deck"
     forseti/product/spines/creator_signal docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-15 after the dual-value calibration change. Defining
-    dual-value and typed behavioral-response language is confined to this deck;
-    adjacent Creator Signal sources retain their existing product-meaning,
-    mechanism, and routing ownership without a conflicting habit rule.
+    Executed 2026-07-15 after the dual-value and commercial-language calibration
+    change. Defining dual-value, typed behavioral-response, and first-screen
+    language-pass rules is confined to this deck; adjacent Creator Signal
+    sources retain their existing product-meaning, mechanism, aggression, and
+    routing ownership without a conflicting habit or copy rule.
   non_claims:
     - not validation
     - not readiness
