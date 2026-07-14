@@ -818,10 +818,15 @@ def _summarize_batch(videos: Sequence[JsonObject], cadence_payloads: Sequence[Js
         raise ValueError(
             f"cadence attempted_count={attempted_count} is less than completed_count={completed_count}"
         )
-    stats_sums = {
-        key: sum(_first_int(_as_dict(video.get("stats")).get(key), 0) or 0 for video in videos)
-        for key in ("playCount", "diggCount", "commentCount", "shareCount", "collectCount")
-    }
+    stats_sums: JsonObject = {}
+    for key in ("playCount", "diggCount", "commentCount", "shareCount", "collectCount"):
+        observed_values = [
+            _first_int(_as_dict(video.get("stats")).get(key)) for video in videos
+        ]
+        if videos and all(value is not None for value in observed_values):
+            stats_sums[key] = sum(
+                value for value in observed_values if value is not None
+            )
     comment_success_count = sum(1 for video in videos if _as_dict(video.get("comments")).get("posture") == "captured_page_owned_response")
     dom_visible_comment_count = sum(1 for video in videos if _as_dict(video.get("comments")).get("posture") == "captured_visible_dom")
     captured_comment_count = sum(_first_int(_as_dict(video.get("comments")).get("captured_comment_count"), 0) or 0 for video in videos)
