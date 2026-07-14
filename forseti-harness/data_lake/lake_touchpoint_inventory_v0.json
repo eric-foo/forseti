@@ -255,13 +255,13 @@
     {
       "a2_fork_impact": "none",
       "call": "is_record_set_complete",
-      "count": 2,
+      "count": 1,
       "module": "runners/run_tiktok_audience_evidence_extract.py"
     },
     {
       "a2_fork_impact": "none",
       "call": "record_path",
-      "count": 3,
+      "count": 1,
       "module": "runners/run_tiktok_audience_evidence_extract.py"
     },
     {

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Literal
 from pydantic import Field, field_validator
 from schemas.case_models import StrictModel
 
@@ -77,4 +78,80 @@ class TikTokAudienceProfile(StrictModel):
         return value
 
 
-__all__ = ["AudienceDimension", "AudienceLayer", "TikTokAudienceEvidence", "TikTokAudienceProfile"]
+AudienceClaimAxis = Literal[
+    "category_knowledge",
+    "purchase_decision_stage",
+    "price_value_posture",
+    "product_brand_affinity",
+    "language_community_norms",
+    "objections",
+    "aspirations_identity",
+    "presentation_style_resonance",
+    "engagement_memorability_effect",
+]
+
+
+class AudienceTriangulationClaim(StrictModel):
+    claim_id: str
+    axis: AudienceClaimAxis
+    statement: str
+    commercial_implication: str
+    modality: Literal["creator_content", "observed_comments", "engagement_elevated", "fused"]
+    relation: Literal["agreement", "contradiction", "audience_emergent", "creator_only", "missing"]
+    support_scope: Literal["single_comment", "single_video", "multi_video", "content_only", "mixed_multi_video"]
+    representative_evidence_ids: list[str] = Field(min_length=1, max_length=5)
+    all_support_evidence_ids: list[str] = Field(min_length=1)
+    counterevidence_ids: list[str] = []
+    source_video_ids: list[str] = Field(min_length=1)
+    limitation: str | None = None
+
+    @field_validator("claim_id", "statement", "commercial_implication")
+    @classmethod
+    def claim_text_non_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("claim text must be non-blank")
+        return value.strip()
+
+
+class AudienceTriangulationPoint(StrictModel):
+    statement: str
+    claim_ids: list[str] = Field(min_length=1)
+
+    @field_validator("statement")
+    @classmethod
+    def point_non_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("point statement must be non-blank")
+        return value.strip()
+
+
+class TikTokAudienceTriangulationProfile(StrictModel):
+    schema_version: Literal["creator_audience_triangulation_v0"]
+    creator_id: str
+    generated_at: str
+    evidence_cutoff: str
+    headline_points: list[AudienceTriangulationPoint] = Field(min_length=1)
+    commercial_points: list[AudienceTriangulationPoint] = Field(min_length=1)
+    strongest_campaign_jobs: list[AudienceTriangulationPoint] = Field(min_length=1)
+    fit_conditions: list[AudienceTriangulationPoint] = Field(min_length=1)
+    material_unknowns: list[str]
+    claims: list[AudienceTriangulationClaim] = Field(min_length=1)
+    actual_audience_demographics: Literal["not_estimated"] = "not_estimated"
+
+    @field_validator("creator_id", "generated_at", "evidence_cutoff")
+    @classmethod
+    def triangulation_text_non_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("triangulation field must be non-blank")
+        return value.strip()
+
+
+__all__ = [
+    "AudienceDimension",
+    "AudienceLayer",
+    "AudienceTriangulationClaim",
+    "AudienceTriangulationPoint",
+    "TikTokAudienceEvidence",
+    "TikTokAudienceProfile",
+    "TikTokAudienceTriangulationProfile",
+]

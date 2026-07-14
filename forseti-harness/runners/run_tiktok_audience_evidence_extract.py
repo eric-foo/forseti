@@ -1,23 +1,21 @@
 """Batched, daemon-ready TikTok subtitle audience-evidence runner."""
 from __future__ import annotations
-import hashlib, json, sys
+import json, sys
 from pathlib import Path
 from typing import Any, Mapping
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from cleaning.tiktok_audience_evidence_extractor import AudienceTranscript, RUBRIC_VERSION, extract_batch, pack_transcripts, synthesize_profiles
+from cleaning.tiktok_audience_evidence_extractor import AudienceTranscript, RUBRIC_VERSION, extract_batch, pack_transcripts
 from cleaning.tiktok_audience_evidence_lake import (
-    AUDIENCE_EVIDENCE_LANE, AUDIENCE_EVIDENCE_SET_LANE, AUDIENCE_PROFILE_LANE, AUDIENCE_PROFILE_SET_LANE,
-    PROFILE_SCHEMA_VERSION, RECORD_SCHEMA_VERSION,
-    audience_record_id, profile_record_id, write_profile, write_result,
+    AUDIENCE_EVIDENCE_LANE, AUDIENCE_EVIDENCE_SET_LANE,
+    RECORD_SCHEMA_VERSION, audience_record_id, write_result,
 )
 from data_lake.consumption import append_ack, pickup, reconcile_availability_per_packet
 from data_lake.silver_record import validate_silver_vault_record
 from runners.run_tiktok_product_extract import _transcripts_for_packet
 from source_capture.tiktok.batch_packet import TIKTOK_BATCH_CAPTURE_JSON_NAME
-from schemas.tiktok_audience_evidence_models import TikTokAudienceEvidence
 
 _ACK_NAMESPACE = AUDIENCE_EVIDENCE_LANE
 
@@ -26,7 +24,6 @@ def _obligation(data_root, packet_id: str, model: str) -> dict:
     availability = data_root.read_availability(packet_id) or {}
     return {"obligation_schema": 1, "consumer": "tiktok_audience_evidence", "model": model,
             "rubric_version": RUBRIC_VERSION, "record_schema_version": RECORD_SCHEMA_VERSION,
-            "profile_schema_version": PROFILE_SCHEMA_VERSION,
             "manifest_sha256": str(availability.get("manifest_sha256") or "missing")}
 
 
@@ -62,7 +59,7 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
     pickup_items = list(pickup(data_root, ack_namespace=_ACK_NAMESPACE,
                                obligation_fn=lambda pid: _obligation(data_root, pid, model),
                                source_family="tiktok", reconcile=False))
-    states = {item.raw_anchor: {"item": item, "complete": True, "evidence": [], "rows": [], "record_refs": [], "creator": None} for item in pickup_items}
+    states = {item.raw_anchor: {"item": item, "complete": True, "evidence": [], "creator": None} for item in pickup_items}
     pending: list[AudienceTranscript] = []
     for pickup_item in pickup_items:
         packet_id = pickup_item.raw_anchor
@@ -93,16 +90,8 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
                     body = record_path.read_bytes()
                     stored = json.loads(body.decode("utf-8"))
                     validate_silver_vault_record(stored)
-                    observation = ((stored.get("payload") or {}).get("observation") or {})
-                    stored_rows = [
-                        TikTokAudienceEvidence.model_validate(row["audience_evidence"])
-                        for row in observation.get("rows", [])
-                        if isinstance(row, dict) and isinstance(row.get("audience_evidence"), dict)
-                    ]
                     results.append({"packet_id": packet_id, "creator_id": creator, "video_id": transcript.video_id, "status": "skipped_done"})
                     state["evidence"].append(marker)
-                    state["rows"].extend(stored_rows)
-                    state["record_refs"].append((rid, hashlib.sha256(body).hexdigest()))
                 elif data_root.record_path(subtree="derived", raw_anchor=packet_id,
                                            lane=AUDIENCE_EVIDENCE_LANE, record_id=rid).exists():
                     results.append({"packet_id": packet_id, "creator_id": creator, "video_id": transcript.video_id, "status": "partial_needs_cleanup"})
@@ -134,10 +123,6 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
             try:
                 rid = audience_record_id(item, model)
                 paths = write_result(data_root=data_root, item=item, result=extracted[key], model=model)
-                member_path = next(path for lane, path in paths.items() if lane == AUDIENCE_EVIDENCE_LANE)
-                member_body = member_path.read_bytes()
-                state["rows"].extend(extracted[key].evidence)
-                state["record_refs"].append((rid, hashlib.sha256(member_body).hexdigest()))
                 state["evidence"].append({"kind": "record_set_complete", "completion_lane": AUDIENCE_EVIDENCE_SET_LANE,
                                           "record_id": rid, "video_id": item.transcript.video_id})
                 results.append({"packet_id": item.transcript.transcript_anchor, "creator_id": item.creator_id,
@@ -151,66 +136,6 @@ def run_extraction(*, data_root, transport, provider, model: str, api_key: str,
 
     for batch in pack_transcripts(pending, max_input_chars=max_input_chars):
         process(batch)
-
-    # Profile synthesis is per capture packet, but packets with distinct creators share
-    # one call. Repeated captures of the same creator are placed in separate call groups.
-    profile_groups: list[list[tuple[str, dict[str, Any]]]] = []
-    for packet_id, state in states.items():
-        if not state["complete"] or not state["rows"]:
-            continue
-        placed = False
-        for group in profile_groups:
-            if all(other["creator"] != state["creator"] for _pid, other in group):
-                group.append((packet_id, state)); placed = True; break
-        if not placed:
-            profile_groups.append([(packet_id, state)])
-    for group in profile_groups:
-        # A crash between a prior run's profile write and its final ack loop leaves
-        # the profile durably complete but the packet still unacknowledged, so it
-        # resurfaces here on every retry. Resolve each creator's deterministic
-        # profile record id up front and skip/flag it the same way the evidence
-        # stage above does, instead of unconditionally re-synthesizing (a wasted
-        # provider call) and then failing write_profile's create-only guard forever.
-        pending_group: list[tuple[str, dict[str, Any]]] = []
-        for packet_id, state in group:
-            rid = profile_record_id(state["creator"], model, [ref_id for ref_id, _sha in state["record_refs"]])
-            if data_root.is_record_set_complete(subtree="derived", raw_anchor=packet_id,
-                                                record_id=rid, completion_lane=AUDIENCE_PROFILE_SET_LANE):
-                state["evidence"].append({"kind": "record_set_complete", "completion_lane": AUDIENCE_PROFILE_SET_LANE,
-                                          "record_id": rid})
-                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_skipped_done"})
-            elif data_root.record_path(subtree="derived", raw_anchor=packet_id,
-                                       lane=AUDIENCE_PROFILE_LANE, record_id=rid).exists():
-                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_partial_needs_cleanup"})
-                state["complete"] = False
-            else:
-                pending_group.append((packet_id, state))
-        if not pending_group:
-            continue
-        evidence_by_creator = {state["creator"]: state["rows"] for _pid, state in pending_group}
-        try:
-            profiles = synthesize_profiles(evidence_by_creator=evidence_by_creator, transport=transport,
-                                           provider=provider, model=model, api_key=api_key, max_tokens=max_tokens)
-        except Exception as exc:
-            for packet_id, state in pending_group:
-                state["complete"] = False
-                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_failed",
-                                "error": f"{type(exc).__name__}: {exc}"[:250]})
-            continue
-        for packet_id, state in pending_group:
-            try:
-                paths = write_profile(data_root=data_root, raw_anchor=packet_id,
-                                      profile=profiles[state["creator"]], model=model,
-                                      evidence_records=state["record_refs"])
-                written_profile_record_id = next(iter(paths.values())).name
-                state["evidence"].append({"kind": "record_set_complete", "completion_lane": AUDIENCE_PROFILE_SET_LANE,
-                                          "record_id": written_profile_record_id})
-                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_extracted",
-                                "primary_hypothesis": profiles[state["creator"]].primary_hypothesis})
-            except Exception as exc:
-                state["complete"] = False
-                results.append({"packet_id": packet_id, "creator_id": state["creator"], "status": "profile_failed",
-                                "error": f"{type(exc).__name__}: {exc}"[:250]})
 
     for packet_id, state in states.items():
         if state["complete"]:

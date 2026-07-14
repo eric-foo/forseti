@@ -58,7 +58,9 @@ def pack_transcripts(items: list[AudienceTranscript], *, max_input_chars: int = 
     size = 0
     for item in items:
         item_size = len(item.transcript.joined_text) + 256
-        if current and size + item_size > max_input_chars:
+        if current and (
+            current[0].creator_id != item.creator_id or size + item_size > max_input_chars
+        ):
             batches.append(current)
             current, size = [], 0
         current.append(item)
