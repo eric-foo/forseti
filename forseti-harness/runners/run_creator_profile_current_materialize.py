@@ -46,6 +46,18 @@ DEFAULT_ACCOUNT_LEDGER = (
     / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
+DEFAULT_CREATOR_REGISTRY_INDEX = (
+    ROOT
+    / "forseti"
+    / "product"
+    / "spines"
+    / "capture"
+    / "core"
+    / "source_families"
+    / "social_media"
+    / "creator_registry"
+    / "creator_registry_index_v0.json"
+)
 # Lake cut-over §5/§8: both Instagram and YouTube materialize from their
 # committed lake snapshots (each seed stays the no-drift value oracle).
 DEFAULT_YOUTUBE_SNAPSHOT = (
@@ -79,11 +91,17 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Materialize the static creator_profile_current view from the public-handle "
-            "account ledger and creator metric seeds."
+            "account ledger, Creator Registry onboarding projection, and creator metric seeds."
         )
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--account-ledger", type=Path, default=DEFAULT_ACCOUNT_LEDGER)
+    parser.add_argument(
+        "--creator-registry-index",
+        type=Path,
+        default=DEFAULT_CREATOR_REGISTRY_INDEX,
+        help="Creator Registry index carrying the Bronze-derived onboarding projection.",
+    )
     parser.add_argument(
         "--metric-seed",
         type=Path,
@@ -128,6 +146,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         document = build_creator_profile_current_view_from_files(
             account_ledger_path=args.account_ledger,
+            creator_registry_index_path=args.creator_registry_index,
             metric_seed_paths=metric_seeds,
             audience_profile_snapshot_paths=tuple(args.audience_profile_snapshots or ()),
             generated_at_utc=generated_at,
@@ -223,6 +242,16 @@ def _enforce_new_account_preflight(
             continue
         candidate = row.get("normalized_candidate")
         if isinstance(candidate, dict):
+            handles = candidate.get("handles")
+            if isinstance(handles, list):
+                covered_handles.update(
+                    handle.strip().lower()
+                    for handle in handles
+                    if isinstance(handle, str) and handle.strip()
+                )
+            # Compatibility with early hand-authored receipt fixtures that used
+            # one scalar handle before the preflight contract standardized the
+            # normalized ``handles`` list.
             handle = candidate.get("handle")
             if isinstance(handle, str) and handle.strip():
                 covered_handles.add(handle.strip().lower())

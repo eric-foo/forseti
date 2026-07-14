@@ -108,6 +108,30 @@ def test_new_account_with_clean_covering_receipt_passes(tmp_path: Path) -> None:
     )
 
 
+def test_new_account_with_contract_handles_list_passes(tmp_path: Path) -> None:
+    ledger = _ledger(tmp_path / "ledger.json", ["acct_a", "acct_new"])
+    view = _view(tmp_path / "view.json", ["acct_a"])
+    receipt = _write_json(
+        tmp_path / "receipt.json",
+        {
+            "creator_registry_match_preflight_receipt": {
+                "schema_version": "creator_registry_match_preflight_receipt_v0",
+                "summary": {"blocked_actions": 0},
+                "results": [
+                    {
+                        "action_status": "allowed",
+                        "normalized_candidate": {"handles": ["Handle_acct_new"]},
+                    }
+                ],
+            }
+        },
+    )
+
+    _enforce_new_account_preflight(
+        account_ledger_path=ledger, output_path=view, preflight_receipt_path=receipt
+    )
+
+
 def test_new_account_with_blocking_receipt_is_rejected(tmp_path: Path) -> None:
     ledger = _ledger(tmp_path / "ledger.json", ["acct_a", "acct_new"])
     view = _view(tmp_path / "view.json", ["acct_a"])
