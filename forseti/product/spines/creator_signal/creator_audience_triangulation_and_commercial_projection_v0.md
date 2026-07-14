@@ -163,6 +163,30 @@ Above the evidence drawer, use this order:
 Do not lead with methodology, creator biography, personality adjectives, or a
 transcript/comments summary. Those explain the verdict; they are not the verdict.
 
+### Commercial specificity gate
+
+Before accepting the panel:
+
+- Name one evidence-backed **decision-confidence role** the creator performs:
+  reducing buying risk, narrowing choice, justifying value, reassuring a recent purchase,
+  making an unfamiliar option safe to consider, clarifying a trade-off, or
+  validating identity. State the creator-specific mechanism; do not paste the
+  same “purchase insurance” formulation across creators.
+- If no decision-confidence role is supported, name the strongest evidenced
+  alternate job — such as attention and recall, discovery, participation, or
+  category debate — instead of inventing purchase influence.
+- Make the verdict substitution-resistant: replacing the creator with a
+  same-category peer should make the sentence false or materially weaker.
+  “Trusted recommendations” and “an engaged audience” do not pass this gate.
+
+Observed purchase questions, availability requests, or post-purchase reassurance
+may support decision confidence. They do not establish creator-attributed purchase
+or conversion without explicit attribution evidence.
+
+At least one first-screen point must surface a non-obvious, evidence-backed fact
+that views and likes alone cannot show. Keep the claim binding on the surface and
+the raw evidence and video IDs in the drawer.
+
 ## Citation And Evidence Drawer
 
 Every material buyer-facing sentence must bind to one or more claim IDs. The
