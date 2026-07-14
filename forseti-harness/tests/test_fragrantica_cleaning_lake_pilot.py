@@ -14,6 +14,8 @@ from cleaning.fragrantica_lake import (
     DISCRIMINATOR_LOCALITY_NON_CLAIM,
     FRAGRANTICA_CLEANING_AUDIT_LANE,
     FRAGRANTICA_CLEANING_SILVER_LANE,
+    FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION,
+    FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION,
     derive_fragrantica_cleaning_into_lake,
     fragrantica_cleaning_audit_pack_payload,
 )
@@ -237,6 +239,14 @@ def test_fragrantica_cleaning_emits_review_vote_metric_observations(tmp_path: Pa
         # MetricObservation discipline: observed -> value present, reason null.
         assert observation["metric_posture"]["kind"] == "observed"
         assert observation["metric_posture"]["reason_code"] is None
+        assert (
+            record["producer_schema_version"]
+            == FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION
+        )
+        assert (
+            record["provenance"]["review_vote_policy_version"]
+            == FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION
+        )
         # Same audit-pack lineage as the review's text observation.
         refs = [r for r in record["derived_refs"] if r["record_id"] == audit["record_id"]]
         assert len(refs) == 1
@@ -250,6 +260,61 @@ def test_fragrantica_cleaning_emits_review_vote_metric_observations(tmp_path: Pa
     # Non-numeric votes (gender/relation) are deferred residuals, not metrics.
     assert "review_gender" not in metrics
     assert "review_relation" not in metrics
+
+
+@pytest.mark.parametrize(
+    ("votes", "expected_metrics"),
+    [
+        ({"rating": 0, "longevity": 0, "sillage": 0}, {}),
+        (
+            {"rating": 5, "longevity": 3, "sillage": 2},
+            {"review_rating": 5, "review_longevity_vote": 3, "review_sillage_vote": 2},
+        ),
+        ({"rating": None, "longevity": None, "sillage": None}, {}),
+        ({"rating": "5", "longevity": 1.5, "sillage": True}, {}),
+        ({"rating": 6, "longevity": -1, "sillage": 5}, {}),
+        (
+            {"rating": 4, "longevity": 0, "sillage": 1},
+            {"review_rating": 4, "review_sillage_vote": 1},
+        ),
+    ],
+)
+def test_fragrantica_review_vote_policy_emits_only_valid_observed_ordinals(
+    tmp_path: Path,
+    votes: dict[str, object],
+    expected_metrics: dict[str, int],
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    encoded = json.dumps(votes, separators=(",", ":")).replace('"', "&quot;")
+    packet_id = _commit_fragrantica_packet(
+        root,
+        tmp_path,
+        html=_html_with_vote_attribute(encoded),
+    )
+
+    result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
+    actual = {}
+    for record in result.silver_records:
+        if record["payload_kind"] == "MetricObservation":
+            observation = record["payload"]["observation"]
+            actual[observation["metric_name"]] = observation["metric_value"]
+
+    assert actual == expected_metrics
+
+
+def test_fragrantica_malformed_review_vote_object_emits_no_metric(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    packet_id = _commit_fragrantica_packet(
+        root,
+        tmp_path,
+        html=_html_with_vote_attribute("not-json"),
+    )
+
+    result = derive_fragrantica_cleaning_into_lake(data_root=root, packet_id=packet_id)
+
+    assert not [
+        record for record in result.silver_records if record["payload_kind"] == "MetricObservation"
+    ]
 
 
 def _commit_fragrantica_packet(root: DataLakeRoot, tmp_path: Path, html: str | None = None) -> str:
@@ -321,6 +386,13 @@ def _html() -> str:
       </div>
     </body></html>
     """
+
+
+def _html_with_vote_attribute(encoded_votes: str) -> str:
+    marker = ':perfume-votes="'
+    before, remainder = _html().split(marker, 1)
+    _, after = remainder.split('"', 1)
+    return f'{before}{marker}{encoded_votes}"{after}'
 
 
 def _html_two_reviews() -> str:
