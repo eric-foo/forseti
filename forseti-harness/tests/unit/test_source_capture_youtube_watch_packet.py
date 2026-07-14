@@ -393,7 +393,9 @@ def test_youtube_watch_runner_rejects_unbound_served_identity_before_publication
         return _Fetched(
             packet=packet,
             raw_watch_html=b"<html>ytInitialPlayerResponse</html>",
-            comment_page_bodies=(),
+            comment_page_bodies=(
+                YoutubeWatchCommentPage(filename="youtubei_next_page_01.json", raw_json_bytes=b"{}"),
+            ),
         )
 
     output = tmp_path / f"yt_watch_{expected_state}"
