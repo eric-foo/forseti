@@ -1158,6 +1158,11 @@ def test_suggested_dom_contract_targets_the_profile_surface_only() -> None:
         "x",
         "×",
     )
+    # TikTok's live relationship/suggested popup close is a role=button div whose
+    # aria-label is "Close_button" and data-e2e is "follow-popup-close"; those do
+    # not exactly equal any exact marker, so a substring "close" text marker is
+    # required for the pointer matcher to select the close control before grid work.
+    assert onboarding.TIKTOK_SUGGESTED_SURFACE_CLOSE_ACTION.text_markers == ("close",)
     assert "suggested_modal_open" in (
         onboarding.TIKTOK_SUGGESTED_SURFACE_CLOSED_DOM_EXTRACT_SCRIPT
     )

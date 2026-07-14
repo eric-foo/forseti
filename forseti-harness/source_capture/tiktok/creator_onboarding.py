@@ -408,7 +408,12 @@ TIKTOK_SUGGESTED_SURFACE_CLOSE_ACTION = BrowserPagePointerAction(
         "button[aria-label*='close' i],[role='button'][aria-label*='close' i],"
         "[data-e2e*='close']"
     ),
-    text_markers=(),
+    # TikTok's relationship/suggested popup close control is a role=button div
+    # whose aria-label is "Close_button" and data-e2e is "follow-popup-close";
+    # neither exactly equals an exact marker, so a substring "close" marker is
+    # required to match it (the exact markers still catch a bare "×"/"x"/"close"
+    # glyph on other close controls).
+    text_markers=("close",),
     exact_text_markers=("close", "x", "×"),
     page_text_markers=("suggested", "suggested accounts", "followers"),
     wait_after_ms=1500,
