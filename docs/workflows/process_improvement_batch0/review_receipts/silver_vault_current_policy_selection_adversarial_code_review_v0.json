@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "review_id": "silver-vault-current-policy-selection-adversarial-code-review-v0",
+  "review_report_path": "docs/review-outputs/silver_vault_current_policy_selection_delegated_adversarial_code_review_v0.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "claude-opus-4.8",
+  "authored_by": "OpenAI/Codex",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "OpenAI Codex / GPT-5",
+  "accepted_net_new_material_findings": 0,
+  "decision_changed": "yes",
+  "closure_state": "closed",
+  "report_lines": 356,
+  "turn_count": "unknown",
+  "evidence_pointers": [
+    "docs/review-outputs/silver_vault_current_policy_selection_delegated_adversarial_code_review_v0.md",
+    "forseti-harness/data_lake/derived_retrieval_views.py",
+    "forseti-harness/tests/test_data_lake_rebuild_proof.py"
+  ],
+  "completed_at": "2026-07-15"
+}

@@ -435,15 +435,16 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "infrastructure",
         "reason": "ack-lane seam reader; reads every ack by contract, not a data consumer",
     },
-    "data_lake/derived_retrieval_views.py": {
+    "data_lake/product_mention_selection.py": {
         "detection": "lane_dir",
-        "posture": "all_siblings",
-        "reason": "rebuildable inspection views only, never pickup authority; residuals disclosed per record",
+        "posture": "selection_rule",
+        "mechanism": "shared:select_current_record_per_subject",
+        "reason": "single exact-policy product-mention reader; all consumers bind version plus fingerprint, residuals remain visible, and ambiguous same-policy siblings fail closed",
     },
-    "data_lake/sov_readout.py": {
-        "detection": "lane_dir",
+    "data_lake/silver_census.py": {
+        "detection": "declared_free_walk",
         "posture": "all_siblings",
-        "reason": "counts every source-backed mentions record; policy re-derivation double-count is a flagged unit (c) design input, recorded not adjudicated",
+        "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
     },
     "data_lake/silver_census.py": {
         "detection": "declared_free_walk",
@@ -454,11 +455,6 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "detection": "lane_dir",
         "posture": "fail_closed_singleton",
         "reason": "exactly one transcribed transcript_asr record per anchor or raise",
-    },
-    "runners/run_sov_extraction_quality_eval.py": {
-        "detection": "lane_dir",
-        "posture": "all_siblings",
-        "reason": "quality eval over the full committed record population by design",
     },
     "runners/run_transcript_product_extract.py": {
         "detection": "lane_dir",

@@ -27,7 +27,9 @@ run_provenance: >
   2026-07-03, read-only over F:\orca-data-lake (524 committed packets), runner
   landed in the same change set as this report. That root is retained as
   point-in-time provenance; current reruns use
-  `python forseti-harness/runners/run_sov_extraction_quality_eval.py --root <FORSETI_DATA_ROOT>`.
+  `python forseti-harness/runners/run_sov_extraction_quality_eval.py --root <FORSETI_DATA_ROOT> --product-mention-policy-version <VERSION> --product-mention-policy-fingerprint-sha256 <LOWERCASE_64_HEX>`.
+  The policy pair is required; the eval enumerates all stored records for
+  residual accounting but scans only the selected exact-policy evidence.
   ADJUDICATED RERUN (same day, eval_schema_version 2 after the delegated code
   review): under exact-ref discipline (file_id + path + sha256 must match; no
   fallback scanning), all 23 resolved records resolved identically and every
@@ -104,7 +106,7 @@ run_provenance: >
 ## Recheck recipe
 
 ```text
-python forseti-harness/runners/run_sov_extraction_quality_eval.py --root <FORSETI_DATA_ROOT>
+python forseti-harness/runners/run_sov_extraction_quality_eval.py --root <FORSETI_DATA_ROOT> --product-mention-policy-version <VERSION> --product-mention-policy-fingerprint-sha256 <LOWERCASE_64_HEX>
 # JSON to stdout; leaked_samples carries clickable refs (anchor/record/mention_id)
 # for spot-checking any leak against its transcript.
 ```

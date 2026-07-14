@@ -181,6 +181,12 @@ point is `forseti-harness/runners/run_data_lake_indexes_rebuild.py` (argparse,
 runner convention); the semantics, not the binary packaging, are the
 contract.
 
+For a rebuild containing derived_retrieval, the caller must additionally
+provide --product-mention-policy-version <VERSION> and
+--product-mention-policy-fingerprint-sha256 <LOWERCASE_64_HEX>.
+Proof mode regenerates from the exact policy stored in each view manifest and
+does not accept an implicit current/latest policy.
+
 - `--target availability` delegates to `DataLakeRoot.rebuild_availability`.
 - `--target derived_retrieval` builds the gate-opened object-level views
   under `indexes/derived_retrieval/object_level/<view>/` with a per-view
@@ -201,8 +207,12 @@ contract.
   an empty backlog when stale-ack/grown-obligation work exists that only
   lane-side pickup can see.
 - `by_mention` view: exact `(brand, line)` strings from committed
-  `transcript_product_mentions_silver` records mapped to record refs. Only
-  records passing the read-side Silver lineage gate
+  `transcript_product_mentions_silver` records mapped to record refs. The
+  caller binds one exact `{policy_version, policy_fingerprint_sha256}` and
+  the view selects at most one record per transcript evidence subject under
+  that policy. Policy mismatches and other non-selected records are named
+  residuals; distinct same-policy siblings fail closed. Only records passing
+  the read-side Silver lineage gate
   (`silver_record_source_backed_status == complete`) enter the evidence
   mapping; all others appear solely under a `residuals` section (ids +
   counts, explicitly non-evidence). Exact strings are preserved — grouping
@@ -227,7 +237,8 @@ contract.
 - **First metric families (owner-named 2026-07-02):**
   1. `source_backed_brand_line_share_of_voice` — per platform, cohort, and
      coverage window, the share of captured product-line mentions per
-     brand/line, derived from source-backed-complete
+     brand/line, derived from one caller-bound exact product-mention policy
+     over source-backed-complete
      `transcript_product_mentions_silver` records; every figure traceable to
      transcript evidence, denominators are captured-evidence-only (never a
      "total market" implication).
@@ -359,4 +370,30 @@ direction_change_propagation:
     - not validation or readiness
     - not view-build authorization for the named families
     - findings closure claims are bounded by the same-vendor post-patch recheck recorded in the review report
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Exact product-mention policy identity is now a required read-model input
+    (2026-07-15). Product-mention record and completion identity includes the
+    policy fingerprint; by_mention, share-of-voice, and extraction-quality
+    evaluation consume the same exact-policy selector; policy mismatches are
+    residuals and distinct same-policy siblings fail closed. This closes the
+    write-once sibling double-count/reuse class without inventing a mutable
+    latest pointer.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti-harness/cleaning/transcript_product_lake.py
+    - forseti-harness/data_lake/product_mention_selection.py
+    - forseti-harness/data_lake/derived_retrieval_views.py
+    - forseti-harness/data_lake/sov_readout.py
+    - forseti-harness/runners/run_sov_extraction_quality_eval.py
+  non_claims:
+    - not validation or readiness
+```
 ```

@@ -30,6 +30,11 @@ from data_lake.silver_lineage import (
 )
 from runners.run_sov_extraction_quality_eval import main, run_eval
 from source_capture.models import known_fact
+_POLICY = {"policy_version": "test_policy_v1", "policy_fingerprint_sha256": "1" * 64}
+_POLICY_ARGS = [
+    "--product-mention-policy-version", "test_policy_v1",
+    "--product-mention-policy-fingerprint-sha256", "1" * 64,
+]
 from source_capture.writer import write_local_source_capture_packet
 
 
@@ -169,11 +174,12 @@ def _official_record(
         "record_schema_version": "transcript_product_mentions_record_v1",
         "source_family": "social_media",
         **lineage_fields,
+        "provenance": {"transcript_source_key": record_id},
         "payload": {
             "observation": {
                 "subject": {
                     "ref_type": "entity_key",
-                    "ref": {"namespace": "youtube", "kind": "public_content_object", "native_id": "vid1"},
+                    "ref": {"namespace": "youtube", "kind": "public_content_object", "native_id": (lineage_fields.get("source_object") or {}).get("native_id", "unknown")},
                 },
                 "observation_set_kind": "transcript_product_mentions",
                 "policy_version": "test_policy_v1",
@@ -206,7 +212,7 @@ def test_leak_scan_classifies_present_leaked_unknown(tmp_path: Path) -> None:
         },
     )
 
-    report = run_eval(root)
+    report = run_eval(root, product_mention_policy=_POLICY)
 
     scan = report["knowledge_leak_scan"]
     assert scan["named_mentions_scanned"] == 2
@@ -231,7 +237,7 @@ def test_leak_scan_classifies_present_leaked_unknown(tmp_path: Path) -> None:
     substrate = report["substrate"]
     assert substrate["mentions_named_brand"] == 2
     assert substrate["mentions_unknown_or_blank_brand"] == 1
-    assert substrate["mention_records_by_gate_status"] == {"source_backed_complete": 1}
+    assert substrate["mention_records_by_selection_status"] == {"selected_exact_policy": 1}
     assert (
         report["transcript_resolution"]["records_by_disposition"]["resolved_caption_json3"] == 1
     )
@@ -270,15 +276,14 @@ def test_unresolvable_and_gate_failing_records_are_counted_never_scanned(
         data=b"{not json",
     )
 
-    report = run_eval(root)
+    report = run_eval(root, product_mention_policy=_POLICY)
 
     assert report["substrate"]["mention_records_total"] == 3
-    assert report["substrate"]["mention_records_unreadable"] == 1
-    assert report["substrate"]["mention_records_by_gate_status"] == {
+    assert report["substrate"]["mention_records_by_selection_status"] == {
         "invalid_silver_envelope": 1,
-        "source_backed_complete": 1,
+        "selected_exact_policy": 1,
+        "unreadable": 1,
     }
-    assert report["substrate"]["mentions_excluded_not_source_backed"] == 1
     assert report["transcript_resolution"]["records_by_disposition"] == {
         "no_raw_transcript_ref": 1
     }
@@ -305,7 +310,7 @@ def test_raw_ref_mismatches_are_unscannable_not_fallback_scanned(
         },
     )
 
-    bad_hash_ref = _lineage_fields(pid, json3_entry, "vid1")
+    bad_hash_ref = _lineage_fields(pid, json3_entry, "vid2")
     bad_hash_ref["raw_refs"][0]["sha256"] = "0" * 64
     _write_record(
         root,
@@ -317,7 +322,7 @@ def test_raw_ref_mismatches_are_unscannable_not_fallback_scanned(
         },
     )
 
-    report = run_eval(root)
+    report = run_eval(root, product_mention_policy=_POLICY)
 
     # Neither record may be scanned against a substitute transcript: the wrong
     # file_id and the wrong hash are counted dispositions, never fallbacks.
@@ -350,7 +355,7 @@ def test_records_without_named_mentions_get_not_attempted_disposition(
         },
     )
 
-    report = run_eval(root)
+    report = run_eval(root, product_mention_policy=_POLICY)
 
     assert report["substrate"]["mentions_unknown_or_blank_brand"] == 1
     assert report["transcript_resolution"]["records_by_disposition"] == {
@@ -360,7 +365,7 @@ def test_records_without_named_mentions_get_not_attempted_disposition(
 
 
 def test_runner_cli_fails_closed_on_in_repo_root(tmp_path: Path, capsys) -> None:
-    assert main(["--root", str(tmp_path / "lake")]) == 2
+    assert main(["--root", str(tmp_path / "lake"), *_POLICY_ARGS]) == 2
     out = json.loads(capsys.readouterr().out)
     assert out["status"] == "error"
 
@@ -382,13 +387,13 @@ def test_runner_cli_reports_and_refuses_out_inside_lake(
     monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(lambda **_kwargs: root))
 
     out_file = tmp_path / "report.json"
-    assert main(["--root", str(root.path), "--out", str(out_file)]) == 0
+    assert main(["--root", str(root.path), "--out", str(out_file), *_POLICY_ARGS]) == 0
     printed = json.loads(capsys.readouterr().out)
     assert printed["knowledge_leak_scan"]["leak_rate"] == 0.0
     assert json.loads(out_file.read_text(encoding="utf-8")) == printed
 
     # --out inside the data root is refused (read-only eval never writes into the lake).
-    assert main(["--root", str(root.path), "--out", str(root.path / "indexes" / "x.json")]) == 2
+    assert main(["--root", str(root.path), "--out", str(root.path / "indexes" / "x.json"), *_POLICY_ARGS]) == 2
     refused = json.loads(capsys.readouterr().out)
     assert refused["status"] == "error"
     assert not (root.path / "indexes" / "x.json").exists()

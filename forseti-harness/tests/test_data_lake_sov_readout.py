@@ -41,6 +41,7 @@ from source_capture.writer import write_local_source_capture_packet
 
 _STAMP = {"generation_id": "0" * 32, "generated_at": "2026-07-03T00:00:00+00:00"}
 
+_POLICY = {"policy_version": "rubric_v0", "policy_fingerprint_sha256": "a" * 64}
 
 def _commit_packet(root: DataLakeRoot, tmp_path: Path, body: str) -> str:
     src = tmp_path / f"{body}.json"
@@ -145,7 +146,10 @@ def _write_record(root: DataLakeRoot, raw_anchor: str, record_id: str, record: d
                 "rows": rows,
             }
         },
-        "provenance": {"rubric_version": record.get("rubric_version", "rubric_v0")},
+        "provenance": {
+            "rubric_version": record.get("rubric_version", "rubric_v0"),
+            "transcript_source_key": record.get("transcript_source_key", record_id),
+        },
     }
     record["content_hash"] = "sha256:" + silver_content_hash(record)
     root.append_record(
@@ -178,6 +182,7 @@ def _spec(
         },
         "coverage_window": {"start": start, "end": end, "window_basis": basis},
         "cohort_selection": "declared_member_refs_v0",
+        "product_mention_policy": _POLICY,
     }
     if comparison_set is not None:
         spec["comparison_set"] = comparison_set
@@ -221,7 +226,8 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
     view, source_refs = compute_sov_readout(root, _spec())
 
     assert view["metric_family"] == METRIC_FAMILY
-    assert view["family_schema_version"] == 1
+    assert view["product_mention_policy"] == _POLICY
+    assert view["family_schema_version"] == 2
     assert view["platform"] == "youtube"
     assert view["readout_posture"] == "observed"
     assert view["denominator"] == 4
@@ -248,8 +254,8 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
     assert policies["silver_lineage_gate"] == "source_backed_complete"
     assert policies["brand_grouping"] == "exact_string_v0"
     assert policies["cohort_selection"] == "declared_member_refs_v0"
-    assert policies["family_schema_version"] == 1
-    assert policies["extractor_rubric_versions"] == ["rubric_v0"]
+    assert policies["family_schema_version"] == 2
+    assert policies["product_mention_policy"] == _POLICY
 
     cohort = view["cohort"]
     assert cohort["member_basis"] == "captured_set"
@@ -260,6 +266,7 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
 
     # Schema pin: exactly the contract fields, nothing forbidden can hide here.
     assert set(view) == {
+        "product_mention_policy",
         "metric_family",
         "family_schema_version",
         "platform",
@@ -306,8 +313,8 @@ def test_lineage_gate_excludes_and_counts(tmp_path: Path) -> None:
     assert view["denominator"] == 1
     assert ("Ghost", "Should Not Count") not in {(r["brand"], r["line"]) for r in view["rows"]}
     assert view["coverage"]["mention_records_in_scope"] == 1
-    assert view["coverage"]["mention_records_excluded_not_source_backed"] == 0
-    assert view["coverage"]["invalid_silver_envelope_records"] == 1
+    assert view["coverage"]["selection_residual_count_lake_wide"] == 1
+    assert view["coverage"]["selection_residuals_by_status"] == {"invalid_silver_envelope": 1}
 
 
 def test_cohort_scoping_and_residuals(tmp_path: Path) -> None:
@@ -423,9 +430,7 @@ def test_publication_basis_missing_is_counted_and_can_empty_the_scope(tmp_path: 
     view, _refs = compute_sov_readout(root, spec)
 
     assert view["readout_posture"] == "unavailable_with_reason"
-    assert view["readout_reason"] == (
-        "window_basis_missing_for_all_source_backed_records_in_scope"
-    )
+    assert view["readout_reason"] == "window_basis_missing_for_all_exact_policy_records_in_scope"
     assert view["rows"] == []
     assert "denominator" not in view
     assert view["coverage"]["window_basis_missing"] == 1
@@ -494,7 +499,7 @@ def test_empty_scope_is_posture_never_a_zero_table(tmp_path: Path) -> None:
     view, _refs = compute_sov_readout(root, _spec(members=("vid1",), comparison_set=comparison))
 
     assert view["readout_posture"] == "unavailable_with_reason"
-    assert view["readout_reason"] == "no_source_backed_mention_records_in_scope"
+    assert view["readout_reason"] == "no_exact_policy_mention_records_in_scope"
     assert view["rows"] == []
     assert "denominator" not in view and "denominator_basis" not in view
     assert view["coverage"]["cohort_selection_residuals"] == {
@@ -543,7 +548,7 @@ def test_zero_mention_and_malformed_and_unreadable_are_disclosed(tmp_path: Path)
     coverage = view["coverage"]
     assert coverage["source_backed_records_with_zero_mentions"] == 1
     assert coverage["malformed_mention_entries"] == 4
-    assert coverage["unreadable_mention_lane_records"] == 1
+    assert coverage["selection_residuals_by_status"] == {"unreadable": 1}
     assert {(row["brand"], row["line"]) for row in view["rows"]} == {("Dior", "Sauvage")}
 
 

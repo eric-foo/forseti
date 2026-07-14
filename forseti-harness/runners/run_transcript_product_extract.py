@@ -42,6 +42,7 @@ from cleaning.transcript_product_lake import (
     cues_from_json3,
     extract_products_into_lake,
     mentions_record_id,
+    product_mentions_policy_fingerprint,
 )
 from data_lake.consumption import (
     PickupItem,
@@ -164,10 +165,13 @@ def _packet_obligation(data_root, packet_id: str, model: str) -> dict:
     the extraction model and rubric version are policy inputs too (their change must
     re-trigger a re-check). No raw bodies are loaded or re-hashed here."""
     return {
-        "obligation_schema": 1,
+        "obligation_schema": 2,
         "consumer": "transcript_product_extract",
         "model": model,
         "rubric_version": EXTRACTOR_RUBRIC_VERSION,
+        "policy_fingerprint_sha256": product_mentions_policy_fingerprint(
+            EXTRACTOR_RUBRIC_VERSION
+        ),
         "record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
         "asr_records": sorted(_asr_record_obligation_entries(data_root, packet_id)),
     }
@@ -313,7 +317,14 @@ def run_extraction(
         for transcript in transcripts:
             anchor = transcript.transcript_anchor
             try:
-                rid = mentions_record_id(transcript, model)
+                policy_fingerprint = product_mentions_policy_fingerprint(
+                    EXTRACTOR_RUBRIC_VERSION
+                )
+                rid = mentions_record_id(
+                    transcript,
+                    model,
+                    policy_fingerprint_sha256=policy_fingerprint,
+                )
                 if data_root.is_record_set_complete(
                     subtree="derived",
                     raw_anchor=anchor,
@@ -348,6 +359,8 @@ def run_extraction(
                     model=model,
                     api_key=api_key,
                     record_id=rid,
+                    policy_version=EXTRACTOR_RUBRIC_VERSION,
+                    policy_fingerprint_sha256=policy_fingerprint,
                     max_tokens=max_tokens,
                 )
                 written = next(iter(paths.values()), None)
