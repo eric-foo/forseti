@@ -379,15 +379,22 @@ def _loads_json_object(raw: bytes, label: str) -> dict[str, Any]:
     return parsed
 
 
-def _normalize_stats(value: Any) -> dict[str, int]:
+def _normalize_stats(value: Any) -> dict[str, Any]:
     stats = _as_mapping(value)
-    return {
-        "playCount": _first_int(stats.get("playCount"), 0) or 0,
-        "diggCount": _first_int(stats.get("diggCount"), 0) or 0,
-        "commentCount": _first_int(stats.get("commentCount"), 0) or 0,
-        "shareCount": _first_int(stats.get("shareCount"), 0) or 0,
-        "collectCount": _first_int(stats.get("collectCount"), 0) or 0,
-    }
+    normalized: dict[str, Any] = {}
+    for key in (
+        "playCount",
+        "diggCount",
+        "commentCount",
+        "shareCount",
+        "collectCount",
+    ):
+        raw = stats.get(key)
+        if raw is None:
+            continue
+        parsed = _first_int(raw)
+        normalized[key] = parsed if parsed is not None else raw
+    return normalized
 
 
 def _as_mapping(value: Any) -> Mapping[str, Any]:

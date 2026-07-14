@@ -295,7 +295,7 @@ def test_selection_fails_closed_on_untrustworthy_inputs(
         build_tiktok_grid_video_selection(items, expected_item_count=expected_count)
 
 
-def test_selection_preserves_ineligible_rows_when_enough_eligible_rows_remain() -> None:
+def test_fixed_reach_selection_keeps_missing_like_rows_eligible() -> None:
     selection = build_tiktok_grid_video_selection(
         [
             _item("eligible_one", 300, 30),
@@ -310,15 +310,14 @@ def test_selection_preserves_ineligible_rows_when_enough_eligible_rows_remain() 
     assert selection["coverage"] == {
         "expected_item_count": 4,
         "observed_item_count": 4,
-        "selection_eligible_item_count": 2,
-        "selection_ineligible_item_count": 2,
+        "selection_eligible_item_count": 3,
+        "selection_ineligible_item_count": 1,
         "complete": True,
     }
     by_id = {row["video_id"]: row for row in selection["ranked_items"]}
-    assert by_id["missing_like"]["reach_rank"] is None
-    assert by_id["missing_like"]["exclusion_reason_or_none"] == (
-        "selection_ineligible:diggCount_missing"
-    )
+    assert by_id["missing_like"]["reach_rank"] == 2
+    assert by_id["missing_like"]["like_count"] is None
+    assert by_id["missing_like"]["like_rate"] is None
     assert by_id["zero_views"]["reach_rank"] is None
     assert by_id["zero_views"]["exclusion_reason_or_none"] == (
         "selection_ineligible:playCount_zero"
@@ -328,9 +327,9 @@ def test_selection_preserves_ineligible_rows_when_enough_eligible_rows_remain() 
 def test_selection_fails_only_when_eligible_rows_are_insufficient() -> None:
     items = [
         _item("eligible", 100, 10),
-        {"id": "missing_like", "stats": {"playCount": 90}},
+        {"id": "missing_views", "stats": {"diggCount": 9}},
         _item("zero_views", 0, 0),
-        _item("likes_exceed_views", 10, 11),
+        {"id": "negative_views", "stats": {"playCount": -1}},
     ]
 
     with pytest.raises(

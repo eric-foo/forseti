@@ -1693,6 +1693,8 @@ def _cadence_row_from_capture(
         if dom_observation.get("comment_surface_visible_empty") is True
         else "not_visible"
     )
+    grid_view_count = _as_dict(grid_candidate.get("grid_view_count"))
+    dom_view_count_used = grid_view_count.get("used_for_play_count") is True
     capture_receipt = {
         "page_url_sha256": _sha256_text(video_url),
         "final_url_sha256": _sha256_text(capture_result.final_url),
@@ -1711,7 +1713,16 @@ def _cadence_row_from_capture(
         "field_provenance": {
             "identity": "clicked_grid_anchor_plus_navigation_url",
             "structured_video_metadata": (
-                "profile_grid_item_response"
+                "profile_grid_item_response_with_rounded_dom_view_fallback"
+                if capture_route == "grid_tile_overlay" and dom_view_count_used
+                else "profile_grid_item_response"
+                if capture_route == "grid_tile_overlay"
+                else "direct_video_item_struct"
+            ),
+            "play_count": (
+                "profile_grid_dom_view_count_footer_rounded_compact"
+                if dom_view_count_used
+                else "profile_grid_item_response"
                 if capture_route == "grid_tile_overlay"
                 else "direct_video_item_struct"
             ),
@@ -2221,6 +2232,7 @@ def _grid_candidate_from_profile_grid_item(
                 source_item.get("createTime"), source_item.get("create_time")
             ),
             "stats": dict(_as_dict(source_item.get("stats"))),
+            "grid_view_count": dict(_as_dict(source_item.get("grid_view_count"))),
             "author": _normalize_author(author, creator_handle),
             "authorUniqueId": author_handle or creator_handle,
             "music": _normalize_music(_as_dict(source_item.get("music"))),
@@ -2310,13 +2322,22 @@ def _subtitle_source_from_dom_tracks(dom_observation: object) -> JsonObject:
 
 
 def _normalize_stats(stats: JsonObject) -> JsonObject:
-    return {
-        "playCount": _first_int(stats.get("playCount"), stats.get("play_count"), 0),
-        "diggCount": _first_int(stats.get("diggCount"), stats.get("digg_count"), 0),
-        "commentCount": _first_int(stats.get("commentCount"), stats.get("comment_count"), 0),
-        "shareCount": _first_int(stats.get("shareCount"), stats.get("share_count"), 0),
-        "collectCount": _first_int(stats.get("collectCount"), stats.get("collect_count"), 0),
-    }
+    normalized: JsonObject = {}
+    for canonical, snake in (
+        ("playCount", "play_count"),
+        ("diggCount", "digg_count"),
+        ("commentCount", "comment_count"),
+        ("shareCount", "share_count"),
+        ("collectCount", "collect_count"),
+    ):
+        raw = stats.get(canonical)
+        if raw is None:
+            raw = stats.get(snake)
+        if raw is None:
+            continue
+        parsed = _first_int(raw)
+        normalized[canonical] = parsed if parsed is not None else raw
+    return normalized
 
 
 def _normalize_author(author: JsonObject, creator_handle: str) -> JsonObject:

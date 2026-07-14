@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -55,6 +55,7 @@ def _capture(
     ordered_ids: list[str],
     items: list[dict[str, object]],
     suggested: list[dict[str, object]] | None = None,
+    dom_view_text_by_id: dict[str, str] | None = None,
 ) -> BrowserPageObservationSuccess:
     dom: dict[str, object]
     if suggested is not None:
@@ -74,6 +75,9 @@ def _capture(
                     "video_id": video_id,
                     "video_url": f"https://www.tiktok.com/@creator/video/{video_id}",
                     "visible_in_viewport": True,
+                    "view_count_text_or_none": (
+                        (dom_view_text_by_id or {}).get(video_id)
+                    ),
                     "grid_position": index,
                 }
                 for index, video_id in enumerate(ordered_ids, start=1)
@@ -97,6 +101,52 @@ def _capture(
         },
         warning_notes=[],
         limitation_notes=[],
+    )
+
+
+def _stable_grid_capture_sequence(
+    capture: BrowserPageObservationSuccess,
+) -> list[BrowserPageObservationSuccess]:
+    dom = dict(capture.dom_observation)
+    rows = list(dom.get("ordered_videos") or [])
+    initial_dom = dict(dom)
+    initial_dom["ordered_videos"] = rows[:-1]
+    initial = replace(capture, dom_observation=initial_dom)
+    return [initial, capture, capture, capture]
+
+
+def _suggested_surface_closed_capture(
+    *,
+    clicked: bool = True,
+    modal_open_after: bool = False,
+    suggested_accounts_expanded_after: bool = False,
+    body_scroll_locked_after: bool = False,
+    blocking_modal_count_after: int = 0,
+    action_name: str = "tiktok_relationship_dialog_close_v0",
+) -> BrowserPageObservationSuccess:
+    capture = _capture(ordered_ids=[], items=[])
+    metadata = dict(capture.metadata)
+    metadata["post_load_pointer_actions"] = [
+        {
+            "action_name": action_name,
+            "clicked": clicked,
+            "target_found": clicked,
+        }
+    ]
+    return replace(
+        capture,
+        dom_observation={
+            "suggested_modal_open": modal_open_after,
+            "suggested_modal_count": 1 if modal_open_after else 0,
+            "suggested_accounts_expanded": suggested_accounts_expanded_after,
+            "suggested_accounts_expanded_root_count": (
+                1 if suggested_accounts_expanded_after else 0
+            ),
+            "body_scroll_locked": body_scroll_locked_after,
+            "blocking_modal_count": blocking_modal_count_after,
+            "grid_video_anchor_count": 4,
+        },
+        metadata=metadata,
     )
 
 
@@ -138,6 +188,17 @@ def test_runner_defaults_cold_agents_to_retained_chrome_session_alias(tmp_path: 
 
     assert args.session_profile == "chowdakr_sg_tiktok"
 
+
+def test_onboarding_rejects_window_below_sufficient_dom_minimum(tmp_path: Path) -> None:
+    with pytest.raises(TikTokCreatorOnboardingError, match="at least 27"):
+        run_tiktok_creator_onboarding(
+            creator_handle="creator",
+            session_profile=_profile(),
+            output_dir=tmp_path,
+            window_size=26,
+        )
+
+
 def test_profile_item_list_predicate_is_exact_and_local() -> None:
     assert is_tiktok_profile_item_list_url(
         "https://www.tiktok.com/api/post/item_list/?cursor=30"
@@ -168,7 +229,287 @@ def test_grid_window_preserves_source_visible_order_and_complete_metrics() -> No
     )
 
     assert [item["video_id"] for item in window["items"]] == ["3", "1", "2"]
-    assert window["collection_receipt"]["scroll_stop_reason"] == "response_target_reached"
+    assert [item["stats"]["playCount"] for item in window["items"]] == [300, 100, 200]
+
+
+def test_grid_acquisition_reveals_one_batch_then_requires_two_stable_dom_polls(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    initial_ids = [str(index) for index in range(1, 14)]
+    final_ids = [str(index) for index in range(1, 29)]
+    captures = [
+        _capture(
+            ordered_ids=initial_ids,
+            items=[],
+            dom_view_text_by_id={video_id: "1K" for video_id in initial_ids},
+        ),
+        *[
+            _capture(
+                ordered_ids=final_ids,
+                items=[],
+                dom_view_text_by_id={video_id: "1K" for video_id in final_ids},
+            )
+            for _ in range(3)
+        ],
+    ]
+    calls: list[dict[str, object]] = []
+
+    def fake_fetch(**kwargs: object) -> BrowserPageObservationSuccess:
+        calls.append(kwargs)
+        return captures.pop(0)
+
+    monkeypatch.setattr(onboarding, "fetch_browser_page_observation_capture", fake_fetch)
+
+    capture = onboarding.capture_tiktok_creator_grid(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        window_size=30,
+        timeout_seconds=10.0,
+        settle_seconds=0.25,
+        max_grid_scroll_passes=40,
+        engine=object(),  # type: ignore[arg-type]
+    )
+
+    assert isinstance(capture, BrowserPageObservationSuccess)
+    assert len(calls) == 4
+    assert calls[0]["post_load_pointer_actions"] == (
+        onboarding.TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION,
+    )
+    assert calls[0]["post_load_wheel_action"] is None
+    wheel = calls[1]["post_load_wheel_action"]
+    assert wheel is not None
+    assert wheel.action_name == "tiktok_grid_one_dom_batch_reveal_v0"
+    assert wheel.viewport_fraction_min == 0.20
+    assert wheel.viewport_fraction_max == 0.35
+    assert calls[2]["post_load_wheel_action"] is None
+    assert calls[3]["post_load_wheel_action"] is None
+    assert capture.metadata["grid_acquisition_initial_dom_video_count"] == 13
+    assert capture.metadata["grid_acquisition_final_dom_video_count"] == 28
+    assert capture.metadata["grid_acquisition_new_dom_video_count"] == 15
+    assert capture.metadata["grid_acquisition_sufficient_dom_video_count"] == 27
+    assert capture.metadata["grid_acquisition_initial_window_sufficient"] is False
+    assert capture.metadata["grid_acquisition_wheel_burst_count"] == 1
+    assert capture.metadata["grid_acquisition_passive_polls_executed"] == 2
+    assert capture.metadata["grid_acquisition_consecutive_stable_polls"] == 2
+    assert capture.metadata["lazy_load_scroll_passes_executed"] == 0
+
+
+def test_grid_acquisition_does_not_wheel_an_already_sufficient_initial_window(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    ids = [str(index) for index in range(1, 33)]
+    captures = [
+        _capture(
+            ordered_ids=ids,
+            items=[],
+            dom_view_text_by_id={video_id: "1K" for video_id in ids},
+        )
+        for _ in range(3)
+    ]
+    calls: list[dict[str, object]] = []
+
+    def fake_fetch(**kwargs: object) -> BrowserPageObservationSuccess:
+        calls.append(kwargs)
+        return captures.pop(0)
+
+    monkeypatch.setattr(onboarding, "fetch_browser_page_observation_capture", fake_fetch)
+
+    capture = onboarding.capture_tiktok_creator_grid(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        window_size=30,
+        timeout_seconds=10.0,
+        settle_seconds=0.25,
+        max_grid_scroll_passes=40,
+        engine=object(),  # type: ignore[arg-type]
+    )
+
+    assert isinstance(capture, BrowserPageObservationSuccess)
+    assert len(calls) == 3
+    assert all(call["post_load_wheel_action"] is None for call in calls)
+    assert capture.metadata["grid_acquisition_initial_dom_video_count"] == 32
+    assert capture.metadata["grid_acquisition_final_dom_video_count"] == 32
+    assert capture.metadata["grid_acquisition_new_dom_video_count"] == 0
+    assert capture.metadata["grid_acquisition_new_batch_observed"] is False
+    assert capture.metadata["grid_acquisition_initial_window_sufficient"] is True
+    assert capture.metadata["grid_acquisition_wheel_burst_count"] == 0
+    assert capture.metadata["grid_acquisition_stop_reason"] == (
+        "initial_sufficient_window_stabilized"
+    )
+
+
+def test_grid_acquisition_rejects_a_new_batch_below_the_minimum_window(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    initial_ids = [str(index) for index in range(1, 14)]
+    undersized_ids = [str(index) for index in range(1, 26)]
+    captures = [
+        _capture(
+            ordered_ids=ids,
+            items=[],
+            dom_view_text_by_id={video_id: "1K" for video_id in ids},
+        )
+        for ids in (initial_ids, undersized_ids, undersized_ids, undersized_ids)
+    ]
+
+    monkeypatch.setattr(
+        onboarding,
+        "fetch_browser_page_observation_capture",
+        lambda **_kwargs: captures.pop(0),
+    )
+
+    with pytest.raises(
+        TikTokCreatorOnboardingError,
+        match="one grid DOM batch did not produce the minimum usable window",
+    ):
+        onboarding.capture_tiktok_creator_grid(
+            profile_url="https://www.tiktok.com/@creator",
+            creator_handle="creator",
+            storage_state_path=tmp_path / "state.json",
+            window_size=30,
+            timeout_seconds=10.0,
+            settle_seconds=0.25,
+            max_grid_scroll_passes=40,
+            engine=object(),  # type: ignore[arg-type]
+        )
+
+
+def test_grid_acquisition_adapts_until_first_new_batch_then_stops_wheeling(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    initial_ids = [str(index) for index in range(1, 14)]
+    final_ids = [str(index) for index in range(1, 29)]
+    captures = [
+        _capture(
+            ordered_ids=ids,
+            items=[],
+            dom_view_text_by_id={video_id: "1K" for video_id in ids},
+        )
+        for ids in (initial_ids, initial_ids, final_ids, final_ids, final_ids)
+    ]
+    calls: list[dict[str, object]] = []
+
+    def fake_fetch(**kwargs: object) -> BrowserPageObservationSuccess:
+        calls.append(kwargs)
+        return captures.pop(0)
+
+    monkeypatch.setattr(onboarding, "fetch_browser_page_observation_capture", fake_fetch)
+
+    capture = onboarding.capture_tiktok_creator_grid(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        window_size=30,
+        timeout_seconds=10.0,
+        settle_seconds=0.25,
+        max_grid_scroll_passes=40,
+        engine=object(),  # type: ignore[arg-type]
+    )
+
+    assert isinstance(capture, BrowserPageObservationSuccess)
+    assert capture.metadata["grid_acquisition_wheel_burst_count"] == 2
+    assert capture.metadata["grid_acquisition_new_dom_video_count"] == 15
+    assert calls[1]["post_load_wheel_action"] is not None
+    assert calls[2]["post_load_wheel_action"] is not None
+    assert calls[3]["post_load_wheel_action"] is None
+    assert calls[4]["post_load_wheel_action"] is None
+
+
+def test_grid_acquisition_fails_when_one_batch_never_stabilizes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captures = [
+        _capture(
+            ordered_ids=[str(index) for index in range(1, count + 1)],
+            items=[],
+            dom_view_text_by_id={str(index): "1K" for index in range(1, count + 1)},
+        )
+        for count in (10, 20, 21, 22, 23, 24)
+    ]
+
+    monkeypatch.setattr(
+        onboarding,
+        "fetch_browser_page_observation_capture",
+        lambda **_kwargs: captures.pop(0),
+    )
+
+    with pytest.raises(TikTokCreatorOnboardingError, match="did not stabilize"):
+        onboarding.capture_tiktok_creator_grid(
+            profile_url="https://www.tiktok.com/@creator",
+            creator_handle="creator",
+            storage_state_path=tmp_path / "state.json",
+            window_size=30,
+            timeout_seconds=10.0,
+            settle_seconds=0.25,
+            max_grid_scroll_passes=40,
+            engine=object(),  # type: ignore[arg-type]
+        )
+
+
+def test_grid_acquisition_fails_instead_of_accepting_no_new_batch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    capture = _capture(
+        ordered_ids=[str(index) for index in range(1, 18)],
+        items=[],
+        dom_view_text_by_id={str(index): "1K" for index in range(1, 18)},
+    )
+    captures = [capture for _ in range(5)]
+    monkeypatch.setattr(
+        onboarding,
+        "fetch_browser_page_observation_capture",
+        lambda **_kwargs: captures.pop(0),
+    )
+
+    with pytest.raises(TikTokCreatorOnboardingError, match="no new grid DOM batch"):
+        onboarding.capture_tiktok_creator_grid(
+            profile_url="https://www.tiktok.com/@creator",
+            creator_handle="creator",
+            storage_state_path=tmp_path / "state.json",
+            window_size=30,
+            timeout_seconds=10.0,
+            settle_seconds=0.25,
+            max_grid_scroll_passes=40,
+            engine=object(),  # type: ignore[arg-type]
+        )
+
+
+def test_grid_window_uses_dom_compact_views_when_response_metrics_are_absent() -> None:
+    capture = _capture(
+        ordered_ids=["one", "two"],
+        items=[],
+        dom_view_text_by_id={"one": "31.8K", "two": "1.2M"},
+    )
+
+    window = build_tiktok_grid_window(
+        creator_handle="creator",
+        capture=capture,
+        window_size=2,
+    )
+    selection = onboarding.build_tiktok_grid_video_selection(
+        window["items"],
+        expected_item_count=2,
+        selection_count=1,
+    )
+
+    assert [item["stats"]["playCount"] for item in window["items"]] == [31_800, 1_200_000]
+    assert window["items"][0]["grid_view_count"] == {
+        "raw_text_or_none": "31.8K",
+        "parsed_approximate_count_or_none": 31_800,
+        "source": "profile_grid_dom_view_count_footer",
+        "source_display_precision": "rounded_compact",
+        "used_for_play_count": True,
+    }
+    assert selection["selection_policy"]["required_metrics"] == ["playCount"]
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == ["two"]
 
 
 def test_grid_window_preserves_full_source_stats_and_zero_or_missing_ranking_metrics() -> None:
@@ -323,16 +664,22 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
             }
         ],
     )
+    grid_items = [
+        _item("1", 400, 20),
+        _item("2", 300, 60),
+        _item("3", 200, 10),
+        _item("4", 100, 5),
+    ] + [
+        _item(str(video_id), 100 - video_id, 1)
+        for video_id in range(5, 28)
+    ]
     grid = _capture(
-        ordered_ids=["1", "2", "3", "4"],
-        items=[
-            _item("1", 400, 20),
-            _item("2", 300, 60),
-            _item("3", 200, 10),
-            _item("4", 100, 5),
-        ],
+        ordered_ids=[str(video_id) for video_id in range(1, 28)],
+        items=grid_items,
     )
-    engine = _FakeEngine([suggested, grid])
+    engine = _FakeEngine(
+        [suggested, _suggested_surface_closed_capture(), *_stable_grid_capture_sequence(grid)]
+    )
     deep_calls: list[dict[str, object]] = []
     progress_events: list[tuple[str, dict[str, object]]] = []
 
@@ -358,7 +705,7 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         session_profile=_profile(),
         output_dir=tmp_path,
         auth_state_root=tmp_path,
-        window_size=4,
+        window_size=27,
         selection_count=2,
         engine=engine,
         deep_capture_fn=deep_capture,
@@ -369,11 +716,21 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         sleep_fn=lambda _seconds: None,
     )
 
-    assert len(engine.calls) == 2
+    assert len(engine.calls) == 6
     assert engine.calls[1]["dom_extract_arg"] == {"creator_handle": "creator"}
+    assert [
+        action.action_name for action in engine.calls[1]["post_load_pointer_actions"]
+    ] == ["tiktok_relationship_dialog_close_v0"]
+    assert engine.calls[2]["dom_extract_arg"] == {"creator_handle": "creator"}
+    assert engine.calls[3]["post_load_wheel_action"].action_name == (
+        "tiktok_grid_one_dom_batch_reveal_v0"
+    )
+    assert engine.calls[4]["post_load_wheel_action"] is None
+    assert engine.calls[5]["post_load_wheel_action"] is None
     assert len(deep_calls) == 1
     assert [event for event, _fields in progress_events] == [
         "collect_suggested_accounts",
+        "close_suggested_surface",
         "collect_grid",
         "freeze_window",
         "select",
@@ -390,10 +747,18 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
     assert receipt["status"] == "complete"
     assert receipt["session_profile"] == "chowdakr_sg_tiktok"
-    assert receipt["window_size"] == 4
+    assert receipt["window_size"] == 27
     assert receipt["selection_count"] == 2
-    assert receipt["window_cap"] == 4
+    assert receipt["window_cap"] == 27
     assert receipt["suggested_accounts_status_or_none"] == "captured"
+    assert receipt["suggested_surface_close_before_grid_or_none"]["status"] == "closed"
+    assert receipt["suggested_surface_close_before_grid_or_none"]["close_clicked"] is True
+    assert (
+        receipt["suggested_surface_close_before_grid_or_none"][
+            "suggested_modal_open_after"
+        ]
+        is False
+    )
     assert receipt["completed_deep_capture_count"] == 2
     assert receipt["challenge_count"] == 0
     assert receipt["human_challenge_handoff_count"] == 0
@@ -509,7 +874,13 @@ def test_grid_overlay_sequence_uses_logical_positions_and_mouse_wheel_pagination
     assert engine.calls[2]["post_load_action_script"] is None
     assert engine.calls[1]["post_load_wheel_action"].direction == "down"
     assert engine.calls[2]["post_load_wheel_action"].direction == "down"
+    assert engine.calls[1]["post_load_wheel_action"].viewport_fraction_min == 0.20
+    assert engine.calls[1]["post_load_wheel_action"].viewport_fraction_max == 0.35
     click_action = engine.calls[3]["post_load_pointer_actions"][0]
+    assert click_action.candidate_selector == (
+        "a[href*='/video/1'] .video-count"
+    )
+    assert click_action.text_markers == ("31.8k",)
     assert click_action.target_fraction_min == 0.15
     assert click_action.target_fraction_max == 0.85
     assert receipt["logical_grid_positions_remembered"] is True
@@ -527,6 +898,9 @@ def test_grid_overlay_sequence_uses_logical_positions_and_mouse_wheel_pagination
         for row in receipt["grid_pagination_passes"]
     ] == ["advanced", "selected_tile_visible"]
     assert "scrollIntoView" not in (
+        onboarding.TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT
+    )
+    assert "if (!clickTargetVisible || !clickTargetText) continue;" in (
         onboarding.TIKTOK_VISIBLE_SELECTED_GRID_TILES_DOM_EXTRACT_SCRIPT
     )
 
@@ -667,7 +1041,83 @@ def test_grid_overlay_sequence_keeps_wheeling_while_grid_advances(
     ] == ["advanced", "advanced", "advanced", "selected_tile_visible"]
 
 
-def test_grid_below_fixed_selection_count_fails_before_deep_capture(
+def test_grid_overlay_sequence_stops_when_frozen_window_identity_drifted(
+    tmp_path: Path,
+) -> None:
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture(
+                visible_min=1,
+                visible_max=3,
+                loaded_ids=("new-1", "new-2", "new-3"),
+            )
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        pagination_pass_cap=10,
+        selected_grid_position=3,
+    )
+
+    with pytest.raises(
+        TikTokCreatorOnboardingError,
+        match="frozen grid window no longer matches the live grid identity",
+    ):
+        sequence(0, ["https://www.tiktok.com/@creator/video/1"])
+
+    assert receipt["grid_pagination_passes_executed"] == 0
+    assert receipt["grid_pagination_stop_reason"] == (
+        "frozen_window_identity_drift"
+    )
+    assert receipt["frozen_window_identity_drift_detected"] is True
+    assert receipt["frozen_window_live_overlap_count_at_stop_or_none"] == 0
+    assert receipt["loaded_grid_video_count_at_stop_or_none"] == 3
+
+
+def test_grid_overlay_sequence_stops_on_non_consecutive_progress_cycle(
+    tmp_path: Path,
+) -> None:
+    engine = _FakeEngine(
+        [
+            _visible_tiles_capture(
+                visible_min=1, visible_max=3, scroll_y=0, document_height=3000
+            ),
+            _visible_tiles_capture(
+                visible_min=4, visible_max=6, scroll_y=600, document_height=3000
+            ),
+            _visible_tiles_capture(
+                visible_min=1, visible_max=3, scroll_y=0, document_height=3000
+            ),
+        ]
+    )
+    receipt = _grid_overlay_receipt()
+    sequence = _grid_overlay_sequence(
+        tmp_path=tmp_path,
+        engine=engine,
+        receipt=receipt,
+        pagination_pass_cap=10,
+        selected_grid_position=9,
+    )
+
+    with pytest.raises(
+        TikTokCreatorOnboardingError, match="bounded grid pagination exhausted"
+    ):
+        sequence(0, ["https://www.tiktok.com/@creator/video/1"])
+
+    assert receipt["grid_pagination_passes_executed"] == 2
+    assert receipt["grid_pagination_stop_reason"] == "progress_cycle"
+    assert receipt["grid_pagination_passes"][-1]["progress_since_previous"] == (
+        "progress_cycle"
+    )
+    assert receipt["grid_pagination_passes"][-1]["outcome"] == (
+        "progress_cycle_budget_stopped"
+    )
+
+
+def test_grid_below_sufficient_window_fails_before_deep_capture(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -681,12 +1131,15 @@ def test_grid_below_fixed_selection_count_fails_before_deep_capture(
     engine = _FakeEngine(
         [
             _capture(ordered_ids=[], items=[], suggested=[]),
-            _capture(
-                ordered_ids=["1"],
-                items=[
-                    _item("1", 400, 20),
-                ],
-            ),
+            _suggested_surface_closed_capture(),
+                *_stable_grid_capture_sequence(
+                    _capture(
+                        ordered_ids=["1"],
+                        items=[
+                            _item("1", 400, 20),
+                        ],
+                    )
+                ),
         ]
     )
     deep_called = False
@@ -696,13 +1149,13 @@ def test_grid_below_fixed_selection_count_fails_before_deep_capture(
         deep_called = True
         return {}
 
-    with pytest.raises(TikTokCreatorOnboardingError, match="usable grid window"):
+    with pytest.raises(TikTokCreatorOnboardingError, match="minimum usable window"):
         run_tiktok_creator_onboarding(
             creator_handle="creator",
             session_profile=_profile(),
             output_dir=tmp_path,
             auth_state_root=tmp_path,
-            window_size=4,
+            window_size=27,
             engine=engine,
             selection_count=2,
             deep_capture_fn=deep_capture,
@@ -714,8 +1167,140 @@ def test_grid_below_fixed_selection_count_fails_before_deep_capture(
         (tmp_path / TIKTOK_ONBOARDING_RECEIPT_JSON_NAME).read_text(encoding="utf-8")
     )
     assert receipt["status"] == "failed"
-    assert receipt["terminal_stage"] == "freeze_window"
+    assert receipt["terminal_stage"] == "collect_grid"
     assert receipt["error_or_none"].startswith("TikTokCreatorOnboardingError:")
+
+
+def test_suggested_surface_must_close_before_grid_capture(tmp_path: Path) -> None:
+    engine = _FakeEngine(
+        [_suggested_surface_closed_capture(clicked=False, modal_open_after=True)]
+    )
+
+    with pytest.raises(
+        TikTokCreatorOnboardingError,
+        match="suggested surface remained open before grid capture",
+    ):
+        onboarding._close_suggested_surface_before_grid(
+            profile_url="https://www.tiktok.com/@creator",
+            creator_handle="creator",
+            suggested_status="captured",
+            suggested_outer_ui_route="followers_dialog_suggested_tab",
+            storage_state_path=tmp_path / "state.json",
+            timeout_seconds=10.0,
+            settle_seconds=0.0,
+            engine=engine,
+        )
+
+
+def test_not_visible_suggested_surface_can_already_be_closed(tmp_path: Path) -> None:
+    engine = _FakeEngine([_suggested_surface_closed_capture(clicked=False)])
+
+    receipt = onboarding._close_suggested_surface_before_grid(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        suggested_status="not_visible",
+        suggested_outer_ui_route="profile_suggested_accounts_view_all_fallback",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10.0,
+        settle_seconds=0.0,
+        engine=engine,
+    )
+
+    assert receipt["status"] == "already_closed"
+    assert receipt["close_required"] is False
+    assert receipt["suggested_modal_open_after"] is False
+    assert engine.calls[0]["post_load_pointer_actions"] == ()
+
+
+def test_fallback_suggested_surface_uses_exact_toggle_collapse(tmp_path: Path) -> None:
+    engine = _FakeEngine(
+        [
+            _suggested_surface_closed_capture(
+                action_name="tiktok_suggested_accounts_collapse_before_grid_v0"
+            )
+        ]
+    )
+
+    receipt = onboarding._close_suggested_surface_before_grid(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        suggested_status="captured",
+        suggested_outer_ui_route="profile_suggested_accounts_view_all_fallback",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10.0,
+        settle_seconds=0.0,
+        engine=engine,
+    )
+
+    actions = engine.calls[0]["post_load_pointer_actions"]
+    assert [action.action_name for action in actions] == [
+        "tiktok_suggested_accounts_collapse_before_grid_v0"
+    ]
+    assert actions[0].candidate_selector == (
+        "button[data-e2e='show-suggested-accounts']"
+        "[aria-label='Suggested accounts']"
+    )
+    assert actions[0].visual_top_right_x_fallback is False
+    assert actions[0].visual_x_geometric_fallback is False
+    assert receipt["close_action_route"] == "suggested_accounts_toggle_collapse"
+    assert receipt["suggested_accounts_expanded_after"] is False
+    assert receipt["body_scroll_locked_after"] is False
+
+
+def test_fallback_suggested_surface_must_be_collapsed_before_grid(
+    tmp_path: Path,
+) -> None:
+    engine = _FakeEngine(
+        [
+            _suggested_surface_closed_capture(
+                suggested_accounts_expanded_after=True,
+                action_name="tiktok_suggested_accounts_collapse_before_grid_v0",
+            )
+        ]
+    )
+
+    with pytest.raises(
+        TikTokCreatorOnboardingError,
+        match="suggested surface remained open before grid capture",
+    ):
+        onboarding._close_suggested_surface_before_grid(
+            profile_url="https://www.tiktok.com/@creator",
+            creator_handle="creator",
+            suggested_status="captured",
+            suggested_outer_ui_route="profile_suggested_accounts_view_all_fallback",
+            storage_state_path=tmp_path / "state.json",
+            timeout_seconds=10.0,
+            settle_seconds=0.0,
+            engine=engine,
+        )
+
+
+def test_suggested_close_fails_if_an_unrelated_modal_keeps_scroll_locked(
+    tmp_path: Path,
+) -> None:
+    engine = _FakeEngine(
+        [
+            _suggested_surface_closed_capture(
+                body_scroll_locked_after=True,
+                blocking_modal_count_after=1,
+            )
+        ]
+    )
+
+    with pytest.raises(
+        TikTokCreatorOnboardingError,
+        match="suggested surface remained open before grid capture",
+    ):
+        onboarding._close_suggested_surface_before_grid(
+            profile_url="https://www.tiktok.com/@creator",
+            creator_handle="creator",
+            suggested_status="captured",
+            suggested_outer_ui_route="followers_dialog_suggested_tab",
+            storage_state_path=tmp_path / "state.json",
+            timeout_seconds=10.0,
+            settle_seconds=0.0,
+            engine=engine,
+        )
 
 
 def test_account_safety_stop_detection_reads_failure_triage_only() -> None:
@@ -808,6 +1393,20 @@ def test_onboarding_cli_defaults_to_fixed_top_eight_and_eight_thirteen_range() -
     assert args.cadence_min_gap_seconds == 8.0
     assert args.cadence_max_gap_seconds == 13.0
     assert (args.cadence_min_gap_seconds + args.cadence_max_gap_seconds) / 2 == 10.5
+
+
+def test_onboarding_cli_rejects_window_below_sufficient_dom_minimum() -> None:
+    with pytest.raises(SystemExit):
+        runner.build_parser().parse_args(
+            [
+                "--creator-handle",
+                "creator",
+                "--output-dir",
+                "out",
+                "--window-size",
+                "26",
+            ]
+        )
 
 
 def test_onboarding_cli_admission_passes_full_grid_and_selection(
@@ -979,15 +1578,46 @@ def test_suggested_dom_contract_targets_the_profile_surface_only() -> None:
     assert "[aria-modal='true'] *" in (
         onboarding.TIKTOK_RELATIONSHIP_SUGGESTED_TAB_ACTION.candidate_selector
     )
-    assert onboarding.TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION.text_markers == ()
+    assert onboarding.TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION.text_markers == (
+        "close",
+    )
     assert onboarding.TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION.exact_text_markers == (
         "close",
         "x",
         "×",
     )
+    assert "follow-popup-close" in (
+        onboarding.TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION.candidate_selector
+    )
+    assert onboarding.TIKTOK_RELATIONSHIP_DIALOG_CLOSE_ACTION.visual_top_right_x_fallback is False
     assert (
         onboarding.TIKTOK_SUGGESTED_VIEW_ALL_ACTION.exact_text_markers
         == ("view all",)
+    )
+    assert (
+        onboarding.TIKTOK_SUGGESTED_ACCOUNTS_COLLAPSE_ACTION.action_name
+        == "tiktok_suggested_accounts_collapse_before_grid_v0"
+    )
+    assert (
+        onboarding.TIKTOK_SUGGESTED_ACCOUNTS_COLLAPSE_ACTION.exact_text_markers
+        == ("suggested accounts",)
+    )
+    assert (
+        onboarding.TIKTOK_SUGGESTED_ACCOUNTS_COLLAPSE_ACTION.text_markers == ()
+    )
+    assert "show-suggested-accounts" in (
+        onboarding.TIKTOK_SUGGESTED_ACCOUNTS_COLLAPSE_ACTION.candidate_selector
+    )
+    assert onboarding.TIKTOK_SUGGESTED_ACCOUNTS_COLLAPSE_ACTION.visual_top_right_x_fallback is False
+    assert onboarding.TIKTOK_SUGGESTED_ACCOUNTS_COLLAPSE_ACTION.visual_x_geometric_fallback is False
+    assert "suggested_modal_open" in (
+        onboarding.TIKTOK_SUGGESTED_SURFACE_CLOSED_DOM_EXTRACT_SCRIPT
+    )
+    assert "suggested_accounts_expanded" in (
+        onboarding.TIKTOK_SUGGESTED_SURFACE_CLOSED_DOM_EXTRACT_SCRIPT
+    )
+    assert "body_scroll_locked" in (
+        onboarding.TIKTOK_SUGGESTED_SURFACE_CLOSED_DOM_EXTRACT_SCRIPT
     )
 
 
@@ -1043,12 +1673,17 @@ def _grid_overlay_receipt() -> dict[str, object]:
         "grid_pagination_input_method": "mouse_wheel_burst",
         "logical_grid_positions_remembered": True,
         "absolute_pixel_positions_cached": False,
-        "thumbnail_click_safe_inset_fraction": 0.15,
+        "tile_click_target_policy": "link_routed_video_count_footer",
+        "hover_preview_body_click_allowed": False,
+        "click_target_safe_inset_fraction": 0.15,
         "grid_pagination_pass_cap_per_lookup": 2,
         "grid_pagination_total_pass_cap": 2,
         "grid_pagination_passes_executed": 0,
         "grid_pagination_passes": [],
         "grid_pagination_stop_reason": None,
+        "frozen_window_identity_drift_detected": False,
+        "frozen_window_live_overlap_count_at_stop_or_none": None,
+        "loaded_grid_video_count_at_stop_or_none": None,
         "attempts": [],
         "retry_waits": [],
         "status": "in_progress",
@@ -1098,6 +1733,7 @@ def _visible_tiles_capture(
     visible_max: int | None = 3,
     scroll_y: int = 0,
     document_height: int | None = None,
+    loaded_ids: tuple[str, ...] | None = None,
 ) -> BrowserPageObservationSuccess:
     capture = _capture(ordered_ids=[], items=[])
     capture.dom_observation["visible_selected_tiles"] = [
@@ -1105,6 +1741,9 @@ def _visible_tiles_capture(
             "video_id": video_id,
             "video_url": f"https://www.tiktok.com/@creator/video/{video_id}",
             "grid_position": index,
+            "click_target_kind": "link_routed_video_count_footer",
+            "click_target_text_or_none": "31.8K",
+            "click_target_visible_in_viewport": True,
         }
         for index, video_id in enumerate(video_ids, start=1)
     ]
@@ -1112,7 +1751,68 @@ def _visible_tiles_capture(
     capture.dom_observation["visible_grid_position_max_or_none"] = visible_max
     capture.dom_observation["scroll_y"] = scroll_y
     capture.dom_observation["document_height"] = document_height
+    if loaded_ids is not None:
+        capture.dom_observation["loaded_grid_video_ids"] = list(loaded_ids)
     return capture
+
+
+def test_failed_run_receipt_separates_overlay_capture_from_deep_completion(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state_path = tmp_path / "state.json"
+    state_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        onboarding,
+        "validate_auth_state_provenance_requirement",
+        lambda *_args, **_kwargs: state_path,
+    )
+    engine = _FakeEngine(
+        [
+            _capture(ordered_ids=[], items=[], suggested=[]),
+            _suggested_surface_closed_capture(),
+                *_stable_grid_capture_sequence(
+                    _capture(
+                        ordered_ids=[str(video_id) for video_id in range(1, 28)],
+                        items=[
+                            _item(str(video_id), 1_000 - video_id, 1)
+                            for video_id in range(1, 28)
+                        ],
+                    )
+                ),
+            _visible_tiles_capture("1"),
+            _clicked_capture("1"),
+        ]
+    )
+
+    def fail_after_first_overlay(**kwargs: object) -> dict[str, object]:
+        sequence = kwargs["page_capture_sequence_fn"]
+        sequence(0, kwargs["video_urls"])
+        raise RuntimeError("deep capture interrupted after first overlay")
+
+    with pytest.raises(RuntimeError, match="deep capture interrupted"):
+        run_tiktok_creator_onboarding(
+            creator_handle="creator",
+            session_profile=_profile(),
+            output_dir=tmp_path,
+            auth_state_root=tmp_path,
+            window_size=27,
+            selection_count=2,
+            engine=engine,
+            deep_capture_fn=fail_after_first_overlay,
+            cadence_min_gap_seconds=0,
+            cadence_max_gap_seconds=0,
+            random_seed=7,
+            sleep_fn=lambda _seconds: None,
+        )
+
+    receipt = json.loads(
+        (tmp_path / TIKTOK_ONBOARDING_RECEIPT_JSON_NAME).read_text(encoding="utf-8")
+    )
+    assert receipt["status"] == "failed"
+    assert receipt["selected_video_ids_in_capture_order"] == ["1"]
+    assert receipt["completed_grid_overlay_capture_count"] == 1
+    assert receipt["completed_deep_capture_count"] == 0
+    assert receipt["completed_deep_capture_count_source"] == "no_cadence_result"
 
 
 def test_suggested_receipt_distinguishes_visible_empty_from_not_visible() -> None:
