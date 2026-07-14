@@ -113,7 +113,7 @@
       "data_root_uuid": "01KW7N6ERSVVANCEZ8SD6YW3EQ",
       "derivation_diagnostics": {
         "attributable_registry_packet_count": 451,
-        "qualifying_packet_count": 474,
+        "qualifying_packet_count": 475,
         "unattributable_legacy_packet_count": 20,
         "unattributable_legacy_packet_ids": [
           "01KWBPW19TTG7VQM2EKKHMM0N7",
@@ -137,7 +137,7 @@
           "01KWJ11GTKT62R5GPNDM68DKDJ",
           "01KWJ2GGZT42RY5Z8DCKSAEHS2"
         ],
-        "unmatched_registry_packet_count": 3
+        "unmatched_registry_packet_count": 4
       },
       "explicitly_non_qualifying_surfaces": [
         "youtube_channel_rss_feed",

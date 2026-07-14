@@ -7499,7 +7499,7 @@
       },
       {
         "role": "account-level onboarding state derived from verified committed Bronze evidence",
-        "sha256": "355be3c95720e773cbedc7e1c3d9fe8f92942a744f9644db296fc038805b75e2",
+        "sha256": "1d323fd2d94ed09d77d945c89123bedbd01a3b3ad1dce0e52e0919cc8740a796",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json"
       },
       {
