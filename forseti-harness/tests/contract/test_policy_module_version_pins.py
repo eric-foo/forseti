@@ -42,7 +42,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ),
         # Output-shaping: temporal pairing, amplification/rank context, and the
         # cid-less mechanics fix now ride the producer's v1 recipe/schema tokens.
-        "88588cca1a2a4e088c1f04bde99602af2ad38117e86160c231bb957f7b6e3141",
+        "38def9d04a913acd1818be5194d23122f51c182ca0f59bfdf0859606b0e2dcd6",
     ),
     "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py": (
         (
@@ -56,7 +56,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/basenotes.py": (
         ("BASENOTES_CLEANING_METHOD_ID (cleaning/basenotes_lake.py)",),
-        "947303e81e95122488bd7ad4c9577503881cb663b1a5f77b63ad792209658333",
+        # Admission-shaping v1: user-cleared persistent Chrome replaces the retired proxy surface.
+        "ce5aa38b1105044bfadd8aa7dd081136b7ac14db2fe2325a5994782f34476f3a",
     ),
     "cleaning/basenotes_lake.py": (
         (
@@ -64,7 +65,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "BASENOTES_SILVER_PRODUCER_SCHEMA_VERSION",
             "BASENOTES_CLEANING_METHOD_ID",
         ),
-        "34635ec6f0ace24e58c1a133ace0952a7f9895a677e1d383013bce3d26672acd",
+        # Cleaning method v1 re-fingerprints obligations for the changed source admission.
+        "afaaa619a3bcb2388188c3f1414e16f1de0cc61b22beac46b6d858cd113f4f44",
     ),
     "cleaning/fragrantica.py": (
         ("FRAGRANTICA_CLEANING_METHOD_ID (cleaning/fragrantica_lake.py)",),
@@ -107,7 +109,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Output-shaping: the official Silver envelope is retained, while durable
         # record/completion identity now binds the full policy fingerprint; the
         # PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION bump to v2 re-surfaces V1 records.
-        "10cc4eb51d7f8c5307d02eb96ff606c70d8af70318574ef3ce59641093b3ea99",
+        "6885729bc1b5bee6b250ce2d40f4b3bd7ca66e225fbbc6cc3c6c5649dd1afbef",
     ),
     "ecr/deriver.py": (
         ("ECR_DERIVER_VERSION",),
@@ -115,7 +117,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
-        "e3daca78e9dc238844d6452a93a16728fb6b6e8f0e4be936df3e1a98e2ffa2da",
+        # Projection v1 rejects the retired proxy surface and admits the proven persistent-Chrome surface.
+        "cd56c89c207ad9716cb6104c576b7cb1951bc75cc1256b499d119980c905cd7d",
     ),
     "source_capture/fragrance_review_coverage.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
@@ -167,7 +170,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
 # accidentally drops the payload field itself.
 RECORD_SCHEMA_TOKEN_FIELD_SITES: dict[str, tuple[str, ...]] = {
     "cleaning/transcript_product_lake.py": (
-        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v2"',
+        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v3"',
         '"record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION',
     ),
     "source_capture/fragrance_review_coverage.py": (

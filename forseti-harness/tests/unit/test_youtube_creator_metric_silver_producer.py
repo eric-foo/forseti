@@ -37,7 +37,7 @@ from capture_spine.creator_profile_current.youtube_silver_metric_producer import
 from data_lake.attachment_record_entry import ATTACHMENT_RECORD_SCHEMA_VERSION
 from data_lake.catalog import rebuild_catalog
 from data_lake.root import DataLakeRoot, raw_shard
-from data_lake.silver_record import SilverRecordError, verify_silver_vault_record_sources
+from data_lake.silver_record import SilverRecordError, validate_silver_vault_record, verify_silver_vault_record_sources
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 from source_capture.youtube_watch_packet import YoutubeWatchFetch, write_youtube_watch_packet
@@ -476,6 +476,27 @@ def test_bronze_attachment_ref_rejects_altered_body_bytes(tmp_path: Path) -> Non
 
     with pytest.raises(SilverRecordError, match="physically unresolved or tampered"):
         verify_silver_vault_record_sources(data_root, result.observation_records[0])
+
+
+def test_unknown_source_time_uses_explicit_unknown_grammar() -> None:
+    seed_document = _committed_seed_document()
+    seed = seed_document[YOUTUBE_SEED_WRAPPER_KEY]
+    seed_observation = deepcopy(seed["metric_observations"][0])
+    seed_observation["observed_at"] = None
+
+    record = build_metric_observation_record(
+        seed_observation=seed_observation,
+        recorded_at=seed["generated_at_utc"],
+    )
+    validate_silver_vault_record(record)
+
+    observation = record["payload"]["observation"]
+    assert record["observed_at"] is None
+    assert record["captured_at"] == seed["generated_at_utc"]
+    assert observation["effective_interval"]["start_precision"] == "unknown"
+    assert observation["recorded_at"] == seed["generated_at_utc"]
+    assert observation["evidence_refs"]
+    assert observation["limitations"]
 
 
 def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path: Path) -> None:

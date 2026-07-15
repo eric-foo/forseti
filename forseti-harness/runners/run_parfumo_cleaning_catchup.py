@@ -110,7 +110,7 @@ _PARFUMO_SURFACES = frozenset(
 _KNOWN_OUT_OF_SCOPE_SURFACES = frozenset(
     {
         "fragrantica_product_page_direct_http",
-        "basenotes_product_page_cloakbrowser_deep_scroll_current_window",
+        "basenotes_product_page_user_cleared_persistent_chrome_current_window",
     }
 )
 # Producer convention written by runners/run_source_capture_http_packet.py onto
