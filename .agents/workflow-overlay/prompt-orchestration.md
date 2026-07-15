@@ -245,13 +245,19 @@ as an unnamed specialization of routine depth:
    `workflow-prompt-orchestrator` contract or the nearest honest blocker; do not
    invent it.
 
+An unchanged same-lane prompt points to the active one-time writable-root
+binding in `decision-routing.md`; it does not repeat root, capability, or writer-
+isolation details. New/external receivers and changed bindings carry the exact
+details required below.
+
 ### Implementation Commission Receiver-Creation Clause
 
 Every durable or cross-recipient commission with edit permission
-`implementation-authorized` that selects `codex_managed_worktree` and may begin
-in a task that is not the verified receiver must make the task-creation request
-explicit in the visible commission. Include this bounded block next to the
-single `receiver_binding` receipt:
+`implementation-authorized` that selects a new `codex_managed_worktree` and may
+begin in a task that is not the receiver must make the task-creation request
+explicit in the visible commission. Include this bounded block next to that new
+receiver's single `receiver_binding` receipt. A prompt continuing the active
+binding includes neither block merely for lifecycle continuity.
 
 ```yaml
 receiver_creation_authorization:
@@ -759,12 +765,9 @@ Every escalated prompt must state:
 - `repo_map_decision: loaded | not_needed | unavailable`, plus `repo_map_reason`. Source-loading (`.agents/workflow-overlay/source-loading.md`) owns the read-pack rule; this field records the prompt author's routing decision and must not make the repo map a mandatory read;
 - workspace path or repository identifier;
 - expected branch, detached revision, or commit hash when source stability matters;
-- the single inline `receiver_binding` receipt from
-  `.agents/workflow-overlay/decision-routing.md` when the prompt commissions
-  repo-changing work in another lane; a managed task may carry its starting ref
-  while `receiver_to_verify`, but dispatch/source loading requires the observed
-  effective target, class-appropriate capability proof, and no-concurrent-writer
-  state;
+- a pointer to the active one-time writable-root binding for same-lane work, or
+  the single inline `receiver_binding` from `decision-routing.md` when the
+  prompt creates a new/external receiver or materially changes the binding;
 - the commission-local `receiver_creation_authorization` block above when an
   implementation-authorized managed receiver may need to be created from the
   visible commission;
@@ -805,35 +808,21 @@ manifest or equivalent byte identity; branch and HEAD alone cannot identify
 dirty bytes. Exact pins remain exact, while an advancing lane head may continue
 only when the prompt explicitly uses ancestry semantics.
 
-Receiving preflight follows this order:
+Receiving preflight establishes one binding, then stops repeating it:
 
-1. Record the `receiver_binding`, launch checkout, and harness write scope.
-2. For `codex_managed_worktree`, verify that the current checkout is the
-   app-created managed worktree at the bound starting ref, then check state and
-   run the lane-start write/index probe. Do not inspect, create, or select another
-   worktree as an alternate target.
-3. For `external_direct_write` only, inspect registered worktrees (`git worktree
-   list --porcelain` or a harness-equivalent registry) when launch and target
-   differ. Resolve exactly one target satisfying the named branch, detached
-   revision, or required ancestry and prove direct write capability there.
-4. For `collaboration_same_root`, verify that any allowed write remains inside
-   the calling task's current isolated root; a separate-worktree target blocks.
-5. Evaluate cleanliness, untracked-file allowance, target paths, and required
-   validation in the effective target. For dirty targets, verify the named
-   dirty-file set and target manifest. Confirm no concurrent writer for every
-   repo-changing class; a named path or successful read is not capability proof.
-6. Once verified, use target-rooted tool workdirs and recheck target identity
-   immediately before the first edit. Stop as
-   `BLOCKED_TARGET_DRIFT_DURING_REVIEW` on change.
-7. Return `BLOCKED_RECEIVER_REROOT_REQUIRED` only when the binding or capability
-   genuinely fails: absent/ambiguous/inaccessible/byte-mismatched target,
-   missing write proof, concurrent writing, or an unsatisfied target-root guard.
-   For a wrongly launched Codex task, execute the commission-local one-task
-   creation authorization immediately when present: create the managed-worktree
-   task at the bound revision with the frozen commission as its initial prompt.
-   When that explicit block is absent, or the one allowed creation fails, return
-   the blocker instead—not a self-created/discovered worktree plus an impossible
-   reroot and not a request for magic confirmation words.
+1. Reuse the active work-unit binding when receiver, task, root, target, and
+   material state are unchanged.
+2. For a new managed receiver, bind the app-created worktree as that task's root;
+   do not inspect, create, or select a nested worktree as an alternate target.
+3. For a new `external_direct_write` receiver only, resolve the unique target and
+   establish direct write capability plus no-concurrent-writer state once.
+4. Same-root collaboration stays inside the caller's active binding.
+5. Re-resolve only on a receiver/root/target change, genuinely unknown
+   capability, or observed mismatch/dirty-state drift. Synthetic write/index
+   probes and hook canaries are not routine preflight.
+6. On a pre-edit mismatch, execute an already-authorized managed-task route when
+   available. Return `BLOCKED_RECEIVER_REROOT_REQUIRED` only when no capable
+   authorized route exists or the new binding cannot be established.
 
 This resolver is discovery of the commissioned source, not permission to use an
 alternate branch, recreated copy, context pack, or summary as review evidence.
@@ -926,7 +915,7 @@ Before using a generated Forseti prompt, apply these gates:
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
-4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters. Repo-changing cross-lane work carries the single `receiver_binding` receipt before receiver source loading. An implementation-authorized managed-receiver commission that may need rerooting also carries the exact one-task `receiver_creation_authorization` block; a read-only, scoping-only, or review-only commission must not carry it. Acceptance is class-specific: Codex managed tasks prove current-root equality plus state/write-index capability; external controllers prove exact-target two-root identity, direct write, and no concurrent writer; collaboration remains same-root; unknown receivers remain preparation-only. A delegated review-and-patch courier is a narrower exception: it is operator-courier-only, requires different-vendor direct-repo eligibility, and must not select or create a Codex managed receiver. A prompt fails this gate when it applies external two-root discovery to a wrongly launched Codex task, substitutes path/read access for write proof, downgrades implementation authority merely because planning or scoping occurred, omits the required one-task creation block where that general route applies, grants broader or repeated task creation, claims dispatch readiness while `receiver_to_bind` or `receiver_to_verify`, or substitutes same-vendor/task creation for the delegated-patch courier route.
+4. Writable-root binding present when repository state matters: same-lane prompts point to the active one-time binding without repeating its root/capability recital; new/external receivers and materially changed bindings carry the single `receiver_binding`, and a not-yet-created managed receiver also carries the exact one-task `receiver_creation_authorization`. Collaboration remains same-root, unknown receivers remain preparation-only, and a command `workdir` is never a reroot. A delegated review-and-patch courier remains operator-courier-only, direct-repo, and different-vendor, with no Codex-managed fallback. A prompt fails this gate when it invents task-creation authority, applies external two-root discovery to a wrongly launched Codex task, claims dispatch readiness before a new binding exists, or repeats capability ceremony as if it were required for an unchanged active binding.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source-capsule budget satisfied: source capsules stay within

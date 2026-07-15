@@ -135,22 +135,27 @@ def test_codex_live_hook_adoption_probe_fails_closed() -> None:
     )
 
 
-def test_managed_receiver_revision_and_probe_contract_is_explicit() -> None:
+def test_one_time_binding_preserves_guard_and_limits_canary() -> None:
     routing = DECISION_ROUTING_PATH.read_text(encoding="utf-8")
     hook_readme = HOOK_README_PATH.read_text(encoding="utf-8")
+    adapter = CODEX_ADAPTER_PATH.read_text(encoding="utf-8")
     probe_command = (
         "python .codex/hooks/forseti_guard_codex_adapter.py "
         "--live-adoption-probe"
     )
 
+    assert "## One-Time Writable-Root Binding" in routing
     assert "revision_mode: exact | ancestor" in routing
     assert "`HEAD` equals `required_revision`" in routing
     assert "git merge-base --is-ancestor <required_revision> HEAD" in routing
-    assert "command-level `workdir` substitution" in routing
-    assert probe_command in routing
+    assert "sole writable root" in routing
+    assert "synthetic file-write or Git-index probes" in routing
+    assert "while that binding remains valid" in routing
+    assert "ordinary work does not run that canary" in routing
     assert probe_command in hook_readme
-    assert HOOK_ADOPTION_ADOPTED in routing
-    assert HOOK_ADOPTION_NOT_INTERCEPTED in routing
+    assert "only when hook adoption testing is itself" in hook_readme
+    assert "lane-start writeability" not in adapter
+    assert "already-authorized capable worktree-backed" in adapter
 
 
 def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> None:
@@ -167,11 +172,10 @@ def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> 
     ):
         assert required in prompt_contract
 
-    assert "create and dispatch the one allowed task immediately" in routing
+    assert "already-authorized capable worktree-backed task" in routing
     assert "read-only/scoping-only/review-only" in routing
-    assert re.search(
-        r"No instruction grants standing or\s+repeat creation authority", routing
-    )
+    assert "Creating a user-visible Codex task still requires explicit product/user" in routing
+    assert "do not create that authority" in routing
 
 
 def test_managed_receiver_commission_gate_rejects_contradictions() -> None:

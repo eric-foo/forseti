@@ -68,21 +68,23 @@ inherit this floor.
   `.agents/workflow-overlay/source-of-truth.md` before claiming completion.
   Missing propagation evidence blocks strict success or status claims that
   depend on the changed doctrine; it authorizes no adjacent cleanup or tooling.
-- Receiver-binding acceptance is class-specific and uses the single inline
-  `receiver_binding` receipt owned by
+- Writable-root acceptance follows the one-time binding owned by
   `.agents/workflow-overlay/decision-routing.md`:
 
   | Commission state | Acceptance result | Required evidence or recovery |
   | --- | --- | --- |
-  | Codex managed-worktree task created with its initial commission | `accepted` after verification | Current root equals the app-created managed worktree; the bound clean revision mode passes; lane-start file write plus Git stage/unstage/cleanup probe passes; no concurrent writer; before any protected gate, the exact top-level live adoption probe owned by `decision-routing.md` is denied with `FORSETI_CODEX_HOOK_ADOPTION=ADOPTED`. |
-  | External controller targeting another worktree | `accepted` after verification | Unique exact target and byte identity when dirty; demonstrated direct write; target-rooted operation; no concurrent writer. |
+  | Current work unit in its selected branch/worktree | `accepted` once | The task's registered root is the sole writable root; reuse through landing while receiver/root/target/material state remain unchanged. No synthetic write/index probe or hook canary. |
+  | New managed-worktree receiver | `accepted` once after creation | The task is created and rooted in its app-managed worktree under explicit task-creation authority; exact/ancestor and dirty-state rules still apply. |
+  | External controller targeting another worktree | `accepted` once after verification | Unique exact target and byte identity when dirty; demonstrated direct write; target-rooted operation; no concurrent writer. |
   | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
   | Local/base-rooted Codex task with command-level `workdir` set to another worktree | `blocked` | A per-command directory override does not change task, hook, sandbox-root, or receiver identity; create the correctly rooted managed task. |
   | Unknown future/manual courier | `preparation_allowed`, dispatch and source loading `blocked` | Keep `receiver_class: receiver_to_bind`; bind and verify a concrete receiver before claiming dispatch readiness. |
-  | Wrongly launched Codex task that creates or finds another worktree | `blocked` as `BLOCKED_RECEIVER_REROOT_REQUIRED` | Do not write the alternate worktree; create a new user-authorized Codex managed-worktree task with the commission in its initial prompt. |
+  | Wrongly launched Codex task that creates or finds another worktree | route or `BLOCKED_RECEIVER_REROOT_REQUIRED` | Automatically use an already-authorized capable managed task; block only when none exists or new authority is required. |
   | Dirty, ambiguous, byte-mismatched, or concurrently written target | `blocked` | Resolve exact target/state and eliminate concurrent writing; missing evidence is not a pass. |
 
-  This matrix accepts semantic user authorization for a new task or handoff when
+  The binding is re-resolved only when receiver/task/root or material target
+  state changes, capability is genuinely unknown, or an observed mismatch or
+  dirty-state change invalidates it. This matrix accepts semantic user authorization for a new task or handoff when
   the visible instruction explicitly requests it; generic `proceed` alone is
   not task-creation authority. It does not weaken the Codex registered non-
   current-worktree denial or turn receipt fields into self-certifying proof.
@@ -91,8 +93,8 @@ inherit this floor.
   requires a clean worktree and a zero exit from
   `git merge-base --is-ancestor <required_revision> HEAD`. `ancestor` is valid
   only where the commission explicitly permits an advancing lane; it never
-  satisfies an existing exact gate. The observed live-probe denial is the hook
-  adoption evidence; no persisted adoption field can clear this gate.
+  satisfies an existing exact gate. Live hook-adoption probing is reserved for
+  a commission whose purpose is that adoption test, never routine lane proof.
 - Review-routing disposition gate: a change that touches code roots
   (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`
@@ -344,18 +346,15 @@ triggers, not permission to add a telemetry ledger or silently change scope.
   `.agents/workflow-overlay/prompt-orchestration.md`.
 - Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Forseti overlay file.
 - Source-resolution gate: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy must not be imported.
-- Worktree preflight gate: prompts state workspace, revision or hash,
-  dirty-state allowance, target scope, and edit permission only when repository
-  state matters. Before a repo-changing cross-lane dispatch loads receiver
-  sources, resident judgment applies the class-specific acceptance matrix above
-  and the receipt in `.agents/workflow-overlay/decision-routing.md`. Codex
-  managed tasks require current-root equality and the lane-start write/index
-  proof; only an external direct-write controller may use the two-root route;
-  collaboration is same-root; an unknown courier is preparation-only. Naming or
-  reading another worktree is not write proof. A genuine binding/capability
-  failure returns `BLOCKED_RECEIVER_REROOT_REQUIRED` without bypassing the guard;
-  a wrongly launched Codex task recovers through a newly authorized managed-
-  worktree task carrying the initial commission, not self-rerooting.
+- Writable-root gate: same-lane prompts point to the active one-time binding;
+  they do not repeat root receipts, write/index probes, canaries, or capability
+  recitals. A new/external receiver or changed binding carries the class-specific
+  evidence in `decision-routing.md`. Only `external_direct_write` may use the
+  two-root route; collaboration is same-root; an unknown courier is preparation-
+  only. Naming or reading another worktree is not a reroot. A pre-edit mismatch
+  routes automatically to an already-authorized managed task when available and
+  returns `BLOCKED_RECEIVER_REROOT_REQUIRED` only when no capable authorized
+  route exists or a new binding cannot be established.
   The mechanically checkable commission shell is enforced by the existing
   `.agents/hooks/check_prompt_output_mode.py`: changed filed prompts use its
   diff-scoped `--strict` mode, and chat/courier authoring gates the frozen
@@ -526,12 +525,14 @@ checkout only when it proves direct access to the exact effective target under
 the owning two-root rule. Do not add a registry, daemon, or static prompt
 checker that pretends it can prove a future receiver's runtime capability.
 
-The Codex live adoption probe is the matching fail-closed runtime assertion:
+The Codex live adoption probe remains available only when hook adoption testing
+is itself commissioned. In that test it is a fail-closed runtime assertion:
 the live `PreToolUse` adapter denies one exact harmless top-level command with
 the stable adopted marker, while absent/unloaded wiring executes the adapter's
 direct fallback and exits nonzero with the stable not-intercepted marker. This
-proves only adoption for that live task; it is not persisted state, trust
-metadata, or a Forseti-owned substitute for Codex's project-hook trust UI.
+proves only adoption for that live task; it is not routine work-unit preflight,
+persisted state, trust metadata, or a Forseti-owned substitute for Codex's
+project-hook trust UI.
 
 The managed-receiver commission shape check is EP-38 and reuses
 `.agents/hooks/check_prompt_output_mode.py` rather than adding a standalone

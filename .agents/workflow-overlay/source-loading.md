@@ -115,9 +115,10 @@ For bounded work that stays in the current interaction:
    otherwise require broad search.
 4. Run the full Cynefin router only when
    `.agents/workflow-overlay/decision-routing.md` triggers it.
-5. Before delegating repo-changing work, run the receiver-mechanism/write-root
-   check in `.agents/workflow-overlay/decision-routing.md`; do not load the
-   receiver's task sources first and discover a known write-root mismatch later.
+5. Before an independent repo-changing delegate loads task sources, establish
+   its one-time writable-root binding under `decision-routing.md`. Same-lane
+   work points to the active binding; it does not repeat root or capability
+   proof unless the binding changed or became genuinely uncertain.
 6. Check repository state, isolation, and validation only to the depth material
    to the task and its claims.
 7. Add a durable start receipt only when the work crosses one of the receipt

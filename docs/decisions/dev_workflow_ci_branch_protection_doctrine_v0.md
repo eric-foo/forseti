@@ -111,18 +111,14 @@ At that historical point, this record did not assert that any server-side gate w
    A handoff-only packet is transport rather than a publication work unit until item 15's landing
    condition is met; this exception does not apply to implementation, doctrine, code, or another
    independently publishable artifact.
-   **Codex/sandboxed lane-start writeability (harness-scoped, not a Claude Code rule).** For Codex or
-   any sandboxed harness whose writes are mediated by workspace writable roots, the lane is not ready
-   for repo-changing edits until the active worktree is the harness workspace root (or otherwise
-   owner-configured as a writable root) and a lane-start write + git-index preflight passes in that
-   worktree. The preflight writes a throwaway file, stages it, unstages it, deletes it, and reads
-   `git status --short`; failure to create, stage, unstage, or cleanly remove the probe is a stop
-   condition: reroot/reopen the harness on the active worktree, or create a new owner-configured
-   writable worktree and retry. Escalated writes are a bounded fallback for the current operation only,
-   not the normal lane path. This is Codex/sandboxed-harness scoped; it does **not** add a mandatory
-   lane-start probe to Claude Code lanes whose harness already writes to their active worktree and
-   reports write failures directly. Avoid relying on nested or secondary writable roots for Codex on
-   Windows unless this preflight passes.
+   **One-time writable-root binding.** At the first repo-changing act, select isolation under
+   `decision-routing.md`: branch in the current checkout for clean solo/sequential work; a task rooted
+   in a managed worktree for dirty-base, concurrent, or independent work; neither for read-only work.
+   Bind that task's registered root once as the work unit's sole writable root and reuse it through
+   landing. Do not repeat synthetic file-write/index probes or hook canaries unless capability is
+   genuinely unknown or hook adoption testing is the commissioned task. A command `workdir`, absolute
+   path, or `git -C` never reroots a task. The Codex registered non-current-worktree write guard remains
+   fail-closed as the deterministic backstop; an observed write failure or guard denial remains visible.
 
    **Codex/manual patch discipline.** For Codex `apply_patch`, generated diffs, or manual textual
    replacement flows, a corrupt patch, failed hunk, or expected-text mismatch is a stop-and-reread
