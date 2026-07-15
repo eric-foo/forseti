@@ -27,6 +27,16 @@ ledger does not imply that PR is merged.
 
 Fix 2 candidate state and its pending trusted-hook gate are recorded below.
 
+Artifact merge readiness is separate from operational Fix 2 readiness. The
+fail-closed detector and receiver-routing contract in PR #963 may land after its
+updated branch diff passes validation and the required independent manual
+review. The live `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED` result shows that
+the detector identifies the unresolved desktop product condition; it is not an
+adoption pass. Landing the detector does not pass Fix 2 or release the three-
+cold-agent trial or Fix 3. Those gates remain closed until a fresh managed
+receiver returns `FORSETI_CODEX_HOOK_ADOPTION=ADOPTED` and completes the bound
+protected checks.
+
 ## Baseline
 
 Three oracle-free snapshots at fixture commit
