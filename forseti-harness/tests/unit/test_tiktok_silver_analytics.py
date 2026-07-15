@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from cleaning.audience_extractor import RawApiProvider
+from cleaning.raw_model_transport import RawApiProvider
 from cleaning.tiktok_silver_analytics import (
     build_comment_classification_prompt,
     classify_comments,

@@ -162,6 +162,20 @@ def test_runner_appends_once_and_ack_skips_unchanged_packet(tmp_path) -> None:
     assert len(list(lane.iterdir())) == 2
 
 
+def test_runner_packet_selector_does_not_drain_unrelated_pending_packet(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    selected = _commit_batch_packet(data_root, videos=[_comment_video()])
+    unrelated = _commit_batch_packet(data_root, videos=[_comment_video()])
+
+    result = run_comment_attention(data_root=data_root, packet_ids=[selected])
+
+    assert [row["packet_id"] for row in result if row["status"] == "derived"] == [selected]
+    unrelated_lane = data_root.lane_dir(
+        subtree="derived", raw_anchor=unrelated, lane=COMMENT_ATTENTION_LANE
+    )
+    assert not unrelated_lane.exists()
+
+
 def test_runner_acknowledges_grid_packet_as_not_applicable(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     packet_id = _admit_grid(

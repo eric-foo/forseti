@@ -18,6 +18,9 @@ authority_boundary: retrieval_only
   on 2026-07-05; DEPLOYED/ACTIVATED for the Claude Code runtime,
   project-scoped — not user-global). See `## Accepted Forseti-Local Candidate
   Skills` below.
+- Forseti has one additional owner-authorized local candidate source,
+  `creator-audience-triangulation`. It supplies the narrow onboarding/on-demand
+  firing point only; it is not accepted/frozen or externally deployed.
 - Forseti retains `orca-product-lead` as a legacy compatibility wrapper for one
   transition window. It is an alias into `forseti-product-lead`, not the primary
   skill identity.
@@ -135,6 +138,23 @@ behavior was not proven in-thread.
   rollback path for any adoption validation.
 - Missing overlay authority must fail visibly when a reusable skill requires
   project facts.
+
+## Owner-Authorized Candidate Sources
+
+- `creator-audience-triangulation`
+  - Source path: `.agents/skills/creator-audience-triangulation/SKILL.md`.
+  - Normalized LF sha256: `947c70e002fcc4e6609d1eef4765e86511d30b4c3c9720285962e90036992318`
+    (observed 2026-07-15 after source creation).
+  - Scope: full TikTok creator onboarding after Bronze admission, or explicit
+    generation/refresh of one creator's transcript-plus-comment audience
+    triangulation. Comparisons, copy critique, presentation review, comment
+    analysis, Silver maintenance, and capture debugging are negative triggers.
+  - Collision: no same-name repo/project, user Codex/Agents/Claude, or installed
+    plugin skill directory was observed before creation on 2026-07-15.
+  - Boundary: Forseti-local source only; not accepted/frozen, not user-global,
+    not plugin-installed, and no external deployment claim.
+  - Rollback: remove this source and this candidate record. Do not modify
+    plugin, installed-cache, user-level, or external skill source.
 
 ## Accepted Forseti-Local Candidate Skills
 

@@ -11,7 +11,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -22,8 +22,12 @@ from capture_spine.creator_profile_current.tiktok_grid_observation_producer impo
     TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE,
     derive_tiktok_grid_observation_set,
 )
-from data_lake.consumption import append_ack, pickup, reconcile_availability_per_packet
+from data_lake.consumption import append_ack, is_acknowledged, pickup, reconcile_availability_per_packet
 from data_lake.root import DataLakeRoot, DataLakeRootError
+from source_capture.tiktok.batch_packet import (
+    TIKTOK_BATCH_CAPTURE_SURFACE,
+    TIKTOK_BATCH_GRID_WINDOW_JSON_NAME,
+)
 from source_capture.tiktok.grid_packet import TIKTOK_GRID_WINDOW_JSON_NAME
 
 _ACK_NAMESPACE = SOCIAL_METRIC_OBSERVATION_SET_LANE
@@ -45,17 +49,27 @@ def _grid_input(
 ) -> tuple[dict[str, Any], dict[str, Any], str, str] | None:
     loaded = data_root.load_raw_packet(packet_id)
     source_surface = str(loaded.manifest.get("source_surface") or "")
-    if source_surface != TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE:
+    if source_surface not in {
+        TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE,
+        TIKTOK_BATCH_CAPTURE_SURFACE,
+    }:
         return None
+    expected_name = (
+        TIKTOK_BATCH_GRID_WINDOW_JSON_NAME
+        if source_surface == TIKTOK_BATCH_CAPTURE_SURFACE
+        else TIKTOK_GRID_WINDOW_JSON_NAME
+    )
     matches = [
         item
         for item in loaded.manifest.get("preserved_files", [])
         if isinstance(item, Mapping)
-        and _staged_artifact_name(item) == TIKTOK_GRID_WINDOW_JSON_NAME
+        and _staged_artifact_name(item) == expected_name
     ]
+    if not matches and source_surface == TIKTOK_BATCH_CAPTURE_SURFACE:
+        return None
     if len(matches) != 1:
         raise ValueError(
-            f"packet {packet_id} requires exactly one {TIKTOK_GRID_WINDOW_JSON_NAME}"
+            f"packet {packet_id} requires exactly one {expected_name}"
         )
     preserved = dict(matches[0])
     file_id = str(preserved.get("file_id") or "")
@@ -110,16 +124,34 @@ def _observed_at(payload: Mapping[str, Any], manifest: Mapping[str, Any]) -> str
     raise ValueError("TikTok grid packet lacks a source-backed capture timestamp")
 
 
-def run_tiktok_grid_observations(*, data_root: DataLakeRoot) -> list[dict[str, Any]]:
+def run_tiktok_grid_observations(
+    *, data_root: DataLakeRoot, packet_ids: Sequence[str] | None = None
+) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     results.extend(reconcile_availability_per_packet(data_root))
-    for item in pickup(
+    requested = set(packet_ids or ())
+    items = list(pickup(
         data_root,
         ack_namespace=_ACK_NAMESPACE,
         obligation_fn=lambda packet_id: _obligation(data_root, packet_id),
         source_family=_SOURCE_FAMILY,
         reconcile=False,
-    ):
+    ))
+    if requested:
+        items = [item for item in items if item.raw_anchor in requested]
+        selected = {item.raw_anchor for item in items}
+        for packet_id in sorted(requested - selected):
+            obligation = _obligation(data_root, packet_id)
+            if is_acknowledged(
+                data_root,
+                raw_anchor=packet_id,
+                ack_namespace=_ACK_NAMESPACE,
+                obligation=obligation,
+            ):
+                results.append({"packet_id": packet_id, "status": "already_current"})
+            else:
+                results.append({"packet_id": packet_id, "status": "not_pending_or_unavailable"})
+    for item in items:
         packet_id = item.raw_anchor
         try:
             grid_input = _grid_input(data_root, packet_id)
@@ -211,23 +243,26 @@ def pending_packets(*, data_root: DataLakeRoot) -> list[str]:
     ]
 
 
-def run_catchup(*, data_root: DataLakeRoot) -> list[dict[str, Any]]:
-    return run_tiktok_grid_observations(data_root=data_root)
+def run_catchup(
+    *, data_root: DataLakeRoot, packet_ids: Sequence[str] | None = None
+) -> list[dict[str, Any]]:
+    return run_tiktok_grid_observations(data_root=data_root, packet_ids=packet_ids)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", default=None)
+    parser.add_argument("--packet-id", action="append", dest="packet_ids")
     args = parser.parse_args(argv)
     try:
         data_root = DataLakeRoot.resolve(explicit=args.data_root)
-        results = run_catchup(data_root=data_root)
+        results = run_catchup(data_root=data_root, packet_ids=args.packet_ids)
     except DataLakeRootError as exc:
         parser.exit(status=2, message=f"data lake unavailable: {exc}\n")
     print(json.dumps(results, indent=2, sort_keys=True))
     # Allowlist exit semantics (matching the catch-up siblings): any unexpected
     # status -- including availability_reconcile_failed -- fails the exit code.
-    return 0 if all(row.get("status") in {"derived", "not_applicable"} for row in results) else 1
+    return 0 if all(row.get("status") in {"derived", "not_applicable", "already_current"} for row in results) else 1
 
 
 if __name__ == "__main__":

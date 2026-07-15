@@ -50,7 +50,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "TIKTOK_GRID_OBSERVATION_PRODUCER_SCHEMA_VERSION",
             "TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT",
         ),
-        "e1714a525c01eddf23f0498993b6d8b987b9dd6aaf078f98354ec1acfe706acd",
+        # Output-shaping v1: admitted onboarding batch grid windows now produce
+        # the same packet-grain metric set and prior not-applicable acks resurface.
+        "77cc704f5c618c6e57140eb2df91e673480f1ff4308e809cfb2a0f3baa7cf1d9",
     ),
     "cleaning/basenotes.py": (
         ("BASENOTES_CLEANING_METHOD_ID (cleaning/basenotes_lake.py)",),
@@ -97,7 +99,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/transcript_product_extractor.py": (
         ("EXTRACTOR_RUBRIC_VERSION",),
-        "2301b2977bfcdeaa5963bc4e30b0b4c6adcc6d76075d8dda0d9351eb08d4d08c",
+        # Import-only transport relocation; output-shaping rubric is unchanged.
+        "45a1878754192b6cab344fc11d74770851e19c49f46741947e7ac3378136054f",
     ),
     "cleaning/transcript_product_lake.py": (
         ("EXTRACTOR_RUBRIC_VERSION (cleaning/transcript_product_extractor.py)", "PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
@@ -105,18 +108,6 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # record/completion identity now binds the full policy fingerprint; the
         # PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION bump to v2 re-surfaces V1 records.
         "10cc4eb51d7f8c5307d02eb96ff606c70d8af70318574ef3ce59641093b3ea99",
-    ),
-    "cleaning/tiktok_audience_evidence_extractor.py": (
-        ("RUBRIC_VERSION",),
-        # Output-shaping: transcript packing now isolates creators; v1 forces
-        # existing packets to re-surface under the new batching policy.
-        "83d3e1cee3918c17e8de496128c1a2f5efed33fb347feab23f57bd74e9a45ad1",
-    ),
-    "cleaning/tiktok_audience_evidence_lake.py": (
-        ("RUBRIC_VERSION", "RECORD_SCHEMA_VERSION", "PROFILE_SCHEMA_VERSION"),
-        # Output-shaping: evidence moved to the envelope and the synthesized profile
-        # became explicitly non-authoritative analysis; schema tokens ride obligations.
-        "ac60324de1685d98a23c553de172f9f0c3425da682a8b0e42ba9d56cf2ae7278",
     ),
     "ecr/deriver.py": (
         ("ECR_DERIVER_VERSION",),

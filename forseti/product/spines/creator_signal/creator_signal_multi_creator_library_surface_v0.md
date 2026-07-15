@@ -107,7 +107,7 @@ profiles_total=33
 platform_account_profiles=33
 creator_record_profiles=0
 cross_platform_rollup_profiles=0
-profiles_with_ideal_audience_profiles=0
+profiles_with_audience_triangulation=0
 platforms=youtube:30,instagram:3
 posting_cadence=not_attempted:33
 recent_velocity=not_attempted:33
@@ -330,10 +330,10 @@ this contract lands. When built, it:
   observed-metric sorting, sample-support cues, declared-deferred metric
   states (`posting_cadence`/`recent_velocity` shown as not-yet-available),
   and non-claims affordances, using the 33 rows currently committed;
-- **may not** invent populated `ideal_audience_profile`, `creator_record`,
+- **may not** invent populated `audience_triangulation`, `creator_record`,
   cross-platform rollup, `posting_cadence`, or `recent_velocity` states, or
   any outreach/lead-list state, since none of those exist in the current data
-  (`profiles_with_ideal_audience_profiles: 0`,
+  (`profiles_with_audience_triangulation: 0`,
   `creator_record_profiles: 0`, `cross_platform_rollup_profiles: 0`,
   `posting_cadence`/`recent_velocity` both `not_attempted: 33`);
 - **may not** invent or imply resolution for a `candidate_public_account_link`

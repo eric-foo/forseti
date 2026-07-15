@@ -36,9 +36,11 @@ aggression as the copy posture and allowed commercial rhetoric including “the
 obvious next bottle,” “the commenters her videos attract,” and “protect it and
 it pays you back.”
 
-This fixes product and presentation doctrine. It does not authorize runtime or
-schema changes, capture, model/API use, publishing, outreach, or buyer contact,
-and it is not buyer proof, validation, or a performance guarantee.
+This fixes product and presentation doctrine. It does not authorize live
+capture, model API use, publishing, outreach, or buyer contact, and it is not
+buyer proof, validation, or a performance guarantee. The bounded
+subscription-only runtime and Creator Registry join described below were
+separately authorized on 2026-07-15.
 
 ## Required Authoring Companion
 
@@ -98,6 +100,34 @@ when the first-screen copy compresses it into one commercial profile.
 
 A packet named “Gold-ready” or similar is still an evidence handoff; its name
 does not move subjective audience conclusions into Silver.
+
+## Runtime And Onboarding Binding
+
+The smallest complete runtime is now bound as follows:
+
+1. a user-authorized full TikTok onboarding admits one deep-capture packet to
+   Bronze;
+2. packet-scoped grid-observation and comment-attention producers write
+   persisted Silver mechanics for exactly that packet;
+3. `run_tiktok_creator_audience_triangulation.py prepare` creates a transient,
+   creator-isolated transcript/comment evidence bundle and prompt, while the
+   derived lake retains only its assembly receipt;
+4. one cold subscription-agent context returns one creator's JSON Judgment;
+   model API calls are forbidden;
+5. the validator closes claims over exact evidence IDs and the resulting
+   `creator_audience_triangulation_snapshot_v0` joins Creator Registry under
+   `audience_triangulation`.
+
+Both transcript cues and captured top-level comments are mandatory. If either
+is absent, the run ends as `INCOMPLETE_AUDIENCE_EVIDENCE` and writes no partial
+Judgment or registry profile. On-demand refresh reuses an explicit or latest
+complete admitted packet and does not recapture by default.
+
+The Forseti-local firing-point source is
+`.agents/skills/creator-audience-triangulation/SKILL.md`. Its trigger is full
+onboarding or an explicit generate/refresh request; comparisons, copy critique,
+presentation review, generic comment analysis, and routine Silver work are
+negative triggers.
 
 ## Evidence And Inference Rules
 
@@ -266,16 +296,13 @@ direction_change_propagation:
     - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
     - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
-    - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
     - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
     - docs/workflows/forseti_repo_map_v0.md
     - AGENTS.md
     - .agents/workflow-overlay/README.md
   intentionally_not_updated:
-    - path: forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
-      reason: Its platform-specific content-fit output remains a valid input; this contract adds observed-participant and commercial-projection layers without rewriting that extraction spec.
-    - path: forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
-      reason: It continues to own the current-view join and nullable snapshot envelope; this docs-only product contract does not authorize a new record shape.
+    - path: historical Git revisions of the retired ideal-audience inference path
+      reason: Historical provenance remains in Git; current routing and executable authority were removed during direct cutover.
     - path: docs/workflows/forseti_repo_map_v0.md
       reason: The existing Creator Signal spine route and updated spine README are sufficient; a per-file T1 row would violate map economy.
     - path: docs/prompts/handoffs/judgment_spine_read_machinery_architecture_handoff_v0.md
