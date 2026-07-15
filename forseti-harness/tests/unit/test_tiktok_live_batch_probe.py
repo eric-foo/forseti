@@ -3171,6 +3171,132 @@ def test_overlay_route_uses_exact_profile_grid_subtitle_source() -> None:
     assert subtitle_url not in json.dumps(result)
 
 
+def test_overlay_route_uses_exact_react_video_subtitle_source() -> None:
+    video_id = "7390000000000000001"
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+    subtitle_url = "https://v16-webapp.tiktok.com/react-subtitle.webvtt"
+    subtitle_body = (
+        b"WEBVTT\n\n"
+        b"00:00:00.000 --> 00:00:01.000\n"
+        b"React transcript recovered\n"
+    )
+    fetched_urls: list[str] = []
+    capture = _success_observation(
+        video_id=video_id,
+        response=_comment_response(video_id=video_id),
+    )
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": False,
+            "visible_comment_candidates": [],
+            "subtitle_tracks": [],
+            "react_video_subtitle_source": {
+                "id": video_id,
+                "video": {
+                    "subtitleInfos": [
+                        {
+                            "Format": "webvtt",
+                            "LanguageCodeName": "eng-US",
+                            "Url": subtitle_url,
+                        }
+                    ]
+                },
+            },
+        }
+    )
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[video_url],
+        logged_out=True,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=lambda _index, _pending: (video_url, capture),
+        grid_candidates_by_video_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": video_url,
+                "author": {"uniqueId": "funmi"},
+                "stats": {"playCount": 1000},
+            }
+        },
+        subtitle_fetcher=lambda url: fetched_urls.append(url) or subtitle_body,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    row = result["cadence_result"]["results"][0]
+    assert fetched_urls == [subtitle_url]
+    assert row["capture_receipt"]["item_struct_present"] is False
+    assert (
+        row["capture_receipt"]["field_provenance"]["subtitles"]
+        == "overlay_react_video_info"
+    )
+    assert row["subtitle"]["success"] is True
+    assert row["subtitle"]["parsed_webvtt"]["cue_count"] == 1
+    assert (
+        row["subtitle"]["parsed_webvtt"]["transcript_text"]
+        == "React transcript recovered"
+    )
+    assert subtitle_url not in json.dumps(result)
+
+
+def test_overlay_route_rejects_mismatched_react_video_subtitle_source() -> None:
+    video_id = "7390000000000000001"
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+    capture = _success_observation(video_id=video_id)
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": True,
+            "visible_comment_candidates": [],
+            "subtitle_tracks": [],
+            "react_video_subtitle_source": {
+                "id": "7390000000000000002",
+                "video": {"subtitleInfos": []},
+            },
+        }
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="overlay React subtitle source id does not match",
+    ):
+        live_batch_probe.run_tiktok_live_batch_probe(
+            creator_handle="funmi",
+            creator_profile_url="https://www.tiktok.com/@funmi",
+            video_urls=[video_url],
+            logged_out=True,
+            cadence_min_gap_seconds=0,
+            cadence_max_gap_seconds=0,
+            capture_route="grid_tile_overlay",
+            page_capture_sequence_fn=lambda _index, _pending: (
+                video_url,
+                capture,
+            ),
+            grid_candidates_by_video_id={
+                video_id: {
+                    "video_id": video_id,
+                    "video_url": video_url,
+                    "stats": {"playCount": 1000},
+                }
+            },
+            sleep_fn=lambda _seconds: None,
+        )
+
+
 def test_overlay_route_rejects_mismatched_profile_grid_subtitle_source() -> None:
     video_id = "7390000000000000001"
     video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
