@@ -18,7 +18,7 @@ is harness-specific.
 | Script | When | Effect |
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) direct push-to-main, force-push, `reset --hard`, `git clean`, protected external-root writes, and explicit rebase starts on a mechanically confirmed published lane. A direct `gh pr merge <N>` is allowed only for the current lane branch when the PR targets `main`, is same-repo, `CLEAN`, all checks are green, carries `agent-automerge`, and has no `risk/blocked-for-merge-policy` hold. `risk/manual-review-required` keeps the unattended bot out but does not choose a human actor after the resident completion/review gate closes. Benign lane pushes, published-lane fetch-plus-merge updates, and rebase recovery remain allowed. Fires in **all** permission modes. Non-merge probes fail open on internal error; merge authorization fails closed. |
-| `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, and blocks raw shell durable-write primitives for repo source/docs files. |
+| `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, blocks raw shell durable-write primitives for repo source/docs files, and exposes the fail-closed live adoption probe below. |
 | `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it mirrors ten selected strict CI gates over local `origin/main...HEAD`, including the conditional harness coupling contracts. CI runs the same gate modes against its exact event base SHA. A gate failure or launch error blocks the push. Bypassable with `--no-verify`; misses GitHub API merges; CI stays authoritative. |
 | `check_harness_coupling.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped adapter over existing inventory and policy-pin contract tests. It runs only when the outgoing change touches `forseti-harness/**/*.py` or `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json`; an unresolvable diff or unlaunchable test fails closed. Coupling preflight only: not the full harness suite, validation, readiness, or proof that every CI failure is prevented. `--selftest` present. |
 | `check_source_input_hashes.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: list-style JSON `source_inputs[]` records with repo-local `source_pointer` + `sha256` must match current file bytes (CRLF-normalized), and source-capture packet manifests (top-level `manifest_version`) must have top-level `preserved_files[]` records whose `relative_packet_path` + `sha256` match current raw stored bytes resolved against the manifest's own directory, when the artifact or referenced file changed. Provenance freshness only; never semantic validation, generated-artifact completeness, readiness, or source quality. Backlog via `--audit`; `--selftest` present. |
@@ -180,6 +180,28 @@ shape:
   }
 }
 ```
+
+Before a Codex managed-worktree task relies on the tracked project hook for a
+protected gate, run this exact command as a top-level shell tool call from that
+task's root, without a command-level `workdir` override:
+
+```powershell
+python .codex/hooks/forseti_guard_codex_adapter.py --live-adoption-probe
+```
+
+- A live adopted `PreToolUse` hook denies the tool call with exactly
+  `FORSETI_CODEX_HOOK_ADOPTION=ADOPTED`; the command body does not run.
+- An absent or unloaded hook allows direct argv execution, which exits `3` and
+  emits exactly `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`.
+- Any allowed execution, wrapper invocation, different marker, or inferred
+  latency result is a failed adoption gate. The observed probe result is the
+  state; do not persist a trust/adoption record.
+
+Do not place the probe in a wrapper: `PreToolUse` sees the wrapper command, not
+its grandchild. Codex owns project-hook trust/adoption for managed and existing
+worktree tasks. If it requires review, use only the normal Codex trust/hooks UI
+and reload flow, then rerun the probe; Forseti cannot synthesize trust and must
+not edit Codex trust metadata.
 
 It also parses Codex `apply_patch` headers (`*** Add/Update/Delete File:` and
 `*** Move to:`) and checks those paths through the EP-01 protected-path rule,

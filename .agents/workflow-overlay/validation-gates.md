@@ -74,9 +74,10 @@ inherit this floor.
 
   | Commission state | Acceptance result | Required evidence or recovery |
   | --- | --- | --- |
-  | Codex managed-worktree task created with its initial commission | `accepted` after verification | Current root equals the app-created managed worktree; bound starting ref/revision and clean or allowed state match; lane-start file write plus Git stage/unstage/cleanup probe passes; no concurrent writer. |
+  | Codex managed-worktree task created with its initial commission | `accepted` after verification | Current root equals the app-created managed worktree; the bound clean revision mode passes; lane-start file write plus Git stage/unstage/cleanup probe passes; no concurrent writer; before any protected gate, the exact top-level live adoption probe owned by `decision-routing.md` is denied with `FORSETI_CODEX_HOOK_ADOPTION=ADOPTED`. |
   | External controller targeting another worktree | `accepted` after verification | Unique exact target and byte identity when dirty; demonstrated direct write; target-rooted operation; no concurrent writer. |
   | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
+  | Local/base-rooted Codex task with command-level `workdir` set to another worktree | `blocked` | A per-command directory override does not change task, hook, sandbox-root, or receiver identity; create the correctly rooted managed task. |
   | Unknown future/manual courier | `preparation_allowed`, dispatch and source loading `blocked` | Keep `receiver_class: receiver_to_bind`; bind and verify a concrete receiver before claiming dispatch readiness. |
   | Wrongly launched Codex task that creates or finds another worktree | `blocked` as `BLOCKED_RECEIVER_REROOT_REQUIRED` | Do not write the alternate worktree; create a new user-authorized Codex managed-worktree task with the commission in its initial prompt. |
   | Dirty, ambiguous, byte-mismatched, or concurrently written target | `blocked` | Resolve exact target/state and eliminate concurrent writing; missing evidence is not a pass. |
@@ -85,6 +86,13 @@ inherit this floor.
   the visible instruction explicitly requests it; generic `proceed` alone is
   not task-creation authority. It does not weaken the Codex registered non-
   current-worktree denial or turn receipt fields into self-certifying proof.
+  For clean repo-changing receivers, the `revision_mode` assertions are exact:
+  `exact` requires a clean worktree and `HEAD == required_revision`; `ancestor`
+  requires a clean worktree and a zero exit from
+  `git merge-base --is-ancestor <required_revision> HEAD`. `ancestor` is valid
+  only where the commission explicitly permits an advancing lane; it never
+  satisfies an existing exact gate. The observed live-probe denial is the hook
+  adoption evidence; no persisted adoption field can clear this gate.
 - Review-routing disposition gate: a change that touches code roots
   (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`
@@ -507,6 +515,13 @@ write boundary. An independent external controller may use a different launch
 checkout only when it proves direct access to the exact effective target under
 the owning two-root rule. Do not add a registry, daemon, or static prompt
 checker that pretends it can prove a future receiver's runtime capability.
+
+The Codex live adoption probe is the matching fail-closed runtime assertion:
+the live `PreToolUse` adapter denies one exact harmless top-level command with
+the stable adopted marker, while absent/unloaded wiring executes the adapter's
+direct fallback and exits nonzero with the stable not-intercepted marker. This
+proves only adoption for that live task; it is not persisted state, trust
+metadata, or a Forseti-owned substitute for Codex's project-hook trust UI.
 
 Active instance: the retrieval-header check
 (`.agents/hooks/check_retrieval_header.py`, EP-06) enforces
