@@ -10,10 +10,82 @@ from data_lake.silver_census import (
     build_silver_observation_census,
 )
 from data_lake.silver_record import append_silver_record, silver_content_hash
+from schemas.audience_comment_models import AudienceComment
+from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
+from source_capture.ig_reels_deep_capture_lake import (
+    AUDIENCE_COMMENTS_LANE,
+    DEEP_CAPTURE_SET_LANE,
+    REEL_TRANSCRIPT_LANE,
+    write_reel_deep_capture_into_lake,
+)
 
 PACKET = "01KW2MJM01Y0936VNECWB3MHSD"
 PARFUMO_PACKET = "01KW2MJM01Y0936VNECWB3MHSE"
 OBSERVED_AT = "2026-07-15T00:00:00Z"
+
+
+def test_census_separates_current_source_backed_deep_capture_from_historical_audit_only(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    comment = AudienceComment(
+        comment_id="c1",
+        reel_shortcode="ReelCurrent",
+        author_username="ana",
+        text="exact comment",
+        like_count=2,
+        created_at_unix=1784073600,
+    )
+    substrate = (
+        json.dumps(
+            {
+                "pk": "c1",
+                "user": {"username": "ana"},
+                "text": "exact comment",
+                "comment_like_count": 2,
+                "created_at": 1784073600,
+                "__typename": "XIGComment",
+            }
+        )
+        + "\n"
+    ).encode()
+    write_reel_deep_capture_into_lake(
+        data_root=root,
+        result=ReelDeepCaptureResult(
+            reel_shortcode="ReelCurrent",
+            comments=(comment,),
+            transcript_posture="transcribed",
+            transcript_cues=({"start_ms": 0, "end_ms": 1000, "text": "exact audio"},),
+            media_url_used="https://cdn.example/expiring.mp4?token=secret",
+            comment_substrate=substrate,
+            audio_bytes=b"exact-audio-bytes",
+            audio_ext="mp4",
+        ),
+        generated_at=OBSERVED_AT,
+    )
+    root.append_record_set(
+        subtree="derived",
+        raw_anchor="ReelLegacy",
+        record_id="legacy.json",
+        members={
+            AUDIENCE_COMMENTS_LANE: b'{"reel_shortcode":"ReelLegacy","comments":[]}\n',
+            REEL_TRANSCRIPT_LANE: b'{"reel_shortcode":"ReelLegacy","cues":[]}\n',
+        },
+        completion_lane=DEEP_CAPTURE_SET_LANE,
+    )
+
+    census = build_silver_observation_census(root)
+
+    assert census["totals"]["deep_capture_current_source_backed_records"] == 2
+    assert census["totals"]["deep_capture_historical_audit_only_records"] == 2
+    assert census["totals"]["deep_capture_current_completion_markers"] == 1
+    assert census["totals"]["deep_capture_historical_audit_only_completion_markers"] == 1
+    assert len(census["audit_only_residuals"]) == 3
+    marker_state = next(
+        state for state in census["lane_states"] if state["lane"] == DEEP_CAPTURE_SET_LANE
+    )
+    assert marker_state["current_source_backed_record_count"] == 1
+    assert marker_state["historical_audit_only_record_count"] == 1
 
 
 def _manifest(
