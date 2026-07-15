@@ -356,6 +356,13 @@ triggers, not permission to add a telemetry ledger or silently change scope.
   failure returns `BLOCKED_RECEIVER_REROOT_REQUIRED` without bypassing the guard;
   a wrongly launched Codex task recovers through a newly authorized managed-
   worktree task carrying the initial commission, not self-rerooting.
+  The mechanically checkable commission shell is enforced by the existing
+  `.agents/hooks/check_prompt_output_mode.py`: changed filed prompts use its
+  diff-scoped `--strict` mode, and chat/courier authoring gates the frozen
+  rendered body through `--validate-stdin` before use. This check covers only
+  exact authorization shape, binding consistency, prohibited manual/repeated
+  creation directives, and typed source-load failure; it does not prove live
+  receiver identity, capability, source freshness, or writer isolation.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Forseti
   sources as clean, modified, untracked, stale, or not checked when those
@@ -522,6 +529,14 @@ the stable adopted marker, while absent/unloaded wiring executes the adapter's
 direct fallback and exits nonzero with the stable not-intercepted marker. This
 proves only adoption for that live task; it is not persisted state, trust
 metadata, or a Forseti-owned substitute for Codex's project-hook trust UI.
+
+The managed-receiver commission shape check is EP-38 and reuses
+`.agents/hooks/check_prompt_output_mode.py` rather than adding a standalone
+checker. It rejects a filed or stdin-rendered prompt that self-declares the
+mechanically decidable trigger but omits or contradicts the exact bounded
+authorization shell owned by `prompt-orchestration.md`. Its positive trigger is
+the prompt's own declared fields, not an inference about the requested act; a
+green result never certifies those fields or any future receiver state.
 
 Active instance: the retrieval-header check
 (`.agents/hooks/check_retrieval_header.py`, EP-06) enforces
@@ -756,73 +771,69 @@ markdown sibling of the EP-37 JSON gate. Registered in
 
 ## Direction Change Propagation
 
-
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Repo-map validation now includes a resident T1 admission gate: central-map
-    row additions or material expansions must name their architecture-owned T1
-    class and explain why the existing area, submap, header, or generated-index
-    route is insufficient. Mechanical retrieval checks remain limited to shape,
-    reachability, freshness, and header contracts and make no admission claim.
-  trigger: workflow_authority
+    Managed-receiver commission validity now has a deterministic authoring and
+    filed-prompt shell: self-declared implementation-authorized, not-yet-verified
+    Codex managed commissions must carry the exact single-use authorization;
+    contradictory stop/manual/repeat routes and stale-source fallbacks fail loud.
+  trigger: validation_philosophy
   related_triggers:
-    - validation_philosophy
+    - workflow_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
-    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/check_prompt_output_mode.py
+    - .agents/hooks/check_prompt_provenance.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/decision-routing.md
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/retrieval-metadata.md
-    - .agents/hooks/check_map_links.py
-    - .agents/hooks/check_repo_map_freshness.py
-    - .agents/hooks/header_index.py
     - .agents/hooks/README.md
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - docs/decisions/forseti_repo_map_architecture_mgt_v0.md
-    - docs/workflows/artifact_retrievability_guide.md
+    - .agents/hooks/pre_push_guard.py
+    - .github/workflows/ci.yml
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
     - path: AGENTS.md
       reason: >
-        The kernel already routes validation and repo-map architecture to their
-        owners; duplicating the row-admission test would fork the rule.
-    - path: .agents/hooks/check_map_links.py
+        The kernel already routes prompt contracts, receiver binding, and
+        validation placement to their owning overlay files.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
       reason: >
-        Path validity and ancestor-area reachability are objective; whether a
-        route belongs in T1 is semantic judgment and cannot be inferred safely
-        from path shape.
-    - path: .agents/hooks/check_repo_map_freshness.py
+        PR #963 already owns the complete semantic rule; this change enforces its
+        mechanically decidable shell and must not duplicate or fork that prose.
+    - path: .agents/workflow-overlay/decision-routing.md
       reason: >
-        The checker detects structural omission and description drift. Making it
-        approve central-map content would create a fake semantic success path.
-    - path: .agents/hooks/header_index.py
+        The receiver classes, manual-worktree prohibition, and runtime preflight
+        remain unchanged; the new gate references rather than restates them.
+    - path: .agents/hooks/README.md
       reason: >
-        It remains the generated per-doc catalog and header-health surface; it
-        does not decide central-map admission.
-    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+        Explicit current-lane overlap exclusion: Fixes 3-5 changed this file, so
+        this lane did not touch it. The existing row remains true for EP-11 but
+        does not yet enumerate the EP-38 extension.
+    - path: docs/workflows/forseti_repo_map_v0.md
       reason: >
-        The placement principle already keeps judgment-based rules resident;
-        no substrate classification or implementation authority changed.
+        Its Active Hooks routes already point to the unchanged checker directory,
+        CI, validation owner, and placement record; no path or T1 route changed.
   stale_language_search: >
-    rg -n -i "per-doc index|per-file inventory|row-per-doc|T1 admission|valid path"
-    AGENTS.md .agents docs/decisions/forseti_repo_map_architecture_mgt_v0.md
-    docs/workflows/forseti_repo_map_v0.md docs/workflows/artifact_retrievability_guide.md
+    rg -n -i "do not create another worktree|receiver_creation_authorization|receiver_to_verify|fallback.*project-owned|SOURCE_CONTEXT_INCOMPLETE"
+    AGENTS.md .agents docs/prompts docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-12 on the authoring branch. Defining hits are confined to
-    the architecture decision, the new central-map admission section, and this
-    controlling validation rule/receipt. AGENTS.md, the remaining overlay, and
-    the retrievability guide contain no competing permission to treat path
-    validity as T1 admission. The harder product-tree report found zero
-    uncovered Markdown-bearing folders; its five unresolved open_next findings
-    are pre-existing product-corpus pointer debt outside this map-boundary work.
+    Executed 2026-07-16 on the authoring branch. No filed prompt contains an
+    existing managed-receiver commission (`receiver_creation_authorization` or
+    `receiver_to_verify`), and no live prompt/overlay source contains the
+    wrong-task-stop plus no-create form or a project-owned stale-memory fallback.
+    Defining hits are confined to the existing routing/prompt owners, this
+    validation receipt, and the new checker/test fixtures.
   non_claims:
-    - not validation
     - not readiness
-    - not proof that every admitted row is semantically correct
-    - not a mechanical T1-admission checker
-    - not an amendment to the repo-map architecture decision
+    - not proof of receiver identity, capability, dispatch, or writer isolation
+    - not standing or repeated task-creation authority
+    - not a replacement for runtime receiver preflight
 ```
 
 ```yaml

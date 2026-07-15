@@ -29,6 +29,27 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-16: EP-38 managed-receiver commission shell built
+
+EP-38 classifies the deterministic shell of the already-landed Implementation
+Commission Receiver-Creation Clause as **PARTIAL**. The trigger is limited to a
+prompt's own declared `implementation-authorized`, `codex_managed_worktree`, and
+not-yet-verified binding fields. Exact single-use authorization tokens, binding
+field equality, absence from read-only commissions, prohibited positive manual
+or repeated creation directives, and typed source-load failure are substrate
+shape. Whether those declarations truthfully classify the act, whether source
+loading really failed, and whether a future receiver is correctly rooted,
+writable, current, or writer-isolated remain resident/runtime judgment.
+
+The build extends the existing diff-scoped prompt checker
+`.agents/hooks/check_prompt_output_mode.py` and adds a gating `--validate-stdin`
+mode for frozen chat/courier bodies. It does not create the standalone checker,
+registry, task API, or persisted receiver state prohibited by
+`.agents/workflow-overlay/decision-routing.md`. The existing CI and pre-push
+commands inherit the filed-prompt check without new wiring. Placement is not
+authority: green proves only the parsed shell, never receiver validity,
+dispatch, task count in the product runtime, source freshness, or readiness.
+
 ## Update — 2026-07-11: Batch 2 closeout-obligation placement decision (no build)
 
 Batch 2 examined two independent consequential misses before choosing an

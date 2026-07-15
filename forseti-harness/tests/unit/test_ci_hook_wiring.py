@@ -23,6 +23,7 @@ DECISION_ROUTING_PATH = REPO_ROOT / ".agents" / "workflow-overlay" / "decision-r
 PROMPT_ORCHESTRATION_PATH = (
     REPO_ROOT / ".agents" / "workflow-overlay" / "prompt-orchestration.md"
 )
+PROMPT_GATE_PATH = REPO_ROOT / ".agents" / "hooks" / "check_prompt_output_mode.py"
 HOOK_README_PATH = REPO_ROOT / ".agents" / "hooks" / "README.md"
 HOOK_ADOPTION_ADOPTED = "FORSETI_CODEX_HOOK_ADOPTION=ADOPTED"
 HOOK_ADOPTION_NOT_INTERCEPTED = "FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED"
@@ -55,6 +56,14 @@ def _load_pre_push_guard():
 
 def _load_harness_coupling():
     spec = importlib.util.spec_from_file_location("check_harness_coupling", HARNESS_COUPLING_PATH)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_prompt_gate():
+    spec = importlib.util.spec_from_file_location("check_prompt_output_mode", PROMPT_GATE_PATH)
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -165,6 +174,63 @@ def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> 
     )
 
 
+def test_managed_receiver_commission_gate_rejects_contradictions() -> None:
+    gate = _load_prompt_gate()
+    receiver = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        "receiver_binding:",
+        "  receiver_class: codex_managed_worktree",
+        "  binding_state: receiver_to_verify",
+        "  managed_starting_ref: origin/main",
+        "  required_revision: 8cb44d080334453c384e39bc88fce510cbccfcde",
+        "  revision_mode: ancestor",
+    ]
+    corrected_authorization = [
+        "receiver_creation_authorization:",
+        "  authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+        "  condition: current_task_not_receiver_verified",
+        "  managed_starting_ref: origin/main",
+        "  required_revision: 8cb44d080334453c384e39bc88fce510cbccfcde",
+        "  revision_mode: ancestor",
+        "  initial_prompt: this_frozen_commission_verbatim",
+        "  dispatch: immediate_same_turn",
+    ]
+
+    defective = receiver + [
+        "If this current task is not the receiver, stop; do not create another worktree.",
+        "If the controlling prompt contract cannot be freshly loaded, fall back to project-owned prompt rules.",
+    ]
+    defective_findings = gate.evaluate_managed_receiver_lines("defective.md", defective)
+    defective_kinds = {finding.kind for finding in defective_findings}
+    assert "managed_receiver_creation_authorization_count" in defective_kinds
+    assert "source_context_failure_not_typed" in defective_kinds
+    assert "stale_source_fallback" in defective_kinds
+    assert any("wrong-task stop" in finding.detail for finding in defective_findings)
+
+    corrected = receiver + corrected_authorization + [
+        "If a controlling source cannot be freshly loaded, declare SOURCE_CONTEXT_INCOMPLETE and stop.",
+        "Do not manually create, discover, or target a Git worktree.",
+        "Do not create a second receiver.",
+    ]
+    assert gate.evaluate_managed_receiver_lines("corrected.md", corrected) == []
+
+    read_only = [line.replace("implementation-authorized", "read-only") for line in receiver]
+    assert gate.evaluate_managed_receiver_lines("read_only.md", read_only) == []
+    assert any(
+        finding.kind == "receiver_creation_authority_on_read_only_commission"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "read_only_bad.md", read_only + corrected_authorization
+        )
+    )
+
+    manual = corrected + ["Run `git worktree add ../receiver origin/main` and continue there."]
+    assert any(
+        finding.kind == "manual_git_worktree_substitution"
+        for finding in gate.evaluate_managed_receiver_lines("manual.md", manual)
+    )
+
+
 def test_every_pre_push_gate_is_the_same_command_ci_runs() -> None:
     guard = _load_pre_push_guard()
     ci_commands = {
@@ -182,7 +248,7 @@ def test_observed_fast_failure_classes_are_mirrored_pre_push() -> None:
     guard = _load_pre_push_guard()
     names = {name for name, _command in guard.SELECTED_GATES}
     assert {
-        "prompt output-mode",
+        "prompt contract shape",
         "review-output provenance",
         "handoff-pointer resolution",
         "ontology tag validity",

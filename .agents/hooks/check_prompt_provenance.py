@@ -72,7 +72,10 @@ REMINDER = (
     "template targets are prompt-shaping labels, never runtime-model routing.\n"
     "  3. Edit permission + targets + branch -- read-only/docs-write/patch-only/"
     "implementation-authorized; target files or dirs; workspace, branch, and "
-    "dirty-state when repository state matters.\n"
+    "dirty-state when repository state matters. Before using a durable or "
+    "cross-recipient implementation-authorized codex_managed_worktree commission, "
+    "gate its rendered body with `python .agents/hooks/check_prompt_output_mode.py "
+    "--validate-stdin`; a green shape check never replaces receiver preflight.\n"
     "  4. Reviews -- findings-first by default; bind any formal verdict, severity, "
     "or patch queue explicitly; no runtime-model recommendation, ranking, or "
     "implication.\n"
@@ -172,6 +175,8 @@ def selftest() -> int:
          and reminder_for("docs/decisions/a_v0.md", False) is None),
         ("short pointer stays short",
          len(SHORT_REMINDER) < len(REMINDER) // 3),
+        ("full reminder carries managed-receiver authoring gate",
+         "--validate-stdin" in REMINDER and "codex_managed_worktree" in REMINDER),
     ]
     for label, passed in throttle_cases:
         if not passed:
