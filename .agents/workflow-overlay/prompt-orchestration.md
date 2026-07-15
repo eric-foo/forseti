@@ -32,7 +32,7 @@ govern when their task-specific triggers apply. State, per prompt:
 
 1. **Output mode** — exactly one of `chat-only` · `file-write` · `review-report` · `paste-ready-chat` · `patch-queue`, plus its write/report destination.
 2. **Template kind** — the bound template from `.agents/workflow-overlay/template-registry.md`, or `none`; template targets are prompt-shaping labels, never runtime-model routing.
-3. **Edit permission · targets · branch** — `read-only` | `docs-write` | `patch-only` | `implementation-authorized`; target files or dirs; workspace, branch, and dirty-state allowance when repository state matters.
+3. **Edit permission · targets · branch** — `read-only` | `docs-write` | `patch-only` | `implementation-authorized`; target files or dirs; workspace, branch, and dirty-state allowance when repository state matters. Planning or scoping is a phase, not an authority downgrade: preserve `implementation-authorized` when the commissioning instruction grants it, and apply the receiver-creation clause below when that commission selects a not-yet-verified Codex managed receiver.
 4. **Reviews** — findings-first by default; bind any formal verdict, severity, or patch queue explicitly; no runtime-model recommendation, ranking, or implication.
 5. **Doctrine change** — work that changes product, architecture, workflow, validation, review, or output doctrine, or a lifecycle boundary, carries a `direction_change_propagation` receipt or blocker (`.agents/workflow-overlay/source-of-truth.md`).
 6. **Destinations** — the input prompt source the receiver treats as run-authoritative (canonical artifact path, lane PR body/comment, or ignored scratch path), and the exact output-artifact path it writes when the mode writes a durable artifact.
@@ -242,8 +242,45 @@ as an unnamed specialization of routine depth:
   doctrine-changing, materially ambiguous or dirty, complex-output-routing,
   first-of-kind, or owner-invoked Mini God Tier. These are routing conditions,
   not user-facing modes. A missing eligibility fact routes to the full
-  `workflow-prompt-orchestrator` contract or the nearest honest blocker; do not
-  invent it.
+   `workflow-prompt-orchestrator` contract or the nearest honest blocker; do not
+   invent it.
+
+### Implementation Commission Receiver-Creation Clause
+
+Every durable or cross-recipient commission with edit permission
+`implementation-authorized` that selects `codex_managed_worktree` and may begin
+in a task that is not the verified receiver must make the task-creation request
+explicit in the visible commission. Include this bounded block next to the
+single `receiver_binding` receipt:
+
+```yaml
+receiver_creation_authorization:
+  authorization: create_exactly_one_fresh_codex_managed_worktree_task
+  condition: current_task_not_receiver_verified
+  managed_starting_ref: "<bound ref>"
+  required_revision: "<commit>"
+  revision_mode: exact | ancestor
+  initial_prompt: this_frozen_commission_verbatim
+  dispatch: immediate_same_turn
+```
+
+This block is the commission's explicit user request to create at most one task;
+`implementation-authorized` by itself is not task-creation authority. When the
+condition is observed, create and dispatch that one managed-worktree task in the
+same turn with the frozen commission as its initial prompt, then stop repo-
+changing work in the original task. Do not ask for a confirmation phrase. If
+creation fails or the created receiver fails its bound preflight, return the
+observed blocker and do not create a second task.
+
+The block is commission-local, conditional, and single-use. It grants no
+standing task-creation permission and must not appear in a truly read-only,
+scoping-only, or review-only commission. Planning or scoping inside an
+implementation-authorized commission does not change its declared authority:
+route and status output must retain the implementation authorization. The
+status `current_turn_authorization: read_only_scoping_only` is valid only when
+the current user instruction or accepted handoff is actually read-only; it is a
+prompt-quality defect when emitted merely because planning or scoping happened
+before the authorized implementation.
 
 **Forseti precedence bridge.** A resolver-loaded generic prompt or
 delegated-review skill supplies task-local method mechanics, not Forseti routing
@@ -313,11 +350,12 @@ Prompt rendering and dispatch are separate states. A prompt with
 `receiver_class: receiver_to_bind` may be returned for a manual unknown courier,
 but it must label itself preparation-only, must not claim dispatch readiness,
 and must block receiver source loading until rebound to a verified concrete
-class. When the visible user instruction explicitly requests a new task,
-managed worktree, or handoff, that semantic intent authorizes creation without a
-magic phrase or a second chat confirmation; create the Codex task in its managed
-worktree and submit this commission in the same creation operation. Generic
-`proceed` alone is not task-creation authority.
+class. An implementation-authorized commission using the managed receiver route
+must carry the explicit `receiver_creation_authorization` block above; when its
+condition fires, create the Codex task in its managed worktree and submit the
+frozen commission in the same creation operation without a second chat
+confirmation. Generic `proceed`, implementation authority without the block,
+and every read-only/scoping-only/review-only commission remain insufficient.
 
 The default receiving output is chat or the lane PR/comment. Do not require a
 durable review report, `review_summary` courier, provenance checker, full source
@@ -722,6 +760,9 @@ Every escalated prompt must state:
   while `receiver_to_verify`, but dispatch/source loading requires the observed
   effective target, class-appropriate capability proof, and no-concurrent-writer
   state;
+- the commission-local `receiver_creation_authorization` block above when an
+  implementation-authorized managed receiver may need to be created from the
+  visible commission;
 - dirty-state allowance and whether untracked files are in scope;
 - controlling-source state when strict claims depend on Forseti overlay,
   source-loading, repo-map, prompt-policy, validation, or artifact-role files:
@@ -782,9 +823,12 @@ Receiving preflight follows this order:
 7. Return `BLOCKED_RECEIVER_REROOT_REQUIRED` only when the binding or capability
    genuinely fails: absent/ambiguous/inaccessible/byte-mismatched target,
    missing write proof, concurrent writing, or an unsatisfied target-root guard.
-   For a wrongly launched Codex task, the recovery action is a newly created,
-   user-authorized managed-worktree task carrying this commission as its initial
-   prompt—not a self-created/discovered worktree plus an impossible reroot.
+   For a wrongly launched Codex task, execute the commission-local one-task
+   creation authorization immediately when present: create the managed-worktree
+   task at the bound revision with the frozen commission as its initial prompt.
+   When that explicit block is absent, or the one allowed creation fails, return
+   the blocker instead—not a self-created/discovered worktree plus an impossible
+   reroot and not a request for magic confirmation words.
 
 This resolver is discovery of the commissioned source, not permission to use an
 alternate branch, recreated copy, context pack, or summary as review evidence.
@@ -877,7 +921,7 @@ Before using a generated Forseti prompt, apply these gates:
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
-4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters. Repo-changing cross-lane work carries the single `receiver_binding` receipt before receiver source loading. Acceptance is class-specific: Codex managed tasks prove current-root equality plus state/write-index capability; external controllers prove exact-target two-root identity, direct write, and no concurrent writer; collaboration remains same-root; unknown receivers remain preparation-only. A prompt fails this gate when it applies external two-root discovery to a wrongly launched Codex task, substitutes path/read access for write proof, or claims dispatch readiness while `receiver_to_bind` or `receiver_to_verify`.
+4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters. Repo-changing cross-lane work carries the single `receiver_binding` receipt before receiver source loading. An implementation-authorized managed-receiver commission that may need rerooting also carries the exact one-task `receiver_creation_authorization` block; a read-only, scoping-only, or review-only commission must not carry it. Acceptance is class-specific: Codex managed tasks prove current-root equality plus state/write-index capability; external controllers prove exact-target two-root identity, direct write, and no concurrent writer; collaboration remains same-root; unknown receivers remain preparation-only. A prompt fails this gate when it applies external two-root discovery to a wrongly launched Codex task, substitutes path/read access for write proof, downgrades implementation authority merely because planning or scoping occurred, omits the required one-task creation block, grants broader or repeated task creation, or claims dispatch readiness while `receiver_to_bind` or `receiver_to_verify`.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source-capsule budget satisfied: source capsules stay within
