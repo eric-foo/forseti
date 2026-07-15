@@ -119,7 +119,7 @@ DEFAULT_YOUTUBE_SEED_PATH = (
     / "youtube_shorts_fragrance_creator_metric_seed_v0.json"
 )
 
-METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricobservation_v1"
+METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricobservation_v2"
 METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricrollupobservation_v1"
 
 _OBS_PRODUCER_ID = (
@@ -135,6 +135,7 @@ _SOURCE_SURFACE = "youtube_shorts"
 _YOUTUBE_BRONZE_SOURCE_FAMILY = "youtube"
 _YOUTUBE_BRONZE_SOURCE_SURFACE = "youtube_watch_metadata_comments"
 _BRONZE_AR_RAW_REF_KIND = "bronze_attachment_record"
+_RAW_STORED_BYTES_HASH_BASIS = "raw_stored_bytes"
 _RAW_PACKET_FALLBACK_MISSING_AR_REF_KIND = "raw_packet_fallback_missing_attachment_record"
 _RAW_PACKET_FALLBACK_AMBIGUOUS_AR_REF_KIND = "raw_packet_fallback_ambiguous_attachment_record"
 _MISSING_AR_LIMITATION = "typed_attachment_record_missing_for_raw_ref"
@@ -537,7 +538,7 @@ def _raw_ref(
         "source_file": seed_observation.get("source_file"),
         "source_row_id": seed_observation.get("source_row_id_or_none"),
         "sha256": evidence_hash,
-        "hash_basis": evidence_hash_basis,
+        "hash_basis": _RAW_STORED_BYTES_HASH_BASIS,
         "evidence_sha256": evidence_hash,
         "shorts_html_sha256": seed_observation.get("source_shorts_html_sha256_or_none"),
     }

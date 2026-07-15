@@ -71,10 +71,12 @@ def materialize_youtube_seed_sources(
     *,
     wrapper_key: str,
 ) -> dict[str, Any]:
-    """Copy a seed and bind every observation to one real temp-lake packet.
+    """Copy a seed and bind every observation to one synthetic temp-lake packet.
 
     Metric facts and observation identities stay unchanged. Only provenance that
-    points at the unavailable private historical lake is rebound for unit tests.
+    points at the unavailable private historical lake is rebound. This is
+    structural verifier proof only; it does not prove that private-lake seed
+    sources resolve.
     """
     copied = deepcopy(seed_document)
     body = b'{"fixture":"youtube creator metric source"}'

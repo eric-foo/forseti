@@ -6,6 +6,7 @@ and the front-door refuses to persist one (raises before any bytes are written).
 from __future__ import annotations
 
 from pathlib import Path
+from copy import deepcopy
 import hashlib
 import json
 
@@ -169,6 +170,7 @@ def _commit_source(root: DataLakeRoot, *, body: bytes = b"source") -> Path:
                         "relative_packet_path": "preserved/source.bin",
                         "size_bytes": len(body),
                         "sha256": hashlib.sha256(body).hexdigest(),
+                        "hash_basis": "raw_stored_bytes",
                     }
                 ],
             }
@@ -251,6 +253,92 @@ def test_validate_rejects_raw_ref_without_explicit_source_posture() -> None:
     _rehash(record)
 
     with pytest.raises(SilverRecordError, match="ref_type"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_rejects_raw_ref_with_non_raw_bytes_basis() -> None:
+    record = _text_record()
+    record["raw_refs"] = [
+        {
+            "ref_type": "raw_packet",
+            "packet_id": _PACKET_ID,
+            "sha256": "a" * 64,
+            "hash_basis": "source_captured_watch_html_sha256",
+        }
+    ]
+    _rehash(record)
+
+    with pytest.raises(SilverRecordError, match="raw_stored_bytes"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_bronze_ref_requires_raw_bytes_basis_and_matching_body_hash() -> None:
+    record = _text_record()
+    ref = {
+        "ref_type": "bronze_attachment_record",
+        "packet_id": _PACKET_ID,
+        "attachment_record_id": "ar_test",
+        "source_family": "youtube",
+        "source_surface": "youtube_watch_metadata_comments",
+        "sha256": "a" * 64,
+        "body_sha256": "a" * 64,
+        "hash_basis": "raw_stored_bytes",
+    }
+    record["raw_refs"] = [ref]
+    _rehash(record)
+    validate_silver_vault_record(record)
+
+    wrong_basis = deepcopy(record)
+    wrong_basis["raw_refs"][0]["hash_basis"] = "derived_record_bytes"
+    _rehash(wrong_basis)
+    with pytest.raises(SilverRecordError, match="raw_stored_bytes"):
+        validate_silver_vault_record(wrong_basis)
+
+    wrong_body_hash = deepcopy(record)
+    wrong_body_hash["raw_refs"][0]["body_sha256"] = "b" * 64
+    _rehash(wrong_body_hash)
+    with pytest.raises(SilverRecordError, match="body_sha256 must equal sha256"):
+        validate_silver_vault_record(wrong_body_hash)
+
+
+def test_validate_derived_hash_pairs_are_independent_and_closed() -> None:
+    address = {
+        "raw_anchor": _PACKET_ID,
+        "lane_namespace": _SILVER_LANE,
+        "record_id": "source.json",
+    }
+    sha_pair = {
+        **address,
+        "sha256": "a" * 64,
+        "hash_basis": "derived_record_bytes",
+    }
+    content_pair = {
+        **address,
+        "content_hash": f"sha256:{'b' * 64}",
+        "content_hash_basis": "canonical_json_excluding_content_hash",
+    }
+    for ref in (sha_pair, content_pair, {**sha_pair, **content_pair}):
+        record = _metric_record()
+        record["raw_refs"] = []
+        record["derived_refs"] = [ref]
+        _rehash(record)
+        validate_silver_vault_record(record)
+
+    wrong_sha_basis = {**sha_pair, "hash_basis": "raw_stored_bytes"}
+    record = _metric_record()
+    record["raw_refs"] = []
+    record["derived_refs"] = [wrong_sha_basis]
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match="derived_record_bytes"):
+        validate_silver_vault_record(record)
+
+    wrong_content_basis = {
+        **content_pair,
+        "content_hash_basis": "derived_record_bytes",
+    }
+    record["derived_refs"] = [wrong_content_basis]
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match="canonical_json_excluding_content_hash"):
         validate_silver_vault_record(record)
 
 
@@ -445,7 +533,7 @@ def test_append_silver_record_verifies_exact_derived_ref_and_hash(tmp_path: Path
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     _commit_source(root)
     source = _text_record()
-    append_silver_record(
+    source_path = append_silver_record(
         root,
         raw_anchor=_PACKET_ID,
         lane=_SILVER_LANE,
@@ -460,6 +548,8 @@ def test_append_silver_record_verifies_exact_derived_ref_and_hash(tmp_path: Path
             "raw_anchor": _PACKET_ID,
             "lane_namespace": _SILVER_LANE,
             "record_id": source["record_id"],
+            "sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
+            "hash_basis": "derived_record_bytes",
             "content_hash": source["content_hash"],
             "content_hash_basis": source["content_hash_basis"],
         }
@@ -474,6 +564,52 @@ def test_append_silver_record_verifies_exact_derived_ref_and_hash(tmp_path: Path
         record=dependent,
     )
     assert path.is_file()
+
+
+@pytest.mark.parametrize("claim", ["sha256", "content_hash"])
+def test_append_silver_record_rejects_wrong_derived_hash_before_write(
+    tmp_path: Path, claim: str
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    _commit_source(root)
+    source = _text_record()
+    source_path = append_silver_record(
+        root,
+        raw_anchor=_PACKET_ID,
+        lane=_SILVER_LANE,
+        record_id=source["record_id"],
+        record=source,
+    )
+    dependent = _metric_record()
+    dependent["lane_namespace"] = "derived_metric_silver"
+    dependent["raw_refs"] = []
+    ref = {
+        "raw_anchor": _PACKET_ID,
+        "lane_namespace": _SILVER_LANE,
+        "record_id": source["record_id"],
+        "sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
+        "hash_basis": "derived_record_bytes",
+        "content_hash": source["content_hash"],
+        "content_hash_basis": "canonical_json_excluding_content_hash",
+    }
+    ref[claim] = f"sha256:{'f' * 64}" if claim == "content_hash" else "f" * 64
+    dependent["derived_refs"] = [ref]
+    _rehash(dependent)
+
+    with pytest.raises(SilverRecordError, match="tampered"):
+        append_silver_record(
+            root,
+            raw_anchor=_PACKET_ID,
+            lane=dependent["lane_namespace"],
+            record_id=dependent["record_id"],
+            record=dependent,
+        )
+    assert not root.record_path(
+        subtree="derived",
+        raw_anchor=_PACKET_ID,
+        lane=dependent["lane_namespace"],
+        record_id=dependent["record_id"],
+    ).exists()
 
 
 def test_append_silver_record_set_rejects_unresolved_member_before_any_write(

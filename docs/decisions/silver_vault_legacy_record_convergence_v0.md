@@ -58,7 +58,10 @@ Before persistence, the Silver front door verifies:
 - the complete common header and write-target binding (`raw_anchor`, lane, record id);
 - the canonical content hash and explicit hash basis;
 - at least one raw or derived reference whose exact claimed source physically
-  resolves and verifies, with hash/basis coupling;
+  resolves and verifies: raw and Bronze body hashes use exact saved bytes with
+  `raw_stored_bytes`; derived saved-byte hashes use `derived_record_bytes`, while
+  derived canonical content hashes independently use
+  `canonical_json_excluding_content_hash` with no cross-pair fallback;
 - closed record kind, payload kind, and no Cleaning transform ledger in the fact;
 - Text/Metric observation posture, row counts, row identity, inline-text hashes, and
   policy fingerprints;
@@ -91,6 +94,9 @@ re-derivation. Partial sets remain visible and are never acknowledged as complet
   this change does not make owner-gated LLM work automatic.
 - No live data-lake migration is performed by this implementation. Existing
   committed packets re-derive only when the normal runner is invoked.
+- The 196-observation YouTube unit fixture is explicitly synthetic structural
+  proof of the physical verifier and does not show that private-lake seed sources
+  resolve. The focused watch-HTML proof likewise uses a temporary committed packet.
 
 ## Success signals
 
@@ -149,4 +155,35 @@ direction_change_propagation:
     - not recovery of unavailable records
     - not a replacement Bronze producer
     - not validation or production readiness
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The existing physical-authority rule now closes each hash claim to its exact
+    byte interpretation: raw and Attachment Record sha256 claims use
+    raw_stored_bytes; derived sha256 claims use derived_record_bytes; and derived
+    content_hash claims independently use canonical_json_excluding_content_hash.
+    The two derived pairs may coexist but never alias or satisfy one another.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - docs/decisions/silver_vault_legacy_record_convergence_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti-harness/data_lake/silver_record.py
+    - forseti-harness/data_lake/silver_lineage.py
+    - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+    - forseti-harness/tests/unit/test_silver_record.py
+    - forseti-harness/tests/unit/test_silver_lineage.py
+    - forseti-harness/tests/unit/test_youtube_creator_metric_silver_producer.py
+  intentionally_not_updated:
+    - path: forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
+      reason: Its emitted hash semantics already match raw_stored_bytes.
+  non_claims:
+    - not a new Silver envelope
+    - not a new source lane, registry, migration, recapture, or reprocessing
+    - not proof that unavailable private-lake records have recovered
+    - not validation, Mini God Tier, or production readiness
 ```

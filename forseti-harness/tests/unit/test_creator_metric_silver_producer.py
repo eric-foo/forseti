@@ -159,6 +159,7 @@ def _commit_default_raw_packet(data_root: DataLakeRoot) -> None:
                         "relative_packet_path": "raw/01.json",
                         "size_bytes": len(_RAW_BODY),
                         "sha256": _RAW_SHA256,
+                        "hash_basis": "raw_stored_bytes",
                     }
                 ],
             }

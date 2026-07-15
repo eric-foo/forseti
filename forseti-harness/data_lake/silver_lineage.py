@@ -143,7 +143,7 @@ class SilverRawRef(StrictModel):
     file_id: str | None = None
     relative_packet_path: str | None = None
     sha256: str | None = None
-    hash_basis: str | None = None
+    hash_basis: Literal["raw_stored_bytes"] | None = None
     anchor: SilverAnchor = Field(default_factory=SilverAnchor)
     relation: RawRefRelation = "consumed"
 
@@ -199,7 +199,9 @@ class SilverDerivedRef(StrictModel):
     record_id: str
     row_locator: SilverRowLocator | None = None
     sha256: str | None = None
-    hash_basis: str | None = None
+    hash_basis: Literal["derived_record_bytes"] | None = None
+    content_hash: str | None = None
+    content_hash_basis: Literal["canonical_json_excluding_content_hash"] | None = None
     relation: DerivedRefRelation = "consumed"
     record_set_completion_lane: str | None = None
 
@@ -210,13 +212,24 @@ class SilverDerivedRef(StrictModel):
         for field in ("raw_anchor", "lane", "record_id"):
             if not getattr(self, field).strip():
                 raise ValueError(f"SilverDerivedRef.{field} must be non-empty (exact lane+record_id required).")
-        for field in ("sha256", "hash_basis", "record_set_completion_lane"):
+        for field in (
+            "sha256",
+            "hash_basis",
+            "content_hash",
+            "content_hash_basis",
+            "record_set_completion_lane",
+        ):
             value = getattr(self, field)
             if value is not None and not value.strip():
                 raise ValueError(f"SilverDerivedRef.{field} must be non-empty when set.")
         if bool(self.sha256) != bool(self.hash_basis):
             raise ValueError(
                 "SilverDerivedRef.sha256 and hash_basis must both be present or both absent."
+            )
+        if bool(self.content_hash) != bool(self.content_hash_basis):
+            raise ValueError(
+                "SilverDerivedRef.content_hash and content_hash_basis must both be present "
+                "or both absent."
             )
         return self
 

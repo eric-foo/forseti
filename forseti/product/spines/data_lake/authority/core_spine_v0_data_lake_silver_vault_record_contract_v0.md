@@ -160,8 +160,8 @@ Header invariants:
 | `content_hash` | Required durable integrity hash for the canonical record content; hash basis must be explicit and must not include the `content_hash` field itself. |
 | `observed_at` | Time the fact was observed at or about the source. Nullable only for internal relationship records with no source observation time. |
 | `captured_at` | Time Forseti captured the source material or producer input. |
-| `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file and carry `sha256` plus `hash_basis` where the source material is hash-checkable. Source-family payload refs must honor the Bronze intake boundary below. |
-| `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. |
+| `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file. When `sha256` is claimed, it hashes the exact preserved body bytes and its paired `hash_basis` is exactly `raw_stored_bytes`. Source-family payload refs must honor the Bronze intake boundary below. |
+| `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. A claimed `sha256` pairs only with `hash_basis: derived_record_bytes` and hashes the exact saved derived-record bytes. A claimed `content_hash` pairs independently with `content_hash_basis: canonical_json_excluding_content_hash`; either pair may appear, both may coexist, and neither aliases or substitutes for the other. |
 
 ## Bronze Intake And Attachment Record Boundary
 
@@ -183,6 +183,9 @@ verify the body: `attachment_record_id`, schema version, physicalization,
 `packet_id`, packet/body ref, `body_sha256`, `hash_basis`, `source_family`,
 `source_surface`, `payload_kind`, `payload_schema_version`, replay/version pins, and any
 producer-owned provenance required by that producer contract.
+The ref and public catalog row must agree that the body hash is over exact saved
+bytes with `hash_basis: raw_stored_bytes`; altered bytes, a different basis, or a
+different hash make the source physically unresolved.
 
 If no Attachment Record row exists, a Silver producer may cite hash-checkable raw
 packet refs when its contract allows that fallback, but it must make the missing
@@ -576,8 +579,11 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
 3. Every record has `record_kind` and `payload_kind`; source-family row subtype is
    preserved separately when present.
 4. Entity records contain stable identity only; mutable facts are observations.
-5. Every record carries a durable `content_hash` with explicit hash basis, and
-   source refs preserve `sha256` plus `hash_basis` when hash-checkable.
+5. Every record carries a durable `content_hash` with explicit hash basis. Raw
+   and AR-backed refs pair any claimed `sha256` only with
+   `hash_basis: raw_stored_bytes`; derived refs pair `sha256` only with
+   `hash_basis: derived_record_bytes` and independently pair `content_hash` only
+   with `content_hash_basis: canonical_json_excluding_content_hash`.
 6. Metric observations obey posture/value/reason coupling and preserve
    coverage_window where time-series meaning depends on a window.
 7. Missing, blocked, hidden, not-attempted, not-applicable, and outside-window
@@ -602,6 +608,9 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
     surfaces rather than private raw folder semantics.
 16. AR-backed source-family payload refs are body-hash-verifiable, and missing
     AR rows become visible residual/posture instead of inferred absence.
+17. Derived `sha256` and `content_hash` pairs are independently optional where
+    the producer contract permits them, may coexist, and cannot satisfy or fall
+    back to one another during validation or physical verification.
 
 ## Mini God Tier Accepted Residuals
 
@@ -719,58 +728,46 @@ spec_handoff:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    FCR-04 closure: a full Cleaning transformation ledger is processing evidence,
-    not a Silver fact record. Silver record_kind stays closed to
-    entity/relationship/observation and a Cleaning ledger is not an observation
-    payload. The ledger persists as a derived processing-audit sibling under the
-    Data Lake derived-record grammar (shared envelope schema_version
-    cleaning_audit_pack_v0 with a per-source producer_schema_version flavor,
-    record_family processing_audit), filed in a Cleaning-produced lane;
-    post-cleaned cleaned-working-view facts
-    are ordinary Silver records carrying a one-way provenance pointer (lane,
-    record id, content hash) to that audit pack. The audit pack's
-    record_family/audit_kind are local descriptive fields with no Data-Lake-wide
-    dispatch authority unless a generic derived-record envelope is separately
-    ratified.
+    Silver v0 hash bases are closed physical claims. Raw-packet and Bronze
+    Attachment Record sha256 values hash exact preserved body bytes and pair only
+    with raw_stored_bytes. Derived sha256 values hash exact saved derived-record
+    bytes and pair only with derived_record_bytes. A derived content_hash is a
+    separate canonical-record claim paired only with
+    canonical_json_excluding_content_hash; either derived pair may appear, both
+    may coexist, and neither aliases or falls back to the other.
   trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-    - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
+    - docs/decisions/silver_vault_legacy_record_convergence_v0.md
   downstream_surfaces_checked:
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    - forseti-harness/cleaning/fragrantica_lake.py
-    - forseti-harness/tests/test_fragrantica_cleaning_lake_pilot.py
-    - docs/review-outputs/fragrantica_cleaning_adversarial_code_review_v0.md
+    - forseti-harness/data_lake/silver_record.py
+    - forseti-harness/data_lake/silver_lineage.py
+    - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+    - forseti-harness/tests/unit/test_silver_record.py
+    - forseti-harness/tests/unit/test_silver_lineage.py
+    - forseti-harness/tests/unit/test_youtube_creator_metric_silver_producer.py
   intentionally_not_updated:
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
       reason: >
-        Owns derived addressing and explicitly supports new lane-owned derived
-        kinds without enumeration ("New analysis types are added as new derived
-        records"); cleaning_audit_pack_v0 exercises that grammar without changing
-        addressing, so no amendment is needed.
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+        Its raw_stored_bytes rule already owns Attachment Record body hashing;
+        this clarification closes the Silver ref-side interpretation and catalog
+        agreement check without changing the Bronze envelope.
+    - path: forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
       reason: >
-        Derived Result Store slot already lists "Cleaning ledgers" as a derived
-        sibling; the audit pack is that sibling and needs no new slot.
+        Its emitted source-ref hash meaning was already exact raw stored bytes and
+        required no producer-schema change.
   stale_language_search: >
-    rg -n "FragranticaCleaningPacket|silver_vault_record_v0" forseti-harness/cleaning forseti-harness/tests
-  stale_language_search_result: >
-    Executed 2026-06-29 in worktree codex/fragrantica-cleaning after the writer
-    and test edits (rg over forseti-harness *.py). FragranticaCleaningPacket now
-    appears only in the test's negative absence assertion
-    (test_fragrantica_cleaning_lake_pilot.py:112); the FCR-04 mis-fit wrapper is
-    gone from the writer. silver_vault_record_v0 now appears only as the
-    legitimate post-cleaned Silver TextObservation envelope: the writer constant
-    (fragrantica_lake.py:55) and the test assertions (lines 81, 113). No record
-    persists the full CleaningPacket as a Silver vault record.
+    rg -n "raw_stored_bytes|derived_record_bytes|canonical_json_excluding_content_hash|source_evidence_hash_basis"
+    forseti-harness/data_lake forseti-harness/capture_spine/creator_profile_current
+    forseti-harness/tests/unit
   non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not a generic derived-record envelope ratification
-    - not migration of other derived/Cleaning lanes
-    - not landed (lane branch only; no commit/push/PR)
+    - not a Silver envelope version change
+    - not a hash-basis registry or normalization framework
+    - not live-lake migration, recapture, or reprocessing
+    - not proof that private-lake seed sources resolve
+    - not validation or production readiness
 ```
 
 ```yaml

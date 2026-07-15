@@ -91,6 +91,15 @@ def test_raw_ref_sha_without_basis_rejected() -> None:
         SilverRawRef(packet_id="P", sha256="a" * 64)  # hash with no stated basis
 
 
+def test_raw_ref_rejects_non_raw_stored_bytes_basis() -> None:
+    with pytest.raises(ValidationError):
+        SilverRawRef(
+            packet_id="P",
+            sha256="a" * 64,
+            hash_basis="source_captured_watch_html_sha256",
+        )
+
+
 def test_raw_ref_packet_level_without_hash_ok() -> None:
     ref = SilverRawRef(packet_id="P")  # packet-level ref, no specific file -> hash optional
     assert ref.packet_id == "P"
@@ -176,6 +185,50 @@ def test_derived_ref_carries_row_locator() -> None:
     assert ref.model_dump(mode="json")["row_locator"] == {
         "row_id": "row7", "row_kind": "retail_variant_offer"
     }
+
+
+def test_derived_ref_hash_pairs_are_independent() -> None:
+    address = dict(raw_anchor="A", lane="projection_retail_pdp", record_id="rec1")
+    sha_only = SilverDerivedRef(
+        **address, sha256="a" * 64, hash_basis="derived_record_bytes"
+    )
+    content_only = SilverDerivedRef(
+        **address,
+        content_hash=f"sha256:{'b' * 64}",
+        content_hash_basis="canonical_json_excluding_content_hash",
+    )
+    both = SilverDerivedRef(
+        **address,
+        sha256="a" * 64,
+        hash_basis="derived_record_bytes",
+        content_hash=f"sha256:{'b' * 64}",
+        content_hash_basis="canonical_json_excluding_content_hash",
+    )
+
+    assert sha_only.content_hash is None
+    assert content_only.sha256 is None
+    assert both.sha256 and both.content_hash
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"sha256": "a" * 64, "hash_basis": "raw_stored_bytes"},
+        {
+            "content_hash": f"sha256:{'b' * 64}",
+            "content_hash_basis": "derived_record_bytes",
+        },
+        {"content_hash": f"sha256:{'b' * 64}"},
+    ],
+)
+def test_derived_ref_rejects_wrong_or_half_hash_pairs(overrides: dict[str, str]) -> None:
+    with pytest.raises(ValidationError):
+        SilverDerivedRef(
+            raw_anchor="A",
+            lane="projection_retail_pdp",
+            record_id="rec1",
+            **overrides,
+        )
 
 
 # --- controlled limitation tokens (AR-06) ------------------------------------
