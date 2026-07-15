@@ -4,7 +4,10 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from copy import deepcopy
 from typing import Any, Mapping
+
+from pydantic import ValidationError
 
 from schemas.tiktok_audience_evidence_models import CreatorAudienceTriangulationSnapshot
 
@@ -14,6 +17,16 @@ _BANNED_FIRST_SCREEN = re.compile(r"\brituals?\b", re.I)
 _CREATOR_WIDE_EFFECT = re.compile(
     r"\b(generates (?:observed )?engagement|makes products? memorable)\b", re.I
 )
+
+class TriangulationValidationError(ValueError):
+    """One failed response with every independently observable contract defect."""
+
+    def __init__(self, errors: list[str]):
+        self.errors = tuple(errors)
+        super().__init__(
+            "triangulation response failed validation:\n"
+            + "\n".join(f"- {error}" for error in errors)
+        )
 
 
 def build_triangulation_prompt(bundle: Mapping[str, Any]) -> str:
@@ -32,7 +45,8 @@ def build_triangulation_prompt(bundle: Mapping[str, Any]) -> str:
         "non_claims, and actual_audience_demographics exactly not_estimated. The claim set contains claims, "
         "agreements, contradictions, and missing_evidence. Every claim contains claim_id, axis, statement, "
         "commercial_implication, modality, relation, support_scope, representative_evidence_ids, "
-        "all_support_evidence_ids, counterevidence_ids, source_video_ids, and limitation. "
+        "all_support_evidence_ids, counterevidence_ids, and limitation. Omit source_video_ids; "
+        "the validator derives the exact set from all_support_evidence_ids. "
         "axis must be one of category_knowledge, purchase_decision_stage, price_value_posture, "
         "product_brand_affinity, language_community_norms, objections, aspirations_identity, "
         "presentation_style_resonance, engagement_memorability_effect. modality must be one of "
@@ -58,22 +72,84 @@ def _snapshot_id(value: Mapping[str, Any]) -> str:
     ).hexdigest()[:20]
     return f"cats_{digest}"
 
+def _normalize_derived_fields(
+    raw_snapshot: Mapping[str, Any], bundle: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Derive clerical fields without repairing semantic evidence references."""
 
-def validate_triangulation_snapshot(
-    raw_snapshot: Mapping[str, Any] | CreatorAudienceTriangulationSnapshot,
-    bundle: Mapping[str, Any],
-) -> CreatorAudienceTriangulationSnapshot:
-    if isinstance(raw_snapshot, CreatorAudienceTriangulationSnapshot):
-        normalized_raw: Mapping[str, Any] | CreatorAudienceTriangulationSnapshot = raw_snapshot
-    else:
-        normalized = dict(raw_snapshot)
-        normalized["snapshot_id"] = _snapshot_id(normalized)
-        normalized_raw = normalized
-    snapshot = (
-        normalized_raw
-        if isinstance(normalized_raw, CreatorAudienceTriangulationSnapshot)
-        else CreatorAudienceTriangulationSnapshot.model_validate(normalized_raw)
-    )
+    normalized = deepcopy(dict(raw_snapshot))
+    evidence_rows = [
+        *[row for row in bundle.get("transcript_evidence", []) if isinstance(row, Mapping)],
+        *[row for row in bundle.get("comment_evidence", []) if isinstance(row, Mapping)],
+    ]
+    evidence = {str(row.get("evidence_id")): row for row in evidence_rows}
+    claim_set = normalized.get("judgment_claim_set")
+    claims = claim_set.get("claims") if isinstance(claim_set, Mapping) else None
+    if isinstance(claims, list):
+        for claim in claims:
+            if not isinstance(claim, dict):
+                continue
+            support = claim.get("all_support_evidence_ids")
+            if not isinstance(support, list):
+                continue
+            claim["source_video_ids"] = sorted(
+                {
+                    str(evidence[evidence_id].get("video_id"))
+                    for evidence_id in support
+                    if isinstance(evidence_id, str)
+                    and evidence_id in evidence
+                    and evidence[evidence_id].get("video_id")
+                }
+            )
+    normalized["snapshot_id"] = _snapshot_id(normalized)
+    return normalized
+
+
+
+def _collect_raw_reference_errors(
+    raw_snapshot: Mapping[str, Any], bundle: Mapping[str, Any]
+) -> list[str]:
+    evidence_ids = {
+        str(row.get("evidence_id"))
+        for key in ("transcript_evidence", "comment_evidence")
+        for row in bundle.get(key, [])
+        if isinstance(row, Mapping)
+    }
+    claim_set = raw_snapshot.get("judgment_claim_set")
+    claims = claim_set.get("claims") if isinstance(claim_set, Mapping) else None
+    if not isinstance(claims, list):
+        return []
+    errors: list[str] = []
+    for claim in claims:
+        if not isinstance(claim, Mapping):
+            continue
+        claim_id = str(claim.get("claim_id") or "<missing-claim-id>")
+        support_values = claim.get("all_support_evidence_ids")
+        counter_values = claim.get("counterevidence_ids")
+        representative_values = claim.get("representative_evidence_ids")
+        support = set(support_values) if isinstance(support_values, list) else set()
+        counter = set(counter_values) if isinstance(counter_values, list) else set()
+        representatives = (
+            set(representative_values)
+            if isinstance(representative_values, list)
+            else set()
+        )
+        unknown = sorted(
+            str(evidence_id)
+            for evidence_id in (support | counter)
+            if evidence_id not in evidence_ids
+        )
+        if unknown:
+            errors.append(f"claim {claim_id} cites unknown evidence: {unknown!r}")
+        if not representatives <= support:
+            errors.append(
+                f"claim {claim_id} representative evidence is outside full support"
+            )
+    return list(dict.fromkeys(errors))
+def _collect_relational_errors(
+    snapshot: CreatorAudienceTriangulationSnapshot, bundle: Mapping[str, Any]
+) -> list[str]:
+    errors: list[str] = []
     expected = {
         "profile_subject_kind": "platform_account",
         "profile_subject_id": bundle.get("profile_subject_id"),
@@ -86,48 +162,58 @@ def validate_triangulation_snapshot(
     }
     for field, expected_value in expected.items():
         if getattr(snapshot, field) != expected_value:
-            raise ValueError(f"snapshot {field} does not match evidence bundle")
+            errors.append(f"snapshot {field} does not match evidence bundle")
     if snapshot.snapshot_id != _snapshot_id(snapshot.model_dump(mode="json")):
-        raise ValueError("snapshot_id does not match canonical snapshot content")
+        errors.append("snapshot_id does not match canonical snapshot content")
 
     evidence_rows = [
         *[row for row in bundle.get("transcript_evidence", []) if isinstance(row, Mapping)],
         *[row for row in bundle.get("comment_evidence", []) if isinstance(row, Mapping)],
     ]
     evidence = {str(row.get("evidence_id")): row for row in evidence_rows}
-    claims = {claim.claim_id: claim for claim in snapshot.judgment_claim_set.claims}
-    if len(claims) != len(snapshot.judgment_claim_set.claims):
-        raise ValueError("snapshot contains duplicate claim_id values")
+    claim_rows = snapshot.judgment_claim_set.claims
+    claims = {claim.claim_id: claim for claim in claim_rows}
+    if len(claims) != len(claim_rows):
+        errors.append("snapshot contains duplicate claim_id values")
 
-    for claim in claims.values():
+    for claim in claim_rows:
         support = set(claim.all_support_evidence_ids)
         representatives = set(claim.representative_evidence_ids)
         counter = set(claim.counterevidence_ids)
-        if not support <= set(evidence) or not counter <= set(evidence):
-            raise ValueError(f"claim {claim.claim_id} cites unknown evidence")
+        unknown = sorted((support | counter) - set(evidence))
+        if unknown:
+            errors.append(f"claim {claim.claim_id} cites unknown evidence: {unknown!r}")
         if not representatives <= support:
-            raise ValueError(f"claim {claim.claim_id} representative evidence is outside full support")
-        videos = {str(evidence[eid].get("video_id")) for eid in support}
-        if set(claim.source_video_ids) != videos:
-            raise ValueError(f"claim {claim.claim_id} source_video_ids do not close over support")
+            errors.append(
+                f"claim {claim.claim_id} representative evidence is outside full support"
+            )
+        videos = {
+            str(evidence[evidence_id].get("video_id"))
+            for evidence_id in support
+            if evidence_id in evidence and evidence[evidence_id].get("video_id")
+        }
         if claim.support_scope in {"multi_video", "mixed_multi_video"} and len(videos) < 2:
-            raise ValueError(f"claim {claim.claim_id} overstates multi-video support")
+            errors.append(f"claim {claim.claim_id} overstates multi-video support")
         claim_text = f"{claim.statement} {claim.commercial_implication}"
         if _MAJORITY_LANGUAGE.search(claim_text):
-            raise ValueError(f"claim {claim.claim_id} uses unsupported majority language")
+            errors.append(f"claim {claim.claim_id} uses unsupported majority language")
         if _GUARANTEED_OUTCOME.search(claim_text):
-            raise ValueError(f"claim {claim.claim_id} guarantees an unobserved outcome")
+            errors.append(f"claim {claim.claim_id} guarantees an unobserved outcome")
         if _CREATOR_WIDE_EFFECT.search(claim_text) and len(videos) < 2:
-            raise ValueError(f"claim {claim.claim_id} needs two videos for creator-wide effect language")
+            errors.append(
+                f"claim {claim.claim_id} needs two videos for creator-wide effect language"
+            )
         if claim.modality == "engagement_elevated":
-            rows = [evidence[eid] for eid in support]
+            rows = [evidence[evidence_id] for evidence_id in support if evidence_id in evidence]
             if not any(
                 "comment_id" in row
                 and row.get("temporal_alignment") == "same_capture_observation"
                 and row.get("comment_attention_record_id")
                 for row in rows
             ):
-                raise ValueError(f"claim {claim.claim_id} lacks aligned persisted-Silver support")
+                errors.append(
+                    f"claim {claim.claim_id} lacks aligned persisted-Silver support"
+                )
 
     projection = snapshot.creator_signal_projection
     points = [
@@ -141,19 +227,47 @@ def validate_triangulation_snapshot(
     ]
     for point in points:
         if not set(point.claim_ids) <= set(claims):
-            raise ValueError("commercial projection cites unknown claim_id")
+            errors.append("commercial projection cites unknown claim_id")
         if _MAJORITY_LANGUAGE.search(point.statement):
-            raise ValueError("commercial projection uses unsupported majority language")
+            errors.append("commercial projection uses unsupported majority language")
         if _GUARANTEED_OUTCOME.search(point.statement):
-            raise ValueError("commercial projection guarantees an unobserved outcome")
+            errors.append("commercial projection guarantees an unobserved outcome")
         if _BANNED_FIRST_SCREEN.search(point.statement):
-            raise ValueError("commercial projection uses banned first-screen vocabulary: ritual")
+            errors.append("commercial projection uses banned first-screen vocabulary: ritual")
     stamp = projection.robustness_stamp
     if stamp is not None:
         if _MAJORITY_LANGUAGE.search(stamp):
-            raise ValueError("robustness stamp uses unsupported majority language")
+            errors.append("robustness stamp uses unsupported majority language")
         if _GUARANTEED_OUTCOME.search(stamp):
-            raise ValueError("robustness stamp guarantees an unobserved outcome")
+            errors.append("robustness stamp guarantees an unobserved outcome")
+    return list(dict.fromkeys(errors))
+
+
+def validate_triangulation_snapshot(
+    raw_snapshot: Mapping[str, Any] | CreatorAudienceTriangulationSnapshot,
+    bundle: Mapping[str, Any],
+) -> CreatorAudienceTriangulationSnapshot:
+    raw_errors: list[str] = []
+    if isinstance(raw_snapshot, CreatorAudienceTriangulationSnapshot):
+        snapshot = raw_snapshot
+    else:
+        normalized_raw = _normalize_derived_fields(raw_snapshot, bundle)
+        raw_errors = _collect_raw_reference_errors(normalized_raw, bundle)
+        try:
+            snapshot = CreatorAudienceTriangulationSnapshot.model_validate(normalized_raw)
+        except ValidationError as exc:
+            schema_errors = [
+                f"{'.'.join(str(part) for part in error['loc'])}: {error['msg']}"
+                for error in exc.errors(include_url=False)
+            ]
+            raise TriangulationValidationError(
+                list(dict.fromkeys([*raw_errors, *schema_errors]))
+            ) from exc
+    errors = list(
+        dict.fromkeys([*raw_errors, *_collect_relational_errors(snapshot, bundle)])
+    )
+    if errors:
+        raise TriangulationValidationError(errors)
     return snapshot
 
 
@@ -168,6 +282,7 @@ def parse_triangulation_response(text: str, bundle: Mapping[str, Any]) -> Creato
 
 
 __all__ = [
+    "TriangulationValidationError",
     "build_triangulation_prompt",
     "parse_triangulation_response",
     "validate_triangulation_snapshot",

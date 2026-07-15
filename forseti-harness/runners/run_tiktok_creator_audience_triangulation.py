@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -32,6 +34,7 @@ from evidence_binding.tiktok_audience_triangulation import (
     build_creator_audience_evidence_bundle,
 )
 from judgment.tiktok_audience_triangulation import (
+    TriangulationValidationError,
     build_triangulation_prompt,
     parse_triangulation_response,
 )
@@ -39,6 +42,14 @@ from source_capture.tiktok.batch_packet import (
     TIKTOK_BATCH_CAPTURE_JSON_NAME,
     TIKTOK_BATCH_CAPTURE_SURFACE,
 )
+
+from pydantic import ValidationError
+
+from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
+
+
+JUDGMENT_OUTCOME_SCHEMA_VERSION = "creator_audience_judgment_outcome_v0"
+JUDGMENT_OUTCOME_LANE = "creator_audience_judgment_outcome"
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -49,7 +60,10 @@ def _load_object(path: Path) -> dict[str, Any]:
 
 
 def _write_new(path: Path, text: str) -> None:
+    encoded = text.encode("utf-8")
     if path.exists():
+        if path.read_bytes() == encoded:
+            return
         raise FileExistsError(f"refusing to replace existing output: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
@@ -314,6 +328,130 @@ def validate_subscription_judgment(
     }
 
 
+def submit_subscription_judgment(
+    *,
+    data_root: DataLakeRoot,
+    bundle_path: Path,
+    response_bytes: bytes,
+    snapshot_out: Path,
+) -> dict[str, Any]:
+    """Persist an exact response and either one validated snapshot or all blockers."""
+
+    bundle = _load_object(bundle_path)
+    response_sha256 = f"sha256:{hashlib.sha256(response_bytes).hexdigest()}"
+    snapshot_document: dict[str, Any] | None = None
+    snapshot_text: str | None = None
+    validation_errors: list[str] = []
+    try:
+        response_text = response_bytes.decode("utf-8-sig")
+        snapshot = parse_triangulation_response(response_text, bundle)
+        snapshot_document = snapshot.model_dump(mode="json")
+        snapshot_text = (
+            json.dumps(
+                snapshot_document, ensure_ascii=False, indent=2, sort_keys=True
+            )
+            + "\n"
+        )
+    except TriangulationValidationError as exc:
+        validation_errors = list(exc.errors)
+    except ValidationError as exc:
+        validation_errors = [
+            f"{'.'.join(str(part) for part in error['loc'])}: {error['msg']}"
+            for error in exc.errors(include_url=False)
+        ]
+    except (UnicodeDecodeError, ValueError) as exc:
+        validation_errors = [str(exc)]
+
+    status = "validated" if snapshot_document is not None else "blocked"
+    snapshot_sha256 = (
+        f"sha256:{hashlib.sha256(snapshot_text.encode('utf-8')).hexdigest()}"
+        if snapshot_text is not None
+        else None
+    )
+    record_key = "\0".join(
+        (
+            str(bundle.get("raw_anchor")),
+            str(bundle.get("bundle_hash")),
+            response_sha256,
+        )
+    ).encode("utf-8")
+    record_id = f"cajo_{hashlib.sha256(record_key).hexdigest()[:20]}"
+    outcome = CreatorAudienceJudgmentOutcome.model_validate(
+        {
+            "schema_version": JUDGMENT_OUTCOME_SCHEMA_VERSION,
+            "record_id": record_id,
+            "raw_anchor": bundle.get("raw_anchor"),
+            "creator_id": bundle.get("creator_id"),
+            "profile_subject_id": bundle.get("profile_subject_id"),
+            "bundle_id": bundle.get("bundle_id"),
+            "bundle_hash": bundle.get("bundle_hash"),
+            "status": status,
+            "response_sha256": response_sha256,
+            "response_size_bytes": len(response_bytes),
+            "response_bytes_b64": base64.b64encode(response_bytes).decode("ascii"),
+            "validation_errors": validation_errors,
+            "snapshot_id_or_none": (
+                snapshot_document.get("snapshot_id") if snapshot_document else None
+            ),
+            "snapshot_sha256_or_none": snapshot_sha256,
+            "snapshot_or_none": snapshot_document,
+            "model_api_calls": 0,
+        }
+    ).model_dump(mode="json")
+    outcome_bytes = (
+        json.dumps(outcome, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8")
+        + b"\n"
+    )
+    outcome_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=str(bundle["raw_anchor"]),
+        lane=JUDGMENT_OUTCOME_LANE,
+        record_id=record_id,
+    )
+    if outcome_path.exists():
+        if outcome_path.read_bytes() != outcome_bytes:
+            raise ValueError("existing audience Judgment outcome differs")
+    else:
+        data_root.append_record(
+            subtree="derived",
+            raw_anchor=str(bundle["raw_anchor"]),
+            lane=JUDGMENT_OUTCOME_LANE,
+            record_id=record_id,
+            data=outcome_bytes,
+        )
+
+    if snapshot_text is not None:
+        _write_new(snapshot_out, snapshot_text)
+        return {
+            "status": "validated",
+            "creator_id": outcome["creator_id"],
+            "profile_subject_id": outcome["profile_subject_id"],
+            "bundle_id": outcome["bundle_id"],
+            "bundle_hash": outcome["bundle_hash"],
+            "response_sha256": response_sha256,
+            "snapshot_id": outcome["snapshot_id_or_none"],
+            "snapshot_sha256": snapshot_sha256,
+            "snapshot_out": str(snapshot_out),
+            "judgment_outcome_path": str(outcome_path),
+            "model_api_calls": 0,
+        }
+    return {
+        "status": "blocked",
+        "blocked_at": "judgment_validation",
+        "creator_id": outcome["creator_id"],
+        "profile_subject_id": outcome["profile_subject_id"],
+        "bundle_id": outcome["bundle_id"],
+        "bundle_hash": outcome["bundle_hash"],
+        "response_sha256": response_sha256,
+        "validation_errors": validation_errors,
+        "capture_reusable": True,
+        "silver_reusable": True,
+        "recapture_required": False,
+        "safe_next_action": "submit a separately authorized corrected response",
+        "judgment_outcome_path": str(outcome_path),
+        "model_api_calls": 0,
+    }
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -330,6 +468,13 @@ def _parser() -> argparse.ArgumentParser:
     validate.add_argument("--bundle", type=Path, required=True)
     validate.add_argument("--response", type=Path, required=True)
     validate.add_argument("--snapshot-out", type=Path, required=True)
+    submit = subparsers.add_parser("submit")
+    submit.add_argument("--data-root", required=True)
+    submit.add_argument("--bundle", type=Path, required=True)
+    response = submit.add_mutually_exclusive_group(required=True)
+    response.add_argument("--response", type=Path)
+    response.add_argument("--response-stdin", action="store_true")
+    submit.add_argument("--snapshot-out", type=Path, required=True)
     return parser
 
 
@@ -347,17 +492,29 @@ def main(argv: list[str] | None = None) -> int:
                 bundle_out=args.bundle_out,
                 prompt_out=args.prompt_out,
             )
-        else:
+        elif args.command == "validate":
             result = validate_subscription_judgment(
                 bundle_path=args.bundle,
                 response_path=args.response,
+                snapshot_out=args.snapshot_out,
+            )
+        else:
+            response_bytes = (
+                sys.stdin.buffer.read()
+                if args.response_stdin
+                else args.response.read_bytes()
+            )
+            result = submit_subscription_judgment(
+                data_root=DataLakeRoot.resolve(explicit=args.data_root),
+                bundle_path=args.bundle,
+                response_bytes=response_bytes,
                 snapshot_out=args.snapshot_out,
             )
     except (DataLakeRootError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 0
+    return 2 if result.get("status") == "blocked" else 0
 
 
 if __name__ == "__main__":
