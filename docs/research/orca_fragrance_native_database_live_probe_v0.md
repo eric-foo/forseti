@@ -188,6 +188,8 @@ capture_requests:
       sillage, rating, scent-language, and page timing.
     decision_window: current forward probe window, 2026-06-29
     route_binding_state: cited_current
+    creator_registry_match_preflight:
+      required_when: not_applicable
     screening_evidence_summary: Direct HTTP returned 200 and a large product-page HTML body with relevant substrate markers.
     uncertainty_or_access_limits: Capture owns packet route execution and field extraction; this request is not a demand verdict or Data Lake routine.
     not_requested:
@@ -209,6 +211,8 @@ capture_requests:
       longevity, sillage, rating, score, scent-language, and page timing.
     decision_window: current forward probe window, 2026-06-29
     route_binding_state: cited_current
+    creator_registry_match_preflight:
+      required_when: not_applicable
     screening_evidence_summary: Direct HTTP returned 200 on the exact product page after internal perfume-search URL resolution.
     uncertainty_or_access_limits: Capture owns packet route execution and field extraction; this request is not a demand verdict or Data Lake routine.
     not_requested:
@@ -586,12 +590,77 @@ not_claimed:
   - fixture admission or Data Lake handoff
 ```
 
+### Basenotes Capture-Route Re-climb Addendum (2026-07-16)
+
+```yaml
+verification_date: 2026-07-16
+owner_authorization: >
+  One additional proof using the user-cleared persistent Chrome tab after the
+  bounded fresh-context proof returned a visible Cloudflare gate.
+target_url: https://basenotes.com/fragrances/mojave-ghost-by-byredo.26143979
+fresh_route_observations:
+  current_proxy_wrapper_preflight: >
+    failed before network because profile metadata for reddit-res-01 was absent;
+    the historical profile was not revived or replaced with an invented proxy
+  direct_public: 403 Cloudflare challenge; insufficient product/review evidence
+  no_proxy_cloakbrowser: challenge-only; packet 01KXKD38XB4YDVMY45XCK95581
+  fresh_headed_chrome: >
+    challenge-only after 15-second settle; 261 visible-text bytes; packet
+    01KXKDHJ4DY984MDB161QSRR31
+  user_cleared_persistent_chrome: >
+    sufficient public product page after the user personally completed the
+    visible Cloudflare verification; 87268 rendered-DOM bytes, 3820 visible-text
+    bytes, exact product path, Product JSON-LD, review, and reviewBody present
+proof_packet:
+  packet_id: 01KXKE3KFBY0J8XNQ4FJC4PACR
+  source_family: fragrance_native_database
+  source_surface: basenotes_product_page_user_cleared_persistent_chrome_current_window
+  preserved_files: 4
+  cookie_or_credential_export: false
+  proxy_used: false
+downstream_proof:
+  projection_review_cards: 6
+  cleaning_silver_records: 6
+  physically_verified_silver_records: 6
+  ecr_record_id: 01KXKFVKXJXS3TJH4X7J1ZGC9F.json
+  ecr_posture_siblings: 4
+  ecr_member_hashes_verified: 4
+  ecr_acknowledged: true
+  ecr_identity: resolved
+  ecr_inspectability: inspectable_verifiable
+  ecr_source_visibility: current_capture_only; does_not_clear_source_visibility
+  ecr_timing: unknown_cutoff; does_not_clear_pre_cutoff
+selected_route: >
+  User-cleared persistent visible Chrome public-page export, followed by the
+  fail-closed four-file bundle runner. The user completes the access gate; the
+  runner never automates it and never reads or exports cookies, credentials, or
+  browser-profile data.
+retired_executable_default: >
+  CloakBrowser plus reddit-res-01 is historical evidence only. Its missing
+  profile metadata and lack of fresh replacement proof make it ineligible as the
+  current executable default.
+headless_route_posture: >
+  failed on 2026-07-16 in one separately owner-authorized probe using the same
+  isolated profile after the user cleared Cloudflare while headed. Headless Chrome
+  returned HTTP 403, title "Just a moment...", 261 visible-text bytes, and no
+  Product/review/reviewBody markers. The caller-bound path appeared only through
+  the requested URL. A separate direct headed CloakBrowser attempt remained in
+  Cloudflare's human-verification loop after the user checked the box, so it never
+  established cleared state and was not relaunched headlessly. Do not promote
+  headless persistence from either browser route.
+not_claimed:
+  - unattended reliability
+  - site-wide or full-review-corpus completeness
+  - headless persistence
+  - scale or production readiness
+  - CAPTCHA automation or agent-performed solving
+```
 ## Route Pins
 | Pin ID | Source | Step 0 access classification | Signal substrate | Cheapest working route | Verdict | Re-probe trigger |
 | --- | --- | --- | --- | --- | --- | --- |
 | PIN-001 | Fragrantica | publicly-viewable public web content | large product-page HTML plus search HTML | `direct_http` with at least 2 MB cap for product pages | pinned_for_capture_probe | route returns block shell, body degrades, product markers disappear, or packet field extraction cannot preserve source-visible content |
 | PIN-002 | Parfumo | publicly-viewable public web content, but bot-mitigated for anonymous/proxied automation in the current environment | product-page DOM plus first-party review/statement AJAX hooks observed in the operator's visible Chrome browser | `chrome_extension_user_visible_rendered_session`; direct HTTP/AJAX is canary/fallback only | pinned_for_current_targeted_capture_route | Chrome extension route returns Cloudflare/block shell, product DOM markers disappear, AJAX hook shape changes, owner withdraws live-browser authorization, target-sampling objective changes, or direct HTTP/AJAX becomes reliably reachable again |
-| PIN-003 | Basenotes | publicly-viewable; anonymous egress Cloudflare-challenged, reachable via residential proxy | product-page HTML with reviews embedded as schema.org JSON-LD (author/reviewBody/rating/date) + HTML containers; full corpus at `/reviews/` + sentiment sub-URLs | `cloakbrowser_snapshot` through residential proxy profile `reddit-res-01` (anonymous CloakBrowser is blocked) | pinned_for_capture_probe (2026-06-30: residential-proxy route verified, 3/3 + homepage; reviews JSON-LD confirmed in DOM) | proxy stops rendering content (Cloudflare tightens / proxy pool flagged), product URL changes, or extraction cannot preserve source-visible content |
+| PIN-003 | Basenotes | publicly-viewable; fresh anonymous/fresh-browser contexts are Cloudflare-challenged, while a user-cleared persistent visible Chrome tab reaches the page | product-page HTML with reviews embedded as schema.org JSON-LD (author/reviewBody/rating/date) + HTML containers; full corpus at `/reviews/` + sentiment sub-URLs | user-cleared persistent visible Chrome four-file public-page export; no cookie, credential, profile, or proxy export | pinned_for_current_user_assisted_capture_route (2026-07-16: one packet projected to 6 Cleaning/Silver records and all 6 passed physical-source verification) | persistent visible Chrome returns a challenge after user clearance, product URL/JSON-LD markers change, export metadata cannot prove no secret/profile export, owner withdraws user-assisted authorization, or an isolated headless route is separately proven |
 
 ## Candidate Decision
 
@@ -601,13 +670,13 @@ candidate_decision:
   independent_origins_seen:
     - Fragrantica product page substrate reachable by direct HTTP
     - Parfumo product page substrate reachable by visible Chrome extension route
-    - Basenotes product page substrate reachable via residential-proxy CloakBrowser (2026-06-30)
+    - Basenotes product page substrate reachable via user-cleared persistent visible Chrome (2026-07-16)
   reason: >
     The probe found three preservation-worthy public product-page substrates:
     Fragrantica via direct HTTP, Parfumo via the operator-visible Chrome
     extension route (the June 29 direct/AJAX route is demoted to canary/fallback
-    after current Cloudflare blocks), and Basenotes via the residential-proxy
-    CloakBrowser route (verified 2026-06-30). This supports packet-grade
+    after current Cloudflare blocks), and Basenotes via the user-cleared
+    persistent visible Chrome bundle route (verified 2026-07-16). This supports packet-grade
     preservation requests for all three; it is not demand proof, not full
     database capture, and not full review-corpus extraction.
 ```
@@ -616,4 +685,4 @@ candidate_decision:
 
 `capture_preservation_only`.
 
-Fragrantica is pinned as a direct-HTTP product-page preservation route and current-window review substrate, but it is not complete review-corpus capture. Parfumo's June 29 direct product-page plus first-party AJAX route is retained as historical evidence and a future canary/fallback, but the current targeted high-value route is the Chrome extension / operator-visible browser route; this addendum does not target or claim the full 369-review / 1390-statement corpus. Basenotes is now pinned (2026-06-30) to the residential-proxy CloakBrowser route: anonymous routes (direct HTTP, anti-block HTTP, screening browser, anonymous CloakBrowser) are Cloudflare-challenged from this host's Singapore Singtel egress, but CloakBrowser through the residential proxy profile `reddit-res-01` (US Verizon exit) renders real product content reliably (3/3 product page + homepage); reviews are embedded in-page as schema.org JSON-LD (confirmed 2026-06-30 -- extraction is a structured-data parse, plus the `/reviews/` sub-URL + sentiment tabs for the full corpus). One Fragrantica packet landed in the configured ORCA data root during the completeness check; that is a generated packet fact only, not fixture admission, routine Data Lake handoff, ECR, Cleaning, Judgment, monitoring, commercial readiness, or full-database crawling.
+Fragrantica is pinned as a direct-HTTP product-page preservation route and current-window review substrate, but it is not complete review-corpus capture. Parfumo's June 29 direct product-page plus first-party AJAX route is retained as historical evidence and a future canary/fallback, but the current targeted high-value route is the Chrome extension / operator-visible browser route; this addendum does not target or claim the full 369-review / 1390-statement corpus. Basenotes is now pinned (2026-07-16) to the user-cleared persistent visible Chrome bundle route: fresh direct, no-proxy CloakBrowser, fresh headed Chrome, and same-cleared-profile headless Chrome contexts were Cloudflare-challenged, while the owner-cleared persistent Chrome tab produced one mechanically sufficient packet whose six projected review cards became six physically verified Cleaning/Silver records. A separate direct headed CloakBrowser attempt could not progress beyond Cloudflare's human-verification loop even after the user checked the box, so no cleared CloakBrowser state existed for a valid headless-reuse test. The 2026-06-30 residential-proxy CloakBrowser observation remains historical evidence, not the executable default, because `reddit-res-01` currently lacks registered profile metadata. One Fragrantica packet landed in the configured ORCA data root during the completeness check; that is a generated packet fact only, not fixture admission, routine Data Lake handoff, ECR, Cleaning, Judgment, monitoring, commercial readiness, or full-database crawling.

@@ -38,7 +38,7 @@ from source_capture.models import (
 from source_capture.writer import write_local_source_capture_packet
 
 _CAPTURE_TIME = "2026-06-28T18:57:58Z"
-_BASENOTES_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_BASENOTES_SURFACE = "basenotes_product_page_user_cleared_persistent_chrome_current_window"
 _PARFUMO_DIRECT_SURFACE = "parfumo_product_page_direct_http"
 _PARFUMO_RENDERED_SURFACE = "parfumo_product_page_chrome_extension_targeted_rendered_session"
 

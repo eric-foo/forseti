@@ -30,7 +30,7 @@ from source_capture.parfumo_projection import (
 )
 from source_capture.writer import write_local_source_capture_packet
 
-_BASENOTES_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_BASENOTES_SURFACE = "basenotes_product_page_user_cleared_persistent_chrome_current_window"
 _LOCATOR = "https://www.parfumo.com/Perfumes/Maison_Francis_Kurkdjian/Baccarat_Rouge_540_Eau_de_Parfum"
 _REVIEW_TEXT = "This perfume died young."
 _STATEMENT_TEXT = "Airy amber trail."
