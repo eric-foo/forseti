@@ -1735,6 +1735,22 @@ class ChromeCdpPageObservationSessionEngine(_CloakBrowserPageObservationEngine):
         )
         return result
 
+    def capture_current_viewport_png(self, *, timeout_seconds: float) -> bytes:
+        """Capture a real PNG from the page retained by this CDP session."""
+
+        if self._closed:
+            raise RuntimeError("Chrome CDP page-observation session is already closed")
+        if self._real_page is None:
+            raise RuntimeError("Chrome CDP page observation must complete before screenshot capture")
+        screenshot = self._real_page.screenshot(  # type: ignore[attr-defined]
+            type="png",
+            full_page=False,
+            timeout=timeout_seconds * 1000,
+        )
+        if not isinstance(screenshot, bytes) or not screenshot:
+            raise RuntimeError("Chrome CDP viewport screenshot returned no bytes")
+        return screenshot
+
     def _launch_page_observation_browser(
         self,
         *,

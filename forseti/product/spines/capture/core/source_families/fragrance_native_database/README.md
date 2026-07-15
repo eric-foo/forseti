@@ -50,7 +50,9 @@ verified-purchase/offer/availability semantics.
 The current route is operator-assisted and fails closed. The user opens the exact
 public product URL in a visible persistent Chrome tab and personally completes any
 Cloudflare verification. A supported browser controller then exports exactly these
-public-page artifacts, with no extra files:
+public-page artifacts, with no extra files. The runner also supports a direct
+existing-Chrome mode that creates the same bundle from the operator-ready local CDP
+session before applying the identical validator:
 
 - `browser_rendered_dom.html`
 - `browser_visible_text.txt`
@@ -74,8 +76,25 @@ python forseti-harness/runners/run_basenotes_mgt_capture.py \
   --data-root <forseti-data-root>
 ```
 
-The runner validates and publishes the export; it does not launch Chrome, inspect
-or export browser state, automate the access gate, claim unattended reliability,
+Direct mode is explicit and loopback-only:
+
+```text
+python forseti-harness/runners/run_basenotes_mgt_capture.py \
+  --url https://basenotes.com/fragrances/<product> \
+  --bundle-directory <fresh-generated-four-file-bundle> \
+  --output-root <empty-summary-directory> \
+  --data-root <forseti-data-root> \
+  --cdp-endpoint http://127.0.0.1:9222 \
+  --human-access-ready
+```
+
+The readiness flag records that a human established access before capture; it is
+not a claim that the runner solved CAPTCHA or Cloudflare. Direct mode attaches to
+the existing headed browser, uses no proxy or storage-state input, preserves no
+cookies, credentials, auth state, or profile bytes, and leaves the operator-owned
+browser running after detaching. Capture/export can run unattended only while that
+supervised session remains accepted. The runner does not launch Chrome, automate
+the access gate, claim unattended access establishment or long-term reliability,
 or turn the historical proxy route into a fallback.
 ## Layer Boundaries
 
