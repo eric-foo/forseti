@@ -329,7 +329,7 @@ direction_change_propagation:
     contract: four inspectable record families, append-only correction, dual
     effective/knowledge boundaries, reproducible views, and ten-case dogfood.
   trigger: product_doctrine
-  related_triggers: [architecture_doctrine, ontology_taxonomy]
+  related_triggers: [architecture_doctrine]
   controlling_sources_updated:
     - forseti/product/information/company_surface/company_logical_record_and_view_contract_v0.md
     - forseti/product/information/company_surface/company_identity_boundary_v0.md
