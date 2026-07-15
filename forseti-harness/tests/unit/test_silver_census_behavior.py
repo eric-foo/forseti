@@ -21,6 +21,8 @@ from source_capture.ig_reels_deep_capture_lake import (
 
 PACKET = "01KW2MJM01Y0936VNECWB3MHSD"
 PARFUMO_PACKET = "01KW2MJM01Y0936VNECWB3MHSE"
+FAILED_DEEP_CAPTURE_PACKET = "01KW2MJM01Y0936VNECWB3MHSF"
+FAILED_IG_GRID_PACKET = "01KW2MJM01Y0936VNECWB3MHSG"
 OBSERVED_AT = "2026-07-15T00:00:00Z"
 
 
@@ -63,6 +65,20 @@ def test_census_separates_current_source_backed_deep_capture_from_historical_aud
         ),
         generated_at=OBSERVED_AT,
     )
+    _manifest(
+        root,
+        FAILED_DEEP_CAPTURE_PACKET,
+        "instagram_creator",
+        "ig_reels_deep_capture",
+        failed=True,
+    )
+    _manifest(
+        root,
+        FAILED_IG_GRID_PACKET,
+        "instagram_creator",
+        "ig_reels_grid_dom_passive_json",
+        failed=True,
+    )
     root.append_record_set(
         subtree="derived",
         raw_anchor="ReelLegacy",
@@ -84,6 +100,10 @@ def test_census_separates_current_source_backed_deep_capture_from_historical_aud
     marker_state = next(
         state for state in census["lane_states"] if state["lane"] == DEEP_CAPTURE_SET_LANE
     )
+    for lane in (AUDIENCE_COMMENTS_LANE, REEL_TRANSCRIPT_LANE, DEEP_CAPTURE_SET_LANE):
+        state = next(entry for entry in census["lane_states"] if entry["lane"] == lane)
+        assert state["eligible_capture_packets"] == 2
+        assert state["failed_eligible_capture_packets"] == 1
     assert marker_state["current_source_backed_record_count"] == 1
     assert marker_state["historical_audit_only_record_count"] == 1
 
