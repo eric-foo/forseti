@@ -15,6 +15,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/information/company_surface/README.md
+  - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
 stale_if:
   - The information axis is renamed, retired, or merged into another product axis.
   - The Company Surface front door moves or another information domain is accepted.
@@ -32,8 +33,10 @@ document bucket.
   owning spine.
 - Decision records, research, prompts, and reviews stay in their accepted
   `docs/` homes.
-- A new information domain requires an accepted product-structure decision; do
-  not add speculative holding folders here.
+- This axis and its domains are bound by
+  `docs/decisions/forseti_spine_first_target_structure_binding_v0.md`; a new
+  information domain requires an amendment there, not a speculative holding
+  folder added here.
 
 ## Current Domains
 
