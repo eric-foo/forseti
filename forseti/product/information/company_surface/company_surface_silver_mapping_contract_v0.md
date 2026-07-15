@@ -42,8 +42,11 @@ The existing common header is unchanged:
 - `record_kind` remains closed to `entity | relationship | observation`;
 - `payload_kind` distinguishes Company Surface payloads;
 - `producer_row_kind` preserves the logical record family;
-- `raw_refs` preserve packet/source hashes and `derived_refs` preserve record
-  lineage;
+- canonical `raw_refs` physically bind Bronze packets (and exact raw-stored
+  hashes when the producer evidence uses that basis), while the producer
+  payload preserves the complete evidence locator, original hash/basis, and
+  source span; `derived_refs` preserve exact record addresses including their
+  raw anchors;
 - effective/observation time remains distinct from `captured_at` and the
   Company Surface `recorded_at`; and
 - the existing Silver content hash and validating write front door remain

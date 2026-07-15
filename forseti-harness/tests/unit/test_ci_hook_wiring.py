@@ -6,6 +6,8 @@ import importlib
 import importlib.util
 import json
 import re
+import subprocess
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -15,6 +17,15 @@ CI_PATH = REPO_ROOT / ".github" / "workflows" / "ci.yml"
 PRE_PUSH_PATH = REPO_ROOT / ".agents" / "hooks" / "pre_push_guard.py"
 HOOKS_DIR = REPO_ROOT / ".agents" / "hooks"
 HARNESS_COUPLING_PATH = HOOKS_DIR / "check_harness_coupling.py"
+CODEX_HOOKS_PATH = REPO_ROOT / ".codex" / "hooks.json"
+CODEX_ADAPTER_PATH = REPO_ROOT / ".codex" / "hooks" / "forseti_guard_codex_adapter.py"
+DECISION_ROUTING_PATH = REPO_ROOT / ".agents" / "workflow-overlay" / "decision-routing.md"
+PROMPT_ORCHESTRATION_PATH = (
+    REPO_ROOT / ".agents" / "workflow-overlay" / "prompt-orchestration.md"
+)
+HOOK_README_PATH = REPO_ROOT / ".agents" / "hooks" / "README.md"
+HOOK_ADOPTION_ADOPTED = "FORSETI_CODEX_HOOK_ADOPTION=ADOPTED"
+HOOK_ADOPTION_NOT_INTERCEPTED = "FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED"
 EVENT_BASE_SHA = "1" * 40
 DIFF_BASE_RESOLVERS = (
     ("check_source_input_hashes.py", "resolve_base_ref", False),
@@ -65,6 +76,93 @@ def test_ci_has_no_duplicate_python_commands() -> None:
     commands = _ci_python_commands()
     duplicates = sorted(command for command, count in Counter(commands).items() if count > 1)
     assert duplicates == []
+
+
+def test_codex_live_hook_adoption_probe_fails_closed() -> None:
+    config = json.loads(CODEX_HOOKS_PATH.read_text(encoding="utf-8"))
+    pre_tool = config["hooks"]["PreToolUse"]
+    matching_entries = [
+        entry
+        for entry in pre_tool
+        if {"Bash", "PowerShell"} <= set(entry["matcher"].split("|"))
+    ]
+    assert len(matching_entries) == 1
+    configured_hook = matching_entries[0]["hooks"][0]
+    assert "forseti_guard_codex_adapter.py" in configured_hook["commandWindows"]
+
+    direct = subprocess.run(
+        [sys.executable, str(CODEX_ADAPTER_PATH), "--live-adoption-probe"],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+    assert direct.returncode == 3
+    assert direct.stderr.strip() == HOOK_ADOPTION_NOT_INTERCEPTED
+
+    event = {
+        "tool_name": "PowerShell",
+        "tool_input": {
+            "command": (
+                "python .codex/hooks/forseti_guard_codex_adapter.py "
+                "--live-adoption-probe"
+            )
+        },
+    }
+    intercepted = subprocess.run(
+        [sys.executable, str(CODEX_ADAPTER_PATH)],
+        cwd=REPO_ROOT,
+        input=json.dumps(event),
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+    denial = json.loads(intercepted.stdout)
+    assert intercepted.returncode == 0
+    assert denial["hookSpecificOutput"]["permissionDecision"] == "deny"
+    assert (
+        denial["hookSpecificOutput"]["permissionDecisionReason"]
+        == HOOK_ADOPTION_ADOPTED
+    )
+
+
+def test_managed_receiver_revision_and_probe_contract_is_explicit() -> None:
+    routing = DECISION_ROUTING_PATH.read_text(encoding="utf-8")
+    hook_readme = HOOK_README_PATH.read_text(encoding="utf-8")
+    probe_command = (
+        "python .codex/hooks/forseti_guard_codex_adapter.py "
+        "--live-adoption-probe"
+    )
+
+    assert "revision_mode: exact | ancestor" in routing
+    assert "`HEAD` equals `required_revision`" in routing
+    assert "git merge-base --is-ancestor <required_revision> HEAD" in routing
+    assert "command-level `workdir` substitution" in routing
+    assert probe_command in routing
+    assert probe_command in hook_readme
+    assert HOOK_ADOPTION_ADOPTED in routing
+    assert HOOK_ADOPTION_NOT_INTERCEPTED in routing
+
+
+def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> None:
+    routing = DECISION_ROUTING_PATH.read_text(encoding="utf-8")
+    prompt_contract = PROMPT_ORCHESTRATION_PATH.read_text(encoding="utf-8")
+
+    for required in (
+        "receiver_creation_authorization:",
+        "authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+        "condition: current_task_not_receiver_verified",
+        "initial_prompt: this_frozen_commission_verbatim",
+        "dispatch: immediate_same_turn",
+        "current_turn_authorization: read_only_scoping_only",
+    ):
+        assert required in prompt_contract
+
+    assert "create and dispatch the one allowed task immediately" in routing
+    assert "read-only/scoping-only/review-only" in routing
+    assert re.search(
+        r"No instruction grants standing or\s+repeat creation authority", routing
+    )
 
 
 def test_every_pre_push_gate_is_the_same_command_ci_runs() -> None:

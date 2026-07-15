@@ -32,6 +32,7 @@ from capture_spine.creator_profile_current.youtube_watch_packet_metric_document 
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.root import DataLakeRoot
 from source_capture.youtube_watch_packet import YoutubeWatchFetch, write_youtube_watch_packet
+from _creator_metric_silver_fixtures import materialize_youtube_seed_sources
 
 ALPHA_CHANNEL = "UCalphaAlphaAlphaAlpha01"
 CAPTURE_T1 = "2026-07-01T10:00:00Z"
@@ -185,6 +186,9 @@ def test_genesis_seed_rollup_recomputes_clean(tmp_path: Path) -> None:
         if obs["metric_observation_id"] in source_ids
     ]
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    seed_document = materialize_youtube_seed_sources(
+        data_root, seed_document, wrapper_key=YOUTUBE_SEED_WRAPPER_KEY
+    )
     derive_youtube_creator_metric_silver_records_from_seed(
         data_root=data_root, seed_document=seed_document
     )
@@ -282,6 +286,9 @@ def test_ig_recipe_branch_recomputes_clean_and_catches_bad_engagement(tmp_path: 
         }
     }
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    seed_document = materialize_youtube_seed_sources(
+        data_root, seed_document, wrapper_key=YOUTUBE_SEED_WRAPPER_KEY
+    )
     result = derive_youtube_creator_metric_silver_records_from_seed(
         data_root=data_root, seed_document=seed_document
     )

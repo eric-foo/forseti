@@ -101,18 +101,34 @@ def _caption_fetch() -> CaptionFetch:
     )
 
 
-def _transcript() -> TranscriptInput:
+def _source_ref(
+    data_root: DataLakeRoot | None = None, *, record_id: str = "asr_fixture.json"
+) -> SilverDerivedRef:
+    body = b'{"kind":"transcript_fixture"}'
+    digest = hashlib.sha256(body).hexdigest()
+    if data_root is not None:
+        data_root.append_record(
+            subtree="derived",
+            raw_anchor=_ANCHOR,
+            lane="transcript_asr",
+            record_id=record_id,
+            data=body,
+        )
+    return SilverDerivedRef(
+        raw_anchor=_ANCHOR,
+        lane="transcript_asr",
+        record_id=record_id,
+        sha256=digest,
+        hash_basis="derived_record_bytes",
+    )
+
+
+def _transcript(data_root: DataLakeRoot | None = None) -> TranscriptInput:
     lineage = build_transcript_source_lineage(
         namespace="youtube",
         source_surface="youtube_audio",
         video_id="vid12345678",
-        derived_ref=SilverDerivedRef(
-            raw_anchor=_ANCHOR,
-            lane="transcript_asr",
-            record_id="asr_fixture.json",
-            sha256="b" * 64,
-            hash_basis="derived_record_bytes",
-        ),
+        derived_ref=_source_ref(data_root),
     )
     return TranscriptInput("vid12345678", _ANCHOR, "asr", _cues(), source_lineage=lineage)
 
@@ -191,12 +207,13 @@ def test_mentions_record_id_bounded_for_long_model_name() -> None:
 
 def test_driver_persists_to_silver_lane(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    transcript = _transcript(data_root)
     paths = extract_products_into_lake(
-        data_root=data_root, transcript=_transcript(), transport=FakeTransport(_anthropic([_item()])),
+        data_root=data_root, transcript=transcript, transport=FakeTransport(_anthropic([_item()])),
         provider=_PROVIDER, model="test-model", api_key="k",
     )
     assert PRODUCT_MENTIONS_LANE in paths
-    rid = mentions_record_id(_transcript(), "test-model")
+    rid = mentions_record_id(transcript, "test-model")
     assert data_root.is_record_set_complete(
         subtree="derived", raw_anchor=_ANCHOR, record_id=rid, completion_lane=PRODUCT_MENTIONS_SET_LANE,
     )
@@ -207,7 +224,7 @@ def test_driver_persists_to_silver_lane(tmp_path) -> None:
 
 def test_operator_result_writer_reuses_silver_lane_shape(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    transcript = _transcript()
+    transcript = _transcript(data_root)
     parsed = parse_mentions(json.dumps([_item()]), transcript, model="operator")
 
     paths = write_product_mentions_result_into_lake(
@@ -228,7 +245,7 @@ def test_operator_result_writer_reuses_silver_lane_shape(tmp_path) -> None:
 
 def test_driver_refuses_duplicate_write(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    kw = dict(data_root=data_root, transcript=_transcript(), transport=FakeTransport(_anthropic([_item()])),
+    kw = dict(data_root=data_root, transcript=_transcript(data_root), transport=FakeTransport(_anthropic([_item()])),
               provider=_PROVIDER, model="test-model", api_key="k")
     paths = extract_products_into_lake(**kw)
     before = paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8")
@@ -242,7 +259,7 @@ def test_driver_persists_rejected_count(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     items = [_item(), _item(concentration="spray")]
     paths = extract_products_into_lake(
-        data_root=data_root, transcript=_transcript(), transport=FakeTransport(_anthropic(items)),
+        data_root=data_root, transcript=_transcript(data_root), transport=FakeTransport(_anthropic(items)),
         provider=_PROVIDER, model="m", api_key="k",
     )
     record = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
@@ -578,11 +595,8 @@ def test_runner_isolates_corrupt_packet_discovery(tmp_path) -> None:
 # --- silver lineage adoption: exact consumed-source reference -----------------
 
 
-def _derived_ref() -> SilverDerivedRef:
-    return SilverDerivedRef(
-        raw_anchor=_ANCHOR, lane="transcript_asr", record_id="asr_test__deadbeefdeadbeef",
-        sha256="b" * 64, hash_basis="derived_record_bytes",
-    )
+def _derived_ref(data_root: DataLakeRoot | None = None) -> SilverDerivedRef:
+    return _source_ref(data_root, record_id="asr_test__deadbeefdeadbeef")
 
 
 def test_driver_persists_silver_lineage_in_place(tmp_path) -> None:
@@ -590,7 +604,7 @@ def test_driver_persists_silver_lineage_in_place(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     lineage = build_transcript_source_lineage(
         namespace="youtube", source_surface="youtube_audio", video_id="vid12345678",
-        derived_ref=_derived_ref(),
+        derived_ref=_derived_ref(data_root),
     )
     transcript = TranscriptInput("vid12345678", _ANCHOR, "asr", _cues(), source_lineage=lineage)
     paths = extract_products_into_lake(

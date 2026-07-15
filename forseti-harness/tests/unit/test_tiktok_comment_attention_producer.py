@@ -14,7 +14,7 @@ from capture_spine.creator_profile_current.tiktok_comment_attention_producer imp
 )
 from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot
-from data_lake.silver_lineage import SOURCE_BACKED_COMPLETE_STATUS, silver_record_source_backed_status
+from data_lake.silver_lineage import LINEAGE_STRUCTURE_COMPLETE_STATUS, silver_record_lineage_structure_status
 from runners import run_tiktok_comment_attention_producer as runner
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
 from tiktok_batch_test_support import CAPTURE_T1, _commit_batch_packet, _stats, _video
@@ -73,7 +73,7 @@ def test_builds_source_backed_ratio_observations_with_policy_fingerprint() -> No
     assert observation["engagement_context"]["comment_like_rank_within_captured"] == 1
     assert observation["engagement_context"]["comment_like_percentile_within_captured"] == 1.0
     assert records[0]["provenance"]["policy_fingerprint_sha256"] == COMMENT_ATTENTION_POLICY_FINGERPRINT
-    assert silver_record_source_backed_status(records[0]) == SOURCE_BACKED_COMPLETE_STATUS
+    assert silver_record_lineage_structure_status(records[0]) == LINEAGE_STRUCTURE_COMPLETE_STATUS
     canonical = dict(records[0])
     canonical.pop("content_hash")
     expected_hash = hashlib.sha256(

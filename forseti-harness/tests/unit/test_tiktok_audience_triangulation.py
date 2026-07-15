@@ -238,7 +238,8 @@ def test_prepare_reads_packet_scoped_persisted_silver_and_uses_no_api(tmp_path) 
     attention_dir = data_root.lane_dir(
         subtree="derived", raw_anchor=packet_id, lane=COMMENT_ATTENTION_LANE
     )
-    current_attention = json.loads(next(path for path in attention_dir.iterdir() if path.is_file()).read_text())
+    current_attention_path = next(path for path in attention_dir.iterdir() if path.is_file())
+    current_attention = json.loads(current_attention_path.read_text())
     stale_attention = copy.deepcopy(current_attention)
     stale_attention["record_id"] = "stale_comment_attention_policy"
     stale_attention["provenance"]["calculation_recipe_version"] = "stale_recipe"
@@ -277,6 +278,21 @@ def test_prepare_reads_packet_scoped_persisted_silver_and_uses_no_api(tmp_path) 
         "status": "policy_mismatch",
     }]
     assert bundle_out.exists() and prompt_out.exists()
+
+    current_attention["raw_refs"][0]["sha256"] = "0" * 64
+    current_attention["content_hash"] = f"sha256:{silver_content_hash(current_attention)}"
+    current_attention_path.write_text(json.dumps(current_attention), encoding="utf-8")
+    with pytest.raises(ValueError, match="missing persisted Silver comment attention"):
+        prepare_subscription_judgment(
+            data_root=data_root,
+            packet_id=packet_id,
+            creator_id="tiktok:@funmimonet",
+            profile_subject_id="platform_account:tiktok:funmimonet",
+            question="What should a matching brand hire this creator to accomplish?",
+            evidence_cutoff="2026-06-30T17:02:46Z",
+            bundle_out=tmp_path / "tampered-bundle.json",
+            prompt_out=tmp_path / "tampered-prompt.txt",
+        )
 
 
 def test_bundle_incomplete_when_comments_absent_but_transcript_present() -> None:

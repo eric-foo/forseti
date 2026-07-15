@@ -1,14 +1,8 @@
-"""Unit tests for the YouTube creator-metric rollup PRODUCER runner -- the
-capture-fed lake-population step (YouTube fold-in / s8 / AR-06) that deposits the
-records the snapshot runner's account-anchored discovery consumes.
+"""YouTube creator-metric runner support and historical read-side fixtures.
 
-The core (``run_youtube_producer``) runs against a temp lake from the REAL
-committed review-input captures (they are checked into the repo, so CI can drive
-the whole capture-fed chain lake-free). There is no real-lake ``main`` test: the
-producer is append-only, so running it against the live lake would deposit
-durable records -- not something a test may do. ``main``'s only extra surface
-over the tested core is ``DataLakeRoot.resolve`` (covered by the lake's own
-tests) and ledger loading (covered here).
+The historical test writes explicitly synthetic pre-contract record bytes
+directly into a temp lake. It proves audit classification only; it does not
+exercise or bypass the authoritative production append route.
 """
 from __future__ import annotations
 
@@ -18,6 +12,10 @@ from pathlib import Path
 
 import pytest
 
+from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
+    DEFAULT_YOUTUBE_SEED_PATH,
+    YOUTUBE_SEED_WRAPPER_KEY,
+)
 from capture_spine.creator_profile_current.silver_metric_reader import (
     CreatorRollupDiscoveryError,
     discover_creator_metric_rollup_records,
@@ -34,7 +32,9 @@ from runners.run_youtube_creator_metric_rollup_producer import (
     _load_account_ledger,
     default_generated_at_utc,
     default_source_files,
-    run_youtube_producer,
+)
+from tests.unit._creator_metric_silver_fixtures import (
+    seed_preexisting_youtube_creator_metric_records,
 )
 
 
@@ -98,14 +98,13 @@ def _declare_seed_archive(
     epoch_path.write_text(json.dumps(epoch), encoding="utf-8")
 
 
-def test_run_youtube_producer_appends_audit_discoverable_rollups(tmp_path: Path) -> None:
+def test_preexisting_youtube_rollups_are_audit_discoverable(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
 
-    result = run_youtube_producer(
+    result = seed_preexisting_youtube_creator_metric_records(
         data_root,
-        source_files=default_source_files(),
-        account_ledger=_load_account_ledger(DEFAULT_ACCOUNT_LEDGER),
-        generated_at_utc=default_generated_at_utc(),
+        json.loads(DEFAULT_YOUTUBE_SEED_PATH.read_text(encoding="utf-8-sig")),
+        wrapper_key=YOUTUBE_SEED_WRAPPER_KEY,
     )
 
     accounts = sorted({_account_of(r) for r in result.rollup_records})

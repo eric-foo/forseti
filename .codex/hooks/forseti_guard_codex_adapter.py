@@ -31,6 +31,14 @@ SHELL_WRITE_PRIMITIVE = re.compile(
 REDIRECT_DURABLE = re.compile(
     r"(?:^|[^>])>>?\s*['\"]?[^'\"\s|&;>]+\." + DURABLE_EXT + r"\b", re.I
 )
+HOOK_ADOPTION_CANARY_ARG = "--live-adoption-probe"
+HOOK_ADOPTION_ADOPTED = "FORSETI_CODEX_HOOK_ADOPTION=ADOPTED"
+HOOK_ADOPTION_NOT_INTERCEPTED = "FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED"
+HOOK_ADOPTION_CANARY_COMMAND = re.compile(
+    r"\s*python(?:\.exe)?\s+['\"]?(?:\.\\|\./)?\.codex[\\/]hooks[\\/]"
+    r"forseti_guard_codex_adapter\.py['\"]?\s+--live-adoption-probe\s*",
+    re.I,
+)
 
 
 def _deny(reason):
@@ -46,6 +54,16 @@ def _deny(reason):
     )
     sys.stdout.write("\n")
     return 0
+
+
+def _is_hook_adoption_canary(tool_input):
+    command = tool_input.get("command") or ""
+    return bool(HOOK_ADOPTION_CANARY_COMMAND.fullmatch(command))
+
+
+def _not_intercepted():
+    print(HOOK_ADOPTION_NOT_INTERCEPTED, file=sys.stderr)
+    return 3
 
 
 def _run_guard(event):
@@ -186,6 +204,59 @@ def _selftest():
     ok = True
     guard = subprocess.run([sys.executable, str(GUARD), "--selftest"], text=True)
     ok = ok and guard.returncode == 0
+
+    direct_canary = subprocess.run(
+        [sys.executable, str(pathlib.Path(__file__)), HOOK_ADOPTION_CANARY_ARG],
+        text=True,
+        capture_output=True,
+    )
+    ok = ok and direct_canary.returncode == 3
+    ok = ok and direct_canary.stderr.strip() == HOOK_ADOPTION_NOT_INTERCEPTED
+
+    hooked_canary = subprocess.run(
+        [sys.executable, str(pathlib.Path(__file__))],
+        input=json.dumps(
+            {
+                "tool_name": "PowerShell",
+                "tool_input": {
+                    "command": (
+                        "python .codex/hooks/forseti_guard_codex_adapter.py "
+                        f"{HOOK_ADOPTION_CANARY_ARG}"
+                    )
+                },
+            }
+        ),
+        text=True,
+        capture_output=True,
+    )
+    try:
+        denial = json.loads(hooked_canary.stdout)
+        ok = ok and hooked_canary.returncode == 0
+        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
+        ok = ok and (
+            denial["hookSpecificOutput"]["permissionDecisionReason"]
+            == HOOK_ADOPTION_ADOPTED
+        )
+    except Exception:
+        ok = False
+
+    chained_canary = subprocess.run(
+        [sys.executable, str(pathlib.Path(__file__))],
+        input=json.dumps(
+            {
+                "tool_name": "PowerShell",
+                "tool_input": {
+                    "command": (
+                        "python .codex/hooks/forseti_guard_codex_adapter.py "
+                        f"{HOOK_ADOPTION_CANARY_ARG}; git status --short"
+                    )
+                },
+            }
+        ),
+        text=True,
+        capture_output=True,
+    )
+    ok = ok and chained_canary.returncode == 0 and not chained_canary.stdout.strip()
 
     blocked = subprocess.run(
         [sys.executable, str(pathlib.Path(__file__))],
@@ -360,6 +431,8 @@ def _selftest():
 
 
 def main():
+    if HOOK_ADOPTION_CANARY_ARG in sys.argv:
+        return _not_intercepted()
     if "--selftest" in sys.argv:
         return _selftest()
 
@@ -369,6 +442,10 @@ def main():
     except Exception:
         return _run_guard_event(event_text)
 
+    if event.get("tool_name") in SHELL_TOOLS and _is_hook_adoption_canary(
+        event.get("tool_input") or {}
+    ):
+        return _deny(HOOK_ADOPTION_ADOPTED)
     if event.get("tool_name") == "apply_patch":
         reason = _check_apply_patch_paths(event.get("tool_input") or {})
         if reason:

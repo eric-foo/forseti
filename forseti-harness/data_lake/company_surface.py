@@ -243,7 +243,11 @@ def _validate_family_payload(family: str, payload: Mapping[str, Any], anchors: l
             _require_string(missing, "missing_boundary")
 
 
-def map_company_surface_record(record: Mapping[str, Any]) -> tuple[dict[str, Any], ...]:
+def map_company_surface_record(
+    record: Mapping[str, Any],
+    *,
+    target_raw_anchors: Mapping[str, str] | None = None,
+) -> tuple[dict[str, Any], ...]:
     """Map one logical record plus any correction/conflict edges to Silver records."""
     validate_company_surface_logical_record(record)
     logical = deepcopy(dict(record))
@@ -256,6 +260,7 @@ def map_company_surface_record(record: Mapping[str, Any]) -> tuple[dict[str, Any
         "assertion_state": logical["assertion_state"],
         "effective_interval": logical["effective_interval"],
         "recorded_at": logical["recorded_at"],
+        "evidence_refs": logical["evidence_refs"],
         "limitations": logical["limitations"],
         "alternatives": logical["alternatives"],
         "family_payload": logical["family_payload"],
@@ -274,8 +279,14 @@ def map_company_surface_record(record: Mapping[str, Any]) -> tuple[dict[str, Any
         payload={payload_slot: common_payload},
     )
     mapped = [primary]
+    target_raw_anchors = target_raw_anchors or {}
     for field, edge_type in _EDGE_FIELDS.items():
         for target_ref in logical[field]:
+            target_raw_anchor = target_raw_anchors.get(target_ref)
+            if target_raw_anchor is None:
+                raise CompanySurfaceError(
+                    f"{field} target {target_ref!r} requires its persisted raw_anchor."
+                )
             target_id = company_surface_record_id(target_ref)
             edge_id = company_surface_edge_record_id(logical["record_ref"], edge_type, target_ref)
             mapped.append(
@@ -290,8 +301,16 @@ def map_company_surface_record(record: Mapping[str, Any]) -> tuple[dict[str, Any
                     captured_at=logical["captured_at"],
                     raw_refs=_silver_raw_refs(logical["evidence_refs"]),
                     derived_refs=[
-                        {"lane_namespace": COMPANY_SURFACE_LANE, "record_id": record_id},
-                        {"lane_namespace": COMPANY_SURFACE_LANE, "record_id": target_id},
+                        {
+                            "raw_anchor": logical["raw_anchor"],
+                            "lane_namespace": COMPANY_SURFACE_LANE,
+                            "record_id": record_id,
+                        },
+                        {
+                            "raw_anchor": target_raw_anchor,
+                            "lane_namespace": COMPANY_SURFACE_LANE,
+                            "record_id": target_id,
+                        },
                     ],
                     payload={
                         "relationship": {
@@ -370,8 +389,16 @@ def company_activity_logical_record_from_observation(
 
 
 def append_company_surface_logical_record(data_root, record: Mapping[str, Any]) -> tuple[Path, ...]:
+    target_raw_anchors = {
+        _company_payload(existing)["logical_record_ref"]: existing["raw_anchor"]
+        for existing in load_company_surface_records(data_root)
+        if existing["payload_kind"] != "RelationshipEdge"
+    }
     paths = []
-    for mapped in map_company_surface_record(record):
+    for mapped in map_company_surface_record(
+        record,
+        target_raw_anchors=target_raw_anchors,
+    ):
         paths.append(
             append_silver_record(
                 data_root,
@@ -693,16 +720,21 @@ def _silver_record(
 
 
 def _silver_raw_refs(evidence_refs: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
-    return [
-        {
+    refs = []
+    for ref in evidence_refs:
+        physical_ref = {
+            "ref_type": "raw_packet",
             "packet_id": ref["packet_id"],
-            "source_locator": ref["source_locator"],
-            "sha256": ref["sha256"],
-            "hash_basis": ref["hash_basis"],
-            "source_span": ref.get("source_span"),
         }
-        for ref in evidence_refs
-    ]
+        if ref["hash_basis"] == "raw_stored_bytes":
+            physical_ref.update(
+                {
+                    "sha256": ref["sha256"],
+                    "hash_basis": "raw_stored_bytes",
+                }
+            )
+        refs.append(physical_ref)
+    return refs
 
 
 def _validate_evidence_refs(value: Any) -> None:

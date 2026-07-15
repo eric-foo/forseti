@@ -8,6 +8,7 @@ only facts already frozen in the product-learning case.
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
 
@@ -31,9 +32,10 @@ from data_lake.company_surface import (
 )
 from data_lake.root import DataLakeRoot
 from data_lake.silver_census import build_silver_observation_census
+from tests.unit._creator_metric_silver_fixtures import commit_raw_packet
 
 
-PACKET_ID = "packet_company_fixture"
+PACKET_ID = "01J00000000000000000000010"
 SOURCE_SHA = "a" * 64
 TOPICALS_PACKET_ID = "01KV2M7XPZENAJJ74H1QVWCW6E"
 TOPICALS_SOURCE_SHA = "db147fc02195e872957d588be376a935aee0fda584960dbd10d063912a0d981b"
@@ -41,10 +43,29 @@ TOPICALS_LOCATOR = (
     "https://web.archive.org/web/20210303084505/"
     "https://mytopicals.com/pages/careers"
 )
+TOPICALS_BODY_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "forseti-harness"
+    / "cases"
+    / "product_learning"
+    / "topicals_retail_expansion_2021_v0"
+    / "source_captures"
+    / "e6_careers_20210303"
+    / "raw"
+    / "02_archive_snapshot_body.bin"
+)
 FIXED_STAMP = {
     "generation_id": "company-surface-test-generation",
     "generated_at": "2026-07-15T00:00:00+00:00",
 }
+
+
+def _commit_packet(root: DataLakeRoot, packet_id: str, *, body: bytes | None = None) -> None:
+    commit_raw_packet(
+        root,
+        packet_id=packet_id,
+        body=body or f'{{"packet_id":"{packet_id}"}}'.encode(),
+    )
 
 
 def _evidence(
@@ -192,6 +213,7 @@ def test_signal_1_company_reality_is_reconstructable_through_silver_front_door(
     tmp_path: Path,
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_packet(root, PACKET_ID)
     paths = append_company_surface_logical_records(root, [_subject(), _activity()])
     assert len(paths) == 2
     records = load_company_surface_records(root)
@@ -203,7 +225,13 @@ def test_signal_1_company_reality_is_reconstructable_through_silver_front_door(
     assert view["non_authoritative"] is True
 
 
-def test_signal_2_history_is_preserved_and_restated_differs_from_as_known() -> None:
+def test_signal_2_history_is_preserved_and_restated_differs_from_as_known(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    correction_packet_id = "01J00000000000000000000011"
+    _commit_packet(root, PACKET_ID)
+    _commit_packet(root, correction_packet_id)
     original = _subject(ref="subject.acme.old", subject="org:acme", state="resolved")
     corrected = _subject(
         ref="subject.acme.corrected",
@@ -211,8 +239,16 @@ def test_signal_2_history_is_preserved_and_restated_differs_from_as_known() -> N
         state="unresolved",
         recorded_at="2025-06-01T00:00:00Z",
         corrects=["subject.acme.old"],
+        evidence=_evidence(packet_id=correction_packet_id),
     )
-    records = [*map_company_surface_record(original), *map_company_surface_record(corrected)]
+    append_company_surface_logical_record(root, original)
+    append_company_surface_logical_record(root, corrected)
+    records = load_company_surface_records(root)
+    edge = next(record for record in records if record["payload_kind"] == "RelationshipEdge")
+    assert {ref["raw_anchor"] for ref in edge["derived_refs"]} == {
+        PACKET_ID,
+        correction_packet_id,
+    }
 
     as_known = build_company_surface_view(
         records,
@@ -238,7 +274,8 @@ def test_signal_3_every_material_statement_is_inspectable_and_coarse_time_surviv
         )
     )[0]
     common = mapped["payload"]["relationship"]
-    assert mapped["raw_refs"][0]["source_span"] == "snapshot#/roles/0"
+    assert mapped["raw_refs"][0] == {"ref_type": "raw_packet", "packet_id": PACKET_ID}
+    assert common["evidence_refs"][0]["source_span"] == "snapshot#/roles/0"
     assert common["effective_interval"]["start_precision"] == "month"
     assert common["subject_anchors"] == ["org:acme"]
     assert "limitations" in common and "alternatives" in common
@@ -271,7 +308,10 @@ def test_signal_6_contradictions_are_visible_without_resolving_them() -> None:
     first = _subject(ref="subject.acme.first")
     second = _subject(ref="subject.acme.second", state="ambiguous")
     second["conflicts_with"] = ["subject.acme.first"]
-    records = [*map_company_surface_record(first), *map_company_surface_record(second)]
+    records = [
+        *map_company_surface_record(first),
+        *map_company_surface_record(second, target_raw_anchors={"subject.acme.first": PACKET_ID}),
+    ]
     view = build_company_surface_view(records, _query("current"))
     assert view["conflicts"][0]["edge_type"] == "conflicts_with_record"
     assert view["visible_residuals"][0]["reason"] == "assertion_ambiguous"
@@ -456,6 +496,7 @@ def test_keys_soulcare_coarse_end_is_april_applicable_may_indeterminate_june_exc
 
 def test_deterministic_rebuild_reproduces_view_and_manifest_bytes(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
+    _commit_packet(root, PACKET_ID)
     append_company_surface_logical_records(root, [_subject(), _activity()])
     queries = [_query(mode) for mode in (
         "current",
@@ -506,6 +547,9 @@ def test_company_surface_census_lane_is_honestly_inactive_without_source_access(
 def test_topicals_offline_product_learning_holdout_uses_same_public_path(tmp_path: Path) -> None:
     """No buyer/readiness claim: one frozen snapshot and one hiring-intent row only."""
     root = DataLakeRoot.for_test(tmp_path / "lake")
+    topicals_body = TOPICALS_BODY_PATH.read_bytes()
+    assert hashlib.sha256(topicals_body).hexdigest() == TOPICALS_SOURCE_SHA
+    _commit_packet(root, TOPICALS_PACKET_ID, body=topicals_body)
     evidence = _evidence(
         packet_id=TOPICALS_PACKET_ID,
         sha256=TOPICALS_SOURCE_SHA,
