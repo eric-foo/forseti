@@ -18,10 +18,12 @@ must never take unattended:
          Landing a PR to main (`gh pr merge <N>`) is CONDITIONALLY allowed: the
          guard queries the PR and allows the merge ONLY when it is mergeStateStatus
          == CLEAN, every CI check has completed green, it carries the opt-in
-         `agent-automerge` label, AND the router did NOT flag it
-         `risk/manual-review-required` / `risk/blocked-for-merge-policy` (so a
-         governed deletion or protected-surface PR is never self-merged). Any other
-         state, a missing/ambiguous PR number, the lower-level `gh api .../merge`
+         `agent-automerge` label, the PR head matches the current lane branch,
+         and the router did NOT flag it `risk/blocked-for-merge-policy`.
+         `risk/manual-review-required` remains an unattended-bot exclusion and
+         completion/review signal; after those judgment gates close it does not
+         choose a human merge actor. Any other state, a missing/ambiguous PR number,
+         the lower-level `gh api .../merge`
          form, or any lookup error/timeout FAILS CLOSED (blocks) — and the block
          message prints the repo-scoped manual `gh pr merge ... --repo` command a
          human can run from anywhere.
@@ -82,12 +84,11 @@ REPO_SLUG = _configured_repo_slug()
 # A PR without it never auto-merges (safe default). One-time repo setup to make
 # the label applyable: `gh label create agent-automerge --repo <configured-repo>`.
 AUTOMERGE_LABEL = "agent-automerge"
-# Router risk labels meaning "a human must land this" (deletions, protected
-# surfaces). The guard honors them so an in-session self-merge cannot override
-# the router's routing -- the same labels the unattended auto-merge bot already
-# respects. Closes the gap where a router-flagged PR (e.g. a governed deletion)
-# could still self-merge on CLEAN + green + agent-automerge alone.
-MANUAL_RISK_LABELS = ("risk/manual-review-required", "risk/blocked-for-merge-policy")
+# Router labels that represent a live mechanical policy block. The static
+# `risk/manual-review-required` label is deliberately absent: it keeps the
+# unattended bot out and signals a resident completion/review gate, but PR #938
+# says that risk no longer chooses a human merge actor after that gate closes.
+POLICY_BLOCK_LABELS = ("risk/blocked-for-merge-policy",)
 # Self-imposed ceiling on the PR-state `gh` call, kept below the hook's own
 # settings.json timeout so we fail CLOSED in-script rather than relying on the
 # harness's (unspecified) timeout-kill behavior.
@@ -271,22 +272,30 @@ def _query_pr_state(pr):
     wraps this in try/except and treats every failure as a CLOSED block)."""
     out = subprocess.run(
         ["gh", "pr", "view", str(pr), "--repo", REPO_SLUG,
-         "--json", "number,mergeStateStatus,statusCheckRollup,labels"],
+         "--json", ("number,mergeStateStatus,statusCheckRollup,labels,"
+                    "headRefName,baseRefName,isCrossRepository")],
         capture_output=True, text=True, timeout=GH_TIMEOUT,
     )
     if out.returncode != 0:
         return None
-    return json.loads(out.stdout or "")
+    state = json.loads(out.stdout or "")
+    rc, current_branch = _git_result(
+        ["symbolic-ref", "--quiet", "--short", "HEAD"]
+    )
+    state["_currentBranch"] = current_branch if rc == 0 else None
+    return state
 
 
 def _merge_decision(pr_ref, lookup):
     """Decide one `gh pr merge` segment. Return None to ALLOW, else a block reason.
 
     FAIL CLOSED: a missing/ambiguous PR number, any lookup error or timeout, a
-    non-CLEAN mergeStateStatus, an empty/non-green check set, a router
-    manual/blocked risk label, or a missing opt-in label all block. Only an
-    explicit, CLEAN, all-checks-green, `agent-automerge`-labeled PR that the
-    router did NOT flag for manual review is allowed to self-merge."""
+    non-main/fork PR, a PR whose head is not the current lane branch, a non-CLEAN
+    mergeStateStatus, an empty/non-green check set, a router policy-block label,
+    or a missing opt-in label all block. Only an explicit own-lane, CLEAN,
+    all-checks-green, `agent-automerge`-labeled PR without a live mechanical
+    policy block is allowed to self-merge. Static manual-review routing remains
+    a resident completion gate, not a merge-actor selector."""
     if not pr_ref:
         return ("EP-03 merge blocked - needs an explicit PR number "
                 "(`gh pr merge <N>`); a no-arg / branch-name merge fails closed")
@@ -297,6 +306,18 @@ def _merge_decision(pr_ref, lookup):
     if not state:
         return ("EP-03 merge blocked - PR %s mergeability lookup failed "
                 "(fail-closed)" % pr_ref)
+    if state.get("isCrossRepository") is not False:
+        return ("EP-03 merge blocked - PR %s is cross-repository or its "
+                "repository identity is unverified" % pr_ref)
+    if state.get("baseRefName") != "main":
+        return ("EP-03 merge blocked - PR %s targets base '%s', not main"
+                % (pr_ref, state.get("baseRefName") or "?"))
+    head_branch = state.get("headRefName")
+    current_branch = state.get("_currentBranch")
+    if not head_branch or not current_branch or head_branch != current_branch:
+        return ("EP-03 merge blocked - PR %s head branch '%s' does not match "
+                "the current lane branch '%s' (own-lane check)"
+                % (pr_ref, head_branch or "?", current_branch or "?"))
     mss = state.get("mergeStateStatus")
     if mss != "CLEAN":
         return ("EP-03 merge blocked - PR %s mergeStateStatus=%s, not CLEAN"
@@ -309,15 +330,14 @@ def _merge_decision(pr_ref, lookup):
         return ("EP-03 merge blocked - PR %s has non-green or pending checks"
                 % pr_ref)
     labels = {(l or {}).get("name") for l in (state.get("labels") or [])}
-    blocking = sorted(labels & set(MANUAL_RISK_LABELS))
+    blocking = sorted(labels & set(POLICY_BLOCK_LABELS))
     if blocking:
-        return ("EP-03 merge blocked - PR %s carries router label '%s'; it must be "
-                "landed by a human (deletion / protected surface), not self-merged"
+        return ("EP-03 merge blocked - PR %s carries live merge-policy block '%s'"
                 % (pr_ref, blocking[0]))
     if AUTOMERGE_LABEL not in labels:
         return ("EP-03 merge blocked - PR %s missing opt-in label '%s'"
                 % (pr_ref, AUTOMERGE_LABEL))
-    return None  # CLEAN + green + opt-in label + no manual-risk label → allow self-merge
+    return None  # own lane + CLEAN + green + opt-in + no policy block → allow
 
 
 def _shell_block_reason(cmd, lookup=None, publication_lookup=None):
@@ -436,8 +456,25 @@ def _selftest():
                 "labels": [{"name": AUTOMERGE_LABEL}]},              # review/required-check block
         "106": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
                 "labels": [{"name": AUTOMERGE_LABEL},
-                           {"name": "risk/manual-review-required"}]},  # router-flagged -> human only
+                           {"name": "risk/manual-review-required"}]},  # review complete -> author may land
+        "107": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL},
+                           {"name": "risk/blocked-for-merge-policy"}]}, # live policy block
+        "108": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "headRefName": "codex/another-lane"},                  # not current lane
+        "109": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "isCrossRepository": True},                           # fork
+        "110": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "baseRefName": "release"},                            # non-main base
     }
+    for _state in _FAKE.values():
+        _state.setdefault("headRefName", "codex/example-lane")
+        _state.setdefault("baseRefName", "main")
+        _state.setdefault("isCrossRepository", False)
+        _state.setdefault("_currentBranch", "codex/example-lane")
     _fake = lambda pr: _FAKE.get(str(pr))            # unknown PR -> None -> fail closed
     _published = lambda: "origin/codex/example-lane"
     _unpublished = lambda: None
@@ -455,7 +492,11 @@ def _selftest():
         ("Bash", {"command": "gh pr merge 103"}, True, _fake),                            # pending check
         ("Bash", {"command": "gh pr merge 104"}, True, _fake),                            # empty checkset
         ("Bash", {"command": "gh pr merge 105"}, True, _fake),                            # BLOCKED
-        ("Bash", {"command": "gh pr merge 106"}, True, _fake),                            # router manual-review label -> human only
+        ("Bash", {"command": "gh pr merge 106"}, False, _fake),                           # manual-review label does not choose actor
+        ("Bash", {"command": "gh pr merge 107"}, True, _fake),                            # live policy block
+        ("Bash", {"command": "gh pr merge 108"}, True, _fake),                            # another lane's PR
+        ("Bash", {"command": "gh pr merge 109"}, True, _fake),                            # fork
+        ("Bash", {"command": "gh pr merge 110"}, True, _fake),                            # non-main base
         ("Bash", {"command": "gh pr merge 999"}, True, _fake),                            # unknown PR -> lookup None
         ("Bash", {"command": "gh pr merge 100"}, True, _raises),                          # lookup raises -> fail closed
         ("PowerShell", {"command": "gh pr merge"}, True, _fake),                          # no explicit PR number
