@@ -20,9 +20,10 @@ replace the fixed case. The sequence changes one operating intervention at a
 time, reruns three fresh cold agents, and advances only when correctness,
 failure integrity, and the named fix gate pass.
 
-Current state: **fix 1 passed; fix 2 is next**. The baseline record is pending on
-PR #951 at commit `28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this
-ledger does not imply that PR is merged.
+Current state: **fix 1 passed; fix 2 is implemented but its fresh managed-task
+live gate remains pending**. The baseline record is pending on PR #951 at
+commit `28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this ledger does not imply
+that PR is merged.
 
 Fix 2 candidate state and its pending trusted-hook gate are recorded below.
 
@@ -172,6 +173,65 @@ not yet passed**.
 After the fix-1 and fix-2 branches land and the trusted project hook reloads,
 rerun the unchanged three-agent case. Do not start fix 3 until all three shell
 runs satisfy the fix-2 gate.
+
+### Managed-worktree receiver hardening — live gate pending
+
+This lane started in Codex's managed worktree
+`C:\Users\vmon7\Desktop\projects\forseti-worktrees\c575\orca` with both
+`HEAD` and `origin/main` freshly observed at
+`55af05592c19523f1f2f494e88119f9a744cbc79`, then created branch
+`codex/tool-efficiency-hook-adoption-canary`. The workspace file portion of the
+lane-start write/index probe ran normally. Git index mutation required the
+harness's per-operation approval because the registered worktree index is
+stored under the parent clone's `.git/worktrees` metadata; the stage, unstage,
+probe removal, and clean-status read then passed. No shell command used
+elevation, fallback, or a command-level workdir override.
+
+Smallest-complete decision and implementation:
+
+- no persisted hook-adoption state, registry, lifecycle utility, wrapper, or
+  synthetic trust entry was added; the live probe result itself is the state;
+- the exact top-level command
+  `python .codex/hooks/forseti_guard_codex_adapter.py --live-adoption-probe`
+  is denied by an adopted live hook with
+  `FORSETI_CODEX_HOOK_ADOPTION=ADOPTED`, while direct execution exits `3` with
+  `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`;
+- fresh-launcher or live protected-gate commissions route to a newly created,
+  correctly rooted Codex managed task; a local/base-rooted task plus
+  command-level workdir override is explicitly invalid; and
+- clean revision policy is explicit: `exact` requires exact `HEAD`, while
+  `ancestor` requires the named prerequisite commit to be an ancestor of the
+  current clean `HEAD` and is valid only for a commission that permits an
+  advancing lane. Existing exact gates remain exact.
+
+Focused evidence observed before the live task gate:
+
+- adapter smoke/selftest completed in 9.2 seconds with `SELFTEST OK` and
+  `CODEX ADAPTER SELFTEST OK`, including synthetic adopted denial and direct
+  not-intercepted fallback;
+- the two focused pytest assertions for hook wiring, live-probe fallback, route
+  markers, command shape, workdir rejection, and revision semantics passed,
+  then the full `test_ci_hook_wiring.py` file passed all 13 tests;
+- the shared protected-action guard selftest passed all 59 command cases and
+  three publication-probe cases;
+- the complete local CI hook-gate mirror passed 22/22 gates, and changed-file
+  DCP receipt hygiene plus review-routing checks passed; and
+- `git diff --check` passed after the focused edits.
+
+The exact top-level probe was then run once in the already-running authoring
+task and executed directly with
+`FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`. This is a failed adoption result,
+not evidence against the adapter: the task predates the changed project-hook
+lifecycle. It does not satisfy or replace the required newly started task gate.
+
+The remaining decision-bearing gate is deliberately live: after these bytes are
+committed, a newly started Codex-managed task must prove its canonical root and
+revision mode, prompt-free benign shell launch, live adopted denial, adapter and
+shared-guard selftests, and denial of `git clean -n`, all without command-level
+workdir substitution. Codex owns whether changed project hooks are surfaced for
+trust/adoption in managed or existing-worktree tasks. If normal Codex UI cannot
+surface that action, Fix 2 remains blocked at the upstream product boundary;
+Forseti will not edit trust metadata or infer adoption.
 
 ## Non-claims
 
