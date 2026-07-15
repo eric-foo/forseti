@@ -247,10 +247,34 @@ gate from the committed candidate:
 Decision: **Fix 2 remains blocked at the upstream Codex product boundary.** The
 Forseti canary correctly distinguished an unloaded live hook from adoption, but
 Forseti cannot make a managed/existing-worktree task trust or load the tracked
-project hook and Codex exposed no user action that could complete that state.
-Do not start the three-cold-agent dogfood or Fix 3. Resume only when Codex
-surfaces/handles managed-task project-hook trust/adoption through its normal
-product flow; rerun this same live gate without editing trust metadata.
+project hook and the managed desktop task exposed no user action that could
+complete that state.
+
+Current-product follow-up narrowed that boundary without passing the gate:
+
+- the installed CLI identifies itself as `codex-cli 0.128.0`;
+- the current official Codex manual says project-local hooks load only when the
+  project `.codex` layer is trusted, and new or changed non-managed command
+  hooks are skipped until the exact current hook definition is reviewed and
+  trusted;
+- the documented manual review mechanism is `/hooks` in the Codex CLI, while
+  the manual desktop commands and settings surfaces expose no equivalent hook
+  review command or setting;
+- the fresh managed desktop task above exposed no review, trust, adoption, or
+  reload action and returned `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`;
+- a filtered local configuration read observed the base project path
+  `C:\Users\vmon7\Desktop\projects\orca` as trusted but observed no
+  managed-worktree-specific project trust entry; no trust metadata was edited
+  or dumped; and
+- the installed package is binary-only, so it provided no stronger local
+  implementation source for the desktop-versus-CLI behavior.
+
+The next admissible experiment is therefore an owner-reviewed, supported CLI
+`/hooks` trust action launched in the exact managed worktree and reviewing the
+exact current hook definition. That action is manual, not automatic, and this
+documented path does not yet satisfy Fix 2. Do not start the three-cold-agent
+dogfood or Fix 3; after that supported review succeeds, rerun this same live
+gate without editing trust metadata.
 
 ## Non-claims
 
