@@ -64,6 +64,9 @@ LANE_ROLES: dict[str, LaneRole] = {
     "transcript_product_mentions_silver": LaneRole.SILVER_ENVELOPE,
     "transcript_product_mentions_completion": LaneRole.COMPLETION_MARKER,
     "retail_pdp_silver": LaneRole.SILVER_ENVELOPE,
+    "silver__capture__audience_comments": LaneRole.SILVER_ENVELOPE,
+    "silver__capture__reel_transcript": LaneRole.SILVER_ENVELOPE,
+    "silver__capture__reel_deep_capture__set": LaneRole.COMPLETION_MARKER,
     "creator_audience_evidence_assembly_receipt": LaneRole.DECISION_EVIDENCE_RECEIPT,
     # --- retired audience inference lanes: names reserved; never current authority
     "tiktok_audience_evidence_silver": LaneRole.RETIRED_SILVER_LINEAGE,
@@ -77,9 +80,6 @@ LANE_ROLES: dict[str, LaneRole] = {
     "silver__cleaning__tiktok_audience_evidence__set": LaneRole.RETIRED_SILVER_LINEAGE,
     "silver__cleaning__tiktok_audience_profile": LaneRole.RETIRED_SILVER_LINEAGE,
     "silver__cleaning__tiktok_audience_profile__set": LaneRole.RETIRED_SILVER_LINEAGE,
-    "silver__capture__audience_comments": LaneRole.SILVER_LINEAGE,
-    "silver__capture__reel_transcript": LaneRole.SILVER_LINEAGE,
-    "silver__capture__reel_deep_capture__set": LaneRole.SILVER_LINEAGE,
     # --- cleaning audit pack (processing evidence; no record_kind)
     "cleaning_basenotes_audit": LaneRole.CLEANING_AUDIT,
     "cleaning_fragrantica_audit": LaneRole.CLEANING_AUDIT,
@@ -129,13 +129,7 @@ FRONT_DOOR_PENDING_BASELINE: frozenset[str] = frozenset()
 # only route for new Silver Authority lanes. Equality is deliberate: a migration
 # may shrink this set only through a reviewed edit that changes both the registry
 # and this baseline; expanding it silently is forbidden.
-SILVER_LINEAGE_LEGACY_BASELINE: frozenset[str] = frozenset(
-    {
-        "silver__capture__audience_comments",
-        "silver__capture__reel_transcript",
-        "silver__capture__reel_deep_capture__set",
-    }
-)
+SILVER_LINEAGE_LEGACY_BASELINE: frozenset[str] = frozenset()
 
 RETIRED_SILVER_LINEAGE_BASELINE: frozenset[str] = frozenset(
     {
