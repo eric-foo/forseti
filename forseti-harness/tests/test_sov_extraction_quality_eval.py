@@ -105,6 +105,8 @@ def _lineage_fields(packet_id: str, json3_entry: dict | None, native_id: str) ->
         source_object=SilverSourceObject(
             namespace="youtube", kind="transcript", native_id=native_id
         ),
+        observed_at="2026-07-15T00:00:00Z",
+        captured_at="2026-07-15T00:00:00Z",
         raw_refs=raw_refs,
         derived_refs=derived_refs,
     )

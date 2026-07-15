@@ -19,6 +19,7 @@ from capture_spine.creator_profile_current.silver_metric_producer import (
     METRIC_OBSERVATION_PAYLOAD_KIND,
     METRIC_ROLLUP_LANE,
     METRIC_ROLLUP_PAYLOAD_KIND,
+    build_metric_observation_record,
     derive_creator_metric_silver_records_from_projections,
 )
 from capture_spine.creator_profile_current.silver_metric_reader import (
@@ -33,6 +34,7 @@ from capture_spine.creator_profile_current.silver_metric_snapshot import (
 from data_lake.attachment_record_entry import ATTACHMENT_RECORD_SCHEMA_VERSION
 from data_lake.catalog import rebuild_catalog
 from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
+from data_lake.silver_record import validate_silver_vault_record
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
@@ -142,6 +144,27 @@ def _run(tmp_path: Path):
         account_ledger=_account_ledger(),
         generated_at_utc=GENERATED_AT,
     )
+
+
+def test_unknown_projection_capture_time_uses_explicit_unknown_grammar(tmp_path: Path) -> None:
+    result = _run(tmp_path)
+    seed = result.seed_document["instagram_reels_creator_metric_seed"]
+    seed_observation = dict(seed["metric_observations"][0])
+    seed_observation["observed_at"] = None
+
+    record = build_metric_observation_record(
+        seed_observation=seed_observation,
+        recorded_at=seed["generated_at_utc"],
+    )
+    validate_silver_vault_record(record)
+
+    observation = record["payload"]["observation"]
+    assert record["observed_at"] is None
+    assert record["captured_at"] == GENERATED_AT
+    assert observation["effective_interval"]["start_precision"] == "unknown"
+    assert observation["recorded_at"] == GENERATED_AT
+    assert observation["evidence_refs"]
+    assert observation["limitations"]
 
 
 def _commit_default_raw_packet(data_root: DataLakeRoot) -> None:

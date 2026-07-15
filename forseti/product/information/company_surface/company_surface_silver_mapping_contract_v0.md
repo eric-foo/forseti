@@ -65,6 +65,11 @@ hold time-varying facts. Brand and Org anchors use the adopted `brand:<slug>` an
 | Company-activity link | `relationship` | `CompanyActivityLink` | Link from an upstream observation/receipt to the Brand or Org it concerns. |
 | Coverage or failure marker | `observation` | `CompanyCoverageMarker` | Explicit available, partial, failed, excluded, or not-covered posture; never a negative fact. |
 
+For the observation-mapped subject assertion and coverage/failure marker, an
+unknown effective start requires non-empty limitations. The relationship-mapped
+relationship assertion and company-activity link retain nullable `observed_at`
+behavior and do not adopt this observation-only coupling.
+
 The producer payload preserves the logical stable reference, subject anchors,
 assertion state where applicable, evidence refs, effective interval and
 precision, recorded time, capture posture, limitations, alternatives, and the

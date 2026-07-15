@@ -158,10 +158,43 @@ Header invariants:
 | `payload_kind` | Silver payload discriminator. Must not replace producer/source-family row kind. |
 | `producer_row_kind` | Carries source-family subtype when present, such as IG projection `row_kind`. |
 | `content_hash` | Required durable integrity hash for the canonical record content; hash basis must be explicit and must not include the `content_hash` field itself. |
-| `observed_at` | Time the fact was observed at or about the source. Nullable only for internal relationship records with no source observation time. |
-| `captured_at` | Time Forseti captured the source material or producer input. |
+| `observed_at` | Source-effective time for the fact. Non-null for entities and ordinary observations. Null remains allowed for relationship records and is allowed for an observation only under the explicit unknown-time grammar below; capture or record time must never be substituted. |
+| `captured_at` | Time Forseti captured the source material or producer input. For an explicit unknown-time observation it must be non-null and remains distinct from source-effective and producer-recorded time. |
 | `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file. When `sha256` is claimed, it hashes the exact preserved body bytes and its paired `hash_basis` is exactly `raw_stored_bytes`. Bronze Attachment Record refs always require that pair plus an equal `body_sha256`; raw-packet refs may omit the pair only when they do not name a specific file. Source-family payload refs must honor the Bronze intake boundary below. |
 | `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. A claimed `sha256` pairs only with `hash_basis: derived_record_bytes` and hashes the exact saved derived-record bytes. A claimed `content_hash` pairs independently with `content_hash_basis: canonical_json_excluding_content_hash`; either pair may appear, both may coexist, and neither aliases or substitutes for the other. |
+
+An observation with genuinely unknown source-effective time uses the existing
+explicit-unknown interval grammar; it does not mint another marker and does not
+borrow `captured_at` or producer `recorded_at` as `observed_at`:
+
+```json
+{
+  "observed_at": null,
+  "captured_at": "2026-06-28T00:00:00Z",
+  "payload": {
+    "observation": {
+      "effective_interval": {
+        "start": null,
+        "start_precision": "unknown",
+        "unknown_reason": "source exposes no effective timestamp"
+      },
+      "recorded_at": "2026-06-29T00:00:00Z",
+      "evidence_refs": [{"packet_id": "01..."}],
+      "limitations": ["Source-effective time is absent from the cited material."]
+    }
+  }
+}
+```
+
+The null is valid only when `effective_interval.start` is present and null,
+`start_precision` is exactly `unknown`, `unknown_reason` is non-empty, and the
+observation carries non-empty provenance in `evidence_refs`, a non-empty
+`recorded_at`, and non-empty `limitations`; common `captured_at` is
+non-null in this case. Missing or partial markers fail closed. Conversely, a payload that
+declares this unknown start must keep `observed_at` null, so a producer cannot
+fabricate source-effective time from capture or record time. Relationship
+records retain their existing nullable `observed_at` behavior without adopting
+the observation-only marker.
 
 ## Bronze Intake And Attachment Record Boundary
 
@@ -696,6 +729,10 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
     classifier after their original envelope and content hash validate.
 20. Structural lineage status is never Silver authority. Census and
     authority-making readers use the root-aware physical classifier or verifier.
+21. A null observation `observed_at` is accepted only with the explicit
+    unknown-time interval, provenance, recorded/capture time, and limitation
+    coupling above; ordinary observations remain time-required and relationship
+    nullability is unchanged.
 ## Mini God Tier Accepted Residuals
 
 This contract deliberately stops short of maximal infrastructure.
@@ -788,12 +825,14 @@ spec_handoff:
     - producer_row_kind as source-family subtype carrier
     - Bronze catalog / Attachment Record surfaces for source-backed raw refs
     - MetricObservation posture/value/reason/coverage-window coupling
+    - explicit unknown-time observation coupling without capture/record-time substitution
   acceptance_criteria:
     - records are append-only one-record-per-file
     - entity records are identity-only
     - non-observed metrics carry no value and have reason
     - generated read models are manifest-backed and rebuildable
     - source-backed raw_refs use public Bronze packet/catalog/AR surfaces
+    - null observation observed_at requires the explicit unknown-time payload grammar
     - Creator Vault envelopes contain no forbidden Judgment/dossier fields
   deferred_open_questions:
     - exact serialization syntax
@@ -808,6 +847,63 @@ spec_handoff:
 ```
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Silver observations whose source-effective time is genuinely unknown may
+    keep observed_at null only by reusing the existing explicit-unknown
+    effective_interval grammar with non-empty reason, provenance, recorded and
+    capture times, and limitations. Ordinary observations remain time-required,
+    captured_at is non-null in that unknown-time case and cannot substitute, relationship nullability
+    is unchanged, record_kind stays closed, and Company Surface applies the
+    non-empty limitations coupling only to its observation-mapped families.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - docs/decisions/silver_vault_legacy_record_convergence_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_metric_silver_record_contract_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_metric_silver_record_contract_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_transcript_product_extraction_spec_v0.md
+    - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+    - forseti/product/information/company_surface/company_logical_record_and_view_contract_v0.md
+    - forseti/product/information/company_surface/company_surface_silver_mapping_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti-harness/data_lake/silver_record.py
+    - forseti-harness/cleaning/transcript_product_lake.py
+    - forseti-harness/runners/run_transcript_product_extract.py
+    - forseti-harness/runners/run_ig_reels_product_extract.py
+    - forseti-harness/runners/run_tiktok_product_extract.py
+    - forseti-harness/capture_spine/creator_profile_current/tiktok_comment_attention_producer.py
+    - forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
+    - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+    - forseti-harness/capture_spine/creator_profile_current/social_metric_history_reader.py
+    - forseti-harness/data_lake/consumption.py
+    - forseti-harness/data_lake/silver_census.py
+    - forseti-harness/data_lake/lane_registry.py
+    - forseti-harness/data_lake/lake_touchpoint_inventory_v0.json
+    - forseti-harness/data_lake/company_surface.py
+    - focused Silver, producer-family, and Company Surface tests
+  intentionally_not_updated:
+    - path: AGENTS.md and .agents/workflow-overlay/
+      reason: Project workflow routes architecture doctrine to the owning contract and contains no competing Silver time grammar.
+    - path: docs/workflows/forseti_repo_map_v0.md, forseti/product/spines/data_lake/README.md, lane_registry.py, and lake_touchpoint_inventory_v0.json
+      reason: Existing authority and runtime routers already point to the same lanes/modules; no role, path, or touchpoint changed.
+    - path: forseti-harness/capture_spine/creator_profile_current/social_metric_history_reader.py
+      reason: Ordered history requires a known observation time and remains fail-closed for explicit-unknown records; no substitute time is introduced.
+    - path: forseti-harness/data_lake/consumption.py
+      reason: Product-mention and share-of-voice consumption is source-reference and policy bound and does not interpret top-level observed_at.
+  stale_language_search: >
+    rg -n -i "observed_at.*nullable|nullable.*observed_at|captured_at.*nullable|nullable.*captured_at|observed_at.*capture"
+    docs/decisions forseti/product/spines forseti/product/information/company_surface
+    forseti-harness/data_lake forseti-harness/cleaning
+    forseti-harness/capture_spine forseti-harness/tests
+  non_claims:
+    - not a Silver envelope or record_kind expansion
+    - not a change to Company Surface's owner-signed purpose, four-family mapping, or relationship nullability
+    - not a physical-lineage, source-access, scheduler, capture, UI, or cache change
+    - not validation or production readiness
+```
 
 ```yaml
 direction_change_propagation:
@@ -862,56 +958,4 @@ direction_change_propagation:
     - not validation or production readiness
 ```
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Silver read authority now separates immutable-envelope validation, strict new-write refs, root-aware physical resolution, bounded declared legacy compatibility, and lane-specific selection. The shared classifier reports current_source_backed, historical_compatible, invalid, or unresolved. Fragrantica v0 uses only unambiguous in-memory address inference; creator v0 observations and rollups use exact cross-epoch lineage reconciliation. Structural lineage status cannot establish authority.
-  trigger: architecture_doctrine
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-  downstream_surfaces_checked:
-    - forseti/product/spines/data_lake/README.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
-    - docs/decisions/silver_vault_goal_frame_ratification_v0.md
-    - docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md
-    - forseti-harness/data_lake/creator_metric_lineage.py
-    - forseti-harness/data_lake/silver_census.py
-    - forseti-harness/capture_spine/creator_profile_current/social_metric_history_reader.py
-    - forseti-harness/tests/contract/test_silver_reader_selection_gate.py
-    - forseti-harness/capture_spine/creator_profile_current/silver_metric_reader.py
-  intentionally_not_updated:
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
-      reason: >
-        The clean-forward epoch, explicit-compatibility-only old-root rule, and
-        prohibition on permanent reader shims are preserved unchanged.
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
-      reason: >
-        Its on-demand metric policy already requires committed source-backed
-        evidence. This amendment defines the creator-metric evidence gate in the
-        owning Silver record contract without changing pickup, ack, or view rules.
-    - path: docs/decisions/silver_vault_goal_frame_ratification_v0.md
-      reason: >
-        The ratified V1 target is unchanged and is not declared complete; the
-        classifier makes the residual population explicit rather than weakening
-        the target.
-    - path: docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md
-      reason: >
-        Its accepted B2 posture stays ledger-specific. This closure uses only its
-        explicit archived-root precedent and does not generalize ledger authority.
-  stale_language_search: >
-    rg -n "source_backed_complete|historical_compatible|creator.metric.*lineage|archive fallback|legacy_roots"
-    forseti-harness/data_lake forseti-harness/capture_spine/creator_profile_current
-    forseti/product/spines/data_lake docs/decisions
-  stale_language_search_result: >
-    Re-run at final validation. Expected hits are the root-aware classifier, the explicitly structural-only helper, the creator cross-epoch index, and durable historical language; no authority reader may use structural status as physical proof.
-  non_claims:
-    - not validation
-    - not readiness
-    - not Silver Vault completion
-    - not a generic multi-root reader or permanent archive fallback
-    - not a live/archive lake write, migration, copy, rewrite, or recapture
-```
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

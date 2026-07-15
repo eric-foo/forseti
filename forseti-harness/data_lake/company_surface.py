@@ -148,8 +148,18 @@ def validate_company_surface_logical_record(record: Mapping[str, Any]) -> None:
         if not anchor.startswith(("brand:", "org:")):
             raise CompanySurfaceError("subject anchors must use brand:<slug> or org:<slug>.")
     _validate_evidence_refs(record.get("evidence_refs"))
-    _validate_interval(record.get("effective_interval"))
-    _require_string_list(record.get("limitations"), "limitations")
+    interval = record.get("effective_interval")
+    _validate_interval(interval)
+    limitations = _require_string_list(record.get("limitations"), "limitations")
+    if (
+        _FAMILY_MAPPING[family][0] == "observation"
+        and interval["start_precision"] == "unknown"
+        and not limitations
+    ):
+        raise CompanySurfaceError(
+            "limitations must be non-empty for an observation-mapped family "
+            "with unknown effective start."
+        )
     _require_string_list(record.get("alternatives"), "alternatives")
     for edge_field in _EDGE_FIELDS:
         _require_string_list(record.get(edge_field), edge_field)

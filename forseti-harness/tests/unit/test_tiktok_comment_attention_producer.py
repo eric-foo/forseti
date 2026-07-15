@@ -88,6 +88,30 @@ def test_builds_source_backed_ratio_observations_with_policy_fingerprint() -> No
     assert records[0]["content_hash"] == f"sha256:{expected_hash}"
 
 
+def test_unknown_comment_time_uses_explicit_unknown_grammar() -> None:
+    video = _comment_video()
+    video["comments"]["observed_utc"] = None
+    record = build_comment_attention_records(
+        raw_anchor="01TESTPACKET",
+        batch_payload={"capture_timestamp": CAPTURE_T1, "videos": [video]},
+        raw_file_ref={
+            "file_id": "file-1",
+            "relative_packet_path": "raw/01_tiktok_batch_capture.json",
+            "sha256": "a" * 64,
+            "hash_basis": "raw_stored_bytes",
+        },
+    )[0]
+
+    observation = record["payload"]["observation"]
+    assert record["observed_at"] is None
+    assert record["captured_at"] == CAPTURE_T1
+    assert observation["effective_interval"]["start"] is None
+    assert observation["effective_interval"]["start_precision"] == "unknown"
+    assert observation["recorded_at"] == CAPTURE_T1
+    assert observation["evidence_refs"]
+    assert observation["limitations"]
+
+
 def test_zero_video_likes_is_unavailable_not_zero() -> None:
     record = build_comment_attention_records(
         raw_anchor="01TESTPACKET",

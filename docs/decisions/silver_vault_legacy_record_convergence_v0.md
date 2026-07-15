@@ -59,6 +59,9 @@ Before persistence, the Silver front door verifies:
 - closed record kind, payload kind, and no Cleaning transform ledger in the fact;
 - Text/Metric observation posture, row counts, row identity, inline-text hashes, and
   policy fingerprints;
+- known-time observations carry `observed_at`; null is accepted only with the
+  generic explicit-unknown interval plus recorded/capture time, evidence, and
+  visible limitations;
 - every Silver member of a detectable record set before any member is written.
 
 ## Immutable legacy-read compatibility
@@ -88,10 +91,11 @@ explicit lane/path lookup only.
 ## Re-derivation and idempotency
 
 The product and audience runner obligations include their output record-schema
-versions. The envelope migration therefore changes the obligation fingerprint and
-re-surfaces previously acknowledged packets without recapture. Deterministic record
-ids plus completion markers preserve second-cycle-zero behavior after successful
-re-derivation. Partial sets remain visible and are never acknowledged as complete.
+versions. Envelope or explicit-unknown-time migrations therefore change the
+obligation fingerprint and re-surface previously acknowledged packets without
+recapture. Deterministic record ids plus completion markers preserve
+second-cycle-zero behavior after successful re-derivation. Partial sets remain
+visible and are never acknowledged as complete.
 
 ## Accepted residuals
 
