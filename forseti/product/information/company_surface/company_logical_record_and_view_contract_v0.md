@@ -128,10 +128,19 @@ A later-discovered source may change restated history. It cannot appear in an
 as-known view whose cutoff predates its Company Surface recorded time.
 
 A view starts from an explicit Brand or Org; admits only records known by its
-cutoff; applies only eligible corrections; follows only supported relationships
-valid at its effective boundary; includes activity intersecting the requested
-period; carries conflicts, gaps, and failures; and returns its query boundaries,
-included record references, exclusions, and limitations.
+cutoff; applies only eligible corrections and supersessions; includes activity
+intersecting the requested period; carries conflicts, gaps, failures,
+alternatives, and limitations; and returns its query boundaries, included
+record references, exclusions, and limitations.
+
+Selection reads every required subject and relationship assertion's state and
+time precision. The resolved roll-up may attach activity or expand to a related
+subject only through resolved assertions whose effective interval is
+determinate at the requested boundary under its declared precision.
+Provisional, ambiguous, unresolved, or temporally indeterminate assertions
+remain visible as alternatives and limitations; they do not enter the resolved
+roll-up. Neither convenience nor a missing boundary upgrades an assertion state
+or resolves an indeterminate interval.
 
 A later materialized view remains a rebuildable projection, never a second
 authority.
@@ -170,7 +179,9 @@ source-completeness claims.
 The fiscal-2026 10-K and corporate brands page support separate Brand and Org
 subjects, layered subsidiaries, rhode entering on 2025-08-05, and Keys Soulcare
 leaving in May 2026 with no exact day. A current view excludes Keys Soulcare; a
-pre-acquisition view excludes rhode's later relationship.
+pre-acquisition view excludes rhode's later relationship. The filing does not
+pin every intermediate ownership tier; an unpinned tier stays provisional rather
+than being flattened into the registrant.
 
 - https://www.sec.gov/Archives/edgar/data/1600033/000160003326000020/elf-20260331.htm
 - https://www.elfbeauty.com/brands
