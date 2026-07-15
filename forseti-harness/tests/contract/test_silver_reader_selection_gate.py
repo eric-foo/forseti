@@ -22,6 +22,7 @@ from data_lake.inventory import (
     lane_dir_reader_files,
     non_raw_lake_touchpoints,
     silver_reader_posture_problems,
+    tracked_harness_python_files,
 )
 
 _PATH_BASED_TOUCHPOINT_CALLS = {"is_record_set_complete", "record_path"}
@@ -166,6 +167,61 @@ def _call_names(tree: ast.AST) -> set[str]:
                 names.add(func.attr)
     return names
 
+
+def test_structural_lineage_helpers_cannot_be_used_as_reader_authority() -> None:
+    """Shape checks may support a writer, but may never admit read-side evidence."""
+    structural_calls = {
+        "has_complete_silver_lineage_structure",
+        "silver_record_lineage_structure_status",
+    }
+    retired_misleading_calls = {
+        "is_silver_record_source_backed_complete",
+        "silver_record_source_backed_status",
+    }
+    write_front_doors = {"append_silver_record", "append_silver_record_set"}
+    problems: dict[str, str] = {}
+    for path in tracked_harness_python_files():
+        relative = path.relative_to(HARNESS_ROOT)
+        if "tests" in relative.parts or relative.as_posix() == "data_lake/silver_lineage.py":
+            continue
+        calls = _call_names(ast.parse(path.read_text(encoding="utf-8")))
+        retired = sorted(calls & retired_misleading_calls)
+        if retired:
+            problems[relative.as_posix()] = f"calls retired shape-only authority API: {retired}"
+            continue
+        structural = sorted(calls & structural_calls)
+        if structural and not calls & write_front_doors:
+            problems[relative.as_posix()] = (
+                f"calls structural-only lineage helper {structural} without a strict "
+                "Silver write front door; authority readers must use root-aware "
+                "physical verification"
+            )
+    assert not problems, (
+        "Structural Silver lineage status escaped into read-side authority:\n"
+        + "\n".join(f"  {path}: {why}" for path, why in sorted(problems.items()))
+    )
+
+def test_declared_envelope_readers_visibly_use_physical_authority() -> None:
+    """Envelope validity alone must never admit evidence from a declared reader."""
+    physical_calls = {
+        "build_creator_metric_lineage_index",
+        "classify_silver_vault_record_sources",
+        "select_product_mention_records",
+        "verify_silver_vault_record_sources",
+    }
+    problems: dict[str, str] = {}
+    for file_path in sorted(SILVER_READER_SELECTION_POSTURES):
+        tree = ast.parse((HARNESS_ROOT / file_path).read_text(encoding="utf-8"))
+        calls = _call_names(tree)
+        if "validate_silver_vault_record" in calls and not calls & physical_calls:
+            problems[file_path] = (
+                "validates a Silver envelope but exposes no root-aware physical "
+                "classifier/verifier or a shared physically gated selector"
+            )
+    assert not problems, (
+        "Declared Silver reader(s) can treat envelope shape as authority:\n"
+        + "\n".join(f"  {path}: {why}" for path, why in problems.items())
+    )
 
 def test_selection_rule_postures_visibly_use_their_named_mechanism() -> None:
     """V2's core claim cannot rot: a file declared ``selection_rule`` must visibly

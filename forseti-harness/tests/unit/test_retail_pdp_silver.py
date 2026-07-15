@@ -8,7 +8,7 @@ import pytest
 
 from data_lake.lane_registry import LaneRole, role_of
 from data_lake.root import DataLakeRoot
-from data_lake.silver_lineage import is_silver_record_source_backed_complete
+from data_lake.silver_lineage import has_complete_silver_lineage_structure
 from source_capture.models import known_fact
 from source_capture.retail_pdp_projection import (
     PROJECTION_RETAIL_PDP_LANE,
@@ -90,7 +90,7 @@ def test_amazon_projection_emits_generic_source_backed_silver(tmp_path: Path) ->
     ]
     assert len(result.paths) == 3
     assert all(path.parent.name == RETAIL_PDP_SILVER_LANE for path in result.paths)
-    assert all(is_silver_record_source_backed_complete(record) for record in result.records)
+    assert all(has_complete_silver_lineage_structure(record) for record in result.records)
     assert all(record["content_hash"] == _computed_content_hash(record) for record in result.records)
 
     entity = result.records[0]["payload"]["entity"]

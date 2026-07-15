@@ -51,8 +51,10 @@ Pickup   = by-key scan of committed availability, minus anchors whose current
            never trust a view; heavy packet loading only for undone anchors.
 Ack      = append-only lane-owned record in acknowledgements/, namespace =
            a lane name already declared in lane_registry.LANE_ROLES.
-Views    = rebuildable caches under indexes/derived_retrieval/object_level/;
-           built by the rebuild runner; never consulted by pickup.
+Views    = rebuildable Silver Retrieval query tables under
+           indexes/derived_retrieval/silver_vault/core/query_tables/, paired
+           with manifests/ rows; built by the rebuild runner; never consulted
+           by pickup.
 Metrics  = computed on demand by default; precomputed only as rebuildable
            manifest-backed views; first families owner-named, each
            view-blocked until its field-level contract binds (share-of-voice
@@ -188,11 +190,13 @@ Proof mode regenerates from the exact policy stored in each view manifest and
 does not accept an implicit current/latest policy.
 
 - `--target availability` delegates to `DataLakeRoot.rebuild_availability`.
-- `--target derived_retrieval` builds the gate-opened object-level views
-  under `indexes/derived_retrieval/object_level/<view>/` with a per-view
-  manifest carrying the Silver Vault read-model obligations (generation id,
-  source record ids, source high-watermark, selection policy versions,
-  generated_at, stale/drift detection fields).
+- `--target derived_retrieval` builds the gate-opened object-level views as
+  `indexes/derived_retrieval/silver_vault/core/query_tables/<view>.json`, with
+  the paired manifest at
+  `indexes/derived_retrieval/silver_vault/core/manifests/<view>.json` carrying
+  the Silver Vault read-model obligations (generation id, source record ids,
+  source high-watermark, selection policy versions, generated_at, stale/drift
+  detection fields).
 - Built views in v0: `undone` and `by_mention`. `by_creator` stays deferred
   behind the audience-silver lake wiring (Slice C) per the gate-opening
   record. No SQL engine: the query-lens stays scan/query-latency-gated.
@@ -289,91 +293,6 @@ evidence on the implementing lane branch.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Consumption Seam Contract v0 adds the shared derived-lane consumption
-    layer over the existing lake contracts: obligation-fingerprint pickup by
-    key with ack records as lane-owned completion facts; ack namespaces bound
-    to lane_registry.LANE_ROLES; a six-point conformance contract every lane
-    pickup implementation must pass; the rebuild-command binding to the
-    runner entry point for the gate-opened undone/by_mention views with
-    manifest-backed prove-rebuildability; and the on-demand-first metrics
-    policy with first metric families operator_to_fill.
-  trigger: architecture_doctrine
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
-  downstream_surfaces_checked:
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_write_boundary_enforcement_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-  intentionally_not_updated:
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-      reason: >
-        Its ack grammar, rebuild-command shape, and gate-opening record are
-        consumed as-is; the seam adds a consumer layer without changing the
-        pinned relationships.
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-      reason: >
-        By-key authority and the Acknowledgement Log slot are affirmed
-        unchanged; the seam is the first production consumer of that slot.
-    - path: forseti-harness/data_lake/lane_registry.py
-      reason: >
-        The namespace rule reuses the existing CI-guarded lane map by
-        reference; no registry edit is needed or made.
-  non_claims:
-    - not validation
-    - not readiness
-    - not engine/backend/queue selection
-    - not metric-family selection
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Adjudicated amendment pass (2026-07-02) closing the accepted findings of
-    the cross-vendor delegated review (GPT-5.5 Pro, no_repo discovery pass)
-    plus the owner's metric-family naming: (F1) append-only retraction fact
-    class (unack_<fp>_<k> / re-ack ack_<fp>_<k>; acknowledged iff ack facts
-    outnumber retraction facts) so same-obligation evidence corrections are
-    representable without overwrite; (F2) namespace rule scoped to
-    write/active-consumer admissibility with historical ack validity stable
-    across registry evolution; (F3) reconcile-before-no-work made a binding
-    pickup precondition (helper reconciles by default, fail-loud; opt-out
-    must be visible); (F4) minimum obligation envelope
-    (obligation_schema + consumer + policy tokens, helper-validated); (F5)
-    minimum evidence shape (non-empty kind + dereferenceable ref or explicit
-    basis); (F6) undone-view zero-rows disclosure (zero_rows_meaning +
-    per-namespace anchors_with_acks); (F7) field-level posture/reason/
-    coverage gate required before any named metric-family view is built.
-    First metric families owner-named: source_backed_brand_line_share_of_voice
-    and movement_threshold_crossings (naming only, view-build-blocked behind
-    the field-level gate).
-  trigger: architecture_doctrine
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
-  downstream_surfaces_checked:
-    - forseti-harness/data_lake/consumption.py
-    - forseti-harness/data_lake/derived_retrieval_views.py
-    - forseti-harness/tests/test_data_lake_consumption.py
-    - docs/workflows/forseti_repo_map_v0.md
-  adjudication_provenance: >
-    Findings from the commissioned no_repo cross-vendor discovery review
-    (reviewed_by: OpenAI GPT-5.5 Pro; authored_by: Anthropic claude-fable-5;
-    de_correlation_bar: cross_vendor_discovery); each finding adjudicated
-    accept/modify by the home CA; durable report at
-    docs/review-outputs/adversarial-artifact-reviews/data_lake_consumption_seam_contract_adversarial_artifact_review_v0.md.
-  non_claims:
-    - not validation or readiness
-    - not view-build authorization for the named families
-    - findings closure claims are bounded by the same-vendor post-patch recheck recorded in the review report
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
     Exact product-mention policy identity is now a required read-model input
     (2026-07-15). Product-mention record and completion identity includes the
     policy fingerprint; by_mention, share-of-voice, and extraction-quality
@@ -396,4 +315,42 @@ direction_change_propagation:
   non_claims:
     - not validation or readiness
 ```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The built by_mention and undone read models now use the Silver Vault
+    contract-owned core query_tables/manifests homes instead of the
+    contradictory generic object_level tree; the views remain rebuildable,
+    non-authoritative, and never pickup authority.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+    - forseti-harness/data_lake/root.py
+    - forseti-harness/data_lake/derived_retrieval_views.py
+    - forseti-harness/tests/test_data_lake_indexes_rebuild.py
+    - forseti-harness/tests/test_data_lake_rebuild_proof.py
+    - forseti-harness/tests/test_data_lake_consumption.py
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/workflow-overlay/source-loading.md
+  intentionally_not_updated:
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+      reason: It already owns and names the canonical Silver Vault core query_tables/manifests layout.
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
+      reason: It owns the generic derived_retrieval slot and gate; the Silver Vault contract owns this read-model subhome.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: Its Data Lake routes point to the owning contracts and do not pin the retired object_level physical path.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: Source-pack routing is unchanged and does not pin a generated read-model physical path.
+  stale_language_search: 'rg -n "derived_retrieval/object_level|object_level/<view>" forseti-harness forseti/product/spines/data_lake docs/workflows/forseti_repo_map_v0.md'
+  stale_language_search_result: The only remaining match is this receipt's search command.
+  non_claims:
+    - not validation or readiness
+    - not by_creator activation
+    - not a new retrieval backend or authority source
 ```
