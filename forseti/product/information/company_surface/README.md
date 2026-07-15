@@ -17,6 +17,7 @@ open_next:
   - forseti/product/information/company_surface/purpose_contract_v0.md
   - forseti/product/information/company_surface/company_identity_boundary_v0.md
   - forseti/product/information/company_surface/company_logical_record_and_view_contract_v0.md
+  - forseti/product/information/company_surface/company_surface_silver_mapping_contract_v0.md
   - forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md
   - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
   - forseti/product/spines/data_lake/README.md
@@ -46,10 +47,11 @@ Company Intelligence: interpretation and action belong to downstream consumers.
 | Commission Signal Board | Operational consumer that may review Company Surface information, form hypotheses, and commission work. |
 | Company Surface | Owner of the shared meaning and history of company-linked observations, without owning capture execution, storage mechanics, or operational decisions. |
 
-## Accepted Purpose And Deferred Mechanics
+## Accepted Purpose And Physical Slice
 
 The purpose, identity boundary, and logical record/view contracts are accepted
-product doctrine. Data Lake representation, consumer interfaces, and runtime
-remain deferred. No
-runtime folder, schema, company corpus, source route, dashboard, scheduler, pain
-score, or intervention is authorized here.
+product doctrine. The bounded Company Surface-to-Silver mapping and rebuildable
+view slice are controlled by `company_surface_silver_mapping_contract_v0.md`.
+Source access, a broad company corpus, matcher/registry, canonical identity
+resolver, consumer API/UI, dashboard, feed, scheduler, pain score, and
+intervention remain deferred.

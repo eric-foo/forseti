@@ -326,10 +326,11 @@ Org graduation, new relationships, matching, scoring, review queues, Data Lake
 pathing or materialization, capture routes, access, cadence, scheduler, corpus,
 API, UI, dashboard, feed, runtime, pain, GTM, outreach, or intervention.
 
-Before an ontology-governed implementation encodes Org, Foundation must
-graduate it. The next implementation decision is then a separate mapping into
-Data Lake derived records and generated read models, beginning with one bounded
-company observation family rather than a broad corpus.
+Foundation graduated Org by dated owner-authorized amendment on 2026-07-15 after
+the company-aggregate producer schema landed. The separate physical mapping into
+Data Lake derived records and generated read models is controlled by
+`company_surface_silver_mapping_contract_v0.md`; it begins with the bounded
+company-aggregate/org-motion family and does not broaden this logical contract.
 
 ## Direction Change Propagation
 

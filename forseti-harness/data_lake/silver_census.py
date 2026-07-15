@@ -78,6 +78,10 @@ _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
     "cleaning_basenotes_silver": (("fragrance_native_database", "basenotes_"),),
     "cleaning_fragrantica_silver": (("fragrance_native_database", "fragrantica_"),),
     "cleaning_parfumo_silver": (("fragrance_native_database", "parfumo_"),),
+    # The vertical slice has no authorized source-access route.  Populated
+    # records are counted normally; an empty lane is intentionally inactive
+    # rather than inferred applicable from unrelated raw packets.
+    "company_surface_silver": (),
     "creator_metric_silver": (
         ("youtube", None),
         ("instagram_creator", None),
