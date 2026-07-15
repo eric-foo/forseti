@@ -159,8 +159,8 @@ def _check_shell_durable_write(tool_input):
         return ""
     return (
         "Codex raw shell durable-write blocked: use apply_patch from the active "
-        "worktree. If apply_patch fails against a nested worktree, reroot Codex "
-        "in that worktree instead of rewriting repo files through Bash/PowerShell."
+        "worktree. For a registered non-current worktree, use a Codex task "
+        "created and rooted there; a command workdir cannot reroot this task."
     )
 
 

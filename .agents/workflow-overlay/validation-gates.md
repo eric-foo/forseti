@@ -84,8 +84,9 @@ inherit this floor.
 
   The binding is re-resolved only when receiver/task/root or material target
   state changes, capability is genuinely unknown, or an observed mismatch or
-  dirty-state change invalidates it. This matrix accepts semantic user authorization for a new task or handoff when
-  the visible instruction explicitly requests it; generic `proceed` alone is
+  dirty-state change invalidates it. This matrix accepts semantic user
+  authorization for a new task or handoff when the visible instruction
+  explicitly requests it; generic `proceed` alone is
   not task-creation authority. It does not weaken the Codex registered non-
   current-worktree denial or turn receipt fields into self-certifying proof.
   For clean repo-changing receivers, the `revision_mode` assertions are exact:

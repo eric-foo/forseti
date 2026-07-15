@@ -180,7 +180,7 @@ receiver_binding:
   receiver_class: codex_managed_worktree | external_direct_write | collaboration_same_root | receiver_to_bind
   binding_state: receiver_to_bind | receiver_to_verify | receiver_verified | blocked
   launch_checkout: "<observed path | receiver_to_observe>"
-  effective_target_worktree: "<observed path>"
+  effective_target_worktree: "<observed path>" # omit only while a managed task is not yet created
   managed_starting_ref: "<bound ref, only before a managed task exists>"
   required_revision: "<commit>"
   revision_mode: exact | ancestor
@@ -207,6 +207,14 @@ one exists, including executing a valid one-task creation authorization without
 chat-double-asking. Return `BLOCKED_RECEIVER_REROOT_REQUIRED` only when no
 capable route exists, task creation needs new authority, the one allowed creation
 fails, or target identity/capability/writer isolation cannot be established.
+
+Here, an `already-authorized capable worktree-backed task` is an existing task
+that a visible user instruction, product-mediated user action, or frozen
+commission with explicit receiver authority already authorizes to perform the
+repo-changing work; the task's mere existence is never authority. `Capable`
+means its registered root equals the commissioned target worktree and the
+required revision, dirty-state, write-capability, and no-concurrent-writer
+checks pass.
 
 The registered non-current-worktree write guard remains fail-closed and
 unchanged. It is the deterministic backstop, not a recurring proof obligation.
@@ -339,6 +347,7 @@ direction_change_propagation:
     - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
     - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
     - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - .codex/hooks/forseti_guard_codex_adapter.py
   downstream_surfaces_checked:
     - AGENTS.md
     - CLAUDE.md
@@ -346,7 +355,6 @@ direction_change_propagation:
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/safety-rules.md
     - .codex/hooks.json
-    - .codex/hooks/forseti_guard_codex_adapter.py
     - .agents/hooks/guard_protected_actions.py
     - .agents/hooks/check_prompt_output_mode.py
     - docs/workflows/forseti_repo_map_v0.md
