@@ -188,6 +188,8 @@ capture_requests:
       sillage, rating, scent-language, and page timing.
     decision_window: current forward probe window, 2026-06-29
     route_binding_state: cited_current
+    creator_registry_match_preflight:
+      required_when: not_applicable
     screening_evidence_summary: Direct HTTP returned 200 and a large product-page HTML body with relevant substrate markers.
     uncertainty_or_access_limits: Capture owns packet route execution and field extraction; this request is not a demand verdict or Data Lake routine.
     not_requested:
@@ -209,6 +211,8 @@ capture_requests:
       longevity, sillage, rating, score, scent-language, and page timing.
     decision_window: current forward probe window, 2026-06-29
     route_binding_state: cited_current
+    creator_registry_match_preflight:
+      required_when: not_applicable
     screening_evidence_summary: Direct HTTP returned 200 on the exact product page after internal perfume-search URL resolution.
     uncertainty_or_access_limits: Capture owns packet route execution and field extraction; this request is not a demand verdict or Data Lake routine.
     not_requested:
