@@ -18,6 +18,9 @@ from capture_spine.creator_profile_current.validation import (
     validate_creator_profile_current_view,
 )
 
+from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
+
+
 
 WRAPPER_KEY = "creator_profile_current_view"
 ACCOUNT_LEDGER_POINTER = (
@@ -118,6 +121,8 @@ def build_creator_profile_current_view_from_files(
     metric_seed_paths: Sequence[str | Path] | None = None,
     audience_triangulation_snapshot_path: str | Path | None = None,
     audience_triangulation_snapshot_paths: Sequence[str | Path] | None = None,
+    audience_judgment_outcome_path: str | Path | None = None,
+    audience_judgment_outcome_paths: Sequence[str | Path] | None = None,
     generated_at_utc: str,
 ) -> dict[str, Any]:
     account_path = Path(account_ledger_path)
@@ -132,6 +137,12 @@ def build_creator_profile_current_view_from_files(
         audience_triangulation_snapshot_paths=audience_triangulation_snapshot_paths,
     )
     audience_snapshot_inputs = [_load_audience_snapshot_input(path) for path in audience_paths]
+    audience_outcome_paths = _normalize_audience_outcome_paths(
+        audience_judgment_outcome_path=audience_judgment_outcome_path,
+        audience_judgment_outcome_paths=audience_judgment_outcome_paths,
+    )
+    verify_audience_judgment_outcomes(audience_paths, audience_outcome_paths)
+
     return build_creator_profile_current_view_document(
         account_ledger=account_document["creator_public_handle_linkage_ledger"],
         onboarding_by_account=onboarding_by_account,
@@ -622,6 +633,69 @@ def _normalize_audience_snapshot_paths(
         return [Path(audience_triangulation_snapshot_path)]
     return []
 
+
+
+def _normalize_audience_outcome_paths(
+    *,
+    audience_judgment_outcome_path: str | Path | None,
+    audience_judgment_outcome_paths: Sequence[str | Path] | None,
+) -> list[Path]:
+    if (
+        audience_judgment_outcome_path is not None
+        and audience_judgment_outcome_paths is not None
+    ):
+        raise ValueError(
+            "provide either audience_judgment_outcome_path or "
+            "audience_judgment_outcome_paths, not both"
+        )
+    if audience_judgment_outcome_paths is not None:
+        return [Path(path) for path in audience_judgment_outcome_paths]
+    if audience_judgment_outcome_path is not None:
+        return [Path(audience_judgment_outcome_path)]
+    return []
+
+
+def verify_audience_judgment_outcomes(
+    snapshot_paths: Sequence[Path], outcome_paths: Sequence[Path]
+) -> None:
+    """Require one exact successful Judgment outcome for every audience snapshot."""
+
+    if len(snapshot_paths) != len(outcome_paths):
+        raise ValueError(
+            "each audience triangulation snapshot requires one paired successful "
+            "Judgment outcome"
+        )
+    for snapshot_path, outcome_path in zip(snapshot_paths, outcome_paths):
+        snapshots = load_creator_audience_triangulation_snapshot_document(snapshot_path)
+        if len(snapshots) != 1:
+            raise ValueError(
+                f"paired audience snapshot must contain exactly one record: {snapshot_path}"
+            )
+        snapshot = snapshots[0]
+        outcome = CreatorAudienceJudgmentOutcome.model_validate(load_json(outcome_path))
+        if outcome.status != "validated" or outcome.snapshot_or_none is None:
+            raise ValueError(
+                f"audience Judgment outcome is not successful: {outcome_path}"
+            )
+        snapshot_sha256 = f"sha256:{hashlib.sha256(snapshot_path.read_bytes()).hexdigest()}"
+        if outcome.snapshot_sha256_or_none != snapshot_sha256:
+            raise ValueError(
+                f"audience snapshot bytes do not match Judgment outcome: {snapshot_path}"
+            )
+        if outcome.snapshot_or_none.model_dump(mode="json") != snapshot:
+            raise ValueError(
+                f"audience snapshot content does not match Judgment outcome: {snapshot_path}"
+            )
+        if (
+            outcome.snapshot_id_or_none != snapshot.get("snapshot_id")
+            or outcome.bundle_id != snapshot.get("input_bundle_id")
+            or outcome.bundle_hash != snapshot.get("input_bundle_hash")
+            or outcome.creator_id != snapshot.get("creator_id")
+            or outcome.profile_subject_id != snapshot.get("profile_subject_id")
+        ):
+            raise ValueError(
+                f"audience snapshot identity does not match Judgment outcome: {snapshot_path}"
+            )
 
 def _load_metric_seed_input(path: Path) -> dict[str, Any]:
     config = _METRIC_SEED_CONFIG_BY_NAME.get(path.name)

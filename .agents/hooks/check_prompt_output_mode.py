@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-"""Output-mode declaration SHAPE gate (EP-11): every in-scope prompt artifact
-must carry a recognized output-mode declaration.
+"""Prompt-contract SHAPE gate (EP-11 + EP-38).
+
+Every in-scope prompt artifact must carry a recognized output-mode declaration.
+Implementation-authorized Codex managed-receiver commissions that may start in
+the wrong task must also carry the exact single-use receiver-creation shell.
+Delegated code review-and-patch route-outs must carry the courier-only,
+different-vendor, direct-repo shell and must not authorize task creation.
 
 RULE AUTHORITY
   .agents/workflow-overlay/prompt-orchestration.md -> "Output Modes" (the
@@ -9,7 +14,16 @@ RULE AUTHORITY
   one output mode from ..."). This checker references those rules and never
   restates them. EP handle: EP-11 in
   docs/decisions/overlay_enforcement_placement_classification_v0.md, which
-  scopes this checker to SHAPE only: `schema: token-in-set`.
+  scopes that check to SHAPE only: `schema: token-in-set`.
+  .agents/workflow-overlay/prompt-orchestration.md -> "Implementation
+  Commission Receiver-Creation Clause" and "Prompt Validation Gates", plus
+  validation-gates.md -> "Worktree preflight gate", own EP-38. This checker
+  verifies only the commission-visible, mechanically decidable shell; receiver
+   identity, write capability, source freshness, and no-concurrent-writer truth
+   remain runtime/resident checks.
+   prompt-orchestration.md -> "Lane-Scoped Delegated Patch Prompt Default" and
+   delegated-review-patch.md own the EP-19 courier shell. Vendor identity and
+   direct-write truth remain resident verification.
 
 WHAT THIS ENFORCES (shape only, narrowed from the EP-11 full rule)
   A prompt artifact under docs/prompts/ must contain at least one recognized
@@ -22,6 +36,24 @@ WHAT THIS ENFORCES (shape only, narrowed from the EP-11 full rule)
       tokens (empty value, legacy/typo'd token, wrong separator)
                                                -> FINDING (declared but invalid)
     - otherwise                               -> PASS
+
+  For a prompt that declares `edit_permission: implementation-authorized` and a
+  `receiver_binding` with `receiver_class: codex_managed_worktree` plus
+  `binding_state: receiver_to_verify`, the checker also requires exactly one
+  `receiver_creation_authorization` block whose seven values
+  match the binding and the canonical single-use tokens. It rejects:
+    - the missing-block + wrong-task-stop contradiction;
+    - broader/repeated receiver creation;
+    - positive manual `git worktree add` substitution;
+    - a read-only/scoping/review-only commission carrying the block; and
+     - source-load failure clauses that fall back to memory/project rules or do
+       not type the failure as `SOURCE_CONTEXT_INCOMPLETE`.
+
+  For `target_kind: delegated_code_review_and_patch`, it additionally requires
+  one operator-courier-only, direct-repo commission with recorded author vendor,
+  different-vendor eligibility, and exactly one external/preparation receiver.
+  It rejects same-vendor claims, no-repo access, missing/invalid receiver binding,
+  and any receiver-creation authorization.
 
 WHAT THIS DOES *NOT* DO (the over-edge boundary -- PLACEMENT IS NOT AUTHORITY)
   - It does NOT verify "exactly one" output mode is declared for the artifact
@@ -75,12 +107,14 @@ MODES
   check_prompt_output_mode.py --audit                         whole-corpus backlog view
                                                                (git ls-files -- docs/prompts), exit 0
   check_prompt_output_mode.py --selftest                      pure-function cases; exit per pass/fail
+  check_prompt_output_mode.py --validate-stdin                gate one rendered prompt from stdin;
+                                                               exit 1 on any finding
 
 NON-CLAIMS
-  Shape only, never truth. Not validation, not readiness. A PASS means a
-  recognized token appears on a declaration line -- it is not a claim that
-  the token is the correct one, that only one was intended, or that the
-  artifact honors the mode it names.
+  Shape only, never truth. Not validation, not readiness. A PASS means the
+  recognized prompt shells are present and internally consistent -- it is not
+  a claim that the output mode is correct, the recorded receiver is real, its
+  preflight passed, or any source was actually loaded.
 
 REGISTRATION (.github/workflows/ci.yml, after the output-mode-adjacent step)
   - name: prompt output-mode declaration (EP-11 shape gate)
@@ -120,8 +154,10 @@ TOKENS = frozenset({
 })
 
 RULE_AUTHORITY = (
-    ".agents/workflow-overlay/prompt-orchestration.md (Output Modes) / "
-    ".agents/workflow-overlay/validation-gates.md (Output-mode gate)"
+    ".agents/workflow-overlay/prompt-orchestration.md (Output Modes; "
+    "Implementation Commission Receiver-Creation Clause; Lane-Scoped Delegated "
+    "Patch Prompt Default; Prompt Validation Gates) / "
+    ".agents/workflow-overlay/validation-gates.md (Output-mode gate; Worktree preflight gate)"
 )
 
 # ---------------------------------------------------------------------------
@@ -177,6 +213,463 @@ class Finding(NamedTuple):
     kind: str                # "no_output_mode_declaration" | "no_recognized_output_mode_token"
     lineno: int | None       # offending line number, or None for no-declaration
     detail: str              # offending line text (stripped), or "" for no-declaration
+
+
+class YamlBlock(NamedTuple):
+    lineno: int
+    fields: dict[str, tuple[str, int]]
+    duplicate_fields: tuple[tuple[str, int], ...]
+
+
+_BLOCK_HEADER_RE = re.compile(
+    r"^(?P<indent>\s*)(?:[-*]\s+)?(?P<key>receiver_binding|receiver_creation_authorization)\s*:\s*$",
+    re.IGNORECASE,
+)
+_FIELD_RE = re.compile(r"^\s*(?:[-*]\s+)?([a-z_]+)\s*:\s*(.*?)\s*$", re.IGNORECASE)
+_EDIT_PERMISSION_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?edit[_ ]permission(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_CURRENT_AUTH_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?current_turn_authorization(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_TARGET_KIND_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?target_kind(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_AUTHOR_VENDOR_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?author_vendor(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_DELEGATE_VENDOR_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delegate_vendor(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_DELEGATE_ELIGIBILITY_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delegate_eligibility(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_ACCESS_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?access(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_DELIVERY_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delivery(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_REVIEW_CLAIM_BOUNDARY_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?review_claim_boundary(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_SOURCE_FAILURE_RE = re.compile(
+    r"^(?=.*(?:cannot|can't|unable|unavailable|fail(?:s|ed)?\s+to|missing))"
+    r"(?=.*(?:load|loaded|read|access))"
+    r"(?=.*(?:prompt-orchestration|prompt\s+contract|project-owned\s+(?:prompt\s+)?rules)).*$",
+    re.IGNORECASE,
+)
+_STALE_FALLBACK_RE = re.compile(
+    r"(?:fall\s*back|fallback|proceed|continue|rely|use).{0,120}"
+    r"(?:memory|remembered|cached|stale|project-owned\s+(?:prompt\s+)?rules|known\s+rules)",
+    re.IGNORECASE,
+)
+_MANUAL_WORKTREE_RE = re.compile(
+    r"\bgit\s+(?:-[A-Za-z]\s+\S+\s+)*worktree\s+add\b|"
+    r"\b(?:manually\s+create|create\s+(?:a\s+)?manual)\b.{0,80}\b(?:git\s+)?worktree\b",
+    re.IGNORECASE,
+)
+_REPEAT_RECEIVER_RE = re.compile(
+    r"\bcreate\b.{0,40}\b(?:another|second|additional|more)\b.{0,60}"
+    r"\b(?:codex\s+)?(?:managed[- ]worktree\s+)?(?:task|receiver)\b|"
+    r"\bretry\b.{0,60}\bcreate\b.{0,60}\b(?:task|receiver)\b",
+    re.IGNORECASE,
+)
+_WRONG_TASK_STOP_RE = re.compile(
+    r"\bif\b.{0,100}\b(?:(?:this\s+)?current\s+task|this\s+task)\b.{0,80}\bnot\b.{0,40}"
+    r"\breceiver\b.{0,80}\bstop\b",
+    re.IGNORECASE,
+)
+_NEGATION_RE = re.compile(r"\b(?:do\s+not|don't|never|must\s+not|prohibit(?:ed)?|forbid(?:den)?)\b", re.IGNORECASE)
+_CLAUSE_BOUNDARY_RE = re.compile(
+    r"[.;!?]\s*|\b(?:but|however|instead|then)\b", re.IGNORECASE
+)
+
+
+def _clean_value(value: str) -> str:
+    value = value.strip().strip("`").strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        value = value[1:-1].strip()
+    return value
+
+
+def _trigger_token(value: str) -> str:
+    """Normalize a gate's own self-declared trigger value.
+
+    Trigger and guarded field are asymmetric: a field that fails to parse raises
+    a finding, but a trigger that fails to parse switches the whole gate off
+    silently. So the trigger tolerates an inline comment and casing that the
+    fields it guards do not.
+    """
+    return _clean_value(value.split("#", 1)[0]).casefold()
+
+
+def _yaml_blocks(lines: list[str], key: str) -> list[YamlBlock]:
+    """Extract simple indented YAML-ish blocks used by commission receipts."""
+    blocks: list[YamlBlock] = []
+    for index, line in enumerate(lines):
+        match = _BLOCK_HEADER_RE.match(line)
+        if not match or match.group("key").lower() != key:
+            continue
+        header_indent = len(match.group("indent"))
+        fields: dict[str, tuple[str, int]] = {}
+        duplicate_fields: list[tuple[str, int]] = []
+        for child_index in range(index + 1, len(lines)):
+            child = lines[child_index]
+            if not child.strip() or child.lstrip().startswith("```"):
+                continue
+            child_indent = len(child) - len(child.lstrip())
+            if child_indent <= header_indent:
+                break
+            field_match = _FIELD_RE.match(child)
+            if field_match:
+                field = field_match.group(1).lower()
+                if field in fields:
+                    duplicate_fields.append((field, child_index + 1))
+                fields[field] = (
+                    _clean_value(field_match.group(2)), child_index + 1
+                )
+        blocks.append(YamlBlock(index + 1, fields, tuple(duplicate_fields)))
+    return blocks
+
+
+def _declared_values(lines: list[str], pattern: re.Pattern[str]) -> list[tuple[str, int]]:
+    values: list[tuple[str, int]] = []
+    for lineno, line in enumerate(lines, 1):
+        match = pattern.match(line)
+        if match:
+            values.append((_clean_value(match.group(1)), lineno))
+    return values
+
+
+def _match_is_negated(text: str, match_start: int) -> bool:
+    """True when the nearest same-clause negation governs this match."""
+    prefix = text[:match_start]
+    negations = list(_NEGATION_RE.finditer(prefix))
+    if not negations:
+        return False
+    last_negation = negations[-1]
+    return _CLAUSE_BOUNDARY_RE.search(prefix[last_negation.end():]) is None
+
+
+def _has_positive_match(text: str, pattern: re.Pattern[str]) -> bool:
+    return any(
+        not _match_is_negated(text, match.start())
+        for match in pattern.finditer(text)
+    )
+
+
+def _positive_matches(lines: list[str], pattern: re.Pattern[str]) -> list[tuple[int, str]]:
+    return [
+        (lineno, line.strip())
+        for lineno, line in enumerate(lines, 1)
+        if _has_positive_match(line, pattern)
+    ]
+
+
+def evaluate_managed_receiver_lines(rel_source: str, lines: list[str]) -> list[Finding]:
+    """Validate the deterministic shell of managed-receiver commissions."""
+    findings: list[Finding] = []
+    receiver_blocks = _yaml_blocks(lines, "receiver_binding")
+    authorization_blocks = _yaml_blocks(lines, "receiver_creation_authorization")
+    managed_blocks = [
+        block for block in receiver_blocks
+        if block.fields.get("receiver_class", ("", 0))[0] == "codex_managed_worktree"
+    ]
+    edit_values = _declared_values(lines, _EDIT_PERMISSION_RE)
+    implementation_authorized = any(value == "implementation-authorized" for value, _ in edit_values)
+    read_only_authority = any(
+        value in {"read-only", "read_only_scoping_only", "scoping-only", "review-only"}
+        for value, _ in edit_values + _declared_values(lines, _CURRENT_AUTH_RE)
+    )
+
+    relevant_blocks = (
+        receiver_blocks + authorization_blocks
+        if authorization_blocks or (implementation_authorized and managed_blocks)
+        else []
+    )
+    for block in relevant_blocks:
+        for field, lineno in block.duplicate_fields:
+            findings.append(Finding(
+                rel_source,
+                "managed_receiver_duplicate_field",
+                lineno,
+                "duplicate %s field makes the managed-receiver shell ambiguous" % field,
+            ))
+
+    if authorization_blocks and (not implementation_authorized or read_only_authority):
+        findings.append(Finding(
+            rel_source,
+            "receiver_creation_authority_on_read_only_commission",
+            authorization_blocks[0].lineno,
+            "receiver_creation_authorization is valid only for implementation-authorized commissions",
+        ))
+
+    if authorization_blocks and (len(receiver_blocks) != 1 or len(managed_blocks) != 1):
+        findings.append(Finding(
+            rel_source,
+            "managed_receiver_binding_count",
+            authorization_blocks[0].lineno,
+            "receiver_creation_authorization requires exactly one codex_managed_worktree receiver_binding "
+            "(found %d receiver block(s), %d managed)"
+            % (len(receiver_blocks), len(managed_blocks)),
+        ))
+    elif authorization_blocks and len(managed_blocks) == 1:
+        binding_state, lineno = managed_blocks[0].fields.get(
+            "binding_state", ("", managed_blocks[0].lineno)
+        )
+        if binding_state != "receiver_to_verify":
+            findings.append(Finding(
+                rel_source,
+                "managed_receiver_binding_state",
+                lineno,
+                "receiver_creation_authorization requires binding_state receiver_to_verify "
+                "(got %r)" % binding_state,
+            ))
+
+    wrong_task_blocks = [
+        block for block in managed_blocks
+        if block.fields.get("binding_state", ("", 0))[0] in {"receiver_to_verify", "receiver_to_bind"}
+    ]
+    if implementation_authorized and wrong_task_blocks and len(receiver_blocks) == 1:
+        if len(authorization_blocks) != 1:
+            full_text = " ".join(line.strip() for line in lines)
+            detail = "requires exactly one receiver_creation_authorization block"
+            if len(authorization_blocks) == 0 and _WRONG_TASK_STOP_RE.search(full_text):
+                detail += "; wrong-task stop text cannot replace the authorized managed-task creation path"
+            findings.append(Finding(
+                rel_source,
+                "managed_receiver_creation_authorization_count",
+                wrong_task_blocks[0].lineno,
+                detail + " (found %d)" % len(authorization_blocks),
+            ))
+        else:
+            receiver = wrong_task_blocks[0]
+            authorization = authorization_blocks[0]
+            exact_values = {
+                "authorization": "create_exactly_one_fresh_codex_managed_worktree_task",
+                "condition": "current_task_not_receiver_verified",
+                "initial_prompt": "this_frozen_commission_verbatim",
+                "dispatch": "immediate_same_turn",
+            }
+            allowed_fields = set(exact_values) | {
+                "managed_starting_ref", "required_revision", "revision_mode"
+            }
+            unexpected_fields = sorted(set(authorization.fields) - allowed_fields)
+            if unexpected_fields:
+                findings.append(Finding(
+                    rel_source,
+                    "managed_receiver_authorization_field",
+                    authorization.lineno,
+                    "unexpected receiver_creation_authorization field(s): %s"
+                    % ", ".join(unexpected_fields),
+                ))
+            for field, expected in exact_values.items():
+                got, lineno = authorization.fields.get(field, ("", authorization.lineno))
+                if got != expected:
+                    findings.append(Finding(
+                        rel_source,
+                        "managed_receiver_authorization_field",
+                        lineno,
+                        "%s must equal %s (got %r)" % (field, expected, got),
+                    ))
+            for field in ("managed_starting_ref", "required_revision", "revision_mode"):
+                expected, _ = receiver.fields.get(field, ("", receiver.lineno))
+                got, lineno = authorization.fields.get(field, ("", authorization.lineno))
+                if not expected or got != expected:
+                    findings.append(Finding(
+                        rel_source,
+                        "managed_receiver_authorization_binding_mismatch",
+                        lineno,
+                        "%s must match receiver_binding value %r (got %r)" % (field, expected, got),
+                    ))
+
+    if managed_blocks:
+        for lineno, detail in _positive_matches(lines, _MANUAL_WORKTREE_RE):
+            findings.append(Finding(
+                rel_source,
+                "manual_git_worktree_substitution",
+                lineno,
+                "Codex managed receivers must be created as managed tasks; manual Git-worktree substitution is invalid: %r" % detail,
+            ))
+        for lineno, detail in _positive_matches(lines, _REPEAT_RECEIVER_RE):
+            findings.append(Finding(
+                rel_source,
+                "repeat_receiver_creation_authority",
+                lineno,
+                "the commission may authorize at most one managed receiver: %r" % detail,
+            ))
+
+    source_failure_lines = [
+        (index, line.strip()) for index, line in enumerate(lines)
+        if _SOURCE_FAILURE_RE.search(line)
+    ]
+    if source_failure_lines and not any("SOURCE_CONTEXT_INCOMPLETE" in line for line in lines):
+        index, detail = source_failure_lines[0]
+        findings.append(Finding(
+            rel_source,
+            "source_context_failure_not_typed",
+            index + 1,
+            "controlling-source load failure must declare SOURCE_CONTEXT_INCOMPLETE: %r" % detail,
+        ))
+    for index, detail in source_failure_lines:
+        window = " ".join(lines[index:min(len(lines), index + 3)])
+        if _has_positive_match(window, _STALE_FALLBACK_RE):
+            findings.append(Finding(
+                rel_source,
+                "stale_source_fallback",
+                index + 1,
+                "cannot continue from memory or project-rule fallback when controlling sources are unavailable: %r" % window.strip(),
+            ))
+            break
+
+    return findings
+
+
+def evaluate_delegated_patch_lines(rel_source: str, lines: list[str]) -> list[Finding]:
+    """Validate the courier-only, cross-vendor delegated code-patch shell."""
+    target_kinds = _declared_values(lines, _TARGET_KIND_RE)
+    if not any(
+        _trigger_token(value) == "delegated_code_review_and_patch"
+        for value, _ in target_kinds
+    ):
+        return []
+
+    findings: list[Finding] = []
+
+    def one_value(
+        field: str, pattern: re.Pattern[str]
+    ) -> tuple[str, int]:
+        values = _declared_values(lines, pattern)
+        if len(values) != 1:
+            findings.append(Finding(
+                rel_source,
+                "delegated_patch_field_count",
+                values[0][1] if values else None,
+                "%s must appear exactly once (found %d)" % (field, len(values)),
+            ))
+            return "", values[0][1] if values else 1
+        return values[0]
+
+    author_vendor, author_lineno = one_value("author_vendor", _AUTHOR_VENDOR_RE)
+    delegate_vendor, delegate_lineno = one_value("delegate_vendor", _DELEGATE_VENDOR_RE)
+    eligibility, eligibility_lineno = one_value(
+        "delegate_eligibility", _DELEGATE_ELIGIBILITY_RE
+    )
+    access, access_lineno = one_value("access", _ACCESS_RE)
+    delivery, delivery_lineno = one_value("delivery", _DELIVERY_RE)
+
+    invalid_vendor_placeholders = {"", "unknown", "unrecorded"}
+    delegate_is_placeholder = delegate_vendor.casefold() == "operator_to_fill"
+    if author_vendor.casefold() in invalid_vendor_placeholders | {"operator_to_fill"}:
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_author_vendor",
+            author_lineno,
+            "author_vendor must name the observed upstream vendor lineage",
+        ))
+    if delegate_vendor.casefold() in invalid_vendor_placeholders:
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_delegate_vendor",
+            delegate_lineno,
+            "delegate_vendor must name a different vendor or use operator_to_fill before couriering",
+        ))
+    elif delegate_is_placeholder and delegate_vendor != "operator_to_fill":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_delegate_vendor",
+            delegate_lineno,
+            "delegate vendor placeholder must use canonical operator_to_fill spelling",
+        ))
+    elif (
+        not delegate_is_placeholder
+        and author_vendor
+        and delegate_vendor.casefold() == author_vendor.casefold()
+    ):
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_same_vendor",
+            delegate_lineno,
+            "delegated review-and-patch forbids same-vendor substitution (%r)" % delegate_vendor,
+        ))
+
+    if eligibility != "different_vendor_lineage_with_direct_repo_access":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_eligibility",
+            eligibility_lineno,
+            "delegate_eligibility must equal different_vendor_lineage_with_direct_repo_access",
+        ))
+    if access != "repo":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_access",
+            access_lineno,
+            "delegated review-and-patch requires direct repository access: access must equal repo",
+        ))
+    if delivery != "operator_courier_only":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_delivery",
+            delivery_lineno,
+            "delegate patch authoring is prompt-only: delivery must equal operator_courier_only",
+        ))
+
+    claim_values = _declared_values(lines, _REVIEW_CLAIM_BOUNDARY_RE)
+    if any(value == "same_vendor_sanity_only" for value, _ in claim_values):
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_same_vendor",
+            next(lineno for value, lineno in claim_values if value == "same_vendor_sanity_only"),
+            "same-vendor sanity is not a valid fallback for delegated review-and-patch",
+        ))
+
+    receiver_blocks = _yaml_blocks(lines, "receiver_binding")
+    authorization_blocks = _yaml_blocks(lines, "receiver_creation_authorization")
+    if authorization_blocks:
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_task_creation",
+            authorization_blocks[0].lineno,
+            "operator-courier delegate patch prompts must not authorize task creation",
+        ))
+    if len(receiver_blocks) != 1:
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_receiver_count",
+            receiver_blocks[0].lineno if receiver_blocks else None,
+            "delegate patch courier prompt requires exactly one receiver_binding (found %d)"
+            % len(receiver_blocks),
+        ))
+    for block in receiver_blocks:
+        receiver_class, lineno = block.fields.get("receiver_class", ("", block.lineno))
+        if receiver_class not in {"receiver_to_bind", "external_direct_write"}:
+            findings.append(Finding(
+                rel_source,
+                "delegated_patch_receiver_class",
+                lineno,
+                "delegate patch courier receiver_class must be receiver_to_bind or external_direct_write (got %r)"
+                % receiver_class,
+            ))
+        if delegate_is_placeholder and receiver_class != "receiver_to_bind":
+            findings.append(Finding(
+                rel_source,
+                "delegated_patch_receiver_class",
+                lineno,
+                "operator_to_fill delegate vendor requires preparation-only receiver_to_bind",
+            ))
+
+    return findings
 
 
 def evaluate_file_lines(rel_source: str, lines: list[str]) -> tuple[Finding | None, list[str]]:
@@ -347,6 +840,8 @@ def scan_files(root: Path, rel_paths: list[str]) -> tuple[list[Finding], list[st
         finding, file_infos = evaluate_file_lines(norm, lines)
         if finding is not None:
             findings.append(finding)
+        findings.extend(evaluate_managed_receiver_lines(norm, lines))
+        findings.extend(evaluate_delegated_patch_lines(norm, lines))
         for note in file_infos:
             infos.append("%s: %s" % (norm, note))
     return findings, infos
@@ -360,11 +855,14 @@ def _print_findings(findings: list[Finding]) -> None:
     for f in findings:
         if f.kind == "no_output_mode_declaration":
             print("  %s  ->  no output-mode declaration found" % f.source)
-        else:
+        elif f.kind == "no_recognized_output_mode_token":
             print(
                 "  %s:%d  ->  declaration line carries no recognized output-mode token: %r"
                 % (f.source, f.lineno, f.detail)
             )
+        else:
+            location = "%s:%d" % (f.source, f.lineno) if f.lineno else f.source
+            print("  %s  ->  %s: %s" % (location, f.kind, f.detail))
 
 
 def _print_infos(infos: list[str]) -> None:
@@ -374,9 +872,9 @@ def _print_infos(infos: list[str]) -> None:
 
 def _print_rule() -> None:
     print(
-        "rule: an in-scope prompt artifact must carry at least one output-mode\n"
-        "      declaration line naming a closed-set token. Authority: %s.\n"
-        "      Shape only, never truth: not validation, not readiness."
+        "rule: an in-scope prompt artifact must carry the applicable output-mode\n"
+        "      receiver, and delegated-patch courier shells. Authority: %s.\n"
+        "      Shape only, never runtime truth: not validation, not readiness."
         % RULE_AUTHORITY
     )
 
@@ -446,7 +944,8 @@ def run_audit(root: Path) -> int:
     findings, infos = scan_files(root, rel_paths)
     no_decl = sum(1 for f in findings if f.kind == "no_output_mode_declaration")
     no_token = sum(1 for f in findings if f.kind == "no_recognized_output_mode_token")
-    passed = len(rel_paths) - len(findings)
+    failed_sources = {finding.source for finding in findings}
+    passed = len(rel_paths) - len(failed_sources)
     print(
         "check_prompt_output_mode --audit (whole-corpus backlog view, exit 0; "
         "never a gate):"
@@ -455,12 +954,41 @@ def run_audit(root: Path) -> int:
     print("  pass: %d" % passed)
     print("  no_output_mode_declaration: %d" % no_decl)
     print("  no_recognized_output_mode_token: %d" % no_token)
+    print("  prompt_contract_findings: %d" % (
+        len(findings) - no_decl - no_token
+    ))
     _print_findings(findings)
     _print_infos(infos)
     print(
         "  Shape only, never truth: not validation, not readiness. "
         "Authority: %s." % RULE_AUTHORITY
     )
+    return 0
+
+
+def run_validate_stdin() -> int:
+    """Gate one rendered prompt supplied on stdin (including chat couriers)."""
+    text = sys.stdin.read()
+    if not text.strip():
+        print("check_prompt_output_mode --validate-stdin: 1 finding")
+        _print_findings([Finding("<stdin>", "empty_prompt", None, "no prompt text supplied")])
+        return 1
+    lines = text.splitlines()
+    output_finding, infos = evaluate_file_lines("<stdin>", lines)
+    findings = [output_finding] if output_finding else []
+    findings.extend(evaluate_managed_receiver_lines("<stdin>", lines))
+    findings.extend(evaluate_delegated_patch_lines("<stdin>", lines))
+    if findings:
+        print(
+            "check_prompt_output_mode --validate-stdin: %d finding(s)"
+            % len(findings)
+        )
+        _print_findings(findings)
+        _print_infos(infos)
+        _print_rule()
+        return 1
+    print("check_prompt_output_mode --validate-stdin: OK (0 findings)")
+    _print_infos(infos)
     return 0
 
 
@@ -624,6 +1152,334 @@ def selftest() -> int:
          "docs/prompts/to_v0.md"],
     )
 
+    # --- managed receiver commission contract ---
+    print()
+    print("--- managed receiver commission contract ---")
+
+    base_receiver = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        "receiver_binding:",
+        "  receiver_class: codex_managed_worktree",
+        "  binding_state: receiver_to_verify",
+        "  managed_starting_ref: origin/main",
+        "  required_revision: 8cb44d080334453c384e39bc88fce510cbccfcde",
+        "  revision_mode: ancestor",
+    ]
+    defective = base_receiver + [
+        "If this current task is not the receiver, stop; do not create another worktree.",
+        "If the controlling prompt contract cannot be freshly loaded, fall back to project-owned prompt rules.",
+    ]
+    got = evaluate_managed_receiver_lines("defective.md", defective)
+    check(
+        "managed defective omission/stop -> useful authorization finding",
+        any(
+            finding.kind == "managed_receiver_creation_authorization_count"
+            and "wrong-task stop" in finding.detail
+            for finding in got
+        ),
+        True,
+    )
+    check(
+        "stale source fallback -> typed + fallback findings",
+        {finding.kind for finding in got} >= {
+            "source_context_failure_not_typed", "stale_source_fallback"
+        },
+        True,
+    )
+
+    corrected = base_receiver + [
+        "receiver_creation_authorization:",
+        "  authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+        "  condition: current_task_not_receiver_verified",
+        "  managed_starting_ref: origin/main",
+        "  required_revision: 8cb44d080334453c384e39bc88fce510cbccfcde",
+        "  revision_mode: ancestor",
+        "  initial_prompt: this_frozen_commission_verbatim",
+        "  dispatch: immediate_same_turn",
+        "If a controlling source cannot be freshly loaded, declare SOURCE_CONTEXT_INCOMPLETE and stop.",
+        "Do not manually create, discover, or target a Git worktree.",
+        "Do not create a second receiver.",
+    ]
+    check(
+        "corrected managed commission -> no receiver finding",
+        evaluate_managed_receiver_lines("corrected.md", corrected),
+        [],
+    )
+
+    read_only = [
+        "output_mode: chat-only",
+        "edit_permission: read-only",
+        "receiver_binding:",
+        "  receiver_class: codex_managed_worktree",
+        "  binding_state: receiver_to_verify",
+        "  managed_starting_ref: origin/main",
+        "  required_revision: 8cb44d080334453c384e39bc88fce510cbccfcde",
+        "  revision_mode: ancestor",
+    ]
+    check(
+        "read-only managed commission without creation block remains valid",
+        evaluate_managed_receiver_lines("read_only.md", read_only),
+        [],
+    )
+    check(
+        "read-only commission with creation block is rejected",
+        any(
+            finding.kind == "receiver_creation_authority_on_read_only_commission"
+            for finding in evaluate_managed_receiver_lines(
+                "read_only_bad.md", read_only + corrected[8:16]
+            )
+        ),
+        True,
+    )
+
+    manual = corrected + ["Run `git worktree add ../receiver origin/main` and continue there."]
+    check(
+        "manual Git-worktree substitution remains invalid",
+        any(
+            finding.kind == "manual_git_worktree_substitution"
+            for finding in evaluate_managed_receiver_lines("manual.md", manual)
+        ),
+        True,
+    )
+
+    mixed_clause_manual = corrected + [
+        "Do not pause; run `git worktree add ../receiver origin/main` and continue there."
+    ]
+    check(
+        "unrelated same-line negation does not hide manual worktree creation",
+        any(
+            finding.kind == "manual_git_worktree_substitution"
+            for finding in evaluate_managed_receiver_lines(
+                "mixed_clause_manual.md", mixed_clause_manual
+            )
+        ),
+        True,
+    )
+
+    mixed_clause_repeat = corrected + [
+        "Do not wait; create another managed receiver task."
+    ]
+    check(
+        "unrelated same-line negation does not hide repeated creation",
+        any(
+            finding.kind == "repeat_receiver_creation_authority"
+            for finding in evaluate_managed_receiver_lines(
+                "mixed_clause_repeat.md", mixed_clause_repeat
+            )
+        ),
+        True,
+    )
+
+    orphan = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        *corrected[8:16],
+    ]
+    check(
+        "orphan creation authorization without receiver binding is rejected",
+        any(
+            finding.kind == "managed_receiver_binding_count"
+            for finding in evaluate_managed_receiver_lines("orphan.md", orphan)
+        ),
+        True,
+    )
+
+    conflicting_binding = corrected + [
+        "receiver_binding:",
+        "  receiver_class: codex_managed_worktree",
+        "  binding_state: receiver_to_verify",
+        "  managed_starting_ref: other/ref",
+        "  required_revision: deadbeef",
+        "  revision_mode: exact",
+    ]
+    check(
+        "multiple receiver bindings cannot hide a conflicting target",
+        any(
+            finding.kind == "managed_receiver_binding_count"
+            for finding in evaluate_managed_receiver_lines(
+                "conflicting_binding.md", conflicting_binding
+            )
+        ),
+        True,
+    )
+
+    preparation_only_state = [
+        line.replace("receiver_to_verify", "receiver_to_bind")
+        for line in corrected
+    ]
+    check(
+        "managed creation authorization rejects preparation-only binding state",
+        any(
+            finding.kind == "managed_receiver_binding_state"
+            for finding in evaluate_managed_receiver_lines(
+                "preparation_only_state.md", preparation_only_state
+            )
+        ),
+        True,
+    )
+
+    duplicate_authorization = corrected.copy()
+    duplicate_authorization.insert(
+        duplicate_authorization.index(
+            "  authorization: create_exactly_one_fresh_codex_managed_worktree_task"
+        ),
+        "  authorization: create_many_tasks",
+    )
+    check(
+        "duplicate authorization fields cannot hide broader authority",
+        any(
+            finding.kind == "managed_receiver_duplicate_field"
+            for finding in evaluate_managed_receiver_lines(
+                "duplicate_authorization.md", duplicate_authorization
+            )
+        ),
+        True,
+    )
+
+    broadened_authorization = corrected.copy()
+    broadened_authorization.insert(
+        broadened_authorization.index("  dispatch: immediate_same_turn") + 1,
+        "  allow_repeat: true",
+    )
+    check(
+        "unexpected authorization field cannot broaden the exact shell",
+        any(
+            finding.kind == "managed_receiver_authorization_field"
+            for finding in evaluate_managed_receiver_lines(
+                "broadened_authorization.md", broadened_authorization
+            )
+        ),
+        True,
+    )
+
+    multiline_stale = corrected + [
+        "If the controlling prompt contract cannot be freshly loaded,",
+        "continue from remembered rules.",
+    ]
+    check(
+        "multiline stale-memory fallback remains invalid despite typed clause",
+        any(
+            finding.kind == "stale_source_fallback"
+            for finding in evaluate_managed_receiver_lines(
+                "multiline_stale.md", multiline_stale
+            )
+        ),
+        True,
+    )
+
+    couriered_delegate = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        "target_kind: delegated_code_review_and_patch",
+        "author_vendor: OpenAI",
+        "delegate_vendor: operator_to_fill",
+        "delegate_eligibility: different_vendor_lineage_with_direct_repo_access",
+        "access: repo",
+        "delivery: operator_courier_only",
+        "receiver_binding:",
+        "  receiver_class: receiver_to_bind",
+        "  binding_state: receiver_to_bind",
+    ]
+    check(
+        "courier-only cross-vendor delegated patch prompt is valid",
+        evaluate_delegated_patch_lines("couriered_delegate.md", couriered_delegate),
+        [],
+    )
+
+    same_vendor_delegate = [
+        line.replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")
+        for line in couriered_delegate
+    ] + ["review_claim_boundary: same_vendor_sanity_only"]
+    check(
+        "same-vendor delegated patch fallback is rejected",
+        any(
+            finding.kind == "delegated_patch_same_vendor"
+            for finding in evaluate_delegated_patch_lines(
+                "same_vendor_delegate.md", same_vendor_delegate
+            )
+        ),
+        True,
+    )
+
+    dispatched_codex_delegate = couriered_delegate + [
+        "receiver_creation_authorization:",
+        "  authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+    ]
+    check(
+        "delegate patch authoring cannot create a Codex receiver",
+        any(
+            finding.kind == "delegated_patch_task_creation"
+            for finding in evaluate_delegated_patch_lines(
+                "dispatched_codex_delegate.md", dispatched_codex_delegate
+            )
+        ),
+        True,
+    )
+
+    commented_trigger = [
+        line.replace(
+            "target_kind: delegated_code_review_and_patch",
+            "target_kind: delegated_code_review_and_patch  # sibling target kind",
+        ).replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")
+        for line in couriered_delegate
+    ]
+    check(
+        "inline comment on the trigger cannot switch the gate off",
+        any(
+            finding.kind == "delegated_patch_same_vendor"
+            for finding in evaluate_delegated_patch_lines(
+                "commented_trigger.md", commented_trigger
+            )
+        ),
+        True,
+    )
+
+    cased_trigger = [
+        line.replace(
+            "target_kind: delegated_code_review_and_patch",
+            "target_kind: Delegated_Code_Review_And_Patch",
+        ).replace("access: repo", "access: no_repo")
+        for line in couriered_delegate
+    ]
+    check(
+        "trigger casing cannot switch the gate off",
+        any(
+            finding.kind == "delegated_patch_access"
+            for finding in evaluate_delegated_patch_lines(
+                "cased_trigger.md", cased_trigger
+            )
+        ),
+        True,
+    )
+
+    cased_placeholder = [
+        line.replace(
+            "delegate_vendor: operator_to_fill", "delegate_vendor: Operator_To_Fill"
+        ).replace("receiver_class: receiver_to_bind", "receiver_class: external_direct_write")
+        for line in couriered_delegate
+    ]
+    check(
+        "cased operator_to_fill still requires preparation-only receiver",
+        any(
+            finding.kind == "delegated_patch_receiver_class"
+            for finding in evaluate_delegated_patch_lines(
+                "cased_placeholder.md", cased_placeholder
+            )
+        ),
+        True,
+    )
+    check(
+        "cased operator_to_fill is rejected as noncanonical",
+        any(
+            finding.kind == "delegated_patch_delegate_vendor"
+            for finding in evaluate_delegated_patch_lines(
+                "cased_placeholder.md", cased_placeholder
+            )
+        ),
+        True,
+    )
+
     print()
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
@@ -644,7 +1500,10 @@ def _arg_value(argv: list[str], flag: str) -> str | None:
 def _collect_check_paths(argv: list[str]) -> list[str]:
     """Positional path arguments given alongside --check (excludes recognized
     flags and the --base value). Empty when --check is used without paths."""
-    known_flags = {"--strict", "--check", "--audit", "--selftest", "--force-internal-error"}
+    known_flags = {
+        "--strict", "--check", "--audit", "--selftest", "--validate-stdin",
+        "--force-internal-error"
+    }
     paths: list[str] = []
     skip_next = False
     for tok in argv:
@@ -667,6 +1526,8 @@ def main(argv: list[str]) -> int:
         raise RuntimeError("forced internal error (probe)")
     if "--selftest" in argv:
         return selftest()
+    if "--validate-stdin" in argv:
+        return run_validate_stdin()
     root = repo_root()
     cli_base = _arg_value(argv, "--base")
     if "--strict" in argv:
@@ -677,7 +1538,7 @@ def main(argv: list[str]) -> int:
         return run_audit(root)
     print(
         "Usage: check_prompt_output_mode.py --strict [--base <ref>] | "
-        "--check [--base <ref>] [paths...] | --audit | --selftest"
+        "--check [--base <ref>] [paths...] | --audit | --selftest | --validate-stdin"
     )
     print("  --strict    CI gate: exit 1 if a changed in-scope prompt lacks a")
     print("              recognized output-mode declaration")
@@ -685,6 +1546,7 @@ def main(argv: list[str]) -> int:
     print("              paths scan those files directly instead of the diff")
     print("  --audit     whole-corpus backlog view, always exit 0 (never a gate)")
     print("  --selftest  pure-function self-check")
+    print("  --validate-stdin  gate one rendered prompt supplied on stdin")
     return 1
 
 
@@ -696,5 +1558,8 @@ if __name__ == "__main__":
         # checker bug must not read as a green gate. Advisory modes fail open
         # so a bug never bricks the agent.
         sys.stderr.write("check_prompt_output_mode: internal error: %s\n" % exc)
-        gating = "--strict" in sys.argv[1:] or "--selftest" in sys.argv[1:]
+        gating = any(
+            flag in sys.argv[1:]
+            for flag in ("--strict", "--selftest", "--validate-stdin")
+        )
         sys.exit(1 if gating else 0)

@@ -255,7 +255,7 @@
     {
       "a2_fork_impact": "none",
       "call": "append_record",
-      "count": 1,
+      "count": 2,
       "module": "runners/run_tiktok_creator_audience_triangulation.py"
     },
     {
@@ -267,7 +267,7 @@
     {
       "a2_fork_impact": "none",
       "call": "record_path",
-      "count": 1,
+      "count": 3,
       "module": "runners/run_tiktok_creator_audience_triangulation.py"
     },
     {
