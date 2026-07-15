@@ -23,6 +23,7 @@ open_next:
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md          # the commissioned sibling (routes standing OUT to here)
   - forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md               # the locator layer below this contract
   - docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md                    # the org-motion slice clarification this supersedes as obligation home
+  - forseti/product/information/company_surface/company_identity_boundary_v0.md                          # owns company-specific identity meaning and entity_key resolution
   - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md                         # the demand-indicator durability elements this governs standing
   - forseti/product/spines/capture/core/demand_durability_indicators/demand_durability_indicator_standing_capture_obligation_home_decision_framing_v0.md   # the owner-decision framing (D1=general, D3=deferred) this answers — landed via merged PR #106 (indicator rename)
   - docs/decisions/pre_capture_discovery_spine_charter_recommendation_v0.md                              # WHERE-side discovery (deconflicted; not this contract)
@@ -33,6 +34,7 @@ stale_if:
   - The v0 commissioned obligation contract changes its standing-capture carve-out, its rebind rule, or its obligation set.
   - The Source Capture packet schema (manifest v1) changes the provenance/timing/posture/re-capture facts this inherits.
   - The company-aggregate slice clarification is re-scoped, or the demand-durability indicator profiles change their captured series.
+  - The Company Surface identity boundary changes the ownership or meaning of `entity_key` resolution.
   - A scheduler/runtime build for standing capture is authorized (a separate, later authorization).
 ```
 
@@ -181,7 +183,7 @@ On ratification, this contract becomes the **obligation home** for standing capt
 
 It does **not** re-spec what those lanes own:
 
-- it does **not** redefine the org-motion **observation record shape**, its **official-first source selection**, its adapter set, or its `entity_key` resolution — those stay owned by the company-aggregate decision and the entity-resolution spine;
+- it does **not** redefine the org-motion **observation record shape**, its **official-first source selection**, or its adapter set — those stay owned by the company-aggregate decision; it does not redefine `entity_key` identity meaning or resolution — those stay owned by the Company Surface identity boundary;
 - it does **not** redefine the **demand-indicator capture profiles** or the keystone durability delta's elements — those stay owned by their profiles; this contract governs *that they are captured standing under these obligations*, not *which series to capture*;
 - it does **not** amend the **v0 commissioned obligation contract** file (D2: sibling, not amendment); v0's standing carve-out already points here.
 

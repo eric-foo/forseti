@@ -167,9 +167,36 @@ as a multi-brand beauty company. It names the current portfolio as e.l.f.
 Cosmetics, e.l.f. SKIN, rhode, Naturium, and Well People. The current corporate
 brands page independently presents those same five market-facing brands.
 
-The contract represents that evidence as one Org subject and five distinct
-Brand subjects with current owned_by assertions. It does not merge the five
-brands into the registrant merely because a portfolio view groups them.
+The same filing also names the operating organizations behind those brands.
+e.l.f. Beauty operates through its principal subsidiaries e.l.f. Cosmetics,
+Inc. (doing business as "e.l.f. Cosmetics", "e.l.f.", and "e.l.f. SKIN"),
+HRBeauty LLC (doing business as "rhode"), Naturium LLC (doing business as
+"Naturium"), and Well People, Inc. (doing business as "Well People").
+
+The contract therefore represents that evidence as five Brand subjects and
+five Org subjects — the registrant plus four named operating organizations —
+not as five brands hanging directly off the registrant. The filing supports
+subject distinction and operating-name association; it does not by itself
+prove every Brand `owned_by` edge. Any later ownership assertion must carry
+relationship-specific evidence and remain provisional where that evidence does
+not pin the relationship or tier.
+
+- Brand and Org stay distinct even at the same name. "Naturium" the Brand and
+  Naturium LLC the Org are different subjects, as are "Well People" and Well
+  People, Inc., and "e.l.f. Cosmetics" and e.l.f. Cosmetics, Inc. The reverse
+  case also appears: the Brand "rhode" and its Org HRBeauty LLC share no name,
+  so neither a shared name nor a distinct one decides subject identity.
+- Operating-name association is not one-to-one. One Org, e.l.f. Cosmetics,
+  Inc., conducts business under two of the five brands, so a consumer may not
+  infer subject identity or ownership from names alone.
+- Ownership is layered. The filing states that on 2025-08-05 rhode became a
+  wholly owned subsidiary of e.l.f. Cosmetics, Inc., and that Naturium was
+  acquired through that same wholly owned subsidiary. Those are Org
+  subsidiary_of Org assertions beneath the registrant, not direct Brand
+  `owned_by` claims. The filing calls all four organizations principal
+  subsidiaries through which e.l.f. Beauty operates without pinning every
+  intermediate tier; an unpinned tier stays provisional rather than being
+  flattened into the registrant.
 
 Two history cases exercise the boundary:
 
@@ -178,9 +205,13 @@ Two history cases exercise the boundary:
   e.l.f. Beauty; a later view may, subject to the cited assertion.
 - The Form 10-K says Keys Soulcare was transferred to Alicia Keys in May 2026
   and is no longer in the portfolio. Company Surface must preserve the prior
-  portfolio relationship and end it at month precision. The bounded source does
-  not establish the exact transfer day or the relationship's original start,
-  so those boundaries remain unknown rather than being fabricated.
+  portfolio relationship and end it at month precision. The filing does not
+  establish the exact transfer day, so that boundary remains unknown rather
+  than being fabricated. The brands page places "Keys Soulcare is born" in its
+  2020 timeline. That supports a year-precision public portfolio/origination
+  marker, not an exact legal relationship start or day. Company Surface may
+  preserve 2020 as coarse supporting evidence while leaving the precise
+  effective boundary and relationship kind unresolved.
 
 Sources:
 
@@ -191,8 +222,9 @@ Sources:
 
 The boundary passes this case only if a consumer can produce a current e.l.f.
 Beauty portfolio view, reconstruct rhode's entry and Keys Soulcare's exit for
-historical views, inspect the sources, and see the unresolved time boundaries
-without collapsing Brand into Org or inventing precision.
+historical views, keep the same-name Brand and Org subjects distinct, inspect
+the sources, and see the unresolved time boundaries without collapsing Brand
+into Org or inventing precision.
 
 ## Acceptance Conditions
 
@@ -245,6 +277,7 @@ direction_change_propagation:
   controlling_sources_updated:
     - forseti/product/information/company_surface/company_identity_boundary_v0.md
     - docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md
+    - forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md
   downstream_surfaces_checked:
     - forseti/product/information/company_surface/purpose_contract_v0.md
     - forseti/product/information/company_surface/README.md
@@ -254,7 +287,6 @@ direction_change_propagation:
     - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
     - forseti/product/spines/foundation/ontology/ontology.yaml
     - forseti/product/spines/foundation/ontology/architecture.md
-    - forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md
     - forseti/product/spines/data_lake/README.md
     - forseti/product/spines/data_lake/core/contracts/silver_contract_v0.md
     - docs/workflows/forseti_repo_map_v0.md
@@ -271,7 +303,14 @@ direction_change_propagation:
       reason: The e.l.f. Beauty example tests semantics inline and authorizes no stored dossier, capture, or readiness claim.
   stale_language_search: >
     rg -n -i "[c]ompany.identity boundary.*deferred|[e]ntity.resolution spine"
-    forseti/product/information/company_surface docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md
+    forseti/product/information/company_surface
+    docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md
+    forseti/product/spines/capture/core/contracts
+  stale_language_search_result: >
+    Run on the adjudicated worktree (2026-07-15). No hits remain across the
+    Company Surface contract, the company-aggregate decision, or Capture core
+    contracts. The wider scan closes the stale `entity_key` owner name that the
+    earlier two-path scan did not detect.
   non_claims:
     - not a schema, canonical identifier, registry, or runtime
     - not Org ontology graduation
