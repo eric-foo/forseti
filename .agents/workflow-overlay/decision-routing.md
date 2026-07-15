@@ -130,19 +130,47 @@ claim boundaries.
 ## Receiver Mechanism And Write-Root Selection
 
 Before dispatching delegated or parallel work, classify the commissioned act
-and bind its receiver mechanism before the receiver loads task sources:
+and bind exactly one receiver class before the receiver loads task sources:
 
-- Read-only research, orientation, or review may use an in-session collaboration
-  subagent when its source access is sufficient.
-- A collaboration subagent may contribute repo changes only inside the calling
-  task's current, already-isolated work unit when same-root concurrent edits are
-  safe. It is not a separately rooted repo-changing lane.
-- An independent concurrent repo-changing lane that needs its own branch or
-  worktree normally uses a worktree-backed task/thread launched there. An
-  independent external controller may instead start from another checkout only
-  when its harness can demonstrably read and write the exact commissioned
-  worktree. Never assume that a collaboration subagent or sandboxed receiver can
-  reroot itself merely because a prompt names another path.
+- `codex_managed_worktree`: an independent repo-changing Codex task created by
+  Codex Desktop in its managed worktree, with the initial commission submitted
+  in the same task-creation flow. The dispatcher binds the requested starting
+  ref (normally `origin/main`); the receiver then verifies that its launch
+  checkout is that app-created managed worktree, checks the ref/state, and runs
+  the existing lane-start write/index probe before source loading. It must not
+  create, discover, or target a second worktree as a substitute for its root.
+- `external_direct_write`: a true independent external controller whose harness
+  may start from another checkout and operate on a separately commissioned
+  worktree only after the two-root identity, direct-write, and no-concurrent-
+  writer proofs below pass.
+- `collaboration_same_root`: an in-session collaboration subagent used for
+  read-only work or for a safe contribution inside the calling task's current,
+  already-isolated work unit. It is not a separately rooted repo-changing lane
+  and cannot become one merely because a prompt names another worktree.
+- `receiver_to_bind`: the future receiver is not known or created yet. Prompt
+  preparation may continue, but dispatch readiness and receiver source loading
+  remain blocked until one of the three concrete classes is bound and verified.
+
+Record the binding once, inline in the commission or courier, using this compact
+receipt; do not create a registry, daemon, standalone receipt artifact, or new
+checker:
+
+```yaml
+receiver_binding:
+  receiver_class: codex_managed_worktree | external_direct_write | collaboration_same_root | receiver_to_bind
+  binding_state: receiver_to_bind | receiver_to_verify | receiver_verified | blocked
+  launch_checkout: "<observed path | receiver_to_observe>"
+  effective_target_worktree: "<observed path>" # omit only while a managed task is not yet created
+  managed_starting_ref: "<origin/main or other bound ref>" # use instead while receiver_class is codex_managed_worktree and binding_state is receiver_to_verify
+  capability_proof: "<write/index proof, direct-write proof, read-only, or not_yet_proven>"
+  no_concurrent_writer_state: "<observed state, not_applicable_read_only, or not_yet_proven>"
+```
+
+The two target fields are alternatives during preparation: a not-yet-created
+managed task carries `managed_starting_ref`; a created or otherwise resolved
+receiver carries `effective_target_worktree`. A `receiver_verified` repo-
+changing receipt must carry the observed effective target, capability proof,
+and no-concurrent-writer state.
 
 Treat the receiver's starting checkout and the commissioned source as separate
 facts:
@@ -151,37 +179,53 @@ facts:
 - `effective_target_worktree` is the unique registered worktree containing the
   exact commissioned bytes.
 
-Before expensive source loading, the dispatcher or an operator-couriered
-receiver runs the smallest complete two-root preflight: record the commissioned
-act (`read-only` or repo-changing), receiver mechanism and launch checkout;
-resolve the unique effective target through the worktree registry; verify its
-branch/revision and allowed dirty state; and, for uncommitted work, verify the
-named dirty-file set plus a target manifest or equivalent byte identity. A
-branch and HEAD alone do not identify dirty work, and checking that branch out
-elsewhere is not a substitute.
+Before expensive source loading, the dispatcher or receiver completes the
+class-specific preflight. `codex_managed_worktree` verifies its app-created
+current root directly and requires launch/target equality. It does not search
+the worktree registry for somewhere else to write. `external_direct_write`
+runs the smallest complete two-root preflight: record the commissioned act and
+launch checkout; resolve the unique effective target through the worktree
+registry; verify its branch/revision and allowed dirty state; and, for
+uncommitted work, verify the named dirty-file set plus a target manifest or
+equivalent byte identity. `collaboration_same_root` verifies that any permitted
+write stays in the calling task's current isolated root. A branch and HEAD alone
+do not identify dirty work, and checking that branch out elsewhere is not a
+substitute.
 
-Repo-changing work additionally requires demonstrated direct write capability
-to the effective target and confirmation that no other actor will write it
-during the delegated pass. A path or successful read is not write-capability
-proof. Use harness/tool writable-root evidence or the existing lane-start
-write/index probe where that harness requires it. An operator-couriered prompt
-may leave receiver-only observations as `operator_to_fill`, but the receiver
-must complete them before source loading; missing launch facts do not suppress
-prompt rendering. Creating a user-visible Codex task/thread still requires
-explicit user authorization; a commission authorizes only the tasks it
-explicitly places in scope, never standing task creation.
+Repo-changing work additionally requires demonstrated write capability to the
+effective target and confirmation that no other actor will write it during the
+delegated pass. A path or successful read is not write-capability proof. Use the
+existing lane-start write/index probe for `codex_managed_worktree` and
+harness/tool direct-write evidence for `external_direct_write`. A prepared
+prompt may leave receiver-only observations as `receiver_to_observe`, but it
+must remain `receiver_to_bind` or `receiver_to_verify` until the receiver fills
+them before source loading.
 
-When launch and target differ but the exact target is uniquely resolved and the
-receiver proves direct write capability, operate against the effective target
-with target-rooted tool workdirs, absolute filesystem paths, and `git -C
-<effective_target_worktree>`; do not reconstruct its dirty state in the launch
-checkout. Recheck the target identity immediately before the first edit and
-stop as `BLOCKED_TARGET_DRIFT_DURING_REVIEW` if it changed. Return
-`BLOCKED_RECEIVER_REROOT_REQUIRED` only when the effective target is missing or
-ambiguous, its bytes do not match, direct write capability is absent, concurrent
-writing cannot be excluded, or a guard requires a target-rooted receiver. Do
-not bypass the protected-action guard. The write-boundary enforcement and
-lane-start write/index probe remain owned by `.agents/hooks/README.md` and
+Creating a user-visible Codex task still requires explicit user authorization,
+but authorization is semantic rather than a magic phrase: a visible instruction
+that explicitly asks to create, start, spin up, or hand off to a new Codex task
+or managed worktree satisfies it, and the task is created with its initial
+commission in that same operation. Generic `proceed` by itself does not silently
+authorize task creation, and no instruction grants standing creation authority
+beyond the task or handoff it places in scope. Do not chat-double-ask when the
+visible instruction already supplies that explicit intent.
+
+Only `external_direct_write` may operate when launch and target differ. After
+the exact target and capability are proven, use target-rooted tool workdirs,
+absolute paths, and `git -C <effective_target_worktree>`; do not reconstruct its
+dirty state in the launch checkout. Recheck target identity immediately before
+the first edit and stop as `BLOCKED_TARGET_DRIFT_DURING_REVIEW` if it changed.
+
+Return `BLOCKED_RECEIVER_REROOT_REQUIRED` only for a genuine binding or
+capability failure: the target is missing or ambiguous, its bytes do not match,
+required write capability is absent, concurrent writing cannot be excluded, or
+a guard requires a target-rooted receiver that the current task is not. If a
+Codex task was launched in the wrong checkout, it must not create or find another
+worktree and then attempt an impossible reroot. The recovery action is a newly
+created, owner-authorized `codex_managed_worktree` task carrying the commission
+in its initial prompt. Do not bypass or weaken the protected-action guard. The
+write-boundary enforcement and lane-start write/index probe remain owned by
+`.agents/hooks/README.md` and
 `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
 
 ## Enforcement Placement
@@ -282,6 +326,53 @@ the route will work, and it does not validate, establish readiness, authorize,
 or promote the underlying work to source-of-truth status.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Repo-changing dispatch now binds one of four receiver classes before source
+    loading: Codex managed tasks are created in their managed worktree with the
+    initial commission, external controllers retain the proven two-root route,
+    collaboration stays same-root, and unknown couriers remain preparation-only.
+  trigger: workflow_authority
+  related_triggers: [output_authority, lifecycle_boundary]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/validation-gates.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/hooks/README.md
+    - .codex/hooks.json
+    - .codex/hooks/forseti_guard_codex_adapter.py
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - CLAUDE.md
+  intentionally_not_updated:
+    - {path: AGENTS.md, reason: "The kernel already points receiver selection to this file and states the same external-controller and collaboration boundaries."}
+    - {path: .agents/workflow-overlay/source-loading.md, reason: "It already requires receiver selection before source loading; class mechanics stay in the routing owner."}
+    - {path: .agents/hooks/README.md and .codex/hooks/forseti_guard_codex_adapter.py, reason: "The Codex non-current-worktree denial remains intentionally fail-closed; dispatch now supplies the correctly rooted receiver."}
+    - {path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md, reason: "The existing managed-root write/index probe remains the capability gate without implementation change."}
+    - {path: docs/workflows/forseti_repo_map_v0.md and CLAUDE.md, reason: "No owner, path, or shim behavior changed."}
+  stale_language_search: >
+    rg -n -i "operator_to_fill.*(receiver|worktree|launch)|receiver_to_bind|receiver_to_verify|managed.worktree|self-created|find.*another worktree|reroot|required.*target-root|launch.checkout|effective_target_worktree|collaboration.*worktree|magic phrase"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md .codex/hooks
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-15 after the patch. Live routing, prompt, and validation
+    hits carry the class-specific contract. Remaining reroot wording is confined
+    to the unchanged fail-closed Codex adapter/readme and the generic sandboxed
+    lane-start doctrine; those surfaces require opening/reopening on the active
+    root and do not authorize a Codex task to write another registered worktree.
+    AGENTS.md remains a compatible pointer to this controlling route.
+  non_claims:
+    - not validation or readiness
+    - not automatic task creation from generic proceed
+    - not a guard weakening or cross-worktree Codex write route
+    - not permission for concurrent writers
+```
 
 ```yaml
 direction_change_propagation:
