@@ -135,9 +135,12 @@ would corrupt the decision-agnostic evidence foundation.
 The company-identity boundary is controlled separately by
 `company_identity_boundary_v0.md`. The logical record families,
 history/current-view mechanics, and correction rules are controlled separately
-by `company_logical_record_and_view_contract_v0.md`. Data Lake representation,
-consumer interfaces, runtime, source-specific capture routes, and stored corpus
-remain deferred. This contract grants no implementation authority for them.
+by `company_logical_record_and_view_contract_v0.md`. The bounded first Data
+Lake representation is now controlled by
+`company_surface_silver_mapping_contract_v0.md` under separate owner
+authorization; this purpose contract itself grants no implementation
+authority. Consumer interfaces, live/source-specific access, scheduler, broad
+stored corpus, and other runtime remain deferred.
 
 ## Direction Change Propagation
 

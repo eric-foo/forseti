@@ -298,31 +298,38 @@ This is the unnamed default, not a mode selector. Use it only when all of these
 conditions hold:
 
 - the deliverable is one current-lane, operator-couriered, paste-ready prompt;
-- the delegate has `repo` access;
+- the future delegate must have direct `repo` access and a different upstream
+  vendor/model lineage from the author;
 - the visible request supplies or safely determines a goal and success signal,
   one matching target worktree or managed starting ref, branch/revision,
   dirty-state allowance, named file set, bounded patch authority, and validation
   route;
-- before receiver source loading, the dispatcher has selected a receiver
-  class under `.agents/workflow-overlay/decision-routing.md`; an already active
-  receiver has verified target write capability, a Codex managed task is created
-  in its managed worktree with this commission as its initial prompt, an
-  external controller carries the two-root preflight, and an unknown future
-  receiver stays preparation-only as `receiver_to_bind`;
+- the rendered prompt binds an external controller under
+  `.agents/workflow-overlay/decision-routing.md`; an already selected controller
+  carries the two-root preflight, and an unknown future courier receiver stays
+  preparation-only as `receiver_to_bind`;
 - none of the **Full orchestration** routing conditions immediately above apply;
   and
 - there is no unresolved authority, target, state, or scope conflict.
 
-The dispatcher first records the single inline `receiver_binding` receipt owned
+The author records the single inline `receiver_binding` receipt owned
 by `.agents/workflow-overlay/decision-routing.md`. A bound active receiver then
 performs exactly one fresh target-state read: worktree path, branch and HEAD,
 dirty state, named or changed files, and the material validation commands or
-evidence already bound to the lane. A not-yet-created Codex managed task carries
-its managed starting ref and completes the read plus lane-start write/index probe
-as the first action of the task, before source loading. The dispatcher does not
-pre-load the receiver's target sources, reconstruct the receiver's source
+evidence already bound to the lane. An unknown courier completes that read and
+the external direct-write capability proof as its first action, before source
+loading. The author does not pre-load the receiver's target sources, reconstruct the receiver's source
 ledger, traverse the template registry, or claim the delegated lane execution-
 ready before the binding is verified.
+
+An explicit `delegate patch` invocation is an authoring request: return exactly
+one paste-ready prompt for the operator to courier. Do not inspect installed
+controllers, create or dispatch a task, fork or spawn another agent, or execute
+the review. The commission includes `delivery: operator_courier_only`,
+`access: repo`, and
+`delegate_eligibility: different_vendor_lineage_with_direct_repo_access`.
+Same-vendor, unknown-lineage, no-repo, self, and Codex-managed substitutes are
+invalid. If no eligible controller is available, the prompt remains unexecuted.
 
 Render one compact pointer-first prompt containing:
 
@@ -346,16 +353,16 @@ Render one compact pointer-first prompt containing:
 8. the delegate hard stop: no commit, push, PR, merge, stash, reset, worktree
    cleanup, or repository-hygiene action.
 
-Prompt rendering and dispatch are separate states. A prompt with
+Prompt rendering and execution are separate states. A prompt with
 `receiver_class: receiver_to_bind` may be returned for a manual unknown courier,
 but it must label itself preparation-only, must not claim dispatch readiness,
 and must block receiver source loading until rebound to a verified concrete
-class. An implementation-authorized commission using the managed receiver route
-must carry the explicit `receiver_creation_authorization` block above; when its
-condition fires, create the Codex task in its managed worktree and submit the
-frozen commission in the same creation operation without a second chat
-confirmation. Generic `proceed`, implementation authority without the block,
-and every read-only/scoping-only/review-only commission remain insufficient.
+class. A delegated review-and-patch courier prompt must not carry
+`receiver_creation_authorization` and must not select `codex_managed_worktree`;
+the general receiver-creation clause above remains available for other explicit
+implementation commissions but is not a fallback for this lane. Generic
+`proceed`, implementation authority, unavailable external tooling, or a
+same-vendor sanity label never authorizes dispatch.
 
 The default receiving output is chat or the lane PR/comment. Do not require a
 durable review report, `review_summary` courier, provenance checker, full source
@@ -613,12 +620,10 @@ next step. The exact shape is owned by
 `.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
 Step); do not restate it here.
 
-Delegated review-and-patch commissions are repo-mode by default. `no_repo` is
-selected only when the commission explicitly records `access: no_repo` and the
-reason repository access is unavailable or intentionally excluded. Cross-vendor,
-external, couriered, paste-ready, or portable delivery does not imply `no_repo`;
-if the reviewing controller can inspect and patch the named repo/worktree, the
-commission must assume repo access.
+Delegated review-and-patch commissions require direct repo access. `no_repo` is
+outside that lane and routes to a separately named ordinary read-only review;
+it must not be presented as delegated patch authorship. Couriered or paste-ready
+delivery changes transport only, never the direct-repo requirement.
 
 Review prompts, wrappers, handoffs, and closeouts must not recommend,
 prescribe, rank, or imply runtime model choice for review lanes. They may route
@@ -921,7 +926,7 @@ Before using a generated Forseti prompt, apply these gates:
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
-4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters. Repo-changing cross-lane work carries the single `receiver_binding` receipt before receiver source loading. An implementation-authorized managed-receiver commission that may need rerooting also carries the exact one-task `receiver_creation_authorization` block; a read-only, scoping-only, or review-only commission must not carry it. Acceptance is class-specific: Codex managed tasks prove current-root equality plus state/write-index capability; external controllers prove exact-target two-root identity, direct write, and no concurrent writer; collaboration remains same-root; unknown receivers remain preparation-only. A prompt fails this gate when it applies external two-root discovery to a wrongly launched Codex task, substitutes path/read access for write proof, downgrades implementation authority merely because planning or scoping occurred, omits the required one-task creation block, grants broader or repeated task creation, or claims dispatch readiness while `receiver_to_bind` or `receiver_to_verify`.
+4. Worktree preflight present: workspace, exact-revision or required-ancestry expectation, dirty-state allowance, target scope, and edit permission are explicit when repository state matters. Repo-changing cross-lane work carries the single `receiver_binding` receipt before receiver source loading. An implementation-authorized managed-receiver commission that may need rerooting also carries the exact one-task `receiver_creation_authorization` block; a read-only, scoping-only, or review-only commission must not carry it. Acceptance is class-specific: Codex managed tasks prove current-root equality plus state/write-index capability; external controllers prove exact-target two-root identity, direct write, and no concurrent writer; collaboration remains same-root; unknown receivers remain preparation-only. A delegated review-and-patch courier is a narrower exception: it is operator-courier-only, requires different-vendor direct-repo eligibility, and must not select or create a Codex managed receiver. A prompt fails this gate when it applies external two-root discovery to a wrongly launched Codex task, substitutes path/read access for write proof, downgrades implementation authority merely because planning or scoping occurred, omits the required one-task creation block where that general route applies, grants broader or repeated task creation, claims dispatch readiness while `receiver_to_bind` or `receiver_to_verify`, or substitutes same-vendor/task creation for the delegated-patch courier route.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source-capsule budget satisfied: source capsules stay within

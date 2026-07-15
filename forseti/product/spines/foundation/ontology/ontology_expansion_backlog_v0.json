@@ -5,7 +5,6 @@
   "cards_dir": "forseti/product/spines/foundation/ontology/ontology_cards",
   "auto_nudge_triggers": [],
   "deferred_no_auto_trigger": [
-    {"type": "Org", "basis": "RESERVED (§2.2 row 17, §6.1): graduates by dated owner amendment when a real Org-object backing lands. Org-motion / EDGAR headcount data corroborates (G4) but is NOT an Org-object definition, so it does not auto-trigger a card."},
     {"type": "Buyer", "basis": "RESERVED (§2.2 row 16, §6.1): graduates by dated owner amendment when a landed backing artifact appears."},
     {"type": "Memo", "basis": "Backing = buyer-proof packet (§2.2 row 11). Card when a real Memo instance is produced; no concrete artifact path to watch yet."},
     {"type": "CapturePacket", "basis": "Backing exists (orca-harness/source_capture/models.py, §2.2 row 14). Available now; deferred for consumer pull, not a trigger to wait on."},
