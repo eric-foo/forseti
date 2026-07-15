@@ -160,8 +160,8 @@ Header invariants:
 | `content_hash` | Required durable integrity hash for the canonical record content; hash basis must be explicit and must not include the `content_hash` field itself. |
 | `observed_at` | Time the fact was observed at or about the source. Nullable only for internal relationship records with no source observation time. |
 | `captured_at` | Time Forseti captured the source material or producer input. |
-| `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file and carry `sha256` plus `hash_basis` where the source material is hash-checkable. Source-family payload refs must honor the Bronze intake boundary below. |
-| `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. |
+| `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file. When `sha256` is claimed, it hashes the exact preserved body bytes and its paired `hash_basis` is exactly `raw_stored_bytes`. Bronze Attachment Record refs always require that pair plus an equal `body_sha256`; raw-packet refs may omit the pair only when they do not name a specific file. Source-family payload refs must honor the Bronze intake boundary below. |
+| `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. A claimed `sha256` pairs only with `hash_basis: derived_record_bytes` and hashes the exact saved derived-record bytes. A claimed `content_hash` pairs independently with `content_hash_basis: canonical_json_excluding_content_hash`; either pair may appear, both may coexist, and neither aliases or substitutes for the other. |
 
 ## Bronze Intake And Attachment Record Boundary
 
@@ -180,9 +180,12 @@ body and an Attachment Record row exists, `raw_refs` must carry an AR-backed raw
 ref rather than a private packet-member path guess. The Silver record does not
 copy the body as authority; it carries enough AR material to re-resolve and
 verify the body: `attachment_record_id`, schema version, physicalization,
-`packet_id`, packet/body ref, `body_sha256`, `hash_basis`, `source_family`,
+`packet_id`, packet/body ref, `sha256`, equal `body_sha256`, `hash_basis`, `source_family`,
 `source_surface`, `payload_kind`, `payload_schema_version`, replay/version pins, and any
 producer-owned provenance required by that producer contract.
+The ref and public catalog row must agree that the body hash is over exact saved
+bytes with `hash_basis: raw_stored_bytes`; altered bytes, a different basis, or a
+different hash make the source physically unresolved.
 
 If no Attachment Record row exists, a Silver producer may cite hash-checkable raw
 packet refs when its contract allows that fallback, but it must make the missing
@@ -193,6 +196,47 @@ Silver must not declare Bronze full GT, reimplement private catalog safe-name or
 path rules, or treat generated Bronze catalog files as authority over raw packet
 material.
 
+## Validation, New Writes, And Immutable Legacy Reads
+
+Silver separates five obligations that must not be collapsed:
+
+1. validate the stored envelope and its original content_hash;
+2. require canonical reference fields at every new-write front door;
+3. resolve and hash-check cited bytes through a root-aware physical gate;
+4. adapt only explicitly declared legacy producer/schema profiles in memory; and
+5. apply lane-specific historical selection after physical classification.
+
+The original stored mapping is validated before any compatibility inference and
+is never rewritten, rehashed under a new grammar, or persisted as an adapted
+record. New writes require canonical ref_type, closed hash bases, and exact
+derived addresses including raw_anchor. A declared legacy producer/schema
+profile is read-only: the strict append front doors reject it even when its
+historical bytes can be resolved.
+
+The bounded legacy profiles are:
+
+- Fragrantica cleaning Silver text/metric v0 records produced by the declared
+  orca-harness producer. A missing ref_type may be interpreted as raw_packet
+  only when the historical packet/file/hash shape is unambiguous; a missing
+  derived raw_anchor may use the record's already-validated anchor only for the
+  declared cleaning_fragrantica_audit ref.
+- Creator-metric observation and rollup v0 records produced by the two declared
+  orca-harness creator-metric producers. Their missing ref type/address fields
+  resolve only through the cross-epoch creator-metric lineage index below,
+  including exact record-id/content-hash reconciliation for rollups.
+
+Unknown producer versions, contradictory fields, ambiguous matches, unsupported
+hash bases, or unresolved bytes fail closed. Compatibility never becomes a
+global raw-path guess or an ordinary DataLakeRoot fallback.
+
+The shared root-aware classifier returns exactly current_source_backed,
+historical_compatible, invalid, or unresolved, with a reason code and error
+detail where applicable. Authority-making readers and the census use that
+classifier or its current-only verifier. A structural lineage helper may
+describe lineage_structure_complete, missing, incomplete, or invalid shape; it
+cannot claim physical source authority. lineage_schema_version is a legacy
+helper marker: absence is not evidence failure, while a present value must
+still validate.
 ## Cross-Epoch Creator-Metric Evidence Classification
 
 Creator-metric observation and rollup records use one rebuildable, read-only
@@ -610,8 +654,11 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
 3. Every record has `record_kind` and `payload_kind`; source-family row subtype is
    preserved separately when present.
 4. Entity records contain stable identity only; mutable facts are observations.
-5. Every record carries a durable `content_hash` with explicit hash basis, and
-   source refs preserve `sha256` plus `hash_basis` when hash-checkable.
+5. Every record carries a durable `content_hash` with explicit hash basis. Raw
+   and AR-backed refs pair any claimed `sha256` only with
+   `hash_basis: raw_stored_bytes`; derived refs pair `sha256` only with
+   `hash_basis: derived_record_bytes` and independently pair `content_hash` only
+   with `content_hash_basis: canonical_json_excluding_content_hash`.
 6. Metric observations obey posture/value/reason coupling and preserve
    coverage_window where time-series meaning depends on a window.
 7. Missing, blocked, hidden, not-attempted, not-applicable, and outside-window
@@ -640,7 +687,15 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
     `historical_compatible`, or `excluded`; current creator-metric results admit
     only current-root byte-verified records, while historical residuals remain
     audit-readable with root identity and upgrade trigger.
+18. Derived `sha256` and `content_hash` pairs are independently optional where
+    the producer contract permits them, may coexist, and cannot satisfy or fall
+    back to one another during validation or physical verification.
 
+19. New writes use canonical strict refs; immutable declared legacy producer
+    versions may be read only through the bounded, fail-closed compatibility
+    classifier after their original envelope and content hash validate.
+20. Structural lineage status is never Silver authority. Census and
+    authority-making readers use the root-aware physical classifier or verifier.
 ## Mini God Tier Accepted Residuals
 
 This contract deliberately stops short of maximal infrastructure.
@@ -757,64 +812,60 @@ spec_handoff:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Silver Vault now binds source-backed raw intake to public Bronze packet,
-    catalog, and Attachment Record surfaces: Silver raw_refs must not infer
-    meaning from raw folder layout, must carry AR-backed refs for source-family
-    payload bodies when AR rows exist, and must make missing typed AR rows a
-    visible residual instead of inferred absence.
+    Silver v0 hash bases are closed physical claims. Raw-packet and Bronze
+    Attachment Record sha256 values hash exact preserved body bytes and pair only
+    with raw_stored_bytes. Derived sha256 values hash exact saved derived-record
+    bytes and pair only with derived_record_bytes. A derived content_hash is a
+    separate canonical-record claim paired only with
+    canonical_json_excluding_content_hash; either derived pair may appear, both
+    may coexist, and neither aliases or falls back to the other.
   trigger: architecture_doctrine
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
-    - forseti/product/spines/data_lake/README.md
-    - docs/workflows/forseti_repo_map_v0.md
+    - docs/decisions/silver_vault_legacy_record_convergence_v0.md
   downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-    - forseti-harness/data_lake/catalog.py
+    - forseti-harness/data_lake/silver_record.py
+    - forseti-harness/data_lake/silver_lineage.py
+    - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+    - forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
+    - forseti-harness/tests/unit/test_silver_record.py
+    - forseti-harness/tests/unit/test_silver_lineage.py
+    - forseti-harness/tests/unit/test_youtube_creator_metric_silver_producer.py
+  producer_schema_version_moves:
+    - path: forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+      reason: >
+        Its emitted metric-observation ref meaning changed (closed raw_stored_bytes
+        basis), so metricobservation moves to v2; its rollup moves to v1 because
+        derived_refs now carry the exact raw_anchor address.
+    - path: forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
+      reason: >
+        Its emitted sha256 meaning was already exact raw stored bytes, but its refs
+        now carry the closed ref_type instead of raw_ref_kind and its derived_refs
+        carry raw_anchor, so both its metricobservation and rollup move to v1.
   intentionally_not_updated:
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
       reason: >
-        The core contract already owns the raw packet / Attachment Record logical
-        boundary. This patch binds Silver consumption mechanics without changing
-        the parent no-smart-lake boundary.
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-      reason: >
-        Medallion semantics are unchanged: Bronze remains raw evidence and Silver
-        remains source-backed semantic records. This patch only names the public
-        Bronze surfaces Silver must use.
-    - path: forseti-harness/data_lake/catalog.py
-      reason: >
-        The required public Bronze helpers and AR body loader already exist in
-        the post-PR-525 baseline; this patch does not authorize new runtime code.
+        Its raw_stored_bytes rule already owns Attachment Record body hashing;
+        this clarification closes the Silver ref-side interpretation and catalog
+        agreement check without changing the Bronze envelope.
   stale_language_search: >
-    rg -n "Silver.*Bronze|raw_refs|Attachment Record|full God Tier|bronze_mgt"
-    forseti/product/spines/data_lake docs/workflows/forseti_repo_map_v0.md forseti-harness/data_lake/catalog.py
+    rg -n "raw_stored_bytes|derived_record_bytes|canonical_json_excluding_content_hash|source_evidence_hash_basis"
+    forseti-harness/data_lake forseti-harness/capture_spine/creator_profile_current
+    forseti-harness/tests/unit
   non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not full Bronze God Tier
-    - not Silver producer implementation
+    - not a Silver envelope version change
+    - not a hash-basis registry or normalization framework
+    - not live-lake migration, recapture, or reprocessing
+    - not proof that private-lake seed sources resolve
+    - not validation or production readiness
 ```
 
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Creator-metric Silver lineage now has an explicit cross-epoch evidence
-    classification: actual cited bytes plus a successful recomputed hash are
-    required for source_backed_complete; uniquely resolved archived packets with
-    absent cited bytes are historical_compatible; malformed, missing,
-    contradictory, mismatched, corrupt, or ambiguous cases are excluded; and
-    only current-root byte-verified records enter current retrieval and census
-    observation totals.
+    Silver read authority now separates immutable-envelope validation, strict new-write refs, root-aware physical resolution, bounded declared legacy compatibility, and lane-specific selection. The shared classifier reports current_source_backed, historical_compatible, invalid, or unresolved. Fragrantica v0 uses only unambiguous in-memory address inference; creator v0 observations and rollups use exact cross-epoch lineage reconciliation. Structural lineage status cannot establish authority.
   trigger: architecture_doctrine
   related_triggers:
     - lifecycle_boundary
@@ -828,6 +879,8 @@ direction_change_propagation:
     - docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md
     - forseti-harness/data_lake/creator_metric_lineage.py
     - forseti-harness/data_lake/silver_census.py
+    - forseti-harness/capture_spine/creator_profile_current/social_metric_history_reader.py
+    - forseti-harness/tests/contract/test_silver_reader_selection_gate.py
     - forseti-harness/capture_spine/creator_profile_current/silver_metric_reader.py
   intentionally_not_updated:
     - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
@@ -853,12 +906,7 @@ direction_change_propagation:
     forseti-harness/data_lake forseti-harness/capture_spine/creator_profile_current
     forseti/product/spines/data_lake docs/decisions
   stale_language_search_result: >
-    Executed 2026-07-15 after the classifier and contract edits. Hits resolve to
-    the existing generic persisted-field lineage gate, the new creator-metric
-    byte-verification classifier and its census/reader consumers, current
-    root-marker legacy_roots mechanics, or the controlling contracts/decision
-    record. No ordinary reader gained a transparent archive fallback and no
-    source names an archive path or asserted JSON hash as byte verification.
+    Re-run at final validation. Expected hits are the root-aware classifier, the explicitly structural-only helper, the creator cross-epoch index, and durable historical language; no authority reader may use structural status as physical proof.
   non_claims:
     - not validation
     - not readiness

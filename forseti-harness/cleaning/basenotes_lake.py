@@ -29,7 +29,7 @@ BASENOTES_CLEANING_SILVER_LANE = "cleaning_basenotes_silver"
 CLEANING_AUDIT_PACK_SCHEMA_VERSION = "cleaning_audit_pack_v0"
 SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
 BASENOTES_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "basenotes_cleaning_audit_pack_v1"
-BASENOTES_SILVER_PRODUCER_SCHEMA_VERSION = "basenotes_cleaning_silver_textobservation_v1"
+BASENOTES_SILVER_PRODUCER_SCHEMA_VERSION = "basenotes_cleaning_silver_textobservation_v2"
 BASENOTES_CLEANING_METHOD_ID = "basenotes_cleaning_method_v0"
 TEXT_NORMALIZATION_RULE = "basenotes_text_whitespace_normalization"
 BASENOTES_RATING_METRIC_RESIDUAL = "basenotes_rating_metric_observations_deferred"
@@ -237,6 +237,7 @@ def _post_cleaned_silver_record(
         "derived_refs": [
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": packet.packet_id,
                 "lane_namespace": audit_lane,
                 "record_id": audit_record_id,
                 "content_hash": audit_content_hash,
@@ -323,6 +324,7 @@ def _coverage(cleaning_packet: CleaningPacket) -> dict[str, Any]:
 def _handle_raw_ref(handle: CleaningInputHandle) -> dict[str, str | None]:
     anchor = handle.raw_anchor
     return {
+        "ref_type": "raw_packet",
         "packet_id": anchor.packet_id,
         "slice_id": anchor.slice_id,
         "file_id": anchor.file_id,

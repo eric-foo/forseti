@@ -56,12 +56,12 @@ FRAGRANTICA_CLEANING_SILVER_LANE = "cleaning_fragrantica_silver"
 CLEANING_AUDIT_PACK_SCHEMA_VERSION = "cleaning_audit_pack_v0"
 SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
 FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "fragrantica_cleaning_audit_pack_v1"
-FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION = "fragrantica_cleaning_silver_textobservation_v1"
+FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION = "fragrantica_cleaning_silver_textobservation_v2"
 FRAGRANTICA_CLEANING_METHOD_ID = "fragrantica_cleaning_method_v0"
 REVIEW_TEXT_NORMALIZATION_RULE = "fragrantica_review_text_whitespace_normalization"
 REVIEW_VOTE_CARRY_RULE = "fragrantica_source_visible_vote_field_carry"
 FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = (
-    "fragrantica_cleaning_silver_metricobservation_v2"
+    "fragrantica_cleaning_silver_metricobservation_v3"
 )
 FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION = "fragrantica_review_vote_valid_ordinal_v1"
 
@@ -376,6 +376,7 @@ def _post_cleaned_silver_record(
         "derived_refs": [
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": packet.packet_id,
                 "lane_namespace": audit_lane,
                 "record_id": audit_record_id,
                 "content_hash": audit_content_hash,
@@ -447,6 +448,7 @@ def _post_cleaned_metric_record(
         "derived_refs": [
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": packet.packet_id,
                 "lane_namespace": audit_lane,
                 "record_id": audit_record_id,
                 "content_hash": audit_content_hash,
@@ -535,6 +537,7 @@ def _coverage(cleaning_packet: CleaningPacket) -> dict[str, Any]:
 def _handle_raw_ref(handle: CleaningInputHandle) -> dict[str, str | None]:
     anchor = handle.raw_anchor
     return {
+        "ref_type": "raw_packet",
         "packet_id": anchor.packet_id,
         "slice_id": anchor.slice_id,
         "file_id": anchor.file_id,
