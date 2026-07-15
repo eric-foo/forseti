@@ -149,6 +149,92 @@ TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
       src: String(track.src || track.getAttribute('src') || '').trim() || null
     });
   }
+  const reactSubtitleFields = [
+    'Format',
+    'LanguageCodeName',
+    'LanguageID',
+    'Size',
+    'Source',
+    'Url',
+    'Version',
+    'url'
+  ];
+  const sanitizedReactSubtitleInfo = (value) => {
+    if (!value || typeof value !== 'object') return null;
+    const result = {};
+    for (const field of reactSubtitleFields) {
+      if (Object.prototype.hasOwnProperty.call(value, field)) {
+        result[field] = value[field];
+      }
+    }
+    return result;
+  };
+  const findReactVideoSubtitleSource = () => {
+    const expectedVideoId = pathMatch ? pathMatch[1] : null;
+    if (!expectedVideoId || !overlayRoot) return null;
+    const nodes = [overlayRoot, ...Array.from(overlayRoot.querySelectorAll('*'))];
+    let remainingObjectBudget = 12000;
+    for (const node of nodes) {
+      for (const propertyName of Object.getOwnPropertyNames(node)) {
+        if (!propertyName.startsWith('__reactProps$')) continue;
+        const seenObjects = new WeakSet();
+        const stack = [{value: node[propertyName], depth: 0}];
+        while (stack.length && remainingObjectBudget > 0) {
+          const current = stack.pop();
+          const value = current ? current.value : null;
+          const depth = current ? current.depth : 0;
+          if (!value || typeof value !== 'object' || depth > 12) continue;
+          if (seenObjects.has(value)) continue;
+          seenObjects.add(value);
+          remainingObjectBudget -= 1;
+          const candidate = (
+            value.videoInfo && typeof value.videoInfo === 'object'
+          ) ? value.videoInfo : value;
+          const candidateId = String(
+            candidate.id || candidate.itemId || candidate.awemeId || ''
+          );
+          if (
+            candidateId === expectedVideoId &&
+            Array.isArray(candidate.subtitleInfos)
+          ) {
+            return {
+              id: expectedVideoId,
+              video: {
+                subtitleInfos: candidate.subtitleInfos
+                  .map(sanitizedReactSubtitleInfo)
+                  .filter(Boolean)
+              }
+            };
+          }
+          for (const [key, child] of Object.entries(value)) {
+            if (
+              key === '_owner' ||
+              key === 'memoizedState' ||
+              key === 'updateQueue' ||
+              key.startsWith('__reactFiber$') ||
+              key.startsWith('__reactProps$') ||
+              typeof child === 'function'
+            ) {
+              continue;
+            }
+            if (
+              child && typeof child === 'object' &&
+              !(typeof Node === 'function' && child instanceof Node)
+            ) {
+              stack.push({value: child, depth: depth + 1});
+            }
+          }
+        }
+      }
+    }
+    return null;
+  };
+  let reactVideoSubtitleSource = null;
+  try {
+    reactVideoSubtitleSource = findReactVideoSubtitleSource();
+  } catch (error) {
+    reactVideoSubtitleSource = null;
+  }
   return {
     hydration_json_text: hydration ? hydration.textContent : null,
     visible_comment_candidates: candidates,
@@ -161,7 +247,8 @@ TIKTOK_VIDEO_DOM_EXTRACT_SCRIPT = r"""
       commentSurfaceDetected && candidates.length === 0 &&
       (/no comments yet/i.test(overlayText) || /\bcomments?\s*\(?0\)?\b/i.test(overlayText))
     ),
-    subtitle_tracks: subtitleTracks
+    subtitle_tracks: subtitleTracks,
+    react_video_subtitle_source: reactVideoSubtitleSource
   };
 }
 """.strip()
@@ -1699,6 +1786,7 @@ def _cadence_row_from_capture(
             item_struct=item_struct,
             profile_grid_subtitle_source=profile_grid_subtitle_source,
             dom_observation=capture_result.dom_observation,
+            expected_video_id=video_id,
         )
     else:
         dom_track_source = _subtitle_source_from_dom_tracks(
@@ -2376,10 +2464,16 @@ def _select_subtitle_source(
     item_struct: JsonObject | None,
     profile_grid_subtitle_source: JsonObject | None,
     dom_observation: object,
+    expected_video_id: str,
 ) -> tuple[JsonObject, str]:
+    react_video_source = _subtitle_source_from_dom_react_state(
+        dom_observation,
+        expected_video_id=expected_video_id,
+    )
     dom_track_source = _subtitle_source_from_dom_tracks(dom_observation)
     candidates = (
         (item_struct, "overlay_or_direct_video_item_struct"),
+        (react_video_source, "overlay_react_video_info"),
         (profile_grid_subtitle_source, "profile_grid_item_list_item_struct"),
         (dom_track_source, "matched_visible_video_dom_track"),
     )
@@ -2394,6 +2488,25 @@ def _select_subtitle_source(
     if first_metadata_source is not None:
         return first_metadata_source
     return dom_track_source, "no_source_native_subtitle_metadata"
+
+
+def _subtitle_source_from_dom_react_state(
+    dom_observation: object,
+    *,
+    expected_video_id: str,
+) -> JsonObject | None:
+    source = _as_dict(
+        _as_dict(dom_observation).get("react_video_subtitle_source")
+    )
+    if not source:
+        return None
+    source_video_id = _first_str(source.get("id"))
+    if source_video_id != expected_video_id:
+        raise ValueError(
+            "overlay React subtitle source id does not match requested video id: "
+            f"{source_video_id or '<missing>'} != {expected_video_id}"
+        )
+    return source
 
 
 def _normalize_stats(stats: JsonObject) -> JsonObject:
