@@ -76,6 +76,8 @@ not changes to source precedence.
 | Artifact folders and placement | `.agents/workflow-overlay/artifact-folders.md` |
 | Validation gates and checker boundaries | `.agents/workflow-overlay/validation-gates.md` |
 | Technical diagnostics for recurring workflow or tooling failures | `docs/workflows/technical_difficulties_log_v0.md` |
+| General workflow and tool efficiency methods, cases, measurements, and dogfood records | `docs/workflows/efficiency/README.md` |
+| Fixed cold-agent vendor-admission tool-calling dogfood case | `docs/workflows/efficiency/tool_calling_dogfood_case_v0.md` |
 | Prompt or review-prompt work | `.agents/workflow-overlay/prompt-orchestration.md` |
 | Current product direction and initial form | `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md` |
 | Beauty product application, decision admission, and proof boundary | `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md` |
@@ -97,6 +99,12 @@ not changes to source precedence.
 The Silver/Vault row is a decisive-fast-route T1 entry. The generic Data Lake
 area row is insufficient for a cold reader because it does not distinguish
 Silver Authority from generated Silver Retrieval or from other derived artifacts.
+
+The two workflow-efficiency rows are decisive-fast-route T1 entries. The
+directory route resolves a real ownership ambiguity among general efficiency,
+technical diagnostics, the dated hygiene plan, and the temporary overlay pilot;
+the direct case route lets a cold operator reach the fixed dogfood case without
+mistaking the generated file index or the directory boundary for its oracle.
 
 ## Active Hooks
 
