@@ -25,7 +25,6 @@ from data_lake.silver_lineage import (
     SilverLineage,
     SilverRawRef,
     SilverSourceObject,
-    silver_record_source_backed_status,
 )
 from data_lake.silver_record import (
     CONTENT_HASH_BASIS,
@@ -34,6 +33,7 @@ from data_lake.silver_record import (
     append_silver_record_set,
     silver_content_hash,
     validate_silver_vault_record,
+    verify_silver_vault_record_sources,
 )
 from source_capture import (
     CaptureModeCategory,
@@ -142,32 +142,12 @@ def current_deep_capture_record(
         record.get("raw_anchor") != raw_anchor
         or record.get("lane_namespace") != lane
         or record.get("record_id") != record_id
-        or silver_record_source_backed_status(record) != SOURCE_BACKED_COMPLETE_STATUS
     ):
         return False
     try:
-        loaded = data_root.load_raw_packet(raw_anchor)
-    except Exception:  # noqa: BLE001 - read-side eligibility is fail-closed
+        verify_silver_vault_record_sources(data_root, record)
+    except (TypeError, ValueError):
         return False
-    preserved = {
-        item.get("file_id"): item
-        for item in loaded.manifest.get("preserved_files", [])
-        if isinstance(item, Mapping)
-    }
-    raw_refs = record.get("raw_refs")
-    if not isinstance(raw_refs, list) or not raw_refs:
-        return False
-    for ref in raw_refs:
-        if not isinstance(ref, Mapping) or ref.get("packet_id") != raw_anchor:
-            return False
-        item = preserved.get(ref.get("file_id"))
-        if not isinstance(item, Mapping):
-            return False
-        if any(
-            ref.get(field) != item.get(field)
-            for field in ("relative_packet_path", "sha256", "hash_basis")
-        ):
-            return False
     return True
 
 

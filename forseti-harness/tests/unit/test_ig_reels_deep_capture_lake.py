@@ -8,6 +8,7 @@ import pytest
 
 from data_lake.root import DataLakeRoot
 from data_lake.silver_lineage import SOURCE_BACKED_COMPLETE_STATUS, silver_record_source_backed_status
+from data_lake.silver_record import silver_content_hash
 from runners import run_source_capture_ig_reels_deep_capture as deep_capture_runner
 from schemas.audience_comment_models import AudienceComment
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
@@ -101,6 +102,49 @@ def test_writes_packet_backed_envelopes_and_marks_complete(tmp_path: Path) -> No
             lane=lane,
             record_id=written.record_id,
         )
+
+
+def test_current_record_uses_physical_gate_without_legacy_lineage_version(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    written = write_reel_deep_capture_into_lake(
+        data_root=root,
+        result=_result(),
+        generated_at="2026-06-27T00:00:00Z",
+    )
+    record = json.loads(written[AUDIENCE_COMMENTS_LANE].read_text(encoding="utf-8"))
+    record.pop("lineage_schema_version")
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+
+    assert current_deep_capture_record(
+        root,
+        record=record,
+        raw_anchor=written.packet_id,
+        lane=AUDIENCE_COMMENTS_LANE,
+        record_id=written.record_id,
+    )
+
+
+def test_current_record_rejects_altered_preserved_packet_bytes(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    written = write_reel_deep_capture_into_lake(
+        data_root=root,
+        result=_result(),
+        generated_at="2026-06-27T00:00:00Z",
+    )
+    record = json.loads(written[AUDIENCE_COMMENTS_LANE].read_text(encoding="utf-8"))
+    packet_dir = root.find_packet(written.packet_id)
+    assert packet_dir is not None
+    source_path = packet_dir / record["raw_refs"][0]["relative_packet_path"]
+    assert source_path.is_file()
+    source_path.write_bytes(b"tampered\n")
+
+    assert not current_deep_capture_record(
+        root,
+        record=record,
+        raw_anchor=written.packet_id,
+        lane=AUDIENCE_COMMENTS_LANE,
+        record_id=written.record_id,
+    )
 
 
 def test_signed_media_url_is_never_persisted(tmp_path: Path) -> None:

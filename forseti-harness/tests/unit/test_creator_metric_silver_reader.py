@@ -31,6 +31,7 @@ from capture_spine.creator_profile_current.silver_subject_ref import (
 from data_lake.root import DataLakeRoot
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
+from tests.unit._creator_metric_silver_fixtures import commit_raw_packet
 
 PACKET_ID = "packet_fixture"
 GENERATED_AT = "2026-06-30T00:02:00Z"
@@ -273,11 +274,27 @@ def _rollup_record(
     base = tmp_path / slot
     base.mkdir(parents=True, exist_ok=True)
     projection = base / "projection.json"
+    data_root = DataLakeRoot.for_test(base / "lake")
+    packet_id = "01J00000000000000000000002"
+    raw_anchor = commit_raw_packet(
+        data_root,
+        packet_id=packet_id,
+        body=b'{"fixture":"creator metric selector"}',
+    )
     projection.write_text(
-        json.dumps({"packet_id": PACKET_ID, "rows": _projection_rows(username, views)}),
+        json.dumps(
+            {
+                "packet_id": packet_id,
+                "rows": _projection_rows(
+                    username,
+                    views,
+                    packet_id=packet_id,
+                    raw_anchor=raw_anchor,
+                ),
+            }
+        ),
         encoding="utf-8",
     )
-    data_root = DataLakeRoot.for_test(base / "lake")
     result = derive_creator_metric_silver_records_from_projections(
         data_root=data_root,
         projection_paths=[projection],

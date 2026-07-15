@@ -5,11 +5,12 @@ retrieval_header_version: 1
 artifact_role: Forseti decision record (Silver Vault legacy-record convergence)
 scope: >
   Binds the official Silver lanes, retired historical-lineage posture, reader
-  cutover, and re-derivation contract for product mentions and TikTok audience
-  evidence.
+  cutover, source-less capture-lane retirement, and re-derivation contract for
+  product mentions and TikTok audience evidence.
 use_when:
   - Resolving current authority for product-mention or TikTok audience-evidence records.
   - Checking how legacy grammar-B records remain audit-readable without reader fallback.
+  - Checking the authority posture of the retired source-less capture lanes.
 stale_if:
   - A later accepted decision changes these lane roles, reader selection, or re-derivation semantics.
 authority_boundary: retrieval_only
@@ -36,6 +37,14 @@ lanes remain registered as `retired_silver_lineage`. They remain discoverable fo
 audit but are not current reader or writer authority. No historical file is moved,
 rewritten, or deleted.
 
+The source-less legacy capture lanes `silver__capture__audience_comments`,
+`silver__capture__reel_transcript`, and
+`silver__capture__reel_deep_capture__set` are also
+`retired_silver_lineage`. Existing bytes remain audit-readable by explicit
+lane/path lookup, but cannot establish Silver authority. The old deep-capture
+writer fails visibly with `eligible_bronze_required`; this decision does not
+invent or authorize a replacement Bronze producer.
+
 The synthesized TikTok content-fit profile is not a source-backed Silver fact. New
 profiles write to `tiktok_audience_profile_analysis` with
 `role_posture=non_authoritative_analysis` and exact references to the Silver
@@ -48,7 +57,11 @@ Before persistence, the Silver front door verifies:
 
 - the complete common header and write-target binding (`raw_anchor`, lane, record id);
 - the canonical content hash and explicit hash basis;
-- at least one resolvable raw or derived reference, with hash/basis coupling;
+- at least one raw or derived reference whose exact claimed source physically
+  resolves and verifies: raw and Bronze body hashes use exact saved bytes with
+  `raw_stored_bytes`; derived saved-byte hashes use `derived_record_bytes`, while
+  derived canonical content hashes independently use
+  `canonical_json_excluding_content_hash` with no cross-pair fallback;
 - closed record kind, payload kind, and no Cleaning transform ledger in the fact;
 - Text/Metric observation posture, row counts, row identity, inline-text hashes, and
   policy fingerprints;
@@ -72,14 +85,18 @@ re-derivation. Partial sets remain visible and are never acknowledged as complet
 
 ## Accepted residuals
 
-- The remaining `silver__capture__*` grammar-B lanes are not migrated here; they
-  stay in the active frozen legacy baseline.
+- Historical bytes in the three retired source-less capture lanes are preserved
+  for explicit audit lookup; they are not migrated, recaptured, or promoted to
+  authority.
 - Rejected LLM rows remain processing telemetry and are not copied into Silver
   facts. Historical grammar-B records retain their old rejection detail.
 - Profile synthesis remains operator-run/provider-invoked at the existing cadence;
   this change does not make owner-gated LLM work automatic.
 - No live data-lake migration is performed by this implementation. Existing
   committed packets re-derive only when the normal runner is invoked.
+- The 196-observation YouTube unit fixture is explicitly synthetic structural
+  proof of the physical verifier and does not show that private-lake seed sources
+  resolve. The focused watch-HTML proof likewise uses a temporary committed packet.
 
 ## Success signals
 
@@ -92,3 +109,81 @@ re-derivation. Partial sets remain visible and are never acknowledged as complet
 - audience profiles cite exact Silver evidence while remaining explicitly outside
   Silver Authority;
 - a completed rerun has zero second-cycle provider work under the same obligation.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Silver authority now requires the current envelope plus physical
+    verification of every exact claimed source at both write and read gates.
+    The three remaining source-less silver__capture lanes are retired for
+    authority, their historical bytes remain available for explicit audit, and
+    the old writer now fails visibly with eligible_bronze_required instead of
+    creating another source-less Silver record.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/silver_vault_legacy_record_convergence_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - forseti-harness/data_lake/silver_record.py
+    - forseti-harness/data_lake/silver_lineage.py
+    - forseti-harness/data_lake/product_mention_selection.py
+    - forseti-harness/data_lake/lane_registry.py
+    - forseti-harness/source_capture/ig_reels_deep_capture_lake.py
+    - forseti-harness/data_lake/silver_census.py
+    - forseti-harness/source_capture/ig_reels_behavioral_lake.py
+    - forseti-harness/source_capture/ig_reels_behavioral_projection.py
+    - forseti-harness/data_lake/inventory.py
+    - forseti-harness/data_lake/lake_touchpoint_inventory_v0.json
+    - forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
+    - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+    - forseti-harness/cleaning/basenotes_lake.py
+    - forseti-harness/cleaning/fragrantica_lake.py
+    - forseti-harness/cleaning/parfumo_lake.py
+    - forseti-harness/tests/contract/test_policy_module_version_pins.py
+    - forseti-harness/tests/test_silver_lane_registry_guard.py
+    - forseti-harness/tests/test_ig_reels_deep_capture_lake.py
+    - forseti-harness/tests/test_silver_census_behavior.py
+  intentionally_not_updated:
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+      reason: It already requires every claimed source to be resolvable and hash-verifiable; this work makes that existing contract executable at every authority gate.
+  non_claims:
+    - not a live-lake migration, recapture, or reprocessing authorization
+    - not recovery of unavailable records
+    - not a replacement Bronze producer
+    - not validation or production readiness
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The existing physical-authority rule now closes each hash claim to its exact
+    byte interpretation: raw and Attachment Record sha256 claims use
+    raw_stored_bytes; derived sha256 claims use derived_record_bytes; and derived
+    content_hash claims independently use canonical_json_excluding_content_hash.
+    The two derived pairs may coexist but never alias or satisfy one another.
+  trigger: architecture_doctrine
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - docs/decisions/silver_vault_legacy_record_convergence_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti-harness/data_lake/silver_record.py
+    - forseti-harness/data_lake/silver_lineage.py
+    - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+    - forseti-harness/tests/unit/test_silver_record.py
+    - forseti-harness/tests/unit/test_silver_lineage.py
+    - forseti-harness/tests/unit/test_youtube_creator_metric_silver_producer.py
+  intentionally_not_updated:
+    - path: forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
+      reason: Its emitted hash semantics already match raw_stored_bytes.
+  non_claims:
+    - not a new Silver envelope
+    - not a new source lane, registry, migration, recapture, or reprocessing
+    - not proof that unavailable private-lake records have recovered
+    - not validation, Mini God Tier, or production readiness
+```

@@ -21,7 +21,11 @@ from data_lake.silver_lineage import (
     SOURCE_BACKED_COMPLETE_STATUS,
     silver_record_source_backed_status,
 )
-from data_lake.silver_record import SILVER_VAULT_RECORD_SCHEMA_VERSION
+from data_lake.silver_record import (
+    SILVER_VAULT_RECORD_SCHEMA_VERSION,
+    validate_silver_vault_record,
+    verify_silver_vault_record_sources,
+)
 from source_capture.ig_reels_behavioral_projection import project_ig_reels_behavioral_item
 from source_capture.ig_reels_deep_capture_lake import (
     AUDIENCE_COMMENTS_LANE,
@@ -332,7 +336,17 @@ def _collect_product_extraction_results(
             )
         except Exception:  # noqa: BLE001
             complete = False
-        source_backed_status = silver_record_source_backed_status(body)
+        try:
+            validate_silver_vault_record(body)
+        except (TypeError, ValueError):
+            source_backed_status = "invalid_silver_envelope"
+        else:
+            try:
+                verify_silver_vault_record_sources(data_root, body)
+            except (TypeError, ValueError):
+                source_backed_status = "source_ref_unresolved"
+            else:
+                source_backed_status = silver_record_source_backed_status(body)
         provenance = body.get("provenance") if isinstance(body.get("provenance"), dict) else {}
         if complete and source_backed_status != SOURCE_BACKED_COMPLETE_STATUS:
             status = source_backed_status

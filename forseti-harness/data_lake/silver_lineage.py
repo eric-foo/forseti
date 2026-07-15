@@ -143,7 +143,7 @@ class SilverRawRef(StrictModel):
     file_id: str | None = None
     relative_packet_path: str | None = None
     sha256: str | None = None
-    hash_basis: str | None = None
+    hash_basis: Literal["raw_stored_bytes"] | None = None
     anchor: SilverAnchor = Field(default_factory=SilverAnchor)
     relation: RawRefRelation = "consumed"
 
@@ -199,7 +199,9 @@ class SilverDerivedRef(StrictModel):
     record_id: str
     row_locator: SilverRowLocator | None = None
     sha256: str | None = None
-    hash_basis: str | None = None
+    hash_basis: Literal["derived_record_bytes"] | None = None
+    content_hash: str | None = None
+    content_hash_basis: Literal["canonical_json_excluding_content_hash"] | None = None
     relation: DerivedRefRelation = "consumed"
     record_set_completion_lane: str | None = None
 
@@ -210,13 +212,24 @@ class SilverDerivedRef(StrictModel):
         for field in ("raw_anchor", "lane", "record_id"):
             if not getattr(self, field).strip():
                 raise ValueError(f"SilverDerivedRef.{field} must be non-empty (exact lane+record_id required).")
-        for field in ("sha256", "hash_basis", "record_set_completion_lane"):
+        for field in (
+            "sha256",
+            "hash_basis",
+            "content_hash",
+            "content_hash_basis",
+            "record_set_completion_lane",
+        ):
             value = getattr(self, field)
             if value is not None and not value.strip():
                 raise ValueError(f"SilverDerivedRef.{field} must be non-empty when set.")
         if bool(self.sha256) != bool(self.hash_basis):
             raise ValueError(
                 "SilverDerivedRef.sha256 and hash_basis must both be present or both absent."
+            )
+        if bool(self.content_hash) != bool(self.content_hash_basis):
+            raise ValueError(
+                "SilverDerivedRef.content_hash and content_hash_basis must both be present "
+                "or both absent."
             )
         return self
 
@@ -323,31 +336,31 @@ def validate_silver_lineage(lineage: SilverLineage) -> SilverLineage:
 def silver_record_source_backed_status(record: Mapping[str, object]) -> SourceBackedStatus:
     """Read-side eligibility gate for persisted Silver record fields.
 
-    Writers persist lineage as top-level header-shaped fields, not a nested object.
-    Consumers that make source-backed completeness decisions can use this helper to
-    reconstruct and validate that block before treating a record as complete evidence.
+    The current Silver Vault envelope owns top-level ``raw_refs`` and
+    ``derived_refs``. ``lineage_schema_version`` is a legacy lineage-kit marker,
+    not a requirement of that official envelope. This structural helper therefore
+    accepts its absence; authority-making readers must additionally run the
+    root-aware physical verifier in ``data_lake.silver_record``.
     """
-    if "lineage_schema_version" not in record:
+    if "raw_refs" not in record or "derived_refs" not in record:
         return SOURCE_LINEAGE_MISSING_STATUS
-    if record.get("lineage_schema_version") != SILVER_LINEAGE_SCHEMA_VERSION:
+    if (
+        "lineage_schema_version" in record
+        and record.get("lineage_schema_version") != SILVER_LINEAGE_SCHEMA_VERSION
+    ):
         return SOURCE_LINEAGE_INVALID_STATUS
-    try:
-        lineage = SilverLineage(
-            schema_version=record.get("lineage_schema_version"),
-            producer_id=record.get("producer_id"),
-            producer_schema_version=record.get("producer_schema_version"),
-            source_surface=record.get("source_surface"),
-            source_object=record.get("source_object"),
-            observed_at=record.get("observed_at"),
-            captured_at=record.get("captured_at"),
-            raw_refs=record.get("raw_refs") or [],
-            derived_refs=record.get("derived_refs") or [],
-            lineage_limitations=record.get("lineage_limitations") or [],
-        )
-    except (TypeError, ValueError, ValidationError):
+    for field in ("producer_id", "producer_schema_version", "source_surface"):
+        value = record.get(field)
+        if not isinstance(value, str) or not value.strip():
+            return SOURCE_LINEAGE_INVALID_STATUS
+    raw_refs = record.get("raw_refs")
+    derived_refs = record.get("derived_refs")
+    if not isinstance(raw_refs, list) or not isinstance(derived_refs, list):
         return SOURCE_LINEAGE_INVALID_STATUS
-    if not lineage.is_source_backed_complete():
+    if not raw_refs and not derived_refs:
         return SOURCE_LINEAGE_INCOMPLETE_STATUS
+    if any(not isinstance(ref, Mapping) for ref in [*raw_refs, *derived_refs]):
+        return SOURCE_LINEAGE_INVALID_STATUS
     return SOURCE_BACKED_COMPLETE_STATUS
 
 

@@ -12,7 +12,8 @@ from data_lake.creator_metric_lineage import (
 )
 from data_lake.root import DataLakeRoot, EPOCH_MARKER_FILENAME, raw_shard
 from data_lake.silver_census import build_silver_observation_census
-from data_lake.silver_record import append_silver_record, silver_content_hash
+from data_lake.silver_record import silver_content_hash
+from tests.unit._creator_metric_silver_fixtures import seed_preexisting_legacy_silver_record
 
 
 PACKET_CURRENT = "01KW2MJM01Y0936VNECWB3MHSD"
@@ -82,6 +83,7 @@ def _record(
     direct: bool = False,
 ) -> dict:
     raw_ref = {
+        "ref_type": "raw_packet",
         "packet_id": packet_id,
         "sha256": expected_sha256,
         "hash_basis": "raw_stored_bytes",
@@ -135,13 +137,7 @@ def _record(
 
 
 def _append(data_root: DataLakeRoot, record: dict) -> Path:
-    return append_silver_record(
-        data_root,
-        raw_anchor=record["raw_anchor"],
-        lane=record["lane_namespace"],
-        record_id=record["record_id"],
-        record=record,
-    )
+    return seed_preexisting_legacy_silver_record(data_root, record)
 
 
 def test_current_root_bytes_are_recomputed_and_admitted(tmp_path: Path) -> None:
@@ -274,7 +270,9 @@ def test_duplicate_packet_resolution_across_epochs_is_excluded(tmp_path: Path) -
     assert result.reason_code == "ambiguous_duplicate_resolution"
 
 
-def test_census_keeps_historical_visible_but_out_of_current_totals(tmp_path: Path) -> None:
+def test_census_keeps_unresolved_historical_bytes_visible_as_non_authority(
+    tmp_path: Path,
+) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     archive = _archive_root(tmp_path / "archive")
     _declare_archives(root, archive)
@@ -304,6 +302,7 @@ def test_census_keeps_historical_visible_but_out_of_current_totals(tmp_path: Pat
     assert census["totals"]["silver_records"] == 2
     assert census["totals"]["directly_observed_atomic_metric_values"] == 1
     assert census["totals"]["creator_metric_source_backed_complete_records"] == 1
-    assert census["totals"]["creator_metric_historical_compatible_records"] == 1
+    assert census["totals"]["creator_metric_historical_compatible_records"] == 0
     assert census["totals"]["creator_metric_excluded_records"] == 0
-    assert census["creator_metric_lineage"]["exact_reconciliation"] is True
+    assert census["totals"]["unclassified_silver_records"] == 1
+    assert census["errors"][0]["kind"] == "silver_record_source_unresolved"

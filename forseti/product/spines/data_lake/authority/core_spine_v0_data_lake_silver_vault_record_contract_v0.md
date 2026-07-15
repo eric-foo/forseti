@@ -160,8 +160,8 @@ Header invariants:
 | `content_hash` | Required durable integrity hash for the canonical record content; hash basis must be explicit and must not include the `content_hash` field itself. |
 | `observed_at` | Time the fact was observed at or about the source. Nullable only for internal relationship records with no source observation time. |
 | `captured_at` | Time Forseti captured the source material or producer input. |
-| `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file and carry `sha256` plus `hash_basis` where the source material is hash-checkable. Source-family payload refs must honor the Bronze intake boundary below. |
-| `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. |
+| `raw_refs` | Required for source-backed records; each ref must resolve packet/slice/file. When `sha256` is claimed, it hashes the exact preserved body bytes and its paired `hash_basis` is exactly `raw_stored_bytes`. Source-family payload refs must honor the Bronze intake boundary below. |
+| `derived_refs` | Required when a record corrects, supersedes, conflicts with, or is generated from prior derived records. A claimed `sha256` pairs only with `hash_basis: derived_record_bytes` and hashes the exact saved derived-record bytes. A claimed `content_hash` pairs independently with `content_hash_basis: canonical_json_excluding_content_hash`; either pair may appear, both may coexist, and neither aliases or substitutes for the other. |
 
 ## Bronze Intake And Attachment Record Boundary
 
@@ -183,6 +183,9 @@ verify the body: `attachment_record_id`, schema version, physicalization,
 `packet_id`, packet/body ref, `body_sha256`, `hash_basis`, `source_family`,
 `source_surface`, `payload_kind`, `payload_schema_version`, replay/version pins, and any
 producer-owned provenance required by that producer contract.
+The ref and public catalog row must agree that the body hash is over exact saved
+bytes with `hash_basis: raw_stored_bytes`; altered bytes, a different basis, or a
+different hash make the source physically unresolved.
 
 If no Attachment Record row exists, a Silver producer may cite hash-checkable raw
 packet refs when its contract allows that fallback, but it must make the missing
@@ -610,8 +613,11 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
 3. Every record has `record_kind` and `payload_kind`; source-family row subtype is
    preserved separately when present.
 4. Entity records contain stable identity only; mutable facts are observations.
-5. Every record carries a durable `content_hash` with explicit hash basis, and
-   source refs preserve `sha256` plus `hash_basis` when hash-checkable.
+5. Every record carries a durable `content_hash` with explicit hash basis. Raw
+   and AR-backed refs pair any claimed `sha256` only with
+   `hash_basis: raw_stored_bytes`; derived refs pair `sha256` only with
+   `hash_basis: derived_record_bytes` and independently pair `content_hash` only
+   with `content_hash_basis: canonical_json_excluding_content_hash`.
 6. Metric observations obey posture/value/reason coupling and preserve
    coverage_window where time-series meaning depends on a window.
 7. Missing, blocked, hidden, not-attempted, not-applicable, and outside-window
@@ -640,6 +646,9 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
     `historical_compatible`, or `excluded`; current creator-metric results admit
     only current-root byte-verified records, while historical residuals remain
     audit-readable with root identity and upgrade trigger.
+18. Derived `sha256` and `content_hash` pairs are independently optional where
+    the producer contract permits them, may coexist, and cannot satisfy or fall
+    back to one another during validation or physical verification.
 
 ## Mini God Tier Accepted Residuals
 
@@ -757,52 +766,46 @@ spec_handoff:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Silver Vault now binds source-backed raw intake to public Bronze packet,
-    catalog, and Attachment Record surfaces: Silver raw_refs must not infer
-    meaning from raw folder layout, must carry AR-backed refs for source-family
-    payload bodies when AR rows exist, and must make missing typed AR rows a
-    visible residual instead of inferred absence.
+    Silver v0 hash bases are closed physical claims. Raw-packet and Bronze
+    Attachment Record sha256 values hash exact preserved body bytes and pair only
+    with raw_stored_bytes. Derived sha256 values hash exact saved derived-record
+    bytes and pair only with derived_record_bytes. A derived content_hash is a
+    separate canonical-record claim paired only with
+    canonical_json_excluding_content_hash; either derived pair may appear, both
+    may coexist, and neither aliases or falls back to the other.
   trigger: architecture_doctrine
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_bronze_mgt_baseline_declaration_v0.md
-    - forseti/product/spines/data_lake/README.md
-    - docs/workflows/forseti_repo_map_v0.md
+    - docs/decisions/silver_vault_legacy_record_convergence_v0.md
   downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
-    - forseti-harness/data_lake/catalog.py
+    - forseti-harness/data_lake/silver_record.py
+    - forseti-harness/data_lake/silver_lineage.py
+    - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+    - forseti-harness/tests/unit/test_silver_record.py
+    - forseti-harness/tests/unit/test_silver_lineage.py
+    - forseti-harness/tests/unit/test_youtube_creator_metric_silver_producer.py
   intentionally_not_updated:
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_attachment_record_implementation_contract_v0.md
       reason: >
-        The core contract already owns the raw packet / Attachment Record logical
-        boundary. This patch binds Silver consumption mechanics without changing
-        the parent no-smart-lake boundary.
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_medallion_gold_readiness_contract_v0.md
+        Its raw_stored_bytes rule already owns Attachment Record body hashing;
+        this clarification closes the Silver ref-side interpretation and catalog
+        agreement check without changing the Bronze envelope.
+    - path: forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
       reason: >
-        Medallion semantics are unchanged: Bronze remains raw evidence and Silver
-        remains source-backed semantic records. This patch only names the public
-        Bronze surfaces Silver must use.
-    - path: forseti-harness/data_lake/catalog.py
-      reason: >
-        The required public Bronze helpers and AR body loader already exist in
-        the post-PR-525 baseline; this patch does not authorize new runtime code.
+        Its emitted source-ref hash meaning was already exact raw stored bytes and
+        required no producer-schema change.
   stale_language_search: >
-    rg -n "Silver.*Bronze|raw_refs|Attachment Record|full God Tier|bronze_mgt"
-    forseti/product/spines/data_lake docs/workflows/forseti_repo_map_v0.md forseti-harness/data_lake/catalog.py
+    rg -n "raw_stored_bytes|derived_record_bytes|canonical_json_excluding_content_hash|source_evidence_hash_basis"
+    forseti-harness/data_lake forseti-harness/capture_spine/creator_profile_current
+    forseti-harness/tests/unit
   non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not full Bronze God Tier
-    - not Silver producer implementation
+    - not a Silver envelope version change
+    - not a hash-basis registry or normalization framework
+    - not live-lake migration, recapture, or reprocessing
+    - not proof that private-lake seed sources resolve
+    - not validation or production readiness
 ```
 
 ```yaml

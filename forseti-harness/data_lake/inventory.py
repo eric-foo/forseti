@@ -459,10 +459,10 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "all_siblings",
         "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
     },
-    "data_lake/silver_census.py": {
+    "data_lake/silver_record.py": {
         "detection": "declared_free_walk",
-        "posture": "all_siblings",
-        "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
+        "posture": "fail_closed_singleton",
+        "reason": "physical authority verification resolves only the exact derived raw_anchor + lane + record_id address claimed by each Silver ref; it never selects among siblings",
     },
     "runners/run_capture_ecr_cleaning_smoke.py": {
         "detection": "lane_dir",

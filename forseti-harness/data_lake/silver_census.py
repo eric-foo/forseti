@@ -32,6 +32,7 @@ from data_lake.creator_metric_lineage import (
 from data_lake.silver_record import (
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
     validate_silver_vault_record,
+    verify_silver_vault_record_sources,
 )
 
 CENSUS_SCHEMA_VERSION = "silver_observation_census_v0"
@@ -566,31 +567,6 @@ def _eligible(manifest: Mapping[str, Any], selectors: tuple[tuple[str, str | Non
     return any(family == wanted and (prefix is None or surface.startswith(prefix)) for wanted, prefix in selectors)
 
 
-def _deep_capture_raw_refs_resolve(data_root: Any, record: Mapping[str, Any]) -> bool:
-    raw_anchor = record.get("raw_anchor")
-    raw_refs = record.get("raw_refs")
-    if not isinstance(raw_anchor, str) or not isinstance(raw_refs, list) or not raw_refs:
-        return False
-    try:
-        loaded = data_root.load_raw_packet(raw_anchor)
-    except Exception:  # noqa: BLE001 - census eligibility fails closed
-        return False
-    files = {
-        item.get("file_id"): item
-        for item in loaded.manifest.get("preserved_files", [])
-        if isinstance(item, Mapping)
-    }
-    for ref in raw_refs:
-        if not isinstance(ref, Mapping) or ref.get("packet_id") != raw_anchor:
-            return False
-        source = files.get(ref.get("file_id"))
-        if not isinstance(source, Mapping):
-            return False
-        if any(ref.get(key) != source.get(key) for key in ("relative_packet_path", "sha256", "hash_basis")):
-            return False
-    return True
-
-
 def _lane_states(
     lane_counts: Mapping[str, int], manifests: list[dict[str, Any]], marker_counts: Mapping[str, int]
 ) -> list[dict[str, Any]]:
@@ -734,17 +710,19 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                         {"kind": "silver_record_invalid", "path": relative, "error": f"{type(exc).__name__}: {exc}"}
                     )
                     continue
+                try:
+                    verify_silver_vault_record_sources(data_root, record)
+                except (TypeError, ValueError) as exc:
+                    accumulator.increment("unclassified_silver_records", context)
+                    errors.append(
+                        {
+                            "kind": "silver_record_source_unresolved",
+                            "path": relative,
+                            "error": f"{type(exc).__name__}: {exc}",
+                        }
+                    )
+                    continue
                 if lane in _DEEP_CAPTURE_SILVER_LANES:
-                    if not _deep_capture_raw_refs_resolve(data_root, record):
-                        accumulator.increment("unclassified_silver_records", context)
-                        errors.append(
-                            {
-                                "kind": "deep_capture_source_ref_unresolved",
-                                "path": relative,
-                                "error": "Silver envelope raw packet/file/hash did not resolve exactly",
-                            }
-                        )
-                        continue
                     accumulator.increment("deep_capture_current_source_backed_records", context)
                 if lane in creator_metric_lanes:
                     lineage = creator_metric_lineage.classification_for_path(path)
@@ -804,12 +782,15 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                     validate_silver_vault_record(member)
                 except (TypeError, ValueError):
                     continue
+                try:
+                    verify_silver_vault_record_sources(data_root, member)
+                except (TypeError, ValueError):
+                    continue
                 if (
                     marker_complete
                     and member.get("raw_anchor") == raw_anchor
                     and member.get("record_id") == marker_path.name
                     and member.get("lane_namespace") == lane
-                    and _deep_capture_raw_refs_resolve(data_root, member)
                 ):
                     current_member = True
                     break

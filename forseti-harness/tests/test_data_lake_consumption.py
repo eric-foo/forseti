@@ -268,9 +268,12 @@ def test_view_independence(tmp_path: Path) -> None:
               pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation)]
 
     # A stale/lying view must not change pickup: views are caches, never authority.
-    view_dir = root.path / "indexes" / "derived_retrieval" / "object_level" / "undone"
+    view_dir = (
+        root.path / "indexes" / "derived_retrieval" / "silver_vault" / "core"
+        / "query_tables"
+    )
     view_dir.mkdir(parents=True, exist_ok=True)
-    (view_dir / "view.json").write_text(json.dumps({_NS: []}), encoding="utf-8")
+    (view_dir / "undone.json").write_text(json.dumps({_NS: []}), encoding="utf-8")
 
     after = [item.raw_anchor for item in
              pickup(root, ack_namespace=_NS, obligation_fn=_static_obligation)]
