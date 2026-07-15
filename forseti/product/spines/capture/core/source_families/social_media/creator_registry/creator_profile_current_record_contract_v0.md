@@ -200,7 +200,7 @@ summaries, ranking inputs, or outreach-adjacent interpretation must make
 
 ### Nullable Or Stubbed Surfaces
 
-`ideal_audience_profile`, `wind_calling_summary`, and review/linkage fields may
+`audience_triangulation`, `wind_calling_summary`, and review/linkage fields may
 be null. Null means the surface is not joined, not applicable, or not authorized
 for this profile state. It does not mean negative evidence about the creator.
 

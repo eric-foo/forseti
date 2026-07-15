@@ -26,7 +26,7 @@ open_next:
   - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_monitoring_policy_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/forseti_creator_momentum_pipeline_architecture_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_capture_shape_contract_spec_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_reels_transcript_product_extraction_spec_v0.md
 stale_if:
@@ -634,8 +634,8 @@ them into a single label or score):
     surface (`ig_reels_transcript_product_extraction_spec_v0.md`); the ASR caller
     stays owner-gated/deferred, so transcript is a **named, activation-gated
     signal**, not an assumed-live input;
-  - **caption / post-text** — via the separate `audience_extractor` /
-    `instagram_post_text` seam;
+  - **caption / post-text** — captured source evidence only; the retired
+    `instagram_post_text` audience-extractor seam is not a current inference path;
   - **on-screen text (OCR)** — a later signal;
   - **VLM / visual** — an explicit **later upgrade, not available today**.
 - **Recipe:** a fixed rubric extracts format + mention evidence with source
@@ -930,7 +930,7 @@ the first real roster.
 ## Consolidated LLM extraction — one read, many code-decided fields
 
 Every content-derived claim — product mentions (→ `product_density`, SoV, per-product
-emphasis), `format_label` (§5), sub-niche cues (§4), and the ideal-audience profile —
+emphasis), `format_label` (§5), sub-niche cues (§4), and audience-evidence candidates —
 reads the **same per-reel content** (transcript + caption + on-screen text). A
 separate LLM call per field per reel is N× cost / latency and gives each field a
 different input hash and provenance.
@@ -963,7 +963,7 @@ extracted product mentions, so it rides Pass 2 for free.
 **Tier-2A audience demographics** (`gender_skew`, `age_band`) — separately
 owner-gated behind a ledger-schema home (council-confirmed 2026-06-23; legal gate
 cleared; still no ledger home). Referenced, **not designed** here
-(`ig_creator_ideal_audience_inference_spec_v0.md`, Tier-2-A slice).
+(the current audience-triangulation contract keeps demographics `not_estimated`).
 
 ## Cross-recipe dependency map
 

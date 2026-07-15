@@ -183,7 +183,6 @@ Owner reported council confirmation 2026-06-23 (creator-momentum / fragrance lan
 direction_change_propagation (2026-06-23; product_doctrine + lifecycle_boundary):
 - trigger: product_doctrine (Tier-2-A legal gate cleared) + lifecycle_boundary (gate type shifts legal → build/data).
 - downstream surfaces updated by this change:
-  - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md`
     — Tier-2-A pointers bumped "pending council" → "council-confirmed 2026-06-23; remaining gate = ledger-schema home (+ base-rate data)".
   - `orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_roster_frontier_ledger_spec_v0.md`
     — privacy-invariant note bumped Tier-2-A "AUTHORIZED-pending council" → "council-confirmed; gated on a ledger-schema home".

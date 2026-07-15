@@ -116,18 +116,6 @@
     },
     {
       "a2_fork_impact": "none",
-      "call": "append_record_set",
-      "count": 1,
-      "module": "cleaning/tiktok_audience_evidence_lake.py"
-    },
-    {
-      "a2_fork_impact": "none",
-      "call": "append_silver_record_set",
-      "count": 1,
-      "module": "cleaning/tiktok_audience_evidence_lake.py"
-    },
-    {
-      "a2_fork_impact": "none",
       "call": "append_silver_record_set",
       "count": 1,
       "module": "cleaning/transcript_product_lake.py"
@@ -236,15 +224,21 @@
     },
     {
       "a2_fork_impact": "none",
-      "call": "is_record_set_complete",
+      "call": "append_record",
       "count": 1,
-      "module": "runners/run_tiktok_audience_evidence_extract.py"
+      "module": "runners/run_tiktok_creator_audience_triangulation.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "runners/run_tiktok_creator_audience_triangulation.py"
     },
     {
       "a2_fork_impact": "none",
       "call": "record_path",
-      "count": 2,
-      "module": "runners/run_tiktok_audience_evidence_extract.py"
+      "count": 1,
+      "module": "runners/run_tiktok_creator_audience_triangulation.py"
     },
     {
       "a2_fork_impact": "none",
@@ -663,13 +657,6 @@
           "source_capture/transcript/asr_packet.py"
         ],
         "function": "write_asr_transcript"
-      },
-      {
-        "a2_fork_impact": "manifest_shape",
-        "defined_in": [
-          "source_capture/audience_post_packet.py"
-        ],
-        "function": "write_audience_post_packet"
       },
       {
         "a2_fork_impact": "manifest_shape",

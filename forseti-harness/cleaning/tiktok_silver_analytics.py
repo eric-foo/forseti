@@ -17,7 +17,7 @@ from typing import Any, Iterable, Mapping
 
 from capture_spine.creator_profile_current.tiktok_comment_attention_producer import mechanical_comment_attention
 
-from cleaning.audience_extractor import (
+from cleaning.raw_model_transport import (
     RawApiProvider,
     Transport,
     build_headers,

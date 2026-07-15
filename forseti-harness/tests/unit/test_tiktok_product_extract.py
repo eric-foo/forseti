@@ -6,7 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from cleaning.audience_extractor import RawApiProvider
+from cleaning.raw_model_transport import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE
 from data_lake.root import DataLakeRoot
 from runners.run_tiktok_product_extract import _transcripts_for_packet, run_extraction
