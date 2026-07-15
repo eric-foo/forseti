@@ -102,7 +102,7 @@ jobs:
       - name: handoff-pointer resolution (packets resolve where referenced)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_handoff_pointers.py --strict
-      - name: prompt output-mode gate (changed prompts name a recognized output mode)
+      - name: prompt contract shape gate (output mode and managed-receiver authorization)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_prompt_output_mode.py --strict
       - name: review-summary shape gate (changed review closeouts keep the bound shape)
