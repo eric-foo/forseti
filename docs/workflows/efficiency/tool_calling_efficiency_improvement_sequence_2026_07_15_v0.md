@@ -21,7 +21,8 @@ time, reruns three fresh cold agents, and advances only when correctness,
 failure integrity, and the named fix gate pass.
 
 Current state: **fix 1 passed; fix 2 is implemented but blocked by the fresh
-managed-task project-hook adoption gate**. The baseline record is pending on
+managed-task project-hook adoption gate; fixes 3-5 are defined below, with fix
+3 product-blocked, fix 4 failed, and fix 5 not run**. The baseline record is pending on
 PR #951 at commit `28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this
 ledger does not imply that PR is merged.
 
@@ -340,6 +341,173 @@ the invalid source task dispatched the one bound receiver without a second
 owner turn, and the receiver proved exact identity, cleanliness, and write
 capability. This narrow pass does not establish project-hook adoption, pass Fix
 2, authorize another receiver, or release the three-cold-agent/Fix 3 gates.
+
+## Definition gate for fixes 3-5
+
+These definitions use PR #951 only as observed evidence. They do not treat its
+unmerged files or conclusions as Forseti authority. Fix 2 remains independently
+blocked on Codex CLI 0.144.4 and is neither repaired nor counted as passed here.
+
+### Fix 3 — native patch-primitive restoration
+
+- **Observed failure or gain:** the native patch primitive failed on the first
+  route in all three baseline trials; the current managed receiver can invoke
+  the primitive, but that different task state does not repair or invalidate
+  the repeated cold-snapshot failure.
+- **Ownership:** Codex-owned. Forseti can contain a stalled route and prescribe
+  a fallback, but it does not own native tool launch, sandbox mediation, or the
+  patch primitive executable.
+- **Smallest complete intervention:** no repository change. A complete fix must
+  restore one bounded native patch call in the unchanged cold case without
+  elevation, launcher probing, or a repository fallback.
+- **Exact success signal:** exactly three fresh cold runs each complete their
+  first native patch call without silence, timeout, elevation, or fallback and
+  retain the case's correctness and failure-integrity invariants.
+- **Correctness and failure integrity:** the three-file oracle patch, focused
+  pass, unchanged unrelated failure, and byte-identical untracked note remain
+  mandatory; a fallback success cannot be relabeled as native-route success.
+- **Dogfood scenario:** the unchanged vendor-admission case, three oracle-free
+  snapshots, with the ordinary native patch route attempted once after the edit
+  is bound.
+- **Semantics:** `PASS` requires 3/3 exact success signals; `FAILED` means a
+  claimed Codex repair was exercised and any run missed the signal;
+  `PRODUCT_BLOCKED` means no Forseti-owned implementation can restore the
+  primitive; `NOT_RUN` means no eligible implementation was available to test.
+- **Independence:** Fix 3 does not depend on Fix 2's shell-hook adoption. Fix 4
+  begins only after this product boundary is recorded because fallback quality
+  is useful precisely when the native route remains unavailable.
+
+Decision: **PRODUCT_BLOCKED**. No repository implementation or cold trial is
+attempted for Fix 3; doing so would test containment or fallback behavior, not
+the defined native-route repair.
+
+### Fix 4 — first fallback patch reliability
+
+- **Observed failure or gain:** after the native edit route failed, the first
+  Git-patch fallback was malformed or context-mismatched in 3/3 baseline runs;
+  atomic failure preserved integrity but added serial recovery rounds.
+- **Ownership:** mixed. Git and shell execution are external, while Forseti owns
+  the operating discipline used to construct and preflight its fallback.
+- **Smallest complete intervention:** strengthen the existing `AGENTS.md`
+  fallback rule to require a fresh read of the live target hunks, one minimal
+  patch derived from those bytes, and `git apply --check` against the exact same
+  patch bytes before a single apply. A distinct content error permits one
+  reread/rebuild; unchanged retries and launcher probes remain forbidden.
+- **Exact success signal:** in exactly three fresh cold runs forced past the
+  native route, the first fallback patch preflight and apply both succeed, with
+  zero fallback reconstruction/retry rounds, while all case correctness and
+  failure-integrity invariants hold.
+- **Correctness and failure integrity:** preflight must be atomic; failed
+  preflight changes no tracked or untracked bytes; final scope, focused and
+  unrelated test outcomes, diff check, and note hash must remain visible.
+- **Dogfood scenario:** the unchanged vendor-admission case with the native edit
+  route declared unavailable after one bounded attempt, so each cold agent must
+  discover and use the repository-instructed checked fallback.
+- **Semantics:** `PASS` requires 3/3 exact success signals; `FAILED` means any
+  attempted run reconstructs/retries the fallback, applies an incorrect patch,
+  or loses failure integrity; `PRODUCT_BLOCKED` requires observed inability of
+  the tool bridge to execute the prescribed Git preflight/apply route;
+  `NOT_RUN` means Fix 3 was neither passed nor explicitly product-blocked, or
+  the frozen snapshots could not be prepared.
+- **Independence:** independent of Fix 2 because ordinary shell restoration is
+  not credited and a bounded executable shell route is sufficient; independent
+  of Fix 5 because trial accounting preserves the existing call pattern except
+  for fallback construction.
+
+### Fix 5 — dependency-round consolidation
+
+- **Observed failure or gain:** each baseline ledger contained roughly two to
+  four read or verification rounds whose inputs were already independent and
+  could have been issued together.
+- **Ownership:** Forseti-owned operating discipline; no tool-runtime repair is
+  required.
+- **Smallest complete intervention:** add one `AGENTS.md` rule to batch
+  dependency-independent reads and checks in a single tool round, while keeping
+  authority discovery, edit binding, focused validation, and causal closeout in
+  their required order.
+- **Exact success signal:** exactly three fresh cold runs remain correct and
+  failure-integral, contain no identified consolidatable read/verification
+  round, and use no more than the case's five latency-bearing dependency rounds;
+  underlying call count remains diagnostic rather than a gate.
+- **Correctness and failure integrity:** batching must not omit source
+  authority, focused validation, unrelated-failure attribution, final diff or
+  status, or untracked-note verification; mixed checks must retain individual
+  exit/output visibility.
+- **Dogfood scenario:** three fresh oracle-free snapshots of the unchanged case
+  after Fix 4 passes, with the Fix 5 rule as the only new intervention.
+- **Semantics:** `PASS` requires 3/3 exact success signals; `FAILED` means any
+  run exceeds five dependency rounds because of an identified consolidatable
+  read/check or loses a correctness/integrity invariant; `PRODUCT_BLOCKED`
+  requires the tool bridge to prevent independent calls from being issued in
+  one round; `NOT_RUN` means Fix 4 has not passed or snapshot/receiver evidence
+  is unavailable.
+- **Independence:** independent of Fix 2 and native patch restoration; dependent
+  on Fix 4 passing only to keep the sequential experiment one-intervention-at-a-
+  time and avoid attributing fallback recovery rounds to batching.
+
+## Fix 4 dogfood — failed first-fallback discipline
+
+The candidate added only the definition-gated fallback-construction sentence to
+the fixture's repository instructions. The three oracle-free snapshots were
+byte-identical at fixture-local commit
+`459845f528081c6485fb8d271d05f596dd22efea`; each began with only
+`notes/operator_draft.md` untracked at SHA-256
+`E7025234292F8FD6FF7C0274B14B35A29184DC53186C103EAAA1A54586C40612`.
+The native patch route was declared unavailable, so the trial measured the
+first checked Git fallback only. Agents used separate disposable repositories
+and had no write access to this lane.
+
+| Run | Correctness | Reported calls or batches and sequence | Retries / fallback | Observable wall time | Real failures preserved | Success signal |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Correct three-file patch; focused pass | 18: orient -> instructions/status -> authority/targets -> construct -> preflight -> reread/rebuild -> apply -> focused/broad tests -> closeout | Two sandbox-denied patch-file writes; first preflight failed `corrupt patch at ...:50`; one reconstruction then checked/applied | about 25.4 s across reported calls/batches; end-to-end not independently instrumented | Broad test failed only in unchanged unrelated export; note hash and untracked state preserved | **FAIL** — first preflight did not pass; one reconstruction required |
+| 2 | No patch; requested behavior absent; focused baseline pass | 13: orient/status -> authority/targets -> construct -> escalated preflight -> reread/rebuild -> EOL diagnosis -> focused/broad tests -> closeout | Initial patch-file write denied; first preflight failed at test line 4; reconstruction failed at line 1; no apply | about 26.3 s across reported calls/batches; end-to-end not independently instrumented | Broad test failed only in unchanged unrelated export; no tracked bytes changed; note preserved | **FAIL** — neither preflight passed; no apply |
+| 3 | No patch; requested behavior absent; focused baseline pass | 10: orient/instructions/inventory -> authority/targets -> preflight -> reread/rebuild -> focused/broad tests -> closeout | First preflight failed at test line 4; reconstruction failed at line 4; no apply | about 14.6 s across reported calls/batches; end-to-end not independently instrumented | Broad test failed only in unchanged unrelated export; no tracked bytes changed; note preserved | **FAIL** — neither preflight passed; no apply |
+
+Fresh operator verification after all agents stopped observed:
+
+- run 1 changed only `config/vendor_admission.yaml`,
+  `src/vendor_adapter.py`, and `tests/test_vendor_adapter.py`; selected discovery
+  only; preserved both provenance fields; passed the focused test and
+  `git diff --check`;
+- runs 2 and 3 had no tracked diff and therefore did not implement the request;
+- all three focused tests passed, all three broad runs failed only in unchanged
+  `tests/test_unrelated_export.py`, and all three note hashes remained exactly
+  the baseline value above.
+
+Decision: **FAILED Fix 4**. Exact first-fallback success was 0/3. The candidate
+improved failure discipline but did not make the first fallback reliable; it
+was removed from `AGENTS.md` rather than promoted as working workflow authority.
+The failures narrow the next design question to deterministic patch-byte
+construction across sandboxed Windows paths and CRLF worktrees, but this result
+does not authorize a helper, wrapper, or second three-run batch.
+
+## Fix 5 decision
+
+Decision: **NOT_RUN**. Fix 5's definition explicitly depends on Fix 4 passing so
+that fallback-recovery rounds are not misattributed to batching. Advancing after
+Fix 4's 0/3 success signal would violate the one-intervention-at-a-time gate.
+No batching rule was added to `AGENTS.md`, and no Fix 5 cold agent was started.
+
+## Across-five evaluation — 2026-07-16
+
+| Fix | Status | Observed basis |
+| --- | --- | --- |
+| 1 — bounded stall containment | **PASS** | Preserve the previously verified Trial B result: 3/3 correct, failure-integral runs with bounded typed stalls. |
+| 2 — ordinary shell launch | **PRODUCT_BLOCKED** | On Codex CLI 0.144.4, the exact live canary executed with `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`; protected checks and cold trials did not run. |
+| 3 — native patch restoration | **PRODUCT_BLOCKED** | Native tool launch and patch-primitive restoration are Codex-owned; no repository implementation can satisfy the defined signal. |
+| 4 — first fallback reliability | **FAILED** | Exactly three cold trials produced 0/3 first-preflight-plus-first-apply successes; integrity held, but only one patch completed after reconstruction. |
+| 5 — dependency-round consolidation | **NOT_RUN** | Sequential gate remained closed after Fix 4 failed. |
+
+Evaluation: the five-fix sequence has not passed. Fix 1 delivered measurable
+containment, but neither ordinary shell restoration nor native patch restoration
+is proven, the instruction-only Fix 4 candidate failed, and batching was not
+evaluated. No all-five pass, general tool-runtime repair, or near-five-round
+economy claim is supportable.
+
+Doctrine propagation decision: no durable workflow-authority change remains in
+this work unit. The failed `AGENTS.md` candidate was removed; this ledger records
+observed evidence and routing only, so no direction-change propagation receipt
+is required.
 
 ## Non-claims
 
