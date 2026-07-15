@@ -24,6 +24,7 @@ open_next:
   - forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md               # the locator layer below this contract
   - docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md                    # the org-motion slice clarification this supersedes as obligation home
   - forseti/product/information/company_surface/company_identity_boundary_v0.md                          # owns company-specific identity meaning and entity_key resolution
+  - forseti/product/information/company_surface/company_logical_record_and_view_contract_v0.md           # owns assertion history and temporal-view semantics
   - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md                         # the demand-indicator durability elements this governs standing
   - forseti/product/spines/capture/core/demand_durability_indicators/demand_durability_indicator_standing_capture_obligation_home_decision_framing_v0.md   # the owner-decision framing (D1=general, D3=deferred) this answers — landed via merged PR #106 (indicator rename)
   - docs/decisions/pre_capture_discovery_spine_charter_recommendation_v0.md                              # WHERE-side discovery (deconflicted; not this contract)
@@ -35,6 +36,7 @@ stale_if:
   - The Source Capture packet schema (manifest v1) changes the provenance/timing/posture/re-capture facts this inherits.
   - The company-aggregate slice clarification is re-scoped, or the demand-durability indicator profiles change their captured series.
   - The Company Surface identity boundary changes the ownership or meaning of `entity_key` resolution.
+  - The Company Surface logical record/view contract changes assertion-history or temporal-view semantics.
   - A scheduler/runtime build for standing capture is authorized (a separate, later authorization).
 ```
 
@@ -127,8 +129,8 @@ Failure mode: standing capture with no charter is free-floating corpus collectio
 
 A corpus is only a series if its rows are comparable. Each observation must bind to a stable **series identity** and carry the pins that make re-observations comparable:
 
-- the **series key** (target/product/listing + locator for indicators; `entity_key` for org-motion — the external entity-resolution owner owns canonical identity, and Capture only carries it);
-- the **unresolved-identity boundary**: Capture may preserve the raw surface form or a family-local identity before resolution, but it claims no cross-surface or company-level comparability until the external owner supplies a canonical `entity_key`; Capture carries that key and never mints it;
+- the **series key** (target/product/listing + locator for indicators; `entity_key` for org-motion — Company Surface owns company-level identity meaning and Capture only carries it);
+- the **unresolved-identity boundary**: Capture may preserve the raw surface form or a family-local identity before resolution, but it claims no cross-surface or company-level comparability until Company Surface supplies a resolved `entity_key`; Capture carries that key and never mints it;
 - the **comparability pins** the series depends on (e.g. locale/currency/access-method/exit-geo for a price or availability series; source + capture-posture tag for org-motion);
 - a **cold-start marker** on the first observation of a series (the corpus before it is inherently limited; the inherent-limit cap is a visible fact, not a defect to hide);
 - **pin drift is a visible re-pin event**, never silently absorbed: if a comparability pin changes (currency switch, exit-geo change, locator migration), the break in the series must be recorded so a later read does not treat a pin-induced jump as a real movement.
@@ -183,7 +185,7 @@ On ratification, this contract becomes the **obligation home** for standing capt
 
 It does **not** re-spec what those lanes own:
 
-- it does **not** redefine the org-motion **observation record shape**, its **official-first source selection**, or its adapter set — those stay owned by the company-aggregate decision; it does not redefine `entity_key` identity meaning or resolution — those stay owned by the Company Surface identity boundary;
+- it does **not** redefine the org-motion **observation record shape**, its **official-first source selection**, or its adapter set — those stay owned by the company-aggregate decision; it does not redefine `entity_key` identity meaning, assertion history, or temporal views — those stay owned by the Company Surface identity and logical-record contracts;
 - it does **not** redefine the **demand-indicator capture profiles** or the keystone durability delta's elements — those stay owned by their profiles; this contract governs *that they are captured standing under these obligations*, not *which series to capture*;
 - it does **not** amend the **v0 commissioned obligation contract** file (D2: sibling, not amendment); v0's standing carve-out already points here.
 
@@ -321,7 +323,7 @@ direction_change_propagation:
     - path: forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
       reason: It already indexes observed probe evidence and is explicitly non-authorizing.
     - path: docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md
-      reason: It already says Capture carries raw surface form and an externally resolved entity_key, never canonicalizes identity.
+      reason: It already says Capture carries raw surface form and a Company Surface-resolved entity_key, never canonicalizes identity.
     - path: docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
       reason: It already binds decision outcomes and rejects dashboard/feed product shape; this patch only repoints the capture contract to it.
     - path: forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
