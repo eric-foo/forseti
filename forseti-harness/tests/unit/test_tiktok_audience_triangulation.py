@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import base64
 import copy
 import json
+from pathlib import Path
 
 import pytest
 
@@ -14,15 +16,22 @@ from evidence_binding.tiktok_audience_triangulation import (
     build_creator_audience_evidence_bundle,
 )
 from judgment.tiktok_audience_triangulation import (
+    TriangulationValidationError,
     build_triangulation_prompt,
     parse_triangulation_response,
 )
 from data_lake.root import DataLakeRoot
 from data_lake.silver_record import append_silver_record, silver_content_hash
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
-from runners.run_tiktok_creator_audience_triangulation import prepare_subscription_judgment
+from runners.run_creator_profile_current_materialize import _verify_audience_judgment_outcomes
+from runners.run_tiktok_creator_audience_triangulation import (
+    prepare_subscription_judgment,
+    submit_subscription_judgment,
+)
+from runners.run_tiktok_creator_onboarding_coordinator import prepare_onboarding
 from runners.run_tiktok_grid_observation_producer import run_tiktok_grid_observations
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
+from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
 from test_tiktok_batch_admission import (
     PROFILE_URL,
     _cadence_payload,
@@ -278,6 +287,22 @@ def test_prepare_reads_packet_scoped_persisted_silver_and_uses_no_api(tmp_path) 
         "status": "policy_mismatch",
     }]
     assert bundle_out.exists() and prompt_out.exists()
+    coordinated = prepare_onboarding(
+        data_root=data_root,
+        packet_id=packet_id,
+        creator_id="tiktok:@funmimonet",
+        profile_subject_id="platform_account:tiktok:funmimonet",
+        question="What should a matching brand hire this creator to accomplish?",
+        evidence_cutoff="2026-06-30T17:02:46Z",
+        work_dir=tmp_path / "coordinated",
+    )
+    assert coordinated["status"] == "awaiting_judgment"
+    assert coordinated["stage_reached"] == "judgment_prepared"
+    assert coordinated["silver_prerequisites"] == {
+        "grid_observation": "already_current",
+        "comment_attention": "already_current",
+    }
+    assert coordinated["recapture_required"] is False
 
     current_attention["raw_refs"][0]["sha256"] = "0" * 64
     current_attention["content_hash"] = f"sha256:{silver_content_hash(current_attention)}"
@@ -363,3 +388,102 @@ def test_validator_language_guards_cover_robustness_stamp() -> None:
     )
     with pytest.raises(ValueError, match="majority language"):
         parse_triangulation_response(json.dumps(response), bundle)
+
+def test_validator_derives_source_video_ids_from_support() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    response["judgment_claim_set"]["claims"][0].pop("source_video_ids")
+
+    snapshot = parse_triangulation_response(json.dumps(response), bundle)
+
+    assert snapshot.judgment_claim_set.claims[0].source_video_ids == ["v1", "v2"]
+
+
+def test_validator_reports_all_independent_relational_defects() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    claim = response["judgment_claim_set"]["claims"][0]
+    claim["all_support_evidence_ids"].append("ttce_absent")
+    claim["representative_evidence_ids"] = [
+        bundle["transcript_evidence"][0]["evidence_id"]
+    ]
+    response["creator_signal_projection"]["hire_verdict"]["statement"] = (
+        "Most of the audience will convert."
+    )
+
+    with pytest.raises(TriangulationValidationError) as captured:
+        parse_triangulation_response(json.dumps(response), bundle)
+
+    assert any("cites unknown evidence" in error for error in captured.value.errors)
+    assert any(
+        "representative evidence is outside full support" in error
+        for error in captured.value.errors
+    )
+    assert any("unsupported majority language" in error for error in captured.value.errors)
+
+    schema_response = _response(bundle)
+    schema_claim = schema_response["judgment_claim_set"]["claims"][0]
+    schema_claim["all_support_evidence_ids"] = ["ttce_absent"]
+    schema_claim["representative_evidence_ids"] = ["ttce_absent"]
+    with pytest.raises(TriangulationValidationError) as schema_captured:
+        parse_triangulation_response(json.dumps(schema_response), bundle)
+    assert any(
+        "cites unknown evidence" in error for error in schema_captured.value.errors
+    )
+    assert any(
+        "source_video_ids" in error for error in schema_captured.value.errors
+    )
+
+
+def test_submission_persists_exact_bytes_and_gates_materialization(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    bundle = _bundle()
+    bundle_path = tmp_path / "bundle.json"
+    bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+
+    blocked_response = _response(bundle)
+    blocked_claim = blocked_response["judgment_claim_set"]["claims"][0]
+    blocked_claim["all_support_evidence_ids"].append("ttce_absent")
+    blocked_response["creator_signal_projection"]["hire_verdict"]["statement"] = (
+        "Most of the audience will convert."
+    )
+    blocked_bytes = json.dumps(blocked_response).encode("utf-8")
+    blocked_snapshot = tmp_path / "blocked.snapshot.json"
+    blocked = submit_subscription_judgment(
+        data_root=data_root,
+        bundle_path=bundle_path,
+        response_bytes=blocked_bytes,
+        snapshot_out=blocked_snapshot,
+    )
+
+    assert blocked["status"] == "blocked"
+    assert blocked["recapture_required"] is False
+    assert len(blocked["validation_errors"]) >= 2
+    assert not blocked_snapshot.exists()
+    blocked_outcome = CreatorAudienceJudgmentOutcome.model_validate(
+        json.loads(Path(blocked["judgment_outcome_path"]).read_text(encoding="utf-8"))
+    )
+    assert base64.b64decode(blocked_outcome.response_bytes_b64) == blocked_bytes
+
+    valid_bytes = json.dumps(_response(bundle)).encode("utf-8")
+    snapshot_path = tmp_path / "validated.snapshot.json"
+    validated = submit_subscription_judgment(
+        data_root=data_root,
+        bundle_path=bundle_path,
+        response_bytes=valid_bytes,
+        snapshot_out=snapshot_path,
+    )
+    repeated = submit_subscription_judgment(
+        data_root=data_root,
+        bundle_path=bundle_path,
+        response_bytes=valid_bytes,
+        snapshot_out=snapshot_path,
+    )
+
+    assert validated == repeated
+    outcome_path = Path(validated["judgment_outcome_path"])
+    _verify_audience_judgment_outcomes((snapshot_path,), (outcome_path,))
+
+    snapshot_path.write_bytes(snapshot_path.read_bytes() + b"\n")
+    with pytest.raises(ValueError, match="bytes do not match"):
+        _verify_audience_judgment_outcomes((snapshot_path,), (outcome_path,))

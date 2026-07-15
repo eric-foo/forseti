@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,6 +20,11 @@ from capture_spine.creator_profile_current.registry_match_preflight import (
     RECEIPT_WRAPPER_KEY,
     has_blocking_preflight_results,
 )
+
+from capture_spine.creator_profile_current.audience_triangulation_snapshot import (
+    load_creator_audience_triangulation_snapshot_document,
+)
+from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -120,6 +126,13 @@ def _build_parser() -> argparse.ArgumentParser:
         dest="audience_triangulation_snapshots",
         help="Optional validated creator-audience triangulation snapshot. Repeat to join multiple documents.",
     )
+    parser.add_argument(
+        "--audience-judgment-outcome",
+        type=Path,
+        action="append",
+        dest="audience_judgment_outcomes",
+        help="Successful Judgment outcome paired positionally with each audience snapshot.",
+    )
     parser.add_argument("--check", action="store_true", help="Fail if the output is stale.")
     parser.add_argument("--write", action="store_true", help="Write the materialized output JSON.")
     parser.add_argument(
@@ -143,12 +156,15 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     generated_at = args.generated_at_utc or _existing_generated_at(args.output) or _now_utc()
     metric_seeds = tuple(args.metric_seeds) if args.metric_seeds else DEFAULT_METRIC_SEEDS
+    audience_snapshots = tuple(args.audience_triangulation_snapshots or ())
+    audience_outcomes = tuple(args.audience_judgment_outcomes or ())
     try:
+        _verify_audience_judgment_outcomes(audience_snapshots, audience_outcomes)
         document = build_creator_profile_current_view_from_files(
             account_ledger_path=args.account_ledger,
             creator_registry_index_path=args.creator_registry_index,
             metric_seed_paths=metric_seeds,
-            audience_triangulation_snapshot_paths=tuple(args.audience_triangulation_snapshots or ()),
+            audience_triangulation_snapshot_paths=audience_snapshots,
             generated_at_utc=generated_at,
         )
         rendered = dump_creator_profile_current_view(document)
@@ -175,6 +191,46 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.exit(status=2, message=f"creator profile materialization failed: {exc}\n")
 
 
+
+def _verify_audience_judgment_outcomes(
+    snapshot_paths: Sequence[Path], outcome_paths: Sequence[Path]
+) -> None:
+    if len(snapshot_paths) != len(outcome_paths):
+        raise ValueError(
+            "each audience triangulation snapshot requires one paired successful "
+            "Judgment outcome"
+        )
+    for snapshot_path, outcome_path in zip(snapshot_paths, outcome_paths):
+        snapshots = load_creator_audience_triangulation_snapshot_document(snapshot_path)
+        if len(snapshots) != 1:
+            raise ValueError(
+                f"paired audience snapshot must contain exactly one record: {snapshot_path}"
+            )
+        snapshot = snapshots[0]
+        outcome = CreatorAudienceJudgmentOutcome.model_validate(load_json(outcome_path))
+        if outcome.status != "validated" or outcome.snapshot_or_none is None:
+            raise ValueError(
+                f"audience Judgment outcome is not successful: {outcome_path}"
+            )
+        snapshot_sha256 = f"sha256:{hashlib.sha256(snapshot_path.read_bytes()).hexdigest()}"
+        if outcome.snapshot_sha256_or_none != snapshot_sha256:
+            raise ValueError(
+                f"audience snapshot bytes do not match Judgment outcome: {snapshot_path}"
+            )
+        if outcome.snapshot_or_none.model_dump(mode="json") != snapshot:
+            raise ValueError(
+                f"audience snapshot content does not match Judgment outcome: {snapshot_path}"
+            )
+        if (
+            outcome.snapshot_id_or_none != snapshot["snapshot_id"]
+            or outcome.profile_subject_id != snapshot["profile_subject_id"]
+            or outcome.creator_id != snapshot["creator_id"]
+            or outcome.bundle_id != snapshot["input_bundle_id"]
+            or outcome.bundle_hash != snapshot["input_bundle_hash"]
+        ):
+            raise ValueError(
+                f"audience snapshot identity does not match Judgment outcome: {snapshot_path}"
+            )
 def _enforce_new_account_preflight(
     *, account_ledger_path: Path, output_path: Path, preflight_receipt_path: Path | None
 ) -> None:
