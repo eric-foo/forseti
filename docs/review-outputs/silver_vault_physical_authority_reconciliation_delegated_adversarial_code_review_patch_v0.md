@@ -688,8 +688,8 @@ validation:
   focused_silver_suite: pass
   full_harness_ci_equivalent:
     result: pass
-    tests: 3331 passed, 7 skipped, 67 warnings
-    elapsed: 109.90s
+    tests: 3335 passed, 7 skipped, 67 warnings
+    elapsed: 203.62s
   live_read_only_census:
     result: pass
     root_uuid: 01KW7N6ERSVVANCEZ8SD6YW3EQ
