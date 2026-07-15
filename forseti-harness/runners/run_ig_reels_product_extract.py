@@ -17,13 +17,10 @@ Acked-and-unchanged packets emit NO per-run status entries; the durable ack reco
 ``acknowledgements/`` are the completion facts.
 Contract: ``core_spine_v0_data_lake_consumption_seam_contract_v0.md``.
 
-The DEEP-CAPTURE route is structurally OUTSIDE the seam and stays on completion-marker
-discovery: ``write_reel_deep_capture_into_lake`` anchors its record sets on the reel SHORTCODE
-with no committed bronze packet behind it, and seam pickup is defined by-key over committed
-availability only. Its outputs are therefore invisible to every availability-walking consumer
-(the SoV readout included) — a named limitation, not a fixture; the anchoring disposition is an
-open owner decision (``docs/workflows/ig_reels_deep_capture_anchoring_decision_input_v0.md``).
-No ack is ever written under a non-committed shortcode anchor.
+Current deep-capture transcripts are packet-backed and therefore use the same consumption seam.
+Historical shortcode-anchored record sets remain visible only through marker discovery so their
+unsupported lineage can be reported as audit-only; no ack is written under those non-packet
+anchors.
 
 IG is its OWN runner (not an edit to the YouTube runner, which hardcodes
 `list_available(source_family="youtube")`): packet discovery keys on source_family=instagram_creator
@@ -70,10 +67,15 @@ from data_lake.consumption import (
     reconcile_availability_per_packet,
 )
 from data_lake.root import DataLakeRootError
+from data_lake.silver_record import SILVER_VAULT_RECORD_SCHEMA_VERSION
 from data_lake.silver_lineage import SilverDerivedRef
 from source_capture.ig_reels_deep_capture_lake import (
+    DEEP_CAPTURE_PACKET_SURFACE,
     DEEP_CAPTURE_SET_LANE,
     REEL_TRANSCRIPT_LANE,
+    current_deep_capture_record,
+    deep_capture_shortcode,
+    transcript_compatibility_view,
 )
 
 _ASR_LANE = "transcript_asr"
@@ -88,8 +90,6 @@ _SEAM_CONSUMER = "ig_reels_product_extract"
 DEFAULT_EXTRACTION_MODEL = "codex-extraction-v0"
 _DEEP_CAPTURE_ROUTE = "deep_capture_render_audio"
 _DEEP_CAPTURE_SURFACE = "ig_reels_deep_capture_render_audio"
-# Production ASR emits "transcribed"; "ok" is accepted for older deep-capture records.
-_DEEP_CAPTURE_SUCCESS_POSTURES = {"transcribed", "ok"}
 
 
 def _file_paths(manifest: dict) -> dict[str, str]:
@@ -134,9 +134,9 @@ def _record_path(data_root, *, raw_anchor: str, lane: str, record_id: str):
     return data_root.path / "derived" / raw_anchor / lane / record_id
 
 
-def _asr_record_obligation_entries(data_root, audio_packet_id: str) -> list[list[str]]:
-    """Cheap input snapshot entries for every present transcript_asr record file."""
-    lane_dir = _lane_dir(data_root, raw_anchor=audio_packet_id, lane=_ASR_LANE)
+def _derived_record_obligation_entries(data_root, raw_anchor: str, lane: str) -> list[list[str]]:
+    """Cheap input snapshot entries for every present record in one derived lane."""
+    lane_dir = _lane_dir(data_root, raw_anchor=raw_anchor, lane=lane)
     if not lane_dir.is_dir():
         return []
     entries: list[list[str]] = []
@@ -150,6 +150,10 @@ def _asr_record_obligation_entries(data_root, audio_packet_id: str) -> list[list
             record_sha = f"unreadable:{type(exc).__name__}"
         entries.append([record_file.name, record_sha])
     return entries
+
+
+def _asr_record_obligation_entries(data_root, audio_packet_id: str) -> list[list[str]]:
+    return _derived_record_obligation_entries(data_root, audio_packet_id, _ASR_LANE)
 
 
 def _asr_records(data_root, audio_packet_id: str) -> list[tuple[dict, str, str]]:
@@ -237,6 +241,12 @@ def _packet_obligation(data_root, packet_id: str, model: str) -> dict:
         "rubric_version": EXTRACTOR_RUBRIC_VERSION,
         "record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
         "asr_records": sorted(_asr_record_obligation_entries(data_root, packet_id)),
+        "deep_capture_transcripts": sorted(
+            _derived_record_obligation_entries(data_root, packet_id, REEL_TRANSCRIPT_LANE)
+        ),
+        "deep_capture_markers": sorted(
+            _derived_record_obligation_entries(data_root, packet_id, DEEP_CAPTURE_SET_LANE)
+        ),
     }
 
 
@@ -268,13 +278,18 @@ def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
     """Normalize one committed IG packet into TranscriptInput(s). MAY RAISE on a corrupt packet
     (fail-closed `load_raw_packet` sha mismatch) — the caller isolates per packet.
 
-    Only the ig_reels_audio packet surface carries packet-backed transcripts; deep-capture
-    transcript records are discovered separately from their completed derived record sets.
+    Both standalone audio and current deep-capture packets can carry packet-backed transcripts.
     The instagram_creator family also holds grid-metadata packets with NO audio, which are
     skipped here. Only `transcribed` records with cues are used.
     """
     loaded = data_root.load_raw_packet(packet_id)
     manifest = loaded.manifest
+    if manifest.get("source_surface") == DEEP_CAPTURE_PACKET_SURFACE:
+        candidates = _deep_capture_transcript_candidates(data_root, packet_anchor=packet_id)
+        failures = [failure for _transcript, failure in candidates if failure is not None]
+        if failures:
+            raise ValueError(str(failures[0].get("error") or "deep-capture discovery failed"))
+        return [transcript for transcript, _failure in candidates if transcript is not None]
     if manifest.get("source_surface") != _IG_AUDIO_SURFACE:
         return []  # e.g. ig_reels_grid_dom_passive_json: no audio/transcript -> not a transcript source
     files = _file_paths(manifest)
@@ -322,17 +337,28 @@ def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
     return transcripts
 
 
-def _deep_capture_transcript_candidates(data_root) -> list[tuple[TranscriptInput | None, dict | None]]:
+def _deep_capture_transcript_candidates(
+    data_root, *, packet_anchor: str | None = None
+) -> list[tuple[TranscriptInput | None, dict | None]]:
     candidates: list[tuple[TranscriptInput | None, dict | None]] = []
-    for shortcode, record_id in _iter_derived_lane_records(data_root, DEEP_CAPTURE_SET_LANE) or ():
+    for raw_anchor, record_id in _iter_derived_lane_records(data_root, DEEP_CAPTURE_SET_LANE) or ():
+        if packet_anchor is not None and raw_anchor != packet_anchor:
+            continue
+        if packet_anchor is None:
+            try:
+                if data_root.find_packet(raw_anchor) is not None:
+                    continue
+            except DataLakeRootError:
+                # Historical anchors are shortcodes, not packet ids.
+                pass
         source_key = _transcript_source_key(
-            transcript_anchor=shortcode,
+            transcript_anchor=raw_anchor,
             source_kind="asr",
             asr_record_id=record_id,
         )
         failure_identity = {
-            "anchor": shortcode,
-            "video_id": shortcode,
+            "anchor": raw_anchor,
+            "video_id": raw_anchor,
             "transcript_source_key": source_key,
             "source_route": _DEEP_CAPTURE_ROUTE,
             "asr_record_id": record_id,
@@ -340,7 +366,7 @@ def _deep_capture_transcript_candidates(data_root) -> list[tuple[TranscriptInput
         try:
             complete = data_root.is_record_set_complete(
                 subtree="derived",
-                raw_anchor=shortcode,
+                raw_anchor=raw_anchor,
                 record_id=record_id,
                 completion_lane=DEEP_CAPTURE_SET_LANE,
             )
@@ -368,9 +394,21 @@ def _deep_capture_transcript_candidates(data_root) -> list[tuple[TranscriptInput
                 )
             )
             continue
+        marker_path = data_root.record_path(
+            subtree="derived",
+            raw_anchor=raw_anchor,
+            lane=DEEP_CAPTURE_SET_LANE,
+            record_id=record_id,
+        )
+        try:
+            marker = json.loads(marker_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            marker = {}
+        if REEL_TRANSCRIPT_LANE not in marker.get("member_lanes", []):
+            continue
         loaded = _read_derived_json_record(
             data_root,
-            raw_anchor=shortcode,
+            raw_anchor=raw_anchor,
             lane=REEL_TRANSCRIPT_LANE,
             record_id=record_id,
         )
@@ -387,7 +425,30 @@ def _deep_capture_transcript_candidates(data_root) -> list[tuple[TranscriptInput
             )
             continue
         record, record_sha = loaded
-        record_shortcode = str(record.get("reel_shortcode") or "").strip()
+        if not current_deep_capture_record(
+            data_root,
+            record=record,
+            raw_anchor=raw_anchor,
+            lane=REEL_TRANSCRIPT_LANE,
+            record_id=record_id,
+        ):
+            is_envelope = record.get("schema_version") == SILVER_VAULT_RECORD_SCHEMA_VERSION
+            candidates.append(
+                (
+                    None,
+                    {
+                        **failure_identity,
+                        "status": "discovery_failed" if is_envelope else "historical_audit_only",
+                        "error": (
+                            "current deep-capture envelope or exact source refs invalid"
+                            if is_envelope
+                            else "legacy deep-capture transcript lacks resolvable source-backed Silver envelope"
+                        ),
+                    },
+                )
+            )
+            continue
+        record_shortcode = deep_capture_shortcode(record) or ""
         if not record_shortcode:
             candidates.append(
                 (
@@ -400,21 +461,8 @@ def _deep_capture_transcript_candidates(data_root) -> list[tuple[TranscriptInput
                 )
             )
             continue
-        if record_shortcode != shortcode:
-            candidates.append(
-                (
-                    None,
-                    {
-                        **failure_identity,
-                        "status": "discovery_failed",
-                        "error": f"ValueError: deep-capture shortcode mismatch: {record_shortcode!r} != {shortcode!r}",
-                    },
-                )
-            )
-            continue
-        if record.get("transcript_posture") not in _DEEP_CAPTURE_SUCCESS_POSTURES:
-            continue
-        cues = cues_from_asr_record(record)
+        compatibility = transcript_compatibility_view(record)
+        cues = cues_from_asr_record(compatibility)
         if not cues:
             continue
         lineage = build_transcript_source_lineage(
@@ -422,7 +470,7 @@ def _deep_capture_transcript_candidates(data_root) -> list[tuple[TranscriptInput
             source_surface=_DEEP_CAPTURE_SURFACE,
             video_id=record_shortcode,
             derived_ref=SilverDerivedRef(
-                raw_anchor=shortcode,
+                raw_anchor=raw_anchor,
                 lane=REEL_TRANSCRIPT_LANE,
                 record_id=record_id,
                 sha256=record_sha,
@@ -430,13 +478,13 @@ def _deep_capture_transcript_candidates(data_root) -> list[tuple[TranscriptInput
                 relation="consumed",
                 record_set_completion_lane=DEEP_CAPTURE_SET_LANE,
             ),
-            captured_at=str(record.get("generated_at") or "") or None,
+            captured_at=str(record.get("captured_at") or "") or None,
         )
         candidates.append(
             (
                 TranscriptInput(
                     record_shortcode,
-                    record_shortcode,
+                    raw_anchor,
                     "asr",
                     cues,
                     source_lineage=lineage,
@@ -570,12 +618,12 @@ def run_extraction(
     before its completion marker (process crash) yields `partial_needs_cleanup`. Returns one status
     dict per processed packet/transcript.
 
-    Packet-backed route: seam pickup — an acked-and-unchanged packet is skipped without loading
+    Packet-backed route (including current deep capture): seam pickup — an acked-and-unchanged packet is skipped without loading
     raw bodies and emits NO status entry (the durable ack record is the completion fact); a packet
     whose transcripts all complete is acknowledged with completion evidence, and an ack write
     failure surfaces as an `ack_failed` status. A packet with any failed or partial transcript is
-    never acknowledged and re-surfaces every run. Deep-capture route: out of the seam (no
-    committed anchor; module doc) — marker-based skip-if-done, re-walked every run, never acked.
+    never acknowledged and re-surfaces every run. Historical deep-capture records are re-walked
+    only to report their audit-only posture and are never acknowledged.
     """
     results: list[dict] = []
     # Visible reconcile opt-out per the seam contract: this runner reconciles
@@ -629,9 +677,8 @@ def run_extraction(
             outcome = _ack_packet(data_root, item, evidence)
             if outcome != "acked":
                 results.append({"packet_id": packet_id, "status": "ack_failed", "error": outcome})
-    # Deep-capture route: OUT of the seam (shortcode anchors are not committed
-    # availability; see module doc) — marker-based skip-if-done, re-walked every
-    # run, and never acknowledged.
+    # Historical deep-capture route: shortcode anchors are not committed
+    # availability, so retain marker-based discovery solely for visible audit-only status.
     for transcript, failure in _deep_capture_transcript_candidates(data_root):
         if failure is not None:
             results.append(failure)

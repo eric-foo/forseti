@@ -21,6 +21,14 @@ from typing import Any, Mapping
 
 from data_lake.lane_registry import LaneRole, SILVER_LANES, role_of
 from data_lake.root import EPOCH_MARKER_FILENAME, LEGACY_EPOCH_MARKER_FILENAME
+from data_lake.creator_metric_lineage import (
+    EXCLUDED as CREATOR_METRIC_EXCLUDED,
+    HISTORICAL_COMPATIBLE as CREATOR_METRIC_HISTORICAL_COMPATIBLE,
+    OBSERVATION_LANE as CREATOR_METRIC_OBSERVATION_LANE,
+    ROLLUP_LANE as CREATOR_METRIC_ROLLUP_LANE,
+    SOURCE_BACKED_COMPLETE as CREATOR_METRIC_SOURCE_BACKED_COMPLETE,
+    build_creator_metric_lineage_index,
+)
 from data_lake.silver_record import (
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
     validate_silver_vault_record,
@@ -49,6 +57,14 @@ _ADDITIVE_FIELDS = (
     "not_attempted_states",
     "excluded_invalid_observed_metric_values",
     "historical_unqualified_metric_values",
+    "creator_metric_source_backed_complete_records",
+    "creator_metric_historical_compatible_records",
+    "creator_metric_excluded_records",
+    "current_source_backed_creator_metric_records",
+    "deep_capture_current_source_backed_records",
+    "deep_capture_historical_audit_only_records",
+    "deep_capture_current_completion_markers",
+    "deep_capture_historical_audit_only_completion_markers",
     "unclassified_silver_records",
     "duplicate_observation_units_suppressed",
     "conflicting_observation_units",
@@ -86,8 +102,11 @@ _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
     "retail_pdp_silver": (("fragrance_purchase_review_pdp", None),),
     "silver__capture__audience_comments": (("instagram_creator", None),),
     "silver__capture__reel_transcript": (("instagram_creator", None),),
-    "silver__capture__reel_deep_capture__set": (("instagram_creator", None),),
 }
+_DEEP_CAPTURE_SILVER_LANES = frozenset(
+    {"silver__capture__audience_comments", "silver__capture__reel_transcript"}
+)
+_DEEP_CAPTURE_SET_LANE = "silver__capture__reel_deep_capture__set"
 _ACTIVE_SILVER_LANES = {
     lane for lane in SILVER_LANES if role_of(lane) is not LaneRole.RETIRED_SILVER_LINEAGE
 }
@@ -546,8 +565,33 @@ def _eligible(manifest: Mapping[str, Any], selectors: tuple[tuple[str, str | Non
     return any(family == wanted and (prefix is None or surface.startswith(prefix)) for wanted, prefix in selectors)
 
 
+def _deep_capture_raw_refs_resolve(data_root: Any, record: Mapping[str, Any]) -> bool:
+    raw_anchor = record.get("raw_anchor")
+    raw_refs = record.get("raw_refs")
+    if not isinstance(raw_anchor, str) or not isinstance(raw_refs, list) or not raw_refs:
+        return False
+    try:
+        loaded = data_root.load_raw_packet(raw_anchor)
+    except Exception:  # noqa: BLE001 - census eligibility fails closed
+        return False
+    files = {
+        item.get("file_id"): item
+        for item in loaded.manifest.get("preserved_files", [])
+        if isinstance(item, Mapping)
+    }
+    for ref in raw_refs:
+        if not isinstance(ref, Mapping) or ref.get("packet_id") != raw_anchor:
+            return False
+        source = files.get(ref.get("file_id"))
+        if not isinstance(source, Mapping):
+            return False
+        if any(ref.get(key) != source.get(key) for key in ("relative_packet_path", "sha256", "hash_basis")):
+            return False
+    return True
+
+
 def _lane_states(
-    lane_counts: Mapping[str, int], manifests: list[dict[str, Any]]
+    lane_counts: Mapping[str, int], manifests: list[dict[str, Any]], marker_counts: Mapping[str, int]
 ) -> list[dict[str, Any]]:
     states: list[dict[str, Any]] = []
     for lane in sorted(SILVER_LANES):
@@ -579,6 +623,22 @@ def _lane_states(
                 "derivation": "registry_role_plus_stored_records_plus_raw_manifest_applicability_v0",
             }
         )
+    states.append(
+        {
+            "lane": _DEEP_CAPTURE_SET_LANE,
+            "role": LaneRole.COMPLETION_MARKER.value,
+            "state": "populated" if sum(marker_counts.values()) else "no_applicable_source",
+            "record_count": sum(marker_counts.values()),
+            "current_source_backed_record_count": marker_counts.get("current", 0),
+            "historical_audit_only_record_count": marker_counts.get("audit_only", 0),
+            "invalid_current_record_count": marker_counts.get("invalid_current", 0),
+            "eligible_capture_packets": sum(
+                1 for manifest in manifests if _eligible(manifest, (("instagram_creator", None),))
+            ),
+            "failed_eligible_capture_packets": 0,
+            "derivation": "completion_marker_member_envelope_and_exact_raw_ref_resolution_v0",
+        }
+    )
     return states
 
 
@@ -601,7 +661,19 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
         if isinstance(manifest.get("packet_id"), str)
     }
     accumulator = _Accumulator()
+    creator_metric_lineage = build_creator_metric_lineage_index(data_root)
+    creator_metric_lanes = {
+        CREATOR_METRIC_OBSERVATION_LANE,
+        CREATOR_METRIC_ROLLUP_LANE,
+    }
+    creator_metric_status_fields = {
+        CREATOR_METRIC_SOURCE_BACKED_COMPLETE: "creator_metric_source_backed_complete_records",
+        CREATOR_METRIC_HISTORICAL_COMPATIBLE: "creator_metric_historical_compatible_records",
+        CREATOR_METRIC_EXCLUDED: "creator_metric_excluded_records",
+    }
     lane_counts: Counter[str] = Counter()
+    marker_counts: Counter[str] = Counter()
+    audit_only_residuals: list[dict[str, Any]] = []
     derived = root / "derived"
     if derived.is_dir():
         for lane in sorted(SILVER_LANES):
@@ -639,6 +711,17 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                 context = _context(record, observation, lane=lane, manifest_by_packet=manifest_by_packet)
                 accumulator.increment("silver_records", context)
                 if record.get("schema_version") != SILVER_VAULT_RECORD_SCHEMA_VERSION:
+                    if lane in _DEEP_CAPTURE_SILVER_LANES:
+                        accumulator.increment("deep_capture_historical_audit_only_records", context)
+                        audit_only_residuals.append(
+                            {
+                                "kind": "historical_audit_only",
+                                "lane": lane,
+                                "path": relative,
+                                "reason": "legacy deep-capture record lacks silver_vault_record_v0 envelope and exact raw refs",
+                            }
+                        )
+                        continue
                     accumulator.increment("unclassified_silver_records", context)
                     continue
                 try:
@@ -649,11 +732,113 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                         {"kind": "silver_record_invalid", "path": relative, "error": f"{type(exc).__name__}: {exc}"}
                     )
                     continue
+                if lane in _DEEP_CAPTURE_SILVER_LANES:
+                    if not _deep_capture_raw_refs_resolve(data_root, record):
+                        accumulator.increment("unclassified_silver_records", context)
+                        errors.append(
+                            {
+                                "kind": "deep_capture_source_ref_unresolved",
+                                "path": relative,
+                                "error": "Silver envelope raw packet/file/hash did not resolve exactly",
+                            }
+                        )
+                        continue
+                    accumulator.increment("deep_capture_current_source_backed_records", context)
+                if lane in creator_metric_lanes:
+                    lineage = creator_metric_lineage.classification_for_path(path)
+                    accumulator.increment(creator_metric_status_fields[lineage.status], context)
+                    if lineage.current_source_backed_eligible:
+                        accumulator.increment("current_source_backed_creator_metric_records", context)
+                    else:
+                        # The record remains in the stored-record and lineage
+                        # classification totals, but its observation values are
+                        # not current source-backed census evidence.
+                        continue
                 _classify_record(
                     accumulator,
                     record,
                     lane=lane,
                     manifest_by_packet=manifest_by_packet,
+                )
+
+        for marker_path in sorted(derived.glob(f"*/*/{_DEEP_CAPTURE_SET_LANE}/*")):
+            if not marker_path.is_file():
+                continue
+            relative = marker_path.relative_to(root).as_posix()
+            marker_stat = marker_path.stat()
+            fingerprint_parts.append(
+                f"{relative}\0{marker_stat.st_size}\0{marker_stat.st_mtime_ns}"
+            )
+            times.append(datetime.fromtimestamp(marker_stat.st_mtime, tz=timezone.utc))
+            raw_anchor = marker_path.parents[1].name
+            try:
+                marker = json.loads(marker_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError, TypeError):
+                marker = {}
+            current_member = False
+            envelope_member_present = False
+            try:
+                marker_complete = data_root.is_record_set_complete(
+                    subtree="derived",
+                    raw_anchor=raw_anchor,
+                    record_id=marker_path.name,
+                    completion_lane=_DEEP_CAPTURE_SET_LANE,
+                )
+            except Exception:  # noqa: BLE001 - classified below as invalid current state
+                marker_complete = False
+            for lane in marker.get("member_lanes", []) if isinstance(marker, Mapping) else []:
+                if lane not in _DEEP_CAPTURE_SILVER_LANES:
+                    continue
+                member_path = marker_path.parents[1] / lane / marker_path.name
+                try:
+                    member = json.loads(member_path.read_text(encoding="utf-8"))
+                except (OSError, ValueError, TypeError):
+                    continue
+                if not isinstance(member, Mapping):
+                    continue
+                if member.get("schema_version") == SILVER_VAULT_RECORD_SCHEMA_VERSION:
+                    envelope_member_present = True
+                try:
+                    validate_silver_vault_record(member)
+                except (TypeError, ValueError):
+                    continue
+                if (
+                    marker_complete
+                    and member.get("raw_anchor") == raw_anchor
+                    and member.get("record_id") == marker_path.name
+                    and member.get("lane_namespace") == lane
+                    and _deep_capture_raw_refs_resolve(data_root, member)
+                ):
+                    current_member = True
+                    break
+            if current_member:
+                marker_counts["current"] += 1
+                accumulator.increment(
+                    "deep_capture_current_completion_markers",
+                    {"lane": _DEEP_CAPTURE_SET_LANE, "source_family": "instagram_creator", "policy_version": "current_source_backed", "observation_window": "unknown"},
+                )
+            elif not envelope_member_present:
+                marker_counts["audit_only"] += 1
+                accumulator.increment(
+                    "deep_capture_historical_audit_only_completion_markers",
+                    {"lane": _DEEP_CAPTURE_SET_LANE, "source_family": "instagram_creator", "policy_version": "historical_audit_only", "observation_window": "unknown"},
+                )
+                audit_only_residuals.append(
+                    {
+                        "kind": "historical_audit_only",
+                        "lane": _DEEP_CAPTURE_SET_LANE,
+                        "path": relative,
+                        "reason": "completion marker points only to legacy unsupported deep-capture members",
+                    }
+                )
+            else:
+                marker_counts["invalid_current"] += 1
+                errors.append(
+                    {
+                        "kind": "deep_capture_completion_marker_invalid_current",
+                        "path": relative,
+                        "error": "official envelope member or completion proof failed exact source-backed validation",
+                    }
                 )
 
     accumulator.errors.extend(errors)
@@ -679,6 +864,11 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
     }
     if not all(reconciliation.values()):
         raise AssertionError(f"Silver census reconciliation failed: {reconciliation}")
+    lineage_reconciliation = creator_metric_lineage.reconciliation()
+    if not lineage_reconciliation["exact_reconciliation"]:
+        raise AssertionError(
+            f"creator-metric lineage reconciliation failed: {lineage_reconciliation}"
+        )
     return {
         "schema_version": CENSUS_SCHEMA_VERSION,
         "counting_unit": "unique subject + observation type/metric + observed time + policy + lineage anchor",
@@ -699,9 +889,11 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
             f"by_{dimension}": _group_output(groups)
             for dimension, groups in accumulator.groups.items()
         },
-        "lane_states": _lane_states(lane_counts, manifests),
+        "lane_states": _lane_states(lane_counts, manifests, marker_counts),
+        "creator_metric_lineage": lineage_reconciliation,
         "reconciliation": reconciliation,
         "errors": sorted(accumulator.errors, key=lambda item: _canonical(item)),
+        "audit_only_residuals": sorted(audit_only_residuals, key=lambda item: _canonical(item)),
     }
 
 

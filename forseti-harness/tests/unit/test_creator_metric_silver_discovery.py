@@ -12,6 +12,7 @@ account still fails closed.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -32,7 +33,8 @@ from capture_spine.creator_profile_current.silver_subject_ref import (
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
     derive_youtube_creator_metric_silver_records_from_seed_file,
 )
-from data_lake.root import DataLakeRoot
+from data_lake.creator_metric_lineage import AUDIT_COMPATIBLE
+from data_lake.root import DataLakeRoot, EPOCH_MARKER_FILENAME, raw_shard
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
@@ -76,15 +78,10 @@ def _commit_ig_raw_packet(data_root: DataLakeRoot, tmp_path: Path, *, slot: str)
     return result.packet.packet_id
 
 
-def _ig_projection_rows(packet_id: str, *, username: str, views: tuple[int, int]) -> list[dict]:
+def _ig_projection_rows(
+    packet_id: str, *, username: str, views: tuple[int, int], raw_anchor: dict
+) -> list[dict]:
     capture = "2026-06-29T00:01:00Z"
-    raw_anchor = {
-        "file_id": "file_01",
-        "relative_packet_path": "raw/01.json",
-        "sha256": "a" * 64,
-        "hash_basis": "raw_stored_bytes",
-    }
-
     def _reel(shortcode: str, metric: str, value: int) -> dict:
         return {
             "row_id": f"{packet_id}:{shortcode}:{metric}",
@@ -161,9 +158,21 @@ def _write_ig_rollup(
     """Commit an IG raw packet and derive its rollup (anchored to that packet)
     for one account. Returns the packet id."""
     packet_id = _commit_ig_raw_packet(data_root, tmp_path, slot=slot)
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    raw_anchor = {
+        key: preserved[key]
+        for key in ("file_id", "relative_packet_path", "sha256", "hash_basis")
+    }
     projection = tmp_path / f"ig_projection_{slot}.json"
     projection.write_text(
-        json.dumps({"packet_id": packet_id, "rows": _ig_projection_rows(packet_id, username=handle, views=views)}),
+        json.dumps(
+            {
+                "packet_id": packet_id,
+                "rows": _ig_projection_rows(
+                    packet_id, username=handle, views=views, raw_anchor=raw_anchor
+                ),
+            }
+        ),
         encoding="utf-8",
     )
     derive_creator_metric_silver_records_from_projections(
@@ -177,10 +186,50 @@ def _write_ig_rollup(
 
 # -- YouTube (account-anchored) fixture -------------------------------------
 
-def _write_yt_rollups(data_root: DataLakeRoot) -> set[str]:
+def _write_yt_rollups(data_root: DataLakeRoot, tmp_path: Path) -> set[str]:
     """Derive YT rollups from the real committed seed (account-anchored). Returns
     the set of YT account ids the seed covers."""
     result = derive_youtube_creator_metric_silver_records_from_seed_file(data_root=data_root)
+    archive = tmp_path / "youtube_seed_archive"
+    archive.mkdir()
+    (archive / ".orca-data-root").write_text(
+        json.dumps(
+            {
+                "root_uuid": "01KWYTSEEDARCHIVEROOT00001",
+                "label": "youtube-seed-test-archive",
+                "contract_version": "v0",
+            }
+        ),
+        encoding="utf-8",
+    )
+    for record in result.observation_records:
+        packet_id = record["raw_anchor"]
+        packet = archive / "raw" / raw_shard(packet_id) / packet_id
+        body = packet / "raw" / "caption.json"
+        body.parent.mkdir(parents=True, exist_ok=True)
+        body.write_bytes(b"caption fixture; cited watch HTML intentionally absent")
+        digest = hashlib.sha256(body.read_bytes()).hexdigest()
+        (packet / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "packet_id": packet_id,
+                    "preserved_files": [
+                        {
+                            "file_id": "file_01",
+                            "relative_packet_path": "raw/caption.json",
+                            "size_bytes": body.stat().st_size,
+                            "sha256": digest,
+                            "hash_basis": "raw_stored_bytes",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+    epoch_path = data_root.path / EPOCH_MARKER_FILENAME
+    epoch = json.loads(epoch_path.read_text(encoding="utf-8"))
+    epoch["legacy_roots"] = [str(archive)]
+    epoch_path.write_text(json.dumps(epoch), encoding="utf-8")
     return {_account_of(record) for record in result.rollup_records}
 
 
@@ -223,13 +272,20 @@ def test_discovers_legacy_orca_subject_ref_key(tmp_path: Path) -> None:
     assert _account_of(found[IG_ACCOUNT][0]) == IG_ACCOUNT
 
 
-def test_discovers_yt_rollup_via_account_anchor(tmp_path: Path) -> None:
+def test_discovers_historical_yt_rollup_only_through_audit_mode(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    covered = _write_yt_rollups(data_root)
+    covered = _write_yt_rollups(data_root, tmp_path)
     account_id = sorted(covered)[0]
 
+    with pytest.raises(CreatorRollupDiscoveryError):
+        discover_creator_metric_rollup_records(
+            data_root, account_ledger=_ledger((account_id, "youtube"))
+        )
+
     found = discover_creator_metric_rollup_records(
-        data_root, account_ledger=_ledger((account_id, "youtube"))
+        data_root,
+        account_ledger=_ledger((account_id, "youtube")),
+        lineage_mode=AUDIT_COMPATIBLE,
     )
 
     assert set(found) == {account_id}
@@ -240,10 +296,12 @@ def test_discovers_yt_rollup_via_account_anchor(tmp_path: Path) -> None:
 def test_discovers_mixed_ig_and_yt(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _write_ig_rollup(data_root, tmp_path)
-    yt_account = sorted(_write_yt_rollups(data_root))[0]
+    yt_account = sorted(_write_yt_rollups(data_root, tmp_path))[0]
 
     found = discover_creator_metric_rollup_records(
-        data_root, account_ledger=_ledger((IG_ACCOUNT, "instagram"), (yt_account, "youtube"))
+        data_root,
+        account_ledger=_ledger((IG_ACCOUNT, "instagram"), (yt_account, "youtube")),
+        lineage_mode=AUDIT_COMPATIBLE,
     )
 
     assert set(found) == {IG_ACCOUNT, yt_account}

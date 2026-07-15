@@ -45,9 +45,6 @@ _PATH_BASED_TOUCHPOINT_EXCLUSIONS = {
     "runners/run_ig_reels_lane_orchestrator.py": (
         "orchestrator checks completion markers for exact downstream outputs"
     ),
-    "runners/run_source_capture_ig_reels_deep_capture.py": (
-        "deep-capture writer checks completion markers for exact record sets"
-    ),
     "runners/run_tiktok_product_extract.py": (
         "product-extraction writer checks one deterministic mention record id "
         "for completion or a crash-partial collision; it does not select among siblings"

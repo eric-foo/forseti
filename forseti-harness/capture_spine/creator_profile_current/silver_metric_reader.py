@@ -3,7 +3,8 @@ rollup shape -- the READ half of the creator-metric lake path.
 
 The producer (``silver_metric_producer.py``) writes MetricObservation +
 MetricRollupObservation Silver records into the lake. This module reads the
-rollup records back and reconstructs the per-account ``metric_rollup`` dicts in
+byte-verified, current-root-eligible rollup records back and reconstructs the
+per-account ``metric_rollup`` dicts in
 the exact shape the static metric seeds carry (the shape that
 ``creator_profile_current`` materialize already consumes). It proves the lake
 path is no-drift: a rollup reconstructed from its Silver record equals the seed
@@ -36,13 +37,22 @@ from capture_spine.creator_profile_current.silver_metric_producer import (
 from capture_spine.creator_profile_current.silver_subject_ref import (
     platform_account_id_from_subject_ref as _platform_account_id_from_subject_ref,
 )
+from data_lake.creator_metric_lineage import (
+    CURRENT_SOURCE_BACKED,
+    CreatorMetricLineageIndex,
+    CreatorMetricReadMode,
+    build_creator_metric_lineage_index,
+)
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
 
 
 def read_creator_metric_rollups_from_lake(
-    data_root: "DataLakeRoot", *, raw_anchors: Iterable[str]
+    data_root: "DataLakeRoot",
+    *,
+    raw_anchors: Iterable[str],
+    lineage_mode: CreatorMetricReadMode = CURRENT_SOURCE_BACKED,
 ) -> list[dict[str, Any]]:
     """Read every creator-metric rollup Silver record anchored to ``raw_anchors``
     and reconstruct the seed-shaped ``metric_rollup`` dicts that
@@ -52,8 +62,12 @@ def read_creator_metric_rollups_from_lake(
     in-memory result. ``raw_anchors`` are the source packet ids the rollups are
     anchored to; the production caller supplies the anchors it is building from
     (lake-wide discovery is a separate concern). Records are de-duplicated by
-    ``record_id`` so a shared anchor is never double-counted.
+    ``record_id`` so a shared anchor is never double-counted. The default mode
+    admits only records whose complete source chain re-hashes in the current
+    root. ``audit_compatible`` is an explicit compatibility read that may return
+    historical-compatible records; it is never the snapshot/current-result path.
     """
+    lineage = build_creator_metric_lineage_index(data_root)
     rollups: list[dict[str, Any]] = []
     seen_record_ids: set[str] = set()
     for raw_anchor in raw_anchors:
@@ -63,6 +77,8 @@ def read_creator_metric_rollups_from_lake(
         if not lane_dir.is_dir():
             continue
         for record_path in sorted(lane_dir.glob("*.json")):
+            if not lineage.admits(record_path, mode=lineage_mode):
+                continue
             record = json.loads(record_path.read_text(encoding="utf-8"))
             if record.get("payload_kind") != METRIC_ROLLUP_PAYLOAD_KIND:
                 continue
@@ -316,7 +332,10 @@ class CreatorRollupDiscoveryError(ValueError):
 
 
 def discover_creator_metric_rollup_records(
-    data_root: "DataLakeRoot", *, account_ledger: Mapping[str, Any]
+    data_root: "DataLakeRoot",
+    *,
+    account_ledger: Mapping[str, Any],
+    lineage_mode: CreatorMetricReadMode = CURRENT_SOURCE_BACKED,
 ) -> dict[str, list[dict[str, Any]]]:
     """Discover the creator-metric rollup Silver records currently in the lake,
     per expected account, with platform-aware discovery driven by the account
@@ -346,11 +365,18 @@ def discover_creator_metric_rollup_records(
     non-empty ``instagram_creator`` packet set that holds observations but no
     rollup for an expected account still fails closed.
 
+    Before account selection, creator-metric lineage is recomputed from the
+    current root and its explicitly declared archives. The default mode drops
+    historical-compatible records and fails on excluded records; the explicit
+    ``audit_compatible`` mode keeps historical records readable without making
+    them current source-backed evidence.
+
     The caller ensures the availability index is current (the IG capture pipeline
     records availability at commit; the operator snapshot runner rebuilds it
     first). This function does not write.
     """
     accounts_by_platform = _expected_accounts_by_platform(account_ledger)
+    lineage = build_creator_metric_lineage_index(data_root)
     found: dict[str, list[dict[str, Any]]] = {
         account_id: [] for ids in accounts_by_platform.values() for account_id in ids
     }
@@ -367,7 +393,9 @@ def discover_creator_metric_rollup_records(
             lane_dir = data_root.lane_dir(
                 subtree="derived", raw_anchor=packet_id, lane=METRIC_ROLLUP_LANE
             )
-            for record in _read_rollup_records(lane_dir):
+            for record in _read_rollup_records(
+                lane_dir, lineage=lineage, lineage_mode=lineage_mode
+            ):
                 account_id = _rollup_record_account(record)
                 if account_id in expected:
                     _add_unique_record(found, seen_record_ids, account_id, record)
@@ -376,7 +404,9 @@ def discover_creator_metric_rollup_records(
         lane_dir = data_root.lane_dir(
             subtree="derived", raw_anchor=account_id, lane=METRIC_ROLLUP_LANE
         )
-        for record in _read_rollup_records(lane_dir):
+        for record in _read_rollup_records(
+            lane_dir, lineage=lineage, lineage_mode=lineage_mode
+        ):
             # Account-anchored: the rollup's subject account must equal the anchor.
             if _rollup_record_account(record) == account_id:
                 _add_unique_record(found, seen_record_ids, account_id, record)
@@ -412,11 +442,18 @@ def _expected_accounts_by_platform(account_ledger: Mapping[str, Any]) -> dict[st
     return by_platform
 
 
-def _read_rollup_records(lane_dir: Path) -> list[dict[str, Any]]:
+def _read_rollup_records(
+    lane_dir: Path,
+    *,
+    lineage: CreatorMetricLineageIndex,
+    lineage_mode: CreatorMetricReadMode,
+) -> list[dict[str, Any]]:
     if not lane_dir.is_dir():
         return []
     records: list[dict[str, Any]] = []
     for record_path in sorted(lane_dir.glob("*.json")):
+        if not lineage.admits(record_path, mode=lineage_mode):
+            continue
         record = json.loads(record_path.read_text(encoding="utf-8"))
         if record.get("payload_kind") == METRIC_ROLLUP_PAYLOAD_KIND:
             records.append(record)

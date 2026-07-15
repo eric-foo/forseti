@@ -333,7 +333,11 @@ def _deep_capture_source(
         )
     source = _base_transcript_source(
         platform_item_id=shortcode,
-        transcript_anchor=shortcode,
+        transcript_anchor=(
+            _string_or_none(record.get("transcript_anchor"))
+            or _string_or_none(record.get("raw_anchor"))
+            or shortcode
+        ),
         asr_record_id=asr_record_id,
         source_route="deep_capture_render_audio",
         source_status=_string_or_none(record.get("source_status")) or "complete",

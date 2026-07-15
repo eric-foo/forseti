@@ -181,11 +181,12 @@ def test_registry_pins_envelope_lanes_and_pending_baseline() -> None:
 def test_registry_freezes_legacy_lineage_lanes() -> None:
     registry = _load_registry()
     assert registry.SILVER_LINEAGE_LANES == registry.SILVER_LINEAGE_LEGACY_BASELINE
-    assert registry.SILVER_LINEAGE_LANES == {
+    assert registry.SILVER_LINEAGE_LANES == set()
+    assert {
         "silver__capture__audience_comments",
         "silver__capture__reel_transcript",
-        "silver__capture__reel_deep_capture__set",
-    }
+    } <= registry.SILVER_ENVELOPE_LANES
+    assert registry.LANE_ROLES["silver__capture__reel_deep_capture__set"] is registry.LaneRole.COMPLETION_MARKER
     assert {
         lane
         for lane, role in registry.LANE_ROLES.items()

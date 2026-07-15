@@ -31,38 +31,60 @@ def _deep_result(
     posture: str = "transcribed",
     cues: list[dict[str, Any]] | None = None,
 ) -> ReelDeepCaptureResult:
+    comment = AudienceComment(
+        comment_id=comment_id,
+        reel_shortcode=shortcode,
+        author_username="zoe",
+        text="works",
+        like_count=1,
+        created_at_unix=1782400000,
+    )
+    substrate = (
+        json.dumps(
+            {
+                "pk": comment.comment_id,
+                "user": {"username": comment.author_username},
+                "text": comment.text,
+                "comment_like_count": comment.like_count,
+                "created_at": comment.created_at_unix,
+                "__typename": "XIGComment",
+            }
+        )
+        + "\n"
+    ).encode()
+    admitted_cues = tuple(_cues() if cues is None else cues)
     return ReelDeepCaptureResult(
         reel_shortcode=shortcode,
-        comments=(
-            AudienceComment(
-                comment_id=comment_id,
-                reel_shortcode=shortcode,
-                author_username="zoe",
-                text="works",
-                like_count=1,
-                created_at_unix=1782400000,
-            ),
-        ),
+        comments=(comment,),
         transcript_posture=posture,
-        transcript_cues=tuple(_cues() if cues is None else cues),
+        transcript_cues=admitted_cues,
         media_url_used="https://x.fbcdn.net/o1/v/clip.mp4",
+        comment_substrate=substrate,
+        audio_bytes=b"exact-audio" if posture == "transcribed" and admitted_cues else None,
+        audio_ext="mp4",
     )
+
+
+def _persisted(write) -> str:  # noqa: ANN001
+    return f"persisted: packet={write.packet_id} record={write.record_id}"
 
 
 def test_orchestrator_exports_operator_packet_and_marks_lane_blocked(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     packet_out = tmp_path / "operator_packet.json"
+    writes = []
 
     def grid_runner(**_kwargs):  # noqa: ANN001
         return 0, "raw/packet"
 
     def deep_capture_runner(**_kwargs):  # noqa: ANN001
         result = _deep_result()
-        write_reel_deep_capture_into_lake(
+        written = write_reel_deep_capture_into_lake(
             data_root=data_root,
             result=result,
             generated_at="2026-06-29T00:01:00Z",
         )
+        writes.append(written)
         ranked = RankedReel(
             rank=1,
             shortcode=_SHORTCODE,
@@ -71,7 +93,7 @@ def test_orchestrator_exports_operator_packet_and_marks_lane_blocked(tmp_path) -
             comment_count=2,
             view_count=100,
         )
-        return [ranked], [CapturedReel(ranked=ranked, result=result, persisted="persisted: ok")]
+        return [ranked], [CapturedReel(ranked=ranked, result=result, persisted=_persisted(written))]
 
     def projection_builder(**_kwargs):  # noqa: ANN001
         return {
@@ -96,7 +118,7 @@ def test_orchestrator_exports_operator_packet_and_marks_lane_blocked(tmp_path) -
     assert summary.complete is False
     assert receipts["grid"]["status"] == "succeeded"
     assert receipts["deep_capture"]["status"] == "succeeded"
-    expected_source_key = f"{_SHORTCODE}:asr:{deep_capture_record_id(_deep_result())}"
+    expected_source_key = f"{writes[0].packet_id}:asr:{writes[0].record_id}"
     selected = receipts["deep_capture"]["outputs"]["selected_targets"]
     assert [t["platform_item_id"] for t in selected] == [_SHORTCODE]
     assert selected[0]["transcript_source_key"] == expected_source_key
@@ -115,22 +137,24 @@ def test_orchestrator_exports_operator_packet_and_marks_lane_blocked(tmp_path) -
 def test_orchestrator_uses_new_exact_deep_capture_key_when_old_same_shortcode_exists(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     old_result = _deep_result(comment_id="old")
-    write_reel_deep_capture_into_lake(
+    old_write = write_reel_deep_capture_into_lake(
         data_root=data_root,
         result=old_result,
         generated_at="2026-06-29T00:00:00Z",
     )
     new_result = _deep_result(comment_id="new")
     packet_out = tmp_path / "operator_packet.json"
+    new_writes = []
 
     def deep_capture_runner(**_kwargs):  # noqa: ANN001
-        write_reel_deep_capture_into_lake(
+        written = write_reel_deep_capture_into_lake(
             data_root=data_root,
             result=new_result,
             generated_at="2026-06-29T00:01:00Z",
         )
+        new_writes.append(written)
         ranked = RankedReel(rank=1, shortcode=_SHORTCODE, engagement=1, like_count=1, comment_count=0)
-        return [ranked], [CapturedReel(ranked=ranked, result=new_result, persisted="persisted: ok")]
+        return [ranked], [CapturedReel(ranked=ranked, result=new_result, persisted=_persisted(written))]
 
     summary = run_ig_reels_lane_orchestrator(
         data_root=data_root,
@@ -141,8 +165,8 @@ def test_orchestrator_uses_new_exact_deep_capture_key_when_old_same_shortcode_ex
     )
 
     receipts = {receipt["lane"]: receipt for receipt in summary.to_dict()["receipts"]}
-    new_key = f"{_SHORTCODE}:asr:{deep_capture_record_id(new_result)}"
-    old_key = f"{_SHORTCODE}:asr:{deep_capture_record_id(old_result)}"
+    new_key = f"{new_writes[0].packet_id}:asr:{new_writes[0].record_id}"
+    old_key = f"{old_write.packet_id}:asr:{old_write.record_id}"
     selected = receipts["deep_capture"]["outputs"]["selected_targets"]
     assert selected[0]["transcript_source_key"] == new_key
     assert receipts["product_extract"]["outputs"]["targets"][0]["transcript_source_key"] == new_key
@@ -220,7 +244,7 @@ def test_orchestrator_requires_packet_path_for_operator_export(tmp_path) -> None
 def test_orchestrator_keeps_explicit_target_when_deep_capture_selects_other_reel(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     explicit_result = _deep_result(_SHORTCODE, comment_id="explicit")
-    write_reel_deep_capture_into_lake(
+    explicit_write = write_reel_deep_capture_into_lake(
         data_root=data_root,
         result=explicit_result,
         generated_at="2026-06-29T00:00:00Z",
@@ -228,15 +252,17 @@ def test_orchestrator_keeps_explicit_target_when_deep_capture_selects_other_reel
     captured_shortcode = "DaALKgOsWn0"
     captured_result = _deep_result(captured_shortcode, comment_id="captured")
     packet_out = tmp_path / "operator_packet.json"
+    captured_writes = []
 
     def deep_capture_runner(**_kwargs):  # noqa: ANN001
-        write_reel_deep_capture_into_lake(
+        written = write_reel_deep_capture_into_lake(
             data_root=data_root,
             result=captured_result,
             generated_at="2026-06-29T00:01:00Z",
         )
+        captured_writes.append(written)
         ranked = RankedReel(rank=1, shortcode=captured_shortcode, engagement=1, like_count=1, comment_count=0)
-        return [ranked], [CapturedReel(ranked=ranked, result=captured_result, persisted="persisted: ok")]
+        return [ranked], [CapturedReel(ranked=ranked, result=captured_result, persisted=_persisted(written))]
 
     def projection_builder(**kwargs):  # noqa: ANN001
         assert kwargs["platform_item_id"] == _SHORTCODE
@@ -253,8 +279,8 @@ def test_orchestrator_keeps_explicit_target_when_deep_capture_selects_other_reel
     )
 
     receipts = {receipt["lane"]: receipt for receipt in summary.to_dict()["receipts"]}
-    explicit_key = f"{_SHORTCODE}:asr:{deep_capture_record_id(explicit_result)}"
-    captured_key = f"{captured_shortcode}:asr:{deep_capture_record_id(captured_result)}"
+    explicit_key = f"{explicit_write.packet_id}:asr:{explicit_write.record_id}"
+    captured_key = f"{captured_writes[0].packet_id}:asr:{captured_writes[0].record_id}"
     # The lane still fans out its OWN eligible reel (the captured one); the explicit selector then
     # pins the explicit shortcode for the downstream lanes and flags the divergence.
     assert receipts["deep_capture"]["outputs"]["selected_targets"][0]["transcript_source_key"] == captured_key
@@ -276,20 +302,21 @@ def test_orchestrator_fans_out_every_extraction_eligible_reel(tmp_path) -> None:
     rank3 = _deep_result("RANK3NOSPCH", comment_id="r3", posture="no_speech", cues=[])
     rank4 = _deep_result("RANK4TRANS", comment_id="r4")
     ranked_results = [rank1, rank2, rank3, rank4]
+    writes = []
 
     def deep_capture_runner(**_kwargs):  # noqa: ANN001
         for result in ranked_results:
-            write_reel_deep_capture_into_lake(
+            writes.append(write_reel_deep_capture_into_lake(
                 data_root=data_root,
                 result=result,
                 generated_at="2026-06-29T00:01:00Z",
-            )
+            ))
         ranked = [
             RankedReel(rank=index, shortcode=result.reel_shortcode, engagement=10 - index, like_count=1, comment_count=1)
             for index, result in enumerate(ranked_results, start=1)
         ]
         captured = [
-            CapturedReel(ranked=ranked[index], result=result, persisted="persisted: ok")
+            CapturedReel(ranked=ranked[index], result=result, persisted=_persisted(writes[index]))
             for index, result in enumerate(ranked_results)
         ]
         return ranked, captured
@@ -337,21 +364,22 @@ def test_orchestrator_fan_out_keeps_content_empty_when_no_reel_is_eligible(tmp_p
 
     first = _deep_result("EMPTYONE", comment_id="e1", posture="render_unavailable", cues=[])
     second = _deep_result("EMPTYTWO", comment_id="e2", posture="no_audio_handle", cues=[])
+    writes = []
 
     def deep_capture_runner(**_kwargs):  # noqa: ANN001
         for result in (first, second):
-            write_reel_deep_capture_into_lake(
+            writes.append(write_reel_deep_capture_into_lake(
                 data_root=data_root,
                 result=result,
                 generated_at="2026-06-29T00:01:00Z",
-            )
+            ))
         ranked = [
             RankedReel(rank=1, shortcode="EMPTYONE", engagement=2, like_count=1, comment_count=1),
             RankedReel(rank=2, shortcode="EMPTYTWO", engagement=1, like_count=1, comment_count=0),
         ]
         return ranked, [
-            CapturedReel(ranked=ranked[0], result=first, persisted="persisted: ok"),
-            CapturedReel(ranked=ranked[1], result=second, persisted="persisted: ok"),
+            CapturedReel(ranked=ranked[0], result=first, persisted=_persisted(writes[0])),
+            CapturedReel(ranked=ranked[1], result=second, persisted=_persisted(writes[1])),
         ]
 
     summary = run_ig_reels_lane_orchestrator(

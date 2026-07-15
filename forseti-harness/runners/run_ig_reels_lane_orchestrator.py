@@ -248,10 +248,20 @@ def _run_deep_capture_lane(
         if not item.ok or item.result is None:
             continue
         record_id = deep_capture_record_id(item.result)
+        raw_anchor = item.result.reel_shortcode
+        if isinstance(item.persisted, str) and item.persisted.startswith("persisted: packet="):
+            fields = {
+                key: value
+                for token in item.persisted.removeprefix("persisted: ").split()
+                if "=" in token
+                for key, value in [token.split("=", 1)]
+            }
+            raw_anchor = fields.get("packet", raw_anchor)
+            record_id = fields.get("record", record_id)
         try:
             complete = data_root.is_record_set_complete(
                 subtree="derived",
-                raw_anchor=item.result.reel_shortcode,
+                raw_anchor=raw_anchor,
                 record_id=record_id,
                 completion_lane=DEEP_CAPTURE_SET_LANE,
             )
@@ -259,7 +269,7 @@ def _run_deep_capture_lane(
             complete = False
             residuals.append(f"deep_capture_completion_check_failed:{item.result.reel_shortcode}:{record_id}:{type(exc).__name__}")
         if complete:
-            complete_items.append((item, record_id, f"{item.result.reel_shortcode}:asr:{record_id}"))
+            complete_items.append((item, record_id, f"{raw_anchor}:asr:{record_id}"))
         else:
             residuals.append(f"deep_capture_not_persisted:{item.result.reel_shortcode}:{record_id}")
 

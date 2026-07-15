@@ -41,9 +41,8 @@ def _ledger() -> dict:
     }
 
 
-def _projection_rows(packet_id: str) -> list[dict]:
+def _projection_rows(packet_id: str, raw_anchor: dict) -> list[dict]:
     cap = "2026-06-29T00:01:00Z"
-    raw_anchor = {"file_id": "f1", "relative_packet_path": "raw/01.json", "sha256": "a" * 64, "hash_basis": "raw_stored_bytes"}
 
     def reel(sc: str, metric: str, val: int) -> dict:
         return {
@@ -71,7 +70,7 @@ def _projection_rows(packet_id: str) -> list[dict]:
 def _raw_projection(data_root: DataLakeRoot, tmp_path: Path) -> Path:
     raw = tmp_path / "ig_raw.json"
     raw.write_text(json.dumps({"grid": "x"}), encoding="utf-8")
-    packet_id = write_local_source_capture_packet(
+    capture = write_local_source_capture_packet(
         data_root=data_root,
         input_files=[raw],
         source_family="instagram_creator",
@@ -79,9 +78,23 @@ def _raw_projection(data_root: DataLakeRoot, tmp_path: Path) -> Path:
         source_locator=known_fact(f"https://www.instagram.com/{IG_HANDLE}/"),
         decision_question="producer runner",
         capture_context="producer runner test",
-    ).packet.packet_id
+    )
+    packet_id = capture.packet.packet_id
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    raw_anchor = {
+        key: preserved[key]
+        for key in ("file_id", "relative_packet_path", "sha256", "hash_basis")
+    }
     projection = tmp_path / "ig_projection.json"
-    projection.write_text(json.dumps({"packet_id": packet_id, "rows": _projection_rows(packet_id)}), encoding="utf-8")
+    projection.write_text(
+        json.dumps(
+            {
+                "packet_id": packet_id,
+                "rows": _projection_rows(packet_id, raw_anchor),
+            }
+        ),
+        encoding="utf-8",
+    )
     return projection
 
 
