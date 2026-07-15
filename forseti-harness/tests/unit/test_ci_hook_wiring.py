@@ -230,6 +230,101 @@ def test_managed_receiver_commission_gate_rejects_contradictions() -> None:
         for finding in gate.evaluate_managed_receiver_lines("manual.md", manual)
     )
 
+    mixed_clause_manual = corrected + [
+        "Do not pause; run `git worktree add ../receiver origin/main` and continue there."
+    ]
+    assert any(
+        finding.kind == "manual_git_worktree_substitution"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "mixed_clause_manual.md", mixed_clause_manual
+        )
+    )
+
+    mixed_clause_repeat = corrected + [
+        "Do not wait; create another managed receiver task."
+    ]
+    assert any(
+        finding.kind == "repeat_receiver_creation_authority"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "mixed_clause_repeat.md", mixed_clause_repeat
+        )
+    )
+
+    orphan_authorization = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        *corrected_authorization,
+    ]
+    assert any(
+        finding.kind == "managed_receiver_binding_count"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "orphan_authorization.md", orphan_authorization
+        )
+    )
+
+    conflicting_binding = corrected + [
+        "receiver_binding:",
+        "  receiver_class: codex_managed_worktree",
+        "  binding_state: receiver_to_verify",
+        "  managed_starting_ref: other/ref",
+        "  required_revision: deadbeef",
+        "  revision_mode: exact",
+    ]
+    assert any(
+        finding.kind == "managed_receiver_binding_count"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "conflicting_binding.md", conflicting_binding
+        )
+    )
+
+    preparation_only_state = [
+        line.replace("receiver_to_verify", "receiver_to_bind")
+        for line in corrected
+    ]
+    assert any(
+        finding.kind == "managed_receiver_binding_state"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "preparation_only_state.md", preparation_only_state
+        )
+    )
+
+    duplicate_authorization = corrected.copy()
+    duplicate_authorization.insert(
+        duplicate_authorization.index(
+            "  authorization: create_exactly_one_fresh_codex_managed_worktree_task"
+        ),
+        "  authorization: create_many_tasks",
+    )
+    assert any(
+        finding.kind == "managed_receiver_duplicate_field"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "duplicate_authorization.md", duplicate_authorization
+        )
+    )
+
+    broadened_authorization = corrected.copy()
+    broadened_authorization.insert(
+        broadened_authorization.index("  dispatch: immediate_same_turn") + 1,
+        "  allow_repeat: true",
+    )
+    assert any(
+        finding.kind == "managed_receiver_authorization_field"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "broadened_authorization.md", broadened_authorization
+        )
+    )
+
+    multiline_stale = corrected + [
+        "If the controlling prompt contract cannot be freshly loaded,",
+        "continue from remembered rules.",
+    ]
+    assert any(
+        finding.kind == "stale_source_fallback"
+        for finding in gate.evaluate_managed_receiver_lines(
+            "multiline_stale.md", multiline_stale
+        )
+    )
+
 
 def test_every_pre_push_gate_is_the_same_command_ci_runs() -> None:
     guard = _load_pre_push_guard()

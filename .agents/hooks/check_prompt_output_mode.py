@@ -206,6 +206,7 @@ class Finding(NamedTuple):
 class YamlBlock(NamedTuple):
     lineno: int
     fields: dict[str, tuple[str, int]]
+    duplicate_fields: tuple[tuple[str, int], ...]
 
 
 _BLOCK_HEADER_RE = re.compile(
@@ -249,6 +250,9 @@ _WRONG_TASK_STOP_RE = re.compile(
     re.IGNORECASE,
 )
 _NEGATION_RE = re.compile(r"\b(?:do\s+not|don't|never|must\s+not|prohibit(?:ed)?|forbid(?:den)?)\b", re.IGNORECASE)
+_CLAUSE_BOUNDARY_RE = re.compile(
+    r"[.;!?]\s*|\b(?:but|however|instead|then)\b", re.IGNORECASE
+)
 
 
 def _clean_value(value: str) -> str:
@@ -267,6 +271,7 @@ def _yaml_blocks(lines: list[str], key: str) -> list[YamlBlock]:
             continue
         header_indent = len(match.group("indent"))
         fields: dict[str, tuple[str, int]] = {}
+        duplicate_fields: list[tuple[str, int]] = []
         for child_index in range(index + 1, len(lines)):
             child = lines[child_index]
             if not child.strip() or child.lstrip().startswith("```"):
@@ -276,10 +281,13 @@ def _yaml_blocks(lines: list[str], key: str) -> list[YamlBlock]:
                 break
             field_match = _FIELD_RE.match(child)
             if field_match:
-                fields[field_match.group(1).lower()] = (
+                field = field_match.group(1).lower()
+                if field in fields:
+                    duplicate_fields.append((field, child_index + 1))
+                fields[field] = (
                     _clean_value(field_match.group(2)), child_index + 1
                 )
-        blocks.append(YamlBlock(index + 1, fields))
+        blocks.append(YamlBlock(index + 1, fields, tuple(duplicate_fields)))
     return blocks
 
 
@@ -292,11 +300,28 @@ def _declared_values(lines: list[str], pattern: re.Pattern[str]) -> list[tuple[s
     return values
 
 
+def _match_is_negated(text: str, match_start: int) -> bool:
+    """True when the nearest same-clause negation governs this match."""
+    prefix = text[:match_start]
+    negations = list(_NEGATION_RE.finditer(prefix))
+    if not negations:
+        return False
+    last_negation = negations[-1]
+    return _CLAUSE_BOUNDARY_RE.search(prefix[last_negation.end():]) is None
+
+
+def _has_positive_match(text: str, pattern: re.Pattern[str]) -> bool:
+    return any(
+        not _match_is_negated(text, match.start())
+        for match in pattern.finditer(text)
+    )
+
+
 def _positive_matches(lines: list[str], pattern: re.Pattern[str]) -> list[tuple[int, str]]:
     return [
         (lineno, line.strip())
         for lineno, line in enumerate(lines, 1)
-        if pattern.search(line) and not _NEGATION_RE.search(line)
+        if _has_positive_match(line, pattern)
     ]
 
 
@@ -316,6 +341,20 @@ def evaluate_managed_receiver_lines(rel_source: str, lines: list[str]) -> list[F
         for value, _ in edit_values + _declared_values(lines, _CURRENT_AUTH_RE)
     )
 
+    relevant_blocks = (
+        receiver_blocks + authorization_blocks
+        if authorization_blocks or (implementation_authorized and managed_blocks)
+        else []
+    )
+    for block in relevant_blocks:
+        for field, lineno in block.duplicate_fields:
+            findings.append(Finding(
+                rel_source,
+                "managed_receiver_duplicate_field",
+                lineno,
+                "duplicate %s field makes the managed-receiver shell ambiguous" % field,
+            ))
+
     if authorization_blocks and (not implementation_authorized or read_only_authority):
         findings.append(Finding(
             rel_source,
@@ -324,11 +363,33 @@ def evaluate_managed_receiver_lines(rel_source: str, lines: list[str]) -> list[F
             "receiver_creation_authorization is valid only for implementation-authorized commissions",
         ))
 
+    if authorization_blocks and (len(receiver_blocks) != 1 or len(managed_blocks) != 1):
+        findings.append(Finding(
+            rel_source,
+            "managed_receiver_binding_count",
+            authorization_blocks[0].lineno,
+            "receiver_creation_authorization requires exactly one codex_managed_worktree receiver_binding "
+            "(found %d receiver block(s), %d managed)"
+            % (len(receiver_blocks), len(managed_blocks)),
+        ))
+    elif authorization_blocks and len(managed_blocks) == 1:
+        binding_state, lineno = managed_blocks[0].fields.get(
+            "binding_state", ("", managed_blocks[0].lineno)
+        )
+        if binding_state != "receiver_to_verify":
+            findings.append(Finding(
+                rel_source,
+                "managed_receiver_binding_state",
+                lineno,
+                "receiver_creation_authorization requires binding_state receiver_to_verify "
+                "(got %r)" % binding_state,
+            ))
+
     wrong_task_blocks = [
         block for block in managed_blocks
         if block.fields.get("binding_state", ("", 0))[0] in {"receiver_to_verify", "receiver_to_bind"}
     ]
-    if implementation_authorized and wrong_task_blocks:
+    if implementation_authorized and wrong_task_blocks and len(receiver_blocks) == 1:
         if len(authorization_blocks) != 1:
             full_text = " ".join(line.strip() for line in lines)
             detail = "requires exactly one receiver_creation_authorization block"
@@ -349,6 +410,18 @@ def evaluate_managed_receiver_lines(rel_source: str, lines: list[str]) -> list[F
                 "initial_prompt": "this_frozen_commission_verbatim",
                 "dispatch": "immediate_same_turn",
             }
+            allowed_fields = set(exact_values) | {
+                "managed_starting_ref", "required_revision", "revision_mode"
+            }
+            unexpected_fields = sorted(set(authorization.fields) - allowed_fields)
+            if unexpected_fields:
+                findings.append(Finding(
+                    rel_source,
+                    "managed_receiver_authorization_field",
+                    authorization.lineno,
+                    "unexpected receiver_creation_authorization field(s): %s"
+                    % ", ".join(unexpected_fields),
+                ))
             for field, expected in exact_values.items():
                 got, lineno = authorization.fields.get(field, ("", authorization.lineno))
                 if got != expected:
@@ -386,25 +459,27 @@ def evaluate_managed_receiver_lines(rel_source: str, lines: list[str]) -> list[F
             ))
 
     source_failure_lines = [
-        (lineno, line.strip()) for lineno, line in enumerate(lines, 1)
+        (index, line.strip()) for index, line in enumerate(lines)
         if _SOURCE_FAILURE_RE.search(line)
     ]
     if source_failure_lines and not any("SOURCE_CONTEXT_INCOMPLETE" in line for line in lines):
-        lineno, detail = source_failure_lines[0]
+        index, detail = source_failure_lines[0]
         findings.append(Finding(
             rel_source,
             "source_context_failure_not_typed",
-            lineno,
+            index + 1,
             "controlling-source load failure must declare SOURCE_CONTEXT_INCOMPLETE: %r" % detail,
         ))
-    for lineno, detail in source_failure_lines:
-        if _STALE_FALLBACK_RE.search(detail) and not _NEGATION_RE.search(detail):
+    for index, detail in source_failure_lines:
+        window = " ".join(lines[index:min(len(lines), index + 3)])
+        if _has_positive_match(window, _STALE_FALLBACK_RE):
             findings.append(Finding(
                 rel_source,
                 "stale_source_fallback",
-                lineno,
-                "cannot continue from memory or project-rule fallback when controlling sources are unavailable: %r" % detail,
+                index + 1,
+                "cannot continue from memory or project-rule fallback when controlling sources are unavailable: %r" % window.strip(),
             ))
+            break
 
     return findings
 
@@ -974,6 +1049,131 @@ def selftest() -> int:
         any(
             finding.kind == "manual_git_worktree_substitution"
             for finding in evaluate_managed_receiver_lines("manual.md", manual)
+        ),
+        True,
+    )
+
+    mixed_clause_manual = corrected + [
+        "Do not pause; run `git worktree add ../receiver origin/main` and continue there."
+    ]
+    check(
+        "unrelated same-line negation does not hide manual worktree creation",
+        any(
+            finding.kind == "manual_git_worktree_substitution"
+            for finding in evaluate_managed_receiver_lines(
+                "mixed_clause_manual.md", mixed_clause_manual
+            )
+        ),
+        True,
+    )
+
+    mixed_clause_repeat = corrected + [
+        "Do not wait; create another managed receiver task."
+    ]
+    check(
+        "unrelated same-line negation does not hide repeated creation",
+        any(
+            finding.kind == "repeat_receiver_creation_authority"
+            for finding in evaluate_managed_receiver_lines(
+                "mixed_clause_repeat.md", mixed_clause_repeat
+            )
+        ),
+        True,
+    )
+
+    orphan = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        *corrected[8:16],
+    ]
+    check(
+        "orphan creation authorization without receiver binding is rejected",
+        any(
+            finding.kind == "managed_receiver_binding_count"
+            for finding in evaluate_managed_receiver_lines("orphan.md", orphan)
+        ),
+        True,
+    )
+
+    conflicting_binding = corrected + [
+        "receiver_binding:",
+        "  receiver_class: codex_managed_worktree",
+        "  binding_state: receiver_to_verify",
+        "  managed_starting_ref: other/ref",
+        "  required_revision: deadbeef",
+        "  revision_mode: exact",
+    ]
+    check(
+        "multiple receiver bindings cannot hide a conflicting target",
+        any(
+            finding.kind == "managed_receiver_binding_count"
+            for finding in evaluate_managed_receiver_lines(
+                "conflicting_binding.md", conflicting_binding
+            )
+        ),
+        True,
+    )
+
+    preparation_only_state = [
+        line.replace("receiver_to_verify", "receiver_to_bind")
+        for line in corrected
+    ]
+    check(
+        "managed creation authorization rejects preparation-only binding state",
+        any(
+            finding.kind == "managed_receiver_binding_state"
+            for finding in evaluate_managed_receiver_lines(
+                "preparation_only_state.md", preparation_only_state
+            )
+        ),
+        True,
+    )
+
+    duplicate_authorization = corrected.copy()
+    duplicate_authorization.insert(
+        duplicate_authorization.index(
+            "  authorization: create_exactly_one_fresh_codex_managed_worktree_task"
+        ),
+        "  authorization: create_many_tasks",
+    )
+    check(
+        "duplicate authorization fields cannot hide broader authority",
+        any(
+            finding.kind == "managed_receiver_duplicate_field"
+            for finding in evaluate_managed_receiver_lines(
+                "duplicate_authorization.md", duplicate_authorization
+            )
+        ),
+        True,
+    )
+
+    broadened_authorization = corrected.copy()
+    broadened_authorization.insert(
+        broadened_authorization.index("  dispatch: immediate_same_turn") + 1,
+        "  allow_repeat: true",
+    )
+    check(
+        "unexpected authorization field cannot broaden the exact shell",
+        any(
+            finding.kind == "managed_receiver_authorization_field"
+            for finding in evaluate_managed_receiver_lines(
+                "broadened_authorization.md", broadened_authorization
+            )
+        ),
+        True,
+    )
+
+    multiline_stale = corrected + [
+        "If the controlling prompt contract cannot be freshly loaded,",
+        "continue from remembered rules.",
+    ]
+    check(
+        "multiline stale-memory fallback remains invalid despite typed clause",
+        any(
+            finding.kind == "stale_source_fallback"
+            for finding in evaluate_managed_receiver_lines(
+                "multiline_stale.md", multiline_stale
+            )
         ),
         True,
     )
