@@ -13,7 +13,7 @@ use_when:
 stale_if:
   - The implementation target differs from commit 234b9f223949f3200945e7b4522891babe0e6bf4.
   - The named 25-file patch scope or the generic Silver unknown-time authority changes.
-authority_boundary: commission_only
+authority_boundary: retrieval_only
 ```
 
 ## Forseti Prompt Preflight
