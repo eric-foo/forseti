@@ -9,8 +9,9 @@ scope: >
   forseti/product/), the five adjudicated conventions, the Source Capture Toolbox
   shared-capability rule, the source-family phase convention, the
   product-learning three-home rule, the search-dissolution policy, the
-  foregone-limitations ledger, and the later Capture `core/` internal
-  re-home. Target design and structure authority only: it is NOT
+  foregone-limitations ledger, the later Capture `core/` internal re-home, and
+  the accepted Company Surface information-axis amendment. Target design and
+  structure authority only: it is NOT
   validation/readiness/proof or a runtime-migration authorization.
 use_when:
   - Deciding the target home of a product artifact under the spine-first tree.
@@ -92,6 +93,16 @@ product-facing creator-intelligence surface over the Capture-owned
 `creator_profile_current` view. It does not own identity linkage rows, metric
 rollup computation, ideal-audience inference schemas, storage, runtime, capture,
 outreach, or public-directory authority.
+
+Post-execution Information amendment (2026-07-15): `forseti/product/information/`
+is accepted as the fifth second-level product axis, with `company_surface/` as
+its first and only current domain. The axis owns reusable, decision-agnostic
+product-information contracts; it does not own actual records, operational
+workflows, analysis conclusions, or generic shared documents. Company Surface
+is not a spine and does not contain the Commission Signal Board: Capture is an
+upstream evidence supplier, Data Lake owns physical storage, and CSB is an
+operational consumer. Record, identity, history, storage, consumer-interface,
+and runtime design remain deferred.
 
 ## Base and provenance
 
@@ -232,6 +243,9 @@ orca/product/
       fragrance/
       retail_pdp/
       other_verticals/
+
+  information/
+    company_surface/
 
   shared/
     engagement_registry/
@@ -497,71 +511,60 @@ direction_change_propagation:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Orca adopts the spine-first target structure (rooted at orca/product/, with
-    spines/satellites/case_families/shared and a docs/ doctrine/ role) as the
-    single TARGET-structure authority a later migration-execution controller
-    binds to, with five adjudicated conventions, the Source Capture Toolbox
-    shared-capability rule, the source-family phase convention, the
-    product-learning three-home rule, the search-dissolution policy, and the
-    foregone-limitations ledger. Target design only: no file move, no orca/
-    creation, no repo-structure.yaml / artifact-folders amendment, no runtime
-    migration; current placement authority (artifact-folders + repo-structure
-    binding + repo-structure.yaml) is unchanged until a separate authorized
-    execution pass applies the supersessions listed here.
+    Forseti adds `information/` as the fifth accepted second-level product
+    axis, with `company_surface/` as its first current domain; the axis owns
+    reusable decision-agnostic information contracts while operational work
+    remains spine-owned and actual records remain Data Lake-stored.
   trigger: architecture_doctrine
-  related_triggers:
-    - output_authority
-    - workflow_authority
+  related_triggers: [workflow_authority, output_authority]
   controlling_sources_updated:
     - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
-  downstream_surfaces_checked:
-    - docs/decisions/forseti_repo_structure_binding_v0.md
-    - docs/decisions/forseti_search_product_lane_binding_v0.md
-    - repo-structure.yaml
     - .agents/workflow-overlay/artifact-folders.md
-    - docs/workflows/orca_repo_map_v0.md
-    - docs/decisions/forseti_doctrine_index_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/STRUCTURE.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - repo-structure.yaml
+    - forseti/product/README.md
+    - forseti/product/information/README.md
+    - forseti/product/information/company_surface/README.md
+    - forseti/product/spines/capture/README.md
+    - forseti/product/spines/data_lake/README.md
+    - forseti/product/spines/commission_signal_board/README.md
   intentionally_not_updated:
     - path: repo-structure.yaml
       reason: >
-        Adding orca/ to known_top_level and the orca/product/ axis is an
-        EXECUTION-time amendment (Blocker B1). This binding defers execution and
-        records the amendment as the supersession checklist, so the machine map
-        is intentionally left at its current (docs/product by-lane) state.
-    - path: .agents/workflow-overlay/artifact-folders.md
+        The machine map declares the `forseti/` root and delegates per-product
+        structure to this binding; it does not enumerate second-level axes.
+    - path: forseti/product/shared/
       reason: >
-        The docs/product by-lane bullet stays current placement authority until
-        execution. Amending it now would fork placement authority from the
-        un-applied tree.
-    - path: docs/decisions/forseti_repo_structure_binding_v0.md
+        Its current homes remain transitional; this change neither places Company
+        Surface there nor re-homes them.
+    - path: Capture, Data Lake, and Commission Signal Board spine content
       reason: >
-        Its docs/product by-lane parameter remains the live rule until execution;
-        superseded only when the move applies.
-    - path: docs/decisions/forseti_search_product_lane_binding_v0.md
+        Their operational and storage ownership is unchanged; the new information
+        relationship is routed without changing their contracts.
+    - path: forseti-harness/ and stored company data
       reason: >
-        Its search/ home governs current placement; the dissolution supersedes it
-        only at execution and preserves the method docs' venue-spanning authority
-        (Blocker B2 surfaces it for owner confirmation).
-    - path: docs/workflows/orca_repo_map_v0.md
+        Folder authority only; no runtime, schema, migration, capture, or data
+        write is authorized.
+    - path: historical migration prose, receipts, review-input snapshots, and forseti/product/.gitkeep
       reason: >
-        Reference rewrites (docs/product -> orca/product) are an execution-time
-        bulk edit; the map still routes current homes today.
-    - path: docs/decisions/forseti_doctrine_index_v0.md
-      reason: >
-        The docs/doctrine/ vs docs/decisions/ boundary is undefined (Blocker B3);
-        no index change is made until that boundary is tagged.
+        Point-in-time or bootstrap evidence may retain the prior axis list; none
+        is a live placement or retrieval router.
   stale_language_search: >
-    rg -i "spine-first|spine_first|orca/product/spines|mini.god.tier target" over *.md
-    (run 2026-06-18 in worktree youthful-jones-ae658e @ 8f19b460)
+    rg -n "Second-level axis|second-level axis|spines/satellites/case_families/shared|spines / satellites /|spines\\|satellites\\|case_families\\|shared"
+    AGENTS.md .agents docs forseti repo-structure.yaml
   stale_language_search_result: >
-    Three hits only: the two committed migration inventories being reconciled
-    (capture #252, search #247) and one adversarial-review output with incidental
-    phrasing. No pre-existing spine-first / orca/product target-structure doctrine
-    exists, so this binding is additive and forks nothing.
+    Executed 2026-07-15 after the edit. Live enumerating routers include
+    `information/`; other hits are generic axis references, pre-amendment or
+    review-input evidence, and this receipt. No checked live enumerating router
+    omits the new axis.
   non_claims:
     - not validation
     - not readiness
-    - not source promotion
-    - not implementation or runtime-migration authorization
-    - not creation of the orca/ tree
+    - not Company Surface content or schema acceptance
+    - not runtime, storage, capture, CSB, or data-migration authorization
 ```

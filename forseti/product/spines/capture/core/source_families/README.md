@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Capture source-family lane catalog
 scope: >
-  Cold-start catalog for known Capture source families. Routes from the
+  Cold-start catalog for landed Capture source-family routes only. Routes from the
   source-agnostic Source Capture Playbook / Armory into the owning source-family
   lane index, then onward to runner, projection, Data Lake, ECR, and Cleaning
   surfaces without moving those downstream contracts here.
@@ -26,7 +26,13 @@ stale_if:
 ## Cold-Start Rule
 
 Use this catalog after the Source Capture Playbook has answered the
-source-access/method question.
+source-access/method question. This is not a discovery inventory, theoretical
+surface list, or capability backlog.
+
+The lifecycle is: **unproven candidate → playbook-governed probe → bounded
+route and owning lane land → catalog row**. A newly named surface family remains
+an unprobed candidate until observed route evidence exists and its bounded route
+and owner have landed; naming it does not earn a row.
 
 Authority split:
 
@@ -35,6 +41,8 @@ Authority split:
 - This folder owns the Capture source-family routing home: where to open for a
   known family, which runner/projection/cleaning surfaces exist, and which
   residuals travel forward.
+- Family indexes and route cards point to the Source Capture Playbook and probe
+  receipts for volatile access mechanics; they do not duplicate those mechanics.
 - `forseti/product/spines/data_lake/authority/` owns raw admission, path grammar,
   derived layout, write boundary, Silver, and medallion semantics.
 - Projection, ECR, and Cleaning keep their own layer semantics. A source-family
@@ -58,6 +66,10 @@ before making strict or actionable claims.
 | Creator registry / public-handle linkage | `forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md` | Creator registry specs | Static ledgers/materializers, not a live capture runner | Creator profile current view / Creator Signal surfaces | Cross-platform known-account preflight and profile-current view, not a source-access lane. |
 | Cross-archive historical capture (not a source family) | Source Capture Playbook, section "Cross-archive historical capture"; `orca-harness/source_capture/historical_capture.py` | Source Capture Playbook | `run_source_capture_historical_packet.py` | Data Lake authority docs if raw packets are written | Cross-source route for historical/pre-cutoff state; do not create a fake source-family identity. |
 
+`Current posture` records the residuals and limits of a landed route. It proves
+none of permission, validation, readiness, completeness, scale, or standing-
+capture authorization.
+
 ## Enforcement Candidate (Evaluated, Not Built)
 
 A future advisory hook could compare changed files under `orca-harness/source_capture/`,
@@ -73,8 +85,10 @@ missed family-index row proves the route layer alone is not enough.
 
 ## Non-Claims
 
-This catalog is not source-access permission, live network authorization,
-validation, readiness, fixture admission, lake contract authority, ECR or
-Cleaning authority, Judgment, buyer proof, source completeness, or commercial
-readiness. It is a routing layer so a cold reader can find the correct owning
-lane without searching the whole repo.
+This catalog is not a discovery inventory, theoretical surface list, capability
+backlog, source-access permission, live network authorization, validation,
+readiness, fixture admission, lake contract authority, ECR or Cleaning
+authority, Judgment, buyer proof, source completeness, route completeness,
+scale proof, standing-capture authorization, or commercial readiness. It is a
+routing layer so a cold reader can find the correct landed owning lane without
+searching the whole repo.
