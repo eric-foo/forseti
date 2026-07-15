@@ -249,8 +249,8 @@ def test_unresolvable_and_gate_failing_records_are_counted_never_scanned(
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     pid, json3_entry = _commit_caption_packet(root, tmp_path, "alpha", "talking about Dior")
-    # Gate-complete record whose only ref is a derived (ASR) ref -> no raw
-    # transcript ref to resolve; its named mention must land in unscannable.
+    # Structurally complete record whose derived source does not exist: the
+    # physical authority gate excludes it before transcript scanning.
     _write_record(
         root,
         pid,
@@ -281,18 +281,17 @@ def test_unresolvable_and_gate_failing_records_are_counted_never_scanned(
     assert report["substrate"]["mention_records_total"] == 3
     assert report["substrate"]["mention_records_by_selection_status"] == {
         "invalid_silver_envelope": 1,
-        "selected_exact_policy": 1,
+        "selected_exact_policy": 0,
+        "source_ref_unresolved": 1,
         "unreadable": 1,
     }
-    assert report["transcript_resolution"]["records_by_disposition"] == {
-        "no_raw_transcript_ref": 1
-    }
-    assert report["transcript_resolution"]["named_mentions_unscannable"] == 1
+    assert report["transcript_resolution"]["records_by_disposition"] == {}
+    assert report["transcript_resolution"]["named_mentions_unscannable"] == 0
     assert report["knowledge_leak_scan"]["named_mentions_scanned"] == 0
     assert report["knowledge_leak_scan"]["leak_rate"] is None
 
 
-def test_raw_ref_mismatches_are_unscannable_not_fallback_scanned(
+def test_raw_ref_mismatches_are_non_authority_not_fallback_scanned(
     tmp_path: Path,
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
@@ -325,19 +324,15 @@ def test_raw_ref_mismatches_are_unscannable_not_fallback_scanned(
     report = run_eval(root, product_mention_policy=_POLICY)
 
     # Neither record may be scanned against a substitute transcript: the wrong
-    # file_id and the wrong hash are counted dispositions, never fallbacks.
+    # file_id and the wrong hash fail the shared physical authority gate.
     assert report["knowledge_leak_scan"]["named_mentions_scanned"] == 0
-    assert report["transcript_resolution"]["named_mentions_unscannable"] == 2
-    assert report["transcript_resolution"]["records_by_disposition"] == {
-        "raw_transcript_ref_hash_mismatch": 1,
-        "transcript_file_missing_in_packet": 1,
+    assert report["substrate"]["mention_records_by_selection_status"] == {
+        "selected_exact_policy": 0,
+        "source_ref_unresolved": 2,
     }
-    assert report["knowledge_leak_scan"]["per_brand"]["Dior"] == {
-        "mentions": 2,
-        "scanned": 0,
-        "leaked": 0,
-        "unscannable": 2,
-    }
+    assert report["transcript_resolution"]["named_mentions_unscannable"] == 0
+    assert report["transcript_resolution"]["records_by_disposition"] == {}
+    assert report["knowledge_leak_scan"]["per_brand"] == {}
 
 
 def test_records_without_named_mentions_get_not_attempted_disposition(

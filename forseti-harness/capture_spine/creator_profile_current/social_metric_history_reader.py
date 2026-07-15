@@ -17,6 +17,7 @@ from capture_spine.creator_profile_current.silver_envelope_core import content_h
 from data_lake.silver_record import (
     METRIC_OBSERVATION_SET_PAYLOAD_KIND,
     validate_silver_vault_record,
+    verify_silver_vault_record_sources,
 )
 
 if TYPE_CHECKING:
@@ -78,6 +79,7 @@ def read_social_metric_history(
         if not isinstance(record, Mapping):
             raise ValueError(f"social metric Silver record is not an object: {path}")
         validate_silver_vault_record(record)
+        verify_silver_vault_record_sources(data_root, record, record_path=path)
         expected_hash = f"sha256:{content_hash(dict(record))}"
         if record.get("content_hash") != expected_hash:
             raise ValueError(f"social metric Silver content hash mismatch: {path}")

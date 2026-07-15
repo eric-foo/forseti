@@ -25,12 +25,14 @@ by a conformance test, not yet wired into every producer's write path.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 import hashlib
 import json
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from data_lake.canonical_json import canonical_record_bytes
+from data_lake.root import DataLakeRootError
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -48,6 +50,56 @@ METRIC_POSTURE_KINDS = ("observed", "unavailable_with_reason", "not_attempted")
 METRIC_OBSERVATION_SET_PAYLOAD_KIND = "MetricObservationSet"
 TEXT_OBSERVATION_SET_PAYLOAD_KIND = "TextObservationSet"
 CONTENT_HASH_BASIS = "canonical_json_excluding_content_hash"
+RAW_STORED_BYTES_HASH_BASIS = "raw_stored_bytes"
+DERIVED_RECORD_BYTES_HASH_BASIS = "derived_record_bytes"
+CURRENT_SOURCE_BACKED_AUTHORITY = "current_source_backed"
+HISTORICAL_COMPATIBLE_AUTHORITY = "historical_compatible"
+INVALID_SILVER_AUTHORITY = "invalid"
+UNRESOLVED_SILVER_AUTHORITY = "unresolved"
+PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS = "source_backed_complete"
+
+
+@dataclass(frozen=True)
+class SilverSourceAuthority:
+    status: Literal[
+        "current_source_backed", "historical_compatible", "invalid", "unresolved"
+    ]
+    reason_code: str
+    error: str | None = None
+
+
+_LEGACY_REFERENCE_PROFILES = {
+    (
+        "orca-harness.cleaning.fragrantica_lake.derive_fragrantica_cleaning_into_lake#silver",
+        "fragrantica_cleaning_silver_textobservation_v0",
+        "cleaning_fragrantica_silver",
+    ): "fragrantica_v0",
+    (
+        "orca-harness.cleaning.fragrantica_lake.derive_fragrantica_cleaning_into_lake#silver",
+        "fragrantica_cleaning_silver_metricobservation_v0",
+        "cleaning_fragrantica_silver",
+    ): "fragrantica_v0",
+    (
+        "orca-harness.capture_spine.creator_profile_current.youtube_silver_metric_producer.derive_youtube_creator_metric_silver_records_from_seed#metric_observation",
+        "youtube_creator_metric_silver_metricobservation_v0",
+        "creator_metric_silver",
+    ): "creator_metric_observation_v0",
+    (
+        "orca-harness.capture_spine.creator_profile_current.silver_metric_producer.derive_creator_metric_silver_records_from_projections#metric_observation",
+        "creator_metric_silver_metricobservation_v0",
+        "creator_metric_silver",
+    ): "creator_metric_observation_v0",
+    (
+        "orca-harness.capture_spine.creator_profile_current.youtube_silver_metric_producer.derive_youtube_creator_metric_silver_records_from_seed#metric_rollup",
+        "youtube_creator_metric_silver_metricrollupobservation_v0",
+        "creator_metric_rollup_silver",
+    ): "creator_metric_rollup_v0",
+    (
+        "orca-harness.capture_spine.creator_profile_current.silver_metric_producer.derive_creator_metric_silver_records_from_projections#metric_rollup",
+        "creator_metric_silver_metricrollupobservation_v0",
+        "creator_metric_rollup_silver",
+    ): "creator_metric_rollup_v0",
+}
 # Keys that mark Cleaning processing evidence (the transform ledger). A Silver fact
 # must never carry them -- that is the evidence-vs-fact half of the no-blur invariant.
 _LEDGER_KEYS = ("cleaning_packet", "transform_ledger")
@@ -139,6 +191,15 @@ def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
     if content_hash != f"sha256:{expected_hash}":
         raise SilverRecordError("Silver content hash mismatch: content_hash does not match canonical record content.")
 
+def validate_silver_vault_record_for_write(record: Mapping[str, Any]) -> None:
+    """Validate the canonical grammar required for every newly persisted record."""
+    validate_silver_vault_record(record)
+    if _legacy_lineage_profile(record) is not None:
+        raise SilverRecordError(
+            "Legacy Silver producer schemas are read-only compatibility records."
+        )
+    _validate_strict_lineage_refs(record)
+
 
 def _require_non_empty_string(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
@@ -146,7 +207,27 @@ def _require_non_empty_string(value: Any, field: str) -> str:
     return value
 
 
+def _legacy_lineage_profile(record: Mapping[str, Any]) -> str | None:
+    return _LEGACY_REFERENCE_PROFILES.get(
+        (
+            record.get("producer_id"),
+            record.get("producer_schema_version"),
+            record.get("lane_namespace"),
+        )
+    )
+
+
 def _validate_lineage_refs(record: Mapping[str, Any]) -> None:
+    try:
+        _validate_strict_lineage_refs(record)
+    except SilverRecordError:
+        profile = _legacy_lineage_profile(record)
+        if profile is None:
+            raise
+        _validate_legacy_lineage_refs(record, profile=profile)
+
+
+def _validate_strict_lineage_refs(record: Mapping[str, Any]) -> None:
     raw_refs = record.get("raw_refs")
     derived_refs = record.get("derived_refs")
     if not isinstance(raw_refs, list) or not isinstance(derived_refs, list):
@@ -156,6 +237,12 @@ def _validate_lineage_refs(record: Mapping[str, Any]) -> None:
     for index, ref in enumerate(raw_refs):
         if not isinstance(ref, Mapping):
             raise SilverRecordError(f"Silver raw_refs[{index}] must be a mapping.")
+        ref_type = ref.get("ref_type")
+        if ref_type not in ("raw_packet", "bronze_attachment_record"):
+            raise SilverRecordError(
+                f"Silver raw_refs[{index}].ref_type must be 'raw_packet' or "
+                f"'bronze_attachment_record'; got {ref_type!r}."
+            )
         _require_non_empty_string(ref.get("packet_id"), f"Silver raw_refs[{index}].packet_id")
         sha = ref.get("sha256")
         basis = ref.get("hash_basis")
@@ -170,22 +257,457 @@ def _validate_lineage_refs(record: Mapping[str, Any]) -> None:
         if sha is not None:
             _require_non_empty_string(sha, f"Silver raw_refs[{index}].sha256")
             _require_non_empty_string(basis, f"Silver raw_refs[{index}].hash_basis")
+            if basis != RAW_STORED_BYTES_HASH_BASIS:
+                raise SilverRecordError(
+                    f"Silver raw_refs[{index}].hash_basis must be "
+                    f"{RAW_STORED_BYTES_HASH_BASIS!r}."
+                )
+        if ref_type == "bronze_attachment_record":
+            _require_non_empty_string(
+                sha, f"Silver raw_refs[{index}].sha256"
+            )
+            _require_non_empty_string(
+                basis, f"Silver raw_refs[{index}].hash_basis"
+            )
+            for field in ("attachment_record_id", "source_family", "source_surface"):
+                _require_non_empty_string(
+                    ref.get(field), f"Silver raw_refs[{index}].{field}"
+                )
+            body_sha = _require_non_empty_string(
+                ref.get("body_sha256"), f"Silver raw_refs[{index}].body_sha256"
+            )
+            if body_sha != sha:
+                raise SilverRecordError(
+                    f"Silver raw_refs[{index}].body_sha256 must equal sha256."
+                )
     for index, ref in enumerate(derived_refs):
         if not isinstance(ref, Mapping):
             raise SilverRecordError(f"Silver derived_refs[{index}] must be a mapping.")
         lane = ref.get("lane_namespace", ref.get("lane"))
         record_id = ref.get("record_id")
+        _require_non_empty_string(
+            ref.get("raw_anchor"), f"Silver derived_refs[{index}].raw_anchor"
+        )
         _require_non_empty_string(lane, f"Silver derived_refs[{index}].lane")
         _require_non_empty_string(record_id, f"Silver derived_refs[{index}].record_id")
-        digest = ref.get("content_hash", ref.get("sha256"))
-        basis = ref.get("content_hash_basis", ref.get("hash_basis"))
-        if bool(digest) != bool(basis):
+        sha = ref.get("sha256")
+        hash_basis = ref.get("hash_basis")
+        if bool(sha) != bool(hash_basis):
             raise SilverRecordError(
-                f"Silver derived_refs[{index}] content hash and hash basis must travel together."
+                f"Silver derived_refs[{index}] sha256 and hash_basis must travel together."
             )
-        if digest is not None:
-            _require_non_empty_string(digest, f"Silver derived_refs[{index}].content_hash")
-            _require_non_empty_string(basis, f"Silver derived_refs[{index}].content_hash_basis")
+        if sha is not None:
+            _require_non_empty_string(sha, f"Silver derived_refs[{index}].sha256")
+            _require_non_empty_string(
+                hash_basis, f"Silver derived_refs[{index}].hash_basis"
+            )
+            if hash_basis != DERIVED_RECORD_BYTES_HASH_BASIS:
+                raise SilverRecordError(
+                    f"Silver derived_refs[{index}].hash_basis must be "
+                    f"{DERIVED_RECORD_BYTES_HASH_BASIS!r}."
+                )
+        content_hash = ref.get("content_hash")
+        content_hash_basis = ref.get("content_hash_basis")
+        if bool(content_hash) != bool(content_hash_basis):
+            raise SilverRecordError(
+                f"Silver derived_refs[{index}] content_hash and content_hash_basis "
+                "must travel together."
+            )
+        if content_hash is not None:
+            _require_non_empty_string(
+                content_hash, f"Silver derived_refs[{index}].content_hash"
+            )
+            _require_non_empty_string(
+                content_hash_basis,
+                f"Silver derived_refs[{index}].content_hash_basis",
+            )
+            if content_hash_basis != CONTENT_HASH_BASIS:
+                raise SilverRecordError(
+                    f"Silver derived_refs[{index}].content_hash_basis must be "
+                    f"{CONTENT_HASH_BASIS!r}."
+                )
+
+
+
+
+def _validate_legacy_lineage_refs(
+    record: Mapping[str, Any], *, profile: str
+) -> None:
+    raw_refs = record.get("raw_refs")
+    derived_refs = record.get("derived_refs")
+    if not isinstance(raw_refs, list) or not isinstance(derived_refs, list):
+        raise SilverRecordError("Legacy Silver raw_refs and derived_refs must be lists.")
+    if profile in {"fragrantica_v0", "creator_metric_observation_v0"}:
+        if not raw_refs:
+            raise SilverRecordError(f"{profile} requires raw_refs.")
+        for index, ref in enumerate(raw_refs):
+            if not isinstance(ref, Mapping) or ref.get("ref_type") is not None:
+                raise SilverRecordError(
+                    f"Legacy raw_refs[{index}] must use the declared pre-ref_type grammar."
+                )
+            for field in ("packet_id", "sha256", "hash_basis"):
+                _require_non_empty_string(
+                    ref.get(field), f"Legacy raw_refs[{index}].{field}"
+                )
+            allowed_bases = (
+                {RAW_STORED_BYTES_HASH_BASIS}
+                if profile == "fragrantica_v0"
+                else {
+                    RAW_STORED_BYTES_HASH_BASIS,
+                    "source_captured_watch_html_sha256",
+                }
+            )
+            if ref.get("hash_basis") not in allowed_bases:
+                raise SilverRecordError(
+                    f"Legacy raw_refs[{index}] has an unsupported hash basis."
+                )
+            if profile == "fragrantica_v0":
+                _require_non_empty_string(
+                    ref.get("file_id"), f"Legacy raw_refs[{index}].file_id"
+                )
+    if profile == "fragrantica_v0":
+        if not derived_refs:
+            raise SilverRecordError("fragrantica_v0 requires derived_refs.")
+        expected_lane = "cleaning_fragrantica_audit"
+    elif profile == "creator_metric_observation_v0":
+        if derived_refs:
+            raise SilverRecordError(
+                "creator_metric_observation_v0 must not carry derived_refs."
+            )
+        return
+    else:
+        if raw_refs or not derived_refs:
+            raise SilverRecordError(
+                "creator_metric_rollup_v0 requires only derived_refs."
+            )
+        expected_lane = "creator_metric_silver"
+    for index, ref in enumerate(derived_refs):
+        if not isinstance(ref, Mapping) or ref.get("raw_anchor") is not None:
+            raise SilverRecordError(
+                f"Legacy derived_refs[{index}] must use the declared address grammar."
+            )
+        lane = ref.get("lane_namespace", ref.get("lane"))
+        if lane != expected_lane:
+            raise SilverRecordError(
+                f"Legacy derived_refs[{index}] has an unexpected lane."
+            )
+        _require_non_empty_string(
+            ref.get("record_id"), f"Legacy derived_refs[{index}].record_id"
+        )
+        _require_non_empty_string(
+            ref.get("content_hash"), f"Legacy derived_refs[{index}].content_hash"
+        )
+        if ref.get("content_hash_basis") != CONTENT_HASH_BASIS:
+            raise SilverRecordError(
+                f"Legacy derived_refs[{index}].content_hash_basis must be {CONTENT_HASH_BASIS!r}."
+            )
+
+def verify_silver_vault_record_sources(
+    data_root: "DataLakeRoot",
+    record: Mapping[str, Any],
+    *,
+    record_path: "Path | None" = None,
+    creator_metric_lineage: Any | None = None,
+) -> SilverSourceAuthority:
+    """Require current physical source authority and return its classification."""
+    result = classify_silver_vault_record_sources(
+        data_root,
+        record,
+        record_path=record_path,
+        creator_metric_lineage=creator_metric_lineage,
+    )
+    if result.status != CURRENT_SOURCE_BACKED_AUTHORITY:
+        detail = f": {result.error}" if result.error else ""
+        raise SilverRecordError(
+            f"Silver source authority is {result.status} ({result.reason_code}){detail}"
+        )
+    return result
+
+
+def classify_silver_vault_record_sources(
+    data_root: "DataLakeRoot",
+    record: Mapping[str, Any],
+    *,
+    record_path: "Path | None" = None,
+    creator_metric_lineage: Any | None = None,
+) -> SilverSourceAuthority:
+    """Classify current, compatible historical, invalid, and unresolved evidence."""
+    try:
+        validate_silver_vault_record(record)
+    except (TypeError, ValueError) as exc:
+        return SilverSourceAuthority(
+            INVALID_SILVER_AUTHORITY,
+            "invalid_silver_envelope",
+            f"{type(exc).__name__}: {exc}",
+        )
+    profile = _legacy_lineage_profile(record)
+    if profile in {"creator_metric_observation_v0", "creator_metric_rollup_v0"}:
+        if record_path is None:
+            return SilverSourceAuthority(
+                UNRESOLVED_SILVER_AUTHORITY,
+                "legacy_creator_metric_record_path_required",
+            )
+        try:
+            if creator_metric_lineage is None:
+                from data_lake.creator_metric_lineage import build_creator_metric_lineage_index
+
+                creator_metric_lineage = build_creator_metric_lineage_index(data_root)
+            lineage = creator_metric_lineage.classification_for_path(record_path)
+        except (OSError, TypeError, ValueError) as exc:
+            return SilverSourceAuthority(
+                UNRESOLVED_SILVER_AUTHORITY,
+                "legacy_creator_metric_resolution_failed",
+                f"{type(exc).__name__}: {exc}",
+            )
+        if lineage.current_source_backed_eligible:
+            return SilverSourceAuthority(
+                CURRENT_SOURCE_BACKED_AUTHORITY, lineage.reason_code
+            )
+        if lineage.status != "excluded":
+            return SilverSourceAuthority(
+                HISTORICAL_COMPATIBLE_AUTHORITY, lineage.reason_code
+            )
+        return SilverSourceAuthority(
+            UNRESOLVED_SILVER_AUTHORITY, lineage.reason_code
+        )
+    try:
+        if profile == "fragrantica_v0":
+            _verify_legacy_fragrantica_sources(data_root, record)
+        else:
+            _validate_strict_lineage_refs(record)
+            _verify_canonical_sources(data_root, record)
+    except (OSError, TypeError, ValueError, KeyError, DataLakeRootError) as exc:
+        return SilverSourceAuthority(
+            UNRESOLVED_SILVER_AUTHORITY,
+            "source_ref_unresolved",
+            f"{type(exc).__name__}: {exc}",
+        )
+    return SilverSourceAuthority(
+        CURRENT_SOURCE_BACKED_AUTHORITY,
+        "legacy_bytes_verified" if profile else "canonical_refs_verified",
+    )
+
+
+def _verify_canonical_sources(
+    data_root: "DataLakeRoot", record: Mapping[str, Any]
+) -> None:
+    for index, ref in enumerate(record["raw_refs"]):
+        try:
+            if ref["ref_type"] == "raw_packet":
+                _verify_raw_packet_ref(data_root, ref)
+            else:
+                _verify_attachment_record_ref(data_root, ref)
+        except (OSError, TypeError, ValueError, KeyError, DataLakeRootError) as exc:
+            raise SilverRecordError(
+                f"Silver raw_refs[{index}] is physically unresolved or tampered: {exc}"
+            ) from exc
+    for index, ref in enumerate(record["derived_refs"]):
+        try:
+            _verify_derived_ref(data_root, ref)
+        except (OSError, TypeError, ValueError, KeyError, DataLakeRootError) as exc:
+            raise SilverRecordError(
+                f"Silver derived_refs[{index}] is physically unresolved or tampered: {exc}"
+            ) from exc
+
+
+def _verify_legacy_fragrantica_sources(
+    data_root: "DataLakeRoot", record: Mapping[str, Any]
+) -> None:
+    for ref in record["raw_refs"]:
+        _verify_raw_packet_ref(data_root, {**ref, "ref_type": "raw_packet"})
+    for ref in record["derived_refs"]:
+        _verify_derived_ref(data_root, {**ref, "raw_anchor": record["raw_anchor"]})
+
+def silver_raw_refs_bound_to_own_anchor(record: Mapping[str, Any]) -> bool:
+    """True iff every ``raw_ref`` names the record's own ``raw_anchor`` packet.
+
+    ``verify_silver_vault_record_sources`` proves a ref resolves to real, unaltered
+    bytes; it deliberately does NOT prove those bytes are *this* record's source,
+    because lanes whose seed material legitimately lives in another packet (the
+    creator-metric producers) must stay resolvable. Packet-first lanes make the
+    stronger claim -- the record was captured from the packet it is anchored to --
+    so they pair the shared physical gate with this binding check. Without it a
+    record anchored at packet A that cites packet B's bytes verifies cleanly and
+    counts as current source-backed evidence for A.
+    """
+    raw_anchor = record.get("raw_anchor")
+    raw_refs = record.get("raw_refs")
+    if not isinstance(raw_anchor, str) or not isinstance(raw_refs, list) or not raw_refs:
+        return False
+    return all(
+        isinstance(ref, Mapping) and ref.get("packet_id") == raw_anchor
+        for ref in raw_refs
+    )
+
+
+def _verify_raw_packet_ref(data_root: "DataLakeRoot", ref: Mapping[str, Any]) -> None:
+    loaded = data_root.load_raw_packet(str(ref["packet_id"]))
+    file_id = ref.get("file_id")
+    if file_id is None:
+        claimed = ref.get("sha256")
+        if claimed is not None:
+            _require_exact_hash_basis(
+                ref.get("hash_basis"),
+                RAW_STORED_BYTES_HASH_BASIS,
+                what="raw packet ref",
+            )
+            expected = _normalized_sha256(claimed, what="raw packet ref")
+            matches = [
+                row
+                for row in loaded.manifest.get("preserved_files", [])
+                if isinstance(row, Mapping)
+                and row.get("sha256") == expected
+                and row.get("hash_basis") == RAW_STORED_BYTES_HASH_BASIS
+            ]
+            if len(matches) != 1:
+                raise SilverRecordError(
+                    "packet-level sha256 did not resolve to exactly one preserved raw file"
+                )
+            matched_file_id = matches[0].get("file_id")
+            body = loaded.bodies.get(str(matched_file_id))
+            if body is None:
+                raise SilverRecordError("matched preserved raw file body is unavailable")
+            _verify_bytes_hash(body, claimed, what="raw packet preserved body")
+        return
+    body = loaded.bodies.get(str(file_id))
+    if body is None:
+        raise SilverRecordError(f"raw packet has no preserved file_id {file_id!r}")
+    preserved = next(
+        (
+            row
+            for row in loaded.manifest.get("preserved_files", [])
+            if isinstance(row, Mapping) and row.get("file_id") == file_id
+        ),
+        None,
+    )
+    if not isinstance(preserved, Mapping):
+        raise SilverRecordError(f"raw packet manifest has no file_id {file_id!r}")
+    _require_exact_hash_basis(
+        ref.get("hash_basis"),
+        RAW_STORED_BYTES_HASH_BASIS,
+        what=f"raw file {file_id!r} ref",
+    )
+    _require_exact_hash_basis(
+        preserved.get("hash_basis"),
+        RAW_STORED_BYTES_HASH_BASIS,
+        what=f"raw file {file_id!r} manifest",
+    )
+    if preserved.get("sha256") != _normalized_sha256(
+        ref.get("sha256"), what=f"raw file {file_id!r} ref"
+    ):
+        raise SilverRecordError(f"raw file {file_id!r} manifest sha256 mismatch")
+    _verify_bytes_hash(body, ref.get("sha256"), what=f"raw file {file_id!r}")
+    claimed_path = ref.get("relative_packet_path")
+    if claimed_path is not None:
+        if preserved.get("relative_packet_path") != claimed_path:
+            raise SilverRecordError(f"raw file {file_id!r} relative_packet_path mismatch")
+
+
+def _verify_attachment_record_ref(
+    data_root: "DataLakeRoot", ref: Mapping[str, Any]
+) -> None:
+    # Local import avoids coupling the payload-blind catalog module back into
+    # Silver at import time while keeping the public Bronze boundary explicit.
+    from data_lake.catalog import load_attachment_record_body, source_surface_catalog_rows
+
+    rows = source_surface_catalog_rows(
+        data_root,
+        source_family=str(ref["source_family"]),
+        source_surface=str(ref["source_surface"]),
+    )["attachment_record_rows"]
+    matches = [
+        row
+        for row in rows
+        if row.get("attachment_record_id") == ref["attachment_record_id"]
+        and row.get("packet_id") == ref["packet_id"]
+    ]
+    if len(matches) != 1:
+        raise SilverRecordError(
+            "Bronze Attachment Record ref did not resolve to exactly one public catalog row"
+        )
+    attachment_record = matches[0]
+    _require_exact_hash_basis(
+        ref.get("hash_basis"),
+        RAW_STORED_BYTES_HASH_BASIS,
+        what="Bronze Attachment Record ref",
+    )
+    _require_exact_hash_basis(
+        attachment_record.get("hash_basis"),
+        RAW_STORED_BYTES_HASH_BASIS,
+        what="Bronze Attachment Record catalog row",
+    )
+    for field in (
+        "attachment_record_schema_version",
+        "attachment_record_physicalization",
+        "file_id",
+        "relative_packet_path",
+        "body_ref_kind",
+        "body_ref",
+        "body_sha256",
+        "hash_basis",
+        "payload_kind",
+        "payload_schema_version",
+        "replay_version_pins",
+    ):
+        if field in ref and ref.get(field) != attachment_record.get(field):
+            raise SilverRecordError(f"Bronze Attachment Record {field} mismatch")
+    body = load_attachment_record_body(data_root, attachment_record)
+    claimed = ref.get("sha256")
+    if claimed is not None:
+        _verify_bytes_hash(body, claimed, what="Bronze Attachment Record body")
+
+
+def _verify_derived_ref(data_root: "DataLakeRoot", ref: Mapping[str, Any]) -> None:
+    lane = ref.get("lane_namespace", ref.get("lane"))
+    path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=str(ref["raw_anchor"]),
+        lane=str(lane),
+        record_id=str(ref["record_id"]),
+    )
+    if not path.is_file():
+        raise SilverRecordError(f"derived record does not exist: {path}")
+    body = path.read_bytes()
+    if ref.get("sha256") is not None:
+        _require_exact_hash_basis(
+            ref.get("hash_basis"),
+            DERIVED_RECORD_BYTES_HASH_BASIS,
+            what="derived record sha256",
+        )
+        _verify_bytes_hash(body, ref["sha256"], what="derived record bytes")
+    if ref.get("content_hash") is not None:
+        _require_exact_hash_basis(
+            ref.get("content_hash_basis"),
+            CONTENT_HASH_BASIS,
+            what="derived record content_hash",
+        )
+        derived = json.loads(body.decode("utf-8"))
+        if not isinstance(derived, Mapping) or derived.get("content_hash") != ref["content_hash"]:
+            raise SilverRecordError("derived record content_hash mismatch")
+        if derived.get("content_hash") != f"sha256:{silver_content_hash(derived)}":
+            raise SilverRecordError("derived record content is tampered")
+
+
+def _verify_bytes_hash(body: bytes, claimed: Any, *, what: str) -> None:
+    expected = _normalized_sha256(claimed, what=what)
+    actual = hashlib.sha256(body).hexdigest()
+    if actual != expected:
+        raise SilverRecordError(f"{what} sha256 mismatch")
+
+
+def _normalized_sha256(claimed: Any, *, what: str) -> str:
+    expected = _require_non_empty_string(claimed, f"{what} sha256")
+    if expected.startswith("sha256:"):
+        expected = expected.removeprefix("sha256:")
+    if re.fullmatch(r"[0-9a-f]{64}", expected) is None:
+        raise SilverRecordError(f"{what} sha256 must be lowercase 64-hex")
+    return expected
+
+
+def _require_exact_hash_basis(value: Any, expected: str, *, what: str) -> None:
+    basis = _require_non_empty_string(value, f"{what} hash_basis")
+    if basis != expected:
+        raise SilverRecordError(f"{what} hash_basis must be {expected!r}")
 
 
 def _reject_ledger(container: Mapping[str, Any], *, where: str) -> None:
@@ -437,8 +959,9 @@ def append_silver_record(
     ``SilverRecordError`` BEFORE any bytes are written. The generic ``append_record``
     stays payload-blind; the Silver semantics live here, above it.
     """
-    validate_silver_vault_record(record)
+    validate_silver_vault_record_for_write(record)
     _validate_write_binding(record, raw_anchor=raw_anchor, lane=lane, record_id=record_id)
+    verify_silver_vault_record_sources(data_root, record)
     return data_root.append_record(
         subtree="derived",
         raw_anchor=raw_anchor,
@@ -461,8 +984,10 @@ def append_silver_record_set(
         raise SilverRecordError("A Silver record set requires at least one member.")
     members: dict[str, bytes] = {}
     for lane, record in records.items():
-        validate_silver_vault_record(record)
+        validate_silver_vault_record_for_write(record)
         _validate_write_binding(record, raw_anchor=raw_anchor, lane=lane, record_id=record_id)
+    for lane, record in records.items():
+        verify_silver_vault_record_sources(data_root, record)
         members[lane] = canonical_record_bytes(record)
     return data_root.append_record_set(
         subtree="derived",
@@ -495,10 +1020,20 @@ __all__ = [
     "METRIC_POSTURE_KINDS",
     "METRIC_OBSERVATION_SET_PAYLOAD_KIND",
     "TEXT_OBSERVATION_SET_PAYLOAD_KIND",
+    "CURRENT_SOURCE_BACKED_AUTHORITY",
+    "HISTORICAL_COMPATIBLE_AUTHORITY",
+    "INVALID_SILVER_AUTHORITY",
+    "UNRESOLVED_SILVER_AUTHORITY",
+    "PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS",
+    "SilverSourceAuthority",
     "SILVER_VAULT_RECORD_SCHEMA_VERSION",
     "SilverRecordError",
     "append_silver_record",
     "append_silver_record_set",
+    "classify_silver_vault_record_sources",
     "silver_content_hash",
+    "silver_raw_refs_bound_to_own_anchor",
     "validate_silver_vault_record",
+    "validate_silver_vault_record_for_write",
+    "verify_silver_vault_record_sources",
 ]

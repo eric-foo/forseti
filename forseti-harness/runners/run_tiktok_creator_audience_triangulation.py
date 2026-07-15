@@ -21,11 +21,11 @@ from capture_spine.creator_profile_current.tiktok_grid_observation_producer impo
     TIKTOK_GRID_OBSERVATION_POLICY_VERSION,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
-from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
-    silver_record_source_backed_status,
+from data_lake.silver_record import (
+    SilverRecordError,
+    validate_silver_vault_record,
+    verify_silver_vault_record_sources,
 )
-from data_lake.silver_record import SilverRecordError, validate_silver_vault_record
 from evidence_binding.tiktok_audience_triangulation import (
     ASSEMBLY_RECEIPT_LANE,
     build_assembly_receipt,
@@ -79,25 +79,33 @@ def _record_id(record: Mapping[str, Any]) -> str:
 
 
 def _silver_eligibility_residual(
-    record: Mapping[str, Any], *, lane: str
+    data_root: DataLakeRoot, record: Mapping[str, Any], *, lane: str
 ) -> dict[str, Any] | None:
     try:
         validate_silver_vault_record(record)
     except SilverRecordError:
         return {"lane": lane, "record_id": _record_id(record), "status": "invalid_silver_envelope"}
-    status = silver_record_source_backed_status(record)
-    if status != SOURCE_BACKED_COMPLETE_STATUS:
-        return {"lane": lane, "record_id": _record_id(record), "status": status}
+    try:
+        verify_silver_vault_record_sources(data_root, record)
+    except SilverRecordError as exc:
+        return {
+            "lane": lane,
+            "record_id": _record_id(record),
+            "status": "source_ref_unresolved",
+            "error": str(exc),
+        }
     return None
 
 
 def _select_comment_attention_records(
-    records: Sequence[Mapping[str, Any]],
+    data_root: DataLakeRoot, records: Sequence[Mapping[str, Any]],
 ) -> tuple[list[Mapping[str, Any]], list[dict[str, Any]]]:
     selected: list[Mapping[str, Any]] = []
     residuals: list[dict[str, Any]] = []
     for record in records:
-        ineligible = _silver_eligibility_residual(record, lane=COMMENT_ATTENTION_LANE)
+        ineligible = _silver_eligibility_residual(
+            data_root, record, lane=COMMENT_ATTENTION_LANE
+        )
         if ineligible is not None:
             residuals.append(ineligible)
             continue
@@ -121,13 +129,13 @@ def _select_comment_attention_records(
 
 
 def _select_grid_observation_records(
-    records: Sequence[Mapping[str, Any]],
+    data_root: DataLakeRoot, records: Sequence[Mapping[str, Any]],
 ) -> tuple[list[Mapping[str, Any]], list[dict[str, Any]]]:
     selected: list[Mapping[str, Any]] = []
     residuals: list[dict[str, Any]] = []
     for record in records:
         ineligible = _silver_eligibility_residual(
-            record, lane=SOCIAL_METRIC_OBSERVATION_SET_LANE
+            data_root, record, lane=SOCIAL_METRIC_OBSERVATION_SET_LANE
         )
         if ineligible is not None:
             residuals.append(ineligible)
@@ -158,13 +166,16 @@ def _select_grid_observation_records(
 
 def select_current_audience_silver_records(
     *,
+    data_root: DataLakeRoot,
     comment_attention_records: Sequence[Mapping[str, Any]],
     grid_observation_records: Sequence[Mapping[str, Any]],
 ) -> tuple[list[Mapping[str, Any]], list[Mapping[str, Any]], list[dict[str, Any]]]:
     attention, attention_residuals = _select_comment_attention_records(
-        comment_attention_records
+        data_root, comment_attention_records
     )
-    grid, grid_residuals = _select_grid_observation_records(grid_observation_records)
+    grid, grid_residuals = _select_grid_observation_records(
+        data_root, grid_observation_records
+    )
     return attention, grid, attention_residuals + grid_residuals
 
 
@@ -227,6 +238,7 @@ def prepare_subscription_judgment(
     attention, grid_records, silver_residuals = select_current_audience_silver_records(
         comment_attention_records=attention_records,
         grid_observation_records=grid_records,
+        data_root=data_root,
     )
     if not attention:
         raise ValueError(

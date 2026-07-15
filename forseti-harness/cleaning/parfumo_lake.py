@@ -29,8 +29,8 @@ PARFUMO_CLEANING_SILVER_LANE = "cleaning_parfumo_silver"
 CLEANING_AUDIT_PACK_SCHEMA_VERSION = "cleaning_audit_pack_v0"
 SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
 PARFUMO_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_audit_pack_v1"
-PARFUMO_SILVER_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_textobservation_v1"
-PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_metricobservation_v1"
+PARFUMO_SILVER_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_textobservation_v2"
+PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_metricobservation_v2"
 PARFUMO_CLEANING_METHOD_ID = "parfumo_cleaning_method_v0"
 TEXT_NORMALIZATION_RULE = "parfumo_text_whitespace_normalization"
 PARFUMO_RATING_METRIC_ABSENT_RESIDUAL = (
@@ -300,6 +300,7 @@ def _post_cleaned_silver_record(
         "derived_refs": [
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": packet.packet_id,
                 "lane_namespace": audit_lane,
                 "record_id": audit_record_id,
                 "content_hash": audit_content_hash,
@@ -369,6 +370,7 @@ def _post_cleaned_metric_record(
         "derived_refs": [
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": packet.packet_id,
                 "lane_namespace": audit_lane,
                 "record_id": audit_record_id,
                 "content_hash": audit_content_hash,
@@ -465,6 +467,7 @@ def _has_source_visible_rating_metric(cleaning_packet: CleaningPacket) -> bool:
 def _handle_raw_ref(handle: CleaningInputHandle) -> dict[str, str | None]:
     anchor = handle.raw_anchor
     return {
+        "ref_type": "raw_packet",
         "packet_id": anchor.packet_id,
         "slice_id": anchor.slice_id,
         "file_id": anchor.file_id,

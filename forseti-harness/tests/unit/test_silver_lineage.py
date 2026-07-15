@@ -4,7 +4,7 @@ Covers the adjudicated review findings that are load-bearing here: AR-01 (refs l
 top-level header-shaped fields, never a nested silver_lineage block), AR-02 (derived refs
 can carry a projection row_locator), AR-04 (source_object uses `kind`). Plus the write-boundary
 mechanical rules: exact derived lane+record_id, raw-ref hash-checkability, ref-or-limitation,
-controlled limitation tokens, and the source-backed-completeness gate.
+controlled limitation tokens, and the lineage-structure gate.
 """
 from __future__ import annotations
 
@@ -13,10 +13,10 @@ from pydantic import ValidationError
 
 from data_lake.silver_lineage import (
     SILVER_LINEAGE_SCHEMA_VERSION,
-    SOURCE_BACKED_COMPLETE_STATUS,
-    SOURCE_LINEAGE_INCOMPLETE_STATUS,
-    SOURCE_LINEAGE_INVALID_STATUS,
-    SOURCE_LINEAGE_MISSING_STATUS,
+    LINEAGE_STRUCTURE_COMPLETE_STATUS,
+    LINEAGE_STRUCTURE_INCOMPLETE_STATUS,
+    LINEAGE_STRUCTURE_INVALID_STATUS,
+    LINEAGE_STRUCTURE_MISSING_STATUS,
     SilverDerivedRef,
     SilverLineage,
     SilverLineageLimitation,
@@ -24,8 +24,8 @@ from data_lake.silver_lineage import (
     SilverRawRef,
     SilverRowLocator,
     SilverSourceObject,
-    is_silver_record_source_backed_complete,
-    silver_record_source_backed_status,
+    has_complete_silver_lineage_structure,
+    silver_record_lineage_structure_status,
     validate_silver_lineage,
 )
 
@@ -91,6 +91,15 @@ def test_raw_ref_sha_without_basis_rejected() -> None:
         SilverRawRef(packet_id="P", sha256="a" * 64)  # hash with no stated basis
 
 
+def test_raw_ref_rejects_non_raw_stored_bytes_basis() -> None:
+    with pytest.raises(ValidationError):
+        SilverRawRef(
+            packet_id="P",
+            sha256="a" * 64,
+            hash_basis="source_captured_watch_html_sha256",
+        )
+
+
 def test_raw_ref_packet_level_without_hash_ok() -> None:
     ref = SilverRawRef(packet_id="P")  # packet-level ref, no specific file -> hash optional
     assert ref.packet_id == "P"
@@ -111,35 +120,43 @@ def test_limitations_only_is_valid_but_not_complete() -> None:
             SilverLineageLimitation(reason=SilverLineageLimitationReason.TRANSIENT_SOURCE_NOT_PERSISTED)
         ],
     )
-    assert lin.is_source_backed_complete() is False
+    assert lin.has_reference_structure() is False
 
 
 def test_ref_backed_lineage_is_complete() -> None:
-    assert _derived_lineage().is_source_backed_complete() is True
+    assert _derived_lineage().has_reference_structure() is True
 
 
-def test_silver_record_source_backed_status_reads_persisted_fields() -> None:
+def test_silver_record_lineage_structure_status_reads_persisted_fields() -> None:
     fields = _derived_lineage().to_record_fields()
 
-    assert silver_record_source_backed_status(fields) == SOURCE_BACKED_COMPLETE_STATUS
-    assert is_silver_record_source_backed_complete(fields) is True
+    assert silver_record_lineage_structure_status(fields) == LINEAGE_STRUCTURE_COMPLETE_STATUS
+    assert has_complete_silver_lineage_structure(fields) is True
 
 
-def test_silver_record_source_backed_status_flags_missing_lineage() -> None:
+def test_silver_record_lineage_structure_status_does_not_require_legacy_lineage_version() -> None:
+    fields = _derived_lineage().to_record_fields()
+    fields.pop("lineage_schema_version")
+
+    assert silver_record_lineage_structure_status(fields) == LINEAGE_STRUCTURE_COMPLETE_STATUS
+    assert has_complete_silver_lineage_structure(fields) is True
+
+
+def test_silver_record_lineage_structure_status_flags_missing_lineage() -> None:
     assert (
-        silver_record_source_backed_status({"mention_count": 0}) == SOURCE_LINEAGE_MISSING_STATUS
+        silver_record_lineage_structure_status({"mention_count": 0}) == LINEAGE_STRUCTURE_MISSING_STATUS
     )
-    assert is_silver_record_source_backed_complete({"mention_count": 0}) is False
+    assert has_complete_silver_lineage_structure({"mention_count": 0}) is False
 
 
-def test_silver_record_source_backed_status_flags_invalid_lineage() -> None:
+def test_silver_record_lineage_structure_status_flags_invalid_lineage() -> None:
     fields = _derived_lineage().to_record_fields()
     fields["producer_id"] = "  "
 
-    assert silver_record_source_backed_status(fields) == SOURCE_LINEAGE_INVALID_STATUS
+    assert silver_record_lineage_structure_status(fields) == LINEAGE_STRUCTURE_INVALID_STATUS
 
 
-def test_silver_record_source_backed_status_flags_limitations_only() -> None:
+def test_silver_record_lineage_structure_status_flags_limitations_only() -> None:
     fields = SilverLineage(
         producer_id="p",
         producer_schema_version="v",
@@ -149,7 +166,7 @@ def test_silver_record_source_backed_status_flags_limitations_only() -> None:
         ],
     ).to_record_fields()
 
-    assert silver_record_source_backed_status(fields) == SOURCE_LINEAGE_INCOMPLETE_STATUS
+    assert silver_record_lineage_structure_status(fields) == LINEAGE_STRUCTURE_INCOMPLETE_STATUS
 
 
 # --- row locator (AR-02) -----------------------------------------------------
@@ -168,6 +185,50 @@ def test_derived_ref_carries_row_locator() -> None:
     assert ref.model_dump(mode="json")["row_locator"] == {
         "row_id": "row7", "row_kind": "retail_variant_offer"
     }
+
+
+def test_derived_ref_hash_pairs_are_independent() -> None:
+    address = dict(raw_anchor="A", lane="projection_retail_pdp", record_id="rec1")
+    sha_only = SilverDerivedRef(
+        **address, sha256="a" * 64, hash_basis="derived_record_bytes"
+    )
+    content_only = SilverDerivedRef(
+        **address,
+        content_hash=f"sha256:{'b' * 64}",
+        content_hash_basis="canonical_json_excluding_content_hash",
+    )
+    both = SilverDerivedRef(
+        **address,
+        sha256="a" * 64,
+        hash_basis="derived_record_bytes",
+        content_hash=f"sha256:{'b' * 64}",
+        content_hash_basis="canonical_json_excluding_content_hash",
+    )
+
+    assert sha_only.content_hash is None
+    assert content_only.sha256 is None
+    assert both.sha256 and both.content_hash
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"sha256": "a" * 64, "hash_basis": "raw_stored_bytes"},
+        {
+            "content_hash": f"sha256:{'b' * 64}",
+            "content_hash_basis": "derived_record_bytes",
+        },
+        {"content_hash": f"sha256:{'b' * 64}"},
+    ],
+)
+def test_derived_ref_rejects_wrong_or_half_hash_pairs(overrides: dict[str, str]) -> None:
+    with pytest.raises(ValidationError):
+        SilverDerivedRef(
+            raw_anchor="A",
+            lane="projection_retail_pdp",
+            record_id="rec1",
+            **overrides,
+        )
 
 
 # --- controlled limitation tokens (AR-06) ------------------------------------

@@ -20,20 +20,21 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
     SilverAnchor,
     SilverLineage,
     SilverRawRef,
     SilverSourceObject,
-    silver_record_source_backed_status,
 )
 from data_lake.silver_record import (
+    PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     CONTENT_HASH_BASIS,
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
     TEXT_OBSERVATION_SET_PAYLOAD_KIND,
     append_silver_record_set,
     silver_content_hash,
+    silver_raw_refs_bound_to_own_anchor,
     validate_silver_vault_record,
+    verify_silver_vault_record_sources,
 )
 from source_capture import (
     CaptureModeCategory,
@@ -142,32 +143,16 @@ def current_deep_capture_record(
         record.get("raw_anchor") != raw_anchor
         or record.get("lane_namespace") != lane
         or record.get("record_id") != record_id
-        or silver_record_source_backed_status(record) != SOURCE_BACKED_COMPLETE_STATUS
     ):
         return False
+    # Packet-first: the shared verifier proves the cited bytes are real, not that
+    # they belong to THIS anchor's packet.
+    if not silver_raw_refs_bound_to_own_anchor(record):
+        return False
     try:
-        loaded = data_root.load_raw_packet(raw_anchor)
-    except Exception:  # noqa: BLE001 - read-side eligibility is fail-closed
+        verify_silver_vault_record_sources(data_root, record)
+    except (TypeError, ValueError):
         return False
-    preserved = {
-        item.get("file_id"): item
-        for item in loaded.manifest.get("preserved_files", [])
-        if isinstance(item, Mapping)
-    }
-    raw_refs = record.get("raw_refs")
-    if not isinstance(raw_refs, list) or not raw_refs:
-        return False
-    for ref in raw_refs:
-        if not isinstance(ref, Mapping) or ref.get("packet_id") != raw_anchor:
-            return False
-        item = preserved.get(ref.get("file_id"))
-        if not isinstance(item, Mapping):
-            return False
-        if any(
-            ref.get(field) != item.get(field)
-            for field in ("relative_packet_path", "sha256", "hash_basis")
-        ):
-            return False
     return True
 
 
@@ -191,7 +176,7 @@ def comments_compatibility_view(record: Mapping[str, object]) -> dict[str, objec
         "generated_at": record.get("captured_at"),
         "comment_count": len(comments),
         "comments": comments,
-        "source_backed_status": SOURCE_BACKED_COMPLETE_STATUS,
+        "source_backed_status": PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     }
 
 
@@ -213,7 +198,7 @@ def transcript_compatibility_view(record: Mapping[str, object]) -> dict[str, obj
         "transcript_posture": "transcribed",
         "cue_count": len(cues),
         "cues": cues,
-        "source_backed_status": SOURCE_BACKED_COMPLETE_STATUS,
+        "source_backed_status": PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     }
 
 
