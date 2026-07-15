@@ -33,8 +33,17 @@ MOVE_ID_RE = re.compile(r"\bM\d{2,}\b")
 EXACT_QUERY_ID_RE = re.compile(r"\bEQ-\d{3,}\b")
 CSB_ROW_ID_RE = re.compile(r"\bSBR-\d{3,}\b")
 
+SCAN_RECEIPT_VERSION_FIELD = "scan_receipt_version"
+LEGACY_SCAN_RECEIPT_VERSION = 0
+CURRENT_SCAN_RECEIPT_VERSION = 1
+SUPPORTED_SCAN_RECEIPT_VERSIONS = {
+    LEGACY_SCAN_RECEIPT_VERSION,
+    CURRENT_SCAN_RECEIPT_VERSION,
+}
+
 REQUIRED_INTAKE_FIELDS = {
     "commission_id",
+    SCAN_RECEIPT_VERSION_FIELD,
     "scan_date",
     "mode",
     "subject",
@@ -76,22 +85,6 @@ VALID_ROUTE_BINDING_STATES = {
     "not_applicable",
 }
 AUTO_SCAN_PREFIXES = ("docs/research/",)
-# Pre-contract legacy scan artifacts (2026-06-21/22): written before the
-# receipt contract and closeout vocabulary existed; each fails 9-16 current
-# shape checks it predates. Version-scoped grandfathering (mirrors the packet
-# schema v0->v1 pattern; owner-adjudicated on the research-engine strategy
-# lane, 2026-07-10): auto-detection (CI --diff / --changed) skips exactly
-# these paths so an incidental touch cannot fail CI on a contract that did
-# not exist when they were written. Historical receipts are not rewritten;
-# explicit-path invocation still validates strictly against the current
-# contract. Every later artifact stays fully in scope.
-PRE_CONTRACT_LEGACY_ARTIFACTS = frozenset(
-    {
-        "docs/research/orca_discovery_candidate_scan_imaginary_authors_mgt_v0.md",
-        "docs/research/orca_discovery_candidate_scan_imaginary_authors_csb_first_venue_eval_v0.md",
-        "docs/research/orca_discovery_candidate_scan_imaginary_authors_core_satellite_csb_v0.md",
-    }
-)
 AUTO_SCAN_REQUIRED_MARKERS = (
     "commission_id:",
     "source_context_status:",
@@ -489,6 +482,30 @@ def _validate_intake(intake: dict[str, Any]) -> list[Finding]:
     )
 
     return findings
+
+
+def _receipt_version_findings(intake: dict[str, Any] | None) -> tuple[int | None, list[Finding]]:
+    if intake is None:
+        return None, []
+    if SCAN_RECEIPT_VERSION_FIELD not in intake:
+        return None, [
+            Finding(
+                "missing_scan_receipt_version",
+                f"Scan intake receipt must declare {SCAN_RECEIPT_VERSION_FIELD}: {CURRENT_SCAN_RECEIPT_VERSION} "
+                "or an explicit supported legacy version.",
+            )
+        ]
+    version = _as_int(intake.get(SCAN_RECEIPT_VERSION_FIELD))
+    if version is None or version not in SUPPORTED_SCAN_RECEIPT_VERSIONS:
+        return None, [
+            Finding(
+                "unsupported_scan_receipt_version",
+                f"{SCAN_RECEIPT_VERSION_FIELD} must be one of "
+                + ", ".join(str(item) for item in sorted(SUPPORTED_SCAN_RECEIPT_VERSIONS))
+                + f", got {intake.get(SCAN_RECEIPT_VERSION_FIELD)!r}.",
+            )
+        ]
+    return version, []
 
 
 def _validate_used_within_cap(
@@ -1050,10 +1067,12 @@ def _validate_engagement_overclaims(text: str) -> list[Finding]:
 def _validate_forbidden_text(text: str) -> list[Finding]:
     findings: list[Finding] = []
     for code, pattern in FORBIDDEN_TEXT_PATTERNS.items():
-        match = pattern.search(text)
-        if match:
+        for match in pattern.finditer(text):
+            if _is_nonclaim_context(text, match.start(), match.end()):
+                continue
             excerpt = " ".join(match.group(0).split())
             findings.append(Finding(code, f"Forbidden overclaim language found: {excerpt!r}."))
+            break
     return findings
 
 
@@ -1068,17 +1087,22 @@ def validate_text(text: str) -> list[Finding]:
                 "No YAML scan intake receipt with commission_id and source_context_status found.",
             )
         )
-    else:
+    version, version_findings = _receipt_version_findings(intake)
+    findings.extend(version_findings)
+
+    if version == CURRENT_SCAN_RECEIPT_VERSION and intake is not None:
         findings.extend(_validate_intake(intake))
 
-    findings.extend(_validate_required_receipt_parts(text, intake))
-    findings.extend(_validate_broad_scout_detail(text))
-    findings.extend(_validate_csb_row_ids(text))
-    findings.extend(_validate_count_consistency(text, blocks, intake))
-    findings.extend(_validate_observations(blocks))
-    findings.extend(_validate_candidate_observations(blocks))
-    findings.extend(_validate_capture_requests(blocks))
-    findings.extend(_validate_closeout(text, blocks, intake))
+        findings.extend(_validate_required_receipt_parts(text, intake))
+        findings.extend(_validate_broad_scout_detail(text))
+        findings.extend(_validate_csb_row_ids(text))
+        findings.extend(_validate_count_consistency(text, blocks, intake))
+        findings.extend(_validate_observations(blocks))
+        findings.extend(_validate_candidate_observations(blocks))
+        findings.extend(_validate_capture_requests(blocks))
+        findings.extend(_validate_closeout(text, blocks, intake))
+
+    # Legacy and current receipts both retain universal claim-safety checks.
     findings.extend(_validate_yaml_overclaims(blocks))
     findings.extend(_validate_engagement_overclaims(text))
     findings.extend(_validate_forbidden_text(text))
@@ -1151,9 +1175,12 @@ def looks_like_csb_first_scan_artifact(relposix: str, text: str) -> bool:
     if not any(relposix.startswith(prefix) for prefix in AUTO_SCAN_PREFIXES):
         return False
     lower = text.lower()
-    return all(marker in lower for marker in AUTO_SCAN_REQUIRED_MARKERS) and any(
-        marker in lower for marker in AUTO_SCAN_ROUTE_MARKERS
+    route_marked = any(marker in lower for marker in AUTO_SCAN_ROUTE_MARKERS)
+    current_shape_marked = all(marker in lower for marker in AUTO_SCAN_REQUIRED_MARKERS)
+    explicit_version_marked = (
+        f"{SCAN_RECEIPT_VERSION_FIELD}:" in lower and "commission_id:" in lower
     )
+    return explicit_version_marked or (route_marked and current_shape_marked)
 
 
 def _relposix(root: Path, path: Path) -> str:
@@ -1166,8 +1193,6 @@ def _relposix(root: Path, path: Path) -> str:
 def auto_targets(root: Path, relpaths: Iterable[str]) -> list[Path]:
     targets: list[Path] = []
     for rel in _dedupe(relpaths):
-        if rel.replace("\\", "/") in PRE_CONTRACT_LEGACY_ARTIFACTS:
-            continue
         path = root / rel
         if not path.is_file():
             continue
@@ -1248,11 +1273,16 @@ def selftest() -> int:
             print(f"FAIL {path.name} expected={expected or '<missing>'} findings={findings}")
     legacy_rel = "docs/research/orca_discovery_candidate_scan_imaginary_authors_mgt_v0.md"
     if (root / legacy_rel).is_file():
-        if auto_targets(root, [legacy_rel]):
-            ok = False
-            print(f"FAIL pre-contract legacy artifact was auto-targeted: {legacy_rel}")
+        legacy_targets = auto_targets(root, [legacy_rel])
+        legacy_findings = validate_artifact_path(root, root / legacy_rel)
+        if legacy_targets and not legacy_findings:
+            print("PASS explicit legacy receipt auto-targeted and validated by declared version")
         else:
-            print("PASS pre-contract legacy artifact skipped by auto-detection")
+            ok = False
+            print(
+                "FAIL explicit legacy receipt version dispatch: "
+                f"targeted={bool(legacy_targets)} findings={legacy_findings}"
+            )
     current_rel = "docs/research/orca_discovery_candidate_scan_imaginary_authors_broad_scout_deep_scan_v0.md"
     if (root / current_rel).is_file():
         if auto_targets(root, [current_rel]):

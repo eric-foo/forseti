@@ -48,6 +48,31 @@ def test_valid_csb_first_scan_artifact_passes() -> None:
     assert validator.validate_text(_valid_text()) == []
 
 
+def test_current_receipt_requires_explicit_version() -> None:
+    text = _valid_text().replace("scan_receipt_version: 1\n", "", 1)
+
+    assert "missing_scan_receipt_version" in _codes(text)
+
+
+def test_unsupported_receipt_version_fails_loudly() -> None:
+    text = _valid_text().replace("scan_receipt_version: 1", "scan_receipt_version: 99", 1)
+
+    assert "unsupported_scan_receipt_version" in _codes(text)
+
+
+def test_explicit_legacy_receipt_skips_new_shape_but_keeps_claim_safety() -> None:
+    text = (
+        _valid_text()
+        .replace("scan_receipt_version: 1", "scan_receipt_version: 0", 1)
+        .replace("## Broad Scout Return", "## Scout Notes", 1)
+    )
+
+    assert validator.validate_text(text) == []
+    assert "recency_as_proof" in _codes(
+        text.replace("It did not decide candidates.", "Recency proves demand.", 1)
+    )
+
+
 def test_fixture_expected_fail_has_broad_scout_error() -> None:
     findings = validator.validate_text((FIXTURE_DIR / "bad_missing_broad_scout.md").read_text(encoding="utf-8"))
 
@@ -65,6 +90,7 @@ def test_auto_detection_ignores_non_research_paths() -> None:
 def test_auto_detection_requires_csb_route_marker() -> None:
     text = (
         _valid_text()
+        .replace("scan_receipt_version: 1\n", "", 1)
         .replace("CSB-first", "scan")
         .replace("CSB-First", "Scan")
         .replace("CSB Board", "Board")
@@ -173,6 +199,16 @@ def test_recency_overclaim_text_fails() -> None:
     )
 
     assert "recency_as_proof" in _codes(text)
+
+
+def test_recency_nonclaim_text_passes() -> None:
+    text = _valid_text().replace(
+        "It did not decide candidates.",
+        "Current state does not prove demand.",
+        1,
+    )
+
+    assert validator.validate_text(text) == []
 
 
 def test_fixture_expected_fail_has_engagement_overclaim_errors() -> None:
