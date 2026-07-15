@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "review_id": "tiktok-zero-wheel-react-subtitle-adversarial-code-review-v0",
+  "review_report_path": "docs/review-outputs/tiktok_zero_wheel_react_subtitle_adversarial_code_review_v0.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "claude-opus-4-8",
+  "authored_by": "openai_gpt5_codex",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "OpenAI Codex / GPT-5",
+  "accepted_net_new_material_findings": 2,
+  "decision_changed": "yes",
+  "closure_state": "closed",
+  "report_lines": 409,
+  "turn_count": "unknown",
+  "evidence_pointers": [
+    "docs/review-outputs/tiktok_zero_wheel_react_subtitle_adversarial_code_review_v0.md",
+    "forseti-harness/source_capture/tiktok/live_batch_probe.py",
+    "forseti-harness/tests/unit/test_tiktok_live_batch_probe.py"
+  ],
+  "completed_at": "2026-07-15"
+}
