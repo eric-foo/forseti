@@ -776,6 +776,15 @@ def run_tiktok_creator_onboarding(
             str(window_by_id[video_id]["video_url"])
             for video_id in selected_video_ids
         ]
+        profile_grid_subtitle_sources = _profile_grid_subtitle_sources_from_capture(
+            grid_capture,
+            creator_handle=normalized_handle,
+        )
+        selected_profile_grid_subtitle_sources = {
+            video_id: profile_grid_subtitle_sources[video_id]
+            for video_id in selected_video_ids
+            if video_id in profile_grid_subtitle_sources
+        }
         overlay_capture_sequence = _GridOverlayCaptureSequence(
             profile_url=profile_url,
             creator_handle=normalized_handle,
@@ -818,6 +827,9 @@ def run_tiktok_creator_onboarding(
             capture_route="grid_tile_overlay",
             page_capture_sequence_fn=overlay_capture_sequence,
             grid_candidates_by_video_id=window_by_id,
+            profile_grid_subtitle_sources_by_video_id=(
+                selected_profile_grid_subtitle_sources
+            ),
         )
         captured_video_ids = [
             str(row["video_id"])
@@ -2238,6 +2250,85 @@ def _metric_items_from_capture(
                     [*items, *_metric_items_from_payload(payload, creator_handle)]
                 )
     return items
+
+
+def _profile_grid_subtitle_sources_from_capture(
+    capture: BrowserPageObservationSuccess,
+    *,
+    creator_handle: str,
+) -> dict[str, dict[str, Any]]:
+    """Keep exact-video subtitle URLs in memory for the overlay capture only."""
+
+    payloads: list[object] = []
+    for response in capture.responses:
+        if not response.body_text:
+            continue
+        try:
+            payloads.append(json.loads(response.body_text))
+        except json.JSONDecodeError:
+            continue
+    dom = capture.dom_observation
+    if isinstance(dom, dict):
+        hydration = dom.get("hydration_json_text")
+        if isinstance(hydration, str) and hydration.strip():
+            try:
+                payloads.append(json.loads(hydration))
+            except json.JSONDecodeError:
+                pass
+
+    normalized_handle = _normalize_handle(creator_handle)
+    sources: dict[str, dict[str, Any]] = {}
+
+    def consider(item: object) -> None:
+        if not isinstance(item, dict):
+            return
+        raw_id = item.get("id")
+        if not isinstance(raw_id, (str, int)):
+            return
+        author = item.get("author")
+        author_handle = (
+            str(author.get("uniqueId") or "").lstrip("@").lower()
+            if isinstance(author, dict)
+            else ""
+        )
+        if author_handle and author_handle != normalized_handle:
+            return
+        video = item.get("video")
+        if not isinstance(video, dict):
+            return
+        subtitle_infos = video.get("subtitleInfos", video.get("subtitle_infos"))
+        if not isinstance(subtitle_infos, list) or not subtitle_infos:
+            return
+        video_id = str(raw_id)
+        sources.setdefault(
+            video_id,
+            {
+                "id": video_id,
+                "video": {"subtitleInfos": list(subtitle_infos)},
+            },
+        )
+
+    def visit(node: object) -> None:
+        if isinstance(node, list):
+            for value in node:
+                visit(value)
+            return
+        if not isinstance(node, dict):
+            return
+        item_list = node.get("itemList")
+        if isinstance(item_list, list):
+            for item in item_list:
+                consider(item)
+            for key, value in node.items():
+                if key != "itemList":
+                    visit(value)
+            return
+        for value in node.values():
+            visit(value)
+
+    for payload in payloads:
+        visit(payload)
+    return sources
 
 
 def _metric_items_from_responses(
