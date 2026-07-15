@@ -9,8 +9,9 @@ scope: >
   forseti/product/), the five adjudicated conventions, the Source Capture Toolbox
   shared-capability rule, the source-family phase convention, the
   product-learning three-home rule, the search-dissolution policy, the
-  foregone-limitations ledger, and the later Capture `core/` internal
-  re-home. Target design and structure authority only: it is NOT
+  foregone-limitations ledger, the later Capture `core/` internal re-home, and
+  the accepted Company Surface information-axis amendment. Target design and
+  structure authority only: it is NOT
   validation/readiness/proof or a runtime-migration authorization.
 use_when:
   - Deciding the target home of a product artifact under the spine-first tree.
@@ -92,6 +93,16 @@ product-facing creator-intelligence surface over the Capture-owned
 `creator_profile_current` view. It does not own identity linkage rows, metric
 rollup computation, ideal-audience inference schemas, storage, runtime, capture,
 outreach, or public-directory authority.
+
+Post-execution Information amendment (2026-07-15): `forseti/product/information/`
+is accepted as the fifth second-level product axis, with `company_surface/` as
+its first and only current domain. The axis owns reusable, decision-agnostic
+product-information contracts; it does not own actual records, operational
+workflows, analysis conclusions, or generic shared documents. Company Surface
+is not a spine and does not contain the Commission Signal Board: Capture is an
+upstream evidence supplier, Data Lake owns physical storage, and CSB is an
+operational consumer. Record, identity, history, storage, consumer-interface,
+and runtime design remain deferred.
 
 ## Base and provenance
 
@@ -232,6 +243,9 @@ orca/product/
       fragrance/
       retail_pdp/
       other_verticals/
+
+  information/
+    company_surface/
 
   shared/
     engagement_registry/
