@@ -229,9 +229,57 @@ def test_subscription_prompt_has_no_api_path_and_validator_closes_evidence() -> 
     prompt = build_triangulation_prompt(bundle)
     assert "Omit snapshot_id" in prompt
     assert "do not use the word ritual" in prompt
+    assert "For relation missing" in prompt
+    assert "counterevidence does not count toward support scope" in prompt
     snapshot = parse_triangulation_response(json.dumps(_response(bundle)), bundle)
     assert snapshot.snapshot_id.startswith("cats_")
     assert snapshot.input_bundle_hash == bundle["bundle_hash"]
+
+
+def test_validator_accepts_uncited_missing_claim_but_keeps_supported_claims_strict() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    missing_claim = {
+        "claim_id": "missing-1",
+        "axis": "purchase_decision_stage",
+        "statement": "Conversion and attribution evidence is missing.",
+        "commercial_implication": "Do not forecast sales from this capture.",
+        "modality": "fused",
+        "relation": "missing",
+        "support_scope": "content_only",
+        "representative_evidence_ids": [],
+        "all_support_evidence_ids": [],
+        "counterevidence_ids": [],
+        "limitation": "No transaction, click, code-use, or lift data was supplied.",
+    }
+    response["judgment_claim_set"]["claims"].append(missing_claim)
+
+    snapshot = parse_triangulation_response(json.dumps(response), bundle)
+
+    accepted = snapshot.judgment_claim_set.claims[-1]
+    assert accepted.relation == "missing"
+    assert accepted.source_video_ids == []
+
+    supported_without_evidence = _response(bundle)
+    claim = supported_without_evidence["judgment_claim_set"]["claims"][0]
+    claim["representative_evidence_ids"] = []
+    claim["all_support_evidence_ids"] = []
+    with pytest.raises(
+        TriangulationValidationError, match="non-missing claims require"
+    ):
+        parse_triangulation_response(json.dumps(supported_without_evidence), bundle)
+
+
+def test_validator_rejects_evidence_citations_on_missing_claim() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    claim = response["judgment_claim_set"]["claims"][0]
+    claim["relation"] = "missing"
+    with pytest.raises(
+        TriangulationValidationError, match="missing claims must not cite evidence"
+    ):
+        parse_triangulation_response(json.dumps(response), bundle)
+
 
 
 def test_validator_rejects_majority_language_and_single_video_effect_claim() -> None:
