@@ -18,6 +18,7 @@ from cleaning.raw_model_transport import RawApiProvider
 from cleaning.transcript_product_extractor import TranscriptInput, parse_mentions
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
+    PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
     PRODUCT_MENTIONS_SET_LANE,
     build_transcript_source_lineage,
     cues_from_asr_record,
@@ -540,6 +541,37 @@ def test_mentions_record_id_keys_on_content_model_source_and_policy() -> None:
 
 
     assert mentions_record_id(t1, "m", policy_fingerprint_sha256="1" * 64) != mentions_record_id(t1, "m", policy_fingerprint_sha256="2" * 64)
+
+
+def test_product_mentions_policy_fingerprint_is_schema_bound_and_deterministic() -> None:
+    transcript = _transcript()
+    v2_fingerprint = product_mentions_policy_fingerprint(
+        "rubric_v0",
+        record_schema_version="transcript_product_mentions_record_v2",
+    )
+    v3_fingerprint = product_mentions_policy_fingerprint("rubric_v0")
+
+    assert PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION == "transcript_product_mentions_record_v3"
+    assert v3_fingerprint == product_mentions_policy_fingerprint(
+        "rubric_v0",
+        record_schema_version=PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
+    )
+    assert v2_fingerprint == product_mentions_policy_fingerprint(
+        "rubric_v0",
+        record_schema_version="transcript_product_mentions_record_v2",
+    )
+    assert v2_fingerprint != v3_fingerprint
+    assert mentions_record_id(
+        transcript,
+        "m",
+        policy_fingerprint_sha256=v2_fingerprint,
+    ) != mentions_record_id(
+        transcript,
+        "m",
+        policy_fingerprint_sha256=v3_fingerprint,
+    )
+
+
 def test_runner_marks_zero_mention_transcript_done(tmp_path) -> None:
     # D5 filler-drop: the model finds no products -> still persisted + marked complete (idempotent).
     data_root = DataLakeRoot.for_test(tmp_path / "lake")

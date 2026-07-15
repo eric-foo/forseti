@@ -56,10 +56,15 @@ PRODUCT_MENTIONS_PRODUCER_ID = "cleaning.transcript_product_extractor"
 # current-policy record can be written under its distinct identity.
 PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v3"
 
-def product_mentions_policy_fingerprint(policy_version: str) -> str:
+def product_mentions_policy_fingerprint(
+    policy_version: str,
+    record_schema_version: str = PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
+) -> str:
     """Stable identity shared by record ids, payloads, and pickup obligations."""
     return hashlib.sha256(
-        f"{PRODUCT_MENTIONS_PRODUCER_ID}\0{policy_version}".encode("utf-8")
+        f"{PRODUCT_MENTIONS_PRODUCER_ID}\0{policy_version}\0{record_schema_version}".encode(
+            "utf-8"
+        )
     ).hexdigest()
 
 

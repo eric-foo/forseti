@@ -107,7 +107,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # Output-shaping: the official Silver envelope is retained, while durable
         # record/completion identity now binds the full policy fingerprint; the
         # PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION bump to v2 re-surfaces V1 records.
-        "13098b6bb43ac356632340a507ba959caacbf51e75ccdb94759dddbdddb88840",
+        "6885729bc1b5bee6b250ce2d40f4b3bd7ca66e225fbbc6cc3c6c5649dd1afbef",
     ),
     "ecr/deriver.py": (
         ("ECR_DERIVER_VERSION",),

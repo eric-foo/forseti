@@ -856,7 +856,8 @@ direction_change_propagation:
     effective_interval grammar with non-empty reason, provenance, recorded and
     capture times, and limitations. Ordinary observations remain time-required,
     captured_at is non-null in that unknown-time case and cannot substitute, relationship nullability
-    is unchanged, and record_kind stays closed.
+    is unchanged, record_kind stays closed, and Company Surface applies the
+    non-empty limitations coupling only to its observation-mapped families.
   trigger: architecture_doctrine
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
@@ -865,6 +866,8 @@ direction_change_propagation:
     - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_creator_metric_silver_record_contract_v0.md
     - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_transcript_product_extraction_spec_v0.md
     - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+    - forseti/product/information/company_surface/company_logical_record_and_view_contract_v0.md
+    - forseti/product/information/company_surface/company_surface_silver_mapping_contract_v0.md
   downstream_surfaces_checked:
     - forseti-harness/data_lake/silver_record.py
     - forseti-harness/cleaning/transcript_product_lake.py
@@ -879,7 +882,7 @@ direction_change_propagation:
     - forseti-harness/data_lake/silver_census.py
     - forseti-harness/data_lake/lane_registry.py
     - forseti-harness/data_lake/lake_touchpoint_inventory_v0.json
-    - forseti/product/information/company_surface/company_surface_silver_mapping_contract_v0.md
+    - forseti-harness/data_lake/company_surface.py
     - focused Silver, producer-family, and Company Surface tests
   intentionally_not_updated:
     - path: AGENTS.md and .agents/workflow-overlay/
@@ -890,9 +893,6 @@ direction_change_propagation:
       reason: Ordered history requires a known observation time and remains fail-closed for explicit-unknown records; no substitute time is introduced.
     - path: forseti-harness/data_lake/consumption.py
       reason: Product-mention and share-of-voice consumption is source-reference and policy bound and does not interpret top-level observed_at.
-
-    - path: forseti/product/information/company_surface/company_surface_silver_mapping_contract_v0.md
-      reason: Its signed temporal semantics already distinguish effective, captured, and recorded time and already carry the reused explicit-unknown payload grammar.
   stale_language_search: >
     rg -n -i "observed_at.*nullable|nullable.*observed_at|captured_at.*nullable|nullable.*captured_at|observed_at.*capture"
     docs/decisions forseti/product/spines forseti/product/information/company_surface
@@ -900,7 +900,7 @@ direction_change_propagation:
     forseti-harness/capture_spine forseti-harness/tests
   non_claims:
     - not a Silver envelope or record_kind expansion
-    - not a Company Surface semantic change
+    - not a change to Company Surface's owner-signed purpose, four-family mapping, or relationship nullability
     - not a physical-lineage, source-access, scheduler, capture, UI, or cache change
     - not validation or production readiness
 ```
