@@ -4,6 +4,8 @@
 Every in-scope prompt artifact must carry a recognized output-mode declaration.
 Implementation-authorized Codex managed-receiver commissions that may start in
 the wrong task must also carry the exact single-use receiver-creation shell.
+Delegated code review-and-patch route-outs must carry the courier-only,
+different-vendor, direct-repo shell and must not authorize task creation.
 
 RULE AUTHORITY
   .agents/workflow-overlay/prompt-orchestration.md -> "Output Modes" (the
@@ -17,8 +19,11 @@ RULE AUTHORITY
   Commission Receiver-Creation Clause" and "Prompt Validation Gates", plus
   validation-gates.md -> "Worktree preflight gate", own EP-38. This checker
   verifies only the commission-visible, mechanically decidable shell; receiver
-  identity, write capability, source freshness, and no-concurrent-writer truth
-  remain runtime/resident checks.
+   identity, write capability, source freshness, and no-concurrent-writer truth
+   remain runtime/resident checks.
+   prompt-orchestration.md -> "Lane-Scoped Delegated Patch Prompt Default" and
+   delegated-review-patch.md own the EP-19 courier shell. Vendor identity and
+   direct-write truth remain resident verification.
 
 WHAT THIS ENFORCES (shape only, narrowed from the EP-11 full rule)
   A prompt artifact under docs/prompts/ must contain at least one recognized
@@ -41,8 +46,14 @@ WHAT THIS ENFORCES (shape only, narrowed from the EP-11 full rule)
     - broader/repeated receiver creation;
     - positive manual `git worktree add` substitution;
     - a read-only/scoping/review-only commission carrying the block; and
-    - source-load failure clauses that fall back to memory/project rules or do
-      not type the failure as `SOURCE_CONTEXT_INCOMPLETE`.
+     - source-load failure clauses that fall back to memory/project rules or do
+       not type the failure as `SOURCE_CONTEXT_INCOMPLETE`.
+
+  For `target_kind: delegated_code_review_and_patch`, it additionally requires
+  one operator-courier-only, direct-repo commission with recorded author vendor,
+  different-vendor eligibility, and exactly one external/preparation receiver.
+  It rejects same-vendor claims, no-repo access, missing/invalid receiver binding,
+  and any receiver-creation authorization.
 
 WHAT THIS DOES *NOT* DO (the over-edge boundary -- PLACEMENT IS NOT AUTHORITY)
   - It does NOT verify "exactly one" output mode is declared for the artifact
@@ -144,7 +155,8 @@ TOKENS = frozenset({
 
 RULE_AUTHORITY = (
     ".agents/workflow-overlay/prompt-orchestration.md (Output Modes; "
-    "Implementation Commission Receiver-Creation Clause; Prompt Validation Gates) / "
+    "Implementation Commission Receiver-Creation Clause; Lane-Scoped Delegated "
+    "Patch Prompt Default; Prompt Validation Gates) / "
     ".agents/workflow-overlay/validation-gates.md (Output-mode gate; Worktree preflight gate)"
 )
 
@@ -220,6 +232,34 @@ _EDIT_PERMISSION_RE = re.compile(
 )
 _CURRENT_AUTH_RE = re.compile(
     r"^\s*(?:[-*]\s*)?(?:\*{0,2})?current_turn_authorization(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_TARGET_KIND_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?target_kind(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_AUTHOR_VENDOR_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?author_vendor(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_DELEGATE_VENDOR_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delegate_vendor(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_DELEGATE_ELIGIBILITY_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delegate_eligibility(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_ACCESS_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?access(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_DELIVERY_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delivery(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_REVIEW_CLAIM_BOUNDARY_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?review_claim_boundary(?:\*{0,2})?\s*:\s*(.*?)\s*$",
     re.IGNORECASE,
 )
 _SOURCE_FAILURE_RE = re.compile(
@@ -484,6 +524,132 @@ def evaluate_managed_receiver_lines(rel_source: str, lines: list[str]) -> list[F
     return findings
 
 
+def evaluate_delegated_patch_lines(rel_source: str, lines: list[str]) -> list[Finding]:
+    """Validate the courier-only, cross-vendor delegated code-patch shell."""
+    target_kinds = _declared_values(lines, _TARGET_KIND_RE)
+    if not any(value == "delegated_code_review_and_patch" for value, _ in target_kinds):
+        return []
+
+    findings: list[Finding] = []
+
+    def one_value(
+        field: str, pattern: re.Pattern[str]
+    ) -> tuple[str, int]:
+        values = _declared_values(lines, pattern)
+        if len(values) != 1:
+            findings.append(Finding(
+                rel_source,
+                "delegated_patch_field_count",
+                values[0][1] if values else None,
+                "%s must appear exactly once (found %d)" % (field, len(values)),
+            ))
+            return "", values[0][1] if values else 1
+        return values[0]
+
+    author_vendor, author_lineno = one_value("author_vendor", _AUTHOR_VENDOR_RE)
+    delegate_vendor, delegate_lineno = one_value("delegate_vendor", _DELEGATE_VENDOR_RE)
+    eligibility, eligibility_lineno = one_value(
+        "delegate_eligibility", _DELEGATE_ELIGIBILITY_RE
+    )
+    access, access_lineno = one_value("access", _ACCESS_RE)
+    delivery, delivery_lineno = one_value("delivery", _DELIVERY_RE)
+
+    invalid_vendor_placeholders = {"", "unknown", "unrecorded"}
+    if author_vendor.casefold() in invalid_vendor_placeholders | {"operator_to_fill"}:
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_author_vendor",
+            author_lineno,
+            "author_vendor must name the observed upstream vendor lineage",
+        ))
+    if delegate_vendor.casefold() in invalid_vendor_placeholders:
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_delegate_vendor",
+            delegate_lineno,
+            "delegate_vendor must name a different vendor or use operator_to_fill before couriering",
+        ))
+    elif (
+        delegate_vendor != "operator_to_fill"
+        and author_vendor
+        and delegate_vendor.casefold() == author_vendor.casefold()
+    ):
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_same_vendor",
+            delegate_lineno,
+            "delegated review-and-patch forbids same-vendor substitution (%r)" % delegate_vendor,
+        ))
+
+    if eligibility != "different_vendor_lineage_with_direct_repo_access":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_eligibility",
+            eligibility_lineno,
+            "delegate_eligibility must equal different_vendor_lineage_with_direct_repo_access",
+        ))
+    if access != "repo":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_access",
+            access_lineno,
+            "delegated review-and-patch requires direct repository access: access must equal repo",
+        ))
+    if delivery != "operator_courier_only":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_delivery",
+            delivery_lineno,
+            "delegate patch authoring is prompt-only: delivery must equal operator_courier_only",
+        ))
+
+    claim_values = _declared_values(lines, _REVIEW_CLAIM_BOUNDARY_RE)
+    if any(value == "same_vendor_sanity_only" for value, _ in claim_values):
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_same_vendor",
+            next(lineno for value, lineno in claim_values if value == "same_vendor_sanity_only"),
+            "same-vendor sanity is not a valid fallback for delegated review-and-patch",
+        ))
+
+    receiver_blocks = _yaml_blocks(lines, "receiver_binding")
+    authorization_blocks = _yaml_blocks(lines, "receiver_creation_authorization")
+    if authorization_blocks:
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_task_creation",
+            authorization_blocks[0].lineno,
+            "operator-courier delegate patch prompts must not authorize task creation",
+        ))
+    if len(receiver_blocks) != 1:
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_receiver_count",
+            receiver_blocks[0].lineno if receiver_blocks else None,
+            "delegate patch courier prompt requires exactly one receiver_binding (found %d)"
+            % len(receiver_blocks),
+        ))
+    for block in receiver_blocks:
+        receiver_class, lineno = block.fields.get("receiver_class", ("", block.lineno))
+        if receiver_class not in {"receiver_to_bind", "external_direct_write"}:
+            findings.append(Finding(
+                rel_source,
+                "delegated_patch_receiver_class",
+                lineno,
+                "delegate patch courier receiver_class must be receiver_to_bind or external_direct_write (got %r)"
+                % receiver_class,
+            ))
+        if delegate_vendor == "operator_to_fill" and receiver_class != "receiver_to_bind":
+            findings.append(Finding(
+                rel_source,
+                "delegated_patch_receiver_class",
+                lineno,
+                "operator_to_fill delegate vendor requires preparation-only receiver_to_bind",
+            ))
+
+    return findings
+
+
 def evaluate_file_lines(rel_source: str, lines: list[str]) -> tuple[Finding | None, list[str]]:
     """Scan one file's lines for the output-mode declaration shell.
 
@@ -653,6 +819,7 @@ def scan_files(root: Path, rel_paths: list[str]) -> tuple[list[Finding], list[st
         if finding is not None:
             findings.append(finding)
         findings.extend(evaluate_managed_receiver_lines(norm, lines))
+        findings.extend(evaluate_delegated_patch_lines(norm, lines))
         for note in file_infos:
             infos.append("%s: %s" % (norm, note))
     return findings, infos
@@ -684,7 +851,7 @@ def _print_infos(infos: list[str]) -> None:
 def _print_rule() -> None:
     print(
         "rule: an in-scope prompt artifact must carry the applicable output-mode\n"
-        "      and managed-receiver commission shells. Authority: %s.\n"
+        "      receiver, and delegated-patch courier shells. Authority: %s.\n"
         "      Shape only, never runtime truth: not validation, not readiness."
         % RULE_AUTHORITY
     )
@@ -765,7 +932,7 @@ def run_audit(root: Path) -> int:
     print("  pass: %d" % passed)
     print("  no_output_mode_declaration: %d" % no_decl)
     print("  no_recognized_output_mode_token: %d" % no_token)
-    print("  managed_receiver_contract_findings: %d" % (
+    print("  prompt_contract_findings: %d" % (
         len(findings) - no_decl - no_token
     ))
     _print_findings(findings)
@@ -788,6 +955,7 @@ def run_validate_stdin() -> int:
     output_finding, infos = evaluate_file_lines("<stdin>", lines)
     findings = [output_finding] if output_finding else []
     findings.extend(evaluate_managed_receiver_lines("<stdin>", lines))
+    findings.extend(evaluate_delegated_patch_lines("<stdin>", lines))
     if findings:
         print(
             "check_prompt_output_mode --validate-stdin: %d finding(s)"
@@ -1173,6 +1341,55 @@ def selftest() -> int:
             finding.kind == "stale_source_fallback"
             for finding in evaluate_managed_receiver_lines(
                 "multiline_stale.md", multiline_stale
+            )
+        ),
+        True,
+    )
+
+    couriered_delegate = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        "target_kind: delegated_code_review_and_patch",
+        "author_vendor: OpenAI",
+        "delegate_vendor: operator_to_fill",
+        "delegate_eligibility: different_vendor_lineage_with_direct_repo_access",
+        "access: repo",
+        "delivery: operator_courier_only",
+        "receiver_binding:",
+        "  receiver_class: receiver_to_bind",
+        "  binding_state: receiver_to_bind",
+    ]
+    check(
+        "courier-only cross-vendor delegated patch prompt is valid",
+        evaluate_delegated_patch_lines("couriered_delegate.md", couriered_delegate),
+        [],
+    )
+
+    same_vendor_delegate = [
+        line.replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")
+        for line in couriered_delegate
+    ] + ["review_claim_boundary: same_vendor_sanity_only"]
+    check(
+        "same-vendor delegated patch fallback is rejected",
+        any(
+            finding.kind == "delegated_patch_same_vendor"
+            for finding in evaluate_delegated_patch_lines(
+                "same_vendor_delegate.md", same_vendor_delegate
+            )
+        ),
+        True,
+    )
+
+    dispatched_codex_delegate = couriered_delegate + [
+        "receiver_creation_authorization:",
+        "  authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+    ]
+    check(
+        "delegate patch authoring cannot create a Codex receiver",
+        any(
+            finding.kind == "delegated_patch_task_creation"
+            for finding in evaluate_delegated_patch_lines(
+                "dispatched_codex_delegate.md", dispatched_codex_delegate
             )
         ),
         True,

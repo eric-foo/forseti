@@ -326,6 +326,58 @@ def test_managed_receiver_commission_gate_rejects_contradictions() -> None:
     )
 
 
+def test_delegated_patch_gate_requires_cross_vendor_repo_courier() -> None:
+    gate = _load_prompt_gate()
+    couriered = [
+        "output_mode: paste-ready-chat",
+        "edit_permission: implementation-authorized",
+        "target_kind: delegated_code_review_and_patch",
+        "author_vendor: OpenAI",
+        "delegate_vendor: operator_to_fill",
+        "delegate_eligibility: different_vendor_lineage_with_direct_repo_access",
+        "access: repo",
+        "delivery: operator_courier_only",
+        "receiver_binding:",
+        "  receiver_class: receiver_to_bind",
+        "  binding_state: receiver_to_bind",
+    ]
+    assert gate.evaluate_delegated_patch_lines("couriered.md", couriered) == []
+
+    same_vendor = [
+        line.replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")
+        for line in couriered
+    ] + ["review_claim_boundary: same_vendor_sanity_only"]
+    assert any(
+        finding.kind == "delegated_patch_same_vendor"
+        for finding in gate.evaluate_delegated_patch_lines("same_vendor.md", same_vendor)
+    )
+
+    managed_fallback = couriered + [
+        "receiver_creation_authorization:",
+        "  authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+    ]
+    assert any(
+        finding.kind == "delegated_patch_task_creation"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "managed_fallback.md", managed_fallback
+        )
+    )
+
+    no_repo = [line.replace("access: repo", "access: no_repo") for line in couriered]
+    assert any(
+        finding.kind == "delegated_patch_access"
+        for finding in gate.evaluate_delegated_patch_lines("no_repo.md", no_repo)
+    )
+
+    missing_receiver = couriered[:-3]
+    assert any(
+        finding.kind == "delegated_patch_receiver_count"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "missing_receiver.md", missing_receiver
+        )
+    )
+
+
 def test_every_pre_push_gate_is_the_same_command_ci_runs() -> None:
     guard = _load_pre_push_guard()
     ci_commands = {

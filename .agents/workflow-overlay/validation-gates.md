@@ -361,8 +361,11 @@ triggers, not permission to add a telemetry ledger or silently change scope.
   diff-scoped `--strict` mode, and chat/courier authoring gates the frozen
   rendered body through `--validate-stdin` before use. This check covers only
   exact authorization shape, binding consistency, prohibited manual/repeated
-  creation directives, and typed source-load failure; it does not prove live
-  receiver identity, capability, source freshness, or writer isolation.
+  creation directives, typed source-load failure, and the delegated-patch
+  courier shell: operator-only delivery, direct repo access, recorded
+  different-vendor eligibility, no same-vendor claim, and no task-creation
+  authorization. It does not prove live receiver identity, vendor truth,
+  capability, source freshness, or writer isolation.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Forseti
   sources as clean, modified, untracked, stale, or not checked when those
@@ -778,11 +781,17 @@ direction_change_propagation:
     filed-prompt shell: self-declared implementation-authorized, not-yet-verified
     Codex managed commissions must carry the exact single-use authorization;
     contradictory stop/manual/repeat routes and stale-source fallbacks fail loud.
+    Delegated code-patch route-outs additionally enforce operator-courier-only,
+    direct-repo, different-vendor eligibility with no same-vendor or task-creation
+    fallback.
   trigger: validation_philosophy
   related_triggers:
     - workflow_authority
   controlling_sources_updated:
     - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
     - .agents/hooks/check_prompt_output_mode.py
     - .agents/hooks/check_prompt_provenance.py
     - docs/decisions/overlay_enforcement_placement_classification_v0.md
@@ -802,10 +811,6 @@ direction_change_propagation:
       reason: >
         The kernel already routes prompt contracts, receiver binding, and
         validation placement to their owning overlay files.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        PR #963 already owns the complete semantic rule; this change enforces its
-        mechanically decidable shell and must not duplicate or fork that prose.
     - path: .agents/workflow-overlay/decision-routing.md
       reason: >
         The receiver classes, manual-worktree prohibition, and runtime preflight
@@ -820,19 +825,22 @@ direction_change_propagation:
         Its Active Hooks routes already point to the unchanged checker directory,
         CI, validation owner, and placement record; no path or T1 route changed.
   stale_language_search: >
-    rg -n -i "do not create another worktree|receiver_creation_authorization|receiver_to_verify|fallback.*project-owned|SOURCE_CONTEXT_INCOMPLETE"
+    rg -n -i "do not create another worktree|receiver_creation_authorization|receiver_to_verify|fallback.*project-owned|SOURCE_CONTEXT_INCOMPLETE|same.vendor|same.family|operator_courier_only"
     AGENTS.md .agents docs/prompts docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-16 on the authoring branch. No filed prompt contains an
-    existing managed-receiver commission (`receiver_creation_authorization` or
-    `receiver_to_verify`), and no live prompt/overlay source contains the
-    wrong-task-stop plus no-create form or a project-owned stale-memory fallback.
-    Defining hits are confined to the existing routing/prompt owners, this
-    validation receipt, and the new checker/test fixtures.
+    Executed 2026-07-16 after the courier-only correction. Live delegated-patch
+    sources require different-vendor direct-repo execution and prohibit
+    same-vendor, no_repo, task-creation, and Codex-managed fallback. Remaining
+    same-vendor hits belong to the ordinary-review two-bar rule or historical
+    receipts; the live review-lanes rule now excludes delegated patch. The
+    general receiver-creation clause remains valid only for other explicit
+    implementation commissions, and no prompt template contains the rejected
+    delegated-patch fallback.
   non_claims:
     - not readiness
     - not proof of receiver identity, capability, dispatch, or writer isolation
     - not standing or repeated task-creation authority
+    - not proof of different-vendor identity
     - not a replacement for runtime receiver preflight
 ```
 
