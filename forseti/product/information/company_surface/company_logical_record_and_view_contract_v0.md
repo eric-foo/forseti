@@ -6,7 +6,9 @@ artifact_role: Product doctrine contract (Company Surface logical records and vi
 scope: >
   Storage-agnostic logical requirements for Company Surface assertions,
   company-linked activity, coverage and failure, append-only correction, and
-  reproducible current, historical-restated, and historical-as-known views.
+  reproducible current, historical-restated, and historical-as-known views,
+  plus the record-level success signals and cold-agent reference check that
+  form the acceptance bar for a later mapping or proving slice.
 use_when:
   - Designing a Company Surface record, ledger, projection, or consumer view.
   - Deciding which time boundary or evidence cutoff a company view must use.
@@ -87,10 +89,12 @@ proves pain, opportunity, traction, contradiction, or an intervention.
 
 ### Coverage or failure marker
 
-Makes an attempted, partial, failed, excluded, or not-covered source interval
-visible for a subject and surface. It carries the upstream Capture posture and
-receipt. It distinguishes available evidence, partial coverage with the missing
-boundary named, failed capture, and a surface or interval not covered.
+Makes source-interval coverage and failure state visible for a subject and
+surface, including attempted-with-evidence, partial, failed, excluded,
+not-attempted, and not-covered cases. It carries the upstream Capture posture
+and receipt. It distinguishes available evidence, partial coverage with the
+missing boundary named, failed capture, explicit exclusion, an interval not
+attempted, and a surface or interval not covered.
 
 No marker may convert no observation into a resolved negative. Exact
 coverage-state labels remain an implementation choice.
@@ -292,15 +296,16 @@ physical placement, producer names, or runtime behavior.
 | ID | Success signal | Observable pass condition |
 | --- | --- | --- |
 | LRS-01 | **A cold company can enter without a fabricated identity.** | A raw identifier and receipt can support a subject assertion, including provisional, ambiguous, or unresolved state, without requiring a fictional pre-existing Silver entity. Brand and Org remain distinct, and an ontology-governed Org encoding still stops at the Foundation graduation gate. |
-| LRS-02 | **Source facts remain single-source.** | Company Surface attaches evidence to a subject by reference. It does not copy an upstream observation payload, turn a research-pool row into evidence, or create a maintained company dossier. |
-| LRS-03 | **Every company-specific claim is inspectable.** | A consumer can recover the cited supporting and conflicting evidence, subject or relationship, semantic state, effective or observation time, recorded time, precision, limitations, alternatives, and correction history relevant to the claim. |
+| LRS-02 | **Source facts remain single-source.** | Company Surface attaches evidence to a subject by reference. It does not copy an upstream observation payload, treat selection of a company into a downstream pool or list as evidence about that company, or create a maintained company dossier. |
+| LRS-03 | **Every company-specific claim is inspectable.** | A consumer can recover the cited supporting and conflicting evidence, subject or relationship, semantic state, effective or observation time, captured time, recorded time, precision, relevant capture posture, limitations, alternatives, and correction history relevant to the claim. |
 | LRS-04 | **Correction preserves what was known.** | A correction or supersession appends a new record, changes only later eligible selection, and leaves the prior record available to a historical-as-known view. |
 | LRS-05 | **Time-bounded views disagree correctly.** | Current, historical-restated, and historical-as-known views can return different correct answers because each declares both an effective boundary and a knowledge cutoff. |
 | LRS-06 | **Unknown and failed coverage cannot become a negative.** | Partial, failed, excluded, not-attempted, or not-covered source intervals remain visible, and no view turns missing activity into a claim that the company did not do it. |
-| LRS-07 | **Physical mapping fails visibly instead of inventing a fit.** | A later Data Lake mapping names its actual producer dependencies and a deterministic lawful raw anchor while retaining all evidence references. If the logical record cannot conform to the current Silver envelope, the mapping stops and routes the incompatibility to the Data Lake owner; it does not presume either an existing producer or an automatic core Silver amendment. |
+| LRS-07 | **Physical mapping fails visibly instead of inventing a fit.** | A later Data Lake mapping names its actual producer dependencies and a deterministic lawful raw anchor while retaining all evidence references. If the logical record cannot conform to the current Silver envelope, or a multi-source assertion admits no determinate lawful raw anchor under the current derived addressing grammar, the mapping stops and routes the incompatibility to the Data Lake owner; it does not presume an existing producer or an automatic core Silver amendment, and it does not pick an arbitrary anchor to force a fit. |
 | LRS-08 | **Reusable history does not launder evidence.** | A standing-capture-backed record may remain useful Company Surface substrate, but neither its existence nor a resolved identity state makes the underlying material Decision-Frame-ready; the Corpus Intake rebind gate remains enforceable from retained lineage. |
 | LRS-09 | **New sources extend one foundation.** | A new observable surface adds its owned capture route and mapping into the same four record families and view contract. It does not create another company registry, information architecture, pain score, or source-family-specific dossier. |
 | LRS-10 | **A cold agent can route the work without chat history.** | Starting from `company_surface/README.md`, a fresh agent can identify the controlling purpose, identity, and logical-record sources; distinguish authoritative records from rebuildable views; name Capture, Company Surface, Data Lake, Foundation, and consumer ownership; state the Org, physical-mapping, rebind, and implementation boundaries; and identify the next unresolved mapping decision without reading an authoring conversation or review report. |
+| LRS-11 | **An unresolved assertion is never upgraded by convenience.** | Only resolved assertions whose effective interval is determinate at the requested boundary under its declared precision enter a resolved roll-up. Provisional, ambiguous, unresolved, and temporally indeterminate assertions stay visible as alternatives and limitations, and neither a convenient roll-up nor a missing boundary silently upgrades their state. |
 
 ### Cold-agent reference check
 
@@ -422,10 +427,12 @@ direction_change_propagation:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    The Company Surface logical-record contract now carries ten record-specific,
-    implementation-independent success signals and a cold-agent reference check
-    that binds visible failure, ownership, deferred decisions, and next-step
-    discoverability without choosing physical schema or runtime.
+    The Company Surface logical-record contract now carries eleven
+    record-specific, implementation-independent success signals and a
+    cold-agent reference check that bind visible failure, ownership, deferred
+    decisions, and next-step discoverability without choosing physical schema
+    or runtime. Coverage and failure examples now mirror the semantic cases
+    exercised by LRS-06 while exact serialized labels remain deferred.
   trigger: product_doctrine
   related_triggers: [architecture_doctrine]
   controlling_sources_updated:
