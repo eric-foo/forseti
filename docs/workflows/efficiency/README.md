@@ -10,6 +10,7 @@ claim that any documented result has been reproduced.
 | Need | Open |
 | --- | --- |
 | Run the fixed cold-agent vendor-admission tool-calling case | `tool_calling_dogfood_case_v0.md` |
+| Review the observed 2026-07-15 three-run baseline and efficiency diagnosis | `tool_calling_dogfood_run_2026_07_15_v0.md` |
 | Record an observed recurring tooling or workflow failure and its corrective pointers | `../technical_difficulties_log_v0.md` |
 | Follow the dated 2026-07-09 hygiene-audit checklist and its execution waves | `../../hygiene/efficiency_audit_wave_plan_v0.md` |
 | Interpret the temporary Batch 1 decision-gate economics pilot | `../../../.agents/workflow-overlay/batch1-decision-gate-economics.md` |

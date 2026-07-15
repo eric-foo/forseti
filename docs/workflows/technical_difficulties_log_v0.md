@@ -113,3 +113,72 @@ ACLs is outside this repository's ownership.
 - Not proof that PR #896 content was incorrect; its required CI completed green.
 - Not proof that every historical rebase caused delay or conflict.
 - Not validation, readiness, or merge approval for the corrective patch.
+
+## TD-2026-07-15-001 — Cold scratch lanes hang on default shell and patch routes
+
+- **Observed:** 2026-07-15, Asia/Singapore.
+- **Affected lanes:** three isolated cold-agent runs of
+  `docs/workflows/efficiency/tool_calling_dogfood_case_v0.md`.
+- **State at recording:** open; repeatable mitigation observed, root cause and
+  durable owner unresolved.
+- **User-visible symptom:** all three runs made no filesystem change for several
+  minutes until operator interruption; completed routes used 20–23 logical
+  rounds versus the case's roughly five-round reference.
+
+### Verified evidence
+
+| Run | Default shell hung | `apply_patch` hung | Logical rounds / invocations | Final integrity |
+| --- | --- | --- | ---: | --- |
+| 1 | yes | yes | 23 / 41 | correct three-file patch; unrelated state preserved |
+| 2 | yes | yes | 22 / 35 | correct three-file patch; unrelated state preserved |
+| 3 | yes | yes | 20 / 31 | correct three-file patch; unrelated state preserved |
+
+Trivial and task-specific default shell calls hung against the assigned
+`C:\tmp` snapshots. Bounded elevated shell calls completed. The nested patch
+helper also hung in every run; elevated launcher or executable attempts failed
+with access denial, and all three runs ultimately used `git apply`. Fresh
+operator verification confirmed the final diffs, tests, and untracked-note hash.
+
+### Diagnosis
+
+The failure is repeatable across three context-free agents and occurs before
+task-specific reasoning can explain the delay. The effective default shell and
+patch routes did not match the intended writable-scratch posture. Evidence does
+not yet isolate whether the fault belongs to sandbox mediation, process startup,
+the shell host, or patch-helper execution.
+
+A secondary agent-efficiency gap compounded the platform failure: runs polled or
+varied a hanging route multiple times and each first Git-patch fallback failed
+atomically. Ledger review found only two to four otherwise batchable rounds per
+run, so read batching was not the dominant cost.
+
+### Corrective ownership and mitigation
+
+- **Observed bounded mitigation:** after one bounded hang, stop the unchanged
+  route; a per-operation elevated shell call restored reads and tests. When the
+  patch helper remained unavailable, a checked, atomic `git apply` fallback
+  completed the edit.
+- **Durable owner:** unresolved external tool/harness substrate; no Forseti
+  runtime or repository code owner is established by this evidence.
+- **Replay source:**
+  `docs/workflows/efficiency/tool_calling_dogfood_run_2026_07_15_v0.md` records
+  the fixture baseline, three-run results, and rerun trigger.
+- **Upgrade trigger:** rerun the unchanged three-trial case after the default
+  shell or edit route changes. Do not change the case and the tool path in the
+  same comparison.
+
+### Accepted residuals
+
+- Elevation adds approval latency and is not normalized as the default route.
+- Hand-authored Git patches are an error-prone fallback; atomic check/failure
+  preserved the trees in these runs but does not make the route preferred.
+- Root cause remains unknown; this entry records recurrence and impact, not a
+  platform fix.
+
+### Non-claims
+
+- Not a Forseti product, capture, data, or runtime defect.
+- Not proof that every `C:\tmp` operation or every agent will reproduce the
+  failure.
+- Not proof that the agents themselves caused the shared initial stalls.
+- Not validation or readiness of the external tool substrate.
