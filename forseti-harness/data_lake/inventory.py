@@ -441,6 +441,11 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "mechanism": "shared:select_current_record_per_subject",
         "reason": "single exact-policy product-mention reader; all consumers bind version plus fingerprint, residuals remain visible, and ambiguous same-policy siblings fail closed",
     },
+    "data_lake/creator_metric_lineage.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "lineage classification and reconciliation intentionally enumerate every creator-metric observation and rollup sibling; no latest sibling is selected",
+    },
     "data_lake/silver_census.py": {
         "detection": "declared_free_walk",
         "posture": "all_siblings",
