@@ -148,6 +148,7 @@ nearest index/submap, retrieval headers, or generated header index.
 | `CLAUDE.md` | Thin Claude compatibility shim importing `AGENTS.md`. |
 | `.agents/workflow-overlay/` | Forseti workflow authority: source rules, folders, routing, prompts, validation, review, and safety. |
 | `.agents/hooks/` | Portable enforcement and advisory scripts; use the Active Hooks routes above. |
+| `.agents/tools/` | Bounded agent-operated utilities; currently the exact-text fallback editor used only after the native patch route stalls. |
 | `.github/` | CI workflows and local operational scripts. |
 | `.githooks/` | Tracked local Git hook adapters; bypassable and not server-side protection. |
 | `.codex/` | Codex-local tracked hook configuration and adapters. |
