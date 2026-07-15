@@ -194,6 +194,12 @@ The third probe failed the prerequisite gate, so no collaboration subagents
 were spawned, no vendor-admission snapshots were created, and no fix 2 dogfood
 run or operation accounting exists for this trial. Fix 3 did not start.
 
+While recording this trial, the patch tool yielded a running handle after 10.0
+seconds with no output; the single bounded 10-second wait then completed with an
+empty result. A fresh diff showed that the intended ledger patch had applied
+exactly once, so it was not retried. This is a tool-output anomaly, not fix 2
+gate evidence or proof that the patch route is repaired.
+
 Post-failure diagnosis preserved the distinction between hook logic and live
 adoption:
 
