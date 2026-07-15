@@ -374,6 +374,78 @@ def test_signal_8_four_families_extend_one_closed_silver_foundation() -> None:
     }
 
 
+def test_all_source_times_unknown_maps_without_fabricating_observed_at() -> None:
+    logical = _logical(
+        "coverage_failure_marker",
+        "coverage.acme.time-unknown",
+        {
+            "surface": "company_site",
+            "coverage_state": "partial",
+            "capture_posture": "offline_fixture",
+            "receipt_ref": PACKET_ID,
+            "missing_boundary": "source exposes no effective timestamp",
+        },
+        interval=_interval(
+            precision="unknown",
+            end_state="unknown",
+            unknown_reason="all source-effective times are unknown",
+        ),
+        limitations=["The cited source does not expose an effective timestamp."],
+    )
+    mapped = map_company_surface_record(logical)[0]
+    observation = mapped["payload"]["observation"]
+
+    assert mapped["observed_at"] is None
+    assert mapped["captured_at"] == logical["captured_at"]
+    assert observation["recorded_at"] == logical["recorded_at"]
+    assert observation["effective_interval"]["start_precision"] == "unknown"
+    assert observation["effective_interval"]["unknown_reason"]
+    assert observation["evidence_refs"] and observation["limitations"]
+
+
+def test_unknown_time_observation_requires_non_empty_limitations() -> None:
+    logical = _logical(
+        "coverage_failure_marker",
+        "coverage.acme.time-unknown-empty-limitations",
+        {
+            "surface": "company_site",
+            "coverage_state": "partial",
+            "capture_posture": "offline_fixture",
+            "receipt_ref": PACKET_ID,
+            "missing_boundary": "source exposes no effective timestamp",
+        },
+        interval=_interval(
+            precision="unknown",
+            end_state="unknown",
+            unknown_reason="all source-effective times are unknown",
+        ),
+        limitations=[],
+    )
+
+    with pytest.raises(
+        CompanySurfaceError,
+        match="limitations must be non-empty for an observation-mapped family",
+    ):
+        map_company_surface_record(logical)
+
+
+def test_unknown_time_relationship_mapping_retains_nullable_observed_at() -> None:
+    logical = _activity(
+        ref="activity.acme.time-unknown",
+        interval=_interval(
+            precision="unknown",
+            end_state="unknown",
+            unknown_reason="all source-effective times are unknown",
+        ),
+    )
+
+    mapped = map_company_surface_record(logical)[0]
+
+    assert mapped["record_kind"] == "relationship"
+    assert mapped["observed_at"] is None
+    assert mapped["payload"]["relationship"]["limitations"] == []
+
+
 def test_signal_9_current_traceable_observations_do_not_embed_gtm_conclusions() -> None:
     output = json.dumps(map_company_surface_record(_activity()), sort_keys=True).lower()
     assert "company_fixture" in output and SOURCE_SHA in output

@@ -156,6 +156,21 @@ def _write_record(root: DataLakeRoot, raw_anchor: str, record_id: str, record: d
             "transcript_source_key": record.get("transcript_source_key", record_id),
         },
     }
+    if record["observed_at"] is None and record["captured_at"] is not None:
+        record["payload"]["observation"].update(
+            {
+                "effective_interval": {
+                    "start": None,
+                    "start_precision": "unknown",
+                    "unknown_reason": "The transcript fixture has no source-effective time.",
+                },
+                "recorded_at": record["captured_at"],
+                "evidence_refs": list(record["raw_refs"]),
+                "limitations": [
+                    "Source-effective time is unknown; recorded_at is capture time."
+                ],
+            }
+        )
     record["content_hash"] = "sha256:" + silver_content_hash(record)
     root.append_record(
         subtree="derived",
@@ -397,7 +412,7 @@ def test_capture_time_falls_back_to_packet_manifest(tmp_path: Path) -> None:
         "m_fallback.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(root, first, "vid1"),
+            **_lineage_fields(root, first, "vid1", observed_at=_IN_WINDOW),
         },
     )
 

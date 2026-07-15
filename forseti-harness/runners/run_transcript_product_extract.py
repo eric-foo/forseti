@@ -238,6 +238,7 @@ def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
                     source_surface=surface,
                     video_id=meta_video_id,
                     raw_ref=raw_ref,
+                    captured_at=str(meta.get("capture_timestamp") or "") or None,
                 )
                 transcripts.append(
                     TranscriptInput(meta_video_id, packet_id, "caption", cues, source_lineage=lineage)

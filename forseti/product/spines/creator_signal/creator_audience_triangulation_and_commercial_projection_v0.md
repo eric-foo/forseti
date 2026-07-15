@@ -137,8 +137,12 @@ negative triggers.
 - State the selected-video and comment-capture posture. Engagement-ranked,
   page-limited, top-video, or otherwise truncated capture remains valuable and
   biased at the same time.
-- Bind comment and video engagement metrics to their observed timestamps.
-  Cross-date ratios or comparisons must be labeled as such or withheld.
+- Bind comment and video engagement metrics to their observed timestamps when
+  known. A comment capture without `observed_utc` keeps `observed_at: null` and
+  carries the generic Silver explicit-unknown interval, the retained batch
+  capture time as recorded/capture time, exact raw evidence, and a visible time
+  limitation. Cross-date ratios or comparisons must be labeled as such or
+  withheld.
 - Comment likes, within-video rank/percentile, and saturated absolute likes may
   raise salience. Comment likes divided by video comment count is a useful
   attention comparison only when its dimensional meaning and timestamp posture

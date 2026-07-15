@@ -119,7 +119,7 @@ DEFAULT_YOUTUBE_SEED_PATH = (
     / "youtube_shorts_fragrance_creator_metric_seed_v0.json"
 )
 
-METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricobservation_v2"
+METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricobservation_v3"
 METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricrollupobservation_v1"
 
 _OBS_PRODUCER_ID = (
@@ -196,6 +196,7 @@ def derive_youtube_creator_metric_silver_records_from_seed(
     for seed_observation in seed["metric_observations"]:
         record = build_metric_observation_record(
             seed_observation=seed_observation,
+            recorded_at=seed.get("generated_at_utc"),
             bronze_attachment_records_by_packet_body_hash=(
                 bronze_attachment_records_by_packet_body_hash
             ),
@@ -265,6 +266,7 @@ def derive_youtube_creator_metric_silver_records_from_seed_file(
 def build_metric_observation_record(
     *,
     seed_observation: Mapping[str, Any],
+    recorded_at: str | None = None,
     bronze_attachment_records_by_packet_body_hash: Mapping[
         tuple[str, str], list[Mapping[str, Any]]
     ] | None = None,
@@ -305,7 +307,7 @@ def build_metric_observation_record(
         "source_family": _SOURCE_FAMILY,
         "source_surface": _SOURCE_SURFACE,
         "observed_at": observed_at,
-        "captured_at": observed_at,
+        "captured_at": observed_at if observed_at is not None else recorded_at,
         "raw_refs": [raw_ref],
         "derived_refs": [],
         "payload": {
@@ -346,6 +348,27 @@ def build_metric_observation_record(
     }
     if lineage_limitations:
         record["lineage_limitations"] = lineage_limitations
+    if observed_at is None:
+        if not isinstance(recorded_at, str) or not recorded_at.strip():
+            raise ValueError("Unknown-time YouTube metric observation requires recorded_at")
+        observation = record["payload"]["observation"]
+        observation.update(
+            {
+                "effective_interval": {
+                    "start": None,
+                    "start_precision": "unknown",
+                    "unknown_reason": (
+                        "The YouTube source row has no known caption or attempt observation time."
+                    ),
+                },
+                "recorded_at": recorded_at,
+                "evidence_refs": [raw_ref],
+                "limitations": [
+                    "Source-effective time is unknown; recorded_at is the metric-seed "
+                    "generation time and is not observed_at."
+                ],
+            }
+        )
     record["content_hash"] = f"sha256:{_content_hash(record)}"
     return record
 
