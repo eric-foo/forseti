@@ -20,24 +20,24 @@ replace the fixed case. The sequence changes one operating intervention at a
 time, reruns three fresh cold agents, and advances only when correctness,
 failure integrity, and the named fix gate pass.
 
-Current state: **fix 1 passed; fix 2 is implemented but blocked by the fresh
-managed-task project-hook adoption gate; fixes 3-5 are defined below, with fix
-3 product-blocked, fix 4 candidates A-C failed, and owner-authorized candidate
-D defined below but not yet run; fix 5 remains gated**. The baseline record is pending on
-PR #951 at commit `28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this
-ledger does not imply that PR is merged.
+Current state: **fixes 1, 2, 4, and 5 passed; fix 3 is product-blocked**. Fix 2
+passed after the owner enabled the already-trusted project hook through the
+supported CLI `/hooks` screen, a fresh session returned the adopted denial, and
+three cold runs passed the unchanged case without an ordinary-shell stall or
+shell-route elevation. The baseline record is pending on PR #951 at commit
+`28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this ledger does not imply that PR
+is merged.
 
-Fix 2 candidate state and its pending trusted-hook gate are recorded below.
+Fix 2's earlier blocked state and final supported enablement are recorded below.
 
-Artifact merge readiness is separate from operational Fix 2 readiness. The
+Artifact merge readiness was separate from operational Fix 2 readiness. The
 fail-closed detector and receiver-routing contract in PR #963 may land after its
 updated branch diff passes validation and the required independent manual
 review. The live `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED` result shows that
-the detector identifies the unresolved desktop product condition; it is not an
-adoption pass. Landing the detector does not pass Fix 2 or release the three-
-cold-agent trial or Fix 3. Those gates remain closed until a fresh managed
-receiver returns `FORSETI_CODEX_HOOK_ADOPTION=ADOPTED` and completes the bound
-protected checks.
+the detector identified the then-unresolved desktop product condition; it was
+not an adoption pass. The later fresh-session adopted denial and cold trials
+closed Fix 2 without changing detector, matcher, trust metadata, or protected-
+action semantics.
 
 ## Baseline
 
@@ -287,6 +287,59 @@ exact current hook definition. That action is manual, not automatic, and this
 documented path does not yet satisfy Fix 2. Do not start the three-cold-agent
 dogfood or Fix 3; after that supported review succeeds, rerun this same live
 gate without editing trust metadata.
+
+### Supported enablement, fresh adoption, and final Fix 2 dogfood
+
+A fresh read-only hook listing against Codex CLI 0.144.4 isolated the adoption
+failure more precisely than the earlier trust-only diagnosis:
+
+- the project `PreToolUse` definition was already `trusted` at current hash
+  `sha256:ddca246538f9075cbea674c7585bc527b1088caa8aa60e495f08b8acaaf66c0c`;
+- its persisted state was explicitly `enabled: false`, while both project
+  `PostToolUse` handlers were trusted and enabled;
+- the managed worktree correctly resolved the trusted base-project source at
+  `C:\Users\vmon7\Desktop\projects\orca\.codex\hooks.json`; and
+- no hook definition, matcher, guard behavior, or trust metadata needed a
+  repository change.
+
+The owner opened the CLI in the exact managed worktree, selected `PreToolUse`
+in `/hooks`, and changed the single trusted handler from `[ ]` to `[x]`. A fresh
+listing then observed the same hash with `trusted` and `enabled: true`. The
+already-running desktop task still returned
+`FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`, proving that enablement does not
+retroactively reload an existing task. One fresh Codex CLI 0.144.4 session,
+rooted at this worktree with no command-level workdir override, then ran the
+exact canary once and was denied before execution with
+`FORSETI_CODEX_HOOK_ADOPTION=ADOPTED`.
+
+Three new isolated snapshots were then created at fixture commit
+`5bceef83b877ca37efc9a4f9dec98bb7563bef12`. Before dispatch, each had focused
+exit 0, broad exit 1 only from the fixed unrelated failure, and untracked note
+SHA-256 `E7025234292F8FD6FF7C0274B14B35A29184DC53186C103EAAA1A54586C40612`.
+The three agents received only the unchanged sealed courier.
+
+| Run | Correctness | Tool-call sequence | Retries / fallback / elevation | Observable wall time | Success signal |
+| --- | --- | --- | --- | ---: | --- |
+| 1 | Correct three-file patch | 3 read/intake commands; 1 edit; focused test; broad test; 2 closeout commands | none / none / none | 74.4 s | **PASS** — ordinary shell completed every command without a stall; focused passed; only the unchanged unrelated broad failure remained |
+| 2 | Correct three-file patch | 3 read/intake commands; 1 edit; focused test; broad test; 1 closeout command | none / none / none | 55.8 s | **PASS** — ordinary shell completed every command without a stall; focused passed; only the unchanged unrelated broad failure remained |
+| 3 | Correct three-file patch | 3 read/intake commands; 1 edit; focused test; broad test; 1 closeout command | none / none / none | 66.2 s | **PASS** — ordinary shell completed every command without a stall; focused passed; only the unchanged unrelated broad failure remained |
+
+Fresh operator verification observed in all three snapshots:
+
+- exactly `config/vendor_admission.yaml`, `src/vendor_adapter.py`, and
+  `tests/test_vendor_adapter.py` changed;
+- discovery was enabled, registry remained disabled, and both provenance fields
+  were preserved and asserted;
+- focused exit was 0, broad exit was 1 only from unchanged
+  `tests/test_unrelated_export.py`, and `git diff --check` exited 0; and
+- `notes/operator_draft.md` remained untracked at the exact baseline hash.
+
+Decision: **PASS Fix 2 at 3/3.** The smallest complete operational fix was the
+owner's supported enable action for the already-trusted handler plus a fresh
+session reload. The repository's Windows hook-launch optimization then met its
+original gate: three correct runs, no ordinary-shell stall, no shell-route
+elevation, no retry, and preserved failure integrity. This result does not
+repair or claim the native patch primitive owned by Fix 3.
 
 ### Managed-receiver commission confirmation turn
 
@@ -774,17 +827,17 @@ in `AGENTS.md`. No fourth candidate or threshold change was used.
 | Fix | Status | Observed basis |
 | --- | --- | --- |
 | 1 — bounded stall containment | **PASS** | Preserve the previously verified Trial B result: 3/3 correct, failure-integral runs with bounded typed stalls. |
-| 2 — ordinary shell launch | **PRODUCT_BLOCKED** | On Codex CLI 0.144.4, the exact live canary executed with `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`; protected checks and cold trials did not run. |
+| 2 — ordinary shell launch | **PASS** | The owner enabled the already-trusted handler through CLI `/hooks`; a fresh Codex CLI 0.144.4 session returned `FORSETI_CODEX_HOOK_ADOPTION=ADOPTED`, then 3/3 unchanged cold runs completed correctly with no ordinary-shell stall, retry, fallback, or elevation. |
 | 3 — native patch restoration | **PRODUCT_BLOCKED** | Native tool launch and patch-primitive restoration are Codex-owned; no repository implementation can satisfy the defined signal. |
 | 4 — first fallback reliability | **PASS** | Final candidate D completed the first and only exact-edit apply in 3/3 cold trials; each patch was correct and all failure-integrity checks held. |
 | 5 — dependency-round consolidation | **PASS** | Candidate C completed the correct, failure-integral case in five rounds in 3/3 trials; independent before/after hashes verify the run 1 note despite its missing intake printout. |
 
-Evaluation: the five-fix sequence has not passed across all five because Fixes 2
-and 3 remain product-blocked. The repository-owned sequence delivered verified
-passes for Fixes 1, 4, and 5. Candidate C reached the frozen five-round target in
-3/3 correct, failure-integral trials and is retained as workflow authority. No
-ordinary-shell, native-patch, general tool-runtime, or all-five pass claim is
-supportable.
+Evaluation: the five-fix sequence has not passed across all five because Fix 3
+remains product-blocked. The sequence delivered verified passes for Fixes 1, 2,
+4, and 5. Candidate C reached the frozen five-round target in 3/3 correct,
+failure-integral trials and is retained as workflow authority. Ordinary shell
+launch is now supported by the fresh adoption plus 3/3 cold result. No native-
+patch, general tool-runtime, or all-five pass claim is supportable.
 
 ```yaml
 direction_change_propagation:
