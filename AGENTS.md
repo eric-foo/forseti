@@ -134,11 +134,16 @@ guard, and owner steering all stay.
   merely because the next command differs. A safe, in-scope shell operation may
   be retried once through per-operation escalation; use that working route for
   later shell calls. After a stalled patch primitive, do not probe its launcher;
-  use a checked atomic repository patch fallback and verify the diff. Correct a
-  failed atomic preflight only when its output identifies a distinct content
-  error; never repeat the same failed patch and do not reopen the stalled
-  primitive. Completion through an alternate route is a bounded mitigation
-  signal, not proof that the ordinary tool route is repaired.
+  use `.agents/tools/atomic_exact_edit.py` with one version-1 exact-replacement
+  operation built from freshly read live target text and one `--apply`
+  invocation. Pass each change as `--replace PATH OLD NEW`, single-quoting each
+  value in PowerShell and using the helper's documented `\\n`, `\\t`, and
+  `\\\\` escapes when needed; do not hand-author a Git patch or create a
+  temporary plan file. If the helper rejects the operation, preserve its
+  failure output and stop the edit route for the turn rather than reconstructing
+  or retrying it. Verify the final diff. Completion through this alternate route
+  is a bounded mitigation signal, not proof that the ordinary tool route is
+  repaired.
 - **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.

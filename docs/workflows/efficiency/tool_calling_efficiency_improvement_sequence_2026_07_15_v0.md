@@ -22,7 +22,8 @@ failure integrity, and the named fix gate pass.
 
 Current state: **fix 1 passed; fix 2 is implemented but blocked by the fresh
 managed-task project-hook adoption gate; fixes 3-5 are defined below, with fix
-3 product-blocked, fix 4 failed, and fix 5 not run**. The baseline record is pending on
+3 product-blocked, fix 4 candidates A-C failed, and owner-authorized candidate
+D defined below but not yet run; fix 5 remains gated**. The baseline record is pending on
 PR #951 at commit `28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this
 ledger does not imply that PR is merged.
 
@@ -388,11 +389,11 @@ the defined native-route repair.
   atomic failure preserved integrity but added serial recovery rounds.
 - **Ownership:** mixed. Git and shell execution are external, while Forseti owns
   the operating discipline used to construct and preflight its fallback.
-- **Smallest complete intervention:** strengthen the existing `AGENTS.md`
-  fallback rule to require a fresh read of the live target hunks, one minimal
-  patch derived from those bytes, and `git apply --check` against the exact same
-  patch bytes before a single apply. A distinct content error permits one
-  reread/rebuild; unchanged retries and launcher probes remain forbidden.
+- **Smallest complete intervention:** provide one repository-owned exact-text
+  replacement helper and route the existing post-stall fallback to it. The
+  caller supplies repeated file/old-text/new-text triples from freshly read
+  targets; the helper preflights the whole change before writing and rejects
+  ambiguous, stale, escaping, mixed-newline, or no-op input.
 - **Exact success signal:** in exactly three fresh cold runs forced past the
   native route, the first fallback patch preflight and apply both succeed, with
   zero fallback reconstruction/retry rounds, while all case correctness and
@@ -413,6 +414,143 @@ the defined native-route repair.
   not credited and a bounded executable shell route is sufficient; independent
   of Fix 5 because trial accounting preserves the existing call pattern except
   for fallback construction.
+
+#### Owner-authorized retry candidate B — deterministic exact-edit helper
+
+Candidate A established that more patch-construction prose is insufficient:
+all three first Git-patch preflights failed, including CRLF-sensitive context
+failures. Candidate B therefore changes the mechanism rather than the wording.
+
+- **Smallest complete intervention:** add one repository-owned helper that
+  accepts a versioned exact-replacement plan in memory, preflights every target
+  before any write, preserves each file's existing LF or CRLF convention, and
+  atomically replaces only the named files. Route the post-primitive-stall
+  fallback to that helper from `AGENTS.md`; do not hand-author a Git patch.
+- **Exact success signal:** exactly three fresh cold runs forced past the native
+  primitive each succeed on their first helper preflight-and-apply invocation,
+  with no plan reconstruction, helper retry, Git-patch fallback, or partial
+  write, while the existing correctness and failure-integrity invariants hold.
+- **Failure semantics:** any helper rejection, retry, reconstructed plan,
+  partial write, wrong patch, or lost unrelated state makes candidate B
+  `FAILED`. An inability to execute the repository helper at all is
+  `PRODUCT_BLOCKED`. Fix 5 remains `NOT_RUN` unless candidate B passes 3/3.
+- **Lock-in boundary:** the helper owns exact byte-safe text replacement only.
+  It is not a general patch language, daemon, hook, registry, formatter, or
+  substitute for the native patch primitive.
+
+Candidate B decision: **FAILED**. All three first default-shell launches of the
+helper stalled without helper output. Runs 1 and 2 then executed the helper
+successfully through the single elevated shell retry and produced correct,
+failure-integral patches; run 3 obeyed the no-retry rule and made no patch. Two
+runs also repaired command-string quoting before launch. The helper's executed
+preflight/apply path was 2/2, but the exact end-to-end first-invocation signal
+was 0/3. This is not credited as a Fix 4 pass.
+
+#### Owner-authorized retry candidate C — direct JSON on the working route
+
+Candidate C keeps the same helper and edit semantics but removes the observed
+plan-construction layer: the helper accepts one single-quoted `--plan-json`
+argument directly. The cold scenario starts after both the native-patch and
+default-shell circuits are explicitly open and uses the one permitted elevated
+shell route for the helper. This isolates fallback edit reliability from Fix
+2's independently product-blocked shell launch.
+
+- **Exact success signal:** exactly three fresh cold runs each execute one
+  elevated helper `--apply` call with direct JSON; that first call must return
+  `PRECHECK=OK` and `APPLY=OK`, with no command reconstruction, plan rebuild,
+  helper retry, Git-patch fallback, or partial write. All correctness and
+  failure-integrity invariants remain mandatory.
+- **Failure semantics:** any pre-launch command correction, helper rejection,
+  timeout, retry, incorrect patch, or lost unrelated state is `FAILED`. The
+  bounded elevated route is test isolation only and is not a Fix 2 pass or
+  permission to normalize elevation for ordinary shell work.
+
+Candidate C decision: **FAILED**. One run passed end to end. One run consumed
+its only helper invocation on `--help`; one passed malformed JSON through shell
+quoting and the helper rejected it before preflight. No incorrect or partial
+write occurred, but exact first-use success was 1/3.
+
+#### Owner-authorized retry candidate D — repeated exact replacements
+
+Candidate D removes serialized plan construction entirely. The same helper
+accepts one or more repeated `--replace PATH OLD NEW` triples; `\\n`, `\\t`, and
+`\\\\` are decoded by the helper before the unchanged preflight/apply core.
+PowerShell callers single-quote each value. Reading source or help is not an
+apply attempt; exactly one `--apply` invocation remains the gate.
+
+- **Exact success signal:** exactly three fresh cold runs each complete one
+  elevated `--apply` invocation using repeated replacements; the first call
+  returns `PRECHECK=OK` and `APPLY=OK`, with no command correction, retry,
+  helper rejection, wrong patch, or lost unrelated state.
+- **Stop condition:** if candidate D misses any of three signals, remove the
+  helper and its workflow-authority/placement routes rather than keep an
+  unproven standing tool.
+
+Candidate D decision: **PASS**. All three fresh cold runs completed their only
+`--apply` invocation on the first attempt. Each returned `PRECHECK=OK FILES=3`
+and `APPLY=OK FILES=3`, produced exactly the expected three-file patch, passed
+the focused test and `git diff --check`, preserved the unrelated broad-test
+failure, and preserved the untracked note byte-for-byte. Two runs first looked
+for an overlay file that was absent from the frozen fixture, and one of those
+runs adjusted that read-only lookup. This setup noise was visible but did not
+alter, reconstruct, or retry the edit command, so it does not miss the stated
+editing signal.
+
+#### Candidate D three-cold-run dogfood
+
+The three disposable repositories were frozen at fixture-local commit
+`7d3b7eb530a763bd32b86b9bdf5ee876d8ad8ab7`. The helper and fixture-instruction
+hashes were identical before dispatch, and each began with only
+`notes/operator_draft.md` untracked at SHA-256
+`E7025234292F8FD6FF7C0274B14B35A29184DC53186C103EAAA1A54586C40612`.
+The native-patch and default-shell circuits were declared open, isolating the
+exact-edit fallback from Fixes 2 and 3. Agents used separate repositories and
+had no write access to this lane.
+
+| Run | Correctness | Tool rounds and sequence | Retries / fallback | Observable wall time | Real failures preserved | Success signal |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Exact three-file patch; focused pass; diff check pass | 11: orient -> fixture instructions/status -> source/help -> targets -> one helper apply -> focused/broad tests -> closeout | No edit-command correction or retry; one read-only lookup adjusted after the fixture lacked the overlay path | Not independently instrumented | Broad test failed only in unchanged unrelated export; note hash and untracked state preserved | **PASS** — first and only apply returned both required markers |
+| 2 | Exact three-file patch; focused pass; diff check pass | 7: orient/instructions/targets -> one helper apply -> combined verification -> closeout | No edit-command correction, rejection, or retry; an absent-overlay read reported visibly | Not independently instrumented | Same unrelated broad failure and note hash preserved | **PASS** — first and only apply returned both required markers |
+| 3 | Exact three-file patch; focused pass; diff check pass | 9: orient/instructions/targets -> source/help -> one helper apply -> focused/broad tests -> closeout | No edit-command correction, rejection, or retry; an absent-overlay read reported visibly | Not independently instrumented | Same unrelated broad failure and note hash preserved | **PASS** — first and only apply returned both required markers |
+
+Fresh operator verification after all agents stopped observed that all three
+repositories changed only `config/vendor_admission.yaml`,
+`src/vendor_adapter.py`, and `tests/test_vendor_adapter.py`; all passed the
+focused test and `git diff --check`; all broad tests failed only at the
+unchanged unrelated export assertion; and all note hashes matched the baseline.
+
+#### Candidate D retained implementation and validation
+
+- `.agents/tools/atomic_exact_edit.py`: bounded exact-text replacement helper;
+  all-target preflight, path and symlink containment, match-count checks,
+  newline preservation, atomic replacement, best-effort rollback, and embedded
+  focused self-test.
+- `AGENTS.md`: post-patch-stall route to one helper apply, with rejection as a
+  visible stop rather than a reconstruction/retry loop.
+- `.agents/workflow-overlay/artifact-folders.md` and
+  `docs/workflows/forseti_repo_map_v0.md`: authority and routing for the bounded
+  `.agents/tools/` home.
+- This ledger: candidate definitions, all cold-trial evidence, decision,
+  validation, and residual risk.
+
+Observed closeout commands:
+
+| Command | Exit | Actual result |
+| --- | --- | --- |
+| `python -B .agents/tools/atomic_exact_edit.py --selftest` | 0 | 12 named cases passed; `SELFTEST OK` |
+| `git diff --check` | 0 | No whitespace errors; Git emitted only line-ending conversion warnings for four existing text files |
+| `python .agents/hooks/check_placement.py --strict` | 0 | 0 violations, 0 freshness findings; 1,251 legacy-tolerated and 109 scratch-excluded files reported |
+| `python .agents/hooks/check_dcp_receipt.py --strict` | 0 | 1 real receipt in 1 changed Markdown file was shape-valid |
+| `python .agents/hooks/check_map_links.py --strict` | 0 | 0 findings; 36 annotated non-resolving debt entries |
+| `python .agents/hooks/check_repo_map_freshness.py --changed` | 0 | No freshness finding emitted |
+| `pwsh .github/scripts/run-doc-gates.ps1` | 0 | 22/22 local documentation gates passed |
+| `python .agents/hooks/check_dcp_receipt_hygiene.py --changed --strict` | 1 | Existing debt surfaced: the touched `artifact-folders.md` already contains 9 historical inline receipts, above the current limit of 2 |
+
+The receipt-hygiene failure remains visible and was not repaired here: deleting
+seven historical receipts is unrelated cleanup, Candidate D added its receipt
+to this changed ledger rather than that controlling file, and the owning
+diff-scoped receipt-shape gate passes. This is a residual repository-hygiene
+risk, not evidence that the exact-edit helper failed.
 
 ### Fix 5 — dependency-round consolidation
 
@@ -445,7 +583,7 @@ the defined native-route repair.
   on Fix 4 passing only to keep the sequential experiment one-intervention-at-a-
   time and avoid attributing fallback recovery rounds to batching.
 
-## Fix 4 dogfood — failed first-fallback discipline
+## Fix 4 candidate A dogfood — failed instruction-only discipline
 
 The candidate added only the definition-gated fallback-construction sentence to
 the fixture's repository instructions. The three oracle-free snapshots were
@@ -474,7 +612,7 @@ Fresh operator verification after all agents stopped observed:
   `tests/test_unrelated_export.py`, and all three note hashes remained exactly
   the baseline value above.
 
-Decision: **FAILED Fix 4**. Exact first-fallback success was 0/3. The candidate
+Candidate A decision: **FAILED**. Exact first-fallback success was 0/3. The candidate
 improved failure discipline but did not make the first fallback reliable; it
 was removed from `AGENTS.md` rather than promoted as working workflow authority.
 The failures narrow the next design question to deterministic patch-byte
@@ -483,10 +621,10 @@ does not authorize a helper, wrapper, or second three-run batch.
 
 ## Fix 5 decision
 
-Decision: **NOT_RUN**. Fix 5's definition explicitly depends on Fix 4 passing so
-that fallback-recovery rounds are not misattributed to batching. Advancing after
-Fix 4's 0/3 success signal would violate the one-intervention-at-a-time gate.
-No batching rule was added to `AGENTS.md`, and no Fix 5 cold agent was started.
+Decision: **NOT_RUN**. Candidate D has now opened Fix 5's technical sequencing
+gate, but the owner's current one-at-a-time instruction authorized trying Fix 4,
+not starting the next intervention in the same work unit. No batching rule was
+added to `AGENTS.md`, and no Fix 5 cold agent was started.
 
 ## Across-five evaluation — 2026-07-16
 
@@ -495,19 +633,36 @@ No batching rule was added to `AGENTS.md`, and no Fix 5 cold agent was started.
 | 1 — bounded stall containment | **PASS** | Preserve the previously verified Trial B result: 3/3 correct, failure-integral runs with bounded typed stalls. |
 | 2 — ordinary shell launch | **PRODUCT_BLOCKED** | On Codex CLI 0.144.4, the exact live canary executed with `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`; protected checks and cold trials did not run. |
 | 3 — native patch restoration | **PRODUCT_BLOCKED** | Native tool launch and patch-primitive restoration are Codex-owned; no repository implementation can satisfy the defined signal. |
-| 4 — first fallback reliability | **FAILED** | Exactly three cold trials produced 0/3 first-preflight-plus-first-apply successes; integrity held, but only one patch completed after reconstruction. |
-| 5 — dependency-round consolidation | **NOT_RUN** | Sequential gate remained closed after Fix 4 failed. |
+| 4 — first fallback reliability | **PASS** | Final candidate D completed the first and only exact-edit apply in 3/3 cold trials; each patch was correct and all failure-integrity checks held. |
+| 5 — dependency-round consolidation | **NOT_RUN** | Fix 4's technical gate is open, but the owner has not advanced the one-at-a-time sequence to Fix 5. |
 
-Evaluation: the five-fix sequence has not passed. Fix 1 delivered measurable
-containment, but neither ordinary shell restoration nor native patch restoration
-is proven, the instruction-only Fix 4 candidate failed, and batching was not
+Evaluation: the five-fix sequence has not passed. Fixes 1 and 4 delivered
+measurable repository-owned improvements, while ordinary shell restoration and
+native patch restoration remain product-blocked and batching has not been
 evaluated. No all-five pass, general tool-runtime repair, or near-five-round
 economy claim is supportable.
 
-Doctrine propagation decision: no durable workflow-authority change remains in
-this work unit. The failed `AGENTS.md` candidate was removed; this ledger records
-observed evidence and routing only, so no direction-change propagation receipt
-is required.
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    After a stalled native patch primitive, agents use the repository-owned
+    atomic exact-text helper as the checked fallback instead of hand-authoring a
+    Git patch or temporary serialized plan.
+  trigger: workflow_authority
+  related_triggers: []
+  controlling_sources_updated: [AGENTS.md, .agents/workflow-overlay/artifact-folders.md]
+  downstream_surfaces_checked: [CLAUDE.md, .agents/workflow-overlay/README.md, .agents/workflow-overlay/source-loading.md, .agents/workflow-overlay/decision-routing.md, .agents/workflow-overlay/validation-gates.md, docs/workflows/forseti_repo_map_v0.md]
+  intentionally_not_updated:
+    - {path: CLAUDE.md, reason: "The shim imports AGENTS.md and must not duplicate the fallback rule."}
+    - {path: .agents/workflow-overlay/source-loading.md, reason: "The helper is an execution utility rather than a new authority source."}
+    - {path: .agents/workflow-overlay/validation-gates.md, reason: "The helper exposes its own focused self-test and introduces no new repository-wide gate class."}
+  stale_language_search: 'rg -n -i "atomic_exact_edit|post-primitive-stall|post-stall fallback|hand-author.*git patch|\\.agents/tools" AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/forseti_repo_map_v0.md'
+  stale_language_search_result: >
+    Executed 2026-07-16 after the patch. Hits were limited to the new AGENTS.md
+    rule, the new artifact-folder authority, and the reconciled repo-map route;
+    no conflicting live fallback instruction was found.
+  non_claims: [not general validation, not readiness, not native patch repair, not Fix 2 repair, not permission to normalize elevated shell execution]
+```
 
 ## Non-claims
 
@@ -516,4 +671,4 @@ is required.
 - Not repair of the ordinary patch primitive.
 - Not evidence that operation counts from different transcript accounting
   schemes are perfectly interchangeable.
-- Not completion of fixes 2–5 or the after-five evaluation.
+- Not completion of Fixes 2, 3, or 5, or an all-five pass.
