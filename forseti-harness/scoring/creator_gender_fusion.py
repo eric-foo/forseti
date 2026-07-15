@@ -3,7 +3,7 @@
 Consumes per-reel `CreatorGenderSignal` cues for ONE creator and produces a single soft
 `CreatorGenderLean`. LLM-free by construction (no-LLM zone, `scoring/`): the inference that
 populates the per-reel cues is the DEFERRED agent-in-the-loop cleaning step; this code only
-DECIDES/COMBINES deterministically. Sibling to `audience_fusion` / `product_fusion` — it is NOT
+DECIDES/COMBINES deterministically. Sibling to `product_fusion` — it is NOT
 folded into product-stance.
 
 Cues are weighted by kind (see `GenderCueKind`): self-presentation is trusted and circularity-

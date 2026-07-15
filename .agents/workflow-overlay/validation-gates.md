@@ -68,6 +68,23 @@ inherit this floor.
   `.agents/workflow-overlay/source-of-truth.md` before claiming completion.
   Missing propagation evidence blocks strict success or status claims that
   depend on the changed doctrine; it authorizes no adjacent cleanup or tooling.
+- Receiver-binding acceptance is class-specific and uses the single inline
+  `receiver_binding` receipt owned by
+  `.agents/workflow-overlay/decision-routing.md`:
+
+  | Commission state | Acceptance result | Required evidence or recovery |
+  | --- | --- | --- |
+  | Codex managed-worktree task created with its initial commission | `accepted` after verification | Current root equals the app-created managed worktree; bound starting ref/revision and clean or allowed state match; lane-start file write plus Git stage/unstage/cleanup probe passes; no concurrent writer. |
+  | External controller targeting another worktree | `accepted` after verification | Unique exact target and byte identity when dirty; demonstrated direct write; target-rooted operation; no concurrent writer. |
+  | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
+  | Unknown future/manual courier | `preparation_allowed`, dispatch and source loading `blocked` | Keep `receiver_class: receiver_to_bind`; bind and verify a concrete receiver before claiming dispatch readiness. |
+  | Wrongly launched Codex task that creates or finds another worktree | `blocked` as `BLOCKED_RECEIVER_REROOT_REQUIRED` | Do not write the alternate worktree; create a new user-authorized Codex managed-worktree task with the commission in its initial prompt. |
+  | Dirty, ambiguous, byte-mismatched, or concurrently written target | `blocked` | Resolve exact target/state and eliminate concurrent writing; missing evidence is not a pass. |
+
+  This matrix accepts semantic user authorization for a new task or handoff when
+  the visible instruction explicitly requests it; generic `proceed` alone is
+  not task-creation authority. It does not weaken the Codex registered non-
+  current-worktree denial or turn receipt fields into self-certifying proof.
 - Review-routing disposition gate: a change that touches code roots
   (`forseti-harness/`, `.agents/hooks/`) must carry its review disposition in the
   same change — either a review artifact added under `docs/prompts/reviews/`
@@ -322,13 +339,15 @@ triggers, not permission to add a telemetry ledger or silently change scope.
 - Worktree preflight gate: prompts state workspace, revision or hash,
   dirty-state allowance, target scope, and edit permission only when repository
   state matters. Before a repo-changing cross-lane dispatch loads receiver
-  sources, resident judgment also applies the two-root preflight in
-  `.agents/workflow-overlay/decision-routing.md`: resolve the launch checkout to
-  the unique effective target, verify dirty-byte identity when applicable,
-  prove direct write capability, and exclude concurrent writers. A launch-path
-  mismatch alone is not a blocker; naming or reading another worktree is not
-  write proof. Guarded receivers still reroot or return
-  `BLOCKED_RECEIVER_REROOT_REQUIRED` without bypassing the guard.
+  sources, resident judgment applies the class-specific acceptance matrix above
+  and the receipt in `.agents/workflow-overlay/decision-routing.md`. Codex
+  managed tasks require current-root equality and the lane-start write/index
+  proof; only an external direct-write controller may use the two-root route;
+  collaboration is same-root; an unknown courier is preparation-only. Naming or
+  reading another worktree is not write proof. A genuine binding/capability
+  failure returns `BLOCKED_RECEIVER_REROOT_REQUIRED` without bypassing the guard;
+  a wrongly launched Codex task recovers through a newly authorized managed-
+  worktree task carrying the initial commission, not self-rerooting.
 - Control-plane source-state gate: repository-aware prompts, prompt-policy
   patches, workflow patches, and CA handoffs must classify controlling Forseti
   sources as clean, modified, untracked, stale, or not checked when those

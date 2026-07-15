@@ -238,7 +238,7 @@ def test_census_is_deterministic_reconciled_and_counts_observation_units(tmp_pat
     assert states["cleaning_basenotes_silver"] == "no_applicable_source"
     assert states["cleaning_parfumo_silver"] == "failed"
     assert states["transcript_product_mentions_silver"] == "pending_backlog"
-    assert states["tiktok_audience_evidence_silver"] == "pending_backlog"
+    assert states["tiktok_audience_evidence_silver"] == "retired"
     assert states["silver__cleaning__product_mentions"] == "retired"
 
 

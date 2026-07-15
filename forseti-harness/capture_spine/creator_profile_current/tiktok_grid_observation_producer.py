@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 SOCIAL_METRIC_OBSERVATION_SET_LANE = "social_metric_observation_set_silver"
 TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE = TIKTOK_GRID_PACKET_SOURCE_SURFACE
-TIKTOK_GRID_OBSERVATION_POLICY_VERSION = "tiktok_grid_metric_observation_set_v0"
+TIKTOK_GRID_OBSERVATION_POLICY_VERSION = "tiktok_grid_metric_observation_set_v1"
 TIKTOK_GRID_OBSERVATION_PRODUCER_SCHEMA_VERSION = (
     "tiktok_grid_metric_observation_set_silver_v0"
 )
@@ -52,7 +52,10 @@ TIKTOK_GRID_METRIC_FIELDS: tuple[tuple[str, str], ...] = (
 )
 _POLICY_BASIS = {
     "policy_version": TIKTOK_GRID_OBSERVATION_POLICY_VERSION,
-    "source_surface": TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE,
+    "source_surfaces": [
+        TIKTOK_GRID_OBSERVATION_SOURCE_SURFACE,
+        "tiktok_creator_batch_capture_v0",
+    ],
     "identity": "creator_handle+tiktok_video_id",
     "metrics": dict(TIKTOK_GRID_METRIC_FIELDS),
     "missing": "unavailable_with_reason; never zero-fill",

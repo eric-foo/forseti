@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from cleaning.audience_extractor import RawApiProvider
+from cleaning.raw_model_transport import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, mentions_record_id
 from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot

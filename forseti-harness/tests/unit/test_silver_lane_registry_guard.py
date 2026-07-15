@@ -193,8 +193,12 @@ def test_registry_freezes_legacy_lineage_lanes() -> None:
     } == registry.RETIRED_SILVER_LINEAGE_BASELINE
     assert {
         "transcript_product_mentions_silver",
-        "tiktok_audience_evidence_silver",
     } <= registry.SILVER_ENVELOPE_LANES
+    assert {
+        "tiktok_audience_evidence_completion",
+        "tiktok_audience_profile_analysis",
+        "tiktok_audience_profile_analysis_completion",
+    } == registry.RETIRED_LANE_BASELINE
 
     registry.LANE_ROLES["silver__new_legacy_bypass"] = registry.LaneRole.SILVER_LINEAGE
     try:

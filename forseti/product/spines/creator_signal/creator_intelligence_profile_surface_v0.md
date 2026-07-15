@@ -21,8 +21,6 @@ open_next:
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_v0.json
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_lake_native_record_mapping_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_spec_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
-  - docs/decisions/forseti_audience_ballot_taxonomy_v0.md
 stale_if:
   - The Capture creator_profile_current view contract is superseded.
   - The public-handle identity ledger, metric rollup, or ideal-audience schema home changes.
@@ -64,7 +62,7 @@ Capture owns:
 - metric observation rows for individual reels/videos/profile facts;
 - metric rollup records for average views, engagement rate, cadence, velocity,
   and similar aggregate measures;
-- ideal-audience snapshot envelopes, source evidence, and current-view join mechanics;
+- validated audience-triangulation snapshots, source evidence, and current-view join mechanics;
 - the derived `creator_profile_current` view and its join/denormalization
   mechanics.
 
@@ -130,14 +128,11 @@ captured comments support an observed participating-audience read; Judgment
 fuses them into commercial creator fit. Do not call captured participants a
 platform-wide audience census.
 
-Allowed Tier-1 fields are owned by the audience-inference spec and ballot
-taxonomy:
-
-- `segment`
-- `audience_role`
-- `purchase_intent`
-- `skill_level`
-- `price_tier`
+The current claim axes are category knowledge, purchase/decision stage,
+price/value posture, product/brand affinity, language/community norms,
+objections, aspirations/identity, presentation-style resonance, and
+engagement/memorability effect. They are claim lenses, not demographic labels
+or a platform-wide audience census.
 
 Tier-2-A demographic fields such as gender/age remain gated until an accepted
 aggregate-audience-attribute schema home and sourced base-rate/data prerequisites

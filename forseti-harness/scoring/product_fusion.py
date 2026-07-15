@@ -37,7 +37,7 @@ class FusionConfig:
     """The full tunable surface of Pass-2 product-verdict fusion -- one knob per field.
 
     These six values ARE the calibration surface. ``DEFAULT_FUSION_CONFIG`` holds the
-    UNCALIBRATED v0 defaults: they were chosen by mirroring ``scoring/audience_fusion.py``,
+    UNCALIBRATED v0 defaults retained from the original deterministic-fusion calibration,
     NOT fit to owner-labeled verdicts, so they encode a principled prior, not a measured one.
     The sensitivity harness (``scoring/product_fusion_sensitivity.py``) sweeps them; real
     calibration (a labeled corpus + owner sign-off) is owner-deferred. Rationale and the
@@ -108,7 +108,7 @@ def _fuse_product(
     separately, so a genuinely divided product lands on ``mixed`` rather than netting to
     ``unknown``."""
     # Dependence discount (SOFT): repeats within ONE video are down-weighted by 1/sqrt(N) per
-    # mention (cluster = video_id), mirroring audience_fusion. It is a graceful discount toward
+    # mention (cluster = video_id). It is a graceful discount toward
     # "one creative", NOT a hard one-video-one-vote cap -- several strong in-video mentions still
     # accumulate (see test_dependence_discount_one_video_not_n_endorsements).
     per_video: dict[str, int] = defaultdict(int)
@@ -183,10 +183,9 @@ def fuse_product_verdicts(
     re-derivable result.
 
     PRECONDITION (caller-enforced): every mention in ``mentions`` MUST belong to the one creator
-    named by ``creator_id``. ``ProductMention`` carries no creator field, so -- unlike
-    ``audience_fusion`` (which rejects multi-creator input) -- this function CANNOT detect and
-    will SILENTLY fuse across creators if a caller batches them. The durable guard (a
-    ``creator_id`` on ``ProductMention``, asserted here like audience_fusion) is part of the
+    named by ``creator_id``. ``ProductMention`` carries no creator field, so this function
+    CANNOT detect and will SILENTLY fuse across creators if a caller batches them. The durable
+    guard (a ``creator_id`` on ``ProductMention``, asserted here) is part of the
     deferred cross-creator work; until it lands, the caller owns single-creator scoping.
     """
     if not creator_id or not creator_id.strip():
