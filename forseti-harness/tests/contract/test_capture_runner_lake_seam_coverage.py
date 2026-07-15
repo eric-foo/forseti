@@ -135,6 +135,7 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("cleaning/parfumo_lake.py", "append_record"): 1,
         ("cleaning/parfumo_lake.py", "append_silver_record"): 1,
         ("data_lake/catalog.py", "inspect_catalog"): 2,
+        ("data_lake/company_surface.py", "append_silver_record"): 1,
         ("data_lake/consumption.py", "append_record"): 1,
         ("data_lake/consumption.py", "lane_dir"): 1,
         ("data_lake/product_mention_selection.py", "lane_dir"): 1,

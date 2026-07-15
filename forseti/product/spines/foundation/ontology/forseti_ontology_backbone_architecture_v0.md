@@ -13,7 +13,7 @@ use_when:
   - Adjudicating whether to adopt the Forseti ontology as the repo's semantic backbone.
   - Locating the proposed object roster, links, action gates, ID grammar, and binding plan.
 authority_boundary: retrieval_only
-status: ADOPTED_2026-06-15 (owner-signed) — core 15 of 18 names; Buyer + Org RESERVED (deferred, §6.1)
+status: ADOPTED_2026-07-15 — core 16 of 18 names; Buyer RESERVED; Org ADOPTED (§6.1)
 commission: docs/prompts/product-planning/orca_ontology_backbone_architecture_pass_commission_prompt_v0.md
 base: origin/main @ 953af7ea (frozen); freshness gate PASSED (8/8 sha-pins + LIVE grammar verified)
 adjudication_route: ICP / product-direction lane adjudicates; owner signs adoption and any folder/router binding.
@@ -186,7 +186,7 @@ AR-01 residual for `Memo` / `EvidenceUnit`). Gates are **actions**, not types (�
 | 14 | **CapturePacket** | A write-once, hash-pinned source-capture packet — the raw provenance an Observation derives from. | manifest_version, cutoff_posture | `orca-harness/source_capture/models.py` |
 | 15 | **EvidenceUnit** | A cleaned evidence unit (IPF standard) bound at the Cleaning/Judgment boundary. | claim_tier | IPF foundation + evidence ladder |
 | 16 | **Buyer** *(RESERVED 2026-06-15)* | *(name reserved — adoption deferred; no dedicated landed backing yet, §3)* The qualified customer a `Memo` serves — the ICP entity (e.g. a beauty operator) who owns the live `DecisionEvent`. Was implicit in the Hard Gate precondition. | qualification_status | icp/wedge + offer hypothesis (indirect) |
-| 17 | **Org** *(RESERVED 2026-06-15)* | *(name reserved — adoption deferred; no dedicated landed backing yet, §3)* The company / parent behind a `Brand`; the unit org-motion (hiring, headcount, retail presence) attaches to. Distinct from `Brand` (a consumer label). | (org-motion signals) | G4 org-motion cards (corroboration data, not an Org-object definition) |
+| 17 | **Org** *(ADOPTED 2026-07-15)* | The company / parent behind a `Brand`; the unit org-motion (hiring, headcount, retail presence) attaches to. Distinct from `Brand` (a consumer label). | (org-motion signals; property list remains lane-owned) | `forseti-harness/capture_spine/company_aggregate_forward_signal/` producer schema |
 
 ### 2.3 Link map (typed relationships)
 
@@ -194,6 +194,11 @@ Structural / identity:
 - `Vertical —narrows_to→ Vertical` (sub-niche nesting)
 - `Brand —in→ Vertical` · `Brand —owned_by→ Org` · `Org —subsidiary_of→ Org` (parent resolution) · `Brand —offers→ Product` · `Brand —can_act_as→ WindCaller`
 - `WindCaller —covers→ Vertical` (per vertical×sub-niche)
+
+As of the dated 2026-07-15 Org amendment, only the already-reserved
+`Brand —owned_by→ Org` and `Org —subsidiary_of→ Org` semantics are active for
+Org. Adoption adds no canonical registry, matcher, property list, or additional
+relationship vocabulary.
 
 Signal flow:
 - `WindCaller —made→ Call` · `Call —opens→ TrendVector`
@@ -381,8 +386,8 @@ never minted here.
 Stolen from the venue card set, the proven antidote to ontology rot:
 
 - **Hard cap: 18 domain object types** (raised from 15 on 2026-06-15 to seat `Buyer`
-  and `Org` as first-class; §6.1). "19th in = one out." 17 of 18 used — one slot of
-  deliberate headroom.
+  and `Org` as first-class; §6.1). "19th in = one out." 17 of 18 used — 16 adopted,
+  one reserved, and one slot of deliberate headroom.
 - **Owner: Eric.** Per-type review dates (each card carries a `review_by`); a card
   past its date is a stale hint to review or retire, not a current-state claim.
 - **Dated amendments only, never silent rewrites.** Fail-soft cards: dated hints,
@@ -503,6 +508,14 @@ Stolen from the venue card set, the proven antidote to ontology rot:
   creator entries in the same reference data; `WindCaller` leaves the deferred backlog with
   `windcaller_creator_youtube_gentsscents_v0.md` as exemplar card. Property lists stay unfrozen;
   fragrance specifics are data, never schema (charter high-lock-in decision #4).
+- **2026-07-15 (owner-authorized): `Org` graduates from RESERVED to ADOPTED.**
+  The landed source-agnostic producer schema at
+  `forseti-harness/capture_spine/company_aggregate_forward_signal/` satisfies
+  the 2026-06-15 graduation gate by giving org-motion observations a real schema
+  to re-express against. This activates the already-reserved `org:<slug>` ID
+  grammar, `Brand —owned_by→ Org`, and `Org —subsidiary_of→ Org` only. It does
+  not freeze an Org property list, add a registry or matcher, decide canonical
+  company IDs, create an Org instance card, or add relationship vocabulary.
 
 ---
 
@@ -606,6 +619,56 @@ direction_change_propagation:
     - not adoption
     - not folder/router enactment
     - not implementation authorization
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Org graduates from reserved to adopted after the company-aggregate
+    org-motion producer schema landed; only org:<slug>, Brand owned_by Org, and
+    Org subsidiary_of Org become active, while property lists, matching,
+    registries, canonical IDs, and additional relationships remain deferred.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
+    - forseti/product/spines/foundation/ontology/ontology.yaml
+    - forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - forseti/product/information/company_surface/README.md
+    - forseti/product/information/company_surface/company_identity_boundary_v0.md
+    - forseti/product/information/company_surface/company_logical_record_and_view_contract_v0.md
+    - forseti/product/spines/foundation/ontology/ontology_cards/brand_beautypie_v0.md
+    - forseti/product/spines/foundation/ontology/ontology_cards/venue_basenotes_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md, CLAUDE.md, and .agents/workflow-overlay/
+      reason: They already route ontology doctrine to Foundation and carry no Org reservation state.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: The existing Foundation ontology route remains accurate; no new T1 surface is needed.
+    - path: ontology_cards/org_*.md
+      reason: Adoption needs no invented instance; no current source-backed exemplar is required by ontology authority.
+    - path: historical amendments and prior DCP receipts
+      reason: Their dated statements accurately describe the state when authored and remain provenance, not live routing.
+  stale_language_search: >
+    rg -n -i "Org.*RESERVED|RESERVED.*Org|Org remains reserved|Org.*not adopted|Until that graduation|parent-resolution.*deferred until.*Org"
+    AGENTS.md CLAUDE.md .agents docs/workflows/forseti_repo_map_v0.md
+    forseti/product/information/company_surface
+    forseti/product/spines/foundation/ontology
+    docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md
+  stale_language_search_result: >
+    Run 2026-07-15 after the amendment. Remaining reservation hits are the
+    dated 2026-06-15 amendment and the prior logical-contract DCP receipt; live
+    status, SSOT, backlog, Company Surface routing, and affected instance hints
+    now reflect Org adoption.
+  non_claims:
+    - not validation
+    - not readiness
+    - not an Org matcher, registry, canonical-ID resolver, or property schema
+    - not a new relationship or source-access authorization
 ```
 
 ---
