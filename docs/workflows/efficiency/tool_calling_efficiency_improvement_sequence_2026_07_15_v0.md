@@ -24,6 +24,8 @@ Current state: **fix 1 passed; fix 2 is next**. The baseline record is pending o
 PR #951 at commit `28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this
 ledger does not imply that PR is merged.
 
+Fix 2 candidate state and its pending trusted-hook gate are recorded below.
+
 ## Baseline
 
 Three oracle-free snapshots at fixture commit
@@ -117,6 +119,59 @@ not applied and is not part of fix 1.
 Fix 2 owns restoration of ordinary shell execution. It must not claim that the
 fix-1 elevated retry proves the default route repaired. Its dogfood gate is
 three correct runs with no default-shell stall and no shell-route elevation.
+
+## Fix 2 candidate — ordinary shell launch
+
+### Diagnosis
+
+The current official Codex manual distinguishes the `workspace-write` access
+policy from the native Windows sandbox implementation and recommends
+`windows.sandbox = "elevated"`. One-off probes showed:
+
+- the elevated native workspace sandbox launched Windows PowerShell in 1.1
+  seconds;
+- the exact PowerShell 7 executable used by the shell tool launched inside that
+  sandbox in 3.0 seconds;
+- the project guard adapter returned directly in 692 ms; and
+- the project `.codex/hooks.json` was the only discovered user, project, or
+  enabled-plugin hook source matching shell and patch calls.
+
+A fresh `codex exec` A/B probe isolated the hook path:
+
+| Probe | Shell time | End-to-end |
+| --- | ---: | ---: |
+| hooks disabled | 2.1 s | 13.8 s |
+| original trusted hooks enabled | 107.7 s | 116.9 s |
+
+The native sandbox, PowerShell executable, and guard logic work independently;
+the demonstrated latency belongs to the Windows hook launch path.
+
+### Candidate patch and focused evidence
+
+The Windows hook command now uses one Python process to find the nearest tracked
+adapter from the session directory and execute it in-process. The Unix command,
+guard logic, 10-second hook timeout, and denial response are unchanged.
+
+Observed focused checks:
+
+- `.codex/hooks.json` parsed as JSON and `git diff --check` passed;
+- the new Windows command allowed a root-level benign event in 546 ms;
+- from a nested directory it returned the expected `git clean -n` denial in
+  141 ms; and
+- a fresh CLI rooted in the changed worktree launched a benign shell in 3.1
+  seconds, but skipped the changed untrusted hook, so its non-denial of
+  `git clean -n` is not functional validation.
+
+### Pending trusted-hook gate
+
+The changed hook path/hash must be trusted only through the normal landing and
+reload flow. Persisting a synthetic trust entry or editing the active dirty base
+would bypass the control under test. Decision: **candidate implemented; fix 2
+not yet passed**.
+
+After the fix-1 and fix-2 branches land and the trusted project hook reloads,
+rerun the unchanged three-agent case. Do not start fix 3 until all three shell
+runs satisfy the fix-2 gate.
 
 ## Non-claims
 
