@@ -73,6 +73,7 @@ _ADDITIVE_FIELDS = (
 # Mechanical applicability selectors used only when a registered current lane
 # is empty.  A selector is (source_family, source_surface prefix or None).
 # Populated lanes and retired lanes never depend on this table for their state.
+_DEEP_CAPTURE_APPLICABILITY = (("instagram_creator", "ig_reels_deep_capture"),)
 _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
     "cleaning_basenotes_silver": (("fragrance_native_database", "basenotes_"),),
     "cleaning_fragrantica_silver": (("fragrance_native_database", "fragrantica_"),),
@@ -100,8 +101,8 @@ _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
         ("instagram_creator", None),
     ),
     "retail_pdp_silver": (("fragrance_purchase_review_pdp", None),),
-    "silver__capture__audience_comments": (("instagram_creator", None),),
-    "silver__capture__reel_transcript": (("instagram_creator", None),),
+    "silver__capture__audience_comments": _DEEP_CAPTURE_APPLICABILITY,
+    "silver__capture__reel_transcript": _DEEP_CAPTURE_APPLICABILITY,
 }
 _DEEP_CAPTURE_SILVER_LANES = frozenset(
     {"silver__capture__audience_comments", "silver__capture__reel_transcript"}
@@ -623,6 +624,7 @@ def _lane_states(
                 "derivation": "registry_role_plus_stored_records_plus_raw_manifest_applicability_v0",
             }
         )
+    marker_candidates = [manifest for manifest in manifests if _eligible(manifest, _DEEP_CAPTURE_APPLICABILITY)]
     states.append(
         {
             "lane": _DEEP_CAPTURE_SET_LANE,
@@ -632,10 +634,10 @@ def _lane_states(
             "current_source_backed_record_count": marker_counts.get("current", 0),
             "historical_audit_only_record_count": marker_counts.get("audit_only", 0),
             "invalid_current_record_count": marker_counts.get("invalid_current", 0),
-            "eligible_capture_packets": sum(
-                1 for manifest in manifests if _eligible(manifest, (("instagram_creator", None),))
+            "eligible_capture_packets": len(marker_candidates),
+            "failed_eligible_capture_packets": sum(
+                1 for manifest in marker_candidates if _manifest_failed(manifest)
             ),
-            "failed_eligible_capture_packets": 0,
             "derivation": "completion_marker_member_envelope_and_exact_raw_ref_resolution_v0",
         }
     )
