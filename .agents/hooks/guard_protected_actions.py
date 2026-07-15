@@ -23,7 +23,7 @@ must never take unattended:
          `risk/manual-review-required` remains an unattended-bot exclusion and
          completion/review signal; after those judgment gates close it does not
          choose a human merge actor. Any other state, a missing/ambiguous PR number,
-         the lower-level `gh api .../merge`
+         an `--admin` branch-protection bypass, the lower-level `gh api .../merge`
          form, or any lookup error/timeout FAILS CLOSED (blocks) — and the block
          message prints the repo-scoped manual `gh pr merge ... --repo` command a
          human can run from anywhere.
@@ -160,6 +160,7 @@ _PULL_REBASE = re.compile(
 )
 _GH_PR_MERGE = re.compile(r"\bgh\s+pr\s+merge\b(.*)$", re.I)
 _GH_API_MERGE = re.compile(r"\bgh\s+api\b.*?(?:pulls?/\d+/merge|/merges)\b", re.I)
+_ADMIN_MERGE_FLAG = re.compile(r"(?<!\S)--admin(?:=\S+)?(?=\s|$)", re.I)
 # `--repo owner/name` / `-R owner/name` on a merge: the guard only ever queries
 # REPO_SLUG, so a merge explicitly aimed at a different repo cannot be verified
 # here and must fail closed (never auto-allowed on this guard's authority).
@@ -266,6 +267,17 @@ def _check_ok(c):
     return False
 
 
+def _with_current_branch(state, git_result=None):
+    """Attach the fail-closed current-branch identity used by merge decisions."""
+    if git_result is None:
+        git_result = _git_result
+    rc, current_branch = git_result(
+        ["symbolic-ref", "--quiet", "--short", "HEAD"]
+    )
+    state["_currentBranch"] = current_branch if rc == 0 else None
+    return state
+
+
 def _query_pr_state(pr):
     """Real PR-state lookup: ONE repo-scoped `gh` call, self-timed below the hook
     budget. Returns the parsed JSON dict, or None on any non-zero exit (the caller
@@ -278,12 +290,7 @@ def _query_pr_state(pr):
     )
     if out.returncode != 0:
         return None
-    state = json.loads(out.stdout or "")
-    rc, current_branch = _git_result(
-        ["symbolic-ref", "--quiet", "--short", "HEAD"]
-    )
-    state["_currentBranch"] = current_branch if rc == 0 else None
-    return state
+    return _with_current_branch(json.loads(out.stdout or ""))
 
 
 def _merge_decision(pr_ref, lookup):
@@ -362,6 +369,9 @@ def _shell_block_reason(cmd, lookup=None, publication_lookup=None):
         m = _GH_PR_MERGE.search(seg)
         if m:
             rest = m.group(1)
+            if _ADMIN_MERGE_FLAG.search(rest):
+                return ("EP-03 merge blocked - `gh pr merge --admin` bypasses "
+                        "branch protection and is never agent-authorized")
             rflag = _REPO_FLAG.search(rest)
             if rflag and rflag.group(1).lower() != REPO_SLUG.lower():
                 return ("EP-03 merge blocked - targets a different repo (%s); "
@@ -469,6 +479,12 @@ def _selftest():
         "110": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
                 "labels": [{"name": AUTOMERGE_LABEL}],
                 "baseRefName": "release"},                            # non-main base
+        "111": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "headRefName": None},                                 # missing PR head identity
+        "112": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "_currentBranch": None},                              # detached/unresolved checkout
     }
     for _state in _FAKE.values():
         _state.setdefault("headRefName", "codex/example-lane")
@@ -497,12 +513,16 @@ def _selftest():
         ("Bash", {"command": "gh pr merge 108"}, True, _fake),                            # another lane's PR
         ("Bash", {"command": "gh pr merge 109"}, True, _fake),                            # fork
         ("Bash", {"command": "gh pr merge 110"}, True, _fake),                            # non-main base
+        ("Bash", {"command": "gh pr merge 111"}, True, _fake),                            # missing PR head
+        ("Bash", {"command": "gh pr merge 112"}, True, _fake),                            # detached/unresolved checkout
         ("Bash", {"command": "gh pr merge 999"}, True, _fake),                            # unknown PR -> lookup None
         ("Bash", {"command": "gh pr merge 100"}, True, _raises),                          # lookup raises -> fail closed
         ("PowerShell", {"command": "gh pr merge"}, True, _fake),                          # no explicit PR number
         ("Bash", {"command": "gh pr merge 9 --squash"}, True, _fake),                     # 9 not in fake -> fail closed
         ("Bash", {"command": f"gh api -X PUT repos/{REPO_SLUG}/pulls/9/merge"}, True, _fake),  # api form always manual
         ("Bash", {"command": f"gh pr merge 100 --repo {REPO_SLUG} --squash"}, False, _fake),  # explicit own-repo -> ALLOW
+        ("Bash", {"command": "gh pr merge 100 --admin"}, True, _fake),                    # branch-protection bypass
+        ("Bash", {"command": "gh pr merge --admin 100"}, True, _fake),                    # flag-before-number bypass
         ("Bash", {"command": "gh pr merge 100 --repo someone/else"}, True, _fake),        # foreign repo -> fail closed
         ("Bash", {"command": "gh pr merge 100 -R other/repo"}, True, _fake),              # foreign repo (-R) -> fail closed
         ("Bash", {"command": "gh pr merge 100 && git push origin main"}, True, _fake),    # merge ALLOWED, push-to-main still blocks
@@ -603,6 +623,23 @@ def _selftest():
         passed = got == expect
         ok = ok and passed
         print("%s publication case %02d expect=%r got=%r"
+              % ("PASS" if passed else "FAIL", i, expect, got))
+    branch_identity_cases = [
+        (
+            {("symbolic-ref", "--quiet", "--short", "HEAD"):
+                 (0, "codex/example-lane")},
+            "codex/example-lane",
+        ),
+        (
+            {("symbolic-ref", "--quiet", "--short", "HEAD"): (1, "")},
+            None,
+        ),
+    ]
+    for i, (mapping, expect) in enumerate(branch_identity_cases, 1):
+        got = _with_current_branch({}, _fake_git(mapping)).get("_currentBranch")
+        passed = got == expect
+        ok = ok and passed
+        print("%s branch-identity case %02d expect=%r got=%r"
               % ("PASS" if passed else "FAIL", i, expect, got))
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
