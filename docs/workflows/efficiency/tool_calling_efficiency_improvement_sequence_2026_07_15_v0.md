@@ -20,10 +20,10 @@ replace the fixed case. The sequence changes one operating intervention at a
 time, reruns three fresh cold agents, and advances only when correctness,
 failure integrity, and the named fix gate pass.
 
-Current state: **fix 1 passed; fix 2 is implemented but its fresh managed-task
-live gate remains pending**. The baseline record is pending on PR #951 at
-commit `28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this ledger does not imply
-that PR is merged.
+Current state: **fix 1 passed; fix 2 is implemented but blocked by the fresh
+managed-task project-hook adoption gate**. The baseline record is pending on
+PR #951 at commit `28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this
+ledger does not imply that PR is merged.
 
 Fix 2 candidate state and its pending trusted-hook gate are recorded below.
 
@@ -174,7 +174,7 @@ After the fix-1 and fix-2 branches land and the trusted project hook reloads,
 rerun the unchanged three-agent case. Do not start fix 3 until all three shell
 runs satisfy the fix-2 gate.
 
-### Managed-worktree receiver hardening — live gate pending
+### Managed-worktree receiver hardening — live adoption blocked
 
 This lane started in Codex's managed worktree
 `C:\Users\vmon7\Desktop\projects\forseti-worktrees\c575\orca` with both
@@ -224,14 +224,33 @@ task and executed directly with
 not evidence against the adapter: the task predates the changed project-hook
 lifecycle. It does not satisfy or replace the required newly started task gate.
 
-The remaining decision-bearing gate is deliberately live: after these bytes are
-committed, a newly started Codex-managed task must prove its canonical root and
-revision mode, prompt-free benign shell launch, live adopted denial, adapter and
-shared-guard selftests, and denial of `git clean -n`, all without command-level
-workdir substitution. Codex owns whether changed project hooks are surfaced for
-trust/adoption in managed or existing-worktree tasks. If normal Codex UI cannot
-surface that action, Fix 2 remains blocked at the upstream product boundary;
-Forseti will not edit trust metadata or infer adoption.
+Exactly one newly started Codex-managed task then ran the decision-bearing live
+gate from the committed candidate:
+
+- task `019f6602-0f31-7a73-94a4-95f482c56488` was rooted at
+  `C:\Users\vmon7\Desktop\projects\forseti-worktrees\2183\orca`, detached at
+  exact `HEAD` `5eb3e3caf10d179bc23bbffb7a666fc016b201e6`, with a clean
+  worktree;
+- the lane-start probe created, staged, unstaged, and removed
+  `.forseti_lane_probe`, then re-observed clean status;
+- the ordinary benign shell returned exit 0 with
+  `FORSETI_BENIGN_SHELL_OK` in 1.9 seconds (outer tool cell 2.1 seconds), with no
+  elevation or fallback;
+- the exact unwrapped top-level live probe executed and returned the shell-tool
+  exit 1 with exactly `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`;
+- Codex surfaced no normal hook-review, trust, adoption, or reload UI action;
+- no command-level workdir override, `git -C`, trust-metadata edit, source edit,
+  or second managed-task receiver was used; and
+- the adapter/shared-guard selftests and protected `git clean -n` dry-run were
+  not attempted because the mandatory adoption stop fired first.
+
+Decision: **Fix 2 remains blocked at the upstream Codex product boundary.** The
+Forseti canary correctly distinguished an unloaded live hook from adoption, but
+Forseti cannot make a managed/existing-worktree task trust or load the tracked
+project hook and Codex exposed no user action that could complete that state.
+Do not start the three-cold-agent dogfood or Fix 3. Resume only when Codex
+surfaces/handles managed-task project-hook trust/adoption through its normal
+product flow; rerun this same live gate without editing trust metadata.
 
 ## Non-claims
 
