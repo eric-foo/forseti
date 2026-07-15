@@ -57,6 +57,7 @@ _ADDITIVE_FIELDS = (
     "current_source_backed_silver_records",
     "historical_compatible_silver_records",
     "retired_audit_only_silver_records",
+    "identity_entity_records",
     "content_observations",
     "directly_observed_atomic_metric_values",
     "current_policy_qualified_direct_metric_values",
@@ -113,7 +114,10 @@ _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
         ("tiktok", "tiktok_creator_batch_comment_subtitle_admission"),
         ("instagram_creator", None),
     ),
-    "retail_pdp_silver": (("fragrance_purchase_review_pdp", None),),
+    "retail_pdp_silver": (
+        ("fragrance_purchase_review_pdp", None),
+        ("retail_pdp", None),
+    ),
     "silver__capture__audience_comments": _DEEP_CAPTURE_APPLICABILITY,
     "silver__capture__reel_transcript": _DEEP_CAPTURE_APPLICABILITY,
 }
@@ -473,6 +477,22 @@ def _classify_record(
     manifest_by_packet: Mapping[str, Mapping[str, Any]],
 ) -> None:
     payload = record.get("payload")
+    if not isinstance(payload, Mapping):
+        context = _context(record, {}, lane=lane, manifest_by_packet=manifest_by_packet)
+        accumulator.increment("unclassified_silver_records", context)
+        return
+    if record.get("record_kind") == "entity":
+        entity = payload.get("entity")
+        if not isinstance(entity, Mapping):
+            context = _context(record, {}, lane=lane, manifest_by_packet=manifest_by_packet)
+            accumulator.increment("unclassified_silver_records", context)
+            return
+        context = _context(record, entity, lane=lane, manifest_by_packet=manifest_by_packet)
+        accumulator.increment("identity_entity_records", context)
+        accumulator.remember_subject(
+            {"ref_type": "entity_key", "ref": entity.get("entity_key")}
+        )
+        return
     observation = payload.get("observation") if isinstance(payload, Mapping) else None
     if not isinstance(observation, Mapping):
         context = _context(record, {}, lane=lane, manifest_by_packet=manifest_by_packet)
