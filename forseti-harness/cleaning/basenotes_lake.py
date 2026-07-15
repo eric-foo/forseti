@@ -30,7 +30,7 @@ CLEANING_AUDIT_PACK_SCHEMA_VERSION = "cleaning_audit_pack_v0"
 SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
 BASENOTES_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "basenotes_cleaning_audit_pack_v1"
 BASENOTES_SILVER_PRODUCER_SCHEMA_VERSION = "basenotes_cleaning_silver_textobservation_v2"
-BASENOTES_CLEANING_METHOD_ID = "basenotes_cleaning_method_v0"
+BASENOTES_CLEANING_METHOD_ID = "basenotes_cleaning_method_v1"
 TEXT_NORMALIZATION_RULE = "basenotes_text_whitespace_normalization"
 BASENOTES_RATING_METRIC_RESIDUAL = "basenotes_rating_metric_observations_deferred"
 

@@ -158,6 +158,11 @@ routing, and Chief Architect consumption rules.
   not needed: e.g., bounded change; no doctrine/seam surface; no no-new-seam
   claim) -- recorded alongside `reviewed_by` / `authored_by` so a missing
   justification is mechanically detectable.
+  This general same-vendor sanity tier does not satisfy an explicitly
+  commissioned delegated review-and-patch lane. That narrower convention
+  requires a different-vendor controller with direct repo access and forbids
+  same-vendor substitution; same-vendor sanity remains available only for
+  ordinary bounded review outside that commissioned lane.
 
 ## Template Retrieval Binding
 
@@ -231,41 +236,6 @@ handoffs remain prompt-orchestration work.
 - Runtime model recommendations for review lanes: forbidden. Template target
   retrieval is allowed only as prompt-shaping guidance.
 - Prompt output contracts are bound in `.agents/workflow-overlay/prompt-orchestration.md`.
-
-## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Review outputs now record two required (present), model-neutral provenance fields -- reviewed_by and
-    authored_by (the reviewing model+version and the reviewed-artifact author model+version) -- set by the
-    operator/CA on the durable record, value unrecorded allowed (a visible measurement gap, never fabricated,
-    never a success path), forward-only. Same-family-vs-cross-family is computed by relating the two.
-    Observed records, not model routing/recommendation; review-lane model-neutrality is unchanged.
-  trigger: review_authority
-  related_triggers: [output_authority]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/communication-style.md
-  downstream_surfaces_checked:
-    - {path: docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md, note: pin-only re-pin of the review-lanes derived_from hash; distilled method body unchanged}
-    - {path: .agents/workflow-overlay/validation-gates.md, note: F4 single-source decision; no duplicate enforcement gate added}
-  intentionally_not_updated:
-    - {path: .agents/workflow-overlay/validation-gates.md, reason: F4 single-source; the Review Doctrine here is read by every Orca agent, so no duplicate gate was added}
-    - {path: .agents/workflow-overlay/retrieval-metadata.md, reason: review-output fields, not universal durable-artifact header fields}
-    - {path: .agents/workflow-overlay/delegated-review-patch.md, reason: its actor/model-family receipt already records author and controller families; these are the consistent ordinary-review analogue}
-    - {path: docs/decisions/adversarial_review_routing_policy_v0.md, reason: routing tiers declined (Pile 3); this records measurement, not routing}
-  stale_language_search: >
-    reviewed_by / authored_by are net-new field names; no prior overlay text stated review outputs do not
-    record reviewer/author identity, so no language was made stale, and the model-neutrality rule is
-    unchanged and explicitly reconciled in the new bullets.
-  non_claims:
-    - not validation
-    - not readiness
-    - not model routing/recommendation
-    - not a kept change until committed and the same-family post-patch blast-radius re-review resolves
-```
 
 ## Direction Change Propagation — De-correlation Family = Vendor (Two-Bar)
 

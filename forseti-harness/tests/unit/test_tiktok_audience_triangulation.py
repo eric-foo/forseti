@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import base64
 import copy
+import hashlib
 import json
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -10,19 +14,29 @@ from capture_spine.creator_profile_current.tiktok_comment_attention_producer imp
     build_comment_attention_records,
 )
 from evidence_binding.tiktok_audience_triangulation import (
+    ASSEMBLY_RECEIPT_LANE,
     build_assembly_receipt,
     build_creator_audience_evidence_bundle,
 )
 from judgment.tiktok_audience_triangulation import (
+    TriangulationValidationError,
     build_triangulation_prompt,
     parse_triangulation_response,
+    validate_triangulation_snapshot,
 )
 from data_lake.root import DataLakeRoot
 from data_lake.silver_record import append_silver_record, silver_content_hash
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
-from runners.run_tiktok_creator_audience_triangulation import prepare_subscription_judgment
+from runners.run_creator_profile_current_materialize import _verify_audience_judgment_outcomes
+from runners.run_tiktok_creator_audience_triangulation import (
+    prepare_subscription_judgment,
+    submit_subscription_judgment,
+)
+from runners.run_tiktok_creator_onboarding_coordinator import prepare_onboarding
+import runners.run_tiktok_creator_onboarding_coordinator as onboarding_coordinator
 from runners.run_tiktok_grid_observation_producer import run_tiktok_grid_observations
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
+from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
 from test_tiktok_batch_admission import (
     PROFILE_URL,
     _cadence_payload,
@@ -92,6 +106,38 @@ def _bundle(*, duplicate_text: bool = False, transcript: bool = True) -> dict:
     )
 
 
+
+
+def _persist_assembly_receipt(data_root: DataLakeRoot, bundle: dict) -> None:
+    receipt = build_assembly_receipt(bundle)
+    data_root.append_record(
+        subtree="derived",
+        raw_anchor=bundle["raw_anchor"],
+        lane=ASSEMBLY_RECEIPT_LANE,
+        record_id=receipt["record_id"],
+        data=(
+            json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True).encode(
+                "utf-8"
+            )
+            + b"\n"
+        ),
+    )
+
+
+def _validated_submission(tmp_path: Path) -> tuple[Path, Path]:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    bundle = _bundle()
+    _persist_assembly_receipt(data_root, bundle)
+    bundle_path = tmp_path / "bundle.json"
+    bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+    snapshot_path = tmp_path / "snapshot.json"
+    result = submit_subscription_judgment(
+        data_root=data_root,
+        bundle_path=bundle_path,
+        response_bytes=json.dumps(_response(bundle)).encode("utf-8"),
+        snapshot_out=snapshot_path,
+    )
+    return snapshot_path, Path(result["judgment_outcome_path"])
 def _response(bundle: dict) -> dict:
     comment_ids = [row["evidence_id"] for row in bundle["comment_evidence"]]
     claim = {
@@ -278,6 +324,22 @@ def test_prepare_reads_packet_scoped_persisted_silver_and_uses_no_api(tmp_path) 
         "status": "policy_mismatch",
     }]
     assert bundle_out.exists() and prompt_out.exists()
+    coordinated = prepare_onboarding(
+        data_root=data_root,
+        packet_id=packet_id,
+        creator_id="tiktok:@funmimonet",
+        profile_subject_id="platform_account:tiktok:funmimonet",
+        question="What should a matching brand hire this creator to accomplish?",
+        evidence_cutoff="2026-06-30T17:02:46Z",
+        work_dir=tmp_path / "coordinated",
+    )
+    assert coordinated["status"] == "awaiting_judgment"
+    assert coordinated["stage_reached"] == "judgment_prepared"
+    assert coordinated["silver_prerequisites"] == {
+        "grid_observation": "already_current",
+        "comment_attention": "already_current",
+    }
+    assert coordinated["recapture_required"] is False
 
     current_attention["raw_refs"][0]["sha256"] = "0" * 64
     current_attention["content_hash"] = f"sha256:{silver_content_hash(current_attention)}"
@@ -363,3 +425,262 @@ def test_validator_language_guards_cover_robustness_stamp() -> None:
     )
     with pytest.raises(ValueError, match="majority language"):
         parse_triangulation_response(json.dumps(response), bundle)
+
+def test_validator_derives_source_video_ids_from_support() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    response["judgment_claim_set"]["claims"][0].pop("source_video_ids")
+
+    snapshot = parse_triangulation_response(json.dumps(response), bundle)
+
+    assert snapshot.judgment_claim_set.claims[0].source_video_ids == ["v1", "v2"]
+
+
+def test_validator_reports_all_independent_relational_defects() -> None:
+    bundle = _bundle()
+    response = _response(bundle)
+    claim = response["judgment_claim_set"]["claims"][0]
+    claim["all_support_evidence_ids"].append("ttce_absent")
+    claim["representative_evidence_ids"] = [
+        bundle["transcript_evidence"][0]["evidence_id"]
+    ]
+    response["creator_signal_projection"]["hire_verdict"]["statement"] = (
+        "Most of the audience will convert."
+    )
+
+    with pytest.raises(TriangulationValidationError) as captured:
+        parse_triangulation_response(json.dumps(response), bundle)
+
+    assert any("cites unknown evidence" in error for error in captured.value.errors)
+    assert any(
+        "representative evidence is outside full support" in error
+        for error in captured.value.errors
+    )
+    assert any("unsupported majority language" in error for error in captured.value.errors)
+
+    schema_response = _response(bundle)
+    schema_claim = schema_response["judgment_claim_set"]["claims"][0]
+    schema_claim["all_support_evidence_ids"] = ["ttce_absent"]
+    schema_claim["representative_evidence_ids"] = ["ttce_absent"]
+    with pytest.raises(TriangulationValidationError) as schema_captured:
+        parse_triangulation_response(json.dumps(schema_response), bundle)
+    assert any(
+        "cites unknown evidence" in error for error in schema_captured.value.errors
+    )
+    assert any(
+        "source_video_ids" in error for error in schema_captured.value.errors
+    )
+
+
+def test_submission_persists_exact_bytes_and_gates_materialization(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    bundle = _bundle()
+    _persist_assembly_receipt(data_root, bundle)
+    bundle_path = tmp_path / "bundle.json"
+    bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+
+    blocked_response = _response(bundle)
+    blocked_claim = blocked_response["judgment_claim_set"]["claims"][0]
+    blocked_claim["all_support_evidence_ids"].append("ttce_absent")
+    blocked_response["creator_signal_projection"]["hire_verdict"]["statement"] = (
+        "Most of the audience will convert."
+    )
+    blocked_bytes = json.dumps(blocked_response).encode("utf-8")
+    blocked_snapshot = tmp_path / "blocked.snapshot.json"
+    blocked = submit_subscription_judgment(
+        data_root=data_root,
+        bundle_path=bundle_path,
+        response_bytes=blocked_bytes,
+        snapshot_out=blocked_snapshot,
+    )
+
+    assert blocked["status"] == "blocked"
+    assert blocked["recapture_required"] is False
+    assert len(blocked["validation_errors"]) >= 2
+    assert not blocked_snapshot.exists()
+    blocked_outcome = CreatorAudienceJudgmentOutcome.model_validate(
+        json.loads(Path(blocked["judgment_outcome_path"]).read_text(encoding="utf-8"))
+    )
+    assert base64.b64decode(blocked_outcome.response_bytes_b64) == blocked_bytes
+
+    valid_bytes = json.dumps(_response(bundle)).encode("utf-8")
+    snapshot_path = tmp_path / "validated.snapshot.json"
+    validated = submit_subscription_judgment(
+        data_root=data_root,
+        bundle_path=bundle_path,
+        response_bytes=valid_bytes,
+        snapshot_out=snapshot_path,
+    )
+    repeated = submit_subscription_judgment(
+        data_root=data_root,
+        bundle_path=bundle_path,
+        response_bytes=valid_bytes,
+        snapshot_out=snapshot_path,
+    )
+
+    assert validated == repeated
+    outcome_path = Path(validated["judgment_outcome_path"])
+    _verify_audience_judgment_outcomes((snapshot_path,), (outcome_path,))
+
+    snapshot_path.write_bytes(snapshot_path.read_bytes() + b"\n")
+    with pytest.raises(ValueError, match="bytes do not match"):
+        _verify_audience_judgment_outcomes((snapshot_path,), (outcome_path,))
+
+
+def test_submission_blocks_non_string_evidence_references(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    bundle = _bundle()
+    _persist_assembly_receipt(data_root, bundle)
+    bundle_path = tmp_path / "bundle.json"
+    bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+
+    response = _response(bundle)
+    response["judgment_claim_set"]["claims"][0]["all_support_evidence_ids"] = [{"evil": 1}]
+    response_bytes = json.dumps(response).encode("utf-8")
+
+    result = submit_subscription_judgment(
+        data_root=data_root,
+        bundle_path=bundle_path,
+        response_bytes=response_bytes,
+        snapshot_out=tmp_path / "snapshot.json",
+    )
+
+    assert result["status"] == "blocked"
+    assert any(
+        "non-string evidence references" in error for error in result["validation_errors"]
+    )
+    outcome = CreatorAudienceJudgmentOutcome.model_validate(
+        json.loads(Path(result["judgment_outcome_path"]).read_text(encoding="utf-8"))
+    )
+    assert outcome.status == "blocked"
+    assert base64.b64decode(outcome.response_bytes_b64) == response_bytes
+
+
+def test_submission_rejects_bundle_whose_hash_does_not_close_over_content(tmp_path) -> None:
+    bundle = _bundle()
+    fabricated = dict(bundle["comment_evidence"][0])
+    fabricated["evidence_id"] = "ttce_fabricated"
+    fabricated["text"] = "I bought this immediately."
+    bundle["comment_evidence"] = [*bundle["comment_evidence"], fabricated]
+    bundle_path = tmp_path / "tampered.bundle.json"
+    bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="does not close over bundle content"):
+        submit_subscription_judgment(
+            data_root=DataLakeRoot.for_test(tmp_path / "lake"),
+            bundle_path=bundle_path,
+            response_bytes=json.dumps(_response(bundle)).encode("utf-8"),
+            snapshot_out=tmp_path / "snapshot.json",
+        )
+
+
+
+
+def test_submission_rejects_rehashed_bundle_without_persisted_receipt(tmp_path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    bundle = _bundle()
+    _persist_assembly_receipt(data_root, bundle)
+
+    fabricated = dict(bundle["comment_evidence"][0])
+    fabricated["evidence_id"] = "ttce_fabricated"
+    fabricated["text"] = "I bought this immediately."
+    bundle["comment_evidence"] = [*bundle["comment_evidence"], fabricated]
+    core = {
+        key: value
+        for key, value in bundle.items()
+        if key not in {"bundle_hash", "bundle_id", "serialized_utf8_bytes"}
+    }
+    canonical_core = json.dumps(
+        core, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    bundle["bundle_hash"] = f"sha256:{hashlib.sha256(canonical_core).hexdigest()}"
+    identity = f'{bundle["raw_anchor"]}\0{bundle["bundle_hash"]}'.encode("utf-8")
+    bundle["bundle_id"] = f"caeb_{hashlib.sha256(identity).hexdigest()[:20]}"
+    serialized = {
+        key: value for key, value in bundle.items() if key != "serialized_utf8_bytes"
+    }
+    bundle["serialized_utf8_bytes"] = len(
+        json.dumps(
+            serialized, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+    )
+    bundle_path = tmp_path / "rehashed.bundle.json"
+    bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="persisted audience assembly receipt is missing"):
+        submit_subscription_judgment(
+            data_root=data_root,
+            bundle_path=bundle_path,
+            response_bytes=json.dumps(_response(bundle)).encode("utf-8"),
+            snapshot_out=tmp_path / "snapshot.json",
+        )
+
+
+def test_complete_onboarding_publishes_only_verified_candidate(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    snapshot_path, outcome_path = _validated_submission(tmp_path)
+    output_path = tmp_path / "creator_profile_current.json"
+    previous = b'{"previous":true}\n'
+    output_path.write_bytes(previous)
+
+    def fake_materialize(argv: list[str]) -> int:
+        candidate = Path(argv[argv.index("--output") + 1])
+        candidate.write_text('{"creator_profile_current_view":{}}', encoding="utf-8")
+        return 0
+
+    monkeypatch.setattr(onboarding_coordinator, "materialize_main", fake_materialize)
+    with pytest.raises(ValueError, match="no profiles list"):
+        onboarding_coordinator.complete_onboarding(
+            snapshot_path=snapshot_path,
+            outcome_path=outcome_path,
+            output_path=output_path,
+            account_ledger_path=tmp_path / "ledger.json",
+            creator_registry_index_path=tmp_path / "registry.json",
+            metric_seed_paths=(),
+            generated_at_utc=None,
+            preflight_receipt_path=None,
+        )
+
+    assert output_path.read_bytes() == previous
+    assert not list(tmp_path.glob(f".{output_path.name}.*.candidate"))
+
+
+def test_complete_onboarding_preserves_materializer_diagnostic(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    snapshot_path, outcome_path = _validated_submission(tmp_path)
+    output_path = tmp_path / "creator_profile_current.json"
+    previous = b'{"previous":true}\n'
+    output_path.write_bytes(previous)
+
+    def failing_materialize(argv: list[str]) -> int:
+        candidate = Path(argv[argv.index("--output") + 1])
+        candidate.write_text("partial", encoding="utf-8")
+        print("specific preflight blocker", file=sys.stderr)
+        raise SystemExit(2)
+
+    monkeypatch.setattr(onboarding_coordinator, "materialize_main", failing_materialize)
+    with pytest.raises(ValueError, match="specific preflight blocker"):
+        onboarding_coordinator.complete_onboarding(
+            snapshot_path=snapshot_path,
+            outcome_path=outcome_path,
+            output_path=output_path,
+            account_ledger_path=tmp_path / "ledger.json",
+            creator_registry_index_path=tmp_path / "registry.json",
+            metric_seed_paths=(),
+            generated_at_utc=None,
+            preflight_receipt_path=None,
+        )
+
+    assert output_path.read_bytes() == previous
+    assert not list(tmp_path.glob(f".{output_path.name}.*.candidate"))
+def test_validator_rejects_source_video_ids_that_do_not_close_over_support() -> None:
+    bundle = _bundle()
+    snapshot = parse_triangulation_response(json.dumps(_response(bundle)), bundle)
+
+    tampered = snapshot.model_copy(deep=True)
+    tampered.judgment_claim_set.claims[0].source_video_ids = ["v1", "v2", "v9"]
+
+    with pytest.raises(TriangulationValidationError, match="do not close over support"):
+        validate_triangulation_snapshot(tampered, bundle)

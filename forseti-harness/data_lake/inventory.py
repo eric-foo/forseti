@@ -118,7 +118,15 @@ BRONZE_PACKET_ORCHESTRATORS: dict[str, tuple[str, ...]] = {
 # declaration. Backfilled 2026-07-03 from a source read of each runner
 # (including the source_capture fetch/writer path it delegates to).
 RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
-    "run_fragrance_review_lake_packet.py": {
+    "run_basenotes_mgt_capture.py": {
+        "status": "bound",
+        "mechanism": (
+            "before packet write, the bundle metadata requested_url and final_url must equal "
+            "the caller-supplied Basenotes product URL, and the rendered DOM must contain the "
+            "exact caller-bound product path plus Product/review/reviewBody JSON-LD markers; "
+            "challenge-only content fails closed"
+        ),
+    },    "run_fragrance_review_lake_packet.py": {
         "status": "unbound",
         "reason": (
             "preserved bytes must match the companion receipt's capture-time "

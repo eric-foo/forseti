@@ -1,0 +1,4386 @@
+{
+  "schema_version": "forseti_beauty_us_company_selection_v0",
+  "run_id": "forseti-beauty-us-pool-v0",
+  "run_date": "2026-07-16",
+  "governing_contract": "forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md",
+  "scan_receipt": "docs/research/forseti_beauty_us_company_longlist_scan_v0.md",
+  "selection_seed": "forseti-beauty-us-pool-v0",
+  "normalization_rule": "NFKC, Unicode casefold, trim, collapse internal whitespace",
+  "rules": {
+    "eligible_total": 60,
+    "final_total": 20,
+    "stratum_eligible": {
+      "emerging": 18,
+      "scaling": 30,
+      "established": 12
+    },
+    "stratum_selected": {
+      "emerging": 6,
+      "scaling": 10,
+      "established": 4
+    },
+    "fragrance_selected_per_stratum": 1,
+    "comparator_selected": {
+      "emerging": 1,
+      "scaling": 2,
+      "established": 1
+    },
+    "category_cap": 5,
+    "resolved_parent_cap": 2,
+    "minimum_non_fragrance_categories": 4,
+    "source_family_minimum": 2,
+    "first_party_required": true,
+    "activity_window_days": 180
+  },
+  "observation_semantics": {
+    "observed_at": "2026-07-16",
+    "meaning": "The cited public surface was observable on the run date.",
+    "non_claim": "It does not establish the effective date of an underlying company event."
+  },
+  "candidates": [
+    {
+      "candidate_id": "USBEAUTY-001",
+      "brand_name": "Fara Homidi",
+      "normalized_brand_name": "fara homidi",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "makeup",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Fara+Homidi",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://farahomidi.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Fara+Homidi",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://farahomidi.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "c0969b662b992020aa32f62c605bd8ecce94c890336a61631c681b7d45c50a94",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 23,
+      "stratum_replacement_rank": 7
+    },
+    {
+      "candidate_id": "USBEAUTY-002",
+      "brand_name": "Range Beauty",
+      "normalized_brand_name": "range beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "makeup",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Range+Beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://rangebeauty.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Range+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://rangebeauty.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "0c73ce0febf3f67792a8767e5f8d55b33a19ce46923859ae99529beda4eed59d",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-003",
+      "brand_name": "BASMA Beauty",
+      "normalized_brand_name": "basma beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "makeup",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=BASMA+Beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.basmabeauty.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=BASMA+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.basmabeauty.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "509aad793a1873bec4dd6acace2e11f7beb9fbeeebea867de21c10a2b80ce519",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-004",
+      "brand_name": "Mango People",
+      "normalized_brand_name": "mango people",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "makeup",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Mango+People",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://mangopeopleofficial.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Mango+People",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://mangopeopleofficial.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "7ef661abd3991bb0fe2e1ee577851c9f11a5cc6b512fe3e52996146c53f3c104",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 7,
+      "stratum_replacement_rank": 4
+    },
+    {
+      "candidate_id": "USBEAUTY-005",
+      "brand_name": "Lion Pose",
+      "normalized_brand_name": "lion pose",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "skincare",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Lion+Pose",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://lionpose.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Lion+Pose",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://lionpose.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "ea430d30937d617aced6e96f18338bc9e092e195726bd9137e5ee80e44d60796",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 35,
+      "stratum_replacement_rank": 10
+    },
+    {
+      "candidate_id": "USBEAUTY-006",
+      "brand_name": "Hyper Skin",
+      "normalized_brand_name": "hyper skin",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "skincare",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Hyper+Skin",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://hyperskin.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Hyper+Skin",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://hyperskin.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "2af183743ebc40aaec5b228d57009617abdbd0c55b258830c856c4068286b83c",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-007",
+      "brand_name": "Educated Mess",
+      "normalized_brand_name": "educated mess",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "skincare",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Educated+Mess",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://educatedmess.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Educated+Mess",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://educatedmess.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "eda41f59f471464af5f52fbf4b2fc7006581e94a3e2e77348c629880fa434587",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 37,
+      "stratum_replacement_rank": 11
+    },
+    {
+      "candidate_id": "USBEAUTY-008",
+      "brand_name": "Experiment Beauty",
+      "normalized_brand_name": "experiment beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "skincare",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Ulta"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Ulta); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.ulta.com/search?search=Experiment+Beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://experimentbeauty.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Experiment+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://experimentbeauty.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "eeb96a28507f368b3dbf68627e283eb0054700c90a57bf96ba6b05e0f58509f8",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 39,
+      "stratum_replacement_rank": 12
+    },
+    {
+      "candidate_id": "USBEAUTY-009",
+      "brand_name": "Stratia",
+      "normalized_brand_name": "stratia",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "skincare",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Ulta"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Ulta); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.ulta.com/search?search=Stratia",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.stratiaskin.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Stratia",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.stratiaskin.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "634f7cf166c0b07c402a068e7256384125c0c2f1fa86cb1e3a40a67d2b9279d0",
+      "selection_status": "selected",
+      "selection_reason": "lowest_hash_comparator_needed_in_stratum",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-010",
+      "brand_name": "RIES",
+      "normalized_brand_name": "ries",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "haircare",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=RIES",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://ries-ries.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=RIES",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://ries-ries.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "6523d393216350eb9c47ab6a7e446b30a27653d3de86c188fd97ad3c5b9fd7e9",
+      "selection_status": "reserve",
+      "selection_reason": "stratum_quota_filled_before_candidate",
+      "replacement_rank": 2,
+      "stratum_replacement_rank": 1
+    },
+    {
+      "candidate_id": "USBEAUTY-011",
+      "brand_name": "Sienna Naturals",
+      "normalized_brand_name": "sienna naturals",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "haircare",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Credo Beauty"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Credo Beauty); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://credobeauty.com/search?q=Sienna+Naturals",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://siennanaturals.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Credo Beauty",
+          "url": "https://credobeauty.com/search?q=Sienna+Naturals",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://siennanaturals.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "66688f97b64dea50528abfed827f757b7222fe34662ffaa5448ec48932ff3a21",
+      "selection_status": "reserve",
+      "selection_reason": "comparator_quota_already_filled",
+      "replacement_rank": 3,
+      "stratum_replacement_rank": 2
+    },
+    {
+      "candidate_id": "USBEAUTY-012",
+      "brand_name": "SHAZ & KIKS",
+      "normalized_brand_name": "shaz & kiks",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "haircare",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=SHAZ+%26+KIKS",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://shazandkiks.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=SHAZ+%26+KIKS",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://shazandkiks.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "86f6e0e43678b369781e2b336851c5b9e82f3d0fbad38bdc90a4ed4a4434a984",
+      "selection_status": "reserve",
+      "selection_reason": "stratum_quota_filled_before_candidate",
+      "replacement_rank": 9,
+      "stratum_replacement_rank": 5
+    },
+    {
+      "candidate_id": "USBEAUTY-013",
+      "brand_name": "OUI the People",
+      "normalized_brand_name": "oui the people",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "body",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=OUI+the+People",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://ouithepeople.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=OUI+the+People",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://ouithepeople.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "34579d9e3c0c79e1f941d438b8c56e7c6eabe40c9786a7c37327587d7ae7a81a",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-014",
+      "brand_name": "54 Thrones",
+      "normalized_brand_name": "54 thrones",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "body",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=54+Thrones",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://54thrones.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=54+Thrones",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://54thrones.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "e0d2470da07ab15b06c93ede249c983104601655a180f9b40838e784f8555372",
+      "selection_status": "reserve",
+      "selection_reason": "comparator_quota_already_filled",
+      "replacement_rank": 31,
+      "stratum_replacement_rank": 9
+    },
+    {
+      "candidate_id": "USBEAUTY-015",
+      "brand_name": "Hanni",
+      "normalized_brand_name": "hanni",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "body",
+      "stratum": "emerging",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "emerging_brand_programmes",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Hanni",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://heyhanni.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Hanni",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://heyhanni.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "95600979abca51f4dac25ca623508ef299242e0375dffbbb9ed04d8bfc787e83",
+      "selection_status": "reserve",
+      "selection_reason": "stratum_quota_filled_before_candidate",
+      "replacement_rank": 15,
+      "stratum_replacement_rank": 6
+    },
+    {
+      "candidate_id": "USBEAUTY-016",
+      "brand_name": "Pearfat Parfum",
+      "normalized_brand_name": "pearfat parfum",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "fragrance",
+      "stratum": "emerging",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Ministry of Scent"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Ministry of Scent); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://ministryofscent.com/collections/all-brands-1",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.pearfatparfum.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ministry of Scent",
+          "url": "https://ministryofscent.com/collections/all-brands-1",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.pearfatparfum.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "3f8727ae19a742d45df15d872df082c7e232c9d906aa6b58269e1e6d6cc43641",
+      "selection_status": "selected",
+      "selection_reason": "lowest_hash_fragrance_in_stratum",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-017",
+      "brand_name": "Marissa Zappas",
+      "normalized_brand_name": "marissa zappas",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "fragrance",
+      "stratum": "emerging",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Luckyscent"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Luckyscent); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.luckyscent.com/brands",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://marissazappas.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Luckyscent",
+          "url": "https://www.luckyscent.com/brands",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://marissazappas.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "d16f83af0f5e0401d8cf8cd73e31154b8a5e9ab38157180371773813bba14e51",
+      "selection_status": "reserve",
+      "selection_reason": "fragrance_quota_already_filled",
+      "replacement_rank": 28,
+      "stratum_replacement_rank": 8
+    },
+    {
+      "candidate_id": "USBEAUTY-018",
+      "brand_name": "Harlem Perfume Co.",
+      "normalized_brand_name": "harlem perfume co.",
+      "identity_state": "resolved_brand",
+      "parent_org": "Harlem Brands",
+      "parent_state": "resolved",
+      "category": "fragrance",
+      "stratum": "emerging",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora"
+      ],
+      "stratum_evidence": "Observed DTC plus one bounded US retail route (Sephora); no broad national multichannel distribution was established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Harlem+Perfume+Co.",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://harlemperfumeco.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Harlem+Perfume+Co.",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://harlemperfumeco.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "75ca4ab455c48d8711203496fb276f63a91490cfd626e399d9c76734eb11612f",
+      "selection_status": "reserve",
+      "selection_reason": "fragrance_quota_already_filled",
+      "replacement_rank": 5,
+      "stratum_replacement_rank": 3
+    },
+    {
+      "candidate_id": "USBEAUTY-019",
+      "brand_name": "Tower 28 Beauty",
+      "normalized_brand_name": "tower 28 beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "makeup",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Revolve"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Revolve); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Tower+28+Beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.tower28beauty.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Tower+28+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Revolve",
+          "url": "https://www.revolve.com/r/Search.jsp?search=Tower+28+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.tower28beauty.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "27be278639bee18a8f0622cbc9ac8ca9fcde63113a2cf3dd2dfcbb9530fe525b",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-020",
+      "brand_name": "Kosas",
+      "normalized_brand_name": "kosas",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "makeup",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Nordstrom); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Kosas",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://kosas.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Kosas",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Kosas",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://kosas.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "a236c432ce3a36ca2af7d20697a7fc6b3d9f45bb6bdeffbcb27306843a5aabb0",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 20,
+      "stratum_replacement_rank": 10
+    },
+    {
+      "candidate_id": "USBEAUTY-021",
+      "brand_name": "ILIA Beauty",
+      "normalized_brand_name": "ilia beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": "Famille C",
+      "parent_state": "resolved",
+      "category": "makeup",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Ulta"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Ulta); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=ILIA+Beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://iliabeauty.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=ILIA+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=ILIA+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://iliabeauty.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "40e624cbe75905dd98e3df1f9a6251f258e127efb9c8713c31c2a9f7dabd6f19",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-022",
+      "brand_name": "Saie",
+      "normalized_brand_name": "saie",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "makeup",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Credo Beauty"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Credo Beauty); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Saie",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://saiehello.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Saie",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Credo Beauty",
+          "url": "https://credobeauty.com/search?q=Saie",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://saiehello.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "ec0448eb87e8bf650a45c3a831cade24898e5e5ab63036fd5e31a7e6719e6919",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 36,
+      "stratum_replacement_rank": 18
+    },
+    {
+      "candidate_id": "USBEAUTY-023",
+      "brand_name": "Glossier",
+      "normalized_brand_name": "glossier",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "makeup",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Space NK"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Space NK); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Glossier",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.glossier.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Glossier",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Space NK",
+          "url": "https://www.spacenk.com/us/search?q=Glossier",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.glossier.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "a01df45c1b87e95d854985580e99514773dbbc56cd90636f434ac3fb3a14f16c",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 19,
+      "stratum_replacement_rank": 9
+    },
+    {
+      "candidate_id": "USBEAUTY-024",
+      "brand_name": "Rare Beauty",
+      "normalized_brand_name": "rare beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "makeup",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Kohl's"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Kohl's); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Rare+Beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.rarebeauty.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Rare+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Kohl's",
+          "url": "https://www.kohls.com/search.jsp?submit-search=web-regular&search=Rare+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.rarebeauty.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "13396bad8be42a891c4c3ca83195fef774746b853e10a26ccff2d977f3e61cb4",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-025",
+      "brand_name": "Summer Fridays",
+      "normalized_brand_name": "summer fridays",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "skincare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Ulta"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Ulta); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Summer+Fridays",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://summerfridays.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Summer+Fridays",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Summer+Fridays",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://summerfridays.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "e19fa8c6b161cd1fdf8cc099d60789ffb3727b9dbb38cbd4bfb4aa613fb64359",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 32,
+      "stratum_replacement_rank": 16
+    },
+    {
+      "candidate_id": "USBEAUTY-026",
+      "brand_name": "Youth To The People",
+      "normalized_brand_name": "youth to the people",
+      "identity_state": "resolved_brand",
+      "parent_org": "L'Oreal",
+      "parent_state": "resolved",
+      "category": "skincare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Kohl's"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Kohl's); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Youth+To+The+People",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.youthtothepeople.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Youth+To+The+People",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Kohl's",
+          "url": "https://www.kohls.com/search.jsp?submit-search=web-regular&search=Youth+To+The+People",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.youthtothepeople.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "94291687599dfec213c1c96493753cd017bf5a7f21088c3f78be4a8e741c7bfe",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 13,
+      "stratum_replacement_rank": 4
+    },
+    {
+      "candidate_id": "USBEAUTY-027",
+      "brand_name": "Naturium",
+      "normalized_brand_name": "naturium",
+      "identity_state": "resolved_brand",
+      "parent_org": "e.l.f. Beauty",
+      "parent_state": "resolved",
+      "category": "skincare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "mass_drug"
+      ],
+      "observed_us_retail_partners": [
+        "Target",
+        "Amazon"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Target, Amazon); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.target.com/s?searchTerm=Naturium",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://naturium.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Target",
+          "url": "https://www.target.com/s?searchTerm=Naturium",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Amazon",
+          "url": "https://www.amazon.com/s?k=Naturium",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://naturium.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "5210f92bd81fac7163f8cef62715e71bd5a13495538f55752194689be8a62070",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-028",
+      "brand_name": "BYOMA",
+      "normalized_brand_name": "byoma",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "skincare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "mass_drug"
+      ],
+      "observed_us_retail_partners": [
+        "Target",
+        "Walmart"
+      ],
+      "stratum_evidence": "Observed DTC plus two US mass-retail partners (Target, Walmart); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.target.com/s?searchTerm=BYOMA",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://byoma.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Target",
+          "url": "https://www.target.com/s?searchTerm=BYOMA",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Walmart",
+          "url": "https://www.walmart.com/search?q=BYOMA",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://byoma.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "9312b2089b5832aaac9e1b77c546f4a9461202b882db455fadbfb1dd717c4823",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 11,
+      "stratum_replacement_rank": 3
+    },
+    {
+      "candidate_id": "USBEAUTY-029",
+      "brand_name": "Bubble",
+      "normalized_brand_name": "bubble",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "skincare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "mass_drug"
+      ],
+      "observed_us_retail_partners": [
+        "Walmart",
+        "CVS"
+      ],
+      "stratum_evidence": "Observed DTC plus two US mass/drug partners (Walmart, CVS); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.walmart.com/search?q=Bubble",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://hellobubble.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Walmart",
+          "url": "https://www.walmart.com/search?q=Bubble",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "CVS",
+          "url": "https://www.cvs.com/shop/brand-shop/b/bubble",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://hellobubble.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "6c0bf1f0018254bf5a3e6bd7f7ad18e83529777dc289dbea93732723dfe582f0",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-030",
+      "brand_name": "Good Molecules",
+      "normalized_brand_name": "good molecules",
+      "identity_state": "resolved_brand",
+      "parent_org": "Beautylish",
+      "parent_state": "resolved",
+      "category": "skincare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Ulta",
+        "Beautylish"
+      ],
+      "stratum_evidence": "Observed DTC plus two US specialty-beauty partners (Ulta, Beautylish); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.ulta.com/search?search=Good+Molecules",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.goodmolecules.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Good+Molecules",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Beautylish",
+          "url": "https://www.beautylish.com/b/good-molecules?sort=reviewed",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.goodmolecules.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "a2a42b8a739babd5b2d587d0edfd593e1fee34ba4872baea57cec7b9b317ac82",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 21,
+      "stratum_replacement_rank": 11
+    },
+    {
+      "candidate_id": "USBEAUTY-031",
+      "brand_name": "EADEM",
+      "normalized_brand_name": "eadem",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "skincare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Nordstrom); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=EADEM",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://eadem.co/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=EADEM",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=EADEM",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://eadem.co/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "94e7491157608e9f46816e091eeb41a1ce4e00e11791d28419f0637cd8e8cbd1",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 14,
+      "stratum_replacement_rank": 5
+    },
+    {
+      "candidate_id": "USBEAUTY-032",
+      "brand_name": "K18 Hair",
+      "normalized_brand_name": "k18 hair",
+      "identity_state": "resolved_brand",
+      "parent_org": "Unilever",
+      "parent_state": "resolved",
+      "category": "haircare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Amazon"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Amazon); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=K18+Hair",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.k18hair.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=K18+Hair",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Amazon",
+          "url": "https://www.amazon.com/s?k=K18+Hair",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.k18hair.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "99c4f5e2bf0cd27e9e3cf4d6f0c53396504d98cdf4e7432ce15f1382174b4026",
+      "selection_status": "reserve",
+      "selection_reason": "stratum_quota_filled_before_candidate",
+      "replacement_rank": 17,
+      "stratum_replacement_rank": 7
+    },
+    {
+      "candidate_id": "USBEAUTY-033",
+      "brand_name": "Briogeo",
+      "normalized_brand_name": "briogeo",
+      "identity_state": "resolved_brand",
+      "parent_org": "Wella Company",
+      "parent_state": "resolved",
+      "category": "haircare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Ulta"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Ulta); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Briogeo",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.briogeohair.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Briogeo",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Briogeo",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.briogeohair.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "cc1486960bc89914ac3365af7f4d34f1298baa13830b449bda9caa748ea2b51f",
+      "selection_status": "reserve",
+      "selection_reason": "stratum_quota_filled_before_candidate",
+      "replacement_rank": 26,
+      "stratum_replacement_rank": 13
+    },
+    {
+      "candidate_id": "USBEAUTY-034",
+      "brand_name": "amika",
+      "normalized_brand_name": "amika",
+      "identity_state": "resolved_brand",
+      "parent_org": "Bansk Group",
+      "parent_state": "resolved",
+      "category": "haircare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Amazon"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Amazon); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=amika",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://loveamika.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=amika",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Amazon",
+          "url": "https://www.amazon.com/s?k=amika",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://loveamika.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "edf728f641dbab994f5d4de1cfe65f83c6675ff53da2a8a67496652b61dd3bea",
+      "selection_status": "reserve",
+      "selection_reason": "stratum_quota_filled_before_candidate",
+      "replacement_rank": 38,
+      "stratum_replacement_rank": 19
+    },
+    {
+      "candidate_id": "USBEAUTY-035",
+      "brand_name": "PATTERN Beauty",
+      "normalized_brand_name": "pattern beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "haircare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Ulta"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Ulta); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=PATTERN+Beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://patternbeauty.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=PATTERN+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=PATTERN+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://patternbeauty.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "454e2c76e2120aa26ace5efde5a4d87fb0b7cffc693e0dcfb308ef887431e13f",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-036",
+      "brand_name": "Crown Affair",
+      "normalized_brand_name": "crown affair",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "haircare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Goop"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Goop); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Crown+Affair",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.crownaffair.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Crown+Affair",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Goop",
+          "url": "https://goop.com/search/?q=Crown+Affair",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.crownaffair.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "d15bd5ff3650428d0aaf14a0dd2b02e583cdcf22d5d1a9f24b6f49d828f3b54d",
+      "selection_status": "reserve",
+      "selection_reason": "comparator_quota_already_filled",
+      "replacement_rank": 27,
+      "stratum_replacement_rank": 14
+    },
+    {
+      "candidate_id": "USBEAUTY-037",
+      "brand_name": "Ceremonia",
+      "normalized_brand_name": "ceremonia",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "haircare",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Credo Beauty"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Credo Beauty); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Ceremonia",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://ceremonia.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Ceremonia",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Credo Beauty",
+          "url": "https://credobeauty.com/search?q=Ceremonia",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://ceremonia.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "963940bf7cb48e719929bf089f40f1a24ead8285229e1cbfc97196a19f347755",
+      "selection_status": "reserve",
+      "selection_reason": "stratum_quota_filled_before_candidate",
+      "replacement_rank": 16,
+      "stratum_replacement_rank": 6
+    },
+    {
+      "candidate_id": "USBEAUTY-038",
+      "brand_name": "Necessaire",
+      "normalized_brand_name": "necessaire",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "body",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Nordstrom); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Necessaire",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://necessaire.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Necessaire",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Necessaire",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://necessaire.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "536189ae2847fca6b1073a808d4d6b5fe29aa70d8c5c4c3ede23a1efb6e12b27",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-039",
+      "brand_name": "Sol de Janeiro",
+      "normalized_brand_name": "sol de janeiro",
+      "identity_state": "resolved_brand",
+      "parent_org": "L'Occitane Groupe",
+      "parent_state": "resolved",
+      "category": "body",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Ulta"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Ulta); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Sol+de+Janeiro",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://soldejaneiro.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Sol+de+Janeiro",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Sol+de+Janeiro",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://soldejaneiro.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "59a85a961f700ea3b141cfe6c4740cd7746acf13dc8fc9375e50863713433499",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-040",
+      "brand_name": "Saltair",
+      "normalized_brand_name": "saltair",
+      "identity_state": "resolved_brand",
+      "parent_org": "The Center",
+      "parent_state": "resolved",
+      "category": "body",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "mass_drug"
+      ],
+      "observed_us_retail_partners": [
+        "Target",
+        "Walmart"
+      ],
+      "stratum_evidence": "Observed DTC plus two US mass-retail partners (Target, Walmart); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.target.com/s?searchTerm=Saltair",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://saltair.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Target",
+          "url": "https://www.target.com/s?searchTerm=Saltair",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Walmart",
+          "url": "https://www.walmart.com/browse/saltair/YnJhbmQ6U2FsdGFpcgieie",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://saltair.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "bebd37364d292db8d02142db826c8ce073915bbf2973d29daf47c6362669e245",
+      "selection_status": "reserve",
+      "selection_reason": "stratum_quota_filled_before_candidate",
+      "replacement_rank": 22,
+      "stratum_replacement_rank": 12
+    },
+    {
+      "candidate_id": "USBEAUTY-041",
+      "brand_name": "Kopari Beauty",
+      "normalized_brand_name": "kopari beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "body",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Ulta",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Ulta, Nordstrom); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.ulta.com/search?search=Kopari+Beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://koparibeauty.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Kopari+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Kopari+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://koparibeauty.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "6e561c0053cf628e70d9e8ca6c83c1e13fc31bfcd2354828c4268a16968521c0",
+      "selection_status": "selected",
+      "selection_reason": "lowest_hash_comparator_needed_in_stratum",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-042",
+      "brand_name": "OSEA",
+      "normalized_brand_name": "osea",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "body",
+      "stratum": "scaling",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "broad_us_beauty_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Ulta",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Ulta, Nordstrom); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.ulta.com/search?search=OSEA",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://oseamalibu.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=OSEA",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=OSEA",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://oseamalibu.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "83076e4e7c8bc47cb23b388063dccc0e6b3bba169d3c4a6bfbbc5de0cd58d1c7",
+      "selection_status": "reserve",
+      "selection_reason": "stratum_quota_filled_before_candidate",
+      "replacement_rank": 8,
+      "stratum_replacement_rank": 1
+    },
+    {
+      "candidate_id": "USBEAUTY-043",
+      "brand_name": "PHLUR",
+      "normalized_brand_name": "phlur",
+      "identity_state": "resolved_brand",
+      "parent_org": "The Center",
+      "parent_state": "resolved",
+      "category": "fragrance",
+      "stratum": "scaling",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Anthropologie"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Anthropologie); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=PHLUR",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://phlur.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=PHLUR",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Anthropologie",
+          "url": "https://www.anthropologie.com/search?q=PHLUR",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://phlur.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "88477b8c0126143e0e1e39f2328b1d5361a1ca08108cd1bf127d61bcfa8db199",
+      "selection_status": "reserve",
+      "selection_reason": "fragrance_quota_already_filled",
+      "replacement_rank": 10,
+      "stratum_replacement_rank": 2
+    },
+    {
+      "candidate_id": "USBEAUTY-044",
+      "brand_name": "The 7 Virtues",
+      "normalized_brand_name": "the 7 virtues",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "fragrance",
+      "stratum": "scaling",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Scentbird"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Scentbird); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=The+7+Virtues",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://the7virtues.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=The+7+Virtues",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Scentbird",
+          "url": "https://www.scentbird.com/search?query=The+7+Virtues",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://the7virtues.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "9e3d220a0a4da91c5eb4323424cfad0f1a85aad8922b7ef3c19dd5d01ab2521b",
+      "selection_status": "reserve",
+      "selection_reason": "fragrance_quota_already_filled",
+      "replacement_rank": 18,
+      "stratum_replacement_rank": 8
+    },
+    {
+      "candidate_id": "USBEAUTY-045",
+      "brand_name": "Commodity",
+      "normalized_brand_name": "commodity",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "fragrance",
+      "stratum": "scaling",
+      "fragrance": true,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Scentbird"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Scentbird); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Commodity",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://commodityfragrances.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Commodity",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Scentbird",
+          "url": "https://www.scentbird.com/search?query=Commodity",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://commodityfragrances.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "23b4d50b8cb86016b2c8dacfed7e20ad258de3df8decd680e2deac5c047b6a03",
+      "selection_status": "selected",
+      "selection_reason": "lowest_hash_fragrance_in_stratum",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-046",
+      "brand_name": "Ellis Brooklyn",
+      "normalized_brand_name": "ellis brooklyn",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "fragrance",
+      "stratum": "scaling",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Ulta"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Ulta); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Ellis+Brooklyn",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.ellisbrooklyn.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Ellis+Brooklyn",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Ellis+Brooklyn",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.ellisbrooklyn.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "fe10f418770ea44bb9c49e9d7202cf571987e9399d7b87f6b721b4e5c4f9f2bf",
+      "selection_status": "reserve",
+      "selection_reason": "fragrance_quota_already_filled",
+      "replacement_rank": 40,
+      "stratum_replacement_rank": 20
+    },
+    {
+      "candidate_id": "USBEAUTY-047",
+      "brand_name": "DedCool",
+      "normalized_brand_name": "dedcool",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "fragrance",
+      "stratum": "scaling",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Urban Outfitters"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Urban Outfitters); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=DedCool",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://dedcool.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=DedCool",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Urban Outfitters",
+          "url": "https://www.urbanoutfitters.com/search?q=DedCool",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://dedcool.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "e445abaad82f6d67c4ed0fbd2522babffe836c58d526c7939c849c5453a36888",
+      "selection_status": "reserve",
+      "selection_reason": "fragrance_quota_already_filled",
+      "replacement_rank": 33,
+      "stratum_replacement_rank": 17
+    },
+    {
+      "candidate_id": "USBEAUTY-048",
+      "brand_name": "Boy Smells",
+      "normalized_brand_name": "boy smells",
+      "identity_state": "resolved_brand",
+      "parent_org": null,
+      "parent_state": "unresolved",
+      "category": "fragrance",
+      "stratum": "scaling",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed DTC plus two US retail partners (Sephora, Nordstrom); broad distribution across three established-tier channel types was not established.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Boy+Smells",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://boysmells.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Boy+Smells",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Boy+Smells",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://boysmells.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "dc62eb9300c2890b7bd92c378a752e54deb5cab5154809a769b9798f038cf335",
+      "selection_status": "reserve",
+      "selection_reason": "fragrance_quota_already_filled",
+      "replacement_rank": 30,
+      "stratum_replacement_rank": 15
+    },
+    {
+      "candidate_id": "USBEAUTY-049",
+      "brand_name": "Lancome",
+      "normalized_brand_name": "lancome",
+      "identity_state": "resolved_brand",
+      "parent_org": "L'Oreal",
+      "parent_state": "resolved",
+      "category": "multi_category",
+      "stratum": "established",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty",
+        "department"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed broad current distribution across at least three allowed channel types: dtc, specialty_beauty, department.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Lancome",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.lancome-usa.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Lancome",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Lancome",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.lancome-usa.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "78e39a6bdfc334bb6835bac00bcbf8bafa9dfd6b79204345f4bf2b06e014186d",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-050",
+      "brand_name": "NARS",
+      "normalized_brand_name": "nars",
+      "identity_state": "resolved_brand",
+      "parent_org": "Shiseido Company",
+      "parent_state": "resolved",
+      "category": "makeup",
+      "stratum": "established",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty",
+        "department"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed broad current distribution across at least three allowed channel types: dtc, specialty_beauty, department.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=NARS",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.narscosmetics.com/USA/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=NARS",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=NARS",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.narscosmetics.com/USA/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "68c74269a30c457823e396b87c325969ffc7ab264caf179cecf9d5ec2c6ea166",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 4,
+      "stratum_replacement_rank": 2
+    },
+    {
+      "candidate_id": "USBEAUTY-051",
+      "brand_name": "Estee Lauder",
+      "normalized_brand_name": "estee lauder",
+      "identity_state": "resolved_brand",
+      "parent_org": "Estee Lauder Companies",
+      "parent_state": "resolved",
+      "category": "skincare",
+      "stratum": "established",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty",
+        "department"
+      ],
+      "observed_us_retail_partners": [
+        "Ulta",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed broad current distribution across at least three allowed channel types: dtc, specialty_beauty, department.",
+      "us_market_evidence": {
+        "source_url": "https://www.ulta.com/search?search=Estee+Lauder",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.esteelauder.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Estee+Lauder",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Estee+Lauder",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.esteelauder.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "294dfc6a877cf09d4b76c6ec49507e889d277befe5b5bfc5627c2dc9add5cb80",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 1,
+      "stratum_replacement_rank": 1
+    },
+    {
+      "candidate_id": "USBEAUTY-052",
+      "brand_name": "Clinique",
+      "normalized_brand_name": "clinique",
+      "identity_state": "resolved_brand",
+      "parent_org": "Estee Lauder Companies",
+      "parent_state": "resolved",
+      "category": "skincare",
+      "stratum": "established",
+      "fragrance": false,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty",
+        "department"
+      ],
+      "observed_us_retail_partners": [
+        "Ulta",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed broad current distribution across at least three allowed channel types: dtc, specialty_beauty, department.",
+      "us_market_evidence": {
+        "source_url": "https://www.ulta.com/search?search=Clinique",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.clinique.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Clinique",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Clinique",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.clinique.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "89315fb1fda258b1c4500f187960177b9e675871e4a796317a60db359938a55b",
+      "selection_status": "selected",
+      "selection_reason": "lowest_hash_comparator_needed_in_stratum",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-053",
+      "brand_name": "MAC Cosmetics",
+      "normalized_brand_name": "mac cosmetics",
+      "identity_state": "resolved_brand",
+      "parent_org": "Estee Lauder Companies",
+      "parent_state": "resolved",
+      "category": "makeup",
+      "stratum": "established",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty",
+        "department"
+      ],
+      "observed_us_retail_partners": [
+        "Ulta",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed broad current distribution across at least three allowed channel types: dtc, specialty_beauty, department.",
+      "us_market_evidence": {
+        "source_url": "https://www.ulta.com/search?search=MAC+Cosmetics",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.maccosmetics.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=MAC+Cosmetics",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=MAC+Cosmetics",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.maccosmetics.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "e9df71d588346a2adb00412d00f9623a8e7c2003791ccf146e3e31b7f9c96242",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 34,
+      "stratum_replacement_rank": 8
+    },
+    {
+      "candidate_id": "USBEAUTY-054",
+      "brand_name": "Kiehl's",
+      "normalized_brand_name": "kiehl's",
+      "identity_state": "resolved_brand",
+      "parent_org": "L'Oreal",
+      "parent_state": "resolved",
+      "category": "skincare",
+      "stratum": "established",
+      "fragrance": false,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty",
+        "department"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed broad current distribution across at least three allowed channel types: dtc, specialty_beauty, department.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Kiehl%27s",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.kiehls.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Kiehl%27s",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Kiehl%27s",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.kiehls.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "c1c788421524038ac21c1220d52341a81379e7a164d3f4dca5db4d314a0f83d7",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 24,
+      "stratum_replacement_rank": 5
+    },
+    {
+      "candidate_id": "USBEAUTY-055",
+      "brand_name": "Benefit Cosmetics",
+      "normalized_brand_name": "benefit cosmetics",
+      "identity_state": "resolved_brand",
+      "parent_org": "LVMH",
+      "parent_state": "resolved",
+      "category": "makeup",
+      "stratum": "established",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty",
+        "department"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Ulta"
+      ],
+      "stratum_evidence": "Observed broad current distribution across at least three allowed channel types: dtc, specialty_beauty, department.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Benefit+Cosmetics",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.benefitcosmetics.com/en-us",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Benefit+Cosmetics",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Ulta",
+          "url": "https://www.ulta.com/search?search=Benefit+Cosmetics",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.benefitcosmetics.com/en-us",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "93e9337c3ee6bcc9082f5a731fce26b940d785b93f778cf323669592cc45b88e",
+      "selection_status": "reserve",
+      "selection_reason": "category_cap",
+      "replacement_rank": 12,
+      "stratum_replacement_rank": 4
+    },
+    {
+      "candidate_id": "USBEAUTY-056",
+      "brand_name": "Bumble and bumble",
+      "normalized_brand_name": "bumble and bumble",
+      "identity_state": "resolved_brand",
+      "parent_org": "Estee Lauder Companies",
+      "parent_state": "resolved",
+      "category": "haircare",
+      "stratum": "established",
+      "fragrance": false,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty",
+        "department"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed broad current distribution across at least three allowed channel types: dtc, specialty_beauty, department.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=Bumble+and+bumble",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.bumbleandbumble.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=Bumble+and+bumble",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Bumble+and+bumble",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.bumbleandbumble.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "840841618d2558992baf0f6eea3f270fadd1d35811eab7c37cdf24d22ece2572",
+      "selection_status": "selected",
+      "selection_reason": "next_hash_eligible_under_constraints",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-057",
+      "brand_name": "Aveda",
+      "normalized_brand_name": "aveda",
+      "identity_state": "resolved_brand",
+      "parent_org": "Estee Lauder Companies",
+      "parent_state": "resolved",
+      "category": "haircare",
+      "stratum": "established",
+      "fragrance": false,
+      "low_observed_trigger_candidate": true,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "department",
+        "owned_retail"
+      ],
+      "observed_us_retail_partners": [
+        "Nordstrom",
+        "Aveda stores"
+      ],
+      "stratum_evidence": "Observed broad current distribution across three allowed channel types: dtc, department, owned_retail.",
+      "us_market_evidence": {
+        "source_url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Aveda",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.aveda.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Aveda",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "brand_owned",
+          "publisher": "Aveda stores",
+          "url": "https://www.aveda.com/locations",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.aveda.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "c4fe3fa31bde5791361b0fa0eafb87007bf7aa40c45773a0d940728330068491",
+      "selection_status": "reserve",
+      "selection_reason": "parent_cap",
+      "replacement_rank": 25,
+      "stratum_replacement_rank": 6
+    },
+    {
+      "candidate_id": "USBEAUTY-058",
+      "brand_name": "CHANEL Fragrance and Beauty",
+      "normalized_brand_name": "chanel fragrance and beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": "CHANEL",
+      "parent_state": "resolved",
+      "category": "fragrance",
+      "stratum": "established",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "department",
+        "owned_retail"
+      ],
+      "observed_us_retail_partners": [
+        "CHANEL boutiques",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed broad current distribution across three allowed channel types: dtc, department, owned_retail.",
+      "us_market_evidence": {
+        "source_url": "https://www.chanel.com/us/storelocator/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.chanel.com/us/fragrance/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "brand_owned",
+          "publisher": "CHANEL boutiques",
+          "url": "https://www.chanel.com/us/storelocator/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=CHANEL+Fragrance+and+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.chanel.com/us/fragrance/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "db2efd5ef5009692bf202354454109ec8907a601d1fa44ab5734cc2632ef704b",
+      "selection_status": "reserve",
+      "selection_reason": "fragrance_quota_already_filled",
+      "replacement_rank": 29,
+      "stratum_replacement_rank": 7
+    },
+    {
+      "candidate_id": "USBEAUTY-059",
+      "brand_name": "DIOR Beauty",
+      "normalized_brand_name": "dior beauty",
+      "identity_state": "resolved_brand",
+      "parent_org": "LVMH",
+      "parent_state": "resolved",
+      "category": "fragrance",
+      "stratum": "established",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "fragrance_retail",
+      "channel_types": [
+        "dtc",
+        "specialty_beauty",
+        "department"
+      ],
+      "observed_us_retail_partners": [
+        "Sephora",
+        "Nordstrom"
+      ],
+      "stratum_evidence": "Observed broad current distribution across at least three allowed channel types: dtc, specialty_beauty, department.",
+      "us_market_evidence": {
+        "source_url": "https://www.sephora.com/search?keyword=DIOR+Beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.dior.com/en_us/beauty",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Sephora",
+          "url": "https://www.sephora.com/search?keyword=DIOR+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=DIOR+Beauty",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.dior.com/en_us/beauty",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "684bb683c3ab57cf73e344b08fadff4596a8b24d788d3948b7a867eb5bb2bf4c",
+      "selection_status": "selected",
+      "selection_reason": "lowest_hash_fragrance_in_stratum",
+      "replacement_rank": null,
+      "stratum_replacement_rank": null
+    },
+    {
+      "candidate_id": "USBEAUTY-060",
+      "brand_name": "Jo Malone London",
+      "normalized_brand_name": "jo malone london",
+      "identity_state": "resolved_brand",
+      "parent_org": "Estee Lauder Companies",
+      "parent_state": "resolved",
+      "category": "fragrance",
+      "stratum": "established",
+      "fragrance": true,
+      "low_observed_trigger_candidate": false,
+      "primary_discovery_frame": "established_portfolios",
+      "channel_types": [
+        "dtc",
+        "department",
+        "owned_retail"
+      ],
+      "observed_us_retail_partners": [
+        "Nordstrom",
+        "Jo Malone boutiques"
+      ],
+      "stratum_evidence": "Observed broad current distribution across three allowed channel types: dtc, department, owned_retail.",
+      "us_market_evidence": {
+        "source_url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Jo+Malone+London",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time"
+      },
+      "source_pointers": [
+        {
+          "source_family": "brand_owned",
+          "url": "https://www.jomalone.com/",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "retailer_catalog",
+          "publisher": "Nordstrom",
+          "url": "https://www.nordstrom.com/sr?origin=keywordsearch&keyword=Jo+Malone+London",
+          "first_party": false,
+          "observed_at": "2026-07-16"
+        },
+        {
+          "source_family": "brand_owned",
+          "publisher": "Jo Malone boutiques",
+          "url": "https://www.jomalone.com/stores",
+          "first_party": true,
+          "observed_at": "2026-07-16"
+        }
+      ],
+      "source_families": [
+        "brand_owned",
+        "retailer_catalog"
+      ],
+      "source_family_count": 2,
+      "dated_activity": {
+        "source_url": "https://www.jomalone.com/",
+        "observed_at": "2026-07-16",
+        "date_basis": "observation_time",
+        "effective_date": null,
+        "effective_time_precision": "unknown"
+      },
+      "lawful_access": "public_web",
+      "coverage_limitations": [
+        "screen-light current-availability evidence only",
+        "observation time is not the underlying event effective date",
+        "no company-pressure inference"
+      ],
+      "eligibility": "eligible",
+      "selection_hash": "7eb2535b96d1a64865f59c4e4c14b4798c05a8ee893c7d8a512ad92fb0639349",
+      "selection_status": "reserve",
+      "selection_reason": "parent_cap",
+      "replacement_rank": 6,
+      "stratum_replacement_rank": 3
+    }
+  ],
+  "final_pool_ids": [
+    "USBEAUTY-016",
+    "USBEAUTY-009",
+    "USBEAUTY-002",
+    "USBEAUTY-006",
+    "USBEAUTY-013",
+    "USBEAUTY-003",
+    "USBEAUTY-045",
+    "USBEAUTY-041",
+    "USBEAUTY-024",
+    "USBEAUTY-019",
+    "USBEAUTY-021",
+    "USBEAUTY-035",
+    "USBEAUTY-027",
+    "USBEAUTY-038",
+    "USBEAUTY-039",
+    "USBEAUTY-029",
+    "USBEAUTY-059",
+    "USBEAUTY-052",
+    "USBEAUTY-049",
+    "USBEAUTY-056"
+  ],
+  "replacement_order_ids": [
+    "USBEAUTY-051",
+    "USBEAUTY-010",
+    "USBEAUTY-011",
+    "USBEAUTY-050",
+    "USBEAUTY-018",
+    "USBEAUTY-060",
+    "USBEAUTY-004",
+    "USBEAUTY-042",
+    "USBEAUTY-012",
+    "USBEAUTY-043",
+    "USBEAUTY-028",
+    "USBEAUTY-055",
+    "USBEAUTY-026",
+    "USBEAUTY-031",
+    "USBEAUTY-015",
+    "USBEAUTY-037",
+    "USBEAUTY-032",
+    "USBEAUTY-044",
+    "USBEAUTY-023",
+    "USBEAUTY-020",
+    "USBEAUTY-030",
+    "USBEAUTY-040",
+    "USBEAUTY-001",
+    "USBEAUTY-054",
+    "USBEAUTY-057",
+    "USBEAUTY-033",
+    "USBEAUTY-036",
+    "USBEAUTY-017",
+    "USBEAUTY-058",
+    "USBEAUTY-048",
+    "USBEAUTY-014",
+    "USBEAUTY-025",
+    "USBEAUTY-047",
+    "USBEAUTY-053",
+    "USBEAUTY-005",
+    "USBEAUTY-022",
+    "USBEAUTY-007",
+    "USBEAUTY-034",
+    "USBEAUTY-008",
+    "USBEAUTY-046"
+  ],
+  "invariants": {
+    "eligible_unique": 60,
+    "selected_unique": 20,
+    "selected_strata": {
+      "emerging": 6,
+      "scaling": 10,
+      "established": 4
+    },
+    "selected_fragrance": 3,
+    "selected_comparators": 4,
+    "selected_category_counts": {
+      "fragrance": 3,
+      "skincare": 5,
+      "makeup": 5,
+      "body": 4,
+      "haircare": 2,
+      "multi_category": 1
+    },
+    "selected_parent_counts": {
+      "Famille C": 1,
+      "e.l.f. Beauty": 1,
+      "L'Occitane Groupe": 1,
+      "LVMH": 1,
+      "Estee Lauder Companies": 2,
+      "L'Oreal": 1
+    },
+    "all_rows_two_source_families": true,
+    "all_rows_first_party": true,
+    "all_rows_us_presence": true,
+    "all_rows_dated_activity": true
+  },
+  "administrative_metadata_notice": "Eligibility, stratum, comparator status, hash, selection, and replacement order are GTM administrative metadata; they are not company evidence."
+}
