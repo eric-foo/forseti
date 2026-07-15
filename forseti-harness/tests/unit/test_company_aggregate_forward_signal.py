@@ -65,6 +65,29 @@ def test_company_aggregate_schema_accepts_inspectable_observation() -> None:
     validate_company_aggregate_observation(_observation())
 
 
+def test_company_aggregate_schema_accepts_string_measurement_value() -> None:
+    row = _observation()
+    row["size_band"] = {
+        "posture": "observed",
+        "value": "11-50",
+        "unit": "employees_band",
+        "source_field": "company_size_band",
+        "reason": None,
+        "zero_basis": None,
+    }
+    validate_company_aggregate_observation(row)
+
+
+@pytest.mark.parametrize("invalid_value", [1.5, {"count": 1}])
+def test_company_aggregate_schema_rejects_non_integer_non_string_measurement_values(
+    invalid_value,
+) -> None:
+    row = _observation()
+    row["open_role_count"]["value"] = invalid_value
+    with pytest.raises(CompanyAggregateObservationError, match="exactly an integer or string"):
+        validate_company_aggregate_observation(row)
+
+
 @pytest.mark.parametrize(
     ("mutation", "match"),
     [

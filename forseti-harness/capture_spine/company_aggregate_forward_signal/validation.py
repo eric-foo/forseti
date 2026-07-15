@@ -132,8 +132,11 @@ def _validate_measurement(value: Any, label: str) -> None:
             _fail("observed_without_value", f"observed {label} requires a value")
         if reason not in (None, ""):
             _fail("observed_with_absence_reason", f"observed {label} must not carry an absence reason")
-        if isinstance(measurement_value, bool):
-            _fail("invalid_measurement_value", f"{label} value must not be boolean")
+        if type(measurement_value) not in (int, str):
+            _fail(
+                "invalid_measurement_value",
+                f"{label} value must be exactly an integer or string",
+            )
         if measurement_value == 0:
             _require_string(
                 value.get("zero_basis"),

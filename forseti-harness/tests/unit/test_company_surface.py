@@ -64,10 +64,11 @@ def _evidence(
 
 
 def _interval(
-    start: str = "2025-01-01",
+    start: str = "2025-01-01T12:00:00Z",
     *,
-    precision: str = "day",
+    precision: str = "exact",
     end: str | None = None,
+    end_precision: str | None = None,
     end_state: str = "bounded",
     unknown_reason: str | None = None,
 ) -> dict:
@@ -75,7 +76,7 @@ def _interval(
         "start": start if precision != "unknown" else None,
         "start_precision": precision,
         "end": (end or start) if end_state == "bounded" else None,
-        "end_precision": precision,
+        "end_precision": end_precision or precision,
         "end_state": end_state,
         "unknown_reason": unknown_reason,
     }
@@ -340,6 +341,119 @@ def test_signal_9_current_traceable_observations_do_not_embed_gtm_conclusions() 
         assert forbidden not in output
 
 
+def test_activity_does_not_attach_through_a_temporally_indeterminate_assertion() -> None:
+    """A resolved-but-indeterminate assertion must not license the roll-up."""
+    assertion = _subject(
+        ref="subject.acme.open_end",
+        state="resolved",
+        interval=_interval(
+            "2025-01-01",
+            end_state="unknown",
+            unknown_reason="source does not pin the end boundary",
+        ),
+    )
+    records = [
+        *map_company_surface_record(assertion),
+        *map_company_surface_record(_activity(subject_assertion_ref="subject.acme.open_end")),
+    ]
+    view = build_company_surface_view(records, _query("current"))
+
+    assert view["resolved_records"] == []
+    assert {item["reason"] for item in view["visible_residuals"]} == {
+        "temporally_indeterminate",
+        "subject_assertion_not_applicable_at_boundary",
+    }
+
+
+def test_activity_does_not_attach_through_an_assertion_outside_the_boundary() -> None:
+    """An assertion excluded from the view cannot silently carry activity into it."""
+    assertion = _subject(ref="subject.acme.old", interval=_interval("2019-01-01"))
+    records = [
+        *map_company_surface_record(assertion),
+        *map_company_surface_record(_activity(subject_assertion_ref="subject.acme.old")),
+    ]
+    view = build_company_surface_view(records, _query("current"))
+
+    assert view["resolved_records"] == []
+    assert [item["reason"] for item in view["visible_residuals"]] == [
+        "subject_assertion_not_applicable_at_boundary"
+    ]
+    assert any(item["reason"] == "outside_effective_boundary" for item in view["exclusions"])
+
+
+def test_coarse_start_straddle_is_indeterminate_until_definitely_started() -> None:
+    assertion = _subject(
+        ref="subject.acme.coarse_start",
+        interval=_interval("2025-05", precision="month", end_state="open"),
+    )
+    records = map_company_surface_record(assertion)
+
+    before = build_company_surface_view(
+        records,
+        _query("historical_as_known", effective="2025-04-30T23:59:59Z"),
+    )
+    straddling = build_company_surface_view(
+        records,
+        _query("historical_as_known", effective="2025-05-15T12:00:00Z"),
+    )
+    after = build_company_surface_view(
+        records,
+        _query("historical_as_known", effective="2025-06-01T00:00:00Z"),
+    )
+
+    assert before["resolved_records"] == []
+    assert before["exclusions"][0]["reason"] == "outside_effective_boundary"
+    assert straddling["visible_residuals"][0]["reason"] == "temporally_indeterminate"
+    assert len(after["resolved_records"]) == 1
+
+
+def test_keys_soulcare_coarse_end_is_april_applicable_may_indeterminate_june_excluded() -> None:
+    keys = _subject(
+        ref="subject.keys_soulcare.elf",
+        subject="brand:keys-soulcare",
+        interval=_interval(
+            "2020-01-01T00:00:00Z",
+            precision="exact",
+            end="2026-05",
+            end_precision="month",
+        ),
+    )
+    records = map_company_surface_record(keys)
+
+    april = build_company_surface_view(
+        records,
+        _query(
+            "historical_restated",
+            subject="brand:keys-soulcare",
+            effective="2026-04-30T12:00:00Z",
+            cutoff="2026-07-01T00:00:00Z",
+        ),
+    )
+    may = build_company_surface_view(
+        records,
+        _query(
+            "historical_restated",
+            subject="brand:keys-soulcare",
+            effective="2026-05-15T12:00:00Z",
+            cutoff="2026-07-01T00:00:00Z",
+        ),
+    )
+    june = build_company_surface_view(
+        records,
+        _query(
+            "current",
+            subject="brand:keys-soulcare",
+            effective="2026-06-01T00:00:00Z",
+            cutoff="2026-07-01T00:00:00Z",
+        ),
+    )
+
+    assert len(april["resolved_records"]) == 1
+    assert may["visible_residuals"][0]["reason"] == "temporally_indeterminate"
+    assert june["resolved_records"] == []
+    assert june["exclusions"][0]["reason"] == "outside_effective_boundary"
+
+
 def test_deterministic_rebuild_reproduces_view_and_manifest_bytes(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     append_company_surface_logical_records(root, [_subject(), _activity()])
@@ -366,6 +480,15 @@ def test_deterministic_rebuild_reproduces_view_and_manifest_bytes(tmp_path: Path
     assert (target / "manifests" / "current.json").read_bytes() == first[
         "manifests/current.json"
     ]
+
+
+def test_empty_lake_does_not_claim_views_are_proven(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    assert prove_company_surface_views_rebuildable(root) == {
+        "status": "no_views_generated",
+        "results": {},
+        "failures": [],
+    }
 
 
 def test_company_surface_census_lane_is_honestly_inactive_without_source_access(
@@ -470,7 +593,7 @@ def test_topicals_offline_product_learning_holdout_uses_same_public_path(tmp_pat
     assert all(output["resolved_records"] == [] for output in outputs)
     assert all(
         {item["reason"] for item in output["visible_residuals"]}
-        == {"assertion_provisional", "subject_assertion_not_resolved"}
+        == {"temporally_indeterminate", "subject_assertion_not_resolved"}
         for output in outputs
     )
     brand_view = build_company_surface_view(
@@ -482,7 +605,8 @@ def test_topicals_offline_product_learning_holdout_uses_same_public_path(tmp_pat
             cutoff="2026-07-01T00:00:00Z",
         ),
     )
-    assert len(brand_view["resolved_records"]) == 1
+    assert brand_view["resolved_records"] == []
+    assert brand_view["visible_residuals"][0]["reason"] == "temporally_indeterminate"
     assert not any(
         item["record"]["record_family"] == "relationship_assertion"
         for output in [*outputs, brand_view]

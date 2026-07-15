@@ -37,7 +37,7 @@ COMPANY_SURFACE_PRODUCER_ID = "company_surface.silver_mapper"
 COMPANY_SURFACE_PRODUCER_SCHEMA_VERSION = "company_surface_silver_mapping_v0"
 COMPANY_SURFACE_VIEW_SCHEMA_VERSION = 1
 COMPANY_SURFACE_MANIFEST_SCHEMA_VERSION = 1
-COMPANY_SURFACE_SELECTION_POLICY_VERSION = "company_surface_temporal_selection_v0"
+COMPANY_SURFACE_SELECTION_POLICY_VERSION = "company_surface_temporal_selection_v1"
 COMPANY_SURFACE_INDEX_PARTS = (
     "indexes",
     "derived_retrieval",
@@ -489,6 +489,20 @@ def build_company_surface_view(
             if assertion_record is None or _company_payload(assertion_record)["assertion_state"] != "resolved":
                 residuals.append({"reason": "subject_assertion_not_resolved", **entry})
                 continue
+            # Activity may attach only through an assertion that is itself
+            # determinate and applicable at the requested boundary; a resolved
+            # state alone does not license the roll-up.
+            if (
+                _interval_selection_state(
+                    _company_payload(assertion_record)["effective_interval"],
+                    query["effective_boundary"],
+                )
+                != "applicable"
+            ):
+                residuals.append(
+                    {"reason": "subject_assertion_not_applicable_at_boundary", **entry}
+                )
+                continue
         resolved.append(entry)
 
     visible_ids = {entry["record_id"] for entry in resolved + coverage}
@@ -594,11 +608,14 @@ def prove_company_surface_views_rebuildable(data_root) -> dict[str, Any]:
     target_root = data_root._within(*COMPANY_SURFACE_INDEX_PARTS)
     manifest_dir = target_root / "manifests"
     if not manifest_dir.exists():
-        return {"status": "proven", "results": {}, "failures": []}
+        return {"status": "no_views_generated", "results": {}, "failures": []}
+    manifest_paths = sorted(manifest_dir.glob("*.json"))
+    if not manifest_paths:
+        return {"status": "no_views_generated", "results": {}, "failures": []}
     records = load_company_surface_records(data_root)
     results: dict[str, str] = {}
     failures: list[str] = []
-    for manifest_path in sorted(manifest_dir.glob("*.json")):
+    for manifest_path in manifest_paths:
         mode = manifest_path.stem
         view_path = target_root / "views" / f"{mode}.json"
         try:
@@ -775,15 +792,21 @@ def _interval_selection_state(interval: Mapping[str, Any], boundary: str) -> str
     point = _parse_datetime(boundary)
     if interval["start_precision"] == "unknown":
         return "indeterminate"
-    start_low, _start_high = _precision_bounds(interval["start"], interval["start_precision"])
+    start_low, start_high = _precision_bounds(interval["start"], interval["start_precision"])
     if point < start_low:
         return "excluded"
+    if start_low != start_high and point <= start_high:
+        return "indeterminate"
     if interval["end_state"] == "open":
         return "applicable"
     if interval["end_state"] == "unknown":
         return "indeterminate"
-    _end_low, end_high = _precision_bounds(interval["end"], interval["end_precision"])
-    return "applicable" if point <= end_high else "excluded"
+    end_low, end_high = _precision_bounds(interval["end"], interval["end_precision"])
+    if point > end_high:
+        return "excluded"
+    if end_low != end_high and point >= end_low:
+        return "indeterminate"
+    return "applicable"
 
 
 def _precision_bounds(value: str, precision: str) -> tuple[datetime, datetime]:
