@@ -160,6 +160,29 @@ def _rehash(record: dict) -> None:
     record["content_hash"] = f"sha256:{silver_content_hash(record)}"
 
 
+def _explicit_unknown_time_observation() -> dict:
+    record = _metric_record()
+    record["payload_kind"] = "UnknownSourceTimeObservation"
+    record["observed_at"] = None
+    record["payload"] = {
+        "observation": {
+            "effective_interval": {
+                "start": None,
+                "start_precision": "unknown",
+                "end": None,
+                "end_precision": "unknown",
+                "end_state": "unknown",
+                "unknown_reason": "the source exposes no effective timestamp",
+            },
+            "recorded_at": "2026-07-14T01:00:00Z",
+            "evidence_refs": [{"packet_id": _PACKET_ID}],
+            "limitations": ["Source-effective time is absent from the cited material."],
+        }
+    }
+    _rehash(record)
+    return record
+
+
 def _commit_source(root: DataLakeRoot, *, body: bytes = b"source") -> Path:
     container = root.path / "raw" / raw_shard(_PACKET_ID) / _PACKET_ID
     preserved = container / "preserved" / "source.bin"
@@ -189,6 +212,74 @@ def test_validate_accepts_well_formed_text_and_metric_observations() -> None:
     validate_silver_vault_record(_text_record())
     validate_silver_vault_record(_metric_record())
     validate_silver_vault_record(_metric_set_record())
+
+
+def test_validate_accepts_explicit_unknown_time_observation() -> None:
+    validate_silver_vault_record(_explicit_unknown_time_observation())
+
+
+def test_validate_rejects_ordinary_observation_without_observed_at() -> None:
+    record = _metric_record()
+    record["observed_at"] = None
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match="requires payload.observation.effective_interval"):
+        validate_silver_vault_record(record)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            lambda observation: observation["effective_interval"].pop("start_precision"),
+            "start_precision='unknown'",
+        ),
+        (
+            lambda observation: observation["effective_interval"].update(unknown_reason=""),
+            "unknown_reason",
+        ),
+        (lambda observation: observation.update(evidence_refs=[]), "evidence_refs"),
+        (lambda observation: observation.update(limitations=[]), "limitations"),
+        (lambda observation: observation.pop("recorded_at"), "recorded_at"),
+    ],
+)
+def test_validate_rejects_partial_unknown_time_observation(mutation, message: str) -> None:
+    record = _explicit_unknown_time_observation()
+    mutation(record["payload"]["observation"])
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match=message):
+        validate_silver_vault_record(record)
+
+
+def test_validate_rejects_capture_or_record_time_substituted_for_unknown_observed_at() -> None:
+    record = _explicit_unknown_time_observation()
+    record["observed_at"] = record["captured_at"]
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match="must not substitute"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_preserves_nullable_relationship_observed_at() -> None:
+    record = _metric_record()
+    record["record_kind"] = "relationship"
+    record["payload_kind"] = "RelationshipEdge"
+    record["observed_at"] = None
+    record["payload"] = {
+        "relationship": {
+            "edge_type": "derived_from_record",
+            "from": {"ref_type": "record_id", "ref": "source"},
+            "to": {"ref_type": "record_id", "ref": "target"},
+        }
+    }
+    _rehash(record)
+    validate_silver_vault_record(record)
+
+
+def test_validate_requires_non_null_captured_at() -> None:
+    record = _explicit_unknown_time_observation()
+    record["captured_at"] = None
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match="captured_at"):
+        validate_silver_vault_record(record)
 
 
 def test_validate_metric_set_rejects_row_count_drift() -> None:

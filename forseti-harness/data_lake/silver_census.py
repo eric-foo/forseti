@@ -254,7 +254,7 @@ def _observation_window(record: Mapping[str, Any], observation: Mapping[str, Any
         return f"coverage:{coverage.get('start') or '<open>'}/{coverage.get('end') or '<open>'}"
     if observation.get("rollup_window"):
         return f"rollup:{observation.get('rollup_window')}"
-    point = record.get("observed_at") or record.get("captured_at")
+    point = record.get("observed_at")
     return f"point:{point}" if point else "unknown"
 
 

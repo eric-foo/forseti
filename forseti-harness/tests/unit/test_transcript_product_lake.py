@@ -37,6 +37,7 @@ from source_capture.transcript.caption_packet import write_caption_packet
 
 _ANCHOR = "ANCHORTEST0123456789ABCDEF"
 _PROVIDER = RawApiProvider.ANTHROPIC_MESSAGES
+_CAPTURED_AT = "2026-07-15T00:00:00Z"
 
 
 def _cues() -> list[dict]:
@@ -129,6 +130,7 @@ def _transcript(data_root: DataLakeRoot | None = None) -> TranscriptInput:
         source_surface="youtube_audio",
         video_id="vid12345678",
         derived_ref=_source_ref(data_root),
+        captured_at=_CAPTURED_AT,
     )
     return TranscriptInput("vid12345678", _ANCHOR, "asr", _cues(), source_lineage=lineage)
 
@@ -218,8 +220,15 @@ def test_driver_persists_to_silver_lane(tmp_path) -> None:
         subtree="derived", raw_anchor=_ANCHOR, record_id=rid, completion_lane=PRODUCT_MENTIONS_SET_LANE,
     )
     written = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
-    assert written["payload"]["observation"]["row_count"] == 1
+    observation = written["payload"]["observation"]
+    assert observation["row_count"] == 1
     assert _stored_mentions(written)[0]["start_ms"] == 3000  # CE5 timestamp from the cue
+    assert written["observed_at"] is None
+    assert written["captured_at"] == _CAPTURED_AT
+    assert observation["effective_interval"]["start_precision"] == "unknown"
+    assert observation["recorded_at"] == _CAPTURED_AT
+    assert observation["evidence_refs"]
+    assert observation["limitations"]
 
 
 def test_operator_result_writer_reuses_silver_lane_shape(tmp_path) -> None:
@@ -605,6 +614,7 @@ def test_driver_persists_silver_lineage_in_place(tmp_path) -> None:
     lineage = build_transcript_source_lineage(
         namespace="youtube", source_surface="youtube_audio", video_id="vid12345678",
         derived_ref=_derived_ref(data_root),
+        captured_at=_CAPTURED_AT,
     )
     transcript = TranscriptInput("vid12345678", _ANCHOR, "asr", _cues(), source_lineage=lineage)
     paths = extract_products_into_lake(

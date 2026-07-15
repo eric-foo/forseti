@@ -137,12 +137,16 @@ def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
         "source_surface",
     ):
         _require_non_empty_string(record.get(field), f"Silver {field}")
-    for field in ("observed_at", "captured_at"):
-        if field not in record:
-            raise SilverRecordError(f"Silver common header requires {field} (nullable when unknown).")
-        value = record.get(field)
-        if value is not None:
-            _require_non_empty_string(value, f"Silver {field}")
+    if "observed_at" not in record:
+        raise SilverRecordError("Silver common header requires observed_at.")
+    observed_at = record.get("observed_at")
+    if observed_at is not None:
+        _require_non_empty_string(observed_at, "Silver observed_at")
+    if "captured_at" not in record:
+        raise SilverRecordError("Silver common header requires captured_at.")
+    captured_at = record.get("captured_at")
+    if captured_at is not None:
+        _require_non_empty_string(captured_at, "Silver captured_at")
 
     if record.get("content_hash_basis") != CONTENT_HASH_BASIS:
         raise SilverRecordError(
@@ -186,6 +190,13 @@ def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
             _validate_text_observation(observation)
         elif payload_kind == TEXT_OBSERVATION_SET_PAYLOAD_KIND:
             _validate_text_observation_set(observation)
+
+    _validate_observed_at_contract(
+        record_kind=record_kind,
+        observed_at=observed_at,
+        captured_at=captured_at,
+        payload=payload,
+    )
 
     expected_hash = silver_content_hash(record)
     if content_hash != f"sha256:{expected_hash}":
@@ -717,6 +728,82 @@ def _reject_ledger(container: Mapping[str, Any], *, where: str) -> None:
                 f"A Silver fact must not carry a transform ledger (found {ledger_key!r} in "
                 f"{where}); processing evidence belongs in the audit-pack sibling, not a fact."
             )
+
+
+def _validate_observed_at_contract(
+    *,
+    record_kind: str,
+    observed_at: Any,
+    captured_at: Any,
+    payload: Mapping[str, Any],
+) -> None:
+    """Keep unknown source-effective time explicit without a generic null escape hatch."""
+    if record_kind == "relationship":
+        return
+    if record_kind != "observation":
+        if observed_at is None:
+            raise SilverRecordError(
+                "Silver observed_at may be null only for relationships or an explicitly "
+                "unknown-time observation."
+            )
+        return
+
+    observation = payload.get("observation")
+    if not isinstance(observation, Mapping):
+        return  # The observation-shape error is raised by the caller above.
+    interval = observation.get("effective_interval")
+    declares_unknown_start = isinstance(interval, Mapping) and (
+        interval.get("start_precision") == "unknown"
+        or ("start" in interval and interval.get("start") is None)
+    )
+    if observed_at is not None:
+        if declares_unknown_start:
+            raise SilverRecordError(
+                "An observation with explicitly unknown source-effective time must keep "
+                "observed_at null; captured_at or recorded_at must not substitute for it."
+            )
+        return
+
+    if not isinstance(interval, Mapping):
+        raise SilverRecordError(
+            "A null observation observed_at requires payload.observation.effective_interval."
+        )
+    if "start" not in interval or interval.get("start") is not None:
+        raise SilverRecordError(
+            "An explicitly unknown observation time requires effective_interval.start=null."
+        )
+    if interval.get("start_precision") != "unknown":
+        raise SilverRecordError(
+            "An explicitly unknown observation time requires "
+            "effective_interval.start_precision='unknown'."
+        )
+    _require_non_empty_string(
+        interval.get("unknown_reason"),
+        "Unknown-time observation effective_interval.unknown_reason",
+    )
+    _require_non_empty_string(
+        observation.get("recorded_at"), "Unknown-time observation recorded_at"
+    )
+    _require_non_empty_string(captured_at, "Unknown-time observation captured_at")
+
+    evidence_refs = observation.get("evidence_refs")
+    if (
+        not isinstance(evidence_refs, list)
+        or not evidence_refs
+        or any(not isinstance(ref, Mapping) or not ref for ref in evidence_refs)
+    ):
+        raise SilverRecordError(
+            "An explicitly unknown observation time requires non-empty evidence_refs provenance."
+        )
+    limitations = observation.get("limitations")
+    if (
+        not isinstance(limitations, list)
+        or not limitations
+        or any(not isinstance(item, str) or not item.strip() for item in limitations)
+    ):
+        raise SilverRecordError(
+            "An explicitly unknown observation time requires non-empty limitations."
+        )
 
 
 def _validate_metric_posture(observation: Mapping[str, Any]) -> None:
