@@ -42,7 +42,7 @@ document bucket.
 
 | Domain | Role | Open |
 | --- | --- | --- |
-| Company Surface | Decision-agnostic home for the future contract governing externally observable company history. | `forseti/product/information/company_surface/README.md` |
+| Company Surface | Decision-agnostic home for the accepted purpose governing externally observable company history. | `forseti/product/information/company_surface/README.md` |
 
 This placement does not claim a Company Surface schema, implementation, stored
 company corpus, entity resolver, CSB integration, validation, or readiness.
