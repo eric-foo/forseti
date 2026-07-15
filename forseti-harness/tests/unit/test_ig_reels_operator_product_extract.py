@@ -51,35 +51,45 @@ def _item(**over: Any) -> dict[str, Any]:
     return base
 
 
-def _commit_ig_deep_capture(data_root: DataLakeRoot) -> str:
+def _commit_ig_deep_capture(data_root: DataLakeRoot) -> tuple[str, str]:
+    comment = AudienceComment(
+        comment_id="c1",
+        reel_shortcode=_SHORTCODE,
+        author_username="zoe",
+        text="works",
+        like_count=1,
+        created_at_unix=1782400000,
+    )
+    substrate = (json.dumps({
+        "pk": comment.comment_id,
+        "user": {"username": comment.author_username},
+        "text": comment.text,
+        "created_at": comment.created_at_unix,
+        "comment_like_count": comment.like_count,
+        "__typename": "XIGComment",
+    }) + "\n").encode()
     result = ReelDeepCaptureResult(
         reel_shortcode=_SHORTCODE,
-        comments=(
-            AudienceComment(
-                comment_id="c1",
-                reel_shortcode=_SHORTCODE,
-                author_username="zoe",
-                text="works",
-                like_count=1,
-                created_at_unix=1782400000,
-            ),
-        ),
+        comments=(comment,),
         transcript_posture="transcribed",
         transcript_cues=tuple(_cues()),
         media_url_used="https://x.fbcdn.net/o1/v/clip.mp4",
+        comment_substrate=substrate,
+        audio_bytes=b"deep-capture-audio",
+        audio_ext="mp4",
     )
-    write_reel_deep_capture_into_lake(
+    written = write_reel_deep_capture_into_lake(
         data_root=data_root,
         result=result,
         generated_at="2026-06-29T00:01:00Z",
     )
-    return deep_capture_record_id(result)
+    return written.packet_id, written.record_id
 
 
 def test_operator_packet_export_and_import_writes_product_mentions(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
-    source_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    deep_anchor, deep_record_id = _commit_ig_deep_capture(data_root)
+    source_key = f"{deep_anchor}:asr:{deep_record_id}"
     packet_path = tmp_path / "operator_packet.json"
 
     exported = export_operator_packet(
@@ -121,8 +131,8 @@ def test_operator_packet_export_and_import_writes_product_mentions(tmp_path) -> 
 
 def test_operator_import_rejects_stale_packet_digest(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
-    source_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    deep_anchor, deep_record_id = _commit_ig_deep_capture(data_root)
+    source_key = f"{deep_anchor}:asr:{deep_record_id}"
     exported = export_operator_packet(data_root=data_root, transcript_source_key=source_key)
     packet = exported["packet"]
     packet["transcript_content_sha256"] = "0" * 64
@@ -137,8 +147,8 @@ def test_operator_import_rejects_stale_packet_digest(tmp_path) -> None:
 
 def test_build_operator_packet_carries_full_cues_without_writing(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
-    source_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    deep_anchor, deep_record_id = _commit_ig_deep_capture(data_root)
+    source_key = f"{deep_anchor}:asr:{deep_record_id}"
     exported = export_operator_packet(data_root=data_root, transcript_source_key=source_key)
     packet = exported["packet"]
 
@@ -155,8 +165,8 @@ def test_build_operator_packet_carries_full_cues_without_writing(tmp_path) -> No
 
 def test_operator_cli_returns_nonzero_for_partial_cleanup(tmp_path, monkeypatch, capsys) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
-    source_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    deep_anchor, deep_record_id = _commit_ig_deep_capture(data_root)
+    source_key = f"{deep_anchor}:asr:{deep_record_id}"
     packet = export_operator_packet(data_root=data_root, transcript_source_key=source_key)["packet"]
     imported = import_operator_response(
         data_root=data_root,

@@ -426,15 +426,34 @@ def test_creator_main_persists_when_forseti_data_root_env_set(
     monkeypatch.setattr(
         creator_runner,
         "_make_capture_fn",
-        lambda _scratch, *, model: (lambda shortcode: _fake_result(shortcode)),
+        lambda _scratch, *, model: (
+            lambda shortcode: ReelDeepCaptureResult(
+                reel_shortcode=shortcode,
+                comments=(),
+                transcript_posture="transcribed",
+                transcript_cues=({"start_ms": 0, "end_ms": 10, "text": "hi"},),
+                media_url_used="https://x.fbcdn.net/clip.mp4",
+                audio_bytes=b"audio",
+                audio_ext="mp4",
+            )
+        ),
     )
 
     assert creator_runner.main(["--handle", "creator", "--top-n", "1"]) == 0
 
-    result = _fake_result("A")
+    result = ReelDeepCaptureResult(
+        "A", (), "transcribed", ({"start_ms": 0, "end_ms": 10, "text": "hi"},),
+        "https://x.fbcdn.net/clip.mp4", audio_bytes=b"audio", audio_ext="mp4"
+    )
     rid = deep_capture_record_id(result)
     assert seen == {"explicit": None}
     assert "persisted:" in capsys.readouterr().out
+    packet_ids = [
+        packet_id
+        for packet_id in root.list_available(source_family="instagram_creator")
+        if root.load_raw_packet(packet_id).manifest.get("source_surface") == "ig_reels_deep_capture"
+    ]
+    [packet_id] = packet_ids
     assert root.is_record_set_complete(
-        subtree="derived", raw_anchor="A", record_id=rid, completion_lane=DEEP_CAPTURE_SET_LANE
+        subtree="derived", raw_anchor=packet_id, record_id=rid, completion_lane=DEEP_CAPTURE_SET_LANE
     )

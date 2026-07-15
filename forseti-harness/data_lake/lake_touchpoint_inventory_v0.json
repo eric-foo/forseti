@@ -146,6 +146,12 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 1,
+      "module": "data_lake/silver_census.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "append_record",
       "count": 1,
       "module": "data_lake/silver_record.py"
@@ -218,9 +224,9 @@
     },
     {
       "a2_fork_impact": "none",
-      "call": "is_record_set_complete",
+      "call": "record_path",
       "count": 1,
-      "module": "runners/run_source_capture_ig_reels_deep_capture.py"
+      "module": "runners/run_ig_reels_product_extract.py"
     },
     {
       "a2_fork_impact": "none",
@@ -320,7 +326,7 @@
     },
     {
       "a2_fork_impact": "none",
-      "call": "append_record_set",
+      "call": "append_silver_record_set",
       "count": 1,
       "module": "source_capture/ig_reels_deep_capture_lake.py"
     },
@@ -519,6 +525,15 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "reason": "the public Reel render is requested by shortcode and exact rendered comment objects plus downloaded audio bytes are preserved, but the served page does not independently expose and bind a shortcode identity before packet admission",
+          "status": "unbound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_ig_reels_deep_capture.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "mechanism": "the normalized requested handle is compared case-insensitively with the source-visible username parsed and preserved from web_profile_info before slice/packet/lake publication; missing, invalid, or mismatched served identity fails closed with a distinct diagnostic and no packet write",
           "status": "bound"
         },
@@ -685,6 +700,13 @@
           "source_capture/writer.py"
         ],
         "function": "write_local_source_capture_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/ig_reels_deep_capture_lake.py"
+        ],
+        "function": "write_reel_deep_capture_into_lake"
       },
       {
         "a2_fork_impact": "manifest_shape",

@@ -21,7 +21,10 @@ from typing import Callable
 from urllib.parse import urlparse
 
 from schemas.audience_comment_models import AudienceComment
-from source_capture.ig_reels_comments import parse_comments_from_rendered_dom
+from source_capture.ig_reels_comments import (
+    extract_comment_substrate_from_rendered_dom,
+    parse_comments_from_rendered_dom,
+)
 
 _VIDEO_VERSIONS_KEY = '"video_versions"'
 _WS = " \t\r\n"
@@ -142,6 +145,7 @@ class ReelDeepCapture:
     reel_shortcode: str
     comments: tuple[AudienceComment, ...]
     media_urls: tuple[str, ...]
+    comment_substrate: bytes
 
     @property
     def has_audio_handle(self) -> bool:
@@ -152,16 +156,25 @@ def parse_reel_deep_capture_from_rendered_dom(dom: str, *, shortcode: str) -> Re
     """Compose the comment parser and the media-URL parser over ONE rendered DOM."""
     if not shortcode or not shortcode.strip():
         raise ValueError("parse_reel_deep_capture_from_rendered_dom requires a non-empty shortcode")
-    comments = parse_comments_from_rendered_dom(dom, shortcode=shortcode)
     media_urls = parse_reel_media_urls_from_rendered_dom(dom)
+    comment_substrate = extract_comment_substrate_from_rendered_dom(
+        dom,
+        shortcode=shortcode,
+        forbidden_strings=tuple(media_urls),
+    )
+    comments = parse_comments_from_rendered_dom(
+        comment_substrate.decode("utf-8"),
+        shortcode=shortcode,
+    )
     return ReelDeepCapture(
         reel_shortcode=shortcode.strip(),
         comments=tuple(comments),
         media_urls=tuple(media_urls),
+        comment_substrate=comment_substrate,
     )
 
 
-# --- live orchestration (PURE: all network/CPU I/O is injected, so offline-testable) ---
+# --- live orchestration (network/CPU I/O injected; retained local bytes read exactly) ---
 
 RenderFn = Callable[[str], "str | None"]                        # shortcode -> rendered DOM (None on fail/gate)
 DownloadFn = Callable[[str], "str | None"]                      # media url -> local audio path (None on fail)
@@ -186,6 +199,9 @@ class ReelDeepCaptureResult:
     transcript_cues: tuple[dict, ...]
     media_url_used: str | None
     notes: tuple[str, ...] = ()
+    comment_substrate: bytes | None = None
+    audio_bytes: bytes | None = None
+    audio_ext: str | None = None
 
 
 def run_reel_deep_capture(
@@ -199,8 +215,9 @@ def run_reel_deep_capture(
     comments (parsed from the DOM) and the creator transcript (by downloading and
     transcribing the same render's audio handle) -- no second fetch.
 
-    Every side-effecting step is injected, so the control flow is deterministic and
-    offline-testable; the runner CLI supplies the real render/download/transcribe.
+    Network and CPU steps are injected, so the control flow is deterministic and
+    offline-testable; after download, this seam reads the exact local audio bytes that
+    must be retained before a transcript can be admitted as source-backed Silver.
     """
     if not shortcode or not shortcode.strip():
         raise ValueError("run_reel_deep_capture requires a non-empty shortcode")
@@ -213,15 +230,44 @@ def run_reel_deep_capture(
     capture = parse_reel_deep_capture_from_rendered_dom(dom, shortcode=code)
     if not capture.media_urls:
         return ReelDeepCaptureResult(
-            code, capture.comments, "no_audio_handle", (), None, ("no media handle in the rendered DOM",)
+            code,
+            capture.comments,
+            "no_audio_handle",
+            (),
+            None,
+            ("no media handle in the rendered DOM",),
+            capture.comment_substrate,
         )
 
     media_url = capture.media_urls[0]
     audio_path = download_fn(media_url)
     if not audio_path:
         return ReelDeepCaptureResult(
-            code, capture.comments, "download_failed", (), media_url, ("audio handle did not download",)
+            code,
+            capture.comments,
+            "download_failed",
+            (),
+            media_url,
+            ("audio handle did not download",),
+            capture.comment_substrate,
         )
 
+    try:
+        with open(audio_path, "rb") as handle:
+            audio_bytes = handle.read()
+    except OSError:
+        audio_bytes = None
+    audio_ext = audio_path.rsplit(".", 1)[-1].lower() if "." in audio_path else "bin"
     posture, cues, _model_info = transcribe_fn(audio_path)
-    return ReelDeepCaptureResult(code, capture.comments, posture, tuple(cues), media_url)
+    notes = () if audio_bytes else ("downloaded audio bytes unavailable for packet preservation",)
+    return ReelDeepCaptureResult(
+        code,
+        capture.comments,
+        posture,
+        tuple(cues),
+        media_url,
+        notes,
+        capture.comment_substrate,
+        audio_bytes,
+        audio_ext,
+    )
