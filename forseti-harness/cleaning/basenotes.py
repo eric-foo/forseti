@@ -21,7 +21,9 @@ from source_capture.basenotes_projection import BasenotesProjectionPacket, Basen
 BASENOTES_CLEANING_HANDLE_PREFIX = "cleaning:basenotes"
 
 _BASENOTES_SOURCE_FAMILY = "fragrance_native_database"
-_BASENOTES_SOURCE_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_BASENOTES_SOURCE_SURFACE = (
+    "basenotes_product_page_user_cleared_persistent_chrome_current_window"
+)
 _ECR_REF_STATUS_BY_CONVENTION = "by_convention_not_existence_checked"
 
 _TEXT_ROW_KINDS = {
