@@ -37,7 +37,6 @@ from source_capture.adapters.browser_snapshot import (
 )
 from source_capture.ig_reels_deep_capture import _is_ig_media_url, run_reel_deep_capture
 from source_capture.ig_reels_deep_capture_lake import (
-    DEEP_CAPTURE_SET_LANE,
     deep_capture_record_id,
     write_reel_deep_capture_into_lake,
 )
@@ -266,6 +265,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         # transcription happens inside this block, while the temp audio file still exists.
 
+        persisted = None
+        if args.data_root is not None or (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")):
+            persisted = _persist_deep_capture(result, data_root_arg=args.data_root)
+
     print(
         f"reel={result.reel_shortcode} "
         f"comments={len(result.comments)} "
@@ -276,26 +279,25 @@ def main(argv: Sequence[str] | None = None) -> int:
     for note in result.notes:
         print(f"  note: {note}")
 
-    if args.data_root is not None or (os.environ.get("FORSETI_DATA_ROOT") or os.environ.get("ORCA_DATA_ROOT")):
-        print(f"  {_persist_deep_capture(result, data_root_arg=args.data_root)}")
+    if persisted is not None:
+        print(f"  {persisted}")
     return 0
 
 
 def _persist_deep_capture(result, *, data_root_arg: str | None) -> str:
-    """Persist the deep-capture record-set; idempotent (skips an already-complete reel)."""
+    """Persist a new packet-backed deep-capture observation."""
     root = DataLakeRoot.resolve(explicit=data_root_arg)
-    record_id = deep_capture_record_id(result)
-    if root.is_record_set_complete(
-        subtree="derived",
-        raw_anchor=result.reel_shortcode,
-        record_id=record_id,
-        completion_lane=DEEP_CAPTURE_SET_LANE,
-    ):
-        return f"persisted: already complete, skipped ({record_id})"
     written = write_reel_deep_capture_into_lake(
-        data_root=root, result=result, generated_at=utc_now_z(), record_id=record_id
+        data_root=root,
+        result=result,
+        generated_at=utc_now_z(),
+        record_id=deep_capture_record_id(result),
     )
-    return f"persisted: {len(written)} silver lanes under derived/.../{result.reel_shortcode}/ ({record_id})"
+    exclusions = f" excluded={','.join(written.excluded_legs)}" if written.excluded_legs else ""
+    return (
+        f"persisted: packet={written.packet_id} record={written.record_id} "
+        f"silver_lanes={','.join(sorted(written))}{exclusions}"
+    )
 
 
 if __name__ == "__main__":

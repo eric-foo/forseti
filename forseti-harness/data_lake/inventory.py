@@ -235,6 +235,14 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "served-id-keyed name and the audio bytes carry no observable identity to check"
         ),
     },
+    "run_source_capture_ig_reels_deep_capture.py": {
+        "status": "unbound",
+        "reason": (
+            "the public Reel render is requested by shortcode and exact rendered comment "
+            "objects plus downloaded audio bytes are preserved, but the served page does "
+            "not independently expose and bind a shortcode identity before packet admission"
+        ),
+    },
     "run_source_capture_ig_reels_grid_packet.py": {
         "status": "bound",
         "mechanism": (
@@ -441,6 +449,11 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "mechanism": "shared:select_current_record_per_subject",
         "reason": "single exact-policy product-mention reader; all consumers bind version plus fingerprint, residuals remain visible, and ambiguous same-policy siblings fail closed",
     },
+    "data_lake/creator_metric_lineage.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "lineage classification and reconciliation intentionally enumerate every creator-metric observation and rollup sibling; no latest sibling is selected",
+    },
     "data_lake/silver_census.py": {
         "detection": "declared_free_walk",
         "posture": "all_siblings",
@@ -470,7 +483,7 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
     "source_capture/ig_reels_behavioral_lake.py": {
         "detection": "lane_dir",
         "posture": "set_marker_pinned",
-        "reason": "deep-capture lanes read pinned record ids via set markers; ASR/mentions inputs accumulated all-siblings with explicit status labels",
+        "reason": "deep-capture lanes read pinned record ids via set markers and admit only valid source-backed envelopes whose exact packet/file/hash resolves; historical grammar-B sets remain residual-only",
     },
     "youtube_capture/behavioral_projection.py": {
         "detection": "lane_dir",
@@ -491,7 +504,7 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
     "runners/run_ig_reels_product_extract.py": {
         "detection": "declared_free_walk",
         "posture": "all_siblings",
-        "reason": "indirect lane_dir via getattr + path-based deep-capture walk; records consumed with set-completion checks",
+        "reason": "path-based deep-capture walk consumes only set-complete, source-backed envelope transcripts with exact packet/file/hash resolution; legacy records are emitted audit-only",
     },
 }
 

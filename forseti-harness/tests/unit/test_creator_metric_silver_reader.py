@@ -29,6 +29,8 @@ from capture_spine.creator_profile_current.silver_subject_ref import (
     LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY,
 )
 from data_lake.root import DataLakeRoot
+from source_capture.models import known_fact
+from source_capture.writer import write_local_source_capture_packet
 
 PACKET_ID = "packet_fixture"
 GENERATED_AT = "2026-06-30T00:02:00Z"
@@ -50,9 +52,11 @@ def _account_ledger() -> dict:
     return {"platform_accounts": [_ledger_entry("acct_ig_fixture_001", "fixturecreator")]}
 
 
-def _profile_row(username: str, value: int, capture_time: str) -> dict:
+def _profile_row(
+    username: str, value: int, capture_time: str, *, packet_id: str, raw_anchor: dict
+) -> dict:
     return {
-        "row_id": f"{PACKET_ID}:profile:follower_count",
+        "row_id": f"{packet_id}:profile:follower_count",
         "row_kind": "ig_creator_metric",
         "username": username,
         "content_kind": "profile",
@@ -64,22 +68,26 @@ def _profile_row(username: str, value: int, capture_time: str) -> dict:
         "reason": None,
         "capture_time": capture_time,
         "coverage_window": {"start": None, "end": capture_time},
-        "raw_ref": {"packet_id": PACKET_ID, "slice_id": "ig_reels_profile_00"},
-        "raw_anchor": {
-            "file_id": "file_01",
-            "relative_packet_path": "raw/01.json",
-            "sha256": "a" * 64,
-            "hash_basis": "raw_stored_bytes",
-        },
+        "raw_ref": {"packet_id": packet_id, "slice_id": "ig_reels_profile_00"},
+        "raw_anchor": raw_anchor,
         "chosen_source_surface": "web_profile_info_json_metadata",
         "source_surface_count_candidates": [],
         "source_publication_or_event": None,
     }
 
 
-def _reel_row(username: str, shortcode: str, metric: str, value: int, capture_time: str) -> dict:
+def _reel_row(
+    username: str,
+    shortcode: str,
+    metric: str,
+    value: int,
+    capture_time: str,
+    *,
+    packet_id: str,
+    raw_anchor: dict,
+) -> dict:
     return {
-        "row_id": f"{PACKET_ID}:{shortcode}:{metric}",
+        "row_id": f"{packet_id}:{shortcode}:{metric}",
         "row_kind": "ig_media_metric",
         "username": username,
         "content_kind": "reel",
@@ -91,39 +99,79 @@ def _reel_row(username: str, shortcode: str, metric: str, value: int, capture_ti
         "reason": None,
         "capture_time": capture_time,
         "coverage_window": {"start": None, "end": capture_time},
-        "raw_ref": {"packet_id": PACKET_ID, "slice_id": "ig_reels_grid_01"},
-        "raw_anchor": {
-            "file_id": "file_01",
-            "relative_packet_path": "raw/01.json",
-            "sha256": "a" * 64,
-            "hash_basis": "raw_stored_bytes",
-        },
+        "raw_ref": {"packet_id": packet_id, "slice_id": "ig_reels_grid_01"},
+        "raw_anchor": raw_anchor,
         "chosen_source_surface": "clips_user_json_metadata",
         "source_surface_count_candidates": [],
         "source_publication_or_event": capture_time,
     }
 
 
-def _projection_rows(username: str = "fixturecreator", views: tuple[int, int] = (100, 300)) -> list[dict]:
-    rows = [_profile_row(username, 1000, "2026-06-29T00:01:00Z")]
+def _projection_rows(
+    username: str = "fixturecreator",
+    views: tuple[int, int] = (100, 300),
+    *,
+    packet_id: str = PACKET_ID,
+    raw_anchor: dict | None = None,
+) -> list[dict]:
+    raw_anchor = raw_anchor or {
+        "file_id": "file_01",
+        "relative_packet_path": "raw/01.json",
+        "sha256": "a" * 64,
+        "hash_basis": "raw_stored_bytes",
+    }
+    rows = [
+        _profile_row(
+            username,
+            1000,
+            "2026-06-29T00:01:00Z",
+            packet_id=packet_id,
+            raw_anchor=raw_anchor,
+        )
+    ]
     for shortcode, view, like, comment in (("AAA", views[0], 10, 5), ("BBB", views[1], 30, 15)):
-        rows.append(_reel_row(username, shortcode, "view_count", view, "2026-06-29T00:01:00Z"))
-        rows.append(_reel_row(username, shortcode, "like_count", like, "2026-06-29T00:01:00Z"))
-        rows.append(_reel_row(username, shortcode, "comment_count", comment, "2026-06-29T00:01:00Z"))
+        rows.append(_reel_row(username, shortcode, "view_count", view, "2026-06-29T00:01:00Z", packet_id=packet_id, raw_anchor=raw_anchor))
+        rows.append(_reel_row(username, shortcode, "like_count", like, "2026-06-29T00:01:00Z", packet_id=packet_id, raw_anchor=raw_anchor))
+        rows.append(_reel_row(username, shortcode, "comment_count", comment, "2026-06-29T00:01:00Z", packet_id=packet_id, raw_anchor=raw_anchor))
     return rows
 
 
 def _run(tmp_path: Path):
-    projection = tmp_path / "projection.json"
-    projection.write_text(json.dumps({"packet_id": PACKET_ID, "rows": _projection_rows()}), encoding="utf-8")
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    raw = tmp_path / "ig_raw.json"
+    raw.write_text(json.dumps({"fixture": "creator metric reader"}), encoding="utf-8")
+    capture = write_local_source_capture_packet(
+        data_root=data_root,
+        input_files=[raw],
+        source_family="instagram_creator",
+        source_surface="ig_reels_grid",
+        source_locator=known_fact("https://www.instagram.com/fixturecreator/"),
+        decision_question="creator metric reader fixture",
+        capture_context="creator metric Silver reader test",
+    )
+    packet_id = capture.packet.packet_id
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    raw_anchor = {
+        key: preserved[key]
+        for key in ("file_id", "relative_packet_path", "sha256", "hash_basis")
+    }
+    projection = tmp_path / "projection.json"
+    projection.write_text(
+        json.dumps(
+            {
+                "packet_id": packet_id,
+                "rows": _projection_rows(packet_id=packet_id, raw_anchor=raw_anchor),
+            }
+        ),
+        encoding="utf-8",
+    )
     result = derive_creator_metric_silver_records_from_projections(
         data_root=data_root,
         projection_paths=[projection],
         account_ledger=_account_ledger(),
         generated_at_utc=GENERATED_AT,
     )
-    return data_root, result
+    return data_root, result, packet_id
 
 
 def _seed_rollups(result) -> list[dict]:
@@ -131,10 +179,10 @@ def _seed_rollups(result) -> list[dict]:
 
 
 def test_reader_reconstructs_seed_rollups_with_no_drift(tmp_path: Path) -> None:
-    data_root, result = _run(tmp_path)
+    data_root, result, packet_id = _run(tmp_path)
     seed_rollups = _seed_rollups(result)
 
-    reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[PACKET_ID])
+    reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[packet_id])
 
     assert len(reconstructed) == len(seed_rollups) == 1
     # Full structural equality: a rollup read back from the lake equals the seed
@@ -143,8 +191,8 @@ def test_reader_reconstructs_seed_rollups_with_no_drift(tmp_path: Path) -> None:
 
 
 def test_reader_round_trips_metric_numbers_and_posture(tmp_path: Path) -> None:
-    data_root, result = _run(tmp_path)
-    rollup = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[PACKET_ID])[0]
+    data_root, result, packet_id = _run(tmp_path)
+    rollup = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[packet_id])[0]
     metrics = rollup["metric_rollups"]
 
     # observed metrics: numeric value, no reason key (matches the seed shape).
@@ -162,7 +210,7 @@ def test_reader_round_trips_metric_numbers_and_posture(tmp_path: Path) -> None:
 
 
 def test_reader_reads_on_disk_records_not_memory(tmp_path: Path) -> None:
-    data_root, result = _run(tmp_path)
+    data_root, result, packet_id = _run(tmp_path)
     # the records the reader sees are the real on-disk lake files.
     assert result.observation_paths and all(path.exists() for path in result.observation_paths)
     assert result.rollup_paths and all(path.exists() for path in result.rollup_paths)
@@ -177,14 +225,14 @@ def test_reader_reads_on_disk_records_not_memory(tmp_path: Path) -> None:
     assert rollup_ref[FORSETI_PLATFORM_ACCOUNT_ID_REF_KEY] == "acct_ig_fixture_001"
     assert LEGACY_ORCA_PLATFORM_ACCOUNT_ID_REF_KEY not in rollup_ref
 
-    reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[PACKET_ID])
+    reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[packet_id])
     seed_rollup = _seed_rollups(result)[0]
     assert reconstructed[0]["metric_rollup_id"] == seed_rollup["metric_rollup_id"]
     assert reconstructed[0]["source_metric_observation_ids"] == seed_rollup["source_metric_observation_ids"]
 
 
 def test_reader_accepts_legacy_orca_subject_ref_key(tmp_path: Path) -> None:
-    data_root, result = _run(tmp_path)
+    data_root, result, packet_id = _run(tmp_path)
     record_path = result.rollup_paths[0]
     record = json.loads(record_path.read_text(encoding="utf-8"))
     subject_ref = record["payload"]["observation"]["subject"]["ref"]
@@ -193,13 +241,13 @@ def test_reader_accepts_legacy_orca_subject_ref_key(tmp_path: Path) -> None:
     )
     record_path.write_text(json.dumps(record), encoding="utf-8")
 
-    reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[PACKET_ID])
+    reconstructed = read_creator_metric_rollups_from_lake(data_root, raw_anchors=[packet_id])
 
     assert reconstructed[0]["profile_subject_id"] == "acct_ig_fixture_001"
 
 
 def test_reader_skips_unknown_anchor(tmp_path: Path) -> None:
-    data_root, _result = _run(tmp_path)
+    data_root, _result, _packet_id = _run(tmp_path)
     assert read_creator_metric_rollups_from_lake(data_root, raw_anchors=["nosuchpacket"]) == []
 
 

@@ -13,6 +13,7 @@ from source_capture.ig_reels_behavioral_lake import (
 )
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
 from source_capture.ig_reels_deep_capture_lake import (
+    AUDIENCE_COMMENTS_LANE,
     DEEP_CAPTURE_SET_LANE,
     REEL_TRANSCRIPT_LANE,
     deep_capture_record_id,
@@ -43,7 +44,7 @@ _CORRUPT_PRODUCT_RECORD_ID = "mentions_bad__0000000000000000.json"
 def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     audio_packet_id, asr_record_id = _write_audio_transcript(root)
-    deep_record_id = _write_deep_capture(root)
+    deep_anchor, deep_record_id = _write_deep_capture(root)
     _write_product_mentions(
         root,
         raw_anchor=audio_packet_id,
@@ -53,8 +54,8 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
     )
     _write_product_mentions(
         root,
-        raw_anchor=_SHORTCODE,
-        transcript_source_key=f"{_SHORTCODE}:asr:{deep_record_id}",
+        raw_anchor=deep_anchor,
+        transcript_source_key=f"{deep_anchor}:asr:{deep_record_id}",
         source_route="deep_capture_render_audio",
         asr_record_id=deep_record_id,
     )
@@ -93,11 +94,11 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
 def test_lake_adapter_blocks_complete_product_record_without_source_lineage(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     _write_grid_packet(root)
-    deep_record_id = _write_deep_capture(root)
-    deep_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    deep_anchor, deep_record_id = _write_deep_capture(root)
+    deep_key = f"{deep_anchor}:asr:{deep_record_id}"
     _write_product_mentions(
         root,
-        raw_anchor=_SHORTCODE,
+        raw_anchor=deep_anchor,
         transcript_source_key=deep_key,
         source_route="deep_capture_render_audio",
         asr_record_id=deep_record_id,
@@ -405,29 +406,68 @@ def _write_audio_transcript(root: DataLakeRoot) -> tuple[str, str]:
     return rel_path.parts[-3], rel_path.name
 
 
-def _write_deep_capture(root: DataLakeRoot) -> str:
+def _write_deep_capture(root: DataLakeRoot) -> tuple[str, str]:
+    comment = AudienceComment(
+        comment_id="c1",
+        reel_shortcode=_SHORTCODE,
+        author_username="zoe",
+        text="works",
+        like_count=1,
+        created_at_unix=1782400000,
+    )
+    substrate = (json.dumps({
+        "pk": comment.comment_id,
+        "user": {"username": comment.author_username},
+        "text": comment.text,
+        "created_at": comment.created_at_unix,
+        "comment_like_count": comment.like_count,
+        "__typename": "XIGComment",
+    }) + "\n").encode()
     result = ReelDeepCaptureResult(
         reel_shortcode=_SHORTCODE,
-        comments=(
-            AudienceComment(
-                comment_id="c1",
-                reel_shortcode=_SHORTCODE,
-                author_username="zoe",
-                text="works",
-                like_count=1,
-                created_at_unix=1782400000,
-            ),
-        ),
+        comments=(comment,),
         transcript_posture="transcribed",
         transcript_cues=tuple(_CUES),
         media_url_used="https://x.fbcdn.net/o1/v/clip.mp4",
+        comment_substrate=substrate,
+        audio_bytes=b"deep-capture-audio",
+        audio_ext="mp4",
     )
-    write_reel_deep_capture_into_lake(
+    written = write_reel_deep_capture_into_lake(
         data_root=root,
         result=result,
         generated_at="2026-06-29T00:01:00Z",
     )
-    return deep_capture_record_id(result)
+    return written.packet_id, written.record_id
+
+
+def test_incomplete_deep_capture_set_never_keys_the_index_by_its_packet_anchor(
+    tmp_path: Path,
+) -> None:
+    """A current set is anchored on its packet id, so an unresolved set must not
+    mint a reel whose ``platform_item_id`` is that packet id."""
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id, record_id = _write_deep_capture(root)
+    root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=AUDIENCE_COMMENTS_LANE,
+        record_id=record_id,
+    ).unlink()
+
+    index = project_ig_reels_behavioral_index_from_lake(data_root=root)
+
+    assert packet_id not in index
+    assert not any(item["platform_item_id"] == packet_id for item in index.values())
+    # The failure stays visible on a real target rather than being dropped.
+    projection = project_ig_reels_behavioral_item_from_lake(
+        data_root=root,
+        platform_item_id=_SHORTCODE,
+    )
+    assert (
+        f"ig_deep_capture_record_set_incomplete:{packet_id}:{record_id}"
+        in projection["behavioral_completeness"]["residuals"]
+    )
 
 
 def _write_corrupt_product_mentions(root: DataLakeRoot, *, raw_anchor: str) -> None:

@@ -193,6 +193,40 @@ Silver must not declare Bronze full GT, reimplement private catalog safe-name or
 path rules, or treat generated Bronze catalog files as authority over raw packet
 material.
 
+## Cross-Epoch Creator-Metric Evidence Classification
+
+Creator-metric observation and rollup records use one rebuildable, read-only
+classification across the current root and only the legacy roots explicitly
+declared by its epoch marker:
+
+- `source_backed_complete` means the cited bytes were uniquely located and their
+  hash was recomputed successfully. The classification exposes the evidence
+  path plus root/epoch identity. A byte-verified declared-archive record keeps
+  this evidence status but is not current-source-backed eligible.
+- `historical_compatible` means a record's historical packet resolves uniquely
+  in one declared archive, while the bytes cited by its raw ref are absent and
+  therefore cannot be reverified. The audit result must expose the reason, root
+  identity, impact, owner, and upgrade trigger.
+- `excluded` covers malformed or contradictory refs, missing/unmounted/invalid
+  roots, absent packets, hash mismatch, corrupt packet integrity, ambiguous
+  duplicate resolution, and any derived rollup depending on an excluded input.
+
+Creator-metric rollups inherit the classification of their exact
+`derived_refs`: every ref must resolve one observation record and match its
+content hash; any historical-compatible input makes the rollup
+historical-compatible, and any excluded/missing/ambiguous input excludes it.
+
+Only records that are both `source_backed_complete` and verified in the current
+root may contribute to current creator-metric retrieval or census observation
+totals. Historical-compatible and excluded records remain visible in stored-
+record and lineage-reconciliation counts. An archive directory, packet
+manifest, or hash asserted in another JSON artifact is not the cited bytes and
+cannot satisfy `source_backed_complete`.
+
+This is an explicit compatibility classifier, not a permanent transparent
+archive fallback in `DataLakeRoot` or ordinary forward readers. It performs no
+lake write, migration, copy, rewrite, recapture, or maintained-status update.
+
 ## Not Silver: Cleaning Audit Packs
 
 A full Cleaning transformation ledger (the complete `CleaningPacket` / transform
@@ -602,6 +636,10 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
     surfaces rather than private raw folder semantics.
 16. AR-backed source-family payload refs are body-hash-verifiable, and missing
     AR rows become visible residual/posture instead of inferred absence.
+17. Creator-metric records reconcile exactly to `source_backed_complete`,
+    `historical_compatible`, or `excluded`; current creator-metric results admit
+    only current-root byte-verified records, while historical residuals remain
+    audit-readable with root identity and upgrade trigger.
 
 ## Mini God Tier Accepted Residuals
 
@@ -719,63 +757,6 @@ spec_handoff:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    FCR-04 closure: a full Cleaning transformation ledger is processing evidence,
-    not a Silver fact record. Silver record_kind stays closed to
-    entity/relationship/observation and a Cleaning ledger is not an observation
-    payload. The ledger persists as a derived processing-audit sibling under the
-    Data Lake derived-record grammar (shared envelope schema_version
-    cleaning_audit_pack_v0 with a per-source producer_schema_version flavor,
-    record_family processing_audit), filed in a Cleaning-produced lane;
-    post-cleaned cleaned-working-view facts
-    are ordinary Silver records carrying a one-way provenance pointer (lane,
-    record id, content hash) to that audit pack. The audit pack's
-    record_family/audit_kind are local descriptive fields with no Data-Lake-wide
-    dispatch authority unless a generic derived-record envelope is separately
-    ratified.
-  trigger: architecture_doctrine
-  controlling_sources_updated:
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-    - forseti/product/spines/cleaning/contracts/core_spine_v0_cleaning_spine_foundation_v0.md
-  downstream_surfaces_checked:
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-    - forseti-harness/cleaning/fragrantica_lake.py
-    - forseti-harness/tests/test_fragrantica_cleaning_lake_pilot.py
-    - docs/review-outputs/fragrantica_cleaning_adversarial_code_review_v0.md
-  intentionally_not_updated:
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_derived_layout_index_rebuild_contract_v0.md
-      reason: >
-        Owns derived addressing and explicitly supports new lane-owned derived
-        kinds without enumeration ("New analysis types are added as new derived
-        records"); cleaning_audit_pack_v0 exercises that grammar without changing
-        addressing, so no amendment is needed.
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
-      reason: >
-        Derived Result Store slot already lists "Cleaning ledgers" as a derived
-        sibling; the audit pack is that sibling and needs no new slot.
-  stale_language_search: >
-    rg -n "FragranticaCleaningPacket|silver_vault_record_v0" forseti-harness/cleaning forseti-harness/tests
-  stale_language_search_result: >
-    Executed 2026-06-29 in worktree codex/fragrantica-cleaning after the writer
-    and test edits (rg over forseti-harness *.py). FragranticaCleaningPacket now
-    appears only in the test's negative absence assertion
-    (test_fragrantica_cleaning_lake_pilot.py:112); the FCR-04 mis-fit wrapper is
-    gone from the writer. silver_vault_record_v0 now appears only as the
-    legitimate post-cleaned Silver TextObservation envelope: the writer constant
-    (fragrantica_lake.py:55) and the test assertions (lines 81, 113). No record
-    persists the full CleaningPacket as a Silver vault record.
-  non_claims:
-    - not validation
-    - not readiness
-    - not implementation authorization
-    - not a generic derived-record envelope ratification
-    - not migration of other derived/Cleaning lanes
-    - not landed (lane branch only; no commit/push/PR)
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
     Silver Vault now binds source-backed raw intake to public Bronze packet,
     catalog, and Attachment Record surfaces: Silver raw_refs must not infer
     meaning from raw folder layout, must carry AR-backed refs for source-family
@@ -822,5 +803,67 @@ direction_change_propagation:
     - not implementation authorization
     - not full Bronze God Tier
     - not Silver producer implementation
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Creator-metric Silver lineage now has an explicit cross-epoch evidence
+    classification: actual cited bytes plus a successful recomputed hash are
+    required for source_backed_complete; uniquely resolved archived packets with
+    absent cited bytes are historical_compatible; malformed, missing,
+    contradictory, mismatched, corrupt, or ambiguous cases are excluded; and
+    only current-root byte-verified records enter current retrieval and census
+    observation totals.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/data_lake/README.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+    - docs/decisions/silver_vault_goal_frame_ratification_v0.md
+    - docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md
+    - forseti-harness/data_lake/creator_metric_lineage.py
+    - forseti-harness/data_lake/silver_census.py
+    - forseti-harness/capture_spine/creator_profile_current/silver_metric_reader.py
+  intentionally_not_updated:
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_v4_1_forward_epoch_contract_v0.md
+      reason: >
+        The clean-forward epoch, explicit-compatibility-only old-root rule, and
+        prohibition on permanent reader shims are preserved unchanged.
+    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_consumption_seam_contract_v0.md
+      reason: >
+        Its on-demand metric policy already requires committed source-backed
+        evidence. This amendment defines the creator-metric evidence gate in the
+        owning Silver record contract without changing pickup, ack, or view rules.
+    - path: docs/decisions/silver_vault_goal_frame_ratification_v0.md
+      reason: >
+        The ratified V1 target is unchanged and is not declared complete; the
+        classifier makes the residual population explicit rather than weakening
+        the target.
+    - path: docs/decisions/youtube_creator_observation_ledger_lake_identity_drift_owner_decision_packet_v0.md
+      reason: >
+        Its accepted B2 posture stays ledger-specific. This closure uses only its
+        explicit archived-root precedent and does not generalize ledger authority.
+  stale_language_search: >
+    rg -n "source_backed_complete|historical_compatible|creator.metric.*lineage|archive fallback|legacy_roots"
+    forseti-harness/data_lake forseti-harness/capture_spine/creator_profile_current
+    forseti/product/spines/data_lake docs/decisions
+  stale_language_search_result: >
+    Executed 2026-07-15 after the classifier and contract edits. Hits resolve to
+    the existing generic persisted-field lineage gate, the new creator-metric
+    byte-verification classifier and its census/reader consumers, current
+    root-marker legacy_roots mechanics, or the controlling contracts/decision
+    record. No ordinary reader gained a transparent archive fallback and no
+    source names an archive path or asserted JSON hash as byte verification.
+  non_claims:
+    - not validation
+    - not readiness
+    - not Silver Vault completion
+    - not a generic multi-root reader or permanent archive fallback
+    - not a live/archive lake write, migration, copy, rewrite, or recapture
 ```
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

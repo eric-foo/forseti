@@ -10,10 +10,102 @@ from data_lake.silver_census import (
     build_silver_observation_census,
 )
 from data_lake.silver_record import append_silver_record, silver_content_hash
+from schemas.audience_comment_models import AudienceComment
+from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
+from source_capture.ig_reels_deep_capture_lake import (
+    AUDIENCE_COMMENTS_LANE,
+    DEEP_CAPTURE_SET_LANE,
+    REEL_TRANSCRIPT_LANE,
+    write_reel_deep_capture_into_lake,
+)
 
-PACKET = "01TESTSILVERCENSUSPKT01"
-PARFUMO_PACKET = "01TESTSILVERCENSUSPKT02"
+PACKET = "01KW2MJM01Y0936VNECWB3MHSD"
+PARFUMO_PACKET = "01KW2MJM01Y0936VNECWB3MHSE"
+FAILED_DEEP_CAPTURE_PACKET = "01KW2MJM01Y0936VNECWB3MHSF"
+FAILED_IG_GRID_PACKET = "01KW2MJM01Y0936VNECWB3MHSG"
 OBSERVED_AT = "2026-07-15T00:00:00Z"
+
+
+def test_census_separates_current_source_backed_deep_capture_from_historical_audit_only(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    comment = AudienceComment(
+        comment_id="c1",
+        reel_shortcode="ReelCurrent",
+        author_username="ana",
+        text="exact comment",
+        like_count=2,
+        created_at_unix=1784073600,
+    )
+    substrate = (
+        json.dumps(
+            {
+                "pk": "c1",
+                "user": {"username": "ana"},
+                "text": "exact comment",
+                "comment_like_count": 2,
+                "created_at": 1784073600,
+                "__typename": "XIGComment",
+            }
+        )
+        + "\n"
+    ).encode()
+    write_reel_deep_capture_into_lake(
+        data_root=root,
+        result=ReelDeepCaptureResult(
+            reel_shortcode="ReelCurrent",
+            comments=(comment,),
+            transcript_posture="transcribed",
+            transcript_cues=({"start_ms": 0, "end_ms": 1000, "text": "exact audio"},),
+            media_url_used="https://cdn.example/expiring.mp4?token=secret",
+            comment_substrate=substrate,
+            audio_bytes=b"exact-audio-bytes",
+            audio_ext="mp4",
+        ),
+        generated_at=OBSERVED_AT,
+    )
+    _manifest(
+        root,
+        FAILED_DEEP_CAPTURE_PACKET,
+        "instagram_creator",
+        "ig_reels_deep_capture",
+        failed=True,
+    )
+    _manifest(
+        root,
+        FAILED_IG_GRID_PACKET,
+        "instagram_creator",
+        "ig_reels_grid_dom_passive_json",
+        failed=True,
+    )
+    root.append_record_set(
+        subtree="derived",
+        raw_anchor="ReelLegacy",
+        record_id="legacy.json",
+        members={
+            AUDIENCE_COMMENTS_LANE: b'{"reel_shortcode":"ReelLegacy","comments":[]}\n',
+            REEL_TRANSCRIPT_LANE: b'{"reel_shortcode":"ReelLegacy","cues":[]}\n',
+        },
+        completion_lane=DEEP_CAPTURE_SET_LANE,
+    )
+
+    census = build_silver_observation_census(root)
+
+    assert census["totals"]["deep_capture_current_source_backed_records"] == 2
+    assert census["totals"]["deep_capture_historical_audit_only_records"] == 2
+    assert census["totals"]["deep_capture_current_completion_markers"] == 1
+    assert census["totals"]["deep_capture_historical_audit_only_completion_markers"] == 1
+    assert len(census["audit_only_residuals"]) == 3
+    marker_state = next(
+        state for state in census["lane_states"] if state["lane"] == DEEP_CAPTURE_SET_LANE
+    )
+    for lane in (AUDIENCE_COMMENTS_LANE, REEL_TRANSCRIPT_LANE, DEEP_CAPTURE_SET_LANE):
+        state = next(entry for entry in census["lane_states"] if entry["lane"] == lane)
+        assert state["eligible_capture_packets"] == 2
+        assert state["failed_eligible_capture_packets"] == 1
+    assert marker_state["current_source_backed_record_count"] == 1
+    assert marker_state["historical_audit_only_record_count"] == 1
 
 
 def _manifest(
@@ -26,6 +118,10 @@ def _manifest(
 ) -> None:
     container = root.path / "raw" / raw_shard(packet_id) / packet_id
     container.mkdir(parents=True)
+    body = (f"census fixture {packet_id}").encode()
+    evidence = container / "raw" / "evidence.json"
+    evidence.parent.mkdir()
+    evidence.write_bytes(body)
     (container / "manifest.json").write_text(
         json.dumps(
             {
@@ -38,6 +134,15 @@ def _manifest(
                     "reason": None,
                 },
                 "timing": {"capture_time": {"status": "known", "value": OBSERVED_AT}},
+                "preserved_files": [
+                    {
+                        "file_id": "file_01",
+                        "relative_packet_path": "raw/evidence.json",
+                        "size_bytes": len(body),
+                        "sha256": hashlib.sha256(body).hexdigest(),
+                        "hash_basis": "raw_stored_bytes",
+                    }
+                ],
             },
             sort_keys=True,
         ),
@@ -75,7 +180,15 @@ def _record(
         "source_surface": "test_surface",
         "observed_at": OBSERVED_AT,
         "captured_at": OBSERVED_AT,
-        "raw_refs": [{"packet_id": PACKET}],
+        "raw_refs": [
+            {
+                "packet_id": PACKET,
+                "file_id": "file_01",
+                "relative_packet_path": "raw/evidence.json",
+                "sha256": hashlib.sha256(f"census fixture {PACKET}".encode()).hexdigest(),
+                "hash_basis": "raw_stored_bytes",
+            }
+        ],
         "derived_refs": [],
         "content_hash": "",
         "content_hash_basis": "canonical_json_excluding_content_hash",

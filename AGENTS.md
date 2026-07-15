@@ -124,6 +124,21 @@ guard, and owner steering all stay.
   independently reports missing or invalid credentials; report escalation or
   network denial as an access blocker, not an authentication failure. Never print
   credentials or tokens.
+- **Open a circuit after one silent sandboxed tool stall.** Set a realistic
+  timeout from expected command duration plus launch allowance; absent better
+  evidence, use 20 seconds for reads or patches and 60 seconds for tests. If a
+  call yields only a running/deferred handle with no output, wait at most once
+  for any remaining original budget, then terminate it. Record
+  `sandboxed_tool_stall`, the tool, timeout, and phase. Open the circuit for that
+  tool plus permission route for the rest of the turn: do not probe it again
+  merely because the next command differs. A safe, in-scope shell operation may
+  be retried once through per-operation escalation; use that working route for
+  later shell calls. After a stalled patch primitive, do not probe its launcher;
+  use a checked atomic repository patch fallback and verify the diff. Correct a
+  failed atomic preflight only when its output identifies a distinct content
+  error; never repeat the same failed patch and do not reopen the stalled
+  primitive. Completion through an alternate route is a bounded mitigation
+  signal, not proof that the ordinary tool route is repaired.
 - **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.
