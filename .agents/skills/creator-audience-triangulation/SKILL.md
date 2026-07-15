@@ -19,6 +19,7 @@ Required product sources:
 
 Required runtime contracts:
 
+- `forseti-harness/runners/run_tiktok_creator_onboarding_coordinator.py`
 - `forseti-harness/runners/run_tiktok_comment_attention_producer.py`
 - `forseti-harness/runners/run_tiktok_grid_observation_producer.py`
 - `forseti-harness/runners/run_tiktok_creator_audience_triangulation.py`
@@ -47,34 +48,31 @@ Work on exactly one creator and one admitted TikTok batch packet.
    - On demand: use the explicit packet requested; otherwise choose the latest
      admitted packet for that creator that already contains both transcript
      cues and captured top-level comments. Do not recapture merely to refresh.
-2. **Produce only the packet-scoped Silver prerequisites.** Run both producers
-   with the same `--data-root` and repeatable `--packet-id <packet>` selector:
-   - `run_tiktok_grid_observation_producer.py`
-   - `run_tiktok_comment_attention_producer.py`
-   Do not drain or recompute unrelated packets.
-3. **Prepare the Judgment handoff.** Run
-   `run_tiktok_creator_audience_triangulation.py prepare` with the packet,
+2. **Prepare through the coordinator.** Run
+   `run_tiktok_creator_onboarding_coordinator.py prepare` with the one packet,
    creator ID, Creator Registry platform-account subject ID, evidence cutoff,
-   a commercially useful question, and new scratch paths for the bundle and
-   prompt. The expected terminal status is
-   `SUBSCRIPTION_JUDGMENT_REQUIRED`; `model_api_calls` must be `0`.
-4. **Run one cold subscription-agent context.** Give that agent only the
-   prepared prompt. Do not put another creator in the context, do not use a
-   model API, and do not add chat memory or examples as creator evidence. Save
-   its JSON-only response to a new scratch file. If the host cannot create a
-   cold subscription-agent context, stop at the explicit prepared status and
-   surface the prompt path; never substitute an API call or a warm mixed-
-   creator context.
-5. **Validate before projection.** Run
-   `run_tiktok_creator_audience_triangulation.py validate` with the exact bundle
-   and response. Malformed JSON, unknown evidence IDs, creator mismatch,
-   unsupported majority language, unsupported effect scope, or missing
-   persisted-Silver support must fail visibly. Do not hand-edit around failure.
-6. **Join the validated snapshot.** Materialize Creator Registry with
-   `run_creator_profile_current_materialize.py --audience-triangulation-snapshot
-   <snapshot> --write` plus any normally required registry inputs/preflight.
-   Confirm by fresh read that the matching profile contains the exact
-   `snapshot_id` under `audience_triangulation`.
+   a commercially useful question, one `--data-root`, and one scratch
+   `--work-dir`. It owns the packet-scoped Silver producers and deterministic
+   Judgment preparation. The expected status is `awaiting_judgment`;
+   `model_api_calls` must be `0`.
+3. **Run one cold subscription-agent context.** Give that agent only the
+   emitted prompt. Do not put another creator in the context, use a model API,
+   or add chat memory or examples as creator evidence. If the host cannot
+   create a cold subscription context, stop at `awaiting_judgment` and surface
+   the prompt path.
+4. **Submit exact response bytes.** Pipe the response on stdin or pass its file
+   to `run_tiktok_creator_onboarding_coordinator.py submit`. The coordinator
+   hashes and persists those exact bytes in an append-only Judgment outcome,
+   derives `source_video_ids` from cited evidence, and reports all independent
+   validation defects together. It never fuzzy-corrects an unknown evidence ID.
+   A blocked response means `capture_reusable: true`,
+   `recapture_required: false`; stop and surface the outcome path. A later
+   response is a new attempt only when separately authorized.
+5. **Complete through verified materialization.** Run
+   `run_tiktok_creator_onboarding_coordinator.py complete` with the validated
+   snapshot, its successful Judgment outcome, and the normal registry,
+   materialization, and preflight inputs. Completion requires a fresh-read join
+   of the exact snapshot ID and bundle hash under `audience_triangulation`.
 
 ## Hard gates
 
@@ -87,8 +85,9 @@ Work on exactly one creator and one admitted TikTok batch packet.
   prove purchase, audience prevalence, demographics, or conversion.
 - One creator per model context. API-level transport batching is irrelevant:
   model-context batching across creators is forbidden.
-- Scratch bundle, prompt, and response files are transient. The durable derived
-  lake artifact is the assembly receipt; the validated Judgment snapshot joins
+- Scratch bundle, prompt, response, and snapshot paths are transport surfaces.
+  The assembly receipt and exact-byte Judgment outcome are durable derived-lake
+  artifacts; only a successful outcome may admit its embedded snapshot to
   Creator Registry. Do not write the bundle or model response into Bronze or
   Silver.
 - “Ideal audience” is the buyer-facing label. The internal registry field is
@@ -97,9 +96,10 @@ Work on exactly one creator and one admitted TikTok batch packet.
 ## Completion receipt
 
 Report: creator ID, platform-account subject ID, packet ID, bundle ID/hash,
-snapshot ID, Silver prerequisite status, exact registry field joined, capture
-limitations, and `model_api_calls: 0`. If incomplete, report the failing gate
-and confirm that no Judgment/registry write occurred.
+response hash, Judgment outcome path, snapshot ID, Silver prerequisite status,
+exact registry field joined, capture limitations, and `model_api_calls: 0`. If
+blocked, report every validation defect, the safe next action, and confirm that
+no snapshot or registry write occurred and recapture is not required.
 
 ## Adoption metadata
 

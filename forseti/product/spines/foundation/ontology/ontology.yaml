@@ -9,12 +9,12 @@
 # (parses; namespaces/links resolve; deferred set == the expansion backlog).
 #
 # Non-claims: SSOT of the ADOPTED backbone only — not validation/readiness/proof.
-# Deferred types stay deferred (#262); RESERVED types are names only. runtime_bindings
+# Deferred types stay deferred (#262); the remaining RESERVED type is a name only. runtime_bindings
 # cover the ONLY 3 ontology<->runtime overlaps (the W2b drift-check scope); every
 # other type is SSOT-only (no runtime type to drift against).
 
 ontology_ssot_version: 0
-status: ADOPTED_2026-06-15            # core 15/18 adopted; Buyer + Org reserved
+status: ADOPTED_2026-07-15            # core 16/18 adopted; Buyer reserved; Org adopted
 type_cap: 18                          # "19th in = one out"; 17 used + 1 open slot
 source_authority: forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
 backlog: forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json
@@ -64,7 +64,7 @@ types:
   CapturePacket: { namespace: packet,      status: adopted,  states: [manifest_version, cutoff_posture] }
   EvidenceUnit:  { namespace: evidence,    status: adopted,  states: [claim_tier] }
   Buyer:         { namespace: buyer,       status: reserved, states: [qualification_status] }
-  Org:           { namespace: org,         status: reserved, states: [] }
+  Org:           { namespace: org,         status: adopted,  states: [] } # 2026-07-15: company-aggregate producer schema landed; property-list/schema-light boundary unchanged
 
 # §2.3 typed link map (every `from`/`to` must be a defined type)
 links:
@@ -130,7 +130,6 @@ dimensions:
 # §9 + backlog: deferred adoption, no auto-nudge (#262). MUST equal the backlog JSON's
 # deferred_no_auto_trigger (checked).
 deferred_no_auto_trigger:
-  - Org
   - Buyer
   - Memo
   - CapturePacket

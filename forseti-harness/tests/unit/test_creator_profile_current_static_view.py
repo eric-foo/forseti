@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from copy import deepcopy
 import hashlib
 import json
@@ -370,13 +371,54 @@ def test_creator_profile_current_materializer_optionally_joins_audience_triangul
     )
     snapshot = _audience_snapshot(account["platform_account_id"])
     snapshot_path = tmp_path / "creator_audience_triangulation_snapshot_v0.json"
-    snapshot_path.write_text(json.dumps(snapshot), encoding="utf-8", newline="\n")
+    snapshot_text = (
+        json.dumps(snapshot, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    )
+    snapshot_path.write_text(snapshot_text, encoding="utf-8", newline="\n")
+
+    with pytest.raises(ValueError, match="requires one paired successful"):
+        build_creator_profile_current_view_from_files(
+            account_ledger_path=ACCOUNT_LEDGER_PATH,
+            creator_registry_index_path=CREATOR_REGISTRY_INDEX_PATH,
+            metric_seed_paths=METRIC_SEED_PATHS,
+            audience_triangulation_snapshot_paths=(snapshot_path,),
+            generated_at_utc=_view()["generated_at_utc"],
+        )
+
+    response_bytes = b"{}"
+    outcome = {
+        "schema_version": "creator_audience_judgment_outcome_v0",
+        "record_id": "cajo_static_view_test",
+        "raw_anchor": "static-view-test",
+        "creator_id": snapshot["creator_id"],
+        "profile_subject_id": snapshot["profile_subject_id"],
+        "bundle_id": snapshot["input_bundle_id"],
+        "bundle_hash": snapshot["input_bundle_hash"],
+        "status": "validated",
+        "response_sha256": f"sha256:{hashlib.sha256(response_bytes).hexdigest()}",
+        "response_size_bytes": len(response_bytes),
+        "response_bytes_b64": base64.b64encode(response_bytes).decode("ascii"),
+        "validation_errors": [],
+        "snapshot_id_or_none": snapshot["snapshot_id"],
+        "snapshot_sha256_or_none": (
+            f"sha256:{hashlib.sha256(snapshot_text.encode('utf-8')).hexdigest()}"
+        ),
+        "snapshot_or_none": snapshot,
+        "model_api_calls": 0,
+    }
+    outcome_path = tmp_path / "creator_audience_judgment_outcome_v0.json"
+    outcome_path.write_text(
+        json.dumps(outcome, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
     generated = build_creator_profile_current_view_from_files(
         account_ledger_path=ACCOUNT_LEDGER_PATH,
         creator_registry_index_path=CREATOR_REGISTRY_INDEX_PATH,
         metric_seed_paths=METRIC_SEED_PATHS,
         audience_triangulation_snapshot_paths=(snapshot_path,),
+        audience_judgment_outcome_paths=(outcome_path,),
         generated_at_utc=_view()["generated_at_utc"],
     )
     view = generated["creator_profile_current_view"]
@@ -390,8 +432,6 @@ def test_creator_profile_current_materializer_optionally_joins_audience_triangul
     assert joined["audience_triangulation"] == snapshot
     assert joined["freshness"]["audience_computed_at_or_none"] == snapshot["generated_at"]
     assert any("demographics remain not_estimated" in item for item in joined["limitations"])
-
-
 def test_creator_profile_current_source_hashes_are_current() -> None:
     view = _view()
     inputs_by_pointer = {

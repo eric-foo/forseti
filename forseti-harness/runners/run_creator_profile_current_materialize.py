@@ -13,12 +13,14 @@ from capture_spine.creator_profile_current.materialize import (
     build_creator_profile_current_view_from_files,
     dump_creator_profile_current_view,
     load_json,
+    verify_audience_judgment_outcomes as _verify_audience_judgment_outcomes,
 )
 from capture_spine.creator_profile_current.registry_match_preflight import (
     RECEIPT_SCHEMA_VERSION,
     RECEIPT_WRAPPER_KEY,
     has_blocking_preflight_results,
 )
+
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -120,6 +122,13 @@ def _build_parser() -> argparse.ArgumentParser:
         dest="audience_triangulation_snapshots",
         help="Optional validated creator-audience triangulation snapshot. Repeat to join multiple documents.",
     )
+    parser.add_argument(
+        "--audience-judgment-outcome",
+        type=Path,
+        action="append",
+        dest="audience_judgment_outcomes",
+        help="Successful Judgment outcome paired positionally with each audience snapshot.",
+    )
     parser.add_argument("--check", action="store_true", help="Fail if the output is stale.")
     parser.add_argument("--write", action="store_true", help="Write the materialized output JSON.")
     parser.add_argument(
@@ -143,12 +152,15 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     generated_at = args.generated_at_utc or _existing_generated_at(args.output) or _now_utc()
     metric_seeds = tuple(args.metric_seeds) if args.metric_seeds else DEFAULT_METRIC_SEEDS
+    audience_snapshots = tuple(args.audience_triangulation_snapshots or ())
+    audience_outcomes = tuple(args.audience_judgment_outcomes or ())
     try:
         document = build_creator_profile_current_view_from_files(
             account_ledger_path=args.account_ledger,
             creator_registry_index_path=args.creator_registry_index,
             metric_seed_paths=metric_seeds,
-            audience_triangulation_snapshot_paths=tuple(args.audience_triangulation_snapshots or ()),
+            audience_triangulation_snapshot_paths=audience_snapshots,
+            audience_judgment_outcome_paths=audience_outcomes,
             generated_at_utc=generated_at,
         )
         rendered = dump_creator_profile_current_view(document)
@@ -173,6 +185,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     except Exception as exc:
         parser.exit(status=2, message=f"creator profile materialization failed: {exc}\n")
+
 
 
 def _enforce_new_account_preflight(
