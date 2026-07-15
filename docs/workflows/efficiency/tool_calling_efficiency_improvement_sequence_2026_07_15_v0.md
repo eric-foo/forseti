@@ -294,8 +294,42 @@ the bound revision, submit the frozen commission as its initial prompt, and
 dispatch it immediately when the current task fails receiver preflight. This is
 not standing permission: read-only, scoping-only, and review-only commissions
 must not carry the block, a missing block remains `receiver_to_bind`, and a
-failed created receiver does not authorize a second task. This edit used the
-already-rooted branch/task and created no receiver.
+failed created receiver does not authorize a second task. The contract edit
+itself used the already-rooted branch/task and created no receiver.
+
+The commission contract then received one faithful live dogfood:
+
+- source task `019f6652-5909-7e83-9854-ab3b89f38b94` was intentionally rooted
+  at the local/base project and received a visible commission-local request to
+  create exactly one managed-worktree receiver immediately if it was not the
+  valid receiver;
+- the source task ran no shell or Git preflight, requested no additional owner
+  confirmation, and created exactly one receiver through queue id
+  `client-new-thread:20b16545-a6d9-48fe-806a-535e02ea2f49`;
+- that queue materialized receiver task
+  `019f6653-2794-7f00-9691-576e75dd08e0` at
+  `C:/Users/vmon7/Desktop/projects/forseti-worktrees/cdf2/orca`;
+- the receiver freshly observed a clean detached `HEAD` exactly at
+  `6f4bd992a0777086acf7a8b5b0f8f42e8ec5dace`;
+- it created transient probe
+  `.codex_receiver_write_probe_019f6653_2794_7f00_9691_576e75dd08e0.tmp`,
+  freshly observed that file in the receiver root, removed it, and freshly
+  observed it absent;
+- final status was clean with no tracked changes; Git emitted only a user-level
+  ignore-file permission warning and made no worktree change; and
+- owner turn requested: no; receivers created: exactly one.
+
+An earlier attempt in task `019f664e-63e6-7752-8cf7-e14979732a26` is excluded
+from this result because its dogfood prompt incorrectly added a source-task Git
+preflight before creation. That was a test-harness overconstraint, not behavior
+required by the committed contract.
+
+Result: **PASS for the receiver-creation confirmation-turn fix.** The original
+implementation commission supplied the explicit user request Codex requires,
+the invalid source task dispatched the one bound receiver without a second
+owner turn, and the receiver proved exact identity, cleanliness, and write
+capability. This narrow pass does not establish project-hook adoption, pass Fix
+2, authorize another receiver, or release the three-cold-agent/Fix 3 gates.
 
 ## Non-claims
 
