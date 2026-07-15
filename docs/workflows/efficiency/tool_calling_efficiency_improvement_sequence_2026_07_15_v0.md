@@ -276,6 +276,27 @@ documented path does not yet satisfy Fix 2. Do not start the three-cold-agent
 dogfood or Fix 3; after that supported review succeeds, rerun this same live
 gate without editing trust metadata.
 
+### Managed-receiver commission confirmation turn
+
+A later implementation-authorized commission exposed a separate receiver-
+routing waste: after planning and scoping, its route/status output labeled the
+current turn `read_only_scoping_only`. When the current Codex task then proved
+invalid as a repo-changing receiver, the commission had not itself explicitly
+requested task creation, so the agent correctly could not use Codex's
+user-request-only task-creation tool and asked the owner for a second-turn
+confirmation phrase.
+
+Decision: implementation authorization survives planning and scoping unless the
+owner or an accepted handoff explicitly removes it. A durable implementation
+commission selecting a not-yet-verified Codex managed receiver now carries one
+commission-local request to create exactly one fresh managed-worktree task at
+the bound revision, submit the frozen commission as its initial prompt, and
+dispatch it immediately when the current task fails receiver preflight. This is
+not standing permission: read-only, scoping-only, and review-only commissions
+must not carry the block, a missing block remains `receiver_to_bind`, and a
+failed created receiver does not authorize a second task. This edit used the
+already-rooted branch/task and created no receiver.
+
 ## Non-claims
 
 - Not proof of root cause in the external Codex sandbox or process launcher.

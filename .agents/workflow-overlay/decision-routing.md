@@ -135,10 +135,15 @@ and bind exactly one receiver class before the receiver loads task sources:
 When a visible Codex Desktop instruction explicitly asks for a fresh launcher,
 new managed task, or live proof that a project hook protects a repo-changing
 gate, receiver selection is automatic: use a newly created
-`codex_managed_worktree` carrying the commission in its initial prompt. A task
-rooted at a local/base checkout is not a substitute, even if an individual
-shell call supplies the intended worktree through a command-level `workdir`.
-If the visible instruction does not authorize creating a task, keep
+`codex_managed_worktree` carrying the commission in its initial prompt. A
+durable implementation-authorized commission that may encounter an invalid
+current receiver makes that request up front through the commission-local
+`receiver_creation_authorization` block owned by
+`.agents/workflow-overlay/prompt-orchestration.md`; when its condition fires,
+create and dispatch the one allowed task immediately. A task rooted at a
+local/base checkout is not a substitute, even if an individual shell call
+supplies the intended worktree through a command-level `workdir`. If the visible
+instruction does not contain explicit task-creation authorization, keep
 `receiver_to_bind`; automatic receiver selection does not invent task-creation
 authority or a repository-owned Codex task API.
 
@@ -241,14 +246,18 @@ prompt may leave receiver-only observations as `receiver_to_observe`, but it
 must remain `receiver_to_bind` or `receiver_to_verify` until the receiver fills
 them before source loading.
 
-Creating a user-visible Codex task still requires explicit user authorization,
-but authorization is semantic rather than a magic phrase: a visible instruction
-that explicitly asks to create, start, spin up, or hand off to a new Codex task
-or managed worktree satisfies it, and the task is created with its initial
-commission in that same operation. Generic `proceed` by itself does not silently
-authorize task creation, and no instruction grants standing creation authority
-beyond the task or handoff it places in scope. Do not chat-double-ask when the
-visible instruction already supplies that explicit intent.
+Creating a user-visible Codex task still requires an explicit user request. A
+visible instruction that asks to create, start, spin up, or hand off to a new
+Codex task or managed worktree satisfies it. For a durable
+implementation-authorized commission, the exact
+`receiver_creation_authorization` block in `prompt-orchestration.md` supplies
+that explicit request conditionally for one fresh task at the bound revision,
+carrying the frozen commission as its initial prompt. Implementation authority
+without that block, generic `proceed`, and read-only/scoping-only/review-only
+commissions do not authorize task creation. No instruction grants standing or
+repeat creation authority. When the visible instruction already contains the
+one-task block and its receiver condition is observed, dispatch it immediately
+without chat-double-asking.
 
 Only `external_direct_write` may operate when launch and target differ. After
 the exact target and capability are proven, use target-rooted tool workdirs,
@@ -267,10 +276,13 @@ capability failure: the target is missing or ambiguous, its bytes do not match,
 required write capability is absent, concurrent writing cannot be excluded, or
 a guard requires a target-rooted receiver that the current task is not. If a
 Codex task was launched in the wrong checkout, it must not create or find another
-worktree and then attempt an impossible reroot. The recovery action is a newly
-created, owner-authorized `codex_managed_worktree` task carrying the commission
-in its initial prompt. Do not bypass or weaken the protected-action guard. The
-write-boundary enforcement and lane-start write/index probe remain owned by
+worktree and then attempt an impossible reroot. When the visible commission
+contains the valid one-task creation block, the recovery action is to create and
+dispatch that `codex_managed_worktree` task in the same turn with the frozen
+commission as its initial prompt; do not return a request for confirmation
+words. Return the blocker when the block is absent or the single allowed
+creation fails. Do not bypass or weaken the protected-action guard. The write-
+boundary enforcement and lane-start write/index probe remain owned by
 `.agents/hooks/README.md` and
 `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
 
@@ -380,12 +392,18 @@ direction_change_propagation:
     loading: Codex managed tasks are created in their managed worktree with the
     initial commission, external controllers retain the proven two-root route,
     collaboration stays same-root, and unknown couriers remain preparation-only.
+    Implementation-authorized durable commissions that may need a managed
+    reroot now request exactly one fresh task at the bound revision and immediate
+    dispatch of the frozen commission; planning/scoping does not downgrade that
+    implementation authority.
   trigger: workflow_authority
   related_triggers: [output_authority, lifecycle_boundary]
   controlling_sources_updated:
     - .agents/workflow-overlay/decision-routing.md
     - .agents/workflow-overlay/prompt-orchestration.md
     - .agents/workflow-overlay/validation-gates.md
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - docs/workflows/efficiency/tool_calling_efficiency_improvement_sequence_2026_07_15_v0.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/source-of-truth.md
@@ -398,24 +416,28 @@ direction_change_propagation:
     - CLAUDE.md
   intentionally_not_updated:
     - {path: AGENTS.md, reason: "The kernel already points receiver selection to this file and states the same external-controller and collaboration boundaries."}
-    - {path: .agents/workflow-overlay/source-loading.md, reason: "It already requires receiver selection before source loading; class mechanics stay in the routing owner."}
+    - {path: .agents/workflow-overlay/source-loading.md, reason: "It already preserves explicit implementation authorization and requires receiver selection before source loading; commission rendering and receiver recovery stay in the two changed owners."}
     - {path: .agents/hooks/README.md and .codex/hooks/forseti_guard_codex_adapter.py, reason: "The Codex non-current-worktree denial remains intentionally fail-closed; dispatch now supplies the correctly rooted receiver."}
     - {path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md, reason: "The existing managed-root write/index probe remains the capability gate without implementation change."}
     - {path: docs/workflows/forseti_repo_map_v0.md and CLAUDE.md, reason: "No owner, path, or shim behavior changed."}
   stale_language_search: >
-    rg -n -i "operator_to_fill.*(receiver|worktree|launch)|receiver_to_bind|receiver_to_verify|managed.worktree|self-created|find.*another worktree|reroot|required.*target-root|launch.checkout|effective_target_worktree|collaboration.*worktree|magic phrase"
+    rg -n -i "current_turn_authorization|read_only_scoping_only|receiver_creation_authorization|create_exactly_one_fresh|receiver_to_bind|receiver_to_verify|managed.worktree|reroot|magic phrase"
     AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md .codex/hooks
     docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-15 after the patch. Live routing, prompt, and validation
-    hits carry the class-specific contract. Remaining reroot wording is confined
-    to the unchanged fail-closed Codex adapter/readme and the generic sandboxed
-    lane-start doctrine; those surfaces require opening/reopening on the active
-    root and do not authorize a Codex task to write another registered worktree.
-    AGENTS.md remains a compatible pointer to this controlling route.
+    Executed 2026-07-15 after the patch. Defining authorization and status hits
+    are confined to the two controlling overlay files, focused regression test,
+    and observed efficiency ledger. Validation-gates retains the compatible
+    user-authorized managed-task recovery with the initial commission; hook and
+    branch-protection hits remain fail-closed reroot guidance. No checked surface
+    downgrades implementation authority because scoping occurred, grants task
+    creation to read-only work, or treats a workdir override as receiver identity.
   non_claims:
     - not validation or readiness
     - not automatic task creation from generic proceed
+    - not task creation for read-only, scoping-only, or review-only work
+    - not standing or repeat task-creation permission
+    - not a repository override of Codex's explicit-user-request requirement
     - not a guard weakening or cross-worktree Codex write route
     - not permission for concurrent writers
 ```

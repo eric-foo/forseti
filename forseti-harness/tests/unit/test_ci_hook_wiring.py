@@ -20,6 +20,9 @@ HARNESS_COUPLING_PATH = HOOKS_DIR / "check_harness_coupling.py"
 CODEX_HOOKS_PATH = REPO_ROOT / ".codex" / "hooks.json"
 CODEX_ADAPTER_PATH = REPO_ROOT / ".codex" / "hooks" / "forseti_guard_codex_adapter.py"
 DECISION_ROUTING_PATH = REPO_ROOT / ".agents" / "workflow-overlay" / "decision-routing.md"
+PROMPT_ORCHESTRATION_PATH = (
+    REPO_ROOT / ".agents" / "workflow-overlay" / "prompt-orchestration.md"
+)
 HOOK_README_PATH = REPO_ROOT / ".agents" / "hooks" / "README.md"
 HOOK_ADOPTION_ADOPTED = "FORSETI_CODEX_HOOK_ADOPTION=ADOPTED"
 HOOK_ADOPTION_NOT_INTERCEPTED = "FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED"
@@ -139,6 +142,27 @@ def test_managed_receiver_revision_and_probe_contract_is_explicit() -> None:
     assert probe_command in hook_readme
     assert HOOK_ADOPTION_ADOPTED in routing
     assert HOOK_ADOPTION_NOT_INTERCEPTED in routing
+
+
+def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> None:
+    routing = DECISION_ROUTING_PATH.read_text(encoding="utf-8")
+    prompt_contract = PROMPT_ORCHESTRATION_PATH.read_text(encoding="utf-8")
+
+    for required in (
+        "receiver_creation_authorization:",
+        "authorization: create_exactly_one_fresh_codex_managed_worktree_task",
+        "condition: current_task_not_receiver_verified",
+        "initial_prompt: this_frozen_commission_verbatim",
+        "dispatch: immediate_same_turn",
+        "current_turn_authorization: read_only_scoping_only",
+    ):
+        assert required in prompt_contract
+
+    assert "create and dispatch the one allowed task immediately" in routing
+    assert "read-only/scoping-only/review-only" in routing
+    assert re.search(
+        r"No instruction grants standing or\s+repeat creation authority", routing
+    )
 
 
 def test_every_pre_push_gate_is_the_same_command_ci_runs() -> None:
