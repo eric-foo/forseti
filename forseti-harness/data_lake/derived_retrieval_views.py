@@ -47,9 +47,7 @@ from data_lake.product_mention_selection import (
     normalize_product_mention_policy,
     select_product_mention_records,
 )
-from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
-)
+from data_lake.silver_record import PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS
 
 UNDONE_VIEW_SCHEMA_VERSION = 1
 BY_MENTION_VIEW_SCHEMA_VERSION = 2
@@ -171,7 +169,7 @@ def _manifest(
     if view_name == "by_mention":
         selection_policy_versions.update(
             {
-                "silver_lineage_gate": SOURCE_BACKED_COMPLETE_STATUS,
+                "silver_lineage_gate": PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
                 "product_mention_policy": product_mention_policy,
             }
         )

@@ -8,10 +8,6 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 from data_lake.sibling_selection import SiblingCandidate, select_current_record_per_subject
-from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
-    silver_record_source_backed_status,
-)
 from data_lake.silver_record import (
     SilverRecordError,
     validate_silver_vault_record,
@@ -176,10 +172,6 @@ def select_product_mention_records(
                         error=str(exc),
                     )
                 )
-                continue
-            lineage_status = silver_record_source_backed_status(record)
-            if lineage_status != SOURCE_BACKED_COMPLETE_STATUS:
-                residuals.append(_residual(raw_anchor, record_file.name, lineage_status))
                 continue
             if observation.get("observation_set_kind") != "transcript_product_mentions":
                 residuals.append(

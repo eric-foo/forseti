@@ -16,7 +16,7 @@ stale_if:
 authority_boundary: retrieval_only
 ```
 
-status: implemented contract for the product-mention and TikTok audience-evidence lanes
+status: implemented Silver physical-authority and immutable legacy-read compatibility contract
 
 authority: applies the Silver Vault Record Contract and Consumption Seam Contract to
 the previously registered grammar-B cleaning lanes. It does not rewrite historical
@@ -37,13 +37,7 @@ lanes remain registered as `retired_silver_lineage`. They remain discoverable fo
 audit but are not current reader or writer authority. No historical file is moved,
 rewritten, or deleted.
 
-The source-less legacy capture lanes `silver__capture__audience_comments`,
-`silver__capture__reel_transcript`, and
-`silver__capture__reel_deep_capture__set` are also
-`retired_silver_lineage`. Existing bytes remain audit-readable by explicit
-lane/path lookup, but cannot establish Silver authority. The old deep-capture
-writer fails visibly with `eligible_bronze_required`; this decision does not
-invent or authorize a replacement Bronze producer.
+The packet-first IG deep-capture route is current Silver authority: it preserves rendered-comment substrate and audio in a SourceCapturePacket, then writes exact packet/file/hash refs through the strict Silver front door. Pre-envelope deep-capture bytes remain audit-readable and non-authoritative; no legacy byte is rewritten or promoted.
 
 The synthesized TikTok content-fit profile is not a source-backed Silver fact. New
 profiles write to `tiktok_audience_profile_analysis` with
@@ -67,6 +61,22 @@ Before persistence, the Silver front door verifies:
   policy fingerprints;
 - every Silver member of a detectable record set before any member is written.
 
+## Immutable legacy-read compatibility
+
+Strict new writes and compatible historical reads are separate obligations. The
+write front doors require canonical reference types, closed hash bases, and exact
+derived addresses. Read-time compatibility is limited to the exact declared
+Fragrantica and creator-metric v0 producer/schema profiles. The original envelope
+and content hash validate before any in-memory address inference; the stored
+record is never mutated.
+
+Legacy Fragrantica refs may infer only the unambiguous raw-packet type and the
+record's validated anchor for its declared cleaning-audit source. Legacy creator
+observations and rollups resolve only through the cross-epoch creator lineage
+index, including exact rollup record-id/content-hash matching. Unknown,
+contradictory, ambiguous, or unresolved forms fail closed. Absence of
+lineage_schema_version alone is not evidence failure; a present value must
+validate.
 ## Reader selection
 
 Current `by_mention` and share-of-voice readers scan only
@@ -85,9 +95,8 @@ re-derivation. Partial sets remain visible and are never acknowledged as complet
 
 ## Accepted residuals
 
-- Historical bytes in the three retired source-less capture lanes are preserved
-  for explicit audit lookup; they are not migrated, recaptured, or promoted to
-  authority.
+- The 226 declared historical creator records remain audit-readable but not current; owner: creator-metric Silver owner; upgrade trigger: source recapture or newly mounted exact cited bytes.
+- The 40 historical deep-capture records and 92 retired-lane records remain audit-only; owner: Silver lane owners; upgrade trigger: separately authorized source-backed rederivation, never byte rewriting.
 - Rejected LLM rows remain processing telemetry and are not copied into Silver
   facts. Historical grammar-B records retain their old rejection detail.
 - Profile synthesis remains operator-run/provider-invoked at the existing cadence;
@@ -100,32 +109,40 @@ re-derivation. Partial sets remain visible and are never acknowledged as complet
 
 ## Success signals
 
-- no active product/audience producer writes grammar B;
-- every newly written authority record passes common-header, hash, lineage, and
-  payload validation before persistence;
-- current readers select only the new envelope lane and fail closed on malformed
-  records;
-- old records remain audit-readable but cannot become current authority by fallback;
-- audience profiles cite exact Silver evidence while remaining explicitly outside
-  Silver Authority;
-- a completed rerun has zero second-cycle provider work under the same obligation.
+- strict front doors reject nonexistent, tampered, non-canonical, and declared
+  legacy read-only refs before any write;
+- exact declared legacy Fragrantica and creator records classify without mutating
+  their stored mapping, while unknown or ambiguous forms fail closed;
+- census and authority readers agree on current, historical, invalid, and
+  unresolved outcomes through the shared physical classifier;
+- no authority reader uses structural lineage completeness as physical proof;
+- packet-first IG deep capture remains current and cross-anchor substitution
+  cannot inflate current totals;
+- at live acceptance fingerprint
+  `ef1566100296e0d53d48904e144fb6e84765f2cc886a828194683178a3c620df`:
+  7,836 stored Silver records, 7,478 current-source-backed, 226 creator
+  historical-compatible, and zero unexplained errors, with 40 historical deep
+  capture and 92 retired-lane records excluded from current evidence;
+- the +94 records since the prior 7,742-record snapshot reconcile exactly to
+  TikTok comment-attention Silver: the unchanged 5,040 Fragrantica and 1,306
+  creator records plus 10 social-metric observation sets leave 1,348 TikTok
+  records now versus 1,254 in the prior 1,264 token-bearing pool;
+- no live-lake write, migration, recapture, or immutable-record rewrite occurs;
+- focused tests, full harness CI, contract/inventory gates, final read-only live
+  census, and PR checks all pass at one final pushed head.
 
 ## Direction Change Propagation
 
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Silver authority now requires the current envelope plus physical
-    verification of every exact claimed source at both write and read gates.
-    The three remaining source-less silver__capture lanes are retired for
-    authority, their historical bytes remain available for explicit audit, and
-    the old writer now fails visibly with eligible_bronze_required instead of
-    creating another source-less Silver record.
+    Silver authority now separates immutable envelope validation, strict canonical new writes, root-aware physical resolution, bounded declared legacy reads, and lane-specific selection. Packet-first IG deep capture remains current; historical deep-capture and retired-lane bytes remain audit-only. Structural lineage status cannot establish physical authority.
   trigger: architecture_doctrine
   related_triggers:
     - lifecycle_boundary
   controlling_sources_updated:
     - docs/decisions/silver_vault_legacy_record_convergence_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
     - forseti-harness/data_lake/silver_record.py
@@ -147,9 +164,6 @@ direction_change_propagation:
     - forseti-harness/tests/test_silver_lane_registry_guard.py
     - forseti-harness/tests/test_ig_reels_deep_capture_lake.py
     - forseti-harness/tests/test_silver_census_behavior.py
-  intentionally_not_updated:
-    - path: forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
-      reason: It already requires every claimed source to be resolvable and hash-verifiable; this work makes that existing contract executable at every authority gate.
   non_claims:
     - not a live-lake migration, recapture, or reprocessing authorization
     - not recovery of unavailable records
@@ -175,12 +189,10 @@ direction_change_propagation:
     - forseti-harness/data_lake/silver_record.py
     - forseti-harness/data_lake/silver_lineage.py
     - forseti-harness/capture_spine/creator_profile_current/youtube_silver_metric_producer.py
+    - forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
     - forseti-harness/tests/unit/test_silver_record.py
     - forseti-harness/tests/unit/test_silver_lineage.py
     - forseti-harness/tests/unit/test_youtube_creator_metric_silver_producer.py
-  intentionally_not_updated:
-    - path: forseti-harness/capture_spine/creator_profile_current/silver_metric_producer.py
-      reason: Its emitted hash semantics already match raw_stored_bytes.
   non_claims:
     - not a new Silver envelope
     - not a new source lane, registry, migration, recapture, or reprocessing

@@ -4,7 +4,7 @@ Covers the adjudicated review findings that are load-bearing here: AR-01 (refs l
 top-level header-shaped fields, never a nested silver_lineage block), AR-02 (derived refs
 can carry a projection row_locator), AR-04 (source_object uses `kind`). Plus the write-boundary
 mechanical rules: exact derived lane+record_id, raw-ref hash-checkability, ref-or-limitation,
-controlled limitation tokens, and the source-backed-completeness gate.
+controlled limitation tokens, and the lineage-structure gate.
 """
 from __future__ import annotations
 
@@ -13,10 +13,10 @@ from pydantic import ValidationError
 
 from data_lake.silver_lineage import (
     SILVER_LINEAGE_SCHEMA_VERSION,
-    SOURCE_BACKED_COMPLETE_STATUS,
-    SOURCE_LINEAGE_INCOMPLETE_STATUS,
-    SOURCE_LINEAGE_INVALID_STATUS,
-    SOURCE_LINEAGE_MISSING_STATUS,
+    LINEAGE_STRUCTURE_COMPLETE_STATUS,
+    LINEAGE_STRUCTURE_INCOMPLETE_STATUS,
+    LINEAGE_STRUCTURE_INVALID_STATUS,
+    LINEAGE_STRUCTURE_MISSING_STATUS,
     SilverDerivedRef,
     SilverLineage,
     SilverLineageLimitation,
@@ -24,8 +24,8 @@ from data_lake.silver_lineage import (
     SilverRawRef,
     SilverRowLocator,
     SilverSourceObject,
-    is_silver_record_source_backed_complete,
-    silver_record_source_backed_status,
+    has_complete_silver_lineage_structure,
+    silver_record_lineage_structure_status,
     validate_silver_lineage,
 )
 
@@ -120,43 +120,43 @@ def test_limitations_only_is_valid_but_not_complete() -> None:
             SilverLineageLimitation(reason=SilverLineageLimitationReason.TRANSIENT_SOURCE_NOT_PERSISTED)
         ],
     )
-    assert lin.is_source_backed_complete() is False
+    assert lin.has_reference_structure() is False
 
 
 def test_ref_backed_lineage_is_complete() -> None:
-    assert _derived_lineage().is_source_backed_complete() is True
+    assert _derived_lineage().has_reference_structure() is True
 
 
-def test_silver_record_source_backed_status_reads_persisted_fields() -> None:
+def test_silver_record_lineage_structure_status_reads_persisted_fields() -> None:
     fields = _derived_lineage().to_record_fields()
 
-    assert silver_record_source_backed_status(fields) == SOURCE_BACKED_COMPLETE_STATUS
-    assert is_silver_record_source_backed_complete(fields) is True
+    assert silver_record_lineage_structure_status(fields) == LINEAGE_STRUCTURE_COMPLETE_STATUS
+    assert has_complete_silver_lineage_structure(fields) is True
 
 
-def test_silver_record_source_backed_status_does_not_require_legacy_lineage_version() -> None:
+def test_silver_record_lineage_structure_status_does_not_require_legacy_lineage_version() -> None:
     fields = _derived_lineage().to_record_fields()
     fields.pop("lineage_schema_version")
 
-    assert silver_record_source_backed_status(fields) == SOURCE_BACKED_COMPLETE_STATUS
-    assert is_silver_record_source_backed_complete(fields) is True
+    assert silver_record_lineage_structure_status(fields) == LINEAGE_STRUCTURE_COMPLETE_STATUS
+    assert has_complete_silver_lineage_structure(fields) is True
 
 
-def test_silver_record_source_backed_status_flags_missing_lineage() -> None:
+def test_silver_record_lineage_structure_status_flags_missing_lineage() -> None:
     assert (
-        silver_record_source_backed_status({"mention_count": 0}) == SOURCE_LINEAGE_MISSING_STATUS
+        silver_record_lineage_structure_status({"mention_count": 0}) == LINEAGE_STRUCTURE_MISSING_STATUS
     )
-    assert is_silver_record_source_backed_complete({"mention_count": 0}) is False
+    assert has_complete_silver_lineage_structure({"mention_count": 0}) is False
 
 
-def test_silver_record_source_backed_status_flags_invalid_lineage() -> None:
+def test_silver_record_lineage_structure_status_flags_invalid_lineage() -> None:
     fields = _derived_lineage().to_record_fields()
     fields["producer_id"] = "  "
 
-    assert silver_record_source_backed_status(fields) == SOURCE_LINEAGE_INVALID_STATUS
+    assert silver_record_lineage_structure_status(fields) == LINEAGE_STRUCTURE_INVALID_STATUS
 
 
-def test_silver_record_source_backed_status_flags_limitations_only() -> None:
+def test_silver_record_lineage_structure_status_flags_limitations_only() -> None:
     fields = SilverLineage(
         producer_id="p",
         producer_schema_version="v",
@@ -166,7 +166,7 @@ def test_silver_record_source_backed_status_flags_limitations_only() -> None:
         ],
     ).to_record_fields()
 
-    assert silver_record_source_backed_status(fields) == SOURCE_LINEAGE_INCOMPLETE_STATUS
+    assert silver_record_lineage_structure_status(fields) == LINEAGE_STRUCTURE_INCOMPLETE_STATUS
 
 
 # --- row locator (AR-02) -----------------------------------------------------

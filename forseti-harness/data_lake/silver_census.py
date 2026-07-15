@@ -30,7 +30,12 @@ from data_lake.creator_metric_lineage import (
     build_creator_metric_lineage_index,
 )
 from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    HISTORICAL_COMPATIBLE_AUTHORITY,
+    INVALID_SILVER_AUTHORITY,
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
+    classify_silver_vault_record_sources,
+    silver_raw_refs_bound_to_own_anchor,
     validate_silver_vault_record,
     verify_silver_vault_record_sources,
 )
@@ -49,6 +54,9 @@ _FRAGRANTICA_REVIEW_VOTE_VALUES: dict[str, frozenset[int]] = {
 
 _ADDITIVE_FIELDS = (
     "silver_records",
+    "current_source_backed_silver_records",
+    "historical_compatible_silver_records",
+    "retired_audit_only_silver_records",
     "content_observations",
     "directly_observed_atomic_metric_values",
     "current_policy_qualified_direct_metric_values",
@@ -688,6 +696,17 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                 )
                 context = _context(record, observation, lane=lane, manifest_by_packet=manifest_by_packet)
                 accumulator.increment("silver_records", context)
+                if role_of(lane) is LaneRole.RETIRED_SILVER_LINEAGE:
+                    accumulator.increment("retired_audit_only_silver_records", context)
+                    audit_only_residuals.append(
+                        {
+                            "kind": "retired_audit_only",
+                            "lane": lane,
+                            "path": relative,
+                            "reason": "registered retired_silver_lineage bytes are audit-only",
+                        }
+                    )
+                    continue
                 if record.get("schema_version") != SILVER_VAULT_RECORD_SCHEMA_VERSION:
                     if lane in _DEEP_CAPTURE_SILVER_LANES:
                         accumulator.increment("deep_capture_historical_audit_only_records", context)
@@ -702,27 +721,49 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                         continue
                     accumulator.increment("unclassified_silver_records", context)
                     continue
-                try:
-                    validate_silver_vault_record(record)
-                except (TypeError, ValueError) as exc:
-                    accumulator.increment("unclassified_silver_records", context)
-                    errors.append(
-                        {"kind": "silver_record_invalid", "path": relative, "error": f"{type(exc).__name__}: {exc}"}
-                    )
-                    continue
-                try:
-                    verify_silver_vault_record_sources(data_root, record)
-                except (TypeError, ValueError) as exc:
+                authority = classify_silver_vault_record_sources(
+                    data_root,
+                    record,
+                    record_path=path,
+                    creator_metric_lineage=creator_metric_lineage,
+                )
+                if authority.status in {INVALID_SILVER_AUTHORITY, "unresolved"}:
                     accumulator.increment("unclassified_silver_records", context)
                     errors.append(
                         {
-                            "kind": "silver_record_source_unresolved",
+                            "kind": (
+                                "silver_record_invalid"
+                                if authority.status == INVALID_SILVER_AUTHORITY
+                                else "silver_record_source_unresolved"
+                            ),
                             "path": relative,
-                            "error": f"{type(exc).__name__}: {exc}",
+                            "reason_code": authority.reason_code,
+                            "error": authority.error or authority.reason_code,
                         }
                     )
                     continue
+                if authority.status == HISTORICAL_COMPATIBLE_AUTHORITY:
+                    accumulator.increment("historical_compatible_silver_records", context)
+                    if lane in creator_metric_lanes:
+                        lineage = creator_metric_lineage.classification_for_path(path)
+                        accumulator.increment(
+                            creator_metric_status_fields[lineage.status], context
+                        )
+                    continue
+                if authority.status != CURRENT_SOURCE_BACKED_AUTHORITY:
+                    raise AssertionError(f"unknown Silver authority status: {authority}")
+                accumulator.increment("current_source_backed_silver_records", context)
                 if lane in _DEEP_CAPTURE_SILVER_LANES:
+                    if not silver_raw_refs_bound_to_own_anchor(record):
+                        accumulator.increment("unclassified_silver_records", context)
+                        errors.append(
+                            {
+                                "kind": "deep_capture_source_ref_unresolved",
+                                "path": relative,
+                                "error": "Silver raw_refs cite a packet other than the record's own raw_anchor",
+                            }
+                        )
+                        continue
                     accumulator.increment("deep_capture_current_source_backed_records", context)
                 if lane in creator_metric_lanes:
                     lineage = creator_metric_lineage.classification_for_path(path)
@@ -791,6 +832,7 @@ def build_silver_observation_census(data_root: Any) -> dict[str, Any]:
                     and member.get("raw_anchor") == raw_anchor
                     and member.get("record_id") == marker_path.name
                     and member.get("lane_namespace") == lane
+                    and silver_raw_refs_bound_to_own_anchor(member)
                 ):
                     current_member = True
                     break

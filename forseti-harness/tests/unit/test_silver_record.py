@@ -13,12 +13,17 @@ import json
 import pytest
 
 from data_lake.root import DataLakeRoot, raw_shard
+from data_lake.silver_census import build_silver_observation_census
 from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    INVALID_SILVER_AUTHORITY,
     SilverRecordError,
     append_silver_record,
     append_silver_record_set,
+    classify_silver_vault_record_sources,
     silver_content_hash,
     validate_silver_vault_record,
+    validate_silver_vault_record_for_write,
 )
 
 _PACKET_ID = "01J00000000000000000000001"
@@ -287,6 +292,19 @@ def test_validate_bronze_ref_requires_raw_bytes_basis_and_matching_body_hash() -
     record["raw_refs"] = [ref]
     _rehash(record)
     validate_silver_vault_record(record)
+
+    hashless = deepcopy(record)
+    for field in ("sha256", "hash_basis", "body_sha256"):
+        hashless["raw_refs"][0].pop(field)
+    _rehash(hashless)
+    with pytest.raises(SilverRecordError, match="sha256 must be a non-empty string"):
+        validate_silver_vault_record(hashless)
+
+    missing_body_hash = deepcopy(record)
+    missing_body_hash["raw_refs"][0].pop("body_sha256")
+    _rehash(missing_body_hash)
+    with pytest.raises(SilverRecordError, match="body_sha256 must be a non-empty string"):
+        validate_silver_vault_record(missing_body_hash)
 
     wrong_basis = deepcopy(record)
     wrong_basis["raw_refs"][0]["hash_basis"] = "derived_record_bytes"
@@ -637,3 +655,107 @@ def test_append_silver_record_set_rejects_unresolved_member_before_any_write(
     assert not root.lane_dir(
         subtree="derived", raw_anchor=_PACKET_ID, lane=_SILVER_LANE
     ).exists()
+
+
+def _legacy_fragrantica_record(root: DataLakeRoot) -> dict:
+    source_body = b"legacy Fragrantica source"
+    _commit_source(root, body=source_body)
+    audit = {
+        "record_id": "legacy_audit.json",
+        "raw_anchor": _PACKET_ID,
+        "lane_namespace": "cleaning_fragrantica_audit",
+        "content_hash": "",
+        "payload": {"audit": "legacy fixture"},
+    }
+    audit["content_hash"] = f"sha256:{silver_content_hash(audit)}"
+    root.append_record(
+        subtree="derived",
+        raw_anchor=_PACKET_ID,
+        lane=audit["lane_namespace"],
+        record_id=audit["record_id"],
+        data=(json.dumps(audit, sort_keys=True) + "\n").encode("utf-8"),
+    )
+    record = _text_record()
+    record["producer_id"] = (
+        "orca-harness.cleaning.fragrantica_lake."
+        "derive_fragrantica_cleaning_into_lake#silver"
+    )
+    record["producer_schema_version"] = (
+        "fragrantica_cleaning_silver_textobservation_v0"
+    )
+    record["raw_refs"] = [
+        {
+            "packet_id": _PACKET_ID,
+            "file_id": "source",
+            "relative_packet_path": "preserved/source.bin",
+            "sha256": hashlib.sha256(source_body).hexdigest(),
+            "hash_basis": "raw_stored_bytes",
+        }
+    ]
+    record["derived_refs"] = [
+        {
+            "lane_namespace": audit["lane_namespace"],
+            "record_id": audit["record_id"],
+            "content_hash": audit["content_hash"],
+            "content_hash_basis": "canonical_json_excluding_content_hash",
+        }
+    ]
+    _rehash(record)
+    return record
+
+
+def test_legacy_fragrantica_refs_resolve_without_rewriting_immutable_record(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    record = _legacy_fragrantica_record(root)
+    original = deepcopy(record)
+
+    validate_silver_vault_record(record)
+    authority = classify_silver_vault_record_sources(root, record)
+    root.append_record(
+        subtree="derived",
+        raw_anchor=record["raw_anchor"],
+        lane=record["lane_namespace"],
+        record_id=record["record_id"],
+        data=(json.dumps(record, sort_keys=True) + "\n").encode("utf-8"),
+    )
+    census = build_silver_observation_census(root)
+
+    assert record == original
+    assert "lineage_schema_version" not in record
+    assert authority.status == CURRENT_SOURCE_BACKED_AUTHORITY
+    assert authority.reason_code == "legacy_bytes_verified"
+    assert census["totals"]["current_source_backed_silver_records"] == 1
+    assert census["errors"] == []
+
+
+def test_legacy_fragrantica_profile_is_read_only_at_strict_write_boundary(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    record = _legacy_fragrantica_record(root)
+
+    with pytest.raises(SilverRecordError, match="read-only compatibility"):
+        validate_silver_vault_record_for_write(record)
+    with pytest.raises(SilverRecordError, match="read-only compatibility"):
+        append_silver_record(
+            root,
+            raw_anchor=record["raw_anchor"],
+            lane=record["lane_namespace"],
+            record_id=record["record_id"],
+            record=record,
+        )
+
+
+def test_unknown_producer_cannot_claim_legacy_missing_ref_fields(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    record = _legacy_fragrantica_record(root)
+    record["producer_id"] = "unknown.producer"
+    _rehash(record)
+
+    authority = classify_silver_vault_record_sources(root, record)
+    assert authority.status == INVALID_SILVER_AUTHORITY
+    assert authority.reason_code == "invalid_silver_envelope"

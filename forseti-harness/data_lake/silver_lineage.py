@@ -43,15 +43,15 @@ from pydantic import Field, ValidationError, model_validator
 from schemas.case_models import StrictModel
 
 SILVER_LINEAGE_SCHEMA_VERSION = "silver_lineage_v0"
-SOURCE_BACKED_COMPLETE_STATUS = "source_backed_complete"
-SOURCE_LINEAGE_MISSING_STATUS = "source_lineage_missing"
-SOURCE_LINEAGE_INCOMPLETE_STATUS = "source_lineage_incomplete"
-SOURCE_LINEAGE_INVALID_STATUS = "source_lineage_invalid"
-SourceBackedStatus = Literal[
-    "source_backed_complete",
-    "source_lineage_missing",
-    "source_lineage_incomplete",
-    "source_lineage_invalid",
+LINEAGE_STRUCTURE_COMPLETE_STATUS = "lineage_structure_complete"
+LINEAGE_STRUCTURE_MISSING_STATUS = "lineage_structure_missing"
+LINEAGE_STRUCTURE_INCOMPLETE_STATUS = "lineage_structure_incomplete"
+LINEAGE_STRUCTURE_INVALID_STATUS = "lineage_structure_invalid"
+LineageStructureStatus = Literal[
+    "lineage_structure_complete",
+    "lineage_structure_missing",
+    "lineage_structure_incomplete",
+    "lineage_structure_invalid",
 ]
 
 # Open relation vocabularies from the genericity check grammar. Kept as Literals
@@ -293,10 +293,11 @@ class SilverLineage(StrictModel):
             )
         return self
 
-    def is_source_backed_complete(self) -> bool:
-        """True iff the record has at least one resolvable raw or derived ref. A
-        limitations-only record is valid but returns False: it is not eligible for a
-        full source-backed/behavioral completeness claim."""
+    def has_reference_structure(self) -> bool:
+        """True iff the record declares at least one raw or derived ref.
+
+        This is structural only; physical authority requires the root-aware
+        classifier in data_lake.silver_record."""
         return bool(self.raw_refs or self.derived_refs)
 
     def to_record_fields(self) -> dict:
@@ -333,37 +334,42 @@ def validate_silver_lineage(lineage: SilverLineage) -> SilverLineage:
     return SilverLineage.model_validate(lineage.model_dump(mode="json"))
 
 
-def silver_record_source_backed_status(record: Mapping[str, object]) -> SourceBackedStatus:
-    """Read-side eligibility gate for persisted Silver record fields.
+def silver_record_lineage_structure_status(
+    record: Mapping[str, object],
+) -> LineageStructureStatus:
+    """Describe persisted lineage shape without making an authority claim.
 
-    The current Silver Vault envelope owns top-level ``raw_refs`` and
-    ``derived_refs``. ``lineage_schema_version`` is a legacy lineage-kit marker,
-    not a requirement of that official envelope. This structural helper therefore
-    accepts its absence; authority-making readers must additionally run the
-    root-aware physical verifier in ``data_lake.silver_record``.
+    The current Silver Vault envelope owns top-level raw_refs and derived_refs.
+    lineage_schema_version is a legacy lineage-kit marker, not a requirement of
+    that official envelope. Authority-making readers must use the root-aware
+    classifier in data_lake.silver_record; this helper deliberately cannot return
+    source_backed_complete.
     """
     if "raw_refs" not in record or "derived_refs" not in record:
-        return SOURCE_LINEAGE_MISSING_STATUS
+        return LINEAGE_STRUCTURE_MISSING_STATUS
     if (
         "lineage_schema_version" in record
         and record.get("lineage_schema_version") != SILVER_LINEAGE_SCHEMA_VERSION
     ):
-        return SOURCE_LINEAGE_INVALID_STATUS
+        return LINEAGE_STRUCTURE_INVALID_STATUS
     for field in ("producer_id", "producer_schema_version", "source_surface"):
         value = record.get(field)
         if not isinstance(value, str) or not value.strip():
-            return SOURCE_LINEAGE_INVALID_STATUS
+            return LINEAGE_STRUCTURE_INVALID_STATUS
     raw_refs = record.get("raw_refs")
     derived_refs = record.get("derived_refs")
     if not isinstance(raw_refs, list) or not isinstance(derived_refs, list):
-        return SOURCE_LINEAGE_INVALID_STATUS
+        return LINEAGE_STRUCTURE_INVALID_STATUS
     if not raw_refs and not derived_refs:
-        return SOURCE_LINEAGE_INCOMPLETE_STATUS
+        return LINEAGE_STRUCTURE_INCOMPLETE_STATUS
     if any(not isinstance(ref, Mapping) for ref in [*raw_refs, *derived_refs]):
-        return SOURCE_LINEAGE_INVALID_STATUS
-    return SOURCE_BACKED_COMPLETE_STATUS
+        return LINEAGE_STRUCTURE_INVALID_STATUS
+    return LINEAGE_STRUCTURE_COMPLETE_STATUS
 
 
-def is_silver_record_source_backed_complete(record: Mapping[str, object]) -> bool:
-    """Boolean wrapper for consumers that only need pass/fail source-backed status."""
-    return silver_record_source_backed_status(record) == SOURCE_BACKED_COMPLETE_STATUS
+def has_complete_silver_lineage_structure(record: Mapping[str, object]) -> bool:
+    """Boolean structural wrapper; never a physical source-authority decision."""
+    return (
+        silver_record_lineage_structure_status(record)
+        == LINEAGE_STRUCTURE_COMPLETE_STATUS
+    )

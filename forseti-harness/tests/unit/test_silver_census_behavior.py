@@ -26,6 +26,45 @@ FAILED_IG_GRID_PACKET = "01KW2MJM01Y0936VNECWB3MHSG"
 OBSERVED_AT = "2026-07-15T00:00:00Z"
 
 
+def _write_deep_capture(root: DataLakeRoot, shortcode: str, comment_id: str, audio: bytes):
+    """Write one packet-first deep capture and return its lake write handle."""
+    comment = AudienceComment(
+        comment_id=comment_id,
+        reel_shortcode=shortcode,
+        author_username="ana",
+        text=f"comment on {shortcode}",
+        like_count=2,
+        created_at_unix=1784073600,
+    )
+    substrate = (
+        json.dumps(
+            {
+                "pk": comment_id,
+                "user": {"username": "ana"},
+                "text": f"comment on {shortcode}",
+                "comment_like_count": 2,
+                "created_at": 1784073600,
+                "__typename": "XIGComment",
+            }
+        )
+        + "\n"
+    ).encode()
+    return write_reel_deep_capture_into_lake(
+        data_root=root,
+        result=ReelDeepCaptureResult(
+            reel_shortcode=shortcode,
+            comments=(comment,),
+            transcript_posture="transcribed",
+            transcript_cues=({"start_ms": 0, "end_ms": 1000, "text": f"audio {shortcode}"},),
+            media_url_used="https://cdn.example/expiring.mp4?token=secret",
+            comment_substrate=substrate,
+            audio_bytes=audio,
+            audio_ext="mp4",
+        ),
+        generated_at=OBSERVED_AT,
+    )
+
+
 def test_census_separates_current_source_backed_deep_capture_from_historical_audit_only(
     tmp_path: Path,
 ) -> None:
@@ -371,6 +410,36 @@ def test_duplicate_unit_is_suppressed_but_both_files_remain_stored(tmp_path: Pat
     assert totals["silver_records"] == 2
     assert totals["directly_observed_atomic_metric_values"] == 1
     assert totals["duplicate_observation_units_suppressed"] == 1
+
+
+def test_deep_capture_record_citing_another_packet_cannot_inflate_current_totals(
+    tmp_path: Path,
+) -> None:
+    """Cross-anchor refs resolve and hash-verify, but they are another packet's.
+
+    The census headline says these records are *current source-backed* for their
+    own anchor, so physical resolution alone is not enough to be counted.
+    """
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    first = _write_deep_capture(root, "ReelOne", "c1", b"audio-one")
+    second = _write_deep_capture(root, "ReelTwo", "c2", b"audio-two")
+    assert first.packet_id != second.packet_id
+
+    donor = json.loads(second[AUDIENCE_COMMENTS_LANE].read_text(encoding="utf-8"))
+    victim_path = first[AUDIENCE_COMMENTS_LANE]
+    record = json.loads(victim_path.read_text(encoding="utf-8"))
+    record["raw_refs"] = donor["raw_refs"]
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+    victim_path.write_text(json.dumps(record), encoding="utf-8")
+
+    census = build_silver_observation_census(root)
+
+    # The transcript sibling of packet one plus both of packet two stay current;
+    # only the cross-anchor comments record is demoted.
+    assert census["totals"]["deep_capture_current_source_backed_records"] == 3
+    assert any(
+        error["kind"] == "deep_capture_source_ref_unresolved" for error in census["errors"]
+    )
 
 
 def test_unresolved_record_is_named_and_cannot_inflate_observation_totals(tmp_path: Path) -> None:

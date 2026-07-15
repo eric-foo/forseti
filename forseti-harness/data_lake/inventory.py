@@ -430,7 +430,7 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "detection": "declared_free_walk",
         "posture": "selection_rule",
         "mechanism": "local:read_social_metric_history",
-        "reason": "requires an explicit policy fingerprint and deterministic per-anchor record-id function; exact-policy by-key records only, with no latest-sibling guess",
+        "reason": "requires an explicit policy fingerprint and deterministic per-anchor record-id function; exact-policy by-key records only, with shared physical source verification and no latest-sibling guess",
     },
     "capture_spine/creator_profile_current/silver_metric_reader.py": {
         "detection": "lane_dir",
@@ -473,7 +473,7 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "detection": "lane_dir",
         "posture": "selection_rule",
         "mechanism": "local:select_current_audience_silver_records",
-        "reason": "selects source-backed grid-observation and comment-attention records under the current exact policy, names policy mismatches as residuals, and fails closed on ambiguous current evidence",
+        "reason": "selects physically resolved source-backed grid-observation and comment-attention records under the current exact policy, names unresolved refs and policy mismatches as residuals, and fails closed on ambiguous current evidence",
     },
     "runners/run_transcript_product_extract.py": {
         "detection": "lane_dir",

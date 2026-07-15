@@ -20,18 +20,19 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
     SilverAnchor,
     SilverLineage,
     SilverRawRef,
     SilverSourceObject,
 )
 from data_lake.silver_record import (
+    PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     CONTENT_HASH_BASIS,
     SILVER_VAULT_RECORD_SCHEMA_VERSION,
     TEXT_OBSERVATION_SET_PAYLOAD_KIND,
     append_silver_record_set,
     silver_content_hash,
+    silver_raw_refs_bound_to_own_anchor,
     validate_silver_vault_record,
     verify_silver_vault_record_sources,
 )
@@ -144,6 +145,10 @@ def current_deep_capture_record(
         or record.get("record_id") != record_id
     ):
         return False
+    # Packet-first: the shared verifier proves the cited bytes are real, not that
+    # they belong to THIS anchor's packet.
+    if not silver_raw_refs_bound_to_own_anchor(record):
+        return False
     try:
         verify_silver_vault_record_sources(data_root, record)
     except (TypeError, ValueError):
@@ -171,7 +176,7 @@ def comments_compatibility_view(record: Mapping[str, object]) -> dict[str, objec
         "generated_at": record.get("captured_at"),
         "comment_count": len(comments),
         "comments": comments,
-        "source_backed_status": SOURCE_BACKED_COMPLETE_STATUS,
+        "source_backed_status": PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     }
 
 
@@ -193,7 +198,7 @@ def transcript_compatibility_view(record: Mapping[str, object]) -> dict[str, obj
         "transcript_posture": "transcribed",
         "cue_count": len(cues),
         "cues": cues,
-        "source_backed_status": SOURCE_BACKED_COMPLETE_STATUS,
+        "source_backed_status": PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
     }
 
 
