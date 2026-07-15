@@ -14,10 +14,11 @@ WHAT THIS DOES
   PR diff: a governed deletion with no complete record, or a successor that does
   not resolve in the committed tree, turns CI red, and a red rollup blocks both
   merge paths (the bot honors the router label; the self-merge guard requires a
-  green rollup). SUBSTANTIVE adjudication -- is the recorded evidence true? -- is
-  the human merger's job: the router routes every governed-deletion PR to
-  `risk/manual-review-required`, and the protected-action guard refuses to
-  self-merge a manual-flagged PR, so a human always reads the evidence.
+  green rollup). SUBSTANTIVE review -- is the recorded evidence true? -- plus
+  home/Chief Architect adjudication is a resident completion gate. The router
+  sends every governed-deletion PR to `risk/manual-review-required`, excluding
+  unattended auto-merge and signaling that gate; the label does not mechanically
+  certify completion or choose a human merge actor.
 
 WHAT THIS GATE DOES NOT COVER (named boundaries)
   - It is a PRE-MERGE PR gate. A direct push to main is NOT caught (the push-event
@@ -25,7 +26,8 @@ WHAT THIS GATE DOES NOT COVER (named boundaries)
     separate, bypassable control (.githooks/pre-push + the protected-action guard).
   - It enforces evidence PRESENCE + machine-checkable facts (targets match the
     diff; successor resolves as a committed file), NOT the truth of the
-    human-judged fields -- that is the human adjudicator's job (above).
+    judgment-bearing fields -- that is the independent reviewer and home/Chief
+    Architect adjudicator's job (above).
 
 WHY STRICT (not report-mode)
   Report-mode (exit 0) gives no safety here: a green CI lets the self-merge
