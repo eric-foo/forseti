@@ -2,8 +2,12 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
+import os
+import tempfile
 import sys
+from contextlib import redirect_stderr
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -113,12 +117,26 @@ def complete_onboarding(
     generated_at_utc: str | None,
     preflight_receipt_path: Path | None,
 ) -> dict[str, Any]:
-    """Materialize only the exact snapshot admitted by its successful outcome."""
+    """Materialize and verify a candidate before atomically publishing it."""
 
     outcome = CreatorAudienceJudgmentOutcome.model_validate(load_json(outcome_path))
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    previous_output = output_path.read_bytes() if output_path.exists() else None
+    with tempfile.NamedTemporaryFile(
+        dir=output_path.parent,
+        prefix=f".{output_path.name}.",
+        suffix=".candidate",
+        delete=False,
+    ) as candidate_file:
+        candidate_path = Path(candidate_file.name)
+    if previous_output is None:
+        candidate_path.unlink()
+    else:
+        candidate_path.write_bytes(previous_output)
+
     argv = [
         "--output",
-        str(output_path),
+        str(candidate_path),
         "--account-ledger",
         str(account_ledger_path),
         "--creator-registry-index",
@@ -135,33 +153,51 @@ def complete_onboarding(
         argv.extend(("--generated-at-utc", generated_at_utc))
     if preflight_receipt_path:
         argv.extend(("--preflight-receipt", str(preflight_receipt_path)))
-    try:
-        exit_code = materialize_main(argv)
-    except SystemExit as exc:
-        raise ValueError(f"creator profile materialization failed with exit {exc.code}") from exc
-    if exit_code != 0:
-        raise ValueError(f"creator profile materialization failed with exit {exit_code}")
 
-    document = load_json(output_path)
-    wrapper = document.get("creator_profile_current_view")
-    profiles = wrapper.get("profiles") if isinstance(wrapper, dict) else None
-    if not isinstance(profiles, list):
-        raise ValueError("materialized creator profile view has no profiles list")
-    matches = [
-        profile
-        for profile in profiles
-        if isinstance(profile, dict)
-        and profile.get("profile_subject_id") == outcome.profile_subject_id
-    ]
-    if len(matches) != 1:
-        raise ValueError("materialized view does not contain exactly one target profile")
-    joined = matches[0].get("audience_triangulation")
-    if (
-        not isinstance(joined, dict)
-        or joined.get("snapshot_id") != outcome.snapshot_id_or_none
-        or joined.get("input_bundle_hash") != outcome.bundle_hash
-    ):
-        raise ValueError("materialized profile did not join the exact validated snapshot")
+    stderr = io.StringIO()
+    try:
+        try:
+            with redirect_stderr(stderr):
+                exit_code = materialize_main(argv)
+        except SystemExit as exc:
+            raise ValueError(
+                f"creator profile materialization failed with exit {exc.code}: "
+                f"{stderr.getvalue().strip()}"
+            ) from exc
+        if exit_code != 0:
+            raise ValueError(
+                f"creator profile materialization failed with exit {exit_code}: "
+                f"{stderr.getvalue().strip()}"
+            )
+
+        document = load_json(candidate_path)
+        wrapper = document.get("creator_profile_current_view")
+        profiles = wrapper.get("profiles") if isinstance(wrapper, dict) else None
+        if not isinstance(profiles, list):
+            raise ValueError("materialized creator profile view has no profiles list")
+        matches = [
+            profile
+            for profile in profiles
+            if isinstance(profile, dict)
+            and profile.get("profile_subject_id") == outcome.profile_subject_id
+        ]
+        if len(matches) != 1:
+            raise ValueError("materialized view does not contain exactly one target profile")
+        joined = matches[0].get("audience_triangulation")
+        if (
+            not isinstance(joined, dict)
+            or joined.get("snapshot_id") != outcome.snapshot_id_or_none
+            or joined.get("input_bundle_hash") != outcome.bundle_hash
+        ):
+            raise ValueError("materialized profile did not join the exact validated snapshot")
+
+        current_output = output_path.read_bytes() if output_path.exists() else None
+        if current_output != previous_output:
+            raise ValueError("creator profile output changed during materialization")
+        os.replace(candidate_path, output_path)
+    finally:
+        candidate_path.unlink(missing_ok=True)
+
     return {
         "status": "complete",
         "stage_reached": "verified_materialization",

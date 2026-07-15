@@ -106,6 +106,20 @@ def _normalize_derived_fields(
 
 
 
+def _reference_ids(value: Any) -> tuple[set[str], list[str]]:
+    """Split a raw evidence-id list into usable string ids and unusable entries.
+
+    A raw response is untrusted JSON: an entry may be unhashable or non-string,
+    which must surface as one reported defect rather than an exception.
+    """
+
+    if not isinstance(value, list):
+        return set(), []
+    usable = {item for item in value if isinstance(item, str)}
+    malformed = [repr(item) for item in value if not isinstance(item, str)]
+    return usable, malformed
+
+
 def _collect_raw_reference_errors(
     raw_snapshot: Mapping[str, Any], bundle: Mapping[str, Any]
 ) -> list[str]:
@@ -124,18 +138,20 @@ def _collect_raw_reference_errors(
         if not isinstance(claim, Mapping):
             continue
         claim_id = str(claim.get("claim_id") or "<missing-claim-id>")
-        support_values = claim.get("all_support_evidence_ids")
-        counter_values = claim.get("counterevidence_ids")
-        representative_values = claim.get("representative_evidence_ids")
-        support = set(support_values) if isinstance(support_values, list) else set()
-        counter = set(counter_values) if isinstance(counter_values, list) else set()
-        representatives = (
-            set(representative_values)
-            if isinstance(representative_values, list)
-            else set()
+        support, support_malformed = _reference_ids(claim.get("all_support_evidence_ids"))
+        counter, counter_malformed = _reference_ids(claim.get("counterevidence_ids"))
+        representatives, representative_malformed = _reference_ids(
+            claim.get("representative_evidence_ids")
         )
+        malformed = sorted(
+            {*support_malformed, *counter_malformed, *representative_malformed}
+        )
+        if malformed:
+            errors.append(
+                f"claim {claim_id} cites non-string evidence references: {malformed!r}"
+            )
         unknown = sorted(
-            str(evidence_id)
+            evidence_id
             for evidence_id in (support | counter)
             if evidence_id not in evidence_ids
         )
@@ -146,6 +162,8 @@ def _collect_raw_reference_errors(
                 f"claim {claim_id} representative evidence is outside full support"
             )
     return list(dict.fromkeys(errors))
+
+
 def _collect_relational_errors(
     snapshot: CreatorAudienceTriangulationSnapshot, bundle: Mapping[str, Any]
 ) -> list[str]:
@@ -192,6 +210,10 @@ def _collect_relational_errors(
             for evidence_id in support
             if evidence_id in evidence and evidence[evidence_id].get("video_id")
         }
+        if set(claim.source_video_ids) != videos:
+            errors.append(
+                f"claim {claim.claim_id} source_video_ids do not close over support"
+            )
         if claim.support_scope in {"multi_video", "mixed_multi_video"} and len(videos) < 2:
             errors.append(f"claim {claim.claim_id} overstates multi-video support")
         claim_text = f"{claim.statement} {claim.commercial_implication}"

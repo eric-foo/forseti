@@ -30,6 +30,7 @@ from data_lake.silver_record import (
 )
 from evidence_binding.tiktok_audience_triangulation import (
     ASSEMBLY_RECEIPT_LANE,
+    _canonical_bytes,
     build_assembly_receipt,
     build_creator_audience_evidence_bundle,
 )
@@ -328,6 +329,49 @@ def validate_subscription_judgment(
     }
 
 
+_BUNDLE_DERIVED_KEYS = frozenset({"bundle_hash", "bundle_id", "serialized_utf8_bytes"})
+
+
+def _verify_bundle_integrity(
+    data_root: DataLakeRoot, bundle: Mapping[str, Any], bundle_path: Path
+) -> None:
+    """Reject a scratch bundle whose declared hash does not close over its content.
+
+    The bundle is a transport file, so its self-declared identity is only
+    evidence once recomputed; every downstream identity check chains off it.
+    """
+
+    core = {key: value for key, value in bundle.items() if key not in _BUNDLE_DERIVED_KEYS}
+    expected_hash = f"sha256:{hashlib.sha256(_canonical_bytes(core)).hexdigest()}"
+    if bundle.get("bundle_hash") != expected_hash:
+        raise ValueError(
+            f"bundle_hash does not close over bundle content: {bundle_path}"
+        )
+    serialized_core = {
+        key: value for key, value in bundle.items() if key != "serialized_utf8_bytes"
+    }
+    if bundle.get("serialized_utf8_bytes") != len(_canonical_bytes(serialized_core)):
+        raise ValueError(
+            f"serialized_utf8_bytes does not close over bundle content: {bundle_path}"
+        )
+
+    expected_receipt = build_assembly_receipt(bundle)
+    receipt_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=str(bundle.get("raw_anchor")),
+        lane=ASSEMBLY_RECEIPT_LANE,
+        record_id=str(expected_receipt["record_id"]),
+    )
+    if not receipt_path.is_file():
+        raise ValueError(
+            f"persisted audience assembly receipt is missing for bundle: {bundle_path}"
+        )
+    if _load_object(receipt_path) != expected_receipt:
+        raise ValueError(
+            f"persisted audience assembly receipt does not match bundle: {bundle_path}"
+        )
+
+
 def submit_subscription_judgment(
     *,
     data_root: DataLakeRoot,
@@ -338,6 +382,7 @@ def submit_subscription_judgment(
     """Persist an exact response and either one validated snapshot or all blockers."""
 
     bundle = _load_object(bundle_path)
+    _verify_bundle_integrity(data_root, bundle, bundle_path)
     response_sha256 = f"sha256:{hashlib.sha256(response_bytes).hexdigest()}"
     snapshot_document: dict[str, Any] | None = None
     snapshot_text: str | None = None
