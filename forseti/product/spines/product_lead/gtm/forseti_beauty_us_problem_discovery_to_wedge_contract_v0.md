@@ -101,7 +101,7 @@ direction_change_propagation:
     The first US Beauty run now has a frozen Brand-level neutral-pool contract;
     Scanning supplies bounded pointers while GTM owns eligibility and deterministic selection.
   trigger: output_authority
-  related_triggers: [source_truth, lifecycle_boundary]
+  related_triggers: [product_doctrine, lifecycle_boundary]
   controlling_sources_updated:
     - forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md
     - docs/workflows/forseti_repo_map_v0.md
