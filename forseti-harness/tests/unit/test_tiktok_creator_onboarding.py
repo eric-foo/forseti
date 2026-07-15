@@ -22,6 +22,7 @@ from source_capture.session_profiles import (
 )
 from source_capture.source_access_provenance import HarnessProxyProfilePosture
 from source_capture.tiktok.creator_onboarding import (
+    TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME,
     TIKTOK_ONBOARDING_RECEIPT_JSON_NAME,
     TIKTOK_ONBOARDING_SELECTION_JSON_NAME,
     TikTokCreatorOnboardingError,
@@ -673,6 +674,16 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         _item(str(video_id), 100 - video_id, 1)
         for video_id in range(5, 28)
     ]
+    subtitle_url = "https://v16-webapp.tiktok.com/profile-grid-subtitle.webvtt"
+    grid_items[0]["video"] = {
+        "subtitleInfos": [
+            {
+                "Format": "webvtt",
+                "LanguageCodeName": "eng-US",
+                "Url": subtitle_url,
+            }
+        ]
+    }
     grid = _capture(
         ordered_ids=[str(video_id) for video_id in range(1, 28)],
         items=grid_items,
@@ -777,6 +788,26 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
     assert receipt["grid_deep_entry_or_none"]["direct_video_navigation_count"] == 0
     assert deep_calls[0]["capture_route"] == "grid_tile_overlay"
     assert callable(deep_calls[0]["page_capture_sequence_fn"])
+    assert deep_calls[0]["profile_grid_subtitle_sources_by_video_id"] == {
+        "1": {
+            "id": "1",
+            "video": {
+                "subtitleInfos": [
+                    {
+                        "Format": "webvtt",
+                        "LanguageCodeName": "eng-US",
+                        "Url": subtitle_url,
+                    }
+                ]
+            },
+        }
+    }
+    assert subtitle_url not in (
+        tmp_path / TIKTOK_ONBOARDING_GRID_WINDOW_JSON_NAME
+    ).read_text(encoding="utf-8")
+    assert subtitle_url not in (
+        tmp_path / TIKTOK_ONBOARDING_SELECTION_JSON_NAME
+    ).read_text(encoding="utf-8")
 
 
 def test_grid_overlay_sequence_waits_60_seconds_after_failed_click_then_retries(
