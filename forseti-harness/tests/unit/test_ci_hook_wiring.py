@@ -377,6 +377,52 @@ def test_delegated_patch_gate_requires_cross_vendor_repo_courier() -> None:
         )
     )
 
+    commented_trigger = [
+        line.replace(
+            "target_kind: delegated_code_review_and_patch",
+            'target_kind: "delegated_code_review_and_patch" # courier target',
+        ).replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")
+        for line in couriered
+    ]
+    assert any(
+        finding.kind == "delegated_patch_same_vendor"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "commented_trigger.md", commented_trigger
+        )
+    )
+
+    cased_trigger = [
+        line.replace(
+            "target_kind: delegated_code_review_and_patch",
+            "target_kind: Delegated_Code_Review_And_Patch",
+        ).replace("access: repo", "access: no_repo")
+        for line in couriered
+    ]
+    assert any(
+        finding.kind == "delegated_patch_access"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "cased_trigger.md", cased_trigger
+        )
+    )
+
+    cased_placeholder = [
+        line.replace(
+            "delegate_vendor: operator_to_fill", "delegate_vendor: Operator_To_Fill"
+        ).replace("receiver_class: receiver_to_bind", "receiver_class: external_direct_write")
+        for line in couriered
+    ]
+    cased_findings = gate.evaluate_delegated_patch_lines(
+        "cased_placeholder.md", cased_placeholder
+    )
+    assert any(
+        finding.kind == "delegated_patch_delegate_vendor"
+        for finding in cased_findings
+    )
+    assert any(
+        finding.kind == "delegated_patch_receiver_class"
+        for finding in cased_findings
+    )
+
 
 def test_every_pre_push_gate_is_the_same_command_ci_runs() -> None:
     guard = _load_pre_push_guard()

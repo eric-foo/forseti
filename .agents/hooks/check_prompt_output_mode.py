@@ -302,6 +302,17 @@ def _clean_value(value: str) -> str:
     return value
 
 
+def _trigger_token(value: str) -> str:
+    """Normalize a gate's own self-declared trigger value.
+
+    Trigger and guarded field are asymmetric: a field that fails to parse raises
+    a finding, but a trigger that fails to parse switches the whole gate off
+    silently. So the trigger tolerates an inline comment and casing that the
+    fields it guards do not.
+    """
+    return _clean_value(value.split("#", 1)[0]).casefold()
+
+
 def _yaml_blocks(lines: list[str], key: str) -> list[YamlBlock]:
     """Extract simple indented YAML-ish blocks used by commission receipts."""
     blocks: list[YamlBlock] = []
@@ -527,7 +538,10 @@ def evaluate_managed_receiver_lines(rel_source: str, lines: list[str]) -> list[F
 def evaluate_delegated_patch_lines(rel_source: str, lines: list[str]) -> list[Finding]:
     """Validate the courier-only, cross-vendor delegated code-patch shell."""
     target_kinds = _declared_values(lines, _TARGET_KIND_RE)
-    if not any(value == "delegated_code_review_and_patch" for value, _ in target_kinds):
+    if not any(
+        _trigger_token(value) == "delegated_code_review_and_patch"
+        for value, _ in target_kinds
+    ):
         return []
 
     findings: list[Finding] = []
@@ -555,6 +569,7 @@ def evaluate_delegated_patch_lines(rel_source: str, lines: list[str]) -> list[Fi
     delivery, delivery_lineno = one_value("delivery", _DELIVERY_RE)
 
     invalid_vendor_placeholders = {"", "unknown", "unrecorded"}
+    delegate_is_placeholder = delegate_vendor.casefold() == "operator_to_fill"
     if author_vendor.casefold() in invalid_vendor_placeholders | {"operator_to_fill"}:
         findings.append(Finding(
             rel_source,
@@ -569,8 +584,15 @@ def evaluate_delegated_patch_lines(rel_source: str, lines: list[str]) -> list[Fi
             delegate_lineno,
             "delegate_vendor must name a different vendor or use operator_to_fill before couriering",
         ))
+    elif delegate_is_placeholder and delegate_vendor != "operator_to_fill":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_delegate_vendor",
+            delegate_lineno,
+            "delegate vendor placeholder must use canonical operator_to_fill spelling",
+        ))
     elif (
-        delegate_vendor != "operator_to_fill"
+        not delegate_is_placeholder
         and author_vendor
         and delegate_vendor.casefold() == author_vendor.casefold()
     ):
@@ -639,7 +661,7 @@ def evaluate_delegated_patch_lines(rel_source: str, lines: list[str]) -> list[Fi
                 "delegate patch courier receiver_class must be receiver_to_bind or external_direct_write (got %r)"
                 % receiver_class,
             ))
-        if delegate_vendor == "operator_to_fill" and receiver_class != "receiver_to_bind":
+        if delegate_is_placeholder and receiver_class != "receiver_to_bind":
             findings.append(Finding(
                 rel_source,
                 "delegated_patch_receiver_class",
@@ -1390,6 +1412,69 @@ def selftest() -> int:
             finding.kind == "delegated_patch_task_creation"
             for finding in evaluate_delegated_patch_lines(
                 "dispatched_codex_delegate.md", dispatched_codex_delegate
+            )
+        ),
+        True,
+    )
+
+    commented_trigger = [
+        line.replace(
+            "target_kind: delegated_code_review_and_patch",
+            "target_kind: delegated_code_review_and_patch  # sibling target kind",
+        ).replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")
+        for line in couriered_delegate
+    ]
+    check(
+        "inline comment on the trigger cannot switch the gate off",
+        any(
+            finding.kind == "delegated_patch_same_vendor"
+            for finding in evaluate_delegated_patch_lines(
+                "commented_trigger.md", commented_trigger
+            )
+        ),
+        True,
+    )
+
+    cased_trigger = [
+        line.replace(
+            "target_kind: delegated_code_review_and_patch",
+            "target_kind: Delegated_Code_Review_And_Patch",
+        ).replace("access: repo", "access: no_repo")
+        for line in couriered_delegate
+    ]
+    check(
+        "trigger casing cannot switch the gate off",
+        any(
+            finding.kind == "delegated_patch_access"
+            for finding in evaluate_delegated_patch_lines(
+                "cased_trigger.md", cased_trigger
+            )
+        ),
+        True,
+    )
+
+    cased_placeholder = [
+        line.replace(
+            "delegate_vendor: operator_to_fill", "delegate_vendor: Operator_To_Fill"
+        ).replace("receiver_class: receiver_to_bind", "receiver_class: external_direct_write")
+        for line in couriered_delegate
+    ]
+    check(
+        "cased operator_to_fill still requires preparation-only receiver",
+        any(
+            finding.kind == "delegated_patch_receiver_class"
+            for finding in evaluate_delegated_patch_lines(
+                "cased_placeholder.md", cased_placeholder
+            )
+        ),
+        True,
+    )
+    check(
+        "cased operator_to_fill is rejected as noncanonical",
+        any(
+            finding.kind == "delegated_patch_delegate_vendor"
+            for finding in evaluate_delegated_patch_lines(
+                "cased_placeholder.md", cased_placeholder
             )
         ),
         True,
