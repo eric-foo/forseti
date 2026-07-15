@@ -26,7 +26,7 @@ from runners.run_basenotes_cleaning_catchup import main, pending_packets, run_ca
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
-_BASENOTES_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_BASENOTES_SURFACE = "basenotes_product_page_user_cleared_persistent_chrome_current_window"
 _FRAGRANTICA_SURFACE = "fragrantica_product_page_direct_http"
 _FIXTURE = (
     Path(__file__).resolve().parents[1]

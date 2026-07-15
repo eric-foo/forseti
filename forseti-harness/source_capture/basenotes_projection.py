@@ -18,12 +18,14 @@ if TYPE_CHECKING:
 
 
 BASENOTES_PROJECTION_METHOD = "basenotes_current_window_mechanical_projection"
-BASENOTES_PROJECTION_VERSION = "v0"
+BASENOTES_PROJECTION_VERSION = "v1"
 BASENOTES_PROJECTION_CERTIFICATION = "view_only; not_cleaned; not_normalized; not_judgment_ready"
 PROJECTION_BASENOTES_LANE = "projection_basenotes"
 
 _BASENOTES_SOURCE_FAMILY = "fragrance_native_database"
-_BASENOTES_SOURCE_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_BASENOTES_SOURCE_SURFACE = (
+    "basenotes_product_page_user_cleared_persistent_chrome_current_window"
+)
 _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES = frozenset(
     {
         "action_ceiling",
@@ -140,7 +142,7 @@ class BasenotesProjectionPacket(StrictModel):
     projection_method: Literal["basenotes_current_window_mechanical_projection"] = (
         BASENOTES_PROJECTION_METHOD
     )
-    projection_version: Literal["v0"] = BASENOTES_PROJECTION_VERSION
+    projection_version: Literal["v1"] = BASENOTES_PROJECTION_VERSION
     certification: Literal["view_only; not_cleaned; not_normalized; not_judgment_ready"] = (
         BASENOTES_PROJECTION_CERTIFICATION
     )

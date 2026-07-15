@@ -56,7 +56,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/basenotes.py": (
         ("BASENOTES_CLEANING_METHOD_ID (cleaning/basenotes_lake.py)",),
-        "947303e81e95122488bd7ad4c9577503881cb663b1a5f77b63ad792209658333",
+        # Admission-shaping v1: user-cleared persistent Chrome replaces the retired proxy surface.
+        "ce5aa38b1105044bfadd8aa7dd081136b7ac14db2fe2325a5994782f34476f3a",
     ),
     "cleaning/basenotes_lake.py": (
         (
@@ -64,7 +65,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "BASENOTES_SILVER_PRODUCER_SCHEMA_VERSION",
             "BASENOTES_CLEANING_METHOD_ID",
         ),
-        "34635ec6f0ace24e58c1a133ace0952a7f9895a677e1d383013bce3d26672acd",
+        # Cleaning method v1 re-fingerprints obligations for the changed source admission.
+        "afaaa619a3bcb2388188c3f1414e16f1de0cc61b22beac46b6d858cd113f4f44",
     ),
     "cleaning/fragrantica.py": (
         ("FRAGRANTICA_CLEANING_METHOD_ID (cleaning/fragrantica_lake.py)",),
@@ -115,7 +117,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
-        "e3daca78e9dc238844d6452a93a16728fb6b6e8f0e4be936df3e1a98e2ffa2da",
+        # Projection v1 rejects the retired proxy surface and admits the proven persistent-Chrome surface.
+        "cd56c89c207ad9716cb6104c576b7cb1951bc75cc1256b499d119980c905cd7d",
     ),
     "source_capture/fragrance_review_coverage.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),

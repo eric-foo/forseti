@@ -51,6 +51,7 @@ from data_lake.inventory import (
 # sub-runners and are tested separately below.
 EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
     {
+        "run_basenotes_mgt_capture.py",
         "run_fragrance_review_lake_packet.py",
         "run_fragrantica_mgt_capture.py",
         "run_ig_reels_lane_orchestrator.py",
