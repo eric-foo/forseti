@@ -20,11 +20,11 @@ replace the fixed case. The sequence changes one operating intervention at a
 time, reruns three fresh cold agents, and advances only when correctness,
 failure integrity, and the named fix gate pass.
 
-Current state: **fix 1 passed; fix 2 is next**. The baseline record is pending on
-PR #951 at commit `28168fdfc9d39fbdcf57f64b9c2d56b7aa26aceb`; this
-ledger does not imply that PR is merged.
+Current state: **fix 1 passed and landed in PR #955; the fix 2 implementation
+landed in PR #956, but its first managed-worktree trusted-hook gate failed
+before dogfood dispatch**. Fix 2 remains unpassed, and fix 3 has not started.
 
-Fix 2 candidate state and its pending trusted-hook gate are recorded below.
+The landed fix 2 candidate and failed live-boundary trial are recorded below.
 
 ## Baseline
 
@@ -172,6 +172,53 @@ not yet passed**.
 After the fix-1 and fix-2 branches land and the trusted project hook reloads,
 rerun the unchanged three-agent case. Do not start fix 3 until all three shell
 runs satisfy the fix-2 gate.
+
+### Managed-worktree live-boundary trial — failed
+
+A new managed background worktree at `origin/main` commit
+`55af05592c19523f1f2f494e88119f9a744cbc79` was used so the landed hook could
+reload without inheriting the parent task's pre-merge hook cache. The checkout
+contained both PR #955 at `c79a3b1b` and PR #956 at `7bdec93b`. The ordered
+pre-dogfood probes observed:
+
+1. `.codex/hooks.json` contained the landed one-process Windows
+   `pathlib`/`runpy` command, and `7bdec93b` was an ancestor of the checkout.
+2. A benign ordinary shell call returned without escalation or fallback in
+   2.2 seconds wall time; the command body measured 43 ms. No default-shell
+   stall occurred.
+3. The required safe guard probe, `git clean -n`, executed with exit 0 in
+   3.2 seconds instead of returning the project's denial. The only command
+   output was the sandbox user's inaccessible global-ignore warning.
+
+The third probe failed the prerequisite gate, so no collaboration subagents
+were spawned, no vendor-admission snapshots were created, and no fix 2 dogfood
+run or operation accounting exists for this trial. Fix 3 did not start.
+
+Post-failure diagnosis preserved the distinction between hook logic and live
+adoption:
+
+- `guard_protected_actions.py --selftest` and
+  `forseti_guard_codex_adapter.py --selftest` both passed;
+- direct adapter input for the exact PowerShell `git clean -n` event returned
+  Codex's native `permissionDecision: deny` response;
+- the parent lane had separately observed a fresh CLI skip a changed hook as
+  untrusted and then execute the same `git clean -n` probe;
+- this managed task surfaced no interactive project-hook trust prompt; and
+- the live Codex trust registry contained hook-state hashes only for
+  `C:\Users\vmon7\Desktop\projects\orca\.codex\hooks.json`, not this managed
+  worktree's hook path. The trusted parent-checkout file and landed worktree
+  file also differed exactly at the Windows launcher line: the parent still
+  carried the pre-fix nested-shell command while the worktree carried the
+  landed `pathlib`/`runpy` command.
+
+Decision: **failed the fix 2 trusted-hook prerequisite**. The ordinary shell
+latency probe passed, but safety enforcement did not. The available evidence
+places the failure at live hook adoption/enforcement and does not demonstrate a
+defect in the landed launcher or adapter. Do not change the matcher or launcher
+from this trial, synthesize a trust entry, reinterpret direct adapter success as
+live enforcement, or advance to fix 3. A subsequent trial requires the normal
+user-visible trust/adoption route for the managed worktree and must repeat the
+ordered live probes before any three-agent dogfood dispatch.
 
 ## Non-claims
 
