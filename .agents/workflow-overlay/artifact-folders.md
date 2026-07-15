@@ -35,6 +35,7 @@ authority_boundary: retrieval_only
 - `docs/hygiene/`: triage queues and cleanup notes for Forseti artifacts.
 - `docs/_inbox/`: non-authoritative temporary holding area for scratch prompts, notes, imports, and untriaged material.
 - `.agents/skills/`: Forseti-local accepted/candidate workflow skill source (for example, `forseti-product-lead`; legacy wrappers such as `orca-product-lead` only when bound by skill-adoption.md), governed by `.agents/workflow-overlay/skill-adoption.md`. Forseti-local only; this is NOT plugin, user-level, installed, or external skill source, and living here does not deploy, activate, or make a skill resolver-visible.
+- `.agents/tools/`: small repository-owned utilities operated directly by agents; each tool must stay bounded to its named workflow failure, fail visibly, and expose its own usage and focused self-test. This is not a hook, daemon, plugin, runtime service, or general automation home.
 
 ## Rules
 

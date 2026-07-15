@@ -1,9 +1,12 @@
 """Strict contracts for creator-audience Judgment and registry projection."""
 from __future__ import annotations
 
+import base64
+import hashlib
+import json
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from schemas.case_models import StrictModel
 
@@ -114,10 +117,71 @@ class CreatorAudienceTriangulationSnapshot(StrictModel):
         return value.strip()
 
 
+class CreatorAudienceJudgmentOutcome(StrictModel):
+    schema_version: Literal["creator_audience_judgment_outcome_v0"]
+    record_id: str
+    raw_anchor: str
+    creator_id: str
+    profile_subject_id: str
+    bundle_id: str
+    bundle_hash: str
+    status: Literal["validated", "blocked"]
+    response_sha256: str
+    response_size_bytes: int
+    response_bytes_b64: str
+    validation_errors: list[str]
+    snapshot_id_or_none: str | None
+    snapshot_sha256_or_none: str | None
+    snapshot_or_none: CreatorAudienceTriangulationSnapshot | None
+    model_api_calls: Literal[0] = 0
+
+    @model_validator(mode="after")
+    def outcome_consistency(self) -> "CreatorAudienceJudgmentOutcome":
+        response_bytes = base64.b64decode(self.response_bytes_b64, validate=True)
+        if len(response_bytes) != self.response_size_bytes:
+            raise ValueError("Judgment outcome response size does not match exact bytes")
+        response_sha256 = f"sha256:{hashlib.sha256(response_bytes).hexdigest()}"
+        if response_sha256 != self.response_sha256:
+            raise ValueError("Judgment outcome response hash does not match exact bytes")
+
+        if self.status == "validated":
+            if (
+                self.validation_errors
+                or self.snapshot_or_none is None
+                or not self.snapshot_id_or_none
+                or not self.snapshot_sha256_or_none
+            ):
+                raise ValueError("validated Judgment outcome requires one clean snapshot")
+            if self.snapshot_or_none.snapshot_id != self.snapshot_id_or_none:
+                raise ValueError("Judgment outcome snapshot_id does not match embedded snapshot")
+            snapshot_bytes = (
+                json.dumps(
+                    self.snapshot_or_none.model_dump(mode="json"),
+                    ensure_ascii=False,
+                    indent=2,
+                    sort_keys=True,
+                ).encode("utf-8")
+                + b"\n"
+            )
+            snapshot_sha256 = f"sha256:{hashlib.sha256(snapshot_bytes).hexdigest()}"
+            if snapshot_sha256 != self.snapshot_sha256_or_none:
+                raise ValueError(
+                    "Judgment outcome snapshot hash does not match embedded snapshot"
+                )
+        elif (
+            not self.validation_errors
+            or self.snapshot_or_none is not None
+            or self.snapshot_id_or_none is not None
+            or self.snapshot_sha256_or_none is not None
+        ):
+            raise ValueError("blocked Judgment outcome requires errors and no snapshot")
+        return self
+
 __all__ = [
     "AudienceJudgmentClaimSet",
     "AudienceProjectionPoint",
     "AudienceTriangulationClaim",
+    "CreatorAudienceJudgmentOutcome",
     "CreatorAudienceTriangulationSnapshot",
     "CreatorSignalProjection",
 ]

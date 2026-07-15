@@ -29,6 +29,27 @@ Prepare-only **proposal + classification**. It inventories and classifies rules 
 
 Scope guard: this is the **enforcement-placement step only**. Binding the shared distillation doctrine to Orca is a separate later task and is explicitly out of scope here (see § Step 4).
 
+## Update — 2026-07-16: EP-38 managed-receiver commission shell built
+
+EP-38 classifies the deterministic shell of the already-landed Implementation
+Commission Receiver-Creation Clause as **PARTIAL**. The trigger is limited to a
+prompt's own declared `implementation-authorized`, `codex_managed_worktree`, and
+not-yet-verified binding fields. Exact single-use authorization tokens, binding
+field equality, absence from read-only commissions, prohibited positive manual
+or repeated creation directives, and typed source-load failure are substrate
+shape. Whether those declarations truthfully classify the act, whether source
+loading really failed, and whether a future receiver is correctly rooted,
+writable, current, or writer-isolated remain resident/runtime judgment.
+
+The build extends the existing diff-scoped prompt checker
+`.agents/hooks/check_prompt_output_mode.py` and adds a gating `--validate-stdin`
+mode for frozen chat/courier bodies. It does not create the standalone checker,
+registry, task API, or persisted receiver state prohibited by
+`.agents/workflow-overlay/decision-routing.md`. The existing CI and pre-push
+commands inherit the filed-prompt check without new wiring. Placement is not
+authority: green proves only the parsed shell, never receiver validity,
+dispatch, task count in the product runtime, source freshness, or readiness.
+
 ## Update — 2026-07-11: Batch 2 closeout-obligation placement decision (no build)
 
 Batch 2 examined two independent consequential misses before choosing an
@@ -808,8 +829,8 @@ IDs are stable handles for later owner gating. Where a rule appears in several o
 | EP-16 | Source-capsule budget counts (≤4 full / ≤8 targeted / ≤10 excerpts) (`source-loading`; `validation-gates`) | capsule artifact | **PARTIAL** | `schema` count check; "right narrowing" → judgment. |
 | EP-17 | Template-registry integrity: each registry path exists; unbound kinds (`direct-implementation`/`repo-code-review`/`automation-runtime`) unused absent authorization (`template-registry`) | registry + template use | **SUBSTRATE** (path-existence test) / PARTIAL (use-guard) | `test` registry integrity; `hook` use-guard. |
 | EP-18 | Subagent runtime payload safety: no explicit `default`/`null`/same-as-parent `agent_type`/`model`/etc. on forked spawns (`decision-routing`) | spawn payload | **PARTIAL → SUBSTRATE** if the spawn passes a checkable boundary | `schema` payload reject. |
-| EP-19 | De-correlation who-constraint: author family ≠ delegate family recorded; Opus author ⇒ non-Opus delegate (`delegated-review-patch`) | commission record | **PARTIAL** | `schema` field-inequality assertion; truth of the recorded family → resident (self-cert). |
-| EP-20 | `no_repo` review package: verbatim attachment hash-confirmable; freshness gate hash-compares `derived_from` pins (`delegated-review-patch`) | review package | **SUBSTRATE** · Win | `test` hash compare — deterministic. |
+| EP-19 | Delegated-patch eligibility: author vendor ≠ delegate vendor, direct repo access, operator-courier-only rendering, and no same-vendor/task-creation fallback (`delegated-review-patch`) | commission record | **PARTIAL** | `check_prompt_output_mode.py --validate-stdin` enforces the declared courier shell and field inequality; truth of vendor identity and direct-write capability remains resident verification. |
+| EP-20 | Historical delegated-patch `no_repo` package | review package | **RETIRED for delegated patch** | Delegated review-and-patch now requires direct repo access; no_repo routes to an ordinary read-only review and cannot claim delegated patch authorship. |
 | EP-21 | Reviewer threads source-read-only unless assigned patch execution (`review-lanes`; AGENTS kernel) | write in a review lane | **PARTIAL** · OVER-EDGE-adjacent | enforceable as `hook` only if the lane is machine-tagged (it is not today) → resident/partial now. |
 | EP-22 | No runtime-model recommendation / ranking in review prompts/closeouts (`review-lanes`; `prompt-orchestration`) | review artifact content | **PARTIAL** · OVER-EDGE | `lint` phrase tripwire is brittle/advisory; do not hard-block on a phrase match. Mostly judgment. |
 | EP-23 | Source-hierarchy precedence & conflict resolution (`source-of-truth`) | reasoning | **JUDGMENT** (PARTIAL only for "referenced required source missing → fail" = missing-file check) | resident; owes VERIFY FIRING. |

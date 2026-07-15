@@ -134,14 +134,31 @@ guard, and owner steering all stay.
   merely because the next command differs. A safe, in-scope shell operation may
   be retried once through per-operation escalation; use that working route for
   later shell calls. After a stalled patch primitive, do not probe its launcher;
-  use a checked atomic repository patch fallback and verify the diff. Correct a
-  failed atomic preflight only when its output identifies a distinct content
-  error; never repeat the same failed patch and do not reopen the stalled
-  primitive. Completion through an alternate route is a bounded mitigation
-  signal, not proof that the ordinary tool route is repaired.
+  use `.agents/tools/atomic_exact_edit.py` with one version-1 exact-replacement
+  operation built from freshly read live target text and one `--apply`
+  invocation. Pass each change as `--replace PATH OLD NEW`, single-quoting each
+  value in PowerShell and using the helper's documented `\\n`, `\\t`, and
+  `\\\\` escapes when needed; do not hand-author a Git patch or create a
+  temporary plan file. If the helper rejects the operation, preserve its
+  failure output and stop the edit route for the turn rather than reconstructing
+  or retrying it. Verify the final diff. Completion through this alternate route
+  is a bounded mitigation signal, not proof that the ordinary tool route is
+  repaired.
 - **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.
+- **Use the five-phase fast path for bounded repo changes.** When the task has a
+  named handoff, a small candidate-authority set, one bound edit unit, and known
+  validation, use no more than five latency-bearing tool rounds: (1) receiver
+  instructions; (2) one read-only intake snapshot containing the handoff, all
+  bounded candidate authority, status/inventory, likely targets, edit-helper
+  usage, and relevant untracked-state baseline; resolve authority and bind the
+  edit only after that output; (3) one isolated mutation; (4) one ordered
+  validation call that labels and preserves each exit/output, runs focused
+  before broad, and skips broad if focused fails; (5) one read-only closeout
+  containing diff check, exact diff, status, failure attribution, and untracked
+  verification. Never hide a retry or external action in a phase. If the intake
+  set is not safely bounded before launch, this fast path does not apply.
 - **No uncommissioned self-review.** After implementing, run the bound
   validation gates and let CI plus any commissioned review be the defect gate;
   do not run an adversarial self-review of your own diff unless the owner or a
