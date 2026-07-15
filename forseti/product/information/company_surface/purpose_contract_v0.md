@@ -14,6 +14,7 @@ authority_boundary: retrieval_only
 open_next:
   - forseti/product/information/company_surface/README.md
   - forseti/product/information/company_surface/company_identity_boundary_v0.md
+  - forseti/product/information/company_surface/company_logical_record_and_view_contract_v0.md
   - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
 stale_if:
@@ -132,10 +133,11 @@ would corrupt the decision-agnostic evidence foundation.
 ## Deferred Decisions
 
 The company-identity boundary is controlled separately by
-`company_identity_boundary_v0.md`. The record contract, history/current-view
-mechanics, Data Lake representation, consumer interfaces, runtime,
-source-specific capture routes, and stored corpus remain deferred. This
-contract grants no implementation authority for them.
+`company_identity_boundary_v0.md`. The logical record families,
+history/current-view mechanics, and correction rules are controlled separately
+by `company_logical_record_and_view_contract_v0.md`. Data Lake representation,
+consumer interfaces, runtime, source-specific capture routes, and stored corpus
+remain deferred. This contract grants no implementation authority for them.
 
 ## Direction Change Propagation
 

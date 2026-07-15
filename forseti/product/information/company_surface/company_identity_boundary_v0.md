@@ -15,13 +15,15 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/information/company_surface/purpose_contract_v0.md
+  - forseti/product/information/company_surface/company_logical_record_and_view_contract_v0.md
   - forseti/product/spines/foundation/ontology/ontology.yaml
-  - forseti/product/spines/foundation/ontology/architecture.md
+  - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
   - forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md
   - forseti/product/spines/data_lake/README.md
 stale_if:
   - The owner changes which layer owns company-specific identity resolution.
   - Foundation changes the meaning or status of Brand, Org, owned_by, or subsidiary_of.
+  - The logical record/view contract changes identity assertion or temporal-view semantics.
   - Company Surface gains a superseding record, identity, or history contract.
 ```
 
@@ -260,9 +262,10 @@ This contract does not establish:
 - analysis conclusions, pain scores, GTM authorization, outreach, or
   intervention choice.
 
-The next unresolved Company Surface content decision is the logical record and
-history/current-view contract that must implement this boundary and the
-owner-signed purpose without choosing physical storage prematurely.
+The companion `company_logical_record_and_view_contract_v0.md` implements this
+boundary and the owner-signed purpose without choosing physical storage. Org
+graduation and the first physical mapping into Data Lake records remain
+separate later decisions.
 
 ## Direction Change Propagation
 
@@ -286,12 +289,12 @@ direction_change_propagation:
     - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
     - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
     - forseti/product/spines/foundation/ontology/ontology.yaml
-    - forseti/product/spines/foundation/ontology/architecture.md
+    - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
     - forseti/product/spines/data_lake/README.md
-    - forseti/product/spines/data_lake/core/contracts/silver_contract_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
     - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
-    - path: forseti/product/spines/foundation/ontology/ontology.yaml and architecture.md
+    - path: Foundation ontology
       reason: This semantic contract uses the existing vocabulary but does not satisfy or replace the owning Org-graduation gate.
     - path: Capture and Cleaning contracts or runtime
       reason: Their raw-evidence and possible candidate-normalization roles remain unchanged; no matching implementation is authorized.
