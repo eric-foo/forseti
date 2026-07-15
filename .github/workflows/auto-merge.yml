@@ -7,9 +7,11 @@ name: auto-merge
 # `allow_auto_merge` remains off. See the dev-workflow doctrine.
 #
 # The interactive-agent EP-03 gate (.agents/hooks/guard_protected_actions.py) is
-# UNCHANGED: it blocks in-session `gh pr merge` and direct push-to-main attempts.
-# THIS workflow is the UNATTENDED merge actor that runs in Actions (not through
-# the PreToolUse hook) and lands opt-in PRs under the guardrails below.
+# a separate actor path: it may allow the current lane author to merge an own-lane,
+# complete PR even when manual risk review was required, while still blocking a
+# live merge-policy hold and direct push-to-main. THIS workflow is the narrower
+# UNATTENDED merge actor that runs in Actions (not through the PreToolUse hook)
+# and lands only low-risk-routed opt-in PRs under the guardrails below.
 #
 # Conflict-prevention guardrails (the contract the owner asked for):
 #   1. opt-in    — PR must carry `agent-automerge` AND
@@ -33,7 +35,9 @@ name: auto-merge
 #                  compare can't be trusted and unattended fork merge is unsafe).
 #   8. risk-routed — PRs labeled `risk/manual-review-required` or
 #                    `risk/blocked-for-merge-policy` are skipped even if someone
-#                    also applied `agent-automerge`.
+#                    also applied `agent-automerge`. The former may still use
+#                    the separately guarded in-session author route after its
+#                    completion/review gates close; this bot never adjudicates it.
 #
 # Honest limitation: a bot merge via GITHUB_TOKEN does NOT re-trigger the push:main
 # CI run (GitHub's no-recursion rule), so main-CI is not a redundant post-merge
