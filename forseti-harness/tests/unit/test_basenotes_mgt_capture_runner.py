@@ -96,7 +96,6 @@ def test_direct_cdp_writes_packet_projection_cleaning_and_six_verified_silver(
         output_root=tmp_path / "output",
         data_root=root,
         cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
-        human_access_ready=True,
         cdp_engine=engine,
     )
     assert exit_code == 0
@@ -106,6 +105,10 @@ def test_direct_cdp_writes_packet_projection_cleaning_and_six_verified_silver(
     assert engine.capture_kwargs["headless"] is False
     summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
     assert summary["capture_parameters"]["capture_transport"] == "existing_chrome_cdp_loopback"
+    assert summary["capture_parameters"]["human_cleared_access_gate"] is False
+    assert summary["capture_parameters"]["access_readiness_basis"] == (
+        "observed_exact_url_challenge_free_sufficient_content"
+    )
     packet_id = summary["packet_roles"][runner.PERSISTENT_CHROME_SLOT]["packet_id"]
     projection, projection_path = project_basenotes_into_lake(data_root=root, packet_id=packet_id)
     cleaning = derive_basenotes_cleaning_into_lake(data_root=root, packet_id=packet_id)
@@ -121,19 +124,21 @@ def test_direct_cdp_writes_packet_projection_cleaning_and_six_verified_silver(
         )
 
 
-def test_direct_cdp_requires_readiness_before_capture_or_bytes(tmp_path: Path) -> None:
+def test_direct_cdp_observes_access_without_manual_readiness_confirmation(tmp_path: Path) -> None:
     engine = _FakeCdpEngine()
-    with pytest.raises(ValueError, match="prior human access readiness"):
-        runner.run_basenotes_mgt_capture(
-            url=_URL,
-            bundle_directory=tmp_path / "bundle",
-            output_root=tmp_path / "output",
-            cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
-            cdp_engine=engine,
-        )
-    assert engine.capture_kwargs == {}
-    assert not (tmp_path / "bundle").exists()
-    assert not (tmp_path / "output").exists()
+    bundle = runner.capture_basenotes_bundle_via_cdp(
+        url=_URL,
+        bundle_directory=tmp_path / "bundle",
+        cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
+        engine=engine,
+    )
+    metadata = json.loads((bundle / "browser_snapshot_metadata.json").read_text(encoding="utf-8"))
+    assert engine.capture_kwargs
+    assert metadata["human_cleared_access_gate"] is False
+    assert metadata["access_readiness_basis"] == (
+        "observed_exact_url_challenge_free_sufficient_content"
+    )
+    assert "--human-access-ready" not in runner._build_parser().format_help()
 
 
 @pytest.mark.parametrize("endpoint", ["https://example.com:9222", "http://user@127.0.0.1:9222"])
@@ -144,7 +149,6 @@ def test_direct_cdp_rejects_invalid_endpoint_before_capture(tmp_path: Path, endp
             url=_URL,
             bundle_directory=tmp_path / "bundle",
             cdp_endpoint=endpoint,
-            human_access_ready=True,
             engine=engine,
         )
     assert engine.capture_kwargs == {}
@@ -164,7 +168,6 @@ def test_direct_cdp_rejects_challenge_or_insufficient_content_before_bytes(
             url=_URL,
             bundle_directory=tmp_path / "bundle",
             cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
-            human_access_ready=True,
             engine=engine,
         )
     assert engine.closed is True
@@ -187,7 +190,6 @@ def test_direct_cdp_rejects_wrong_final_url_or_non_png_before_bytes(
             url=_URL,
             bundle_directory=tmp_path / "bundle",
             cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
-            human_access_ready=True,
             engine=engine,
         )
     assert not (tmp_path / "bundle").exists()

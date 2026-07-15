@@ -68,8 +68,8 @@ DEFAULT_CDP_VIEWPORT_HEIGHT = 900
 _CDP_DOM_EXTRACT_SCRIPT = "() => document.documentElement.outerHTML"
 
 ACCEPTED_RESIDUALS = [
-    "capture requires a user-visible persistent Chrome tab whose Cloudflare access gate was "
-    "completed by the user before export; the runner does not automate or solve the gate",
+    "capture requires a user-visible persistent Chrome session; direct mode observes accepted "
+    "content and fails on challenge markers but does not automate or solve an access gate",
     "the runner ingests public rendered DOM, visible text, one viewport screenshot, and "
     "non-secret metadata; it does not inspect or export cookies, credentials, or browser-profile data",
     "rendered current-window product page only; in-page JSON-LD carries a review subset, not the "
@@ -111,13 +111,12 @@ def run_basenotes_mgt_capture(
     decision_question: str = DEFAULT_DECISION_QUESTION,
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
     cdp_endpoint: str | None = None,
-    human_access_ready: bool = False,
     cdp_engine: ChromeCdpPageObservationSessionEngine | None = None,
 ) -> tuple[int, str]:
     """Validate a user-cleared persistent-Chrome export and publish one packet.
 
     Manual mode consumes an exact four-file bundle. Optional direct mode creates that
-    same bundle from an already-running, operator-cleared local Chrome CDP session,
+    same bundle from an already-running local Chrome CDP session,
     then passes it through the same fail-closed bundle validator and packet writer.
     """
 
@@ -129,12 +128,11 @@ def run_basenotes_mgt_capture(
             url=url,
             bundle_directory=bundle_directory,
             cdp_endpoint=cdp_endpoint,
-            human_access_ready=human_access_ready,
             max_artifact_bytes=max_artifact_bytes,
             engine=cdp_engine,
         )
-    elif human_access_ready or cdp_engine is not None:
-        raise ValueError("human_access_ready and cdp_engine require direct CDP mode")
+    elif cdp_engine is not None:
+        raise ValueError("cdp_engine requires direct CDP mode")
     bundle = _load_and_validate_bundle(
         bundle_directory=bundle_directory,
         url=url,
@@ -149,11 +147,47 @@ def run_basenotes_mgt_capture(
         recapture_time=_not_a_recapture(),
         cutoff_posture=_unknown_cutoff_posture(),
     )
-    access_posture = known_fact(
-        "public Basenotes product content captured only after the user completed Cloudflare "
-        "verification in a persistent Chrome tab; session state was used but cookies and "
-        "credentials were not inspected or exported"
+    direct_observed_access = (
+        bundle.metadata.get("capture_transport") == "credential_free_loopback_cdp"
     )
+    if direct_observed_access:
+        access_posture = known_fact(
+            "accepted public Basenotes product content was observed at the exact requested URL "
+            "in a persistent Chrome session; challenge markers were absent and source-detail "
+            "sufficiency passed; no current-run human access action is asserted"
+        )
+        warnings = [
+            "accepted_access_observed: exact final URL, challenge-free rendered content, and "
+            "source-detail sufficiency passed"
+        ]
+        capture_context = (
+            "existing Chrome CDP public-page observation; rendered DOM, visible text, viewport "
+            "screenshot, and non-secret metadata only"
+        )
+        visible_mode_changes = ["persistent_user_session", "accepted_access_observed"]
+        receipt_summary = (
+            "Observed-access persistent Chrome packet for one public Basenotes product page "
+            "with mechanically sufficient product and review evidence."
+        )
+    else:
+        access_posture = known_fact(
+            "public Basenotes product content captured only after the user completed Cloudflare "
+            "verification in a persistent Chrome tab; session state was used but cookies and "
+            "credentials were not inspected or exported"
+        )
+        warnings = [
+            "user_assisted_access_gate: user completed Cloudflare verification before public "
+            "page artifacts were exported"
+        ]
+        capture_context = (
+            "user-cleared persistent Chrome public-page export; rendered DOM, visible text, "
+            "viewport screenshot, and non-secret metadata only"
+        )
+        visible_mode_changes = ["human_cleared_access_gate", "persistent_user_session"]
+        receipt_summary = (
+            "User-cleared persistent Chrome packet for one public Basenotes product page with "
+            "mechanically sufficient product and review evidence."
+        )
     archive_posture = not_attempted(
         "the persistent Chrome bundle did not query archive or history services"
     )
@@ -162,11 +196,6 @@ def run_basenotes_mgt_capture(
         "files were not independently preserved"
     )
     recapture_posture = _not_a_recapture_relationship()
-    warnings = [
-        "user_assisted_access_gate: user completed Cloudflare verification before public page "
-        "artifacts were exported"
-    ]
-
     result = write_local_source_capture_packet(
         output_directory=None if data_root is not None else output_root / PERSISTENT_CHROME_SLOT,
         data_root=data_root,
@@ -175,17 +204,14 @@ def run_basenotes_mgt_capture(
         source_surface=PERSISTENT_CHROME_SURFACE,
         source_locator=known_fact(url),
         decision_question=decision_question,
-        capture_context=(
-            "user-cleared persistent Chrome public-page export; rendered DOM, visible text, "
-            "viewport screenshot, and non-secret metadata only"
-        ),
+        capture_context=capture_context,
         actor_audience_context=known_fact(
             "public Basenotes fragrance product page and its source-visible review audience"
         ),
         capture_mode=CaptureModeCategory.MULTIMODAL,
         operator_category=DEFAULT_OPERATOR_CATEGORY,
         session_identity=None,
-        visible_mode_changes=["human_cleared_access_gate", "persistent_user_session"],
+        visible_mode_changes=visible_mode_changes,
         source_publication_or_event=timing.source_publication_or_event,
         source_edit_or_version=timing.source_edit_or_version,
         cutoff_posture=timing.cutoff_posture,
@@ -210,10 +236,7 @@ def run_basenotes_mgt_capture(
         ],
         warnings=warnings,
         limitations=list(ACCEPTED_RESIDUALS),
-        receipt_summary=(
-            "User-cleared persistent Chrome packet for one public Basenotes product page with "
-            "mechanically sufficient product and review evidence."
-        ),
+        receipt_summary=receipt_summary,
         receipt_non_claims=list(NON_CLAIMS),
     )
     packet_dir = Path(result.output_directory)
@@ -228,11 +251,12 @@ def run_basenotes_mgt_capture(
             "bundle_directory": str(bundle_directory),
             "max_artifact_bytes": max_artifact_bytes,
             "persistent_user_session": True,
-            "human_cleared_access_gate": True,
+            "human_cleared_access_gate": bundle.metadata.get("human_cleared_access_gate"),
+            "access_readiness_basis": bundle.metadata.get("access_readiness_basis"),
             "cookies_or_credentials_exported": False,
             "proxy_used": False,
             "capture_transport": (
-                "existing_chrome_cdp_loopback" if cdp_endpoint is not None else "manual_bundle"
+                "existing_chrome_cdp_loopback" if direct_observed_access else "manual_bundle"
             ),
         },
     )
@@ -296,7 +320,6 @@ def preflight_basenotes_mgt_capture(
     output_root: Path,
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
     cdp_endpoint: str | None = None,
-    human_access_ready: bool = False,
     cdp_engine: ChromeCdpPageObservationSessionEngine | None = None,
 ) -> str:
     _validate_basenotes_url(url)
@@ -307,12 +330,11 @@ def preflight_basenotes_mgt_capture(
             url=url,
             bundle_directory=bundle_directory,
             cdp_endpoint=cdp_endpoint,
-            human_access_ready=human_access_ready,
             max_artifact_bytes=max_artifact_bytes,
             engine=cdp_engine,
         )
-    elif human_access_ready or cdp_engine is not None:
-        raise ValueError("human_access_ready and cdp_engine require direct CDP mode")
+    elif cdp_engine is not None:
+        raise ValueError("cdp_engine requires direct CDP mode")
     _load_and_validate_bundle(
         bundle_directory=bundle_directory,
         url=url,
@@ -320,13 +342,18 @@ def preflight_basenotes_mgt_capture(
     )
     slug = extract_basenotes_product_slug(url) or "unknown"
     capture_clause = (
-        "direct loopback CDP capture completed from the operator-ready persistent session"
+        "direct loopback CDP capture observed accepted challenge-free source content"
         if cdp_endpoint is not None
         else "no network capture attempted"
     )
+    prerequisite_clause = (
+        "requires user-visible persistent Chrome"
+        if cdp_endpoint is not None
+        else "requires user-visible persistent Chrome plus a user-cleared access gate"
+    )
     return (
         f"basenotes persistent Chrome bundle preflight passed; {capture_clause}; "
-        "requires user-visible persistent Chrome plus a user-cleared access gate; public-page "
+        f"{prerequisite_clause}; public-page "
         "bundle validated with no cookie, credential, browser-profile, or proxy export; "
         f"product_slug={slug}; bundle_directory={bundle_directory}; output_root={output_root}"
     )
@@ -337,21 +364,16 @@ def capture_basenotes_bundle_via_cdp(
     url: str,
     bundle_directory: Path,
     cdp_endpoint: str,
-    human_access_ready: bool,
     max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
     timeout_seconds: float = DEFAULT_CDP_TIMEOUT_SECONDS,
     engine: ChromeCdpPageObservationSessionEngine | None = None,
 ) -> Path:
-    """Create the manual-mode bundle from one supervised, already-ready CDP session."""
+    """Create the manual-mode bundle after observing accepted content in a CDP session."""
 
     _validate_basenotes_url(url)
     _validate_positive("max_artifact_bytes", max_artifact_bytes)
     _validate_positive("timeout_seconds", timeout_seconds)
     _validate_cdp_endpoint(cdp_endpoint)
-    if not human_access_ready:
-        raise ValueError(
-            "direct CDP mode requires truthful prior human access readiness confirmation"
-        )
     _assert_bundle_output_available(bundle_directory)
 
     capture_engine = engine or ChromeCdpPageObservationSessionEngine(cdp_endpoint=cdp_endpoint)
@@ -389,20 +411,20 @@ def capture_basenotes_bundle_via_cdp(
             "browser_channel": "existing_chrome_cdp",
             "headless": False,
             "persistent_user_session": True,
-            "human_cleared_access_gate": True,
-            "human_access_readiness_basis": "operator_confirmed_before_capture",
+            "human_cleared_access_gate": False,
+            "access_readiness_basis": "observed_exact_url_challenge_free_sufficient_content",
             "cookies_exported": False,
             "credentials_exported": False,
             "proxy_used": False,
             "capture_transport": "credential_free_loopback_cdp",
         }
-        _validate_bundle_metadata(metadata=metadata, url=url)
         _validate_captured_page_content(
             rendered_dom=observation.dom_observation,
             visible_text=observation.visible_text,
             title=observation.title,
             url=url,
         )
+        _validate_bundle_metadata(metadata=metadata, url=url)
         _validate_artifact_size(
             name="browser_rendered_dom.html",
             body=observation.dom_observation.encode("utf-8"),
@@ -576,16 +598,32 @@ def _sufficiency_requirements(url: str) -> SourceDetailSufficiencyRequirements:
 
 
 def _validate_bundle_metadata(*, metadata: Mapping[str, object], url: str) -> None:
+    capture_transport = metadata.get("capture_transport")
+    if capture_transport not in {None, "manual_bundle", "credential_free_loopback_cdp"}:
+        raise ValueError(
+            "persistent Chrome metadata capture_transport must be manual_bundle or "
+            "credential_free_loopback_cdp"
+        )
     required_values = {
         "requested_url": url,
         "final_url": url,
         "headless": False,
         "persistent_user_session": True,
-        "human_cleared_access_gate": True,
         "cookies_exported": False,
         "credentials_exported": False,
         "proxy_used": False,
     }
+    if capture_transport == "credential_free_loopback_cdp":
+        required_values.update(
+            {
+                "human_cleared_access_gate": False,
+                "access_readiness_basis": (
+                    "observed_exact_url_challenge_free_sufficient_content"
+                ),
+            }
+        )
+    else:
+        required_values["human_cleared_access_gate"] = True
     for key, expected in required_values.items():
         if metadata.get(key) != expected:
             raise ValueError(
@@ -743,14 +781,6 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
-        "--human-access-ready",
-        action="store_true",
-        help=(
-            "Confirm a human already established access in the persistent Chrome session. "
-            "This does not claim the runner solved CAPTCHA or Cloudflare."
-        ),
-    )
-    parser.add_argument(
         "--preflight-only",
         action="store_true",
         help=(
@@ -773,7 +803,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                     output_root=args.output_root,
                     max_artifact_bytes=args.max_artifact_bytes,
                     cdp_endpoint=args.cdp_endpoint,
-                    human_access_ready=args.human_access_ready,
                 )
             )
             return 0
@@ -792,7 +821,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             decision_question=args.decision_question,
             max_artifact_bytes=args.max_artifact_bytes,
             cdp_endpoint=args.cdp_endpoint,
-            human_access_ready=args.human_access_ready,
         )
     except ValueError as exc:
         parser.exit(status=2, message=f"basenotes native capture failed: {exc}\n")

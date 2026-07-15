@@ -47,26 +47,29 @@ verified-purchase/offer/availability semantics.
 
 ## Basenotes Persistent-Chrome Bundle Contract
 
-The current route is operator-assisted and fails closed. The user opens the exact
-public product URL in a visible persistent Chrome tab and personally completes any
-Cloudflare verification. A supported browser controller then exports exactly these
-public-page artifacts, with no extra files. The runner also supports a direct
-existing-Chrome mode that creates the same bundle from the operator-ready local CDP
-session before applying the identical validator:
+The current route is persistent-Chrome and fails closed. In manual mode, the user
+opens the exact public product URL in a visible tab and personally completes any
+Cloudflare verification before a supported controller exports exactly these
+public-page artifacts. Direct existing-Chrome mode instead creates the same bundle
+from the local CDP session and admits it only after observing the exact final URL,
+challenge-free source content, and sufficient product/review detail:
 
 - `browser_rendered_dom.html`
 - `browser_visible_text.txt`
 - `browser_viewport_screenshot.png`
 - `browser_snapshot_metadata.json`
 
-Metadata must bind the exact requested/final URL and state `headless: false`,
-`persistent_user_session: true`, `human_cleared_access_gate: true`,
-`cookies_exported: false`, `credentials_exported: false`, and `proxy_used: false`,
-plus a non-blank browser channel and ISO-8601 capture timestamp. The runner rejects
-challenge text, fewer than 500 visible-text bytes, a missing caller-bound product
-path, missing Product/review/reviewBody JSON-LD markers, symlinks, empty/oversized
-files, non-PNG screenshots, missing files, or unexpected files before packet
-publication.
+Both modes bind the exact requested/final URL and state `headless: false`,
+`persistent_user_session: true`, `cookies_exported: false`,
+`credentials_exported: false`, and `proxy_used: false`, plus a non-blank browser
+channel and ISO-8601 capture timestamp. Manual metadata requires
+`human_cleared_access_gate: true`. Direct metadata records
+`human_cleared_access_gate: false` and
+`access_readiness_basis: observed_exact_url_challenge_free_sufficient_content`.
+The runner rejects challenge text, fewer than 500 visible-text bytes, a missing
+caller-bound product path, missing Product/review/reviewBody JSON-LD markers,
+symlinks, empty/oversized files, non-PNG screenshots, missing files, or unexpected
+files before packet publication.
 
 ```text
 python forseti-harness/runners/run_basenotes_mgt_capture.py \
@@ -84,18 +87,17 @@ python forseti-harness/runners/run_basenotes_mgt_capture.py \
   --bundle-directory <fresh-generated-four-file-bundle> \
   --output-root <empty-summary-directory> \
   --data-root <forseti-data-root> \
-  --cdp-endpoint http://127.0.0.1:9222 \
-  --human-access-ready
+  --cdp-endpoint http://127.0.0.1:9222
 ```
 
-The readiness flag records that a human established access before capture; it is
-not a claim that the runner solved CAPTCHA or Cloudflare. Direct mode attaches to
-the existing headed browser, uses no proxy or storage-state input, preserves no
-cookies, credentials, auth state, or profile bytes, and leaves the operator-owned
-browser running after detaching. Capture/export can run unattended only while that
-supervised session remains accepted. The runner does not launch Chrome, automate
-the access gate, claim unattended access establishment or long-term reliability,
-or turn the historical proxy route into a fallback.
+Direct mode attaches to the existing headed browser and determines access from the
+observed page rather than a manual readiness assertion. It uses no proxy or
+storage-state input, preserves no cookies, credentials, auth state, or profile
+bytes, and leaves the operator-owned browser running after detaching. Capture/export
+can run unattended while the session continues to yield challenge-free sufficient
+content. The runner does not launch a Chrome process, automate the access gate,
+claim long-term unattended reliability, or turn the historical proxy route into a
+fallback.
 ## Layer Boundaries
 
 - Raw packet admission, path grammar, derived layout, write boundary, and Silver
