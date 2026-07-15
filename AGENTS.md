@@ -147,6 +147,18 @@ guard, and owner steering all stay.
 - **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.
+- **Use the five-phase fast path for bounded repo changes.** When the task has a
+  named handoff, a small candidate-authority set, one bound edit unit, and known
+  validation, use no more than five latency-bearing tool rounds: (1) receiver
+  instructions; (2) one read-only intake snapshot containing the handoff, all
+  bounded candidate authority, status/inventory, likely targets, edit-helper
+  usage, and relevant untracked-state baseline; resolve authority and bind the
+  edit only after that output; (3) one isolated mutation; (4) one ordered
+  validation call that labels and preserves each exit/output, runs focused
+  before broad, and skips broad if focused fails; (5) one read-only closeout
+  containing diff check, exact diff, status, failure attribution, and untracked
+  verification. Never hide a retry or external action in a phase. If the intake
+  set is not safely bounded before launch, this fast path does not apply.
 - **No uncommissioned self-review.** After implementing, run the bound
   validation gates and let CI plus any commissioned review be the defect gate;
   do not run an adversarial self-review of your own diff unless the owner or a

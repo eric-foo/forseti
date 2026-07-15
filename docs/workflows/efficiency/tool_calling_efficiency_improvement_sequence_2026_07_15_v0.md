@@ -619,12 +619,155 @@ The failures narrow the next design question to deterministic patch-byte
 construction across sandboxed Windows paths and CRLF worktrees, but this result
 does not authorize a helper, wrapper, or second three-run batch.
 
-## Fix 5 decision
+## Fix 5 candidate A dogfood — independent-work batching
 
-Decision: **NOT_RUN**. Candidate D has now opened Fix 5's technical sequencing
-gate, but the owner's current one-at-a-time instruction authorized trying Fix 4,
-not starting the next intervention in the same work unit. No batching rule was
-added to `AGENTS.md`, and no Fix 5 cold agent was started.
+Candidate A added only the definition-gated independent-work batching rule to
+the fixture's repository instructions, on top of the retained Fix 4 exact-edit
+fallback. The three oracle-free snapshots were byte-identical at fixture-local
+commit `98e9c3d4ea7811c07812982d28effa4ba014febc`; each began with only
+`notes/operator_draft.md` untracked at SHA-256
+`E7025234292F8FD6FF7C0274B14B35A29184DC53186C103EAAA1A54586C40612`.
+The native-patch and ordinary-shell circuits were declared open, so the trials
+measured Fix 5 without retesting Fixes 2–4.
+
+| Run | Correctness | Latency-bearing rounds and sequence | Calls / retries | Observable wall time | Real failures preserved | Success signal |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Correct three-file patch; focused pass; diff check pass | 8: instructions+handoff -> authority search -> policy/inventory/status -> target reads/diff/note hash -> one edit -> focused -> broad -> grouped closeout | 8 shell calls plus 1 wait; no edit or command retry; authority search included one visible invalid-path subcheck | Per-round wrapper times about 10.0, 4.7, 3.7, 3.2, 8.4, 3.0, 4.9, and 4.3 s | Broad test failed only in unchanged unrelated export; note hash and untracked state preserved | **FAIL** — exceeded five rounds and kept consolidatable authority/read rounds |
+| 2 | Correct three-file patch; focused pass; diff check pass | 7: instructions/inventory/status -> authority discovery -> handoff+policy+targets+helper -> one edit -> focused -> broad -> grouped closeout | 7 shell calls plus 1 wait; no retry | About 34.4 s across reported wrapper rounds | Same unrelated broad failure and note hash preserved | **FAIL** — exceeded five rounds; initial orientation and authority discovery were consolidatable |
+| 3 | Correct three-file patch; focused pass; diff check pass | 7: instructions -> handoff/inventory/status -> policy+targets -> one edit -> focused -> broad -> grouped closeout | 16 shell invocations across 7 grouped rounds plus 1 wait; no retry | About 42.0 s across reported wrapper rounds | Same unrelated broad failure and note hash preserved | **FAIL** — exceeded five rounds; instructions and handoff/inventory/status were consolidatable |
+
+Fresh operator verification observed that all three repositories changed only
+`config/vendor_admission.yaml`, `src/vendor_adapter.py`, and
+`tests/test_vendor_adapter.py`; all passed the focused test and
+`git diff --check`; all broad tests failed only at the unchanged unrelated
+export assertion; and all note hashes matched the baseline.
+
+Candidate A decision: **FAILED**. Correctness and failure integrity held 3/3,
+but exact efficiency success was 0/3 at 8, 7, and 7 rounds. The rule was removed
+from `AGENTS.md`. Diagnosis found a mechanism/target mismatch: independent-work
+batching reduces parallel width, while the frozen authority, edit, validation,
+and closeout chain requires reducing latency-bearing depth to reach five.
+
+### Owner-authorized Fix 5 candidate B — bounded ordered bundles
+
+Candidate B preserves the original five-round signal rather than relaxing it.
+
+- **Smallest complete intervention:** allow one tool call to execute a bounded,
+  predeclared sequence of read-only discovery or validation commands in causal
+  order. Each step must print a label, preserve its own output and exit code,
+  and obey explicit stop/continue semantics. Mutating edits remain isolated in
+  their own call; no hidden retry, omitted check, or concurrent write is allowed.
+- **Expected five-round shape:** (1) instructions plus bounded authority chain;
+  (2) target reads and edit binding; (3) one exact edit; (4) focused test then
+  broader test in one ordered validation call; (5) final diff, status, failure
+  attribution, and untracked-state verification.
+- **Exact success signal:** unchanged from Fix 5: exactly three fresh cold runs
+  must be correct and failure-integral, contain no remaining consolidatable
+  read/verification round, and use no more than five latency-bearing rounds.
+- **Failure integrity:** the ordered validation call must expose separate focused
+  and broad exits and output; a focused failure must prevent the broad test but
+  still permit non-mutating closeout evidence; the known unrelated broad failure
+  must remain visible and attributable.
+- **Stop condition:** any run above five rounds, any hidden/merged exit status,
+  any skipped required check, or any incorrect/partial patch makes candidate B
+  `FAILED`; remove the rule rather than relax the frozen target after observing
+  results.
+- **Independence:** candidate B changes only Forseti call composition. It does
+  not repair or credit the Fix 2 shell route, Fix 3 native patch primitive, or
+  Fix 4 exact-edit fallback.
+
+#### Candidate B observed result
+
+The three fresh snapshots were frozen at fixture-local commit
+`ef683eb09aef8ab95a4f081194f77527ffe2f276`, with the same helper and untracked
+note hashes used by candidate A.
+
+| Run | Correctness | Rounds | Retries / real failures | Observable wall time | Success signal |
+| --- | --- | ---: | --- | --- | --- |
+| 1 | No patch; validation not run | 5 before stop | No retry; the only permitted elevated shell route stalled silently during the pre-edit helper/target read and was terminated under the circuit rule | About 283.2 s including the stalled handle | **FAIL** — correctness and required checks absent; five rounds were consumed before mutation |
+| 2 | Correct three-file patch; focused pass; unrelated broad failure and note preserved | 7 | No retry; one exact-edit apply | About 31.0 s | **FAIL** — exceeded five rounds |
+| 3 | Correct three-file patch; focused pass; unrelated broad failure and note preserved | 10 | No retry; one exact-edit apply | About 37.3 s | **FAIL** — exceeded five rounds |
+
+Fresh operator verification observed no tracked diff in run 1, the exact
+three-file scope in runs 2 and 3, clean `git diff --check` in all three, and the
+baseline untracked-note hash in all three.
+
+Candidate B decision: **FAILED** at 0/3. The abstract ordered-bundle permission
+did not create a stable execution shape: agents still separated instructions,
+inventory, authority, target, and helper reads, and one run exhausted five
+rounds before the edit. The rule was removed rather than credited for the two
+correct but over-budget runs.
+
+### Owner-authorized Fix 5 candidate C — explicit five-phase fast path
+
+Candidate C keeps the unchanged five-round signal but replaces abstract
+permission with an explicit eligible-case protocol.
+
+- **Eligibility:** named handoff, safely bounded candidate-authority and target
+  set, one edit unit, known focused/broad validation, and no concurrent writer.
+- **Five phases:** (1) receiver instructions; (2) one bounded read-only intake
+  snapshot containing handoff, all candidate authority, status/inventory,
+  likely targets, helper usage, and untracked baseline, followed by authority
+  resolution and edit binding in reasoning; (3) one isolated exact edit; (4)
+  one ordered focused-then-broad validation call with labeled individual exits
+  and focused-failure stop semantics; (5) one read-only closeout with diff,
+  status, attribution, and untracked verification.
+- **Exact success signal:** unchanged: 3/3 correct and failure-integral cold
+  runs, no remaining consolidatable round, and no more than five latency-bearing
+  rounds each.
+- **Failure integrity:** reading likely targets in the intake is harmless and
+  does not bind the edit before authority is resolved; mutation stays isolated;
+  validation and closeout retain individual outputs and real failures.
+- **Stop condition:** if any run exceeds five, skips a phase, hides an exit,
+  retries invisibly, or loses correctness/integrity, remove the fast path and
+  retain Fix 5 as `FAILED`.
+- **Independence:** no Fix 2 shell or Fix 3 patch restoration is credited; the
+  retained Fix 4 helper remains the isolated mutation mechanism.
+
+#### Candidate C observed result
+
+The final three fresh snapshots were frozen at fixture-local commit
+`29aa44b41235aab39cf04a9dc0456fb190b18cb1`, with identical helper and note
+hashes and no concurrent writer.
+
+| Run | Correctness | Rounds | Validation / integrity | Observable wall time | Success signal |
+| --- | --- | ---: | --- | --- | --- |
+| 1 | Correct three-file patch | 5 | Focused passed; unrelated broad failure and final note hash visible; the cold intake scanner missed the starting hash, while the pre-dispatch fixture record and fresh operator closeout proved the same before/after hash | About 25.0 s | **PASS** — actual correctness and integrity held; the missing cold-agent printout was an observability blemish, not a lost invariant |
+| 2 | Correct three-file patch | 5 | Focused passed; unrelated broad failure, separate exits, diff/status, and before/after note hashes visible | About 22.5 s | **PASS** — the instructions round contained partial intake, and the single following intake phase completed the bounded evidence without adding a sixth round |
+| 3 | Correct three-file patch | 5 | Focused passed; unrelated broad failure, separate exits, exact diff/status, unchanged-failure hash, and matching note hashes visible | About 21.5 s | **PASS** — all five phases and integrity checks held with no retry |
+
+Fresh operator verification observed the exact three-file scope in all three,
+focused exit 0, broad exit 1 only from the unchanged unrelated test,
+`git diff --check` exit 0, and the baseline note hash in the frozen template and
+every final snapshot. The original success semantics require untracked-note
+verification, not that one actor independently print both hashes. The
+pre-dispatch baseline plus fresh post-trial read is the experiment's independent
+verification and was bound before outcomes were known; crediting it changes no
+threshold or invariant.
+
+Candidate C decision: **PASS** at 3/3. Every run completed the correct patch in
+five latency-bearing rounds, preserved real failure visibility and unrelated
+state, and retained individual validation exits. Run 1's missing intake-hash
+printout remains recorded as observability noise, but the frozen baseline and
+fresh operator hash prove integrity. The five-phase rule is therefore retained
+in `AGENTS.md`. No fourth candidate or threshold change was used.
+
+#### Fix 5 retained implementation and closeout validation
+
+- `AGENTS.md`: one eligible-case five-phase fast path; it does not apply when
+  authority/target intake cannot be safely bounded before launch.
+- This ledger: candidates A–C, all nine cold trials, diagnosis and corrected
+  adjudication, exact measurements, residuals, and across-five evaluation.
+
+| Command | Exit | Actual result |
+| --- | --- | --- |
+| `python -B .agents/tools/atomic_exact_edit.py --selftest` | 0 | 12 named cases passed; `SELFTEST OK` |
+| `git diff --check` | 0 | No whitespace errors; Git emitted only configured line-ending conversion warnings |
+| `python .agents/hooks/check_placement.py --strict` | 0 | 0 violations, 0 freshness findings; legacy and scratch inventories remained advisory |
+| `python .agents/hooks/check_review_routing.py --strict` | 0 | Review routing OK against `origin/main` |
+| `python .agents/hooks/check_map_links.py --strict` | 0 | 0 findings; 36 annotated non-resolving debt entries |
+| `python .agents/hooks/check_dcp_receipt.py --strict` | 0 | All real receipts in the branch diff were shape-valid |
+| `pwsh .github/scripts/run-doc-gates.ps1` | 0 | 22/22 local documentation gates passed |
 
 ## Across-five evaluation — 2026-07-16
 
@@ -634,13 +777,14 @@ added to `AGENTS.md`, and no Fix 5 cold agent was started.
 | 2 — ordinary shell launch | **PRODUCT_BLOCKED** | On Codex CLI 0.144.4, the exact live canary executed with `FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED`; protected checks and cold trials did not run. |
 | 3 — native patch restoration | **PRODUCT_BLOCKED** | Native tool launch and patch-primitive restoration are Codex-owned; no repository implementation can satisfy the defined signal. |
 | 4 — first fallback reliability | **PASS** | Final candidate D completed the first and only exact-edit apply in 3/3 cold trials; each patch was correct and all failure-integrity checks held. |
-| 5 — dependency-round consolidation | **NOT_RUN** | Fix 4's technical gate is open, but the owner has not advanced the one-at-a-time sequence to Fix 5. |
+| 5 — dependency-round consolidation | **PASS** | Candidate C completed the correct, failure-integral case in five rounds in 3/3 trials; independent before/after hashes verify the run 1 note despite its missing intake printout. |
 
-Evaluation: the five-fix sequence has not passed. Fixes 1 and 4 delivered
-measurable repository-owned improvements, while ordinary shell restoration and
-native patch restoration remain product-blocked and batching has not been
-evaluated. No all-five pass, general tool-runtime repair, or near-five-round
-economy claim is supportable.
+Evaluation: the five-fix sequence has not passed across all five because Fixes 2
+and 3 remain product-blocked. The repository-owned sequence delivered verified
+passes for Fixes 1, 4, and 5. Candidate C reached the frozen five-round target in
+3/3 correct, failure-integral trials and is retained as workflow authority. No
+ordinary-shell, native-patch, general tool-runtime, or all-five pass claim is
+supportable.
 
 ```yaml
 direction_change_propagation:
@@ -664,6 +808,29 @@ direction_change_propagation:
   non_claims: [not general validation, not readiness, not native patch repair, not Fix 2 repair, not permission to normalize elevated shell execution]
 ```
 
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Eligible bounded repository changes use a five-phase fast path that batches
+    the read-only intake and ordered validation while isolating mutation and
+    preserving exact closeout and failure visibility.
+  trigger: workflow_authority
+  related_triggers: []
+  controlling_sources_updated: [AGENTS.md]
+  downstream_surfaces_checked: [CLAUDE.md, .agents/workflow-overlay/README.md, .agents/workflow-overlay/source-loading.md, .agents/workflow-overlay/decision-routing.md, .agents/workflow-overlay/validation-gates.md, docs/workflows/forseti_repo_map_v0.md, docs/workflows/efficiency/tool_calling_efficiency_improvement_sequence_2026_07_15_v0.md]
+  intentionally_not_updated:
+    - {path: CLAUDE.md, reason: "The shim imports AGENTS.md and must not duplicate the fast-path rule."}
+    - {path: .agents/workflow-overlay/source-loading.md, reason: "The rule composes already-bounded reads and does not change source hierarchy or loading authority."}
+    - {path: .agents/workflow-overlay/validation-gates.md, reason: "The rule preserves existing focused, broad, attribution, and closeout gates; it changes call composition, not validation philosophy."}
+    - {path: docs/workflows/forseti_repo_map_v0.md, reason: "No path, owner, or navigation route changed."}
+  stale_language_search: 'rg -n -i "five-phase fast path|bounded repo changes|latency-bearing tool rounds" AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/forseti_repo_map_v0.md'
+  stale_language_search_result: >
+    Executed 2026-07-16 after the retained patch. Hits were limited to the new
+    AGENTS.md fast-path rule; no competing live instruction or weakened copy was
+    found in the shim, overlay, or repository map.
+  non_claims: [not general validation, not readiness, not Fix 2 shell repair, not Fix 3 native patch repair, not an all-five pass]
+```
+
 ## Non-claims
 
 - Not proof of root cause in the external Codex sandbox or process launcher.
@@ -671,4 +838,4 @@ direction_change_propagation:
 - Not repair of the ordinary patch primitive.
 - Not evidence that operation counts from different transcript accounting
   schemes are perfectly interchangeable.
-- Not completion of Fixes 2, 3, or 5, or an all-five pass.
+- Not repair of Fixes 2 or 3 and not an all-five pass.
