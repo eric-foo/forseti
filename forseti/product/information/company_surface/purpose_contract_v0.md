@@ -13,6 +13,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/information/company_surface/README.md
+  - forseti/product/information/company_surface/company_identity_boundary_v0.md
   - docs/decisions/forseti_spine_first_target_structure_binding_v0.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
 stale_if:
@@ -24,8 +25,9 @@ stale_if:
 
 This is the controlling source for the owner-signed Company Surface purpose,
 problem, nine success signals, downstream proof boundary, and non-goals. It
-establishes product doctrine only. It does not establish a record or identity
-model, history/current-view mechanics, storage representation, consumer
+establishes purpose doctrine only. Company-identity semantics are controlled by
+`company_identity_boundary_v0.md`. This purpose contract does not establish a
+record model, history/current-view mechanics, storage representation, consumer
 interface, runtime, stored company corpus, source access, validation, readiness,
 buyer proof, or GTM authorization.
 
@@ -129,10 +131,11 @@ would corrupt the decision-agnostic evidence foundation.
 
 ## Deferred Decisions
 
-The record contract, company-identity boundary, history/current-view mechanics,
-Data Lake representation, consumer interfaces, runtime, source-specific capture
-routes, and stored corpus remain deferred. This contract grants no
-implementation authority for them.
+The company-identity boundary is controlled separately by
+`company_identity_boundary_v0.md`. The record contract, history/current-view
+mechanics, Data Lake representation, consumer interfaces, runtime,
+source-specific capture routes, and stored corpus remain deferred. This
+contract grants no implementation authority for them.
 
 ## Direction Change Propagation
 
