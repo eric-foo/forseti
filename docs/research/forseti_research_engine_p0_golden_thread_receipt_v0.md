@@ -131,7 +131,7 @@ uncertainty_or_limits: one seller listing is not a completed sale, price validat
 ## Capture Triage
 
 ```yaml
-capture_request_id: CR-P0-PARFUMO
+capture_request_id: cr_p0_parfumo
 source_scan: forseti_research_engine_p0_imaginary_authors_20260716
 candidate_or_observation_ids:
   - OBS-P0-001
@@ -154,7 +154,7 @@ not_requested:
 ```
 
 ```yaml
-capture_request_id: CR-P0-REDDIT
+capture_request_id: cr_p0_reddit
 source_scan: forseti_research_engine_p0_imaginary_authors_20260716
 candidate_or_observation_ids:
   - OBS-P0-002
@@ -220,8 +220,8 @@ The machine-verifiable event history is
 
 | Request | Capture-owned route | Packet | Manifest SHA-256 | Caller-bound detail check | Terminal state |
 | --- | --- | --- | --- | --- | --- |
-| CR-P0-PARFUMO | `parfumo_product_page_direct_http` | `01KXKDKV2G93R8QAZNQWNT120P` | `3c1fe849a8fcdc6e7a26ea214dcb98656f671e044db3f4e013bdcbc6688ed6c5` | Dipped in Chocolate plus review/statement/rating markers present; both preserved-file hashes recomputed equal. | `handoff_ready` |
-| CR-P0-REDDIT | `old_reddit_direct_http` | `01KXKDPFM3WWAE24BC2Q1JHV50` | `57c6c99215a18dcfab4cb99a1303864c46248ff4c34eea2166f48a44c69a5b83` | Dipped in Chocolate, discontinued, 95 percent full, USD 110 present; six comments consolidated; both preserved-file hashes recomputed equal. | `handoff_ready` |
+| cr_p0_parfumo | `parfumo_product_page_direct_http` | `01KXKDKV2G93R8QAZNQWNT120P` | `3c1fe849a8fcdc6e7a26ea214dcb98656f671e044db3f4e013bdcbc6688ed6c5` | Dipped in Chocolate plus review/statement/rating markers present; both preserved-file hashes recomputed equal. | `handoff_ready` |
+| cr_p0_reddit | `old_reddit_direct_http` | `01KXKDPFM3WWAE24BC2Q1JHV50` | `57c6c99215a18dcfab4cb99a1303864c46248ff4c34eea2166f48a44c69a5b83` | Dipped in Chocolate, discontinued, 95 percent full, USD 110 present; six comments consolidated; both preserved-file hashes recomputed equal. | `handoff_ready` |
 
 ## Cost And Yield
 

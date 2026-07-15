@@ -43,12 +43,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         code = getattr(exc, "code", type(exc).__name__)
         parser.exit(status=2, message=f"capture-request lifecycle invalid [{code}]: {exc}\n")
 
+    # A ledger whose requests all declined verifies no packets; say so rather than
+    # reporting a verification that never happened.
+    verified = sum(1 for event in payload["events"] if event["state"] == "handoff_ready")
     print(
         json.dumps(
             {
                 "commission_id": payload["commission_id"],
+                "packets_verified": verified,
                 "requests": len(payload["requests"]),
-                "status": "terminal_packet_verified",
+                "status": "terminal_packet_verified" if verified else "terminal_no_packets_to_verify",
             },
             sort_keys=True,
         )

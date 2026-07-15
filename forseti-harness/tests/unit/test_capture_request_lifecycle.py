@@ -229,3 +229,17 @@ def test_packet_source_family_must_match_request(tmp_path: Path) -> None:
             require_packet_verification=True,
         )
     assert exc_info.value.code == "handoff_source_family_mismatch"
+
+
+def test_packet_locator_must_match_a_requested_url(tmp_path: Path) -> None:
+    """A packet from the right family is still the wrong evidence for another URL."""
+    ledger, root = _ledger(tmp_path)
+    ledger["requests"][0]["urls"] = ["https://example.test/a-url-nobody-captured"]
+
+    with pytest.raises(CaptureRequestLifecycleError) as exc_info:
+        validate_capture_request_lifecycle(
+            ledger,
+            data_root=root,
+            require_packet_verification=True,
+        )
+    assert exc_info.value.code == "handoff_source_locator_mismatch"

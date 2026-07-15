@@ -73,6 +73,19 @@ def test_explicit_legacy_receipt_skips_new_shape_but_keeps_claim_safety() -> Non
     )
 
 
+def test_new_research_artifact_cannot_self_downgrade_to_legacy(tmp_path: Path) -> None:
+    path = tmp_path / "docs" / "research" / "new_scan.md"
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        _valid_text().replace("scan_receipt_version: 1", "scan_receipt_version: 0", 1),
+        encoding="utf-8",
+    )
+
+    codes = {finding.code for finding in validator.validate_artifact_path(tmp_path, path)}
+
+    assert "legacy_scan_receipt_path_not_allowed" in codes
+
+
 def test_fixture_expected_fail_has_broad_scout_error() -> None:
     findings = validator.validate_text((FIXTURE_DIR / "bad_missing_broad_scout.md").read_text(encoding="utf-8"))
 

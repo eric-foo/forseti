@@ -302,6 +302,12 @@ def _verify_handoff_packet(
         _fail("handoff_packet_id_mismatch", f"{request_id} manifest packet_id does not match lifecycle event")
     if packet.source_family != request["source_family"]:
         _fail("handoff_source_family_mismatch", f"{request_id} packet source_family differs from request")
+    locator = packet.source_locator.value
+    if locator not in request["urls"]:
+        _fail(
+            "handoff_source_locator_mismatch",
+            f"{request_id} packet source_locator {locator!r} is not a URL this request asked for",
+        )
     actual_manifest_sha = hash_file(loaded.container / "manifest.json")
     if actual_manifest_sha != event["manifest_sha256_or_none"]:
         _fail("handoff_manifest_hash_mismatch", f"{request_id} manifest sha256 does not match lifecycle event")

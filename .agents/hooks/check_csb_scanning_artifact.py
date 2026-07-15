@@ -40,6 +40,16 @@ SUPPORTED_SCAN_RECEIPT_VERSIONS = {
     LEGACY_SCAN_RECEIPT_VERSION,
     CURRENT_SCAN_RECEIPT_VERSION,
 }
+LEGACY_SCAN_RECEIPT_PATHS = frozenset(
+    {
+        "docs/research/orca_discovery_candidate_scan_imaginary_authors_broad_scout_deep_scan_v0.md",
+        "docs/research/orca_discovery_candidate_scan_imaginary_authors_buyer_language_rerun_v0.md",
+        "docs/research/orca_discovery_candidate_scan_imaginary_authors_core_satellite_csb_v0.md",
+        "docs/research/orca_discovery_candidate_scan_imaginary_authors_csb_first_venue_eval_v0.md",
+        "docs/research/orca_discovery_candidate_scan_imaginary_authors_demand_origin_discovery_v0.md",
+        "docs/research/orca_discovery_candidate_scan_imaginary_authors_mgt_v0.md",
+    }
+)
 
 REQUIRED_INTAKE_FIELDS = {
     "commission_id",
@@ -1215,6 +1225,13 @@ def validate_artifact_path(root: Path, path: Path) -> list[Finding]:
     text = path.read_text(encoding="utf-8")
     relposix = _relposix(root, path)
     findings: list[Finding] = []
+    if dispatched_receipt_version(text) == LEGACY_SCAN_RECEIPT_VERSION and relposix not in LEGACY_SCAN_RECEIPT_PATHS:
+        findings.append(
+            Finding(
+                "legacy_scan_receipt_path_not_allowed",
+                f"{SCAN_RECEIPT_VERSION_FIELD}: {LEGACY_SCAN_RECEIPT_VERSION} is frozen to the historical compatibility cohort; {relposix} is not allowed.",
+            )
+        )
     if looks_like_csb_first_scan_artifact(relposix, text):
         findings.extend(validate_text(text))
     elif not looks_like_creator_registry_preflight_artifact(relposix, text):
@@ -1228,6 +1245,28 @@ def validate_artifact_path(root: Path, path: Path) -> list[Finding]:
     return findings
 
 
+def dispatched_receipt_version(text: str) -> int | None:
+    """The receipt version validate_text dispatched on, or None if undetermined."""
+    blocks, _ = _yaml_blocks(text)
+    version, _ = _receipt_version_findings(_find_intake(blocks))
+    return version
+
+
+def _dispatch_note(path: Path) -> str:
+    # A legacy receipt passes on claim-safety alone, so an undecorated PASS would
+    # read as current-contract compliance it was never checked against.
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    if dispatched_receipt_version(text) != LEGACY_SCAN_RECEIPT_VERSION:
+        return ""
+    return (
+        f" [{SCAN_RECEIPT_VERSION_FIELD}: {LEGACY_SCAN_RECEIPT_VERSION} legacy dispatch"
+        " -- claim-safety only; current-contract shape checks skipped]"
+    )
+
+
 def validate_paths(paths: Iterable[Path]) -> int:
     root = repo_root()
     exit_code = 0
@@ -1239,7 +1278,7 @@ def validate_paths(paths: Iterable[Path]) -> int:
             for finding in findings:
                 print(f"  {finding.code}: {finding.message}")
         else:
-            print(f"PASS {path}")
+            print(f"PASS {path}{_dispatch_note(path)}")
     return exit_code
 
 
@@ -1283,13 +1322,22 @@ def selftest() -> int:
                 "FAIL explicit legacy receipt version dispatch: "
                 f"targeted={bool(legacy_targets)} findings={legacy_findings}"
             )
-    current_rel = "docs/research/orca_discovery_candidate_scan_imaginary_authors_broad_scout_deep_scan_v0.md"
+    # Anchor on a receipt that actually declares the current version: targeting alone
+    # is satisfied by any explicit version, including a legacy downgrade.
+    current_rel = "docs/research/forseti_research_engine_p0_golden_thread_receipt_v0.md"
     if (root / current_rel).is_file():
-        if auto_targets(root, [current_rel]):
-            print("PASS current-contract artifact still auto-targeted")
+        current_path = root / current_rel
+        current_targeted = bool(auto_targets(root, [current_rel]))
+        current_version = dispatched_receipt_version(current_path.read_text(encoding="utf-8"))
+        current_findings = validate_artifact_path(root, current_path)
+        if current_targeted and current_version == CURRENT_SCAN_RECEIPT_VERSION and not current_findings:
+            print("PASS current-contract receipt auto-targeted and validated at the current version")
         else:
             ok = False
-            print(f"FAIL current-contract artifact no longer auto-targeted: {current_rel}")
+            print(
+                "FAIL current-contract receipt dispatch: "
+                f"targeted={current_targeted} version={current_version} findings={current_findings}"
+            )
 
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
