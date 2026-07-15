@@ -4,10 +4,10 @@
 retrieval_header_version: 1
 artifact_role: Product-method contract (owner-ratified 2026-06-15; supersedes the prior PROPOSED status)
 scope: >
-  Proposes the standing-capture sibling to the v0 commissioned Data Capture
-  obligation contract — the "Candidate Signal Intake or Corpus Intake contract"
-  that v0 routes standing/opportunistic capture out to, and that does not yet
-  exist. Defines the obligations for recurring capture of an approved public
+  Defines the owner-ratified standing-capture sibling to the v0 commissioned
+  Data Capture obligation contract — the "Candidate Signal Intake or Corpus
+  Intake contract" that v0 routes standing/opportunistic capture out to.
+  Defines the obligations for recurring capture of an approved public
   signal into an append-only corpus BEFORE any Decision Frame exists, serving
   both the demand-durability indicators (hourly/daily) and the company-aggregate
   org-motion forward series (periodic). Inherits the v0 obligation set; adds only
@@ -23,15 +23,18 @@ open_next:
   - forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md          # the commissioned sibling (routes standing OUT to here)
   - forseti/product/spines/capture/core/contracts/candidate_intake/data_capture_spine_candidate_url_intake_contract_v0.md               # the locator layer below this contract
   - docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md                    # the org-motion slice clarification this supersedes as obligation home
+  - forseti/product/information/company_surface/company_identity_boundary_v0.md                          # owns company-specific identity meaning and entity_key resolution
   - forseti/product/spines/capture/core/demand_durability_indicators/capture_envelope_durability_delta_spec_v0.md                         # the demand-indicator durability elements this governs standing
   - forseti/product/spines/capture/core/demand_durability_indicators/demand_durability_indicator_standing_capture_obligation_home_decision_framing_v0.md   # the owner-decision framing (D1=general, D3=deferred) this answers — landed via merged PR #106 (indicator rename)
   - docs/decisions/pre_capture_discovery_spine_charter_recommendation_v0.md                              # WHERE-side discovery (deconflicted; not this contract)
-  - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md                                              # never-a-feed invariant (the structural lock)
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md                                           # controlling product direction and decision-outcome boundary
+  - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md                         # reusable decision-adjudication product contract
 stale_if:
   - The owner amends, supersedes, or re-scopes this ratified contract.
   - The v0 commissioned obligation contract changes its standing-capture carve-out, its rebind rule, or its obligation set.
   - The Source Capture packet schema (manifest v1) changes the provenance/timing/posture/re-capture facts this inherits.
   - The company-aggregate slice clarification is re-scoped, or the demand-durability indicator profiles change their captured series.
+  - The Company Surface identity boundary changes the ownership or meaning of `entity_key` resolution.
   - A scheduler/runtime build for standing capture is authorized (a separate, later authorization).
 ```
 
@@ -39,14 +42,14 @@ stale_if:
 
 - Status: `CONTRACT_RATIFIED_V0_2026_06_15` — **owner-ratified 2026-06-15**, superseding the prior `PROPOSED_NOT_RATIFIED` status. Ratification accepts the obligation contract; it is **not** a hardening or validation claim — the contract is **not yet pressure-tested** (see Pressure-Test Requirement).
 - Artifact type: Product-method contract (ratified; docs-write).
-- Direction answered: the owner-selected **D1 = general** (one Candidate-Signal / Corpus Intake contract serving both the demand-durability indicators and the company-aggregate org-motion lane) and **D3 = scheduler deferred** (trigger-agnostic entrypoint), recorded in `demand_durability_indicator_standing_capture_obligation_home_decision_framing_v0.md`. D2 follows D1: a **separate sibling contract**, not a v0 amendment.
+- Direction answered: the owner-selected **D1 = general** (one Candidate-Signal / Corpus Intake contract serving both the demand-durability indicators and the company-aggregate org-motion lane) and **D3 = scheduler deferred**, with no trigger-agnostic entrypoint or runtime shape bound, recorded in `demand_durability_indicator_standing_capture_obligation_home_decision_framing_v0.md`. D2 follows D1: a **separate sibling contract**, not a v0 amendment.
 - Ratification: **owner-ratified 2026-06-15** · Implementation authorized: **no** · Scheduler/runtime authorized: **no** · Source access authorized: **no** · Hardening: **no** (pressure-tests not yet run). Ratifying the obligation contract authorizes none of build, scheduler, runtime, or source access.
-- Ratification path (complete): delegated cross-vendor adversarial review (doctrine-bearing) → R1 hardening → **owner ratification 2026-06-15**. Remaining: (1) propagation to the controlling surfaces listed in `proposed_direction_change` (tracked post-ratification fast-follow); (2) pressure-testing per the Pressure-Test Requirement before any hardening claim.
+- Ratification path (complete): delegated cross-vendor adversarial review (doctrine-bearing) → R1 hardening → **owner ratification 2026-06-15** → propagation to the controlling surfaces listed in `proposed_direction_change`. Remaining: pressure-testing per the Pressure-Test Requirement before any hardening claim.
 - **R1 hardening (2026-06-15):** patched against a cross-vendor adversarial review (controller = GPT-5 Codex / OpenAI; `de_correlation_bar: cross_vendor_discovery`). All five findings accepted; the CA-adjudicated remedy was a **bounded patch round** (S1 charter-as-owner-gated-gate; S3 runtime-architecture overreach removed; S5 checkable rebind gate; S7 behavioral never-a-feed boundary; pressure-test closure criteria bound) — **not** a full architecture pass. Adjudication record: `docs/review-outputs/adversarial-artifact-reviews/corpus_intake_contract_cross_vendor_adversarial_review_v0.md`.
 
 ## Purpose
 
-The v0 Data Capture obligation contract governs **commissioned capture** — capture performed for an existing Decision Frame. It explicitly routes **standing / opportunistic corpus capture out** of v0 to "a separate Candidate Signal Intake or Corpus Intake contract," and states that standing items are **not ECR-ready evidence until rebound or recaptured under a Decision Frame.** That separate contract does not yet exist. Two lanes have now independently hit the resulting obligation-home gap:
+The v0 Data Capture obligation contract governs **commissioned capture** — capture performed for an existing Decision Frame. It explicitly routes **standing / opportunistic corpus capture out** of v0 to "a separate Candidate Signal Intake or Corpus Intake contract," and states that standing items are **not ECR-ready evidence until rebound or recaptured under a Decision Frame.** This ratified contract is that separate obligation home, established after two lanes independently hit the gap:
 
 - the **demand-durability indicators** (price, availability/restock, search-interest, review-velocity) the owner confirmed should be monitored continuously on an **hourly-to-daily** rhythm; and
 - the **company-aggregate org-motion forward series** (headcount/size-band trend), which accretes entity-keyed observations on a periodic cadence before any Decision Frame.
@@ -86,6 +89,10 @@ The pre-capture discovery charter recommendation cautions against "a standing kn
 
 Standing capture inherits the v0 contract's discharge vocabulary unchanged: every obligation is made explicit as one of `met`, `partial`, `assessed_not_met`, `cannot_assess`, `access_failed`, `blocked`, `unavailable_by_source`, `not_applicable`, or `not_attempted` (definitions per the v0 contract). Silent omission is not allowed; unknowns are acceptable only when the unknown state and reason are visible.
 
+The obligation machinery is **Decision-Frame-agnostic**: S1–S7 can govern a chartered standing series without encoding one Decision Frame. Every actual standing series is nonetheless **charter-purpose-bound** under S1 to a named recurring decision family; no purpose-free standing series is permitted.
+
+Capture preserves observable source truth under these obligations. It does not infer acute pain or decision meaning from what it captures; those remain downstream responsibilities at rebind and adjudication.
+
 ## Inherited Obligations (v0, unchanged)
 
 Every observation captured under standing capture must discharge the v0 obligations **2–16** exactly as a commissioned capture would, and standing cadence does **not** loosen any of them:
@@ -120,7 +127,8 @@ Failure mode: standing capture with no charter is free-floating corpus collectio
 
 A corpus is only a series if its rows are comparable. Each observation must bind to a stable **series identity** and carry the pins that make re-observations comparable:
 
-- the **series key** (target/product/listing + locator for indicators; `entity_key` for org-motion — the entity-resolution spine owns canonical identity, capture only carries it);
+- the **series key** (target/product/listing + locator for indicators; `entity_key` for org-motion — the external entity-resolution owner owns canonical identity, and Capture only carries it);
+- the **unresolved-identity boundary**: Capture may preserve the raw surface form or a family-local identity before resolution, but it claims no cross-surface or company-level comparability until the external owner supplies a canonical `entity_key`; Capture carries that key and never mints it;
 - the **comparability pins** the series depends on (e.g. locale/currency/access-method/exit-geo for a price or availability series; source + capture-posture tag for org-motion);
 - a **cold-start marker** on the first observation of a series (the corpus before it is inherently limited; the inherent-limit cap is a visible fact, not a defect to hide);
 - **pin drift is a visible re-pin event**, never silently absorbed: if a comparability pin changes (currency switch, exit-geo change, locator migration), the break in the series must be recorded so a later read does not treat a pin-induced jump as a real movement.
@@ -133,7 +141,7 @@ Cadence is a first-class capture fact, not an implicit habit:
 - **re-observation timing is decomposed** (Ob.8): the cadence is the *intended* rhythm; each row records its actual capture timing, and divergence (missed/late/extra samples) is visible;
 - **manual-now; scheduler deferred (D3).** Until a separate build authorization grants a scheduler, the operative cadence is **manual/attended**, and the contract is explicit that "hourly/daily" is the *target* rhythm the manual posture does not yet truly meet — that **manual shortfall is itself a visible cadence fact**, recorded per series, not hidden. Authorizing a scheduler is **not** part of this contract, and this contract specifies **no** runtime, scheduler, entrypoint, or interface shape.
 
-> **Non-binding future-compatibility note (NOT an obligation).** A manual-now / scheduler-later rollout may later find it convenient for both triggers to share one capture entrypoint — but designing or requiring any entrypoint, interface, or runtime shape is **runtime architecture owned by a later build authorization**, not this obligation contract. It is named here only as foregone context, per the contract's own no-runtime-design boundary and v0's "runtime design as this contract" rejection. *(AR-05.)*
+> **Non-binding future-compatibility note (NOT an obligation).** A manual-now / scheduler-later rollout may later find it convenient for both triggers to share one capture entrypoint — but designing or requiring any trigger-agnostic entrypoint, interface, or runtime shape is **runtime architecture owned by a later build authorization**, not this obligation contract. This note remains future context only and binds no S3 implementation shape. *(AR-05.)*
 
 ### S4 — Append-Only Series Integrity (extends Ob.15)
 
@@ -162,11 +170,11 @@ The demand substrate is hostile and manipulable; standing capture does not relax
 
 ### S7 — Never-A-Feed Structural Lock
 
-Per the buyer-proof packet's never-a-feed invariant, **every Orca output is a calibrated decision with an action ceiling — never a feed or stream**, including when a read is monitored over time (recurring engagement is sold as recurring *decisions*, never as a monitoring feed). The standing corpus is the place this invariant is most at risk, so the contract encodes it structurally:
+Per the controlling product thesis (`docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`) and Core Spine product contract (`forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md`), Forseti produces a decision outcome and a right-sized action, not source volume, a dashboard, or a feed. The standing corpus is the place this boundary is most at risk, so the contract encodes it structurally:
 
 - the corpus is **internal decision-substrate**; it must **not** be exposed, sold, or productized as a feed, stream, dashboard, alert subscription, or market-monitoring product;
 - **behavioral boundary (not just naming):** corpus-derived material reaches any consumer — buyer, internal workflow, or downstream lane — **only** wrapped in a **calibrated decision with an action ceiling** (a Decision Frame or recurring-decision wrapper). **Periodic raw-series delivery, a dashboard, an alert/threshold subscription, a trend stream, or a market-monitoring view is barred regardless of what it is named** — feed-shaped *behavior* is the kill, not the word "feed." Recurring monitoring is delivered as recurring *decisions*, each with its own frame and ceiling; *(AR-02.)*
-- outputs built on the corpus remain **calibrated decisions with action ceilings**; capturing a corpus hourly/daily is fine, **selling a feed is the kill** (it lands Orca on the "monitoring-only pull" kill and in the social-listening category the buyer-proof packet rejects);
+- outputs built on the corpus remain **calibrated decisions with action ceilings**; capturing a corpus hourly/daily is fine, **selling a feed is the kill** (it makes source monitoring, rather than a right-sized decision, the product center rejected by the controlling thesis and Core Spine product contract);
 - the corpus exists to feed **recurring decisions**; the obligation home must keep it decision-substrate, not product output.
 
 ## What This Supersedes (and what it does not re-spec)
@@ -175,7 +183,7 @@ On ratification, this contract becomes the **obligation home** for standing capt
 
 It does **not** re-spec what those lanes own:
 
-- it does **not** redefine the org-motion **observation record shape**, its **official-first source selection**, its adapter set, or its `entity_key` resolution — those stay owned by the company-aggregate decision and the entity-resolution spine;
+- it does **not** redefine the org-motion **observation record shape**, its **official-first source selection**, or its adapter set — those stay owned by the company-aggregate decision; it does not redefine `entity_key` identity meaning or resolution — those stay owned by the Company Surface identity boundary;
 - it does **not** redefine the **demand-indicator capture profiles** or the keystone durability delta's elements — those stay owned by their profiles; this contract governs *that they are captured standing under these obligations*, not *which series to capture*;
 - it does **not** amend the **v0 commissioned obligation contract** file (D2: sibling, not amendment); v0's standing carve-out already points here.
 
@@ -209,6 +217,8 @@ Per the v0 doctrine ("do not harden this contract from abstract reasoning alone"
 
 Pressure-test each against: whether the charter (S1) was sufficient to start; whether series identity/pins (S2) held across re-observation; whether cadence (S3) was bounded and decomposed; whether append-only integrity (S4) survived a conflicting re-observation; whether rebind (S5) produced auditable corpus→evidence provenance; whether manipulability flags (S6) rode forward without becoming judgment; and whether the never-a-feed lock (S7) held. Tighten, relax, split, or move obligations to satellite only after failures are compared.
 
+These two founding lanes may harden the shared obligations, but they cannot prove coverage for later source families. The first standing series in each genuinely new family must observe whether S1–S7 fit and which semantics remain satellite-owned. If that observation discovers a cross-family obligation, reopen core before copied family-local workarounds spread.
+
 **Closure criteria — a pressure test passes only on observed evidence, never on a reviewed example** *(AR-04)*:
 
 - **S1** passes iff a real charter gated a real standing run **and** an attempted run with no current approved charter was actually refused/stopped.
@@ -230,7 +240,7 @@ A pressure test **fails** when its closure evidence is absent, narrative-only, o
 
 ## Non-Claims
 
-This contract does not prove or authorize validation, readiness, hardening, source-of-truth promotion, buyer proof, repeatable demand, product/feature/implementation/commercial readiness, source-system feasibility, data rights, or runtime feasibility; ratification accepts the obligation set but is **not** a pressure-test pass. It authorizes no implementation, scheduler, runtime, source access, storage, dashboard, automation, scraper, API, or ECR/Cleaning/Judgment design. It does not amend the v0 obligation contract, the source-access boundary, the Candidate URL Intake contract, or the company-aggregate decision; it is the standing-capture sibling those surfaces already point to. INV-1 is preserved: no weight, score, ranking, threshold, or judgment is introduced.
+This contract does not prove or authorize validation, readiness, hardening, source-of-truth promotion, buyer proof, repeatable demand, product/feature/implementation/commercial readiness, source-system feasibility, data rights, runtime feasibility, or universal source-family coverage; ratification accepts the obligation set but is **not** a pressure-test pass. It authorizes no implementation, scheduler, runtime, source access, storage, generic feed, dashboard, dossier, surveillance product, automation, scraper, API, or ECR/Cleaning/Judgment design. It does not amend the v0 obligation contract, the source-access boundary, the Candidate URL Intake contract, or the company-aggregate decision; it is the standing-capture sibling those surfaces already point to. INV-1 is preserved: no weight, score, ranking, threshold, or judgment is introduced.
 
 ## Direction Change (ratified 2026-06-15; propagated 2026-06-15)
 
@@ -275,4 +285,68 @@ proposed_direction_change:
     - not contract hardening
     - not pressure-tested
     - not a build/scheduler/runtime/source-access authorization
+```
+
+## Direction Change Propagation — Reusable Company-Surface Capture (2026-07-15)
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Company-surface capture reuses Corpus Intake obligations, the logical tenant-
+    payload boundary, and landed source-family satellites without creating a new
+    company-intelligence spine or authorizing implementation.
+  trigger: architecture_doctrine
+  related_triggers: [product_doctrine, lifecycle_boundary]
+  controlling_sources_updated:
+    - forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md
+    - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    - forseti/product/spines/capture/core/source_families/README.md
+  downstream_surfaces_checked:
+    - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
+    - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
+    - docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+    - docs/workflows/data_capture_spine_consolidation_map_v0.md
+    - .agents/workflow-overlay/source-loading.md
+  intentionally_not_updated:
+    - path: docs/workflows/data_capture_spine_consolidation_map_v0.md
+      reason: >
+        Its live routes still resolve to all three owners; its packet/slice envelope
+        summary remains a valid current example while exact allowed scopes stay open.
+    - path: forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+      reason: >
+        It already owns the access gate, probe, receipt, and probe-then-pin method;
+        the landed-family catalog remains downstream of that front door.
+    - path: forseti/product/spines/capture/core/source_capture_toolbox/capture_recon_index_v0.md
+      reason: It already indexes observed probe evidence and is explicitly non-authorizing.
+    - path: docs/decisions/company_aggregate_forward_signal_capture_lane_scope_decision_v0.md
+      reason: It already says Capture carries raw surface form and an externally resolved entity_key, never canonicalizes identity.
+    - path: docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
+      reason: It already binds decision outcomes and rejects dashboard/feed product shape; this patch only repoints the capture contract to it.
+    - path: forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
+      reason: It already binds the reusable decision-adjudication contract and grants no implementation authority.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: Capture-spine activity already auto-loads the Source Capture Playbook and recon index.
+  stale_language_search: >
+    rg -n -i "Proposes the standing-capture sibling|does not yet exist|D3.*trigger-agnostic entrypoint|buyer-proof packet|cold-start catalog for known|packet/slice-keyed.*extension envelopes|discovery inventory|theoretical surface list|capability backlog|Company Intelligence|surface reality|CSB spine"
+    forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md
+    forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
+    forseti/product/spines/capture/core/source_families/README.md
+  stale_language_search_result: >
+    Executed 2026-07-15 after edits. Remaining hits are the catalog's explicit
+    rejection of discovery-inventory/backlog use, the D3 clause saying no
+    trigger-agnostic entrypoint or runtime shape is bound, this receipt's query
+    text, and its explicit non-claim rejecting named replacement spines. No stale proposal or
+    nonexistence self-description, suspended buyer-proof anchor, affirmative
+    discovery-inventory/backlog use, or named replacement spine remains. The
+    payload owner's preserved 2026-06-17 receipt still records its historical
+    packet/slice-keyed wording; current live clauses keep the exact scope set open.
+  non_claims:
+    - not validation or readiness
+    - not universal source-family coverage or hardening
+    - not entity resolution
+    - not implementation, migration, scheduler, runtime, storage, query, or source-access authorization
+    - not a generic feed, dashboard, dossier, or surveillance product
+    - not a Company Intelligence, surface-reality, or CSB spine
 ```

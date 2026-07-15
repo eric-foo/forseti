@@ -164,7 +164,12 @@ nearest index/submap, retrieval headers, or generated header index.
 | `forseti/` | Product-tree root. Product substance lives under `forseti/product/`. |
 | `forseti-harness/` | Bounded implementation root; area routes are below. |
 
-## Product Spine Axis And Major Areas
+## Product Axes And Major Areas
+
+`forseti/product/information/` is admitted here as a T1 product-area front door.
+The existing spine routes are insufficient because Company Surface is shared,
+decision-agnostic information rather than an operational owner; `shared/` is a
+transitional registry/doctrine area, not a durable home for this contract.
 
 | Path | Role / front door |
 | --- | --- |
@@ -181,6 +186,7 @@ nearest index/submap, retrieval headers, or generated header index.
 | `forseti/product/satellites/beauty/` | Beauty satellite artifacts and venue-card surfaces. |
 | `forseti/product/satellites/fragrance/` | Fragrance satellite and Judgment Level 1 product-learning artifacts. |
 | `forseti/product/case_families/product_learning/` | Product-learning case families across fragrance and other verticals. |
+| `forseti/product/information/` | Reusable, decision-agnostic product information; open `forseti/product/information/README.md`, then the current `company_surface/README.md` domain front door. |
 | `forseti/product/shared/engagement_registry/` | Shared engagement registry and logic. |
 | `forseti/product/shared/projection_doctrine/` | Shared projection boundaries and doctrine. |
 
