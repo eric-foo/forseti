@@ -19,11 +19,13 @@ use_when:
   - Replacing the leaky demographic denylist with a positive allow-list / SubNiche ontology.
 authority_boundary: retrieval_only
 open_next:
-  - orca-harness/schemas/audience_inference_models.py
-  - orca-harness/cleaning/audience_extractor.py
-  - orca-harness/scoring/audience_fusion.py
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+  - forseti-harness/schemas/tiktok_audience_evidence_models.py
+  - forseti-harness/judgment/tiktok_audience_triangulation.py
   - docs/decisions/wind_caller_calibration_carveout_v0.md
   - docs/decisions/orca_mini_god_tier_doctrine_v0.md
+superseded_by:
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
 stale_if:
   - The Tier-1/Tier-2-A/Tier-3 boundary or the Tier-2-A carve-out is amended.
   - The OutputField set or the fusion modality-cap / abstention model changes.

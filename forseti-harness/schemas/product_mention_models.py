@@ -192,10 +192,10 @@ class ProductVerdict(ProductMentionModel):
 
 class ProductVerdictSet(ProductMentionModel):
     """All Pass-2 product verdicts for ONE creator — the container ``fuse_product_verdicts``
-    returns. Mirrors ``IdealAudienceProfile``: carries the creator id, the per-product
-    verdicts, the products that abstained to ``unknown``, the fusion config version, a
-    timestamp, and provenance, so a run is re-derivable and auditable. ``creator_id`` is
-    supplied by the caller (``ProductMention`` carries none) and scopes input to one creator.
+    returns. Carries the creator id, per-product verdicts, products that abstained to
+    ``unknown``, the fusion config version, a timestamp, and provenance, so a run is
+    re-derivable and auditable. ``creator_id`` is supplied by the caller
+    (``ProductMention`` carries none) and scopes input to one creator.
     """
 
     creator_id: str

@@ -35,6 +35,8 @@ class LaneRole(str, Enum):
     SILVER_ENVELOPE = "silver_envelope"
     SILVER_LINEAGE = "silver_lineage"
     RETIRED_SILVER_LINEAGE = "retired_silver_lineage"
+    RETIRED_LANE = "retired_lane"
+    DECISION_EVIDENCE_RECEIPT = "decision_evidence_receipt"
     ANALYTIC_PROFILE = "analytic_profile"
     COMPLETION_MARKER = "completion_marker"
     CLEANING_AUDIT = "cleaning_audit"
@@ -60,12 +62,14 @@ LANE_ROLES: dict[str, LaneRole] = {
     "social_metric_observation_set_silver": LaneRole.SILVER_ENVELOPE,
     "tiktok_comment_attention_silver": LaneRole.SILVER_ENVELOPE,
     "transcript_product_mentions_silver": LaneRole.SILVER_ENVELOPE,
-    "tiktok_audience_evidence_silver": LaneRole.SILVER_ENVELOPE,
     "transcript_product_mentions_completion": LaneRole.COMPLETION_MARKER,
-    "tiktok_audience_evidence_completion": LaneRole.COMPLETION_MARKER,
-    "tiktok_audience_profile_analysis": LaneRole.ANALYTIC_PROFILE,
-    "tiktok_audience_profile_analysis_completion": LaneRole.COMPLETION_MARKER,
     "retail_pdp_silver": LaneRole.SILVER_ENVELOPE,
+    "creator_audience_evidence_assembly_receipt": LaneRole.DECISION_EVIDENCE_RECEIPT,
+    # --- retired audience inference lanes: names reserved; never current authority
+    "tiktok_audience_evidence_silver": LaneRole.RETIRED_SILVER_LINEAGE,
+    "tiktok_audience_evidence_completion": LaneRole.RETIRED_LANE,
+    "tiktok_audience_profile_analysis": LaneRole.RETIRED_LANE,
+    "tiktok_audience_profile_analysis_completion": LaneRole.RETIRED_LANE,
     # --- retired grammar-B cleaning lanes: history preserved, never current authority
     "silver__cleaning__product_mentions": LaneRole.RETIRED_SILVER_LINEAGE,
     "silver__cleaning__product_mentions__set": LaneRole.RETIRED_SILVER_LINEAGE,
@@ -141,6 +145,15 @@ RETIRED_SILVER_LINEAGE_BASELINE: frozenset[str] = frozenset(
         "silver__cleaning__tiktok_audience_evidence__set",
         "silver__cleaning__tiktok_audience_profile",
         "silver__cleaning__tiktok_audience_profile__set",
+        "tiktok_audience_evidence_silver",
+    }
+)
+
+RETIRED_LANE_BASELINE: frozenset[str] = frozenset(
+    {
+        "tiktok_audience_evidence_completion",
+        "tiktok_audience_profile_analysis",
+        "tiktok_audience_profile_analysis_completion",
     }
 )
 
@@ -186,6 +199,16 @@ def validate_registry() -> list[str]:
             f"(added={sorted(retired_lanes - set(RETIRED_SILVER_LINEAGE_BASELINE))!r}, "
             f"removed={sorted(set(RETIRED_SILVER_LINEAGE_BASELINE) - retired_lanes)!r}); "
             "historical lanes remain audit-readable but must never regain current-reader authority."
+        )
+    retired_general = {
+        lane for lane, role in LANE_ROLES.items() if role is LaneRole.RETIRED_LANE
+    }
+    if retired_general != set(RETIRED_LANE_BASELINE):
+        errors.append(
+            "RETIRED_LANE entries drifted from their historical baseline "
+            f"(added={sorted(retired_general - set(RETIRED_LANE_BASELINE))!r}, "
+            f"removed={sorted(set(RETIRED_LANE_BASELINE) - retired_general)!r}); "
+            "retired lane names remain reserved and must not regain current-reader authority."
         )
     return errors
 

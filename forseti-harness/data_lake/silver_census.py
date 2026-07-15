@@ -83,9 +83,6 @@ _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
         ("tiktok", "tiktok_creator_batch_comment_subtitle_admission"),
         ("instagram_creator", None),
     ),
-    "tiktok_audience_evidence_silver": (
-        ("tiktok", "tiktok_creator_batch_comment_subtitle_admission"),
-    ),
     "retail_pdp_silver": (("fragrance_purchase_review_pdp", None),),
     "silver__capture__audience_comments": (("instagram_creator", None),),
     "silver__capture__reel_transcript": (("instagram_creator", None),),

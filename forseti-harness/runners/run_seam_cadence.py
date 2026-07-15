@@ -167,10 +167,6 @@ CADENCE_ENTRYPOINTS: tuple[CadenceEntrypoint, ...] = (
 # enforces that these plus CADENCE_ENTRYPOINTS exactly cover the discovered
 # seam-consumer surface.
 CLASSIFIED_OUT_SEAM_CONSUMERS: dict[str, str] = {
-    "run_tiktok_audience_evidence_extract.py": (
-        "LLM audience-evidence lane: owner-gated per-turn compute, not a compute-free "
-        "cadence entrypoint; execution requires an injected provider transport"
-    ),
     "run_ig_reels_product_extract.py": (
         "LLM extraction lane: owner-gated per-turn compute, not a compute-free "
         "cadence entrypoint; backlog visible via its own --check"

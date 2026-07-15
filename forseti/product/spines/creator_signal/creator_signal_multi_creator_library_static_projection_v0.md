@@ -43,7 +43,7 @@ average_comment_count=observed:32, unavailable_with_reason:1
 posting_cadence=not_attempted:33
 recent_velocity=not_attempted:33
 sample_adequacy=stronger_admitted_pool_n_8_plus:30, limited_n_4_to_7:1, thin_n_1_to_3:2
-profiles_with_ideal_audience_profiles=0
+profiles_with_audience_triangulation=0
 identity_state=single_platform_observed:33
 link_state_or_none=null:33
 review_state_or_none=null:33
@@ -1480,7 +1480,7 @@ Accepted residuals:
 
 - Every profile in this projection is `platform_account`-scoped and `single_platform_observed`; no `creator_record` (cross-platform-linked) profile exists in the current data.
 - `posting_cadence` and `recent_velocity` remain declared-deferred (`not_attempted`) for all 33 rows; this projection renders that state, it does not populate it.
-- The ideal/content-fit audience section of the underlying `creator_profile_current` contract is exercised only in its always-null current state (`profiles_with_ideal_audience_profiles: 0`); this projection does not render a populated ideal-audience row because none exists, and does not claim to have exercised populated-row treatment.
+- The audience-triangulation section of the underlying `creator_profile_current` contract is exercised only in its current null state (`profiles_with_audience_triangulation: 0`); this projection does not render a populated triangulation row because none exists, and does not claim to have exercised populated-row treatment.
 - All rollups are admitted-pool or selected-grid statistics (`admitted_pool_only_not_representative_creator_average`), not channel-wide or representative creator averages, for every row.
 - `link_state_or_none` and `review_state_or_none` are `null` for all 33 rows in the current data; this projection does not invent or imply a candidate/rejected/promoted link state.
 

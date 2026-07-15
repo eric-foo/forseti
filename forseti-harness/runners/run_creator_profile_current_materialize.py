@@ -114,11 +114,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Timestamp for profile_view_computed_at. Defaults to the existing output timestamp when present.",
     )
     parser.add_argument(
-        "--audience-profile-snapshot",
+        "--audience-triangulation-snapshot",
         type=Path,
         action="append",
-        dest="audience_profile_snapshots",
-        help="Optional creator_ideal_audience_profile_snapshot JSON document. Repeat to join multiple documents.",
+        dest="audience_triangulation_snapshots",
+        help="Optional validated creator-audience triangulation snapshot. Repeat to join multiple documents.",
     )
     parser.add_argument("--check", action="store_true", help="Fail if the output is stale.")
     parser.add_argument("--write", action="store_true", help="Write the materialized output JSON.")
@@ -148,7 +148,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             account_ledger_path=args.account_ledger,
             creator_registry_index_path=args.creator_registry_index,
             metric_seed_paths=metric_seeds,
-            audience_profile_snapshot_paths=tuple(args.audience_profile_snapshots or ()),
+            audience_triangulation_snapshot_paths=tuple(args.audience_triangulation_snapshots or ()),
             generated_at_utc=generated_at,
         )
         rendered = dump_creator_profile_current_view(document)
