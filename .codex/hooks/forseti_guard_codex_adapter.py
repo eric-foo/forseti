@@ -130,9 +130,10 @@ def _nested_worktree_reason(path_text, roots=None):
         if _contains_path(root, target):
             return (
                 "Codex nested-worktree write blocked: target is under registered "
-                "worktree %s while this hook is rooted at %s. Open/reroot Codex "
-                "in the target worktree and rerun the lane-start writeability "
-                "preflight before editing."
+                "worktree %s while this hook is rooted at %s. Use a Codex task "
+                "created and rooted in the target worktree, or route the frozen "
+                "commission to an already-authorized capable worktree-backed "
+                "task; a command workdir cannot reroot this task."
             ) % (root, current)
     return ""
 
@@ -158,8 +159,8 @@ def _check_shell_durable_write(tool_input):
         return ""
     return (
         "Codex raw shell durable-write blocked: use apply_patch from the active "
-        "worktree. If apply_patch fails against a nested worktree, reroot Codex "
-        "in that worktree instead of rewriting repo files through Bash/PowerShell."
+        "worktree. For a registered non-current worktree, use a Codex task "
+        "created and rooted there; a command workdir cannot reroot this task."
     )
 
 
