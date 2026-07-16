@@ -1,6 +1,19 @@
 # ECR Consolidation v0 Plan Cross-Family Review v0
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Cross-family review of the ECR Consolidation v0 plan.
+use_when:
+  - Inspecting review findings and accepted friction for the consolidation plan.
+  - Tracing later ECR consolidation work to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
+```
+
+```yaml
 review_summary:
   recommendation: accept_with_friction
   target: docs/product/ecr_consolidation_v0_frame_source_visibility_slice_architecture_plan_v0.md

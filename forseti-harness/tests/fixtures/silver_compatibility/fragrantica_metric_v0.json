@@ -1,0 +1,69 @@
+{
+  "captured_at": "2026-01-01T00:00:00Z",
+  "content_hash": "sha256:83f7618ef66b6038ba13ee448be63f33a06d5311962eae0d5d8db11b190c2218",
+  "content_hash_basis": "canonical_json_excluding_content_hash",
+  "derived_refs": [
+    {
+      "content_hash": "sha256:2cbbfd38ef21c65501d010085ba446ece65a826d0381a458b0d21e059a976dcd",
+      "content_hash_basis": "canonical_json_excluding_content_hash",
+      "edge_type": "derived_from_record",
+      "lane_namespace": "cleaning_fragrantica_audit",
+      "record_id": "01J00000000000000000000FA1.json"
+    }
+  ],
+  "lane_namespace": "cleaning_fragrantica_silver",
+  "non_claims": [
+    "not_archive_completeness",
+    "not_demand_signal",
+    "not_judgment",
+    "not_sentiment_analysis"
+  ],
+  "observed_at": "2026-01-01T00:00:00Z",
+  "payload": {
+    "observation": {
+      "coverage_window": {
+        "end": null,
+        "start": null
+      },
+      "metric_name": "review_longevity_vote",
+      "metric_posture": {
+        "kind": "observed",
+        "reason_code": null,
+        "reason_detail": null
+      },
+      "metric_value": 4,
+      "source_publication_or_event": null,
+      "source_surface": "fragrantica_product_page_direct_http",
+      "source_surface_count_candidates": [],
+      "subject": {
+        "review_handle_id": "cleaning:fragrantica:slice_01:fragrantica:review_card:all-reviews:0000001",
+        "review_row_id": "slice_01:fragrantica:review_card:all-reviews:0000001",
+        "source_surface": "fragrantica_product_page_direct_http"
+      },
+      "unit": "fragrantica_vote_ordinal"
+    }
+  },
+  "payload_kind": "MetricObservation",
+  "producer_id": "orca-harness.cleaning.fragrantica_lake.derive_fragrantica_cleaning_into_lake#silver",
+  "producer_row_kind": "fragrantica_review_vote",
+  "producer_schema_version": "fragrantica_cleaning_silver_metricobservation_v0",
+  "provenance": {
+    "cleaning_method_id": "fragrantica_cleaning_method_v0"
+  },
+  "raw_anchor": "01J000000000000000000000F1",
+  "raw_refs": [
+    {
+      "file_id": "file_01",
+      "hash_basis": "raw_stored_bytes",
+      "packet_id": "01J000000000000000000000F1",
+      "relative_packet_path": "raw/01_http_response_body.bin",
+      "sha256": "5a1d451dd4a1dfc4946c3422b7687a84b217f99b2222afaebedbbf748e56acc5",
+      "slice_id": "slice_01"
+    }
+  ],
+  "record_id": "01J00000000000000000000FM1.json",
+  "record_kind": "observation",
+  "schema_version": "silver_vault_record_v0",
+  "source_family": "fragrance_native_database",
+  "source_surface": "fragrantica_product_page_direct_http"
+}

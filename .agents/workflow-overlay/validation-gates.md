@@ -258,112 +258,14 @@ inherit this floor.
 - Resolver-visible skill-name snapshots are recorded before any skill adoption or promotion work.
 - Git status is reported when this workspace is a Git repo.
 
-## Conditional Cold-Agent Dogfood Gate
-
-This gate applies only inside an explicitly invoked `/fused` source-changing
-implementation turn. It targets operational-usability failures that can remain
-invisible when the author retains setup knowledge, implementation rationale,
-fixture familiarity, or the expected output in context. It is independent of
-delegated different-family review: cold dogfood tests use without author
-context; delegated review tests the implementation through a de-correlated code
-reviewer. Neither substitutes for the other.
-
-After focused tests and author-run validation, classify the implementation:
-
-- `applicable` when it introduces or materially changes a supported
-  user/operator workflow, CLI or runner, cross-layer integration,
-  model-generated output with a bound invariant, onboarding or capture chain,
-  safely exercisable external/lake boundary, or behavior whose usability is
-  not adequately represented by unit/contract tests; and a representative
-  non-production artifact can exercise the load-bearing path safely.
-- `not_applicable` for documentation-only work unless the documentation is the
-  supported entry point, mechanical refactors with unchanged behavior, narrow
-  fixes whose relevant risk is fully represented by deterministic tests, work
-  that cannot be exercised without live/production mutation, or work with no
-  representative local artifact. Record the exact skip reason and accepted
-  residual; do not convert an expected skip into `no_failure_found`.
-
-An applicable first pass uses a fresh agent with no forked authoring
-conversation. Give it only the goal, supported entry point, constraints, and
-artifact location. Do not give it an implementation-rationale dump, a
-sender-authored workflow walkthrough, or an expected answer.
-The agent must discover repository instructions and the actual supported
-workflow from the same operator-facing surfaces available to a real user:
-repository instructions, supported entry-point documentation or help, and
-produced artifacts or evidence. When source or documentation is itself the
-supported product or entry point, reading that source is realistic use and
-remains allowed. Otherwise, do not expose or inspect implementation internals,
-diffs, author notes, or tests unless the supported workflow itself requires
-them. The agent may read only those operator-facing surfaces and the supplied
-artifacts, and may write only to bounded scratch; it must not patch source or
-product artifacts, mutate live/production state, publish, or perform
-destructive actions. A different vendor is not required
-for coldness. The actor only needs enough capability to operate the supported
-entry point, inspect evidence, exercise product-quality judgment, and return a
-reproducible result. Current model/tier defaults stay operator/tooling-owned
-under `docs/decisions/subagent_model_tiering_doctrine_v0.md`; no model name or
-version belongs in this gate or Fused.
-
-The smallest complete first pass is one representative end-to-end happy path
-plus one falsification scenario aimed at the highest-risk seam. Add a second
-entity/artifact only when cross-entity isolation, batching, attribution, or
-aggregation is load-bearing. Do not expand the matrix unless the first pass
-finds a failure or names a specific coverage gap. One successful run is not
-validation, readiness, or proof of output quality.
-
-The cold return carries exactly one `cold_dogfood_status`:
-
-- `failure_found`: at least one decision-bearing deviation was observed;
-- `no_failure_found`: the bounded scenarios completed without one;
-- `blocked`: an applicable run could not start or complete for an unexpected
-  environment, tooling, evidence, or execution reason; Fused stops;
-- `not_applicable`: a named classification skip applies.
-
-The status preserves the first-pass or skip outcome; repair and replay do not
-overwrite it. Closeout separately records home adjudication and replay result.
-
-Each returned failure contains the exact entry point and command; environment
-and inputs; artifact/evidence paths; expected invariant; observed result;
-reproducibility; severity and user consequence; classification as
-implementation defect, usability defect, data limitation, or unsupported
-expectation; and screenshots/output excerpts only when decision-bearing.
-`no_failure_found`, `blocked`, and `not_applicable` still state the scenarios or
-classification basis and relevant residuals. The packet returns to the home
-lane in chat or bounded scratch by default; do not create a standalone report,
-ledger, template, or skill. Existing artifact and handoff contracts apply only
-when another consumer genuinely requires durable transport.
-
-Sequence and repair are bounded:
-
-1. run initial dogfood after focused tests/author validation and before a
-   carried `recommended` delegated review;
-2. keep first-pass detection separate from repair; the home lane adjudicates
-   reported deviations, makes at most one bounded repair batch, and asks the
-   same cold lane to replay only failed scenarios;
-3. an unresolved material failure or failed replay blocks Fused closeout;
-4. after delegated review and home adjudication, replay only affected dogfood
-   scenarios when a kept patch changes exercised runtime behavior, supported
-   entry points, setup/artifact discovery, evidence selection, output schema,
-   failure handling, attribution, batching, aggregation, or entity isolation;
-5. do not replay for comments, prose-only clarification, tests-only changes, or
-   mechanically irrelevant edits.
-
-A required review checkpoint keeps precedence. Fused must not pass a named
-checkpoint merely to reach dogfood. After the delegated return is adjudicated
-and implementation resumes, run applicable dogfood at the earliest safe point
-before later recommended review or strict closeout.
-
-The default cost cap is one cold-agent first-pass turn, the bounded scenarios
-above, one home repair batch, one replay of failed scenarios, and at most one
-post-review replay of affected scenarios. Broaden or make the gate mandatory
-only when observed cold-only material failures repeatedly escape the
-applicability classifier or cluster in a skipped class. Narrow it when a
-representative run history shows no decision-bearing cold-only findings and
-the added token/latency cost is not justified. These are owner steering
-triggers, not permission to add a telemetry ledger or silently change scope.
-
 ## Prompt Orchestration Gates
 
+- Behavioral-mechanism admission gate: a new or materially expanded standing
+  prompt field, preflight, gate, receipt, review pass, hook, checker, artifact,
+  or sync obligation must satisfy the overlay Behavioral Admission rule. Name
+  the bound outcome, defect class, trigger, recurring cost, and why an existing
+  lower-cost boundary is insufficient. If that case cannot be made, exclude
+  the mechanism.
 - Overlay authority gate: `AGENTS.md` and `.agents/workflow-overlay/README.md`
   must be read before prompt-orchestration work. Routine prompts carry the
   complete inline core; escalated prompts carry the portable start receipt and
@@ -453,28 +355,11 @@ triggers, not permission to add a telemetry ledger or silently change scope.
   avoid creating a synthesis lane. Missing or contradictory doctrine binding
   blocks strict `PASS`, readiness, acceptance, validation, or
   alignment-complete claims.
-- Thread operating target continuity gate: when a generated workflow prompt,
-  wrapper, rerun, review prompt, patch prompt, or handoff continues the same
-  workstream or claims to optimize for the same anchor goal, a visible active
-  `thread_operating_target` must be carried forward verbatim near the top of
-  the prompt with the continuity disclosure from
-  `.agents/workflow-overlay/prompt-orchestration.md`, or the omission must be
-  explained. Omission without explanation is a prompt-quality defect. The
-  target is thread-local orientation only, not source authority, validation
-  evidence, readiness, approval, lifecycle completion, workflow sequencing
-  authority, durable memory, or edit permission.
-- Source-heavy economy gate: prompts that require public web/source research,
-  several external page opens, source ledgers, post-window comparisons, or
-  several large artifact reads must define a source-loading unit and require the
-  unit artifact to be written and hashed before the next unit starts.
-- Source-capsule budget gate: source capsules must stay within the budgets in
-  `.agents/workflow-overlay/source-loading.md`. If the budget is exceeded, the
-  prompt must narrow the question, split the source-loading unit, or move to a
-  new-thread handoff instead of compressing broader history into the capsule.
-- Compaction-before-seal gate: if context compacts before the current
-  source-heavy unit artifact is written and hashed, the run must stop as
-  `BLOCKED_COMPACTION_BEFORE_ARTIFACT_SEAL`; any partial outputs from that unit
-  are contaminated scratch until archived or cleanly rerun.
+- Source-evidence preservation gate: source-heavy work persists a unit only
+  when its evidence must survive compaction, cross a receiver boundary, or is
+  itself the requested deliverable. Otherwise use targeted reads and source
+  pointers. A claim blocks only when its evidence cannot be reconstructed or
+  verified; compaction alone is not contamination.
 - Readback economy gate: prompt validation must use targeted existence, hash,
   marker, status, and count checks. It must not require full artifact echo, full
   ledger-row echo, pasted Evidence Units, or broad source dumps unless a
@@ -623,23 +508,13 @@ allowed-key set were assessed and intentionally NOT enforced — the corpus mixe
 retrieval-header fields with required review/prompt-provenance frontmatter in one
 block, so neither is born-green. Placement enforces header shape, never truth.
 
-**Doctrine-change receipt-shape gate** (`.agents/hooks/check_dcp_receipt.py`,
-EP-09 shape subset). Diff-scoped, forward-only CI gate (a sibling to the
-deletion-evidence gate): for changed `.md` files it validates that any real
-`direction_change_propagation` receipt or `direction_change_propagation_blocker`
-present is shape-valid — required keys present, `trigger` / `related_triggers`
-drawn only from the seven controlled trigger values, `non_claims` a non-empty
-list — referencing `source-of-truth.md` (Doctrine Change Propagation Contract),
-never restating it. It validates SHAPE only: it does NOT decide whether an edit
-is doctrine-changing, so it never requires a receipt to be *present* (the EP-09
-over-edge stays resident judgment), and it never asserts a listed
-controlling/downstream surface was truly updated or checked. Contract template
-blocks and non-receipt note-markers are skipped. The inline-receipt cap and "no
-new standalone receipt files" rule are deliberately NOT gated here; they remain
-advisory hygiene, while the former archive-pointer requirement is retired.
-Registered in `.github/workflows/ci.yml`; whole-repo `--audit` is maintenance-
-only for checker/contract changes or explicit legacy-corpus repair, never routine
-change validation; `--selftest` present.
+**Exceptional doctrine-change receipt-shape gate**
+(`.agents/hooks/check_dcp_receipt.py`, EP-09 shape subset). Diff-scoped,
+forward-only CI validates the shape of any exceptional durable
+`direction_change_propagation` receipt or blocker present in changed Markdown.
+It never requires a receipt, decides that one is justified, or verifies the
+truth of its propagation claims. Registered in `.github/workflows/ci.yml`;
+`--audit` is maintenance-only and `--selftest` is present.
 
 **Review-routing disposition gate** (`.agents/hooks/check_review_routing.py`,
 EP-35). Diff-scoped, forward-only CI gate plus a local commit-msg advisory: a
@@ -817,146 +692,3 @@ kept divergence is justified, validation, or readiness.
 - Forseti independence dry run: UNKNOWN - requires owner input.
 - Product/domain validation: UNKNOWN - requires owner input.
 - Runtime or integration validation: UNKNOWN - requires owner input.
-
-## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The shared-helper adoption rule (import the shared home; a deliberately
-    divergent copy stays only with a one-line comment naming the delta) now has
-    a mechanical backstop: a diff-scoped, forward-only CI gate plus write-time
-    advisory flags newly added private re-definitions of shared helpers in
-    forseti-harness Python and .agents/hooks checkers unless a comment on the
-    def line or the line above names the delta.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_shared_helper_duplication.py
-    - .agents/hooks/README.md
-    - .github/workflows/ci.yml
-    - .claude/settings.json
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - forseti-harness/README.md
-    - .agents/hooks/_hooklib.py
-    - .agents/hooks/pre_push_guard.py
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        The kernel already routes validation placement and CI behavior to this
-        overlay file; restating the gate there would fork authority.
-    - path: forseti-harness/README.md
-      reason: >
-        The adoption-rule paragraph itself lands via the concurrent
-        helper-dedup lane (PRs #988-#992); this gate references that owner and
-        deliberately avoids editing the same region from a second lane.
-    - path: .agents/hooks/pre_push_guard.py
-      reason: >
-        The selected-gate mirror is chosen from observed CI failure frequency;
-        a brand-new gate has no failure history yet, and CI remains the
-        authoritative boundary.
-    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
-      reason: >
-        The backstop was commissioned by the helper-adoption work unit against
-        a README-owned rule, not by reclassifying an overlay rule already
-        registered there; adding an EP row is that registry's own maintenance.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: >
-        Its Active Hooks section routes generically to this overlay, the hooks
-        README, and the activation configs; no per-hook row exists to add.
-  stale_language_search: >
-    git grep -n -i -E "helper-delta|adoption rule|shared helper|private cop(y|ies)"
-    -- AGENTS.md .agents forseti-harness/README.md docs/workflows/forseti_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-16 on the authoring branch. Hits are the new gate text,
-    the _hooklib.py docstring (compatible: it documents the guard's deliberate
-    exception, which the gate excludes), and the unrelated skill-adoption
-    overlay rules. forseti-harness/README.md has no hits on this base because
-    its Shared Helpers paragraph lands via the concurrent helper-dedup lane.
-  non_claims:
-    - not validation, readiness, or approval
-    - not proof that shared-home imports are correct
-    - not proof a kept divergence is justified or a delta comment is truthful
-    - not a migration mandate for pre-existing private copies (forward-only)
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Managed-receiver commission validity now has a deterministic authoring and
-    filed-prompt shell: self-declared implementation-authorized, not-yet-verified
-    Codex managed commissions must carry the exact single-use authorization;
-    contradictory stop/manual/repeat routes and stale-source fallbacks fail loud.
-    Delegated code-patch route-outs additionally enforce operator-courier-only,
-    direct-repo, different-vendor eligibility with no same-vendor or task-creation
-    fallback.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/hooks/check_prompt_output_mode.py
-    - .agents/hooks/check_prompt_provenance.py
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/hooks/README.md
-    - .agents/hooks/pre_push_guard.py
-    - .github/workflows/ci.yml
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        The kernel already routes prompt contracts, receiver binding, and
-        validation placement to their owning overlay files.
-    - path: .agents/workflow-overlay/decision-routing.md
-      reason: >
-        The receiver classes, manual-worktree prohibition, and runtime preflight
-        remain unchanged; the new gate references rather than restates them.
-    - path: .agents/hooks/README.md
-      reason: >
-        Explicit current-lane overlap exclusion: Fixes 3-5 changed this file, so
-        this lane did not touch it. The existing row remains true for EP-11 but
-        does not yet enumerate the EP-38 extension.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: >
-        Its Active Hooks routes already point to the unchanged checker directory,
-        CI, validation owner, and placement record; no path or T1 route changed.
-  stale_language_search: >
-    rg -n -i "do not create another worktree|receiver_creation_authorization|receiver_to_verify|fallback.*project-owned|SOURCE_CONTEXT_INCOMPLETE|same.vendor|same.family|operator_courier_only"
-    AGENTS.md .agents docs/prompts docs/workflows/forseti_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-16 after the courier-only correction. Live delegated-patch
-    sources require different-vendor direct-repo execution and prohibit
-    same-vendor, no_repo, task-creation, and Codex-managed fallback. Remaining
-    same-vendor hits belong to the ordinary-review two-bar rule or historical
-    receipts; the live review-lanes rule now excludes delegated patch. The
-    general receiver-creation clause remains valid only for other explicit
-    implementation commissions, and no prompt template contains the rejected
-    delegated-patch fallback.
-  non_claims:
-    - not readiness
-    - not proof of receiver identity, capability, dispatch, or writer isolation
-    - not standing or repeated task-creation authority
-    - not proof of different-vendor identity
-    - not a replacement for runtime receiver preflight
-```
-
-Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`
-(frozen 2026-07-11); receipts rotated out since then are preserved by Git and PR
-history per the delete-oldest rule in `.agents/workflow-overlay/source-of-truth.md`.

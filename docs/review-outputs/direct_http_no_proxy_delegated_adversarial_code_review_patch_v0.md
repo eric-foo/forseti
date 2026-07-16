@@ -4,9 +4,15 @@
 retrieval_header_version: 1
 artifact_role: delegated review output
 scope: Bounded adversarial code review of the direct HTTP ambient-proxy isolation patch.
+use_when:
+  - Inspecting ambient-proxy isolation findings or the proposed patch.
+  - Tracing CA adjudication to this delegated review.
 reviewer_family: Anthropic/Claude (de-correlated from OpenAI/Codex author family)
 commission: direct_http_no_proxy_delegated_adversarial_code_review_patch_prompt_v0.md
-authority_boundary: findings_and_verdict_for_CA_adjudication_only
+review_authority_boundary: findings_and_verdict_for_CA_adjudication_only
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
 ```
 
 ---

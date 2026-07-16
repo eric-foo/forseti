@@ -7,7 +7,11 @@ scope: Adversarial code review of the Authenticated Browser Snapshot v0 implemen
 use_when:
   - Owner or implementer deciding whether to commit the Authenticated Browser Snapshot v0 implementation.
   - Routing findings to a patch or rerun.
-authority_boundary: review_output_only
+review_authority_boundary: review_output_only
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 ```
 
 ---

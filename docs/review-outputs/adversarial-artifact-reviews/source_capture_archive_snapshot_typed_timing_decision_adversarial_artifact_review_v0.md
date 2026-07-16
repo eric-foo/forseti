@@ -1,3 +1,13 @@
+```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial artifact review of the source-capture archive-snapshot typed-timing decision.
+use_when:
+  - Inspecting findings or the bounded patch for the typed-timing decision.
+  - Tracing later timing-decision changes to this review.
+authority_boundary: retrieval_only
+```
+
 review_summary:
   status: completed_with_bounded_patch
   reviewed_by: gpt-5
