@@ -404,7 +404,7 @@ Mini God Tier is the only named assurance uplift for this prompt family. It is
 owner-invoked only and never inferred. It selects the bounded capability target
 defined by `docs/decisions/forseti_mini_god_tier_doctrine_v0.md`; it does not
 widen scope, establish readiness, or create a claim tier. Use full orchestration
-and add deep-thinking, source-gated method sequencing, durable reporting, and
+and add source-gated method sequencing, durable reporting, and
 provenance evidence only to the degree necessary for that target, remaining
 pointer-first and naming every accepted residual.
 
@@ -595,32 +595,22 @@ no`, and not the alignment-axis-not-pass-bar guardrail.
 
 ## Review Prompt Defaults
 
-Forseti review prompts include a deep-thinking framing pass before the relevant
-review skill when the owner explicitly invokes `workflow-deep-thinking` or Mini
-God Tier, or when the review is doctrine- or authority-changing, source-heavy,
-materially ambiguous, or carries substantial seam risk whose framing could
-change the review route. Adversarial wording, a formal-verdict request,
-delegation, patch authorization, multiple named files in one bounded technical
-diff, or a high-stakes label alone does not trigger deep-thinking. A bounded
-technical review with an exact revision, file scope, authority, and validation
-route may omit it. For a review commission, the review lane's own internalized
-failure-mode-framing discipline satisfies the pass -- the adversarial review
-skill carries it and the review templates define it -- without a second skill
-load; a separate `workflow-deep-thinking` load remains the route for
-owner-invoked decision work.
+Forseti review prompts do not reference-load, invoke, apply, or require
+`workflow-deep-thinking`. Review complexity, doctrine or authority surface,
+source volume, ambiguity, seam risk, delegation, patch authorization, formal
+verdicts, high-stakes labels, and Mini God Tier do not add it. Historical review
+prompts that say otherwise are superseded by this current overlay rule. A new
+current-turn owner instruction that explicitly names deep thinking may override
+this default for that one commission; prompt authors must never infer it.
 
-When the framing pass is triggered, the reviewer may `REFERENCE-LOAD` the
-methods before source loading, but must not `APPLY` the framing pass or the
-review method until the required source context is ready. The step frames the
-boundary problem, failure modes, and decision criteria before findings are
-listed. It does not
-widen review scope, authorize patching, or turn a narrow review into product
-planning.
+The relevant review method still performs its own ordinary analysis after source
+readiness: frame the boundary problem, identify failure modes, and establish
+decision criteria before listing findings. That is native review work, not a
+separate deep-thinking phase or skill dependency. It does not widen review
+scope, authorize patching, or turn a narrow review into product planning.
 
-Review prompts should still return the requested review output shape. The final
-answer remains a review result with findings, non-findings, not-proven
-boundaries, and next authorized step whether deep-thinking was triggered or
-explicitly omitted.
+Review prompts still return the requested review output shape: findings,
+non-findings, not-proven boundaries, and the next authorized step.
 
 Every Forseti review prompt and any review-return or courier prompt must also
 instruct the *adjudicator* -- the reviewer in a self-review, the commissioning
@@ -631,15 +621,14 @@ adjudicator's own authority and the commissioned scope) in the same turn; route
 the smallest complete closure step only for an issue that needs another review
 round, another lane, an architecture pass, or an owner decision; once no
 unresolved material issue remains, batch all admin/lifecycle follow-ups
-(commit, push, PR, merge) into exactly one named land step with no
-deep-thinking. If a visible active goal, `thread_operating_target`, or accepted
-next objective exists, deep-think the 1-5 material moves that best advance it in
-the same turn. If none exists, record that compactly and do not invent material
-moves. The closure/land step plus this goal-conditioned material-move check are
-a required closeout tail; do not defer the check to another turn. This is the
-tail mirror of the deep-thinking-first rule above: it runs after adjudication,
-does not widen review scope or authorize patching, and produces the closeout's
-next step. The exact shape is owned by
+(commit, push, PR, merge) into exactly one named land step. If a visible active
+goal, `thread_operating_target`, or accepted next objective exists, identify the
+1-5 material moves that best advance it in the same turn. If none exists, record
+that compactly and do not invent material moves. The closure/land step plus this
+goal-conditioned material-move check are a required closeout tail; do not defer
+the check to another turn. It uses ordinary next-step reasoning, does not invoke
+deep thinking, widen review scope, or authorize patching, and produces the
+closeout's next step. The exact shape is owned by
 `.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
 Step); do not restate it here.
 
