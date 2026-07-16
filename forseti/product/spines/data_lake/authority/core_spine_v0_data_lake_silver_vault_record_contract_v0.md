@@ -246,6 +246,22 @@ derived addresses including raw_anchor. A declared legacy producer/schema
 profile is read-only: the strict append front doors reject it even when its
 historical bytes can be resolved.
 
+The declared profiles live in one closed, code-owned registry
+(`forseti-harness/data_lake/silver_compatibility.py`) keyed by the exact
+`(producer_id, producer_schema_version, lane_namespace)` tuple. Each entry owns
+its stable profile identifier, its persisted semantic validator, its
+reference-resolution strategy, its current/historical classification behavior
+and reason codes, and exactly one checked-in byte-faithful fixture under
+`forseti-harness/tests/fixtures/silver_compatibility/` that reproduces the
+persisted field shape with sanitized values. A deterministic two-way equality
+gate (`forseti-harness/tests/unit/test_silver_compatibility_registry.py`)
+requires every tuple to have exactly one fixture and every fixture to belong to
+exactly one tuple, verifies each fixture's original content hash before
+compatibility inference, runs its persisted validator and declared reference
+resolver, fails closed on mutation of any discriminating field, and proves no
+fixture can pass the strict new-write boundary. Current producer versions must
+not need registry entries.
+
 The bounded legacy profiles are:
 
 - Fragrantica cleaning Silver text/metric v0 records produced by the declared
@@ -780,13 +796,15 @@ risk, and the upgrade trigger (per `docs/decisions/forseti_mini_god_tier_doctrin
   completeness). Risk: time-series or sentiment consumers over comments/
   transcripts may see gaps and must read posture/coverage. Upgrade trigger: a
   consumer needs guaranteed coverage, scoping a capture-completeness obligation.
-- **No checked-in byte-faithful fixture for every persisted compatibility profile.**
-  Exact profile code plus the mandatory read-only live census close the current
-  TikTok regression. Risk: a future semantic tightening could invalidate another
-  immutable producer version before a representative fixture exposes it. Upgrade
-  trigger: the next persisted compatibility profile or the next validator change
-  that affects an already-written producer schema; then add a closed profile-to-
-  fixture manifest and equality gate rather than a permissive compatibility framework.
+- **Compatibility fixtures pin shape, not live payload bytes.** Every declared
+  persisted compatibility tuple now has a checked-in byte-faithful fixture and
+  a two-way registry equality gate (see Validation, New Writes, And Immutable
+  Legacy Reads). Fixtures use sanitized synthetic values over the exact
+  persisted key sets and types, so a live-lake record whose VALUES drift in a
+  way no key/type/discriminating field expresses would not be caught by the
+  fixture gate alone; the mandatory read-only live census remains the
+  population-level check. Upgrade trigger: a census reconciliation failure that
+  the fixture gate did not predict.
 - **No client replica implementation in this contract.** It defines replica sync
   semantics only: any client carveout replica/export is generated from Silver
   records and read-model manifests, not a separate source of truth or duplicate
@@ -864,6 +882,54 @@ spec_handoff:
 ```
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Silver validation now separates one stable permanent layer (envelope
+    identity, stored identifiers, original content hash, no-blur) from
+    tuple-selected semantics, and every immutable persisted compatibility form
+    is owned by one closed code-owned registry keyed by
+    (producer_id, producer_schema_version, lane_namespace) in
+    forseti-harness/data_lake/silver_compatibility.py. Each registry entry owns
+    its persisted semantic validator, reference-resolution strategy,
+    classification behavior, reason codes, and exactly one checked-in
+    byte-faithful fixture enforced by a deterministic two-way equality gate;
+    compatibility profiles remain rejected at every strict new-write front
+    door, and undeclared legacy-looking forms fail closed as invalid instead of
+    borrowing a neighboring grammar.
+  trigger: architecture_doctrine
+  controlling_sources_updated:
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - forseti-harness/data_lake/silver_compatibility.py
+    - forseti-harness/data_lake/silver_record.py
+  downstream_surfaces_checked:
+    - docs/decisions/silver_vault_legacy_record_convergence_v0.md
+    - forseti-harness/data_lake/silver_census.py
+    - forseti-harness/data_lake/creator_metric_lineage.py
+    - forseti-harness/runners/run_tiktok_creator_audience_triangulation.py
+    - forseti-harness/tests/unit/test_silver_record.py
+    - forseti-harness/tests/unit/test_silver_compatibility_registry.py
+    - forseti-harness/tests/unit/test_tiktok_audience_triangulation.py
+  intentionally_not_updated:
+    - path: docs/decisions/silver_vault_legacy_record_convergence_v0.md
+      reason: >
+        Its doctrine -- strict new writes separate from bounded declared
+        legacy reads, fail-closed unknown forms, never rewriting stored
+        bytes -- is unchanged; this work relocates the declared profiles into
+        the closed registry that doctrine already required, and this contract
+        names the owning module.
+    - path: forseti-harness/data_lake/silver_census.py
+      reason: >
+        The census consumes the unchanged shared classifier API; its counting
+        semantics did not change and the live read-only census reconciled to
+        the prior accepted totals.
+  non_claims:
+    - not a live-lake migration, recapture, rewrite, or repair
+    - not a new compatibility profile, plugin surface, or policy DSL
+    - not validation, Mini God Tier, or production readiness
+    - not a change to reader-selection policy or capture sources
+```
 
 ```yaml
 direction_change_propagation:

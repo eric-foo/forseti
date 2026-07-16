@@ -1,0 +1,109 @@
+{
+  "captured_at": "2026-01-02T00:00:00Z",
+  "content_hash": "sha256:d67e0b900ca5d7183bf257aa4ea80855de0060945dfb60b1465db6da606c3475",
+  "content_hash_basis": "canonical_json_excluding_content_hash",
+  "derived_refs": [],
+  "lane_namespace": "tiktok_comment_attention_silver",
+  "lineage_limitations": [],
+  "lineage_schema_version": "silver_lineage_v0",
+  "non_claims": [
+    "not a calibrated prioritization threshold",
+    "not a follower graph or audience estimate",
+    "not a full comment census",
+    "not a representative creator average",
+    "not audience share or agreement probability",
+    "not buyer proof",
+    "not channel-wide creator influence",
+    "not comment relevance, credibility, or decision impact",
+    "not cross-platform identity linkage"
+  ],
+  "observed_at": null,
+  "payload": {
+    "observation": {
+      "coverage_window": {
+        "end": null,
+        "start": null
+      },
+      "denominator": {
+        "metric_name": "video_like_count",
+        "metric_value": null
+      },
+      "engagement_context": {
+        "comment_like_percentile_within_captured": null,
+        "comment_like_rank_within_captured": null,
+        "comment_like_to_video_comment_count_ratio": null,
+        "comment_like_to_video_comment_count_ratio_posture": {
+          "kind": "unavailable_with_reason",
+          "reason_code": "temporal_alignment_unproven",
+          "reason_detail": "comment and video metric observations were not proven to share one capture observation"
+        }
+      },
+      "metric_name": "comment_like_to_video_like_ratio",
+      "metric_posture": {
+        "kind": "unavailable_with_reason",
+        "reason_code": "temporal_alignment_unproven",
+        "reason_detail": "comment and video metric observations were not proven to share one capture observation"
+      },
+      "metric_value": null,
+      "numerator": {
+        "metric_name": "comment_like_count",
+        "metric_value": null
+      },
+      "source_publication_or_event": null,
+      "source_surface": "tiktok_creator_batch_comment_subtitle_admission",
+      "subject": {
+        "ref": {
+          "comment_on_content_native_id": "7000000000000000001",
+          "comment_on_content_native_id_kind": "tiktok_video_id",
+          "kind": "public_comment",
+          "namespace": "tiktok",
+          "native_id": "dom:7000000000000000001:0"
+        },
+        "ref_type": "entity_key"
+      },
+      "temporal_pairing": {
+        "alignment": "unproven",
+        "comment_observed_at": null,
+        "video_stats_observed_at": "2026-01-01T23:59:00Z"
+      },
+      "unit": "ratio"
+    }
+  },
+  "payload_kind": "MetricObservation",
+  "producer_id": "forseti-harness.capture_spine.creator_profile_current.tiktok_comment_attention_producer",
+  "producer_row_kind": "tiktok_comment_attention_metric",
+  "producer_schema_version": "tiktok_comment_attention_metric_observation_v1",
+  "provenance": {
+    "calculation_recipe_version": "tiktok_comment_attention_ratio_v1",
+    "comment_id": null,
+    "policy_fingerprint_sha256": "6699293dc04ba11b059edf329056c2b403aeb7bf09c4bdc87b15454d705f6239",
+    "source_order": 0,
+    "video_id": "7000000000000000001"
+  },
+  "raw_anchor": "01J000000000000000000000T1",
+  "raw_refs": [
+    {
+      "anchor": {
+        "kind": "json_pointer",
+        "value": "/videos/0"
+      },
+      "file_id": "file_01",
+      "hash_basis": "raw_stored_bytes",
+      "packet_id": "01J000000000000000000000T1",
+      "ref_type": "raw_packet",
+      "relation": "observed_from",
+      "relative_packet_path": "raw/01_tiktok_batch_capture.json",
+      "sha256": "1d0ce28c5331af9fa307c276edb03d4ed77f6130de473adf2c95552467979f1d"
+    }
+  ],
+  "record_id": "comment_attention_00000000000000000000fix1.json",
+  "record_kind": "observation",
+  "schema_version": "silver_vault_record_v0",
+  "source_family": "social_media",
+  "source_object": {
+    "kind": "public_comment",
+    "namespace": "tiktok",
+    "native_id": "dom:7000000000000000001:0"
+  },
+  "source_surface": "tiktok_creator_batch_comment_subtitle_admission"
+}

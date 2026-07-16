@@ -285,6 +285,7 @@ def test_validate_requires_non_null_captured_at() -> None:
 def test_validate_metric_set_rejects_row_count_drift() -> None:
     record = _metric_set_record()
     record["payload"]["observation"]["row_count"] = 2
+    _rehash(record)
     with pytest.raises(SilverRecordError, match="row_count"):
         validate_silver_vault_record(record)
 
@@ -292,6 +293,7 @@ def test_validate_metric_set_rejects_row_count_drift() -> None:
 def test_validate_metric_set_rejects_cross_platform_row_namespace() -> None:
     record = _metric_set_record()
     record["payload"]["observation"]["rows"][0]["subject"]["ref"]["namespace"] = "instagram"
+    _rehash(record)
     with pytest.raises(SilverRecordError, match="must equal platform"):
         validate_silver_vault_record(record)
 
@@ -301,6 +303,7 @@ def test_validate_metric_set_rejects_missing_source_field() -> None:
     del record["payload"]["observation"]["rows"][0]["metrics"]["view_count"][
         "source_field"
     ]
+    _rehash(record)
     with pytest.raises(SilverRecordError, match="source_field"):
         validate_silver_vault_record(record)
 
@@ -339,6 +342,7 @@ def test_validate_rejects_content_hash_mismatch() -> None:
 def test_validate_rejects_record_without_source_lineage() -> None:
     record = _text_record()
     record["raw_refs"] = []
+    _rehash(record)
     with pytest.raises(SilverRecordError, match="at least one resolvable"):
         validate_silver_vault_record(record)
 
@@ -475,6 +479,7 @@ def test_validate_rejects_observation_without_observation_object() -> None:
 def test_validate_rejects_observed_metric_with_null_value() -> None:
     record = _metric_record()
     record["payload"]["observation"]["metric_value"] = None
+    _rehash(record)
     with pytest.raises(SilverRecordError, match="observed metric requires"):
         validate_silver_vault_record(record)
 
@@ -482,6 +487,7 @@ def test_validate_rejects_observed_metric_with_null_value() -> None:
 def test_validate_rejects_non_observed_metric_with_value() -> None:
     record = _metric_record()
     record["payload"]["observation"]["metric_posture"]["kind"] = "unavailable_with_reason"
+    _rehash(record)
     with pytest.raises(SilverRecordError, match="must not carry a metric_value"):
         validate_silver_vault_record(record)
 
@@ -491,6 +497,7 @@ def test_validate_rejects_non_observed_metric_without_reason() -> None:
     observation = record["payload"]["observation"]
     observation["metric_posture"]["kind"] = "unavailable_with_reason"
     observation["metric_value"] = None
+    _rehash(record)
     with pytest.raises(SilverRecordError, match="requires a posture reason"):
         validate_silver_vault_record(record)
 
@@ -523,6 +530,7 @@ def test_validate_rejects_unknown_metric_posture_kind() -> None:
         "reason_detail": "synthetic reason",
     }
     observation["metric_value"] = None
+    _rehash(record)
     with pytest.raises(SilverRecordError, match="metric_posture.kind must be one of"):
         validate_silver_vault_record(record)
 
@@ -531,6 +539,7 @@ def test_validate_rejects_observed_metric_with_reason_detail() -> None:
     # observed => both reason fields null (contract: "reason fields are absent/null").
     record = _metric_record()
     record["payload"]["observation"]["metric_posture"]["reason_detail"] = "should not be here"
+    _rehash(record)
     with pytest.raises(SilverRecordError, match="must not carry a posture reason"):
         validate_silver_vault_record(record)
 
@@ -853,6 +862,9 @@ def test_unknown_producer_cannot_claim_legacy_missing_ref_fields(
 
 
 def _legacy_tiktok_comment_attention_v1_record(root: DataLakeRoot) -> dict:
+    # The complete persisted v1 observation shape: the null-time compatibility
+    # profile closes over the exact stored key set, so a partial rebuild of the
+    # discriminating fields alone must not classify as historical.
     source_body = b"legacy TikTok comment-attention source"
     _commit_source(root, body=source_body)
     record = _metric_record()
@@ -872,6 +884,18 @@ def _legacy_tiktok_comment_attention_v1_record(root: DataLakeRoot) -> dict:
             "relation": "observed_from",
         }],
         "payload": {"observation": {
+            "coverage_window": {"end": None, "start": None},
+            "denominator": {"metric_name": "video_like_count", "metric_value": None},
+            "engagement_context": {
+                "comment_like_percentile_within_captured": None,
+                "comment_like_rank_within_captured": None,
+                "comment_like_to_video_comment_count_ratio": None,
+                "comment_like_to_video_comment_count_ratio_posture": {
+                    "kind": "unavailable_with_reason",
+                    "reason_code": "temporal_alignment_unproven",
+                    "reason_detail": "comment and video observations were not aligned",
+                },
+            },
             "metric_name": "comment_like_to_video_like_ratio",
             "metric_value": None,
             "metric_posture": {
@@ -879,12 +903,25 @@ def _legacy_tiktok_comment_attention_v1_record(root: DataLakeRoot) -> dict:
                 "reason_code": "temporal_alignment_unproven",
                 "reason_detail": "comment and video observations were not aligned",
             },
+            "numerator": {"metric_name": "comment_like_count", "metric_value": None},
             "source_publication_or_event": None,
+            "source_surface": "tiktok_creator_batch_comment_subtitle_admission",
+            "subject": {
+                "ref": {
+                    "comment_on_content_native_id": "7000000000000000001",
+                    "comment_on_content_native_id_kind": "tiktok_video_id",
+                    "kind": "public_comment",
+                    "namespace": "tiktok",
+                    "native_id": "dom:7000000000000000001:0",
+                },
+                "ref_type": "entity_key",
+            },
             "temporal_pairing": {
                 "comment_observed_at": None,
                 "video_stats_observed_at": "2026-07-15T12:54:07Z",
                 "alignment": "unproven",
             },
+            "unit": "ratio",
         }},
     })
     _rehash(record)
