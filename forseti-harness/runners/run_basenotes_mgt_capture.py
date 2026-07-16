@@ -6,7 +6,7 @@ import re
 import sys
 import zlib
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Mapping, Sequence
 from urllib.parse import urlparse
@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import utc_now_z
 from source_capture import (
     CaptureModeCategory,
     PacketTiming,
@@ -301,7 +302,7 @@ def build_basenotes_mgt_capture_summary(
         "source_family": SOURCE_FAMILY,
         "source_url": url,
         "basenotes_product_slug": extract_basenotes_product_slug(url),
-        "summary_generated_at": _utc_now_z(),
+        "summary_generated_at": utc_now_z(),
         "packet_publication_mode": (
             "data_lake_raw_packets_with_local_summary"
             if data_root_path is not None
@@ -415,7 +416,7 @@ def capture_basenotes_bundle_via_cdp(
             raise ValueError("direct CDP page observation returned no rendered DOM")
 
         metadata: dict[str, object] = {
-            "capture_timestamp": observation.metadata.get("capture_timestamp") or _utc_now_z(),
+            "capture_timestamp": observation.metadata.get("capture_timestamp") or utc_now_z(),
             "requested_url": url,
             "final_url": observation.final_url,
             "title": observation.title,
@@ -758,10 +759,6 @@ def _not_a_recapture():
 
 def _not_a_recapture_relationship():
     return not_applicable("Basenotes native wrapper did not receive a prior packet relationship")
-
-
-def _utc_now_z() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _build_parser() -> argparse.ArgumentParser:
