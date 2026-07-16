@@ -260,6 +260,10 @@ Close acquisition when every material requirement is answered, contradicted,
 held as a typed gap, or has no remaining non-dominated acquisition path whose
 expected decision value materially exceeds its marginal cost, latency, access
 risk, and duplication.
+A typed gap closes a requirement only when no remaining non-dominated path
+whose expected decision value materially exceeds its marginal cost, latency,
+access risk, and duplication could still answer it within the commission's
+lawful, access, and safety bounds.
 
 The following conditions stop the current run but do not by themselves prove
 acquisition closure:

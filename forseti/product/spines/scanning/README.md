@@ -155,6 +155,10 @@ or hold condition enough to justify its marginal cost, latency, access risk,
 and duplication. Close only when every material requirement is answered,
 contradicted, held as a typed gap, or has no remaining non-dominated acquisition
 path whose expected decision value materially exceeds those marginal costs.
+A typed gap closes a requirement only when no remaining non-dominated path
+whose expected decision value materially exceeds its marginal cost, latency,
+access risk, and duplication could still answer it within the commission's
+lawful, access, and safety bounds.
 
 `precursor_signal` and `precursor_surface` are routing inputs. They may steer a
 walk or explain why a venue deserves inspection. They are not a generic label
