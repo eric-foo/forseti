@@ -47,9 +47,14 @@ jobs:
           run_pytest=true
 
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-            mapfile -t changed_paths < <(
-              git diff --no-renames --name-only "$FORSETI_DIFF_BASE"...HEAD
-            )
+            # Capture the diff through command substitution (not process
+            # substitution) so a git failure is visible and fails the job
+            # instead of silently classifying from partial or empty output.
+            if ! changed_output="$(git diff --no-renames --name-only "$FORSETI_DIFF_BASE"...HEAD)"; then
+              echo "::error::git diff failed while classifying pytest scope against base $FORSETI_DIFF_BASE"
+              exit 1
+            fi
+            mapfile -t changed_paths < <(printf '%s' "$changed_output")
 
             if (( ${#changed_paths[@]} > 0 )); then
               run_pytest=false
