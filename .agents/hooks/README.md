@@ -23,8 +23,7 @@ is harness-specific.
 | `check_harness_coupling.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped adapter over existing inventory and policy-pin contract tests. It runs only when the outgoing change touches `forseti-harness/**/*.py` or `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json`; an unresolvable diff or unlaunchable test fails closed. Coupling preflight only: not the full harness suite, validation, readiness, or proof that every CI failure is prevented. `--selftest` present. |
 | `check_source_input_hashes.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: list-style JSON `source_inputs[]` records with repo-local `source_pointer` + `sha256` must match current file bytes (CRLF-normalized), and source-capture packet manifests (top-level `manifest_version`) must have top-level `preserved_files[]` records whose `relative_packet_path` + `sha256` match current raw stored bytes resolved against the manifest's own directory, when the artifact or referenced file changed. Provenance freshness only; never semantic validation, generated-artifact completeness, readiness, or source quality. Backlog via `--audit`; `--selftest` present. |
 | `check_retrieval_header.py` | **post-tool** (after a write) | Advisory (exit 0): warns if an in-scope artifact is missing its retrieval header. Forward-only; never blocks. |
-| `check_dcp_receipt.py` | **CI** (`--strict`) + manual maintenance | Diff-scoped strict gate validates the shape of real DCP receipts/blockers present in changed Markdown files and reports changed-file/receipt counts. `--audit` is maintenance-only for checker/contract changes or explicit legacy-corpus repair. Shape only; never receipt need, truth, validation, readiness, or acceptance. |
-| `check_dcp_receipt_hygiene.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on deterministic DCP receipt storage defects in changed durable docs: more than two inline receipts or a new unauthorized standalone DCP receipt file. The legacy archive is frozen and pointers are not required. Shape only; never receipt truth, validation, readiness, or acceptance. |
+| `check_dcp_receipt.py` | **CI** (`--strict`) + manual maintenance | Diff-scoped strict gate validates the shape of exceptional durable DCP receipts/blockers present in changed Markdown files. It never requires a receipt or verifies its truth. |
 | `check_registry_list_sync.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on explicitly registered vocabulary-list drift. Current binding: Foundation Allowed Signal Uses must be contained by the engagement registry Signal Use Classification list. Shape only; never category correctness or auto-promotion. |
 | `check_engagement_stale_phrases.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on curated stale engagement/resonance doctrine phrases in live doctrine paths. Leakage detection only; default excludes historical prompts/reviews and DCP self-reference noise. |
 | `check_review_output_provenance.py` | manual / commit / CI candidate | Advisory by default; `--strict` fails on changed review outputs missing retrieval-header shape, `reviewed_by`, `authored_by`, review-use boundary/non-approval wording, balanced/valid fences, proper `diff` fencing, non-collapsed diffs, observed-check wording, or whitespace hygiene. Shape/integrity only; never reviewer identity verification, de-correlation truth, approval, validation, or review quality. |
@@ -40,7 +39,7 @@ is harness-specific.
 | `remind_sci.py` | **pre-tool** (before a `git commit`) | Advisory (exit 0): when the commit includes durable-artifact changes, re-injects the Smallest Complete Intervention rule (verbatim from AGENTS.md) as a nudge before scope is locked in. Never blocks; silent for code/scratch/config-only commits. |
 | `header_index.py` | manual + **CI** (`--strict`) + session capsule | Generates the on-demand retrieval index, advisory health/backlog views, and the diff-scoped forward-only header/orphan gate. Inventory and shape only; never readiness or source authority. |
 | `check_map_links.py` | manual + **CI** (`--strict`) | Checks map/submap paths, `open_next` targets, folder reachability, inline path shape, and direct target existence for the Artifact Roles and product-spine Doctrine Index live-router tables. Path existence only; never route truth, currentness, authority, or completeness proof. |
-| `check_dcp_receipt.py` | **CI** (diff-scoped `--strict`) | Validates the deterministic shape of changed doctrine-change receipts and blockers. It cannot decide whether a receipt is required or whether listed propagation work actually happened. |
+| `check_dcp_receipt.py` | **CI** (diff-scoped `--strict`) | Validates the deterministic shape of exceptional changed doctrine-change receipts and blockers. It cannot decide whether a receipt is justified or whether listed propagation work happened. |
 | `check_placement.py` | **post-tool** (after a write) + `--strict` for commit/CI | Advisory WARN when a written path has no declared home in `repo-structure.yaml` (EP-04); `--strict` is the full-tree gate. Placement shape only; never authority, validation, or readiness. |
 | `check_full_gt_claims.py` | **post-tool** (after a write) + **CI** (`--changed --strict`) | Flags added `.md` lines whose full-GT claim language is not bounded by ballast wording and does not sit in a claim-owning surface. Shape/placement only; never claim truth. |
 | `check_prompt_provenance.py` | **post-tool** (after a write under `docs/prompts/**`) | Advisory (exit 0): injects the Forseti Prompt Preflight checklist. Once-per-session throttle: the full checklist fires on the FIRST in-scope prompt write of a session; later writes get a one-line pointer (fails open to the full checklist). |
@@ -141,7 +140,6 @@ Verify:
 ```powershell
 python .agents/hooks/_hooklib.py --selftest
 python .agents/hooks/guard_protected_actions.py --selftest
-python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
 python .agents/hooks/check_registry_list_sync.py --selftest
 python .agents/hooks/check_engagement_stale_phrases.py --selftest
 python .agents/hooks/check_review_output_provenance.py --selftest
@@ -246,7 +244,6 @@ that need review.
 Verify:
 ```powershell
 python .agents/hooks/guard_protected_actions.py --selftest
-python .agents/hooks/check_dcp_receipt_hygiene.py --selftest
 python .agents/hooks/check_registry_list_sync.py --selftest
 python .agents/hooks/check_engagement_stale_phrases.py --selftest
 python .agents/hooks/check_review_output_provenance.py --selftest
