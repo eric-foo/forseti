@@ -832,6 +832,41 @@ in `AGENTS.md`. No fourth candidate or threshold change was used.
 | 4 — first fallback reliability | **PASS** | Final candidate D completed the first and only exact-edit apply in 3/3 cold trials; each patch was correct and all failure-integrity checks held. |
 | 5 — dependency-round consolidation | **PASS** | Candidate C completed the correct, failure-integral case in five rounds in 3/3 trials; independent before/after hashes verify the run 1 note despite its missing intake printout. |
 
+### Same-lane ceremony and silent-stall dogfood (2026-07-16)
+
+Cold handoff and delegated-review runs exposed one real false blocker and one
+platform-latency defect. The same actor selected a clean worktree for the same
+lane, but the adapter rejected it solely because the launch checkout differed.
+The review spent three reads without inspecting the diff. Separate timing then
+showed a 59 ms README read, 281 ms adapter run, and 139 ms guard run inside tool
+calls that each reported about 311 seconds wall time. The silent delay therefore
+occurs before command execution, outside the repository command and Forseti
+Python guard. Forseti's circuit/fallback doctrine did not cause the initial stall,
+but its heavyweight recovery amplified the cost.
+
+Retained signals: one target snapshot; reroot only for real ambiguity,
+concurrency, revision/dirty-byte mismatch, required-tool or protected-action
+denial; direct-prompt handoff by default; transport-only courier; and diff
+inspection by the review's second latency-bearing call. Recovery success also
+requires one bounded retry route without repeated source reload or receiver
+ceremony after a silent platform stall.
+
+Three cold recovery dogfoods passed that repository-owned signal. Their
+sandboxed calls returned after 195.2, 195.6, and 199.1 seconds despite 20-second
+timeouts, while the inner command bodies took 38, 47, and 233 milliseconds. Each
+run opened the circuit, made exactly one approved equivalent recovery call in
+0.5-0.6 seconds, and performed no reroot, source reload, task/worktree creation,
+edit, or repeated failed-route probe. The product timeout signal failed 3/3;
+the Forseti containment contract passed 3/3.
+
+The accepted residual is that sibling-lane misuse no longer has a blanket path-
+location denial; authority, exact or dirty-byte state, writer isolation, and final
+status inspection carry that boundary. The earlier helper-mandatory fallback
+receipt below is historical and is superseded by the active `AGENTS.md` contract.
+Review routing now accepts a commit-visible `chat_only_adjudicated` disposition
+for a returned and adjudicated chat review, avoiding a duplicate report while
+retaining a durable mechanically checkable routing record.
+
 Evaluation: the five-fix sequence has not passed across all five because Fix 3
 remains product-blocked. The sequence delivered verified passes for Fixes 1, 2,
 4, and 5. Candidate C reached the frozen five-round target in 3/3 correct,

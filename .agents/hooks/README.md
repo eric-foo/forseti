@@ -18,7 +18,7 @@ is harness-specific.
 | Script | When | Effect |
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) direct push-to-main, force-push, `reset --hard`, `git clean`, protected external-root writes, explicit rebase starts on a mechanically confirmed published lane, and `gh pr merge --admin`. A direct `gh pr merge <N>` is allowed only for the current lane branch when the PR targets `main`, is same-repo, `CLEAN`, all checks are green, carries `agent-automerge`, and has no `risk/blocked-for-merge-policy` hold. `risk/manual-review-required` keeps the unattended bot out but does not choose a human actor after the resident completion/review and home/Chief Architect adjudication gate closes; that judgment completion is not mechanically certified by the label. Benign lane pushes, published-lane fetch-plus-merge updates, and rebase recovery remain allowed. Fires in **all** permission modes. Non-merge probes fail open on internal error; merge authorization fails closed. |
-| `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, blocks raw shell durable-write primitives for repo source/docs files, and exposes the fail-closed live adoption probe below. |
+| `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps every Codex `apply_patch` target through the existing EP-01 protected-path check, blocks raw shell durable-write primitives for repo source/docs files, and exposes the fail-closed live adoption probe below. |
 | `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it mirrors ten selected strict CI gates over local `origin/main...HEAD`, including the conditional harness coupling contracts. CI runs the same gate modes against its exact event base SHA. A gate failure or launch error blocks the push. Bypassable with `--no-verify`; misses GitHub API merges; CI stays authoritative. |
 | `check_harness_coupling.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped adapter over existing inventory and policy-pin contract tests. It runs only when the outgoing change touches `forseti-harness/**/*.py` or `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json`; an unresolvable diff or unlaunchable test fails closed. Coupling preflight only: not the full harness suite, validation, readiness, or proof that every CI failure is prevented. `--selftest` present. |
 | `check_source_input_hashes.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: list-style JSON `source_inputs[]` records with repo-local `source_pointer` + `sha256` must match current file bytes (CRLF-normalized), and source-capture packet manifests (top-level `manifest_version`) must have top-level `preserved_files[]` records whose `relative_packet_path` + `sha256` match current raw stored bytes resolved against the manifest's own directory, when the artifact or referenced file changed. Provenance freshness only; never semantic validation, generated-artifact completeness, readiness, or source quality. Backlog via `--audit`; `--selftest` present. |
@@ -218,16 +218,12 @@ payload fields and checks those paths through the EP-01 protected-path rule,
 because Codex reports patch edits as `tool_name: "apply_patch"` rather than
 Claude-style `Write` / `Edit` events.
 
-The adapter additionally blocks Codex write tools when the target is inside a
-registered git worktree other than the one running the hook. If a lane needs
-that worktree, use a task created and rooted there; do not edit nested worktrees
-from the parent checkout.
-Registering, discovering, or naming another worktree does not change the
-running receiver's root, and this adapter does not reroot collaboration
-subagents. Select a receiver actually rooted in the target before repo-changing
-dispatch under `.agents/workflow-overlay/decision-routing.md`. Reuse that one-
-time binding through landing; the adapter is the deterministic backstop, not a
-repeated proof obligation or receiver selector.
+The adapter does not reject a valid selected worktree merely because the hook
+launched from another checkout. Every `apply_patch` target and direct write event
+still reaches the EP-01 protected-path guard. Target identity, revision or dirty-
+byte state, writer isolation, and any actual tool, sandbox, hook, or guard denial
+remain owned by `.agents/workflow-overlay/decision-routing.md`. Collaboration
+subagents do not gain write scope merely by naming another path.
 
 For `Bash` / `PowerShell`, the adapter blocks raw durable-write primitives when
 the command text names repo source/docs file types (`.md`, `.py`, `.yml`,
