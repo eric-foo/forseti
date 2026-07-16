@@ -12,6 +12,13 @@ from pydantic import Field, field_validator, model_validator
 from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice
+from source_capture.projection_shared import (
+    dedupe_preserve_order as _dedupe_preserve_order,
+    first_match as _first_match,
+    is_forbidden_field_pattern_match,
+    normalized_html_text as _text,
+    read_packet_directory as _read_packet_directory,
+)
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -801,34 +808,6 @@ def _looks_like_fragrantica_body(preserved_file: PreservedFile, body: bytes) -> 
     return "fragrantica.com/perfume/" in sample or "user-perfume-votes-new" in sample
 
 
-def _read_packet_directory(packet_or_manifest_path: Path) -> tuple[SourceCapturePacket, dict[str, bytes]]:
-    manifest_path = (
-        packet_or_manifest_path / "manifest.json"
-        if packet_or_manifest_path.is_dir()
-        else packet_or_manifest_path
-    )
-    if not manifest_path.exists():
-        raise FileNotFoundError(f"manifest not found: {manifest_path}")
-    packet_dir = manifest_path.parent
-    packet = SourceCapturePacket.model_validate(json.loads(manifest_path.read_text(encoding="utf-8")))
-    raw_file_bytes_by_file_id: dict[str, bytes] = {}
-    for preserved_file in packet.preserved_files:
-        raw_path = _resolve_preserved_file_path(
-            packet_dir,
-            preserved_file.file_id,
-            preserved_file.relative_packet_path,
-        )
-        raw_file_bytes_by_file_id[preserved_file.file_id] = raw_path.read_bytes()
-    return packet, raw_file_bytes_by_file_id
-
-
-def _resolve_preserved_file_path(packet_dir: Path, file_id: str, relative_packet_path: str) -> Path:
-    raw_path = packet_dir / relative_packet_path
-    if not raw_path.exists():
-        raise FileNotFoundError(f"preserved file {file_id} not found at {raw_path}")
-    return raw_path
-
-
 def _raw_anchor(preserved_file: PreservedFile) -> FragranticaProjectionRawAnchor:
     return FragranticaProjectionRawAnchor(
         file_id=preserved_file.file_id,
@@ -871,21 +850,6 @@ def _json_attr(segment: str, pattern: str) -> Any | None:
         return json.loads(html.unescape(value))
     except json.JSONDecodeError:
         return None
-
-
-def _first_match(text: str, pattern: str, *, flags: int = 0) -> str | None:
-    match = re.search(pattern, text, flags)
-    return html.unescape(match.group(1)).strip() if match else None
-
-
-def _text(value: str | None) -> str | None:
-    if value is None:
-        return None
-    value = re.sub(r"<br\s*/?>", "\n", value, flags=re.IGNORECASE)
-    value = re.sub(r"</p\s*>", "\n", value, flags=re.IGNORECASE)
-    value = re.sub(r"<[^>]+>", " ", value)
-    normalized = re.sub(r"\s+", " ", html.unescape(value)).strip()
-    return normalized
 
 
 def _to_float(value: str | None) -> float | None:
@@ -948,20 +912,8 @@ def _brand_from_fragrantica_url(url: str) -> str | None:
     return html.unescape(match.group(1).replace("-", " "))
 
 
-def _dedupe_preserve_order(values: list[str]) -> list[str]:
-    seen = set()
-    result = []
-    for value in values:
-        if value not in seen:
-            seen.add(value)
-            result.append(value)
-    return result
-
-
 def _is_forbidden_field_name(key: str) -> bool:
-    normalized = re.sub(r"[^a-z0-9]+", "_", key.lower()).strip("_")
-    padded = f"_{normalized}_"
-    return any(f"_{token}_" in padded for token in _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES)
+    return is_forbidden_field_pattern_match(key, _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES)
 
 
 def _projection_json_text(projection: FragranticaProjectionPacket) -> str:

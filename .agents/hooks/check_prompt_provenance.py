@@ -79,8 +79,9 @@ REMINDER = (
     "Omit fields at their named default (an omitted field asserts it): "
     "template kind none; reviews findings-first with no formal verdict, "
     "severity, or patch queue bound and no runtime-model routing; doctrine "
-    "change none -- a doctrine-changing prompt carries a "
-    "direction_change_propagation receipt or blocker (source-of-truth.md).\n"
+    "change none -- "
+    "doctrine changes name the controlling source and record propagation in the "
+    "PR/closeout; durable receipts are exceptional (source-of-truth.md).\n"
     "Cite repo constants (intake reads, external-source boundary, environment "
     "baseline, lifecycle hard stop, de-correlation constants) from "
     "docs/prompts/templates/shared/forseti_preflight_defaults_v0.md; do not "
@@ -190,7 +191,7 @@ def selftest() -> int:
         ("full reminder carries elision and constants-pointer invariants",
          "an omitted field asserts it" in REMINDER
          and "template kind none" in REMINDER
-         and "direction_change_propagation receipt or blocker" in REMINDER
+         and "durable receipts are exceptional" in REMINDER
          and "forseti_preflight_defaults_v0.md" in REMINDER
          and "do not restate them" in REMINDER),
         ("full reminder separates courier input from durable output",

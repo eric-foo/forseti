@@ -161,6 +161,92 @@ def test_prompt_embeds_method_and_compact_view_but_not_named_examples() -> None:
     }
 
 
+def test_compact_view_dedupes_text_and_preserves_member_lineage() -> None:
+    bundle = _bundle()
+    bundle["transcript_evidence"].append(
+        {
+            **bundle["transcript_evidence"][0],
+            "evidence_id": "content-2",
+            "video_id": "v2",
+            "text": "  I compare the product SIDE by side. ",
+            "start_ms": 200,
+            "end_ms": 1400,
+        }
+    )
+    bundle["comment_evidence"].append(
+        {
+            **bundle["comment_evidence"][0],
+            "evidence_id": "comment-3",
+            "video_id": "v2",
+            "comment_id": "c3",
+            "text": "please   compare the next release TOO.",
+            "comment_likes": 5,
+            "comment_like_rank_within_captured": 3,
+            "comment_attention_record_id": "attention-3",
+        }
+    )
+
+    manifest = build_capability_manifest(bundle)
+    assert len(manifest["evidence"]) == 3
+    grouped = [
+        row for row in manifest["evidence"].values() if row["multiplicity"] == 2
+    ]
+    assert {tuple(row["member_evidence_ids"]) for row in grouped} == {
+        ("comment-1", "comment-3"),
+        ("content-1", "content-2"),
+    }
+    assert all(row["source_item_ids"] == ["v1", "v2"] for row in grouped)
+
+    view = build_compact_judgment_view(bundle)
+    assert len(view["evidence"]) == 3
+    assert view["view_version"] == "creator_audience_compact_judgment_view_v3"
+    duplicated = [
+        row for row in view["evidence"] if row.get("duplicate_multiplicity") == 2
+    ]
+    assert len(duplicated) == 2
+    assert all(row["source_item_ids"] == ["v1", "v2"] for row in duplicated)
+    assert len(
+        next(row for row in duplicated if row["kind"] == "creator_content")[
+            "member_locations"
+        ]
+    ) == 2
+    assert len(
+        next(row for row in duplicated if row["kind"] == "observed_comment")[
+            "comment_mechanics"
+        ]
+    ) == 2
+    serialized = json.dumps(view)
+    assert "content-2" not in serialized
+    assert "comment-3" not in serialized
+
+
+def test_compiler_expands_deduped_aliases_to_all_member_evidence() -> None:
+    bundle = _bundle()
+    bundle["comment_evidence"].append(
+        {
+            **bundle["comment_evidence"][0],
+            "evidence_id": "comment-3",
+            "video_id": "v2",
+            "comment_id": "c3",
+            "text": "please   compare the next release TOO.",
+            "comment_attention_record_id": "attention-3",
+        }
+    )
+    response = _semantic_response(bundle)
+
+    snapshot = parse_creator_audience_response(json.dumps(response), bundle)
+    claim = snapshot.judgment_claim_set.claims[0]
+
+    assert claim.all_support_evidence_ids == [
+        "content-1",
+        "comment-1",
+        "comment-3",
+        "comment-2",
+    ]
+    assert claim.representative_evidence_ids == ["content-1", "comment-1"]
+    assert claim.source_item_ids == ["v1", "v2"]
+
+
 def test_prompt_rejects_method_text_outside_bundle_binding() -> None:
     with pytest.raises(ValueError, match="does not match the audience bundle"):
         build_creator_audience_prompt(_bundle(), method_text="tampered method")

@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from source_capture.models import PreservedFile, SourceCapturePacket
+from source_capture.projection_shared import resolve_preserved_file_path
 from source_capture.tiktok.admission import assert_no_sensitive_tiktok_material
 from source_capture.tiktok.batch_packet import (
     TIKTOK_BATCH_CAPTURE_JSON_NAME,
@@ -360,9 +361,12 @@ def _read_packet_directory(packet_or_manifest_path: Path) -> tuple[SourceCapture
     packet = SourceCapturePacket.model_validate(json.loads(manifest_path.read_text(encoding="utf-8")))
     raw_file_bytes_by_file_id: dict[str, bytes] = {}
     for preserved_file in packet.preserved_files:
-        raw_path = packet_dir / preserved_file.relative_packet_path
-        if not raw_path.exists():
-            raise FileNotFoundError(f"preserved file {preserved_file.file_id} not found at {raw_path}")
+        # helper-delta: this reader returns a 3-tuple (adds packet_dir) so it
+        # cannot BE projection_shared.read_packet_directory, but it adopts the
+        # same path-containment guard so preserved-file reads cannot escape.
+        raw_path = resolve_preserved_file_path(
+            packet_dir, preserved_file.file_id, preserved_file.relative_packet_path
+        )
         raw_file_bytes_by_file_id[preserved_file.file_id] = raw_path.read_bytes()
     return packet, raw_file_bytes_by_file_id, packet_dir
 
