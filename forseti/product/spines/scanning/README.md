@@ -53,7 +53,7 @@ stale_if:
 | Core method front door | `scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md` | Bounded intelligent walk, precursor vocabulary, minimum evidence, capture-request bridge. |
 | Proposed rich schema | `scan_core/forseti_demand_scan_core_spec_v0.md` | Candidate-observation schema and gate-prep detail after signal promotion. |
 | Adjudication / support | `admissibility_checkability/*.md` | Gate-definition and scan-core decision surfaces. |
-| Source-family adapters | `source_families/*/*.md` | Local guardrails mapped into shared scanning vocabulary. |
+| Source-family adapters | `source_families/*/*.md` | Local guardrails mapped into shared scanning vocabulary; a family folder may also hold an advisory venue-routing inventory (e.g. the Reddit beauty/fragrance subreddit inventory), which is planning input, not adapter authority. |
 | Research / probe evidence | `docs/research/answer_engine/aeo_capture_feasibility_probe_phase0_v0.md` | AEO feasibility evidence; not product-spine authority. |
 
 ## Answer-Engine / Search Current Route
