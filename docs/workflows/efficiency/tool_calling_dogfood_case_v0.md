@@ -179,8 +179,10 @@ one extra call:
 
 ## Reset and cold-agent usage
 
-1. Create an isolated disposable copy at the fixed starting commit and materialize
-   the hidden fixture exactly as specified.
+1. Create an oracle-free isolated minimal repository at a fixture-local pinned
+   starting commit and materialize the hidden fixture exactly as specified. Do
+   not use a Forseti revision that contains this operator file; the cold agent
+   must have no repository path from which it can discover the oracle.
 2. Verify the tracked baseline, focused-test baseline, unrelated failing-test
    baseline, and hash/untracked status of `notes/operator_draft.md`; retain these
    in the operator record only.
