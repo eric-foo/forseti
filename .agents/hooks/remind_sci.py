@@ -87,6 +87,15 @@ output to design the rest (harvest before cook) -- never just to look safe.
 abstractions, broad rewrites, extra workflow ceremony, or nice-to-have
 improvements.
 
+Weigh subtraction equally with addition. Additive fixes feel safe --
+nothing visibly breaks -- so unchecked drift runs additive and rules,
+steps, and surface only grow. When choosing the intervention, give
+removing or simplifying an existing rule, step, artifact, or special case
+the same standing as adding a new one, and when both satisfy the request,
+prefer the one that leaves the smaller total surface. This is a
+solution-choice rule inside the bound request: it never authorizes
+speculative cleanup beyond it, and removals keep their evidence gates.
+
 Watch for ceremony debt: the recurring process cost a change installs when
 it adds a required step, preflight, gate, receipt, field, checklist, sync
 obligation, or review pass that every future work unit must pay. A change
