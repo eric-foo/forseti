@@ -196,3 +196,50 @@ direction_change_propagation:
     the dated efficiency record.
   non_claims: [not validation, not readiness, not a host-level tool repair]
 ```
+
+### Delegated-review addendum — circuit-state continuity (2026-07-16)
+
+A commissioned cross-vendor delegated review confirmed one containment gap:
+the inheritance rule still depended on current context reporting the stall, but
+no rule required an open circuit's `sandboxed_tool_stall` record to travel in a
+precompact or handoff packet. Whenever such a packet is used, a receiving lane
+could therefore silently reopen a route already observed to be stalled.
+`AGENTS.md` now requires the record in either packet type.
+
+Additional accepted residuals from that review:
+
+- Automatic compaction that drops the stall record can silently close the
+  circuit; the bounded cost is one re-observed stall before it reopens.
+- The adapter inspects the three known Codex payload fields (`command`, `patch`,
+  `input`); an unrecognized or non-string payload shape is skipped rather than
+  denied, so a future host payload-schema change would reopen the inspection gap
+  until observed and patched.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    An open sandboxed-tool-stall circuit is now named lane state: precompact
+    and handoff packets must carry the `sandboxed_tool_stall` record so a
+    receiving lane inherits the open circuit.
+  trigger: workflow_authority
+  related_triggers: [lifecycle_boundary]
+  controlling_sources_updated:
+    - AGENTS.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/technical_difficulties_log_v0.md
+  intentionally_not_updated:
+    - {path: CLAUDE.md, reason: "It imports AGENTS.md and must not duplicate the circuit rule."}
+    - {path: .agents/workflow-overlay/source-of-truth.md, reason: "Checkpoint packet mechanics remain compatible; circuit state stays owned by AGENTS.md."}
+    - {path: .agents/workflow-overlay/source-loading.md, reason: "Packet routing is unchanged; the packet-content obligation belongs with the circuit rule."}
+  stale_language_search: >
+    rg -n -i "precompact|handoff packet|sandboxed_tool_stall"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/technical_difficulties_log_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-16 after home replay. Hits were the live AGENTS.md circuit
+    rule, this incident record, and compatible packet-mechanics references; no
+    live instruction said a packet continuation resets or discards an open circuit.
+  non_claims: [not validation, not readiness, not a host-level tool repair]
+```
