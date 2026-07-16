@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
-from data_lake.root import DataLakeRoot, raw_shard
+import pytest
+
+from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
+from data_lake.silver_record import append_raw_packet_tombstone
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
@@ -68,10 +72,65 @@ def test_availability_rebuilds_from_raw(tmp_path: Path) -> None:
     assert pid in root.list_available()
 
 
-def test_record_availability_requires_committed_raw(tmp_path: Path) -> None:
-    from data_lake.root import DataLakeRootError
-    import pytest
+def test_raw_packet_tombstone_hides_public_availability_but_retains_raw(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    old = _reddit_capture(root, tmp_path, body="older testing capture")
+    retained = _reddit_capture(root, tmp_path, body="latest admitted capture")
+    old_id = old.packet.packet_id
+    retained_id = retained.packet.packet_id
 
+    tombstone_path = append_raw_packet_tombstone(
+        root,
+        retained_packet_id=retained_id,
+        tombstoned_packet_id=old_id,
+        captured_at="2026-07-16T15:00:00Z",
+        reason="owner-directed cleanup of superseded testing history",
+    )
+    tombstone = json.loads(tombstone_path.read_text(encoding="utf-8"))
+
+    assert tombstone["payload"]["relationship"]["edge_type"] == "tombstones_record"
+    assert root.tombstoned_packet_ids() == {old_id}
+    assert root.find_packet(old_id) is not None
+    assert root.load_raw_packet(old_id).bodies
+    assert (root.path / "indexes" / "availability" / f"{old_id}.json").is_file()
+    assert root.read_availability(old_id) is None
+    assert root.read_availability(retained_id) is not None
+    assert old_id not in root.list_available(source_family="reddit")
+    assert retained_id in root.list_available(source_family="reddit")
+
+    assert root.rebuild_availability() == 1
+    assert not (
+        root.path / "indexes" / "availability" / f"{old_id}.json"
+    ).exists()
+    assert root.read_availability(old_id) is None
+    assert root.find_packet(old_id) is not None
+    assert root.load_raw_packet(old_id).bodies
+
+
+def test_raw_packet_tombstone_reader_fails_closed_on_tampering(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    old = _reddit_capture(root, tmp_path, body="older testing capture")
+    retained = _reddit_capture(root, tmp_path, body="latest admitted capture")
+    path = append_raw_packet_tombstone(
+        root,
+        retained_packet_id=retained.packet.packet_id,
+        tombstoned_packet_id=old.packet.packet_id,
+        captured_at="2026-07-16T15:00:00Z",
+        reason="owner-directed cleanup of superseded testing history",
+    )
+    record = json.loads(path.read_text(encoding="utf-8"))
+    record["payload"]["relationship"]["raw_bytes_retained"] = False
+    path.write_text(json.dumps(record), encoding="utf-8")
+
+    with pytest.raises(DataLakeRootError, match="invalid raw packet tombstone"):
+        root.list_available()
+
+
+def test_record_availability_requires_committed_raw(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     from harness_utils import generate_ulid
 

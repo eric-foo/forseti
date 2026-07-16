@@ -82,6 +82,7 @@ _CROCKFORD_26 = re.compile(r"[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}")
 _SAFE_SEGMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 
 _APPENDABLE_SUBTREES = ("derived", "acknowledgements")
+_RAW_PACKET_TOMBSTONE_LANE = "raw_packet_tombstone_silver"
 
 
 # Raw container physical fanout (decided 2026-06-25): raw packets live under a
@@ -786,6 +787,141 @@ class DataLakeRoot:
         _validate_segment(lane, role="lane")
         return self._within(subtree, anchor_shard(raw_anchor), raw_anchor, lane)
 
+    def tombstoned_packet_ids(self) -> set[str]:
+        """Return packet ids excluded from public reads by validated tombstones.
+
+        Direct raw by-key reads stay available for audit. A malformed, misplaced,
+        or physically unresolved tombstone fails closed instead of silently
+        restoring its target to public discovery.
+        """
+        self._reverify()
+        derived = self._path / "derived"
+        if not derived.is_dir():
+            return set()
+        from data_lake.silver_record import (
+            RAW_PACKET_TOMBSTONE_PRODUCER_ID,
+            RAW_PACKET_TOMBSTONE_SCHEMA_VERSION,
+            RAW_PACKET_TOMBSTONE_SCOPE,
+            RAW_PACKET_TOMBSTONE_SOURCE_SURFACE,
+            SilverRecordError,
+            validate_silver_vault_record_for_write,
+            verify_silver_vault_record_sources,
+        )
+
+        tombstoned: set[str] = set()
+        for shard_dir in sorted(derived.iterdir()):
+            if not shard_dir.is_dir():
+                continue
+            for anchor_dir in sorted(shard_dir.iterdir()):
+                if not anchor_dir.is_dir():
+                    continue
+                lane_dir = anchor_dir / _RAW_PACKET_TOMBSTONE_LANE
+                if not lane_dir.is_dir():
+                    continue
+                anchor = _validate_packet_id(anchor_dir.name)
+                if shard_dir.name != anchor_shard(anchor):
+                    raise DataLakeRootError(
+                        f"raw packet tombstone lane is under the wrong anchor shard: {lane_dir}"
+                    )
+                for record_path in sorted(lane_dir.iterdir()):
+                    if not record_path.is_file() or record_path.suffix != ".json":
+                        raise DataLakeRootError(
+                            f"raw packet tombstone lane contains a non-record entry: {record_path}"
+                        )
+                    try:
+                        record = json.loads(record_path.read_text(encoding="utf-8"))
+                        validate_silver_vault_record_for_write(record)
+                        verify_silver_vault_record_sources(
+                            self, record, record_path=record_path
+                        )
+                    except (OSError, ValueError, SilverRecordError) as exc:
+                        raise DataLakeRootError(
+                            f"invalid raw packet tombstone record {record_path}: {exc}"
+                        ) from exc
+                    if (
+                        record.get("record_id") != record_path.name
+                        or record.get("raw_anchor") != anchor
+                        or record.get("lane_namespace") != _RAW_PACKET_TOMBSTONE_LANE
+                        or record.get("producer_id") != RAW_PACKET_TOMBSTONE_PRODUCER_ID
+                        or record.get("producer_schema_version")
+                        != RAW_PACKET_TOMBSTONE_SCHEMA_VERSION
+                        or record.get("source_surface")
+                        != RAW_PACKET_TOMBSTONE_SOURCE_SURFACE
+                        or record.get("record_kind") != "relationship"
+                        or record.get("payload_kind") != "RelationshipEdge"
+                        or record.get("producer_row_kind") != "raw_packet_tombstone"
+                        or record.get("observed_at") is not None
+                    ):
+                        raise DataLakeRootError(
+                            f"raw packet tombstone header/binding mismatch: {record_path}"
+                        )
+                    payload = record.get("payload")
+                    relationship = (
+                        payload.get("relationship")
+                        if isinstance(payload, dict)
+                        else None
+                    )
+                    if not isinstance(relationship, dict):
+                        raise DataLakeRootError(
+                            f"raw packet tombstone lacks payload.relationship: {record_path}"
+                        )
+                    target_ref = relationship.get("to")
+                    target = (
+                        target_ref.get("ref")
+                        if isinstance(target_ref, dict)
+                        else None
+                    )
+                    if not isinstance(target, str):
+                        raise DataLakeRootError(
+                            f"raw packet tombstone lacks a target packet: {record_path}"
+                        )
+                    target = _validate_packet_id(target)
+                    expected_keys = {
+                        "edge_type",
+                        "from",
+                        "to",
+                        "reason",
+                        "recorded_at",
+                        "unavailability_scope",
+                        "raw_bytes_retained",
+                    }
+                    if (
+                        set(payload) != {"relationship"}
+                        or set(relationship) != expected_keys
+                        or relationship.get("edge_type") != "tombstones_record"
+                        or relationship.get("from")
+                        != {"ref_type": "record_id", "ref": anchor}
+                        or target_ref != {"ref_type": "record_id", "ref": target}
+                        or target == anchor
+                        or not isinstance(relationship.get("reason"), str)
+                        or not relationship["reason"].strip()
+                        or relationship.get("recorded_at")
+                        != record.get("captured_at")
+                        or relationship.get("unavailability_scope")
+                        != RAW_PACKET_TOMBSTONE_SCOPE
+                        or relationship.get("raw_bytes_retained") is not True
+                    ):
+                        raise DataLakeRootError(
+                            f"raw packet tombstone relationship is invalid: {record_path}"
+                        )
+                    raw_ref_packet_ids = [
+                        ref.get("packet_id")
+                        for ref in record.get("raw_refs", [])
+                        if isinstance(ref, dict)
+                        and ref.get("ref_type") == "raw_packet"
+                    ]
+                    if sorted(raw_ref_packet_ids) != sorted([anchor, target]):
+                        raise DataLakeRootError(
+                            f"raw packet tombstone lineage does not bind both packets: {record_path}"
+                        )
+                    tombstoned.add(target)
+        return tombstoned
+
+    def is_packet_tombstoned(self, packet_id: str) -> bool:
+        """Return whether a committed packet is excluded from public reads."""
+        _validate_packet_id(packet_id)
+        return packet_id in self.tombstoned_packet_ids()
+
     # -- availability index (content-free, rebuildable) ---------------------
 
     def record_availability(self, packet_id: str) -> Path:
@@ -899,8 +1035,10 @@ class DataLakeRoot:
         return LoadedRawPacket(container=container, manifest=manifest, bodies=bodies)
 
     def read_availability(self, packet_id: str) -> dict | None:
-        """Return the availability entry for a packet by key, or None."""
+        """Return public availability for a packet, or None when absent/tombstoned."""
         _validate_packet_id(packet_id)
+        if packet_id in self.tombstoned_packet_ids():
+            return None
         target = self._within("indexes", "availability", f"{packet_id}.json")
         if not target.is_file():
             return None
@@ -911,9 +1049,12 @@ class DataLakeRoot:
         avail = self._path / "indexes" / "availability"
         if not avail.is_dir():
             return []
+        tombstoned = self.tombstoned_packet_ids()
         out: list[str] = []
         for entry_file in sorted(avail.glob("*.json")):
             entry = json.loads(entry_file.read_text(encoding="utf-8"))
+            if entry.get("packet_id") in tombstoned:
+                continue
             if source_family is None or entry.get("source_family") == source_family:
                 out.append(entry["packet_id"])
         return out
@@ -929,6 +1070,7 @@ class DataLakeRoot:
                 entry_file.unlink()
         avail.mkdir(parents=True, exist_ok=True)
         raw_dir = self._path / "raw"
+        tombstoned = self.tombstoned_packet_ids()
         count = 0
         if raw_dir.is_dir():
             for shard_dir in sorted(raw_dir.iterdir()):
@@ -943,6 +1085,7 @@ class DataLakeRoot:
                         # availability entry (failure stays visible as absence).
                         and shard_dir.name == raw_shard(container.name)
                         and (container / "manifest.json").is_file()
+                        and container.name not in tombstoned
                     ):
                         self.record_availability(container.name)
                         count += 1
