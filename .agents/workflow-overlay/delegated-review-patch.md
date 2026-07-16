@@ -102,9 +102,9 @@ adjudicator's own modify/reject adjudications to the target -- in the same
 turn; route a smallest-complete closure step only for an issue that genuinely
 needs another review round, another lane, an architecture pass, or an owner
 decision; once clean, batch admin/lifecycle follow-ups into exactly one land
-step with no deep-thinking; then, when a visible active goal,
-`thread_operating_target`, or accepted next objective exists, deep-think the 1-5
-material next moves that best advance it. When none exists, record
+step; then, when a visible active goal, `thread_operating_target`, or accepted
+next objective exists, identify the 1-5 material next moves that best advance it
+without invoking deep thinking. When none exists, record
 `no_visible_active_goal` rather than inventing a roadmap. The land/closure step
 plus this goal-conditioned material-move check are a required same-turn tail;
 do not defer the check to another turn. This is an adjudicator obligation, not
@@ -236,13 +236,11 @@ changes repository access and patch authorship.
 
 1. **The review method is the code review lane, not artifact review.** The
    delegate's review portion is `workflow-code-review` run under the Review
-   Prompt Defaults. Commissioning, adversarial wording, patch authorization, or
-   a bounded multi-file target alone does not add `workflow-deep-thinking` or
-   the Source-Gated Method Contract. Those apply only when their independent
-   triggers in `.agents/workflow-overlay/prompt-orchestration.md` fire — for
-   example owner invocation or Mini God Tier, doctrine/authority change,
-   source-heavy or materially ambiguous work, or substantial seam risk whose
-   framing could change the route. The code review lane stays the
+   Prompt Defaults. Commissioning, adversarial wording, patch authorization, Mini God Tier,
+   doctrine or authority surface, source volume, ambiguity, seam risk, or a
+   bounded multi-file target does not add `workflow-deep-thinking`. The review
+   method performs its own failure-mode analysis under the Review Prompt
+   Defaults. The code review lane stays the
    review method for code; this convention only adds commissioned bounded patch
    authorship plus CA adjudication on top of it, and never replaces, weakens, or
    relabels code review, nor merges it with artifact review (those remain
@@ -333,8 +331,8 @@ delegated_review_patch_overlay_interface:
     delegated_code_review_and_patch: >
       Sibling target kind for a bounded multi-file implementation/code diff.
       Review method is the code review lane (workflow-code-review), NOT artifact
-      review and never a merge of the two. Deep-thinking and source-gated
-      sequencing apply only when independently triggered by prompt-orchestration.
+      review and never a merge of the two. Review-native failure-mode analysis
+      applies; deep thinking is not part of the review sequence.
       Target is
       an explicitly named file set (one or more) that CANNOT silently widen;
       everything outside it is read-only / flag-only. Validation/test obligations
