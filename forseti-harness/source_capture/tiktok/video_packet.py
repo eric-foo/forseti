@@ -273,6 +273,7 @@ def _loads_json_bytes(raw: bytes, *, label: str) -> object:
 
 
 def _utc_now_z() -> str:
+    # Diverges from harness_utils.utc_now_z: naive utcnow() and keeps microsecond precision.
     return _dt.datetime.utcnow().isoformat() + "Z"
 
 
