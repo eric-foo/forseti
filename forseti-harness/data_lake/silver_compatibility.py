@@ -302,6 +302,7 @@ def _validate_tiktok_comment_attention_v1(record: Mapping[str, Any]) -> None:
             "Legacy TikTok comment-attention v1 must not carry derived_refs."
         )
     sr._validate_strict_lineage_refs(record)
+    _validate_tiktok_v1_observation_keys(observation)
     sr._validate_metric_posture(observation)
     if record.get("observed_at") is None:
         _validate_tiktok_v1_null_time_shape(observation)
@@ -314,17 +315,22 @@ def _validate_tiktok_comment_attention_v1(record: Mapping[str, Any]) -> None:
         )
 
 
-def _validate_tiktok_v1_null_time_shape(observation: Mapping[str, Any]) -> None:
-    """Accept only the exact immutable v1 null-time posture as historical."""
+def _validate_tiktok_v1_observation_keys(observation: Mapping[str, Any]) -> None:
+    """Require the closed persisted observation shape for every v1 record."""
     sr = _silver_record()
     observed_keys = frozenset(observation)
     if observed_keys != _TIKTOK_V1_OBSERVATION_KEYS:
         missing = sorted(_TIKTOK_V1_OBSERVATION_KEYS - observed_keys)
         extra = sorted(observed_keys - _TIKTOK_V1_OBSERVATION_KEYS)
         raise sr.SilverRecordError(
-            "Legacy TikTok comment-attention v1 null-time observation key set "
+            "Legacy TikTok comment-attention v1 observation key set "
             f"does not match the persisted shape (missing={missing!r}, extra={extra!r})."
         )
+
+
+def _validate_tiktok_v1_null_time_shape(observation: Mapping[str, Any]) -> None:
+    """Accept only the exact immutable v1 null-time posture as historical."""
+    sr = _silver_record()
     if observation.get("metric_name") != "comment_like_to_video_like_ratio":
         raise sr.SilverRecordError(
             "Legacy TikTok comment-attention v1 metric_name is invalid."

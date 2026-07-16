@@ -30,6 +30,7 @@ from data_lake.silver_record import (
     INVALID_SILVER_AUTHORITY,
     SilverRecordError,
     append_silver_record,
+    append_silver_record_set,
     classify_silver_vault_record_sources,
     silver_content_hash,
     validate_silver_vault_record,
@@ -200,6 +201,25 @@ def test_fixture_append_is_refused_before_any_write(tmp_path: Path) -> None:
         ).exists()
 
 
+def test_fixture_record_set_append_is_refused_before_any_write(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    for profile in SILVER_COMPATIBILITY_PROFILES:
+        record = load_fixture_record(profile)
+        with pytest.raises(SilverRecordError, match="read-only compatibility"):
+            append_silver_record_set(
+                root,
+                raw_anchor=record["raw_anchor"],
+                record_id=record["record_id"],
+                records={record["lane_namespace"]: record},
+                completion_lane="fixture_completion_lane",
+            )
+        assert not root.lane_dir(
+            subtree="derived",
+            raw_anchor=record["raw_anchor"],
+            lane=record["lane_namespace"],
+        ).exists()
+
+
 def test_fixture_reference_resolution_behaves_as_declared(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "forseti-data")
     seeded = materialize_fixture_lake(root)
@@ -238,11 +258,12 @@ def _tamper(record: dict[str, Any], dotted: str, value: Any, *, delete: bool = F
     parts = dotted.split(".")
     container: Any = record
     for part in parts[:-1]:
-        container = container[part]
+        container = container[int(part)] if isinstance(container, list) else container[part]
+    leaf: str | int = int(parts[-1]) if isinstance(container, list) else parts[-1]
     if delete:
-        del container[parts[-1]]
+        del container[leaf]
     else:
-        container[parts[-1]] = value
+        container[leaf] = value
 
 
 # Discriminating-field mutations. Every entry must classify INVALID (fail
@@ -252,14 +273,23 @@ _MUTATIONS = [
     ("fragrantica_text_v0", "producer_schema_version", "fragrantica_cleaning_silver_textobservation_v999", False),
     ("fragrantica_text_v0", "raw_refs", [], False),
     ("fragrantica_text_v0", "derived_refs", [], False),
+    ("fragrantica_text_v0", "payload.observation.text_hash", "sha256:" + ("0" * 64), False),
     ("fragrantica_metric_v0", "payload_kind", "TextObservation", False),
     ("fragrantica_metric_v0", "derived_refs", [], False),
+    ("fragrantica_metric_v0", "raw_refs.0.hash_basis", "source_captured_watch_html_sha256", False),
     ("creator_metric_observation_youtube_v0", "producer_id", "unknown.producer", False),
     ("creator_metric_observation_youtube_v0", "raw_refs", [], False),
+    ("creator_metric_observation_youtube_v0", "payload.observation.metric_posture.kind", "banana", False),
     ("creator_metric_observation_projection_v0", "observed_at", None, False),
+    ("creator_metric_observation_projection_v0", "derived_refs", [{"lane_namespace": "creator_metric_silver"}], False),
     ("creator_metric_rollup_youtube_v0", "derived_refs", [], False),
+    ("creator_metric_rollup_youtube_v0", "derived_refs.0.lane_namespace", "wrong_lane", False),
     ("creator_metric_rollup_projection_v0", "payload_kind", "MetricObservation", False),
+    ("creator_metric_rollup_projection_v0", "derived_refs.0.raw_anchor", "unexpected", False),
     ("tiktok_comment_attention_v1", "producer_schema_version", "tiktok_comment_attention_metric_observation_v999", False),
+    ("tiktok_comment_attention_v1", "producer_row_kind", "other_row_kind", False),
+    ("tiktok_comment_attention_v1", "source_surface", "other_surface", False),
+    ("tiktok_comment_attention_v1", "raw_refs", [], False),
     ("tiktok_comment_attention_v1", "payload.observation.metric_value", 0.5, False),
     ("tiktok_comment_attention_v1", "payload.observation.metric_posture.reason_code", "some_other_reason", False),
     ("tiktok_comment_attention_v1", "payload.observation.temporal_pairing.alignment", "same_capture_observation", False),
@@ -301,6 +331,26 @@ def test_tampered_content_hash_fails_before_compatibility_inference(tmp_path: Pa
     assert authority.status == INVALID_SILVER_AUTHORITY
     assert authority.reason_code == "invalid_silver_envelope"
     assert "content hash mismatch" in (authority.error or "")
+
+
+def test_known_time_tiktok_v1_rejects_non_persisted_observation_fields(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    seeded = materialize_fixture_lake(root)
+    record, _path = seeded["tiktok_comment_attention_v1"]
+    hybrid = deepcopy(record)
+    hybrid["observed_at"] = hybrid["payload"]["observation"]["temporal_pairing"][
+        "video_stats_observed_at"
+    ]
+    hybrid["payload"]["observation"]["foreign_current_field"] = {
+        "unexpected": True
+    }
+    _rehash(hybrid)
+
+    authority = classify_silver_vault_record_sources(root, hybrid)
+
+    assert authority.status == INVALID_SILVER_AUTHORITY
 
 
 def test_fixture_records_are_never_mutated_by_classification(tmp_path: Path) -> None:
