@@ -18,9 +18,11 @@ WHAT THIS DOES
   deliberate exception; see the ``_hooklib.py`` docstring).
 
   ESCAPE HATCH (deliberate divergence is legitimate): the flag is suppressed
-  when the def line or the line immediately above carries a comment naming the
-  delta vs the shared home (any comment containing ``harness_utils``,
-  ``_hooklib``, or ``helper-delta``).
+  when the def line, the line immediately above, or the first body line below
+  carries a comment naming the delta vs the shared home (any comment containing
+  ``harness_utils``, ``_hooklib``, or ``helper-delta``). The body-line form is
+  the placement the 2026-07-16 adoption sweeps actually used, so re-added
+  compliant defs (signature edits, file copies) stay suppressed.
 
 Rule authority:
   The shared-helper adoption-rule paragraphs in ``.agents/hooks/README.md``
@@ -150,10 +152,12 @@ def analyze_added(
         if matched is None:
             continue
         name, home = matched
-        above = ""
+        above = below = ""
         if file_lines and 2 <= lineno <= len(file_lines):
             above = file_lines[lineno - 2]
-        if comment_names_delta(text) or comment_names_delta(above):
+        if file_lines and 1 <= lineno < len(file_lines):
+            below = file_lines[lineno]  # first body line: the sweeps' practiced placement
+        if comment_names_delta(text) or comment_names_delta(above) or comment_names_delta(below):
             continue
         findings.append(Finding(rel, lineno, name, home))
     return findings
@@ -329,6 +333,12 @@ def selftest() -> int:
     # A non-comment mention does not suppress.
     got = run("forseti-harness/runners/x.py", ["def _as_dict(harness_utils):"])
     check("case2 non-comment token does not suppress", len(got), 1)
+    # First-body-line comment suppresses (the sweeps' practiced placement):
+    # a re-added compliant def (signature edit / file copy) must stay green.
+    body_form = ["def _utc_now_z() -> str:",
+                 "    # Diverges from harness_utils.utc_now_z: naive utcnow(), keeps microseconds."]
+    check("case2 first-body-line delta comment suppresses",
+          run("forseti-harness/source_capture/x.py", body_form[:1], file_lines=body_form), [])
 
     # 3. excluded paths -> no findings.
     check("case3 harness tests excluded",
