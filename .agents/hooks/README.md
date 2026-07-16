@@ -80,6 +80,14 @@ checker costs one advisory, but in the hard guard it would disable the gate
 (including its fail-closed merge path). Do not refactor the guard onto
 `_hooklib`.
 
+**Adoption rule:** before writing a private helper in a checker, check
+`_hooklib.py`; if the shared home already has it, import it. When touching a
+checker, migrate a stale private copy in the same work unit only when the bound
+change already touches or depends on that helper contract (behavior-preserving
+only); otherwise leave the unrelated migration for a separately scoped work
+unit. A deliberately divergent copy stays, with a one-line comment naming the
+delta.
+
 ## The contract (harness-agnostic)
 
 - **CI diff base:** `.github/workflows/ci.yml` exports `FORSETI_DIFF_BASE`
