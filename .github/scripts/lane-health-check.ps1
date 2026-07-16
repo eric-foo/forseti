@@ -444,6 +444,8 @@ function Get-WorktreeClassification([string]$Root, [string]$Repo) {
 
 # --- IO: gather real state (read-only) --------------------------------------
 
+# helper-delta vs _common.ps1 Stop-WithError/Resolve-RepoRoot: this read-only
+# diagnostic aborts with exit 2 and honors a -RepoPath override; kept local.
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Write-Host 'ABORTED: git not found on PATH.' -ForegroundColor Red; exit 2
 }

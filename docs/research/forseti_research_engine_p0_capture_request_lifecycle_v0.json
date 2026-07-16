@@ -1,0 +1,186 @@
+{
+  "commission_id": "forseti_research_engine_p0_imaginary_authors_20260716",
+  "cost_yield": [
+    {
+      "packets_handoff_ready": 2,
+      "request_id_or_none": null,
+      "requests_declined": 0,
+      "requests_emitted": 2,
+      "requests_fulfilled": 2,
+      "source_family_or_none": null,
+      "stage_id": "scan",
+      "stage_type": "scan",
+      "token_cost_posture": "unknown_with_reason",
+      "token_count_or_none": null,
+      "token_unknown_reason_or_none": "the bounded web search call did not expose token metering",
+      "venues_touched": 2,
+      "wall_clock_seconds": 2.3
+    },
+    {
+      "packets_handoff_ready": 1,
+      "request_id_or_none": "cr_p0_parfumo",
+      "requests_declined": 0,
+      "requests_emitted": 0,
+      "requests_fulfilled": 1,
+      "source_family_or_none": "fragrance_native_database",
+      "stage_id": "capture_parfumo",
+      "stage_type": "capture",
+      "token_cost_posture": "unknown_with_reason",
+      "token_count_or_none": null,
+      "token_unknown_reason_or_none": "the deterministic direct HTTP capture runner used no metered model",
+      "venues_touched": 1,
+      "wall_clock_seconds": 2.061
+    },
+    {
+      "packets_handoff_ready": 1,
+      "request_id_or_none": "cr_p0_reddit",
+      "requests_declined": 0,
+      "requests_emitted": 0,
+      "requests_fulfilled": 1,
+      "source_family_or_none": "reddit_thread",
+      "stage_id": "capture_reddit",
+      "stage_type": "capture",
+      "token_cost_posture": "unknown_with_reason",
+      "token_count_or_none": null,
+      "token_unknown_reason_or_none": "the deterministic capture and consolidation runners used no metered model",
+      "venues_touched": 1,
+      "wall_clock_seconds": 2.958
+    }
+  ],
+  "events": [
+    {
+      "event_id": "evt_parfumo_requested",
+      "evidence_refs": [
+        "docs/research/forseti_research_engine_p0_golden_thread_receipt_v0.md"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-15T17:35:00Z",
+      "packet_id_or_none": null,
+      "reason_or_none": null,
+      "request_id": "cr_p0_parfumo",
+      "state": "requested"
+    },
+    {
+      "event_id": "evt_reddit_requested",
+      "evidence_refs": [
+        "docs/research/forseti_research_engine_p0_golden_thread_receipt_v0.md"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-15T17:35:01Z",
+      "packet_id_or_none": null,
+      "reason_or_none": null,
+      "request_id": "cr_p0_reddit",
+      "state": "requested"
+    },
+    {
+      "event_id": "evt_parfumo_route_bound",
+      "evidence_refs": [
+        "docs/workflows/parfumo_targeted_capture_contract_v0.md",
+        "preflight:parfumo_native_capture_preflight_passed"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-15T17:35:10Z",
+      "packet_id_or_none": null,
+      "reason_or_none": null,
+      "request_id": "cr_p0_parfumo",
+      "state": "route_bound"
+    },
+    {
+      "event_id": "evt_reddit_route_bound",
+      "evidence_refs": [
+        "forseti/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md",
+        "preflight:exact_old_reddit_thread_url_valid"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-15T17:35:11Z",
+      "packet_id_or_none": null,
+      "reason_or_none": null,
+      "request_id": "cr_p0_reddit",
+      "state": "route_bound"
+    },
+    {
+      "event_id": "evt_parfumo_captured",
+      "evidence_refs": [
+        "packet:01KXKDKV2G93R8QAZNQWNT120P",
+        "access:direct_http_200_ok"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-15T17:36:25Z",
+      "packet_id_or_none": "01KXKDKV2G93R8QAZNQWNT120P",
+      "reason_or_none": null,
+      "request_id": "cr_p0_parfumo",
+      "state": "captured"
+    },
+    {
+      "event_id": "evt_parfumo_handoff_ready",
+      "evidence_refs": [
+        "manifest_sha256:3c1fe849a8fcdc6e7a26ea214dcb98656f671e044db3f4e013bdcbc6688ed6c5",
+        "caller_detail:dipped_in_chocolate_and_review_markers_present"
+      ],
+      "manifest_sha256_or_none": "3c1fe849a8fcdc6e7a26ea214dcb98656f671e044db3f4e013bdcbc6688ed6c5",
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-15T17:36:40Z",
+      "packet_id_or_none": "01KXKDKV2G93R8QAZNQWNT120P",
+      "reason_or_none": null,
+      "request_id": "cr_p0_parfumo",
+      "state": "handoff_ready"
+    },
+    {
+      "event_id": "evt_reddit_captured",
+      "evidence_refs": [
+        "packet:01KXKDPFM3WWAE24BC2Q1JHV50",
+        "access:direct_http_200_ok"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-15T17:37:52Z",
+      "packet_id_or_none": "01KXKDPFM3WWAE24BC2Q1JHV50",
+      "reason_or_none": null,
+      "request_id": "cr_p0_reddit",
+      "state": "captured"
+    },
+    {
+      "event_id": "evt_reddit_handoff_ready",
+      "evidence_refs": [
+        "manifest_sha256:57c6c99215a18dcfab4cb99a1303864c46248ff4c34eea2166f48a44c69a5b83",
+        "consolidation:reddit_thread_consolidation_v0_comments_6",
+        "caller_detail:dipped_in_chocolate_discontinued_95_percent_full_110_usd"
+      ],
+      "manifest_sha256_or_none": "57c6c99215a18dcfab4cb99a1303864c46248ff4c34eea2166f48a44c69a5b83",
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-15T17:38:07Z",
+      "packet_id_or_none": "01KXKDPFM3WWAE24BC2Q1JHV50",
+      "reason_or_none": null,
+      "request_id": "cr_p0_reddit",
+      "state": "handoff_ready"
+    }
+  ],
+  "requests": [
+    {
+      "demand_origin_eligible": true,
+      "request_id": "cr_p0_parfumo",
+      "source_family": "fragrance_native_database",
+      "urls": [
+        "https://www.parfumo.com/Perfumes/Imaginary_Authors/dipped-in-chocolate"
+      ],
+      "venue": "Parfumo"
+    },
+    {
+      "demand_origin_eligible": true,
+      "request_id": "cr_p0_reddit",
+      "source_family": "reddit_thread",
+      "urls": [
+        "https://old.reddit.com/r/fragranceswap/comments/1u5qg1g/wts_mancera_jousset_missing_person_imaginary/"
+      ],
+      "venue": "Reddit r/fragranceswap"
+    }
+  ],
+  "schema_version": "capture_request_lifecycle_v0",
+  "source_scan": "docs/research/forseti_research_engine_p0_golden_thread_receipt_v0.md",
+  "subject": "Imaginary Authors / Dipped in Chocolate"
+}

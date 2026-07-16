@@ -36,11 +36,12 @@ COMMENT_ATTENTION_LANE = "tiktok_comment_attention_silver"
 COMMENT_ATTENTION_METRIC = "comment_like_to_video_like_ratio"
 COMMENT_AMPLIFICATION_METRIC = "comment_like_to_video_comment_count_ratio"
 COMMENT_ATTENTION_RECIPE_VERSION = "tiktok_comment_attention_ratio_v1"
-COMMENT_ATTENTION_PRODUCER_SCHEMA_VERSION = "tiktok_comment_attention_metric_observation_v1"
+COMMENT_ATTENTION_PRODUCER_SCHEMA_VERSION = "tiktok_comment_attention_metric_observation_v2"
 COMMENT_ATTENTION_POLICY_FINGERPRINT = hashlib.sha256(
     json.dumps(
         {
             "recipe_version": COMMENT_ATTENTION_RECIPE_VERSION,
+            "producer_schema_version": COMMENT_ATTENTION_PRODUCER_SCHEMA_VERSION,
             "numerator": "captured_comment.digg_count",
             "denominator": "video.stats.diggCount",
             "secondary_denominator": "video.stats.commentCount",
@@ -308,6 +309,29 @@ def build_comment_attention_records(
                     )
                 ),
             }
+            if observed_at is None:
+                if captured_at is None:
+                    raise ValueError(
+                        "Unknown-time comment attention requires the retained batch capture timestamp"
+                    )
+                observation = record["payload"]["observation"]
+                observation.update(
+                    {
+                        "effective_interval": {
+                            "start": None,
+                            "start_precision": "unknown",
+                            "unknown_reason": (
+                                "The comment capture did not retain a source-effective observed_utc."
+                            ),
+                        },
+                        "recorded_at": captured_at,
+                        "evidence_refs": [dict(raw_file_ref)],
+                        "limitations": [
+                            "Comment source-effective time is unknown; recorded_at is the "
+                            "batch capture time and is not observed_at."
+                        ],
+                    }
+                )
             record["content_hash"] = f"sha256:{content_hash(record)}"
             records.append(record)
     return records

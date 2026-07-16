@@ -23,6 +23,8 @@ from data_lake.attachment_record_entry import (
     attachment_record_id,
     derive_attachment_record_entries,
     require_supported_hash_basis,
+    required_string,
+    string_or_none,
     visible_fact_value,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
@@ -358,8 +360,8 @@ def source_surface_catalog_rows(
     source-surface summary so downstream lanes do not reimplement private safe-name
     rules or guess filesystem layout.
     """
-    family = _string_or_none(source_family)
-    surface = _string_or_none(source_surface)
+    family = string_or_none(source_family)
+    surface = string_or_none(source_surface)
     if family is None or surface is None:
         raise DataLakeRootError("source_family and source_surface must be non-blank strings")
     report = inspect_catalog(root)
@@ -431,17 +433,17 @@ def _build_entries(root: DataLakeRoot) -> list[dict[str, Any]]:
             "raw_path": _rel(root, container),
             "manifest_relpath": _rel(root, manifest_path),
             "manifest_sha256": hash_file(manifest_path),
-            "source_family": _string_or_none(manifest.get("source_family")),
-            "source_surface": _string_or_none(manifest.get("source_surface")),
+            "source_family": string_or_none(manifest.get("source_family")),
+            "source_surface": string_or_none(manifest.get("source_surface")),
             "source_locator": _visible_fact_value(manifest.get("source_locator")),
             "facet_extractor": "registered" if extractor_registered else "universal_only",
-            "session_identity": _string_or_none(manifest.get("session_identity")),
+            "session_identity": string_or_none(manifest.get("session_identity")),
             "capture_time": _visible_fact_value(
                 (manifest.get("timing") or {}).get("capture_time")
                 if isinstance(manifest.get("timing"), dict)
                 else None
             ),
-            "series_id": _string_or_none(manifest.get("series_id")),
+            "series_id": string_or_none(manifest.get("series_id")),
             "source_slice_count": _list_len(manifest.get("source_slices")),
             "preserved_file_count": _list_len(manifest.get("preserved_files")),
             "facets": sorted((facet.to_dict() for facet in facets), key=_facet_sort_key),
@@ -477,7 +479,7 @@ def _coverage_census_source_families(
 ) -> list[dict[str, Any]]:
     buckets: dict[str | None, dict[str, Any]] = {}
     for row in source_surfaces:
-        source_family = _string_or_none(row.get("source_family"))
+        source_family = string_or_none(row.get("source_family"))
         bucket = buckets.setdefault(
             source_family,
             {
@@ -575,7 +577,7 @@ def _read_catalog_jsonl(root: DataLakeRoot, relative_path: object) -> list[dict[
 def _read_attachment_record_catalog_entry(
     root: DataLakeRoot, query_row: dict[str, Any]
 ) -> dict[str, Any]:
-    record_id = _string_or_none(query_row.get("attachment_record_id"))
+    record_id = string_or_none(query_row.get("attachment_record_id"))
     if record_id is None or "/" in record_id or "\\" in record_id:
         raise DataLakeRootError("Bronze attachment query row has unsafe attachment_record_id")
     return _read_catalog_json(
@@ -816,12 +818,6 @@ def _packet_attachment_records(
     return records
 
 
-def _required_string(value: object, field: str) -> str:
-    if not isinstance(value, str) or not value:
-        raise DataLakeRootError(f"missing required string field for Attachment Record: {field}")
-    return value
-
-
 def _require_supported_attachment_record_body_ref_kind(body_ref_kind: str) -> None:
     if body_ref_kind not in _SUPPORTED_ATTACHMENT_RECORD_BODY_REF_KINDS:
         allowed_list = ", ".join(sorted(_SUPPORTED_ATTACHMENT_RECORD_BODY_REF_KINDS))
@@ -845,7 +841,7 @@ def _universal_facets(manifest: dict[str, Any]) -> list[CatalogFacet]:
         ("session_identity", "session_identity", "session_identity"),
         ("series", "series_id", "series_id"),
     ):
-        value = _string_or_none(manifest.get(field))
+        value = string_or_none(manifest.get(field))
         if value:
             facets.append(
                 CatalogFacet(
@@ -877,8 +873,8 @@ def _extractor_facets(manifest: dict[str, Any], bodies: dict[str, bytes]) -> lis
 
 def _extractor_key(manifest: dict[str, Any]) -> tuple[str | None, str | None]:
     return (
-        _string_or_none(manifest.get("source_family")),
-        _string_or_none(manifest.get("source_surface")),
+        string_or_none(manifest.get("source_family")),
+        string_or_none(manifest.get("source_surface")),
     )
 
 
@@ -889,7 +885,7 @@ def _ig_reels_grid_facets(_manifest: dict[str, Any], bodies: dict[str, bytes]) -
     facets: list[CatalogFacet] = []
     snapshot = payload.get("creator_profile_snapshot")
     if isinstance(snapshot, dict):
-        handle = _string_or_none(snapshot.get("source_profile"))
+        handle = string_or_none(snapshot.get("source_profile"))
         if handle:
             facets.append(
                 CatalogFacet(
@@ -901,7 +897,7 @@ def _ig_reels_grid_facets(_manifest: dict[str, Any], bodies: dict[str, bytes]) -
                     json_pointer="/creator_profile_snapshot/source_profile",
                 )
             )
-        numeric_id = _string_or_none(snapshot.get("numeric_id"))
+        numeric_id = string_or_none(snapshot.get("numeric_id"))
         if numeric_id:
             facets.append(
                 CatalogFacet(
@@ -921,14 +917,14 @@ def _ig_reels_grid_facets(_manifest: dict[str, Any], bodies: dict[str, bytes]) -
             dom_row = joined.get("dom_row")
             if not isinstance(dom_row, dict):
                 continue
-            shortcode = _string_or_none(dom_row.get("shortcode"))
+            shortcode = string_or_none(dom_row.get("shortcode"))
             if shortcode:
                 facets.append(
                     CatalogFacet(
                         facet_type="content",
                         namespace="instagram_shortcode",
                         value=shortcode,
-                        role=_string_or_none(dom_row.get("kind")) or "media",
+                        role=string_or_none(dom_row.get("kind")) or "media",
                         source="ig_reels_grid.joined_rows.dom_row.shortcode",
                         json_pointer=f"/joined_rows/{index}/dom_row/shortcode",
                     )
@@ -1052,14 +1048,14 @@ def _attachment_query_row(record: dict[str, Any]) -> dict[str, Any]:
 
 def load_attachment_record_body(root: DataLakeRoot, attachment_record: dict[str, Any]) -> bytes:
     """Resolve and verify the raw body referenced by a generated Attachment Record."""
-    packet_id = _required_string(attachment_record.get("packet_id"), "packet_id")
-    file_id = _required_string(attachment_record.get("file_id"), "file_id")
-    relative_packet_path = _required_string(
+    packet_id = required_string(attachment_record.get("packet_id"), "packet_id")
+    file_id = required_string(attachment_record.get("file_id"), "file_id")
+    relative_packet_path = required_string(
         attachment_record.get("relative_packet_path"), "relative_packet_path"
     )
-    expected_sha256 = _required_string(attachment_record.get("body_sha256"), "body_sha256")
-    expected_hash_basis = _required_string(attachment_record.get("hash_basis"), "hash_basis")
-    expected_body_ref_kind = _required_string(
+    expected_sha256 = required_string(attachment_record.get("body_sha256"), "body_sha256")
+    expected_hash_basis = required_string(attachment_record.get("hash_basis"), "hash_basis")
+    expected_body_ref_kind = required_string(
         attachment_record.get("body_ref_kind"), "body_ref_kind"
     )
     _require_supported_attachment_record_body_ref_kind(expected_body_ref_kind)
@@ -1182,13 +1178,6 @@ def _safe_name(value: str) -> str:
 
 # Owned by the pinned A2 serializer (same known-status extraction rule).
 _visible_fact_value = visible_fact_value
-
-
-def _string_or_none(value: object) -> str | None:
-    if isinstance(value, str):
-        stripped = value.strip()
-        return stripped or None
-    return None
 
 
 def _list_len(value: object) -> int:

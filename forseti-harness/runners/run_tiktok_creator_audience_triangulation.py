@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -21,24 +23,35 @@ from capture_spine.creator_profile_current.tiktok_grid_observation_producer impo
     TIKTOK_GRID_OBSERVATION_POLICY_VERSION,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
-from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
-    silver_record_source_backed_status,
+from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    classify_silver_vault_record_sources,
 )
-from data_lake.silver_record import SilverRecordError, validate_silver_vault_record
 from evidence_binding.tiktok_audience_triangulation import (
     ASSEMBLY_RECEIPT_LANE,
+    _canonical_bytes,
     build_assembly_receipt,
     build_creator_audience_evidence_bundle,
 )
-from judgment.tiktok_audience_triangulation import (
-    build_triangulation_prompt,
-    parse_triangulation_response,
+from judgment.creator_audience import (
+    METHOD_DECK_RELATIVE_PATH,
+    build_creator_audience_prompt,
+    load_method_deck,
+    parse_creator_audience_response,
 )
+from judgment.tiktok_audience_triangulation import TriangulationValidationError
 from source_capture.tiktok.batch_packet import (
     TIKTOK_BATCH_CAPTURE_JSON_NAME,
     TIKTOK_BATCH_CAPTURE_SURFACE,
 )
+
+from pydantic import ValidationError
+
+from schemas.creator_audience_models import CreatorAudienceJudgmentOutcomeV1
+
+
+JUDGMENT_OUTCOME_SCHEMA_VERSION = "creator_audience_judgment_outcome_v1"
+JUDGMENT_OUTCOME_LANE = "creator_audience_judgment_outcome"
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -49,7 +62,10 @@ def _load_object(path: Path) -> dict[str, Any]:
 
 
 def _write_new(path: Path, text: str) -> None:
+    encoded = text.encode("utf-8")
     if path.exists():
+        if path.read_bytes() == encoded:
+            return
         raise FileExistsError(f"refusing to replace existing output: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
@@ -79,25 +95,31 @@ def _record_id(record: Mapping[str, Any]) -> str:
 
 
 def _silver_eligibility_residual(
-    record: Mapping[str, Any], *, lane: str
+    data_root: DataLakeRoot, record: Mapping[str, Any], *, lane: str
 ) -> dict[str, Any] | None:
-    try:
-        validate_silver_vault_record(record)
-    except SilverRecordError:
-        return {"lane": lane, "record_id": _record_id(record), "status": "invalid_silver_envelope"}
-    status = silver_record_source_backed_status(record)
-    if status != SOURCE_BACKED_COMPLETE_STATUS:
-        return {"lane": lane, "record_id": _record_id(record), "status": status}
-    return None
+    authority = classify_silver_vault_record_sources(data_root, record)
+    if authority.status == CURRENT_SOURCE_BACKED_AUTHORITY:
+        return None
+    residual = {
+        "lane": lane,
+        "record_id": _record_id(record),
+        "status": authority.status,
+        "reason_code": authority.reason_code,
+    }
+    if authority.error:
+        residual["error"] = authority.error
+    return residual
 
 
 def _select_comment_attention_records(
-    records: Sequence[Mapping[str, Any]],
+    data_root: DataLakeRoot, records: Sequence[Mapping[str, Any]],
 ) -> tuple[list[Mapping[str, Any]], list[dict[str, Any]]]:
     selected: list[Mapping[str, Any]] = []
     residuals: list[dict[str, Any]] = []
     for record in records:
-        ineligible = _silver_eligibility_residual(record, lane=COMMENT_ATTENTION_LANE)
+        ineligible = _silver_eligibility_residual(
+            data_root, record, lane=COMMENT_ATTENTION_LANE
+        )
         if ineligible is not None:
             residuals.append(ineligible)
             continue
@@ -121,13 +143,13 @@ def _select_comment_attention_records(
 
 
 def _select_grid_observation_records(
-    records: Sequence[Mapping[str, Any]],
+    data_root: DataLakeRoot, records: Sequence[Mapping[str, Any]],
 ) -> tuple[list[Mapping[str, Any]], list[dict[str, Any]]]:
     selected: list[Mapping[str, Any]] = []
     residuals: list[dict[str, Any]] = []
     for record in records:
         ineligible = _silver_eligibility_residual(
-            record, lane=SOCIAL_METRIC_OBSERVATION_SET_LANE
+            data_root, record, lane=SOCIAL_METRIC_OBSERVATION_SET_LANE
         )
         if ineligible is not None:
             residuals.append(ineligible)
@@ -158,13 +180,16 @@ def _select_grid_observation_records(
 
 def select_current_audience_silver_records(
     *,
+    data_root: DataLakeRoot,
     comment_attention_records: Sequence[Mapping[str, Any]],
     grid_observation_records: Sequence[Mapping[str, Any]],
 ) -> tuple[list[Mapping[str, Any]], list[Mapping[str, Any]], list[dict[str, Any]]]:
     attention, attention_residuals = _select_comment_attention_records(
-        comment_attention_records
+        data_root, comment_attention_records
     )
-    grid, grid_residuals = _select_grid_observation_records(grid_observation_records)
+    grid, grid_residuals = _select_grid_observation_records(
+        data_root, grid_observation_records
+    )
     return attention, grid, attention_residuals + grid_residuals
 
 
@@ -227,6 +252,7 @@ def prepare_subscription_judgment(
     attention, grid_records, silver_residuals = select_current_audience_silver_records(
         comment_attention_records=attention_records,
         grid_observation_records=grid_records,
+        data_root=data_root,
     )
     if not attention:
         raise ValueError(
@@ -236,6 +262,7 @@ def prepare_subscription_judgment(
         raise ValueError(
             "SILVER_AUDIENCE_EVIDENCE_REQUIRED: run the packet-scoped TikTok grid-observation producer"
         )
+    method_text, method_hash = load_method_deck()
     bundle = build_creator_audience_evidence_bundle(
         creator_id=creator_id,
         profile_subject_id=profile_subject_id,
@@ -245,10 +272,15 @@ def prepare_subscription_judgment(
         grid_observation_refs=_grid_refs(grid_records),
         question=question,
         evidence_cutoff=evidence_cutoff,
+        method_deck_path=METHOD_DECK_RELATIVE_PATH,
+        method_deck_sha256=method_hash,
         silver_selection_residuals=silver_residuals,
     )
     _write_new_json(bundle_out, bundle)
-    _write_new(prompt_out, build_triangulation_prompt(bundle) + "\n")
+    _write_new(
+        prompt_out,
+        build_creator_audience_prompt(bundle, method_text=method_text) + "\n",
+    )
 
     receipt = build_assembly_receipt(bundle)
     receipt_path = data_root.record_path(
@@ -289,7 +321,7 @@ def validate_subscription_judgment(
 ) -> dict[str, Any]:
     bundle = _load_object(bundle_path)
     response_text = response_path.read_text(encoding="utf-8")
-    snapshot = parse_triangulation_response(response_text, bundle)
+    snapshot = parse_creator_audience_response(response_text, bundle)
     document = snapshot.model_dump(mode="json")
     _write_new_json(snapshot_out, document)
     return {
@@ -301,6 +333,174 @@ def validate_subscription_judgment(
         "model_api_calls": 0,
     }
 
+
+_BUNDLE_DERIVED_KEYS = frozenset({"bundle_hash", "bundle_id", "serialized_utf8_bytes"})
+
+
+def _verify_bundle_integrity(
+    data_root: DataLakeRoot, bundle: Mapping[str, Any], bundle_path: Path
+) -> None:
+    """Reject a scratch bundle whose declared hash does not close over its content.
+
+    The bundle is a transport file, so its self-declared identity is only
+    evidence once recomputed; every downstream identity check chains off it.
+    """
+
+    core = {key: value for key, value in bundle.items() if key not in _BUNDLE_DERIVED_KEYS}
+    expected_hash = f"sha256:{hashlib.sha256(_canonical_bytes(core)).hexdigest()}"
+    if bundle.get("bundle_hash") != expected_hash:
+        raise ValueError(
+            f"bundle_hash does not close over bundle content: {bundle_path}"
+        )
+    serialized_core = {
+        key: value for key, value in bundle.items() if key != "serialized_utf8_bytes"
+    }
+    if bundle.get("serialized_utf8_bytes") != len(_canonical_bytes(serialized_core)):
+        raise ValueError(
+            f"serialized_utf8_bytes does not close over bundle content: {bundle_path}"
+        )
+
+    expected_receipt = build_assembly_receipt(bundle)
+    receipt_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=str(bundle.get("raw_anchor")),
+        lane=ASSEMBLY_RECEIPT_LANE,
+        record_id=str(expected_receipt["record_id"]),
+    )
+    if not receipt_path.is_file():
+        raise ValueError(
+            f"persisted audience assembly receipt is missing for bundle: {bundle_path}"
+        )
+    if _load_object(receipt_path) != expected_receipt:
+        raise ValueError(
+            f"persisted audience assembly receipt does not match bundle: {bundle_path}"
+        )
+
+
+def submit_subscription_judgment(
+    *,
+    data_root: DataLakeRoot,
+    bundle_path: Path,
+    response_bytes: bytes,
+    snapshot_out: Path,
+) -> dict[str, Any]:
+    """Persist an exact response and either one validated snapshot or all blockers."""
+
+    bundle = _load_object(bundle_path)
+    _verify_bundle_integrity(data_root, bundle, bundle_path)
+    response_sha256 = f"sha256:{hashlib.sha256(response_bytes).hexdigest()}"
+    snapshot_document: dict[str, Any] | None = None
+    snapshot_text: str | None = None
+    validation_errors: list[str] = []
+    try:
+        response_text = response_bytes.decode("utf-8-sig")
+        snapshot = parse_creator_audience_response(response_text, bundle)
+        snapshot_document = snapshot.model_dump(mode="json")
+        snapshot_text = (
+            json.dumps(
+                snapshot_document, ensure_ascii=False, indent=2, sort_keys=True
+            )
+            + "\n"
+        )
+    except TriangulationValidationError as exc:
+        validation_errors = list(exc.errors)
+    except ValidationError as exc:
+        validation_errors = [
+            f"{'.'.join(str(part) for part in error['loc'])}: {error['msg']}"
+            for error in exc.errors(include_url=False)
+        ]
+    except (UnicodeDecodeError, ValueError) as exc:
+        validation_errors = [str(exc)]
+
+    status = "validated" if snapshot_document is not None else "blocked"
+    snapshot_sha256 = (
+        f"sha256:{hashlib.sha256(snapshot_text.encode('utf-8')).hexdigest()}"
+        if snapshot_text is not None
+        else None
+    )
+    record_key = "\0".join(
+        (
+            str(bundle.get("raw_anchor")),
+            str(bundle.get("bundle_hash")),
+            response_sha256,
+        )
+    ).encode("utf-8")
+    record_id = f"cajo_{hashlib.sha256(record_key).hexdigest()[:20]}"
+    outcome = CreatorAudienceJudgmentOutcomeV1.model_validate(
+        {
+            "schema_version": JUDGMENT_OUTCOME_SCHEMA_VERSION,
+            "record_id": record_id,
+            "raw_anchor": bundle.get("raw_anchor"),
+            "creator_id": bundle.get("creator_id"),
+            "profile_subject_id": bundle.get("profile_subject_id"),
+            "bundle_id": bundle.get("bundle_id"),
+            "bundle_hash": bundle.get("bundle_hash"),
+            "status": status,
+            "response_sha256": response_sha256,
+            "response_size_bytes": len(response_bytes),
+            "response_bytes_b64": base64.b64encode(response_bytes).decode("ascii"),
+            "validation_errors": validation_errors,
+            "snapshot_id_or_none": (
+                snapshot_document.get("snapshot_id") if snapshot_document else None
+            ),
+            "snapshot_sha256_or_none": snapshot_sha256,
+            "snapshot_or_none": snapshot_document,
+            "model_api_calls": 0,
+        }
+    ).model_dump(mode="json")
+    outcome_bytes = (
+        json.dumps(outcome, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8")
+        + b"\n"
+    )
+    outcome_path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=str(bundle["raw_anchor"]),
+        lane=JUDGMENT_OUTCOME_LANE,
+        record_id=record_id,
+    )
+    if outcome_path.exists():
+        if outcome_path.read_bytes() != outcome_bytes:
+            raise ValueError("existing audience Judgment outcome differs")
+    else:
+        data_root.append_record(
+            subtree="derived",
+            raw_anchor=str(bundle["raw_anchor"]),
+            lane=JUDGMENT_OUTCOME_LANE,
+            record_id=record_id,
+            data=outcome_bytes,
+        )
+
+    if snapshot_text is not None:
+        _write_new(snapshot_out, snapshot_text)
+        return {
+            "status": "validated",
+            "creator_id": outcome["creator_id"],
+            "profile_subject_id": outcome["profile_subject_id"],
+            "bundle_id": outcome["bundle_id"],
+            "bundle_hash": outcome["bundle_hash"],
+            "response_sha256": response_sha256,
+            "snapshot_id": outcome["snapshot_id_or_none"],
+            "snapshot_sha256": snapshot_sha256,
+            "snapshot_out": str(snapshot_out),
+            "judgment_outcome_path": str(outcome_path),
+            "model_api_calls": 0,
+        }
+    return {
+        "status": "blocked",
+        "blocked_at": "judgment_validation",
+        "creator_id": outcome["creator_id"],
+        "profile_subject_id": outcome["profile_subject_id"],
+        "bundle_id": outcome["bundle_id"],
+        "bundle_hash": outcome["bundle_hash"],
+        "response_sha256": response_sha256,
+        "validation_errors": validation_errors,
+        "capture_reusable": True,
+        "silver_reusable": True,
+        "recapture_required": False,
+        "safe_next_action": "submit a separately authorized corrected response",
+        "judgment_outcome_path": str(outcome_path),
+        "model_api_calls": 0,
+    }
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -318,6 +518,13 @@ def _parser() -> argparse.ArgumentParser:
     validate.add_argument("--bundle", type=Path, required=True)
     validate.add_argument("--response", type=Path, required=True)
     validate.add_argument("--snapshot-out", type=Path, required=True)
+    submit = subparsers.add_parser("submit")
+    submit.add_argument("--data-root", required=True)
+    submit.add_argument("--bundle", type=Path, required=True)
+    response = submit.add_mutually_exclusive_group(required=True)
+    response.add_argument("--response", type=Path)
+    response.add_argument("--response-stdin", action="store_true")
+    submit.add_argument("--snapshot-out", type=Path, required=True)
     return parser
 
 
@@ -335,17 +542,29 @@ def main(argv: list[str] | None = None) -> int:
                 bundle_out=args.bundle_out,
                 prompt_out=args.prompt_out,
             )
-        else:
+        elif args.command == "validate":
             result = validate_subscription_judgment(
                 bundle_path=args.bundle,
                 response_path=args.response,
+                snapshot_out=args.snapshot_out,
+            )
+        else:
+            response_bytes = (
+                sys.stdin.buffer.read()
+                if args.response_stdin
+                else args.response.read_bytes()
+            )
+            result = submit_subscription_judgment(
+                data_root=DataLakeRoot.resolve(explicit=args.data_root),
+                bundle_path=args.bundle,
+                response_bytes=response_bytes,
                 snapshot_out=args.snapshot_out,
             )
     except (DataLakeRootError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"status": "error", "error": str(exc)}, indent=2, sort_keys=True))
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))
-    return 0
+    return 2 if result.get("status") == "blocked" else 0
 
 
 if __name__ == "__main__":

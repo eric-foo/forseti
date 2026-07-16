@@ -56,6 +56,20 @@ edits, routine prose, mechanical patches, and ordinary review continue to use
 the cheap inline path — the author edits directly, or the standard
 source-read-only review lane applies. This is never a mandatory front door.
 
+**Direct invocation is courier-prompt authoring only.** An explicit user request
+such as `delegate patch`, `write the delegate patch prompt`, or an invocation of
+the delegated-review-patch skill requests one paste-ready commission for the
+operator to courier. It does **not** authorize the authoring agent to discover a
+controller, create or dispatch a task, fork a thread, spawn a subagent, send the
+prompt, or execute the review. The rendered prompt binds an unknown future
+receiver as `receiver_to_bind` until the operator-selected controller proves
+different-vendor lineage and direct repository access. If no eligible controller
+is available, the prompt remains unexecuted; never substitute a same-vendor
+model, self-review, no-repo reviewer, or Codex managed task. A separate explicit
+execution request may start only a receiver that already satisfies the same
+different-vendor plus direct-repo eligibility; it does not relax this authoring
+default or create fallback authority.
+
 **The loop.** The Chief Architect authors or specifies the artifact, then
 commissions a single combined review-and-patch pass from a de-correlated model
 (see *De-correlation* below), bounded to the named target file. The delegate:
@@ -107,22 +121,21 @@ checked after this report is written" are not allowed in the durable report.
 This gate is mechanical shape/integrity only: it is not approval, validation,
 readiness, review quality, or acceptance of the delegated findings.
 
-**Access selection rule.** `repo` is the default access mode. Use `no_repo` only when the commission explicitly records `access: no_repo` and records why repository access is unavailable or intentionally excluded. Cross-vendor, external, couriered, paste-ready-chat, or portable-method dispatch does **not** imply `no_repo`; a de-correlated controller with repo/worktree access still runs repo mode. If access is missing from an otherwise inferable commission, the route-out prompt marks `access: operator_to_fill` but names `repo` as the default, not `no_repo`.
+**Access selection rule.** Delegated review-and-patch is `repo` only. The
+delegate must have direct repository/worktree access and patch the named target
+inside that repository. `no_repo` is not a weaker execution mode for this lane;
+it is ineligible. When repository access is unavailable, author a different,
+read-only review prompt under the ordinary review contract or leave the delegated
+patch prompt unexecuted. Do not relabel advisory findings plus home-lane patching
+as delegated patch authorship.
 
-**Access modes — `repo` (default) and `no_repo`.** The commission records `access: repo | no_repo` — an operator/commission access constraint, not a model choice. In **`repo`** mode the loop above runs as written: the de-correlated delegate patches the named target and returns a diff. In **`no_repo`** mode the delegate has no repo access and **does not patch**; it runs advisory-only and returns findings (not a diff), and the **CA applies** accepted changes within the bounded scope. `no_repo` preserves de-correlated *review* but **not** de-correlated *patch authorship*, so it is **strictly weaker than `repo` mode** and **requires a bounded post-patch re-review** before keep — closure-of-findings plus any new blocker/major in the touched delta. The no-repo review method is target-kind specific: `authored_artifact` uses the portable review method (registry id `portable-adversarial-artifact-review-method`), while `delegated_code_review_and_patch` uses a repo-blind code-review package/prompt that preserves `workflow-code-review` method requirements as far as no-repo access permits. Because the post-patch recheck is a narrow, near-mechanical verification against the findings' explicit closure conditions rather than open seam-discovery, it runs as a **same-family, different (lower / mechanical-tier) model** (a who-constraint, not a runtime-model recommendation), **not** a cross-family pass. **Cross-family de-correlation is reserved for discovery** (the original full adversarial review) and is **required to claim** the *survives-an-adversarial-review-with-no-new-seam* standard; a bounded same-family recheck does not by itself support that claim. The recheck is CA-adjudicated before anything is kept. The no_repo package ships the review target as a **verbatim file attachment** with an independently confirmable file hash (embedded-in-markdown copies are not byte-confirmable); and the package assembler/CA runs the target-kind method's **freshness gate** before bundling, recording the result in the commission. The standard no_repo package shape is a **self-contained bundle**: the verbatim target attachment(s) plus a guardrail-complete `README` that carries the method, the authority excerpts, and the target's contract, delivered with a **thin-wrapper** chat prompt that points the reviewer at the in-bundle `README` — the wrapper still carries the cross-vendor who-constraint, which must not migrate silently into the bundle. When the reviewer cannot read in-bundle files, fall back to **inlining** the method block in the chat prompt; never ship a wrapper that points at a `README` a repo-blind reviewer cannot open. The de-correlation who-constraint, CA adjudication, `NEEDS_ARCHITECTURE_PASS`, and the strict-claim boundary are otherwise unchanged.
-
-**Couriered multi-round review loops — recheck tiering (owner-ratified
-2026-07-10).** In a couriered multi-round adversarial review loop (cross-vendor
-round-1 discovery, home-lane adjudication + patch, then closure verification),
-the closure recheck of adjudicated-and-patched findings runs as the bounded
-**same-vendor, different (typically lower-tier) model** pass already defined
-for the `no_repo` post-patch recheck — normally a spawned subagent — **not**
-another cross-vendor courier round. Cross-vendor rounds remain reserved for
-discovery and required for any no-new-seam claim; a closure recheck that
-surfaces a NEW seam (not mere non-closure of the adjudicated finding) routes
-back to cross-vendor discovery. This extends the existing recheck tier to the
-couriered loop explicitly; it is a who-constraint recorded in the commission,
-never runtime-model routing.
+**Couriered multi-round review loops.** The authoring agent may mechanically
+verify that an accepted diff applied cleanly and that named validation passed,
+but it must not commission a same-vendor model as a delegated-patch closure
+reviewer. If independent closure review is required, author another courier
+prompt for an eligible different-vendor controller with direct repo access. If
+that controller is unavailable, report the review as not run; do not manufacture
+a lower-tier or same-family substitute.
 
 **Citations.** The delegate's citations are neutral in tone — factual source
 evidence, no advocacy or editorializing — but decision-sufficient in substance,
@@ -131,22 +144,22 @@ argument belongs in the verdict and residual, not the citations. Neutral tone is
 not thinness: thin citations would push the Chief Architect back onto its own
 priors and defeat the de-correlation.
 
-**De-correlation — observable criterion and fallback.** "Family" here means
+**De-correlation — observable criterion and no fallback.** "Family" here means
 **vendor / model lineage** (e.g., Claude vs GPT), **not tier**. **Vendor** = the upstream model
 developer/provider (e.g., Anthropic, OpenAI) — **not** the hosting platform, API
 reseller, deployment surface, or wrapper/fine-tune owner; **unknown or undisclosed
-lineage cannot satisfy the cross-vendor (discovery) bar** and falls to the
-same-vendor/sanity tier. The commission
+lineage cannot satisfy the delegated-review-and-patch bar**. The commission
 must record the author vendor and the delegate vendor; the **cross-vendor
 discovery** bar is satisfied only when they **differ**. A same-vendor delegate —
 **even a different or lower tier** (e.g., an Opus author with a Sonnet delegate)
-— does **not** satisfy cross-vendor de-correlation; it is the **same-vendor
-verification/sanity tier** (see the two-bar rule in
-`.agents/workflow-overlay/review-lanes.md`), not a discovery pass. A self pass
-never satisfies it. If a cross-vendor delegate cannot be established, do not
-claim the discovery (no-new-seam) bar: use the same-vendor sanity tier, or fall
-back to source-read-only review plus Chief Architect self-review, and record the
-limitation.
+— is **ineligible** for this commissioned lane, including under a `sanity`,
+`verification`, `fallback`, or lower-tier label. A self pass is likewise
+ineligible. The general two-bar vocabulary in
+`.agents/workflow-overlay/review-lanes.md` remains available for ordinary
+review outside this lane; it cannot be used to convert a delegated patch
+commission into same-vendor review. If a cross-vendor repo delegate cannot be
+established, leave the courier prompt unexecuted or route a separately named
+read-only review. Never claim or perform a delegated patch fallback.
 
 This is a who-constraint recorded in the commission, not a model-quality
 recommendation and not runtime model routing. It does not belong in review
@@ -200,6 +213,14 @@ review lane as its review method and bounds the patch to an explicitly named
 file set. When no patch authority is commissioned, route via prompt-orchestrator
 to read-only implementation/code review instead; patch authority is never
 assumed from the target category.
+
+Route-out is authoring only: it returns the paste-ready prompt to the operator
+and does not inspect local controller availability or dispatch any receiver.
+The prompt records `delivery: operator_courier_only`, `access: repo`,
+`delegate_eligibility: different_vendor_lineage_with_direct_repo_access`, the
+observed author vendor, and either a different observed delegate vendor or
+`delegate_vendor: operator_to_fill`. `operator_to_fill` is preparation state,
+not evidence that the eligibility condition passed.
 
 **Code-diff target kind — `delegated_code_review_and_patch`.**
 The default loop above targets a single *authored* artifact and uses the
@@ -269,9 +290,9 @@ product-learning / N-case-batch tiers may rely on the delegated pass. *Residual,
 named:* a **novel** leak class shared across vendors and absent from the swept
 set is caught by neither the class sweep (which catches known systematic classes)
 nor batch averaging (which cancels random misses) — bounded and acceptable below
-buyer-proof, not zero. This **contrasts `no_repo`**, which still requires the
-bounded same-vendor post-patch recheck because the CA, not the delegate, authored
-the patch (patch-time de-correlation is lost there, preserved here).
+buyer-proof, not zero. `no_repo` is outside this lane because it loses delegated
+patch authorship; it must route to an ordinary read-only review rather than a
+same-vendor or home-authored patch fallback.
 
 ## Overlay Interface (fields a future skill implementation may read)
 
@@ -289,6 +310,13 @@ delegated_review_patch_overlay_interface:
     by Lane-Scoped Delegated Patch Prompt Default when that predicate is
     satisfied; all review, de-correlation, scope, validation, escalation,
     adjudication, and lifecycle safeguards remain binding.
+  direct_invocation_contract: >
+    "delegate patch" and equivalent direct invocations author exactly one
+    paste-ready operator-courier prompt. They never discover, create, spawn,
+    dispatch, or execute a receiver. The prompt is preparation-only until a
+    different-vendor controller with direct repo access binds and verifies it;
+    no same-vendor, unknown-lineage, no_repo, self, or Codex-managed fallback is
+    valid.
   prompt_orchestrator_available:
     full_renderer: workflow-prompt-orchestrator
     compact_renderer: .agents/workflow-overlay/prompt-orchestration.md#lane-scoped-delegated-patch-prompt-default
@@ -300,8 +328,8 @@ delegated_review_patch_overlay_interface:
     authored_artifact: >
       Default target kind; a single CA-named authored artifact (doctrine, operating
       contract, eval/scoring/validation instrument). Review method is the
-      delegate's own adversarial analysis (portable-adversarial-artifact-review-method
-      in no_repo). Single-file patch bound.
+      delegate's own adversarial analysis. Direct repository access and a
+      single-file patch bound are required.
     delegated_code_review_and_patch: >
       Sibling target kind for a bounded multi-file implementation/code diff.
       Review method is the code review lane (workflow-code-review), NOT artifact
@@ -315,8 +343,8 @@ delegated_review_patch_overlay_interface:
       / AGENTS.md, never assumed from the category. All other convention machinery
       (commission, de-correlation / two-bar, access-mode obligations, CA
       adjudication before keep, NEEDS_ARCHITECTURE_PASS, strict-claim boundary,
-      no runtime-model recommendation) is inherited unchanged. no_repo changes
-      repository access and patch authorship, not the code-review method.
+      no runtime-model recommendation) is inherited unchanged. Direct repository
+      access is required; no_repo is outside this target kind.
   incomplete_commission_route_out:
     owner: .agents/workflow-overlay/prompt-orchestration.md
     output_mode: paste-ready-chat
@@ -327,8 +355,10 @@ delegated_review_patch_overlay_interface:
     default_route: >
       Eligible current-lane operator-couriered prompts use Lane-Scoped Delegated
       Patch Prompt Default: one fresh target-state read and a compact pointer-first
-      commission. Full workflow-prompt-orchestrator applies only when an escalation
-      condition or owner-invoked Mini God Tier is present.
+      commission returned to the operator without dispatch. Full
+      workflow-prompt-orchestrator applies only when an escalation condition or
+      owner-invoked Mini God Tier is present and still returns a courier prompt;
+      orchestration depth never grants dispatch authority.
     code_diff_target_routing: >
       A multi-file implementation/code diff is handled by the
       delegated_code_review_and_patch sibling target kind (target_kinds above) when patch
@@ -360,31 +390,20 @@ delegated_review_patch_overlay_interface:
       wrapper or fine-tune owner; unknown or undisclosed lineage cannot satisfy
       cross-vendor. Cross-vendor de-correlation (author vendor != delegate vendor,
       recorded in the commission) is the DISCOVERY bar, required to claim the
-      no-new-seam standard. A same-vendor delegate (typically a different/lower
-      tier, Opus -> Sonnet) may only claim bounded verification/sanity, never
-      discovery/no-new-seam. A who-constraint only.
+      no-new-seam standard and to execute this lane. A same-vendor delegate is
+      ineligible, including for bounded verification/sanity or closure recheck.
+      A who-constraint only.
     concrete_model_ids: none_bound_in_overlay   # operator/tooling decision; the overlay does not prescribe, rank, or imply runtime models
     fallback: >
-      if no different-family model is available, do not claim this lane; fall
-      back to source-read-only review + CA self-review and record the limitation.
+      none. If no different-vendor repo controller is available, leave the
+      courier prompt unexecuted or route a separately named read-only review;
+      never substitute same-vendor sanity or self-review into this lane.
   access_modes:
     default: repo
-    values: [repo, no_repo]   # operator/commission access constraint, NOT model routing
+    values: [repo]
     selection_rule: >
-      repo is the default. no_repo requires an explicit commission value plus the
-      reason repository access is unavailable or intentionally excluded.
-      Cross-vendor, external, couriered, paste-ready-chat, or portable-method
-      dispatch does not imply no_repo; a controller with repo/worktree access
-      remains repo mode.
-    no_repo: >
-      delegate advisory-only (returns findings, not a diff); authored_artifact uses
-      portable-adversarial-artifact-review-method, while delegated_code_review_and_patch uses a
-      repo-blind code-review package/prompt that preserves workflow-code-review method requirements as far as
-      no-repo access permits; CA applies the patch; REQUIRED post-patch re-review before keep, BOUNDED to closure-of-findings + new
-      blocker/major in the touched delta and run by a SAME-VENDOR different/lower (mechanical-tier) model, NOT
-      cross-vendor (the recheck is verification, not discovery); cross-vendor de-correlation is reserved for the
-      discovery pass and is required to claim the no-new-seam standard; review target shipped as a
-      hash-confirmable verbatim attachment; assembler/CA runs the target-kind method's freshness gate pre-bundle and records the result. Default package shape: a self-contained bundle (verbatim target attachment(s) + a guardrail-complete README carrying the method/authority/contract) delivered with a thin-wrapper chat prompt pointing at the in-bundle README; the wrapper still carries the cross-vendor who-constraint; inline the method in chat when the reviewer cannot read in-bundle files.
+      Direct repository/worktree access is required. no_repo routes to an
+      ordinary read-only review prompt and must not be labeled delegated patch.
   preflight_schema:
     default: >
       Forseti Prompt Preflight core plus one fresh target-state read and
@@ -403,9 +422,10 @@ delegated_review_patch_overlay_interface:
       Architect to communication-style.md -> Review Adjudication Next Step
       (paste-ready courier; delegate does not decide what is kept)
     commission_route_out: >
-      lane-scoped prompt carriage by default; filed canonical prompt artifact or
+      one paste-ready operator-courier prompt by default; filed canonical prompt artifact or
       full-orchestrator output only when its routing conditions apply; use
-      operator_to_fill for inferable but genuinely operator-owned values
+      operator_to_fill for inferable but genuinely operator-owned values; never
+      dispatch from the authoring invocation
     durable_review_report: optional only when separately commissioned or required by the owner-invoked Mini God Tier target; otherwise chat or lane PR/comment is the return
     patch_application: the CA-named target in-repo — single authored file, or the named multi-file set in delegated_code_review_and_patch — under the commission (patch / integration execution authority per .agents/workflow-overlay/review-lanes.md)
 ```
@@ -429,68 +449,6 @@ lifecycle mechanics into Forseti; jb is cited only as cross-project provenance.
 ## Direction Change Propagation
 
 ```yaml
-# review adjudication next-moves tail bound 2026-06-30 (CA decision).
-direction_change_propagation:
-  doctrine_changed: >
-    Delegated review-and-patch returns now explicitly carry the existing Review
-    Adjudication Next Step tail: the return/courier prompt instructs the
-    commissioning Chief Architect, after adjudicating the verdict/diff/findings,
-    to batch admin/lifecycle follow-ups into one no-deep-thinking land step and
-    deep-think only the 1-3 material next moves that need judgment. This hardens
-    the delegated-review seam without moving the admin/material shape out of
-    communication-style.md or changing prompt-orchestration.md's review prompt
-    default.
-  trigger: review_authority
-  related_triggers: [workflow_authority, output_authority]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/delegated-review-patch.md
-  downstream_surfaces_checked:
-    - path: .agents/workflow-overlay/communication-style.md
-      note: >
-        Already owns the exact Review Adjudication Next Step shape; no copy or
-        fork added here beyond a pointer.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      note: >
-        Already requires every review prompt and review-return/courier prompt to
-        instruct the adjudicator to run the next-moves pass after the verdict.
-        No edit.
-    - path: .agents/workflow-overlay/review-lanes.md
-      note: >
-        Review-lane findings still own minimum_closure_condition and
-        next_authorized_action; this patch only binds the delegated return's
-        adjudication closeout tail. No edit.
-    - path: AGENTS.md
-      note: >
-        Already routes delegated-review-patch and prompt artifacts to the owning
-        overlay/prompt-orchestration sources; no root restatement added.
-    - path: docs/workflows/orca_repo_map_v0.md
-      note: >
-        Its delegated-review-patch index line remains accurate; no new section
-        or artifact path was added.
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/communication-style.md
-      reason: >
-        The admin/material next-step shape already exists there and remains the
-        single owner.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      reason: >
-        The review prompt default already carries the review-return/courier
-        prompt obligation; duplicating the shape there would fork the owner.
-  stale_language_search: >
-    rg -ni "Review Adjudication Next Step|next-moves pass|admin/lifecycle|delegate_return|operator_closeout_source|review-return"
-    .agents docs/prompts/templates docs/workflows AGENTS.md
-  stale_language_search_result: >
-    Executed 2026-06-30. communication-style.md owns the shape; prompt-orchestration.md
-    already binds review prompts and review-return/courier prompts; delegated-review-patch.md
-    was the only live overlay seam whose delegate_return output still stopped at
-    diff/citations/verdict/residual-risk without naming the adjudicator next-moves
-    tail. No prompt template or repo-map contradiction found.
-  non_claims:
-    - not validation
-    - not readiness
-    - not a bound/mandatory/machine-routable review lane
-    - not runtime model routing
-    - not standing implementation/code-patch authorization
 # same-turn self-closure and required next-moves tail 2026-07-02 (CA decision).
 direction_change_propagation:
   doctrine_changed: >
@@ -549,31 +507,70 @@ direction_change_propagation:
     - not a bound/mandatory/machine-routable review lane
     - not runtime model routing
 
-# couriered-loop recheck tiering 2026-07-10 (owner decision, Report Zero criterion-5 loop).
+# courier-only cross-vendor delegated patch route 2026-07-16 (owner correction).
 direction_change_propagation:
   doctrine_changed: >
-    The same-vendor different (lower)-model post-patch recheck tier, already
-    bound for no_repo mode, is explicitly extended to couriered multi-round
-    adversarial review loops: closure rechecks of adjudicated-and-patched
-    findings run as a same-vendor lower-tier pass (normally a spawned
-    subagent), not another cross-vendor courier round; cross-vendor stays
-    reserved for discovery and the no-new-seam claim; a NEW seam found during
-    recheck routes back to cross-vendor discovery.
+    Explicit delegate-patch invocations now author one operator-courier prompt
+    only. The lane requires a different-vendor controller with direct repo
+    access and has no same-vendor, no_repo, self, unknown-lineage, Codex-managed,
+    task-creation, or automatic-dispatch fallback.
   trigger: review_authority
-  related_triggers: [workflow_authority]
+  related_triggers: [workflow_authority, validation_philosophy, lifecycle_boundary]
   controlling_sources_updated:
     - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_prompt_output_mode.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
   downstream_surfaces_checked:
-    - path: .agents/workflow-overlay/review-lanes.md
-      note: two-bar rule (cross-vendor discovery vs same-vendor verification) unchanged; no edit.
-    - path: .agents/workflow-overlay/prompt-orchestration.md
-      note: no-runtime-model-recommendation rule unchanged; this is a who-constraint; no edit.
-    - path: docs/prompts/reviews/ (report_zero round 1-3 prompts)
-      note: historical executed commissions, kept as lane records; future round prompts follow the new tiering.
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/hooks/check_prompt_provenance.py
+    - .agents/hooks/pre_push_guard.py
+    - .github/workflows/ci.yml
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
-    - path: docs/prompts/reviews/report_zero_output_delegated_adversarial_artifact_review_round3_prompt_v0.md
-      reason: already-executed commission; rewriting history would falsify the lane record.
-  non_claims: [not validation, not readiness, not a bound/mandatory lane, not runtime model routing]
+    - path: AGENTS.md
+      reason: >
+        The kernel already gives project-owned prompt and delegated-review
+        overlay authority precedence; duplicating the invocation rule there
+        would create a second owner.
+    - path: installed or plugin workflow-delegated-review-patch skills
+      reason: >
+        Installed skills are protected deployment copies. The Forseti overlay
+        precedence bridge is the writable project authority and now overrides
+        the generic fallback explicitly.
+    - path: .agents/hooks/README.md
+      reason: >
+        Existing active-lane overlap exclusion remains in force; the checker
+        entry already points to the owning validation and placement sources.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        No owner, path, or T1 retrieval route changed.
+  stale_language_search: >
+    rg -n -i "same.vendor|same.family|no_repo|create.*task|managed.worktree|delegate patch|operator_courier_only"
+    .agents/workflow-overlay docs/prompts/templates AGENTS.md
+  stale_language_search_result: >
+    Executed 2026-07-16 after the correction. Live delegated-review-patch and
+    lane-scoped prompt owners now require operator-courier-only, different-vendor,
+    direct-repo execution and explicitly reject same-vendor, no_repo,
+    Codex-managed, and task-creation fallback. Remaining same-vendor hits in
+    review-lanes.md are the ordinary-review two-bar rule plus historical DCP
+    receipts and now state that the tier cannot satisfy delegated patch. The
+    general managed-receiver clause remains live only for non-delegated explicit
+    implementation commissions. No prompt template contains the rejected
+    delegated-patch fallback.
+  non_claims:
+    - not validation
+    - not readiness
+    - not runtime model routing
+    - not proof of vendor identity or direct-write capability
+    - not task-creation or dispatch authority
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

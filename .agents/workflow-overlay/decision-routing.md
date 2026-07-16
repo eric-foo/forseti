@@ -44,7 +44,10 @@ Architecture, planning, scoping, delegation, cross-thread continuity, review,
 patching, doctrine work, and messy worktrees are escalation cues because they
 often contain those unknowns. They are not sufficient triggers by themselves.
 If the outcome, authority, sources, touch points, and validation route are
-already bounded, proceed without a full-router artifact.
+already bounded, proceed without a full-router artifact. An explicit `/fused`
+invocation supersedes the bounded-change fast path below for that work unit;
+a continuation that only executes already-cleared fused lanes runs under the
+fast path.
 
 ## Bypass Conditions
 
@@ -127,106 +130,135 @@ For chaotic work, do not assign parallel work until the bottleneck is visible.
 Idle agents are acceptable when non-bottleneck work would increase WIP or blur
 claim boundaries.
 
-## Receiver Mechanism And Write-Root Selection
+## One-Time Writable-Root Binding
 
-Before dispatching delegated or parallel work, classify the commissioned act
-and bind exactly one receiver class before the receiver loads task sources:
+At the first repo-changing act, select and bind one effective target: neither
+branch nor worktree for read-only work; a current-checkout branch for clean
+solo/sequential writing; and a worktree off the required base for dirty-base,
+concurrent, or independent work.
 
-- `codex_managed_worktree`: an independent repo-changing Codex task created by
-  Codex Desktop in its managed worktree, with the initial commission submitted
-  in the same task-creation flow. The dispatcher binds the requested starting
-  ref (normally `origin/main`); the receiver then verifies that its launch
-  checkout is that app-created managed worktree, checks the ref/state, and runs
-  the existing lane-start write/index probe before source loading. It must not
-  create, discover, or target a second worktree as a substitute for its root.
-- `external_direct_write`: a true independent external controller whose harness
-  may start from another checkout and operate on a separately commissioned
-  worktree only after the two-root identity, direct-write, and no-concurrent-
-  writer proofs below pass.
-- `collaboration_same_root`: an in-session collaboration subagent used for
-  read-only work or for a safe contribution inside the calling task's current,
-  already-isolated work unit. It is not a separately rooted repo-changing lane
-  and cannot become one merely because a prompt names another worktree.
-- `receiver_to_bind`: the future receiver is not known or created yet. Prompt
-  preparation may continue, but dispatch readiness and receiver source loading
-  remain blocked until one of the three concrete classes is bound and verified.
+For Codex Desktop, launch each new concurrent repo-changing task directly in its
+own small worktree. Do not launch new lanes from legacy or aggregate checkouts,
+cache parents, or directories that contain multiple worktrees; those broad roots
+can amplify Windows sandbox ACL setup latency. This is performance containment,
+not a correctness or authority rule: launch-root mismatch alone remains not a
+blocker. If a correctly rooted Desktop lane still stalls or needs sustained
+shell-heavy parallelism, standalone CLI or WSL2 is an explicit fallback, not the
+standing default.
 
-Record the binding once, inline in the commission or courier, using this compact
-receipt; do not create a registry, daemon, standalone receipt artifact, or new
-checker:
+### Task-Local Tool-Stall Circuit
+
+After one silent sandboxed tool stall, open a circuit for that
+tool-plus-permission route in the current task. Use a realistic timeout; absent
+better evidence, allow 20 seconds for reads or patches and 60 seconds for tests.
+Wait at most once for any remaining original budget, then terminate the call.
+Do not retry the same route merely because the command or conversation turn
+changed.
+
+If the stalled operation might have written, inspect only its intended targets
+once. Retry a safe in-scope operation at most once through a distinct approved
+route and reuse that route for the task. Stop when the mutation outcome is
+unknown, target state drifted, another writer appeared, a real guard denied the
+action, or the alternate route also stalls. A fresh task is a fresh route even
+when carried context reports an earlier task's stall. Verify the final diff;
+alternate-route completion is mitigation, not proof that the ordinary route is
+repaired.
+
+### Bounded-Change Fast Path
+
+For a named handoff with a small candidate-authority set, one bound edit unit,
+and known validation, use at most five latency-bearing rounds:
+
+1. receiver instructions;
+2. one read-only intake containing the handoff, bounded candidate authority,
+   status/inventory, likely targets, edit-helper usage, and relevant untracked
+   baseline, resolving authority and binding the edit only after that output;
+3. one isolated mutation;
+4. one ordered validation call that preserves each exit/output, runs focused
+   before broad, and skips broad after focused failure; and
+5. one read-only closeout containing diff check, exact diff, status, failure
+   attribution, and untracked verification.
+
+Never hide a retry or external action inside a phase. Do not use this fast path
+when the intake cannot be safely bounded before launch.
+
+The current actor may continue the same commissioned work unit directly in its
+selected worktree after one fresh snapshot records the exact target path,
+revision and dirty state, and whether another writer is active. Launch checkout
+and target worktree need not match. Launch-root mismatch alone is not a blocker.
+A separate receiver is required only for an independent concurrent actor or
+after an observed tool, sandbox, hook, or guard denial proves the current task
+cannot perform a required target operation.
+
+Reuse this binding through authoring, review, validation, commit, push, and
+landing. Do not repeat root receipts, chat choreography, hook canaries, synthetic
+write/index probes, or capability recitals while material state is unchanged.
+Re-resolve only when the actor or target changes, revision or dirty state changes
+materially, another writer appears, or a real required-tool failure invalidates
+the binding. Preserve that failure.
+
+Receiver classes remain available where another actor needs a binding:
+
+- `codex_managed_worktree`: a new independent Codex task explicitly authorized
+  and created in its managed worktree with the commission in its initial prompt;
+- `external_direct_write`: an independent external controller verified once for
+  exact target, direct write capability, and no concurrent writer;
+- `collaboration_same_root`: an in-session subagent inside the caller's writable
+  root; naming another path cannot expand it; and
+- `receiver_to_bind`: preparation-only until a concrete receiver is authorized.
+
+An independent delegate writing a separate worktree needs its own capable
+receiver. This does not apply when the current actor creates or selects isolation
+for the same commissioned work unit. Stop or reroot only for ambiguous target
+identity, revision or dirty-byte mismatch, concurrent writing, an observed
+required-tool denial or root-bound feature mismatch, or a protected-action or
+server-side guard.
+
+For a genuinely new, external, or changed receiver, record one compact
+`receiver_binding`; unchanged same-lane prompts point to the active binding:
 
 ```yaml
 receiver_binding:
   receiver_class: codex_managed_worktree | external_direct_write | collaboration_same_root | receiver_to_bind
   binding_state: receiver_to_bind | receiver_to_verify | receiver_verified | blocked
   launch_checkout: "<observed path | receiver_to_observe>"
-  effective_target_worktree: "<observed path>" # omit only while a managed task is not yet created
-  managed_starting_ref: "<origin/main or other bound ref>" # use instead while receiver_class is codex_managed_worktree and binding_state is receiver_to_verify
-  capability_proof: "<write/index proof, direct-write proof, read-only, or not_yet_proven>"
-  no_concurrent_writer_state: "<observed state, not_applicable_read_only, or not_yet_proven>"
+  effective_target_worktree: "<observed path>"
+  managed_starting_ref: "<bound ref, only before a managed task exists>"
+  required_revision: "<commit>"
+  revision_mode: exact | ancestor
+  capability_proof: "<only when new or genuinely unknown>"
+  no_concurrent_writer_state: "<required for an independent writer>"
 ```
 
-The two target fields are alternatives during preparation: a not-yet-created
-managed task carries `managed_starting_ref`; a created or otherwise resolved
-receiver carries `effective_target_worktree`. A `receiver_verified` repo-
-changing receipt must carry the observed effective target, capability proof,
-and no-concurrent-writer state.
+`exact` means a clean worktree whose `HEAD` equals `required_revision`.
+`ancestor` means a clean advancing lane where
+`git merge-base --is-ancestor <required_revision> HEAD` succeeds. Dirty work
+still requires the named dirty-file set plus byte identity. Existing exact gates
+remain exact.
 
-Treat the receiver's starting checkout and the commissioned source as separate
-facts:
+Creating a user-visible Codex task still requires explicit product/user
+authorization. A visible instruction to create, start, spin up, or hand off to a
+new managed task is sufficient. A durable commission may carry the bounded
+`receiver_creation_authorization` owned by `prompt-orchestration.md`. Generic
+`proceed`, ordinary implementation authority, and read-only/scoping/review work
+do not create that authority; a task's mere existence is never authority.
 
-- `launch_checkout` is where the receiving session starts;
-- `effective_target_worktree` is the unique registered worktree containing the
-  exact commissioned bytes.
+When a real pre-edit mismatch invalidates the binding, route to an already-
+authorized capable receiver when one exists.
+An already-authorized capable worktree-backed task is such a receiver. A valid
+one-task creation authorization may be used without chat-double-asking. Return
+`BLOCKED_RECEIVER_REROOT_REQUIRED` only when target identity, revision or dirty-
+byte identity, writer isolation, or required capability cannot be established,
+no authorized capable route exists, or the one allowed creation fails. Capable
+means able to perform the required operation against the exact target while the
+state checks hold; it does not require launch-root equality.
 
-Before expensive source loading, the dispatcher or receiver completes the
-class-specific preflight. `codex_managed_worktree` verifies its app-created
-current root directly and requires launch/target equality. It does not search
-the worktree registry for somewhere else to write. `external_direct_write`
-runs the smallest complete two-root preflight: record the commissioned act and
-launch checkout; resolve the unique effective target through the worktree
-registry; verify its branch/revision and allowed dirty state; and, for
-uncommitted work, verify the named dirty-file set plus a target manifest or
-equivalent byte identity. `collaboration_same_root` verifies that any permitted
-write stays in the calling task's current isolated root. A branch and HEAD alone
-do not identify dirty work, and checking that branch out elsewhere is not a
-substitute.
+The live-adoption canary remains documented in `.agents/hooks/README.md` only
+for work commissioned to test hook adoption; ordinary work does not run it.
 
-Repo-changing work additionally requires demonstrated write capability to the
-effective target and confirmation that no other actor will write it during the
-delegated pass. A path or successful read is not write-capability proof. Use the
-existing lane-start write/index probe for `codex_managed_worktree` and
-harness/tool direct-write evidence for `external_direct_write`. A prepared
-prompt may leave receiver-only observations as `receiver_to_observe`, but it
-must remain `receiver_to_bind` or `receiver_to_verify` until the receiver fills
-them before source loading.
-
-Creating a user-visible Codex task still requires explicit user authorization,
-but authorization is semantic rather than a magic phrase: a visible instruction
-that explicitly asks to create, start, spin up, or hand off to a new Codex task
-or managed worktree satisfies it, and the task is created with its initial
-commission in that same operation. Generic `proceed` by itself does not silently
-authorize task creation, and no instruction grants standing creation authority
-beyond the task or handoff it places in scope. Do not chat-double-ask when the
-visible instruction already supplies that explicit intent.
-
-Only `external_direct_write` may operate when launch and target differ. After
-the exact target and capability are proven, use target-rooted tool workdirs,
-absolute paths, and `git -C <effective_target_worktree>`; do not reconstruct its
-dirty state in the launch checkout. Recheck target identity immediately before
-the first edit and stop as `BLOCKED_TARGET_DRIFT_DURING_REVIEW` if it changed.
-
-Return `BLOCKED_RECEIVER_REROOT_REQUIRED` only for a genuine binding or
-capability failure: the target is missing or ambiguous, its bytes do not match,
-required write capability is absent, concurrent writing cannot be excluded, or
-a guard requires a target-rooted receiver that the current task is not. If a
-Codex task was launched in the wrong checkout, it must not create or find another
-worktree and then attempt an impossible reroot. The recovery action is a newly
-created, owner-authorized `codex_managed_worktree` task carrying the commission
-in its initial prompt. Do not bypass or weaken the protected-action guard. The
-write-boundary enforcement and lane-start write/index probe remain owned by
-`.agents/hooks/README.md` and
-`docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
+This rule does not authorize automatic task creation without product/user
+authority, destructive Git, concurrent writers, ignored dirty state, weakened
+revision pins, or bypass of protected-action or server-side guards.
 
 ## Enforcement Placement
 
@@ -330,139 +362,139 @@ or promote the underlying work to source-of-truth status.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Repo-changing dispatch now binds one of four receiver classes before source
-    loading: Codex managed tasks are created in their managed worktree with the
-    initial commission, external controllers retain the proven two-root route,
-    collaboration stays same-root, and unknown couriers remain preparation-only.
+    AGENTS.md is reduced to the SCI-centered global kernel. Decision Priority
+    and Operating Economy no longer exist as parallel doctrines; their
+    independent invariants are folded into the kernel, while the tested
+    bounded-change fast path and task-local tool-stall circuit move to
+    decision-routing as their single operational owner.
   trigger: workflow_authority
-  related_triggers: [output_authority, lifecycle_boundary]
+  related_triggers: [validation_philosophy, lifecycle_boundary]
   controlling_sources_updated:
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/validation-gates.md
-  downstream_surfaces_checked:
     - AGENTS.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/batch1-decision-gate-economics.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
-    - .agents/hooks/README.md
-    - .codex/hooks.json
-    - .codex/hooks/forseti_guard_codex_adapter.py
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/validation-gates.md
     - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     - docs/workflows/forseti_repo_map_v0.md
-    - CLAUDE.md
   intentionally_not_updated:
-    - {path: AGENTS.md, reason: "The kernel already points receiver selection to this file and states the same external-controller and collaboration boundaries."}
-    - {path: .agents/workflow-overlay/source-loading.md, reason: "It already requires receiver selection before source loading; class mechanics stay in the routing owner."}
-    - {path: .agents/hooks/README.md and .codex/hooks/forseti_guard_codex_adapter.py, reason: "The Codex non-current-worktree denial remains intentionally fail-closed; dispatch now supplies the correctly rooted receiver."}
-    - {path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md, reason: "The existing managed-root write/index probe remains the capability gate without implementation change."}
-    - {path: docs/workflows/forseti_repo_map_v0.md and CLAUDE.md, reason: "No owner, path, or shim behavior changed."}
+    - {path: CLAUDE.md, reason: "It remains a shim importing AGENTS.md and must not duplicate the kernel."}
+    - {path: prompt, review, validation, and lifecycle owners, reason: "Their detailed contracts remain authoritative; AGENTS.md now points instead of restating them."}
+    - {path: historical efficiency and review records, reason: "They preserve dated evidence and are not live routing authority."}
   stale_language_search: >
-    rg -n -i "operator_to_fill.*(receiver|worktree|launch)|receiver_to_bind|receiver_to_verify|managed.worktree|self-created|find.*another worktree|reroot|required.*target-root|launch.checkout|effective_target_worktree|collaboration.*worktree|magic phrase"
-    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md .codex/hooks
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md docs/workflows/forseti_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-15 after the patch. Live routing, prompt, and validation
-    hits carry the class-specific contract. Remaining reroot wording is confined
-    to the unchanged fail-closed Codex adapter/readme and the generic sandboxed
-    lane-start doctrine; those surfaces require opening/reopening on the active
-    root and do not authorize a Codex task to write another registered worktree.
-    AGENTS.md remains a compatible pointer to this controlling route.
+    rg -n -i "Operating Economy|Decision Priority|AGENTS.md five-phase|owner of
+    triggered-only pre-build gates|Open a task-local circuit|five-phase fast
+    path" AGENTS.md CLAUDE.md .agents/workflow-overlay
+    docs/workflows/forseti_repo_map_v0.md
   non_claims:
-    - not validation or readiness
-    - not automatic task creation from generic proceed
-    - not a guard weakening or cross-worktree Codex write route
-    - not permission for concurrent writers
+    - not a weakening of SCI, validation, review, deletion evidence, or protected-action guards
+    - not implementation authorization
+    - not proof that the Codex Desktop sandbox route is repaired
 ```
 
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Repo-changing delegation now distinguishes the receiver's launch checkout
-    from the exact effective target worktree: an independent external controller
-    may operate across them only after byte identity, direct write capability,
-    and no-concurrent-writer state are proven, while guarded Codex and in-session
-    collaboration receivers retain their target-root requirement.
+    Fresh Codex protected-gate commissions now automatically use a correctly
+    rooted managed task, prove live project-hook adoption through one fail-closed
+    top-level probe, and bind clean exact/ancestor revision semantics without
+    weakening any exact gate.
   trigger: workflow_authority
-  related_triggers: [review_authority, lifecycle_boundary]
+  related_triggers: [validation_philosophy, lifecycle_boundary]
   controlling_sources_updated:
-    - AGENTS.md
     - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/prompt-orchestration.md
     - .agents/workflow-overlay/validation-gates.md
-    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
   downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
     - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
     - .agents/workflow-overlay/safety-rules.md
-    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/prompt-orchestration.md
     - .agents/hooks/README.md
     - .codex/hooks.json
     - .codex/hooks/forseti_guard_codex_adapter.py
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
     - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
+    - docs/workflows/efficiency/tool_calling_efficiency_improvement_sequence_2026_07_15_v0.md
     - docs/workflows/forseti_repo_map_v0.md
-    - CLAUDE.md
   intentionally_not_updated:
     - path: .agents/workflow-overlay/README.md
       reason: >
-        Decision-routing remains the existing delegation and sequencing owner;
-        no overlay section or owner changed.
+        Decision-routing and validation-gates remain the existing owners; no
+        overlay section or owner changed.
     - path: .agents/workflow-overlay/source-of-truth.md
       reason: Source precedence and doctrine-propagation mechanics are unchanged.
     - path: .agents/workflow-overlay/source-loading.md
       reason: >
-        Source packs and budgets are unchanged; the two-root preflight still
-        completes before receiver source loading.
+        It already requires receiver selection and managed-root verification
+        before source loading. The live canary occurs later, before a protected
+        gate, so restating it here would duplicate authority.
     - path: .agents/workflow-overlay/safety-rules.md
       reason: >
         The authorization boundary and protected-action policy are unchanged;
-        this patch corrects target resolution without granting new edit scope.
-    - path: .agents/workflow-overlay/delegated-review-patch.md
+        this patch proves hook adoption without granting new edit scope.
+    - path: .agents/workflow-overlay/prompt-orchestration.md
       reason: >
-        Its prompt-rendering boundary already delegates worktree, dirty-state,
-        and capability mechanics to prompt-orchestration.md.
-    - path: .agents/hooks/README.md
-      reason: >
-        Its documented Codex limitation remains correct: Codex receivers must be
-        rooted in the target worktree because the adapter blocks cross-worktree
-        writes.
+        It already creates explicitly authorized managed tasks with the initial
+        commission, rejects self-rerooting, and distinguishes exact pins from
+        permitted ancestry. Decision-routing now owns the precise revision and
+        live-canary assertions; no conflicting prompt route remains.
     - path: .codex/hooks.json
       reason: >
-        The hook registration is unchanged because this patch does not weaken or
-        bypass the Codex protected-action guard.
-    - path: .codex/hooks/forseti_guard_codex_adapter.py
-      reason: >
-        Codex remains deterministically blocked from registered non-current
-        worktree writes. The new allowance is limited to an independent external
-        controller whose harness proves direct target capability.
+        The existing PowerShell/Bash PreToolUse registration already reaches the
+        adapter; the probe changes adapter behavior, not hook topology.
     - path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
       reason: >
-        It already scopes the active-root/write-index requirement to Codex and
-        sandboxed harnesses and explicitly does not impose it on Claude Code.
+        Its managed-root write/index probe and protected-action boundary remain
+        compatible and unchanged.
+    - path: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
+      reason: >
+        It already requires prompts to state exact-pin versus required-ancestry
+        semantics and defers receiver mechanics to prompt-orchestration.
     - path: docs/workflows/forseti_repo_map_v0.md
       reason: >
-        Existing routes already point receiver selection to decision-routing and
-        prompt mechanics to prompt-orchestration; no path owner changed.
-    - path: CLAUDE.md
-      reason: It remains a shim importing AGENTS.md and must not duplicate the rule.
+        Existing routes already point receiver selection and validation to the
+        changed owners and hook wiring to the existing README; no path family or
+        owner changed.
+    - path: AGENTS.md and CLAUDE.md
+      reason: >
+        AGENTS.md already routes receiver selection, validation, and hook
+        mechanics to their owners; CLAUDE.md remains its compatibility shim.
   stale_language_search: >
-    rg -n -i "separate worktree requires|worktree-rooted receiver|actually rooted|must be rooted|launch.checkout.*block|mismatch.*block|effective_target_worktree|launch_checkout|non-current-worktree|nested-worktree"
-    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md
-    .codex/hooks docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    rg -n -i "live-adoption-probe|hook.adoption|not_intercepted|workdir.{0,60}(receiver|worktree)|revision_mode|exact.{0,50}ancestor|ancestor.{0,50}exact|managed.worktree"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md .codex/hooks
+    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
     docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
     docs/workflows/forseti_repo_map_v0.md
+    forseti-harness/tests/unit/test_ci_hook_wiring.py
+    docs/workflows/efficiency/tool_calling_efficiency_improvement_sequence_2026_07_15_v0.md
   stale_language_search_result: >
-    Executed 2026-07-14 after edits. Live authority now uses the two-root terms;
-    remaining non-current/nested-worktree hits are the Codex adapter, its README,
-    and validation text describing that adapter, where target-root enforcement
-    intentionally remains. No live prompt or routing rule blocks solely on a
-    launch-checkout mismatch.
+    Executed 2026-07-15 after edits. Defining probe, revision, and workdir hits
+    are confined to decision-routing, validation, adapter/wiring documentation,
+    focused regression assertions, and the observed efficiency ledger. Prompt
+    orchestration retains the compatible managed-root and exact-versus-ancestry
+    route; source-loading retains the compatible pre-source receiver check. No
+    checked surface authorizes a base-root task plus workdir override, persists
+    adoption state, treats ancestry as an exact pin, or claims Forseti can create
+    Codex trust.
   non_claims:
     - not validation
     - not readiness
-    - not automatic task-creation authorization
-    - not a new guard or checker
-    - not permission for concurrent writers
+    - not automatic task creation without explicit user intent
+    - not persisted trust or adoption state
+    - not a Forseti-owned Codex task or trust API
+    - not a weakening of existing exact or protected-action gates
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

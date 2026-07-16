@@ -111,6 +111,12 @@ Every family makes these concepts recoverable:
 | Limitations and alternatives | Keeps unknowns, conflicts, gaps, and unsupported relations visible. |
 | Correction and supersession | Appends change without deleting earlier evidence or as-known history. |
 
+When an observation-mapped family (subject assertion or coverage/failure
+marker) declares an unknown effective start, its limitations must be non-empty
+so the missing time boundary remains inspectable. Relationship-mapped families
+(relationship assertion and company-activity link) retain nullable observed-time
+behavior and do not inherit this observation-only coupling.
+
 ## Time And View Contract
 
 Every view declares two independent boundaries:
@@ -326,10 +332,11 @@ Org graduation, new relationships, matching, scoring, review queues, Data Lake
 pathing or materialization, capture routes, access, cadence, scheduler, corpus,
 API, UI, dashboard, feed, runtime, pain, GTM, outreach, or intervention.
 
-Before an ontology-governed implementation encodes Org, Foundation must
-graduate it. The next implementation decision is then a separate mapping into
-Data Lake derived records and generated read models, beginning with one bounded
-company observation family rather than a broad corpus.
+Foundation graduated Org by dated owner-authorized amendment on 2026-07-15 after
+the company-aggregate producer schema landed. The separate physical mapping into
+Data Lake derived records and generated read models is controlled by
+`company_surface_silver_mapping_contract_v0.md`; it begins with the bounded
+company-aggregate/org-motion family and does not broaden this logical contract.
 
 ## Direction Change Propagation
 

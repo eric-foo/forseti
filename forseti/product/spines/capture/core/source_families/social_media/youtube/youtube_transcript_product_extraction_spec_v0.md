@@ -105,6 +105,12 @@ per-surface packets (watch / captions / audio) that share **no** raw anchor, so
   A completion marker proves record-set membership only; it does not grandfather
   old no-lineage, invalid-lineage, or limitations-only records into source-backed
   evidence.
+- Temporal truth: transcript cue offsets remain evidence-local timestamps, not a
+  fabricated source-effective instant. Product-mention observations therefore
+  keep top-level `observed_at: null` and carry the generic Silver
+  explicit-unknown interval, transcript packet capture time as
+  `recorded_at`/`captured_at`, exact raw/derived evidence refs, and a visible
+  limitation.
 - Scale-ready: records are append-only / write-once with completion markers, so
   re-runs and parallel workers cannot corrupt or double-write.
 

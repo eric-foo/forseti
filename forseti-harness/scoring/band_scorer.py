@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import partial
 
 from harness_utils import (
     HARNESS_VERSION,
@@ -79,6 +80,15 @@ def score_blind_judgement(
 ) -> ScoreBundle:
     scoring_result_id = generate_ulid()
     failure_events: list[FailureEvent] = []
+    # The five identity kwargs shared by every non-mismatch failure event, bound once.
+    build_failure_event = partial(
+        _build_failure_event,
+        batch_id=ledger.batch_id,
+        case_id=ledger.case_id,
+        contestant_id=blind_judgement.contestant_id,
+        run_id=blind_judgement.run_id,
+        scoring_result_ref=scoring_result_id,
+    )
 
     if ledger.mapping_table_version_pin != MAPPING_TABLE_VERSION:
         blocking_mismatch = not allow_mapping_version_mismatch
@@ -131,12 +141,7 @@ def score_blind_judgement(
 
     if over_band:
         failure_events.append(
-            _build_failure_event(
-                batch_id=ledger.batch_id,
-                case_id=ledger.case_id,
-                contestant_id=blind_judgement.contestant_id,
-                run_id=blind_judgement.run_id,
-                scoring_result_ref=scoring_result_id,
+            build_failure_event(
                 scoring_result_hash=None,
                 failure_type="over_band",
                 severity="material",
@@ -152,12 +157,7 @@ def score_blind_judgement(
         )
     if under_band:
         failure_events.append(
-            _build_failure_event(
-                batch_id=ledger.batch_id,
-                case_id=ledger.case_id,
-                contestant_id=blind_judgement.contestant_id,
-                run_id=blind_judgement.run_id,
-                scoring_result_ref=scoring_result_id,
+            build_failure_event(
                 scoring_result_hash=None,
                 failure_type="under_band",
                 severity="material" if underreach_primary else "info",
@@ -173,12 +173,7 @@ def score_blind_judgement(
         )
     if action_band_result.band_status.value == "low_precision_band":
         failure_events.append(
-            _build_failure_event(
-                batch_id=ledger.batch_id,
-                case_id=ledger.case_id,
-                contestant_id=blind_judgement.contestant_id,
-                run_id=blind_judgement.run_id,
-                scoring_result_ref=scoring_result_id,
+            build_failure_event(
                 scoring_result_hash=None,
                 failure_type="low_precision_band",
                 severity="minor",
@@ -193,12 +188,7 @@ def score_blind_judgement(
         )
     if not evidence_id_check_result.evidence_id_presence_pass:
         failure_events.append(
-            _build_failure_event(
-                batch_id=ledger.batch_id,
-                case_id=ledger.case_id,
-                contestant_id=blind_judgement.contestant_id,
-                run_id=blind_judgement.run_id,
-                scoring_result_ref=scoring_result_id,
+            build_failure_event(
                 scoring_result_hash=None,
                 failure_type="evidence_id_missing",
                 severity="blocking",
@@ -212,12 +202,7 @@ def score_blind_judgement(
         )
     if not evidence_id_check_result.pre_decision_status_pass:
         failure_events.append(
-            _build_failure_event(
-                batch_id=ledger.batch_id,
-                case_id=ledger.case_id,
-                contestant_id=blind_judgement.contestant_id,
-                run_id=blind_judgement.run_id,
-                scoring_result_ref=scoring_result_id,
+            build_failure_event(
                 scoring_result_hash=None,
                 failure_type="post_decision_evidence_cited",
                 severity="blocking",
@@ -231,12 +216,7 @@ def score_blind_judgement(
         )
     if not evidence_id_check_result.load_bearing_claim_citation_pass:
         failure_events.append(
-            _build_failure_event(
-                batch_id=ledger.batch_id,
-                case_id=ledger.case_id,
-                contestant_id=blind_judgement.contestant_id,
-                run_id=blind_judgement.run_id,
-                scoring_result_ref=scoring_result_id,
+            build_failure_event(
                 scoring_result_hash=None,
                 failure_type="evidence_id_missing",
                 severity="blocking",
@@ -249,12 +229,7 @@ def score_blind_judgement(
         )
     if missed_ids:
         failure_events.append(
-            _build_failure_event(
-                batch_id=ledger.batch_id,
-                case_id=ledger.case_id,
-                contestant_id=blind_judgement.contestant_id,
-                run_id=blind_judgement.run_id,
-                scoring_result_ref=scoring_result_id,
+            build_failure_event(
                 scoring_result_hash=None,
                 failure_type="must_address_item_missed",
                 severity="material",

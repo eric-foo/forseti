@@ -7,9 +7,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from cleaning._shared import (
+    ecr_refs as _ecr_refs,
+    handle_raw_ref as _handle_raw_ref,
+    projection_refs as _projection_refs,
+    raw_refs as _raw_refs,
+)
 from cleaning.models import CLEANING_CORE_VERSION, REQUIRED_NON_CLAIMS, CleaningInputHandle, CleaningPacket
 from cleaning.parfumo import PARFUMO_RATING_CARRY_RULE, build_parfumo_cleaning_packet
-from data_lake.canonical_json import canonical_record_bytes as _json_bytes
+from data_lake.canonical_json import (
+    canonical_record_bytes as _json_bytes,
+    record_content_hash as _content_hash,
+)
 from data_lake.silver_record import append_silver_record
 from harness_utils import generate_ulid
 from source_capture.models import SourceCapturePacket, VisibleFactStatus
@@ -29,8 +38,8 @@ PARFUMO_CLEANING_SILVER_LANE = "cleaning_parfumo_silver"
 CLEANING_AUDIT_PACK_SCHEMA_VERSION = "cleaning_audit_pack_v0"
 SILVER_VAULT_RECORD_SCHEMA_VERSION = "silver_vault_record_v0"
 PARFUMO_AUDIT_PACK_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_audit_pack_v1"
-PARFUMO_SILVER_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_textobservation_v1"
-PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_metricobservation_v1"
+PARFUMO_SILVER_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_textobservation_v2"
+PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION = "parfumo_cleaning_silver_metricobservation_v2"
 PARFUMO_CLEANING_METHOD_ID = "parfumo_cleaning_method_v0"
 TEXT_NORMALIZATION_RULE = "parfumo_text_whitespace_normalization"
 PARFUMO_RATING_METRIC_ABSENT_RESIDUAL = (
@@ -300,6 +309,7 @@ def _post_cleaned_silver_record(
         "derived_refs": [
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": packet.packet_id,
                 "lane_namespace": audit_lane,
                 "record_id": audit_record_id,
                 "content_hash": audit_content_hash,
@@ -369,6 +379,7 @@ def _post_cleaned_metric_record(
         "derived_refs": [
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": packet.packet_id,
                 "lane_namespace": audit_lane,
                 "record_id": audit_record_id,
                 "content_hash": audit_content_hash,
@@ -408,6 +419,8 @@ def _post_cleaned_metric_record(
     return record
 
 
+# helper-delta: text-keyed subject (text_handle_id/projection_row_id/
+# projection_row_kind), unlike fragrantica_lake's review-keyed subject -- stays local.
 def _silver_subject(handle: CleaningInputHandle) -> dict[str, Any]:
     subject: dict[str, Any] = {
         "text_handle_id": handle.handle_id,
@@ -419,6 +432,8 @@ def _silver_subject(handle: CleaningInputHandle) -> dict[str, Any]:
     return subject
 
 
+# helper-delta: error message names Parfumo; otherwise matches the local copies
+# in fragrantica_lake/basenotes_lake -- stays local.
 def _known_capture_time(packet: SourceCapturePacket) -> str:
     if packet.timing.capture_time.status != VisibleFactStatus.KNOWN or not packet.timing.capture_time.value:
         raise ValueError(
@@ -460,70 +475,6 @@ def _has_source_visible_rating_metric(cleaning_packet: CleaningPacket) -> bool:
         entry.transform.method_or_rule == PARFUMO_RATING_CARRY_RULE
         for entry in cleaning_packet.transform_ledger
     )
-
-
-def _handle_raw_ref(handle: CleaningInputHandle) -> dict[str, str | None]:
-    anchor = handle.raw_anchor
-    return {
-        "packet_id": anchor.packet_id,
-        "slice_id": anchor.slice_id,
-        "file_id": anchor.file_id,
-        "relative_packet_path": anchor.relative_packet_path,
-        "sha256": anchor.sha256,
-        "hash_basis": anchor.hash_basis,
-    }
-
-
-def _raw_refs(cleaning_packet: CleaningPacket) -> list[dict[str, str | None]]:
-    refs: dict[tuple[str | None, ...], dict[str, str | None]] = {}
-    for handle in cleaning_packet.handles:
-        ref = _handle_raw_ref(handle)
-        key = tuple(ref[field] for field in sorted(ref))
-        refs[key] = ref
-    return [refs[key] for key in sorted(refs)]
-
-
-def _projection_refs(cleaning_packet: CleaningPacket) -> list[dict[str, Any]]:
-    return _dedupe_refs(
-        handle.projection_ref.model_dump(mode="json")
-        for handle in cleaning_packet.handles
-        if handle.projection_ref is not None
-    )
-
-
-def _ecr_refs(cleaning_packet: CleaningPacket) -> list[dict[str, Any]]:
-    return _dedupe_refs(
-        handle.ecr_ref.model_dump(mode="json")
-        for handle in cleaning_packet.handles
-        if handle.ecr_ref is not None
-    )
-
-
-def _dedupe_refs(dumps: Any) -> list[dict[str, Any]]:
-    seen: set[str] = set()
-    out: list[dict[str, Any]] = []
-    for ref in dumps:
-        key = json.dumps(ref, sort_keys=True, separators=(",", ":"))
-        if key not in seen:
-            seen.add(key)
-            out.append(ref)
-    return out
-
-
-def _content_hash(record: dict[str, Any]) -> str:
-    canonical = dict(record)
-    canonical.pop("content_hash", None)
-    return hashlib.sha256(_canonical_json_bytes(canonical)).hexdigest()
-
-
-def _canonical_json_bytes(value: Any) -> bytes:
-    return json.dumps(
-        value,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-        allow_nan=False,
-    ).encode("utf-8")
 
 
 __all__ = [

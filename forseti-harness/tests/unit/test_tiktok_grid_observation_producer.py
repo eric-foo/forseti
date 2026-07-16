@@ -278,6 +278,40 @@ def test_history_reader_rejects_tampered_exact_policy_record(tmp_path: Path) -> 
         )
 
 
+def test_history_reader_rejects_physically_unresolved_exact_policy_record(
+    tmp_path: Path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id = _admit_grid(
+        data_root,
+        observed_at="2026-07-12T00:00:00Z",
+        play_count=100,
+        like_count=10,
+        comment_count=2,
+    )
+    assert all(row["status"] == "derived" for row in runner.run_catchup(data_root=data_root))
+    path = data_root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+        record_id=observation_set_record_id(packet_id),
+    )
+    record = json.loads(path.read_text(encoding="utf-8"))
+    record["raw_refs"][0]["sha256"] = "f" * 64
+    record["content_hash"] = f"sha256:{content_hash(record)}"
+    path.write_text(json.dumps(record), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="source authority is unresolved"):
+        read_social_metric_history(
+            data_root=data_root,
+            lane=SOCIAL_METRIC_OBSERVATION_SET_LANE,
+            policy_fingerprint=TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT,
+            record_id_for_anchor=observation_set_record_id,
+            platform="tiktok",
+            account_native_id="creator",
+            content_native_ids=["101"],
+        )
+
 def test_history_reader_fails_loud_on_wrong_policy_record_at_exact_policy_path(
     tmp_path: Path,
 ) -> None:

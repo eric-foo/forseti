@@ -1,8 +1,10 @@
 name: pr-risk-router
 
-# Deterministically separates low-risk PRs that may be auto-merged from PRs that
-# require a human/manual merge decision. This workflow never checks out or runs
-# PR code. It uses GitHub metadata only, so `pull_request_target` is safe here.
+# Deterministically separates low-risk PRs eligible for unattended auto-merge
+# from PRs that require manual completion/review gates before the lane author may
+# merge them. The label does not choose the merge actor after those gates close.
+# This workflow never checks out or runs PR code. It uses GitHub metadata only,
+# so `pull_request_target` is safe here.
 
 on:
   pull_request_target:
@@ -56,7 +58,7 @@ jobs:
           }
 
           ensure_label "$AUTO_LABEL" "2DA44E" "Deterministically low-risk and eligible for guarded auto-merge."
-          ensure_label "$MANUAL_LABEL" "D29922" "Requires human/manual merge decision; automation may summarize but not approve."
+          ensure_label "$MANUAL_LABEL" "D29922" "Requires manual completion/review gates; ineligible for unattended auto-merge."
           ensure_label "$BLOCKED_LABEL" "CF222E" "Blocked by merge policy until the named condition changes."
 
           pr_json=$(gh pr view "$pr" --repo "$REPO" \
@@ -196,7 +198,7 @@ jobs:
           **Changed files**
           $files_text
 
-          Boundary: this is deterministic routing, not approval, validation, review acceptance, or a claim that the PR is safe to merge. Auto-merge still requires green CI, mergeability, up-to-date head, same-repo head, non-draft state, \`agent-automerge\`, and \`$AUTO_LABEL\`."
+          Boundary: this is deterministic routing, not approval, validation, review acceptance, or a claim that the PR is safe to merge. Unattended auto-merge still requires green CI, mergeability, up-to-date head, same-repo head, non-draft state, \`agent-automerge\`, and \`$AUTO_LABEL\`. A \`$MANUAL_LABEL\` PR remains ineligible for the unattended bot, but the completed lane author may use the separately guarded in-session route after its required completion/review gates close."
 
           case "$decision" in
             "$AUTO_LABEL")

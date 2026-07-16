@@ -43,7 +43,8 @@ from capture_spine.creator_profile_current.silver_metric_snapshot import (
     validate_snapshot,
 )
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
-    derive_youtube_creator_metric_silver_records_from_seed_file,
+    DEFAULT_YOUTUBE_SEED_PATH,
+    YOUTUBE_SEED_WRAPPER_KEY,
 )
 from data_lake.creator_metric_lineage import CreatorMetricLineageError
 from data_lake.root import DataLakeRoot
@@ -59,10 +60,12 @@ from runners.run_youtube_creator_metric_rollup_producer import (
     _load_account_ledger as _load_youtube_account_ledger,
     default_generated_at_utc as _committed_youtube_generated_at_utc,
     default_source_files as _committed_youtube_source_files,
-    run_youtube_producer,
 )
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
+from tests.unit._creator_metric_silver_fixtures import (
+    seed_preexisting_youtube_creator_metric_records,
+)
 
 IG_ACCOUNT = "acct_ig_reels_001"
 IG_HANDLE = "hyram"
@@ -90,6 +93,16 @@ def test_live_lake_test_root_env_prefers_forseti(monkeypatch) -> None:
 def _account_of(record: dict) -> str:
     return platform_account_id_from_subject_ref(
         record["payload"]["observation"]["subject"]["ref"], what="rollup subject ref"
+    )
+
+
+def _seed_preexisting_youtube_records(data_root: DataLakeRoot):
+    """Seed synthetic pre-contract bytes for read-side classification only."""
+    seed_document = json.loads(DEFAULT_YOUTUBE_SEED_PATH.read_text(encoding="utf-8-sig"))
+    return seed_preexisting_youtube_creator_metric_records(
+        data_root,
+        seed_document,
+        wrapper_key=YOUTUBE_SEED_WRAPPER_KEY,
     )
 
 
@@ -244,7 +257,7 @@ def test_committed_seed_cannot_bootstrap_current_snapshot_without_cited_bytes(
     tmp_path: Path,
 ) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    result = derive_youtube_creator_metric_silver_records_from_seed_file(data_root=data_root)
+    result = _seed_preexisting_youtube_records(data_root)
     accounts = sorted({_account_of(r) for r in result.rollup_records})
 
     with pytest.raises(CreatorMetricLineageError, match="depends_on_excluded_observation"):
@@ -258,7 +271,7 @@ def test_committed_seed_cannot_bootstrap_current_snapshot_without_cited_bytes(
 
 def test_seed_rollup_payloads_carry_no_lake_provenance_keys(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    result = derive_youtube_creator_metric_silver_records_from_seed_file(data_root=data_root)
+    result = _seed_preexisting_youtube_records(data_root)
     forbidden = {"source_record", "content_hash", "record_id", "raw_anchor", "lane_namespace"}
     for rollup in result.seed_document["youtube_shorts_fragrance_creator_metric_seed"]["metric_rollups"]:
         assert forbidden.isdisjoint(rollup)
@@ -267,7 +280,7 @@ def test_seed_rollup_payloads_carry_no_lake_provenance_keys(tmp_path: Path) -> N
 def test_platform_filter_excludes_other_platform(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     _write_ig_rollup(data_root, tmp_path, slot="a", generated_at=LATE)
-    yt = derive_youtube_creator_metric_silver_records_from_seed_file(data_root=data_root)
+    yt = _seed_preexisting_youtube_records(data_root)
     yt_account = sorted({_account_of(r) for r in yt.rollup_records})[0]
     # ask for an instagram snapshot but pass a ledger holding BOTH platforms;
     # only the IG account is covered.
@@ -625,12 +638,7 @@ def test_youtube_review_json_assertions_do_not_count_as_captured_bytes(tmp_path:
     current source-backed snapshot."""
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
 
-    result = run_youtube_producer(
-        data_root,
-        source_files=_committed_youtube_source_files(),
-        account_ledger=_load_youtube_account_ledger(_YT_ACCOUNT_LEDGER),
-        generated_at_utc=_committed_youtube_generated_at_utc(),
-    )
+    result = _seed_preexisting_youtube_records(data_root)
     accounts = sorted({_account_of(r) for r in result.rollup_records})
 
     with pytest.raises(CreatorMetricLineageError, match="depends_on_excluded_observation"):

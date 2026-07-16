@@ -158,6 +158,11 @@ routing, and Chief Architect consumption rules.
   not needed: e.g., bounded change; no doctrine/seam surface; no no-new-seam
   claim) -- recorded alongside `reviewed_by` / `authored_by` so a missing
   justification is mechanically detectable.
+  This general same-vendor sanity tier does not satisfy an explicitly
+  commissioned delegated review-and-patch lane. That narrower convention
+  requires a different-vendor controller with direct repo access and forbids
+  same-vendor substitution; same-vendor sanity remains available only for
+  ordinary bounded review outside that commissioned lane.
 
 ## Template Retrieval Binding
 
@@ -196,12 +201,11 @@ handoffs remain prompt-orchestration work.
 ## Rules
 
 - Reviewer threads are source-read-only unless explicitly assigned patch execution.
-- Review prompts trigger `workflow-deep-thinking` before the relevant review
-  skill when the review is adversarial, formal-verdict, doctrine- or
-  authority-changing, delegated, patch-authorized, source-heavy, high-ambiguity,
-  or high-stakes. Routine single-target read-only reviews may omit it when the
-  commission is already scoped, non-doctrine, and technical-consistency judged.
-  This does not expand review scope or authorize patching.
+- The deep-thinking trigger rule for review prompts is owned solely by
+  `.agents/workflow-overlay/prompt-orchestration.md` (Review Prompt Defaults);
+  do not restate or fork it here. Where that rule fires for a review
+  commission, the review lane's internalized failure-mode framing satisfies it
+  without a separate `workflow-deep-thinking` load.
 - Adversarial artifact review prompts must explicitly invoke
   `workflow-adversarial-artifact-review` after source readiness. If the skill is
   unavailable or not invoked, the prompt must block strict review claims or
@@ -231,41 +235,6 @@ handoffs remain prompt-orchestration work.
 - Runtime model recommendations for review lanes: forbidden. Template target
   retrieval is allowed only as prompt-shaping guidance.
 - Prompt output contracts are bound in `.agents/workflow-overlay/prompt-orchestration.md`.
-
-## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Review outputs now record two required (present), model-neutral provenance fields -- reviewed_by and
-    authored_by (the reviewing model+version and the reviewed-artifact author model+version) -- set by the
-    operator/CA on the durable record, value unrecorded allowed (a visible measurement gap, never fabricated,
-    never a success path), forward-only. Same-family-vs-cross-family is computed by relating the two.
-    Observed records, not model routing/recommendation; review-lane model-neutrality is unchanged.
-  trigger: review_authority
-  related_triggers: [output_authority]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/communication-style.md
-  downstream_surfaces_checked:
-    - {path: docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md, note: pin-only re-pin of the review-lanes derived_from hash; distilled method body unchanged}
-    - {path: .agents/workflow-overlay/validation-gates.md, note: F4 single-source decision; no duplicate enforcement gate added}
-  intentionally_not_updated:
-    - {path: .agents/workflow-overlay/validation-gates.md, reason: F4 single-source; the Review Doctrine here is read by every Orca agent, so no duplicate gate was added}
-    - {path: .agents/workflow-overlay/retrieval-metadata.md, reason: review-output fields, not universal durable-artifact header fields}
-    - {path: .agents/workflow-overlay/delegated-review-patch.md, reason: its actor/model-family receipt already records author and controller families; these are the consistent ordinary-review analogue}
-    - {path: docs/decisions/adversarial_review_routing_policy_v0.md, reason: routing tiers declined (Pile 3); this records measurement, not routing}
-  stale_language_search: >
-    reviewed_by / authored_by are net-new field names; no prior overlay text stated review outputs do not
-    record reviewer/author identity, so no language was made stale, and the model-neutrality rule is
-    unchanged and explicitly reconciled in the new bullets.
-  non_claims:
-    - not validation
-    - not readiness
-    - not model routing/recommendation
-    - not a kept change until committed and the same-family post-patch blast-radius re-review resolves
-```
 
 ## Direction Change Propagation — De-correlation Family = Vendor (Two-Bar)
 
@@ -339,4 +308,49 @@ direction_change_propagation:
     - not validation, not readiness
     - not runtime model routing or recommendation
     - no recall-improvement efficacy claim until measured
+```
+
+## Direction Change Propagation — Deep-Thinking Trigger Single Owner + Review-Internalized Framing
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The deep-thinking trigger rule for review prompts has exactly one owner:
+    prompt-orchestration.md (Review Prompt Defaults). The stale review-lanes
+    copy -- which still triggered workflow-deep-thinking for adversarial,
+    formal-verdict, delegated, patch-authorized, and high-stakes reviews and
+    so forked the PR #883 (2026-07-12) narrowing -- is replaced by a pointer.
+    Where the owning rule fires for a review commission, the review lane's own
+    internalized failure-mode-framing discipline (the adversarial review skill
+    carries it; the review templates define the framing pass) satisfies the
+    requirement without a second workflow-deep-thinking skill load; a separate
+    workflow-deep-thinking load remains the route for owner-invoked decision
+    work. The PR #883 narrowing itself is unchanged.
+  trigger: review_authority
+  related_triggers: [workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md  # Review Prompt Defaults remains the single owner; framing-pass wording folded into the review lane
+    - .agents/workflow-overlay/review-lanes.md          # stale broad-trigger copy replaced with a pointer to the owner
+  downstream_surfaces_checked:
+    - {path: .agents/workflow-overlay/decision-routing.md, note: one routing clarification added in the same pass -- an explicit /fused invocation supersedes the AGENTS.md five-phase fast path for that work unit, while a continuation that only executes already-cleared fused lanes runs under the fast path; no trigger or router structure changed}
+    - {path: .agents/workflow-overlay/delegated-review-patch.md, note: already consistent with the narrowing ("a bounded multi-file target alone does not add workflow-deep-thinking"); no edit}
+    - {path: AGENTS.md, note: routes review depth to the overlay; no deep-thinking trigger copy; no edit}
+  intentionally_not_updated:
+    - {path: docs/prompts/templates/review/adversarial_artifact_review_v0.md, reason: "Line 72 still instructs 'Use workflow-deep-thinking first.' A template rewrite is outside this commissioned file scope and re-derives the portable-method hash; flagged as the known remaining sequencing surface for a separate template pass."}
+    - {path: docs/decisions/adversarial_review_routing_policy_v0.md, reason: "Section describing the registry template's trigger-then-review structure is a dated decision record quoting the template; it follows the template surface above."}
+    - {path: docs/review-outputs/ and docs/prompts/reviews/, reason: "Historical review reports and already-dispatched commission prompts are lane records, not rewritten."}
+  stale_language_search: >
+    rg -ni "workflow-deep-thinking.{0,100}before the relevant review|trigger `?workflow-deep-thinking|Use `workflow-deep-thinking` first"
+    .agents AGENTS.md CLAUDE.md docs/prompts/templates docs/decisions
+  stale_language_search_result: >
+    Executed 2026-07-16 after edits. No overlay, AGENTS.md, or CLAUDE.md hit
+    remains. Two hits remain outside the commissioned scope and are named in
+    intentionally_not_updated: the review template's "Use workflow-deep-thinking
+    first" line and the routing-policy decision record describing that template
+    structure. Historical review outputs were not searched as lane records.
+  non_claims:
+    - not validation or readiness
+    - does not change any batch0/batch1 pilot trigger or threshold
+    - does not weaken the PR #883 narrowing (its "alone does not trigger" sentence is preserved verbatim)
+    - not a template rewrite; the template sequencing surface remains open and named
 ```

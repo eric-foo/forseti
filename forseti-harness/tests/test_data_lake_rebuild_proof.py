@@ -42,7 +42,7 @@ def test_indexes_rebuild_byte_identical_from_authoritative_truth(tmp_path: Path)
     # Prove-rebuildability for every populated index kind in this fixture:
     # indexes/ holds no unique truth. Wiping the ENTIRE cache tier and
     # rebuilding from authoritative raw/ (+ committed derived/ack material)
-    # yields byte-identical entries. derived_retrieval's object-level views
+    # yields byte-identical entries. Silver Vault derived-retrieval views
     # are rebuilt under a fixed generation stamp — the runner's
     # --prove-rebuildability does the same with the stamp recorded in the
     # stored manifest, so determinism here is the same claim it checks.
@@ -53,8 +53,8 @@ def test_indexes_rebuild_byte_identical_from_authoritative_truth(tmp_path: Path)
     rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
     before = _snapshot(indexes)
     assert {f"availability/{packet_id}.json" for packet_id in packet_ids} <= set(before)
-    assert "derived_retrieval/object_level/undone/view.json" in before
-    assert "derived_retrieval/object_level/by_mention/manifest.json" in before
+    assert "derived_retrieval/silver_vault/core/query_tables/undone.json" in before
+    assert "derived_retrieval/silver_vault/core/manifests/by_mention.json" in before
 
     shutil.rmtree(indexes)  # wipe the entire cache tier
     assert root.rebuild_availability() == 3
@@ -78,9 +78,10 @@ def test_prove_classifies_malformed_stored_policy_as_unreadable_manifest(tmp_pat
         root.path
         / "indexes"
         / "derived_retrieval"
-        / "object_level"
-        / "by_mention"
-        / "manifest.json"
+        / "silver_vault"
+        / "core"
+        / "manifests"
+        / "by_mention.json"
     )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["selection_policy_versions"]["product_mention_policy"][
