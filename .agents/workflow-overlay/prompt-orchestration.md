@@ -310,9 +310,9 @@ conditions hold:
 - the future delegate must have direct `repo` access and a different upstream
   vendor/model lineage from the author;
 - the visible request supplies or safely determines a goal and success signal,
-  one matching target worktree or managed starting ref, branch/revision,
-  dirty-state allowance, named file set, bounded patch authority, and validation
-  route;
+  one matching target worktree or managed starting ref, branch/revision (a
+  frozen commit pin when the work was uncommitted), named file set, bounded
+  patch authority, and validation route;
 - the rendered prompt binds an external controller under
   `.agents/workflow-overlay/decision-routing.md`; an already selected controller
   carries the two-root preflight, and an unknown future courier receiver stays
@@ -801,11 +801,13 @@ checkout and effective target to be the same app-created managed worktree.
 launch checkout is observable, but they must not claim dispatch readiness or
 begin receiver source loading until the binding is verified.
 
-Target identity is an exact revision/hash pin or required commit ancestry. For
-uncommitted work it also includes the allowed dirty-file set and a target
-manifest or equivalent byte identity; branch and HEAD alone cannot identify
-dirty bytes. Exact pins remain exact, while an advancing lane head may continue
-only when the prompt explicitly uses ancestry semantics.
+Target identity is an exact revision/hash pin or required commit ancestry.
+Working-tree bytes are never a binding surface for a couriered receiver:
+uncommitted work is frozen into a commit as the last authoring act before
+courier, and the commission pins that frozen commit. A target that cannot be
+frozen blocks to the Chief Architect rather than binding a weaker identity.
+Exact pins remain exact, while an advancing lane head may continue only when
+the prompt explicitly uses ancestry semantics.
 
 Receiving preflight establishes one binding, then stops repeating it:
 

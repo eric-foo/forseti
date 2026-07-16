@@ -75,12 +75,12 @@ inherit this floor.
   | --- | --- | --- |
   | Current actor in its selected branch/worktree | `accepted` after one snapshot | Observe exact target, revision and dirty state, and no competing writer. Continue unless a required tool actually denies access; launch-root mismatch alone is not failure. No synthetic write/index probe or hook canary. |
   | New managed-worktree receiver | `accepted` once after creation | The task is created and rooted in its app-managed worktree under explicit task-creation authority; exact/ancestor and dirty-state rules still apply. |
-  | External controller targeting another worktree | `accepted` once after verification | Unique exact target and byte identity when dirty; demonstrated direct write; target-rooted operation; no concurrent writer. |
+  | External controller targeting another worktree | `accepted` once after verification | Unique exact target at its frozen commit pin; demonstrated direct write; target-rooted operation; no concurrent writer. |
   | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
   | Same actor targeting its selected worktree from another launch checkout | `accepted` after the target snapshot | A directory override does not expand a collaboration subagent's sandbox, but launch-root mismatch alone is not failure. Reroot only after an observed required-tool denial or root-bound feature mismatch. |
   | Unknown future/manual courier | `preparation_allowed`, dispatch and source loading `blocked` | Keep `receiver_class: receiver_to_bind`; bind and verify a concrete receiver before claiming dispatch readiness. |
   | Observed target ambiguity, required-tool denial, or root-bound feature mismatch | route or `BLOCKED_RECEIVER_REROOT_REQUIRED` | Reroot only when the mismatch is real and no already-authorized capable route exists. |
-  | Dirty, ambiguous, byte-mismatched, or concurrently written target | `blocked` | Resolve exact target/state and eliminate concurrent writing; missing evidence is not a pass. |
+  | Ambiguous, unexpectedly dirty, or concurrently written target | `blocked` | Freeze uncommitted work into a commit and re-pin, or resolve the ambiguity and eliminate concurrent writing; missing evidence is not a pass. |
 
   The binding is re-resolved only when receiver/task/root or material target
   state changes, capability is genuinely unknown, or an observed mismatch or
@@ -428,7 +428,7 @@ classification and the owner gate for building each substrate live in
 Receiver selection is one such judgment rule: whether a commission is read-only,
 a same-actor work unit in selected isolation, or an independent repo-changing
 lane depends on the requested act and live capability. Deterministic enforcement
-remains at protected actions, exact or dirty-byte identity, and actual tool or
+remains at protected actions, exact frozen-pin identity, and actual tool or
 sandbox denial; do not add a blanket path-location guard that treats a valid
 selected worktree as an error. An independent external controller still proves
 direct access to the exact target once.

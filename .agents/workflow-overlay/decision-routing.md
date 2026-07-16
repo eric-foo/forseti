@@ -210,7 +210,7 @@ Receiver classes remain available where another actor needs a binding:
 An independent delegate writing a separate worktree needs its own capable
 receiver. This does not apply when the current actor creates or selects isolation
 for the same commissioned work unit. Stop or reroot only for ambiguous target
-identity, revision or dirty-byte mismatch, concurrent writing, an observed
+identity, revision mismatch, unexpected dirt, concurrent writing, an observed
 required-tool denial or root-bound feature mismatch, or a protected-action or
 server-side guard.
 
@@ -232,9 +232,10 @@ receiver_binding:
 
 `exact` means a clean worktree whose `HEAD` equals `required_revision`.
 `ancestor` means a clean advancing lane where
-`git merge-base --is-ancestor <required_revision> HEAD` succeeds. Dirty work
-still requires the named dirty-file set plus byte identity. Existing exact gates
-remain exact.
+`git merge-base --is-ancestor <required_revision> HEAD` succeeds. Uncommitted
+work is not bindable for an independent receiver: freeze it into a commit as
+the last authoring act before courier and pin that frozen commit. Existing
+exact gates remain exact.
 
 Creating a user-visible Codex task still requires explicit product/user
 authorization. A visible instruction to create, start, spin up, or hand off to a
@@ -247,8 +248,8 @@ When a real pre-edit mismatch invalidates the binding, route to an already-
 authorized capable receiver when one exists.
 An already-authorized capable worktree-backed task is such a receiver. A valid
 one-task creation authorization may be used without chat-double-asking. Return
-`BLOCKED_RECEIVER_REROOT_REQUIRED` only when target identity, revision or dirty-
-byte identity, writer isolation, or required capability cannot be established,
+`BLOCKED_RECEIVER_REROOT_REQUIRED` only when target identity, revision, writer
+isolation, or required capability cannot be established,
 no authorized capable route exists, or the one allowed creation fails. Capable
 means able to perform the required operation against the exact target while the
 state checks hold; it does not require launch-root equality.
