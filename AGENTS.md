@@ -150,8 +150,17 @@ guard, and owner steering all stay.
   for any remaining original budget, then terminate it. Record one
   `sandboxed_tool_stall` for that failed tool-plus-permission route and do not
   probe the route again merely because the command differs. A user interruption,
-  follow-up message, or automatic continuation does not reset an open circuit;
-  if current context reports the stall, inherit it. Carry an open circuit's
+  follow-up message, or automatic continuation does not by itself reset an open
+  circuit; if current context reports the stall, inherit it. After the failed
+  routes and any mutation uncertainty have been reported, the owner may
+  explicitly authorize one named fresh recovery route, including a new task or
+  worktree. That reset applies only to the named route: it does not erase the
+  stall record, broaden edit authority, permit concurrent writers, or weaken
+  target-revision, dirty-state, or protected-action checks. Before any mutation,
+  the fresh route must inspect the intended targets, bind its receiver, and
+  re-confirm the target, revision, dirty state, writer state, and prior mutation
+  outcome. If the fresh route stalls or cannot establish those facts, stop.
+  Carry an open circuit's
   `sandboxed_tool_stall` record in any precompact or handoff packet so the
   receiving lane inherits it. Retry a safe in-scope operation at most once
   through a distinct approved route and reuse that working
@@ -160,10 +169,12 @@ guard, and owner steering all stay.
   most one bounded alternate mutation; `.agents/tools/atomic_exact_edit.py` is an
   option for short exact edits, not mandatory infrastructure. A transport or
   preflight rejection that proves no bytes changed may be corrected once or split
-  into file-scoped atomic edits. Do not reroot, reload sources, create another task
-  or worktree, or redo receiver ceremony because a tool stalled. Stop when the
+  into file-scoped atomic edits. Do not autonomously reroot, reload sources,
+  create another task or worktree, or redo receiver ceremony merely because a
+  tool stalled. Stop when the
   mutation outcome is unknown, target state drifted, another writer appeared, a
-  real guard denied the action, or the distinct alternate route also stalls.
+  real guard denied the action, or the distinct alternate route also stalls and
+  the owner has not authorized the bounded fresh-route reset above.
   Verify the final diff. Completion through an alternate route is mitigation, not
   proof that the ordinary tool route is repaired.
 - **Load each skill once per thread.** A skill whose contract is already in
