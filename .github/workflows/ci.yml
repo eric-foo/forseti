@@ -111,6 +111,9 @@ jobs:
       - name: hash-pin freshness (markdown sha256 pins stay current)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_hash_pin_freshness.py --strict
+      - name: shared-helper duplication (added private helper copies name their delta)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_shared_helper_duplication.py --strict
       - name: full-GT claim tripwire (new md claims stay bounded)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_full_gt_claims.py --changed --strict
