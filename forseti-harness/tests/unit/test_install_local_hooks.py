@@ -11,6 +11,8 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 INSTALLER = REPO_ROOT / ".github" / "scripts" / "install-local-hooks.ps1"
+# The installer dot-sources the shared helper home; the fixture repo needs both.
+COMMON = REPO_ROOT / ".github" / "scripts" / "_common.ps1"
 
 
 def _run(*args: str, cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -58,6 +60,7 @@ def test_installer_repairs_foreign_worktree_hook_binding(tmp_path: Path) -> None
     scripts.mkdir(parents=True)
     hooks.mkdir()
     shutil.copy2(INSTALLER, scripts / INSTALLER.name)
+    shutil.copy2(COMMON, scripts / COMMON.name)
     (hooks / "pre-push").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
     (hooks / "commit-msg").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
     _git(primary, "add", ".")
