@@ -61,7 +61,10 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         ),
         # Initial pin: byte-identical helpers consolidated out of the three
         # cleaning adapters and *_lake modules; not output-shaping.
-        "540af79faf88e510c48f0986a995671ab89b98d20a64b101e857bb06d00f4ef5",
+        # Pin bumped: raw_refs None-first sort key (bugfix -- mixed None/str ref
+        # keys raised TypeError; previously-successful inputs order identically),
+        # not output-shaping.
+        "99aee399f1a989c50c3c100ad6aebd84daef3fcfaa6fb62dcc8ce4eddc182f0f",
     ),
     "cleaning/basenotes.py": (
         ("BASENOTES_CLEANING_METHOD_ID (cleaning/basenotes_lake.py)",),

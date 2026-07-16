@@ -126,13 +126,20 @@ def handle_raw_ref(handle: CleaningInputHandle) -> dict[str, str | None]:
     }
 
 
+def _none_first_ref_key(key: tuple[str | None, ...]) -> tuple[tuple[int, str], ...]:
+    # None sorts before any string: a packet mixing a derived_record anchor
+    # (None preserved-file fields) with a preserved-file anchor must order
+    # deterministically instead of raising TypeError on None < str.
+    return tuple((0, "") if part is None else (1, part) for part in key)
+
+
 def raw_refs(cleaning_packet: CleaningPacket) -> list[dict[str, str | None]]:
     refs: dict[tuple[str | None, ...], dict[str, str | None]] = {}
     for handle in cleaning_packet.handles:
         ref = handle_raw_ref(handle)
         key = tuple(ref[field] for field in sorted(ref))
         refs[key] = ref
-    return [refs[key] for key in sorted(refs)]
+    return [refs[key] for key in sorted(refs, key=_none_first_ref_key)]
 
 
 def projection_refs(cleaning_packet: CleaningPacket) -> list[dict[str, Any]]:
