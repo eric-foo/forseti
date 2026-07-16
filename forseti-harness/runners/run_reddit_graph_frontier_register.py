@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-from datetime import UTC, datetime
 import json
 import sys
 from pathlib import Path
@@ -10,6 +9,7 @@ from typing import Any, Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import utc_now_z_microseconds
 from capture_spine.reddit_graph_frontier import (
     FrontierDecision,
     build_graph_frontier_register,
@@ -65,7 +65,7 @@ def run_reddit_graph_frontier_register(
                 selected_node_id=selected_id,
                 frontier_selection_reason=frontier_selection_reason,
                 frontier_selection_actor=frontier_selection_actor,
-                frontier_selection_timestamp=_utc_now(),
+                frontier_selection_timestamp=utc_now_z_microseconds(),
                 next_run_id_or_none=next_run_id,
             )
         )
@@ -153,10 +153,6 @@ def _parse_caps(values: Sequence[str]) -> dict[str, int]:
             raise ValueError(f"cap must be positive: {value}")
         caps[name] = number
     return caps
-
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def _build_parser() -> argparse.ArgumentParser:

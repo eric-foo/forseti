@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Sequence
 
@@ -16,6 +15,7 @@ from capture_spine.creator_profile_current.instagram_metric_seed import (
     load_json,
 )
 from data_lake.root import DataLakeRoot
+from harness_utils import utc_now_z
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -90,7 +90,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not args.from_lake and not args.projection:
         parser.error("provide at least one --projection or use --from-lake")
 
-    generated_at = args.generated_at_utc or _existing_generated_at(args.output) or _now_utc()
+    generated_at = args.generated_at_utc or _existing_generated_at(args.output) or utc_now_z()
     try:
         projection_paths = list(args.projection)
         if args.from_lake:
@@ -129,10 +129,6 @@ def _existing_generated_at(path: Path) -> str | None:
     except (KeyError, TypeError, ValueError):
         return None
     return value if isinstance(value, str) and value.strip() else None
-
-
-def _now_utc() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 if __name__ == "__main__":
