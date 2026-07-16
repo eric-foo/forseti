@@ -182,12 +182,16 @@ inherit this floor.
   documented deliberate exception) that privately re-defines a shared helper
   — `_utc_now` / `_now_utc` / `_utc_now_z` / `_utc_now_iso` / `_sha256*` /
   `_as_dict` / `_hash_file` / `_string_or_none` / `_non_empty_string_or_none` /
-  `_int_or_none` / `_bool_or_none` anywhere in scope, plus `repo_root` / `_git` /
+  `_int_or_none` / `_bool_or_none` anywhere in scope, plus
+  `_is_forbidden_field_name` / `_first_match` / `_dedupe_preserve_order` /
+  `_read_packet_directory` in `forseti-harness/` only, plus `repo_root` / `_git` /
   `_git_lines` / `porcelain_paths` in `.agents/hooks/` only — must either use
   the owning shared home (`forseti-harness/harness_utils.py` /
+  `forseti-harness/source_capture/projection_shared.py` /
   `.agents/hooks/_hooklib.py`) or carry, on the def line or the line
   immediately above, a comment naming the delta vs the shared home (any
-  comment containing `harness_utils`, `_hooklib`, or `helper-delta`). The
+  comment containing `harness_utils`, `_hooklib`, `projection_shared`, or
+  `helper-delta`). The
   rule itself is owned by the adoption-rule paragraphs in
   `.agents/hooks/README.md` and `forseti-harness/README.md`; this gate is
   their mechanical backstop and is forward-only: pre-existing private copies

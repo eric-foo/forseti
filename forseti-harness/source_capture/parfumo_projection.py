@@ -14,6 +14,13 @@ from pydantic import Field, field_validator, model_validator
 from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice
+from source_capture.projection_shared import (
+    dedupe_preserve_order as _dedupe_preserve_order,
+    first_match as _first_match,
+    is_forbidden_field_pattern_match,
+    normalized_html_text as _text,
+    read_packet_directory as _read_packet_directory,
+)
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -1098,25 +1105,6 @@ def _looks_like_parfumo_body(
     )
 
 
-def _read_packet_directory(packet_or_manifest_path: Path) -> tuple[SourceCapturePacket, dict[str, bytes]]:
-    manifest_path = (
-        packet_or_manifest_path / "manifest.json"
-        if packet_or_manifest_path.is_dir()
-        else packet_or_manifest_path
-    )
-    if not manifest_path.exists():
-        raise FileNotFoundError(f"manifest not found: {manifest_path}")
-    packet_dir = manifest_path.parent
-    packet = SourceCapturePacket.model_validate(json.loads(manifest_path.read_text(encoding="utf-8")))
-    raw_file_bytes_by_file_id: dict[str, bytes] = {}
-    for preserved_file in packet.preserved_files:
-        raw_path = packet_dir / preserved_file.relative_packet_path
-        if not raw_path.exists():
-            raise FileNotFoundError(f"preserved file {preserved_file.file_id} not found at {raw_path}")
-        raw_file_bytes_by_file_id[preserved_file.file_id] = raw_path.read_bytes()
-    return packet, raw_file_bytes_by_file_id
-
-
 def _raw_anchor(preserved_file: PreservedFile) -> ParfumoProjectionRawAnchor:
     return ParfumoProjectionRawAnchor(
         file_id=preserved_file.file_id,
@@ -1326,21 +1314,6 @@ def _attr_present(segment: str, name: str, value: str) -> bool:
     return bool(re.search(rf'\b{re.escape(name)}\s*=\s*["\']{re.escape(value)}["\']', segment))
 
 
-def _first_match(text: str, pattern: str, *, flags: int = 0) -> str | None:
-    match = re.search(pattern, text, flags)
-    return html.unescape(match.group(1)).strip() if match else None
-
-
-def _text(value: str | None) -> str | None:
-    if value is None:
-        return None
-    value = re.sub(r"<br\s*/?>", "\n", value, flags=re.IGNORECASE)
-    value = re.sub(r"</p\s*>", "\n", value, flags=re.IGNORECASE)
-    value = re.sub(r"<[^>]+>", " ", value)
-    normalized = re.sub(r"\s+", " ", html.unescape(value)).strip()
-    return normalized
-
-
 def _to_float(value: str | None) -> float | None:
     if value is None:
         return None
@@ -1383,20 +1356,8 @@ def _brand_from_parfumo_url(url: str) -> str | None:
     return html.unescape(match.group(1).replace("_", " ").replace("-", " "))
 
 
-def _dedupe_preserve_order(values: list[str]) -> list[str]:
-    seen = set()
-    result = []
-    for value in values:
-        if value not in seen:
-            seen.add(value)
-            result.append(value)
-    return result
-
-
 def _is_forbidden_field_name(key: str) -> bool:
-    normalized = re.sub(r"[^a-z0-9]+", "_", key.lower()).strip("_")
-    padded = f"_{normalized}_"
-    return any(f"_{token}_" in padded for token in _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES)
+    return is_forbidden_field_pattern_match(key, _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES)
 
 
 def _projection_json_text(projection: ParfumoProjectionPacket) -> str:
