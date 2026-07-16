@@ -13,6 +13,7 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_spec_v0.md
+  - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_radar_grid_capture_maintenance_design_v0.md
   - forseti/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md
   - forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md
   - docs/workflows/reddit_capture_to_ecr_consumption_probe_finding_v0.md
