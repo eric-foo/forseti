@@ -24,6 +24,7 @@ from data_lake.catalog import (
     source_surface_catalog_rows,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError, raw_shard
+from data_lake.silver_record import append_raw_packet_tombstone
 import runners.run_data_lake_catalog as catalog_runner
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
@@ -62,6 +63,32 @@ def _write_reddit_packet(
         session_identity=session_identity,
         series_id=series_id,
     )
+
+
+def test_rebuild_catalog_excludes_tombstoned_packet_but_keeps_raw_auditable(
+    tmp_path: Path,
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    old = _write_reddit_packet(root, tmp_path, body="old testing history")
+    retained = _write_reddit_packet(root, tmp_path, body="latest retained history")
+    old_id = old.packet.packet_id
+    retained_id = retained.packet.packet_id
+    append_raw_packet_tombstone(
+        root,
+        retained_packet_id=retained_id,
+        tombstoned_packet_id=old_id,
+        captured_at="2026-07-16T15:00:00Z",
+        reason="owner-directed cleanup of superseded testing history",
+    )
+
+    report = rebuild_catalog(root)
+
+    assert report["status"] == "rebuilt"
+    assert report["packet_count"] == 1
+    assert not (_catalog_root(root) / "by_packet" / f"{old_id}.json").exists()
+    assert (_catalog_root(root) / "by_packet" / f"{retained_id}.json").is_file()
+    assert root.find_packet(old_id) is not None
+    assert root.load_raw_packet(old_id).bodies
 
 
 def _write_ig_reels_grid_packet(
