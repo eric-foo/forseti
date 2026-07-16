@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+import os
 import shutil
+import stat
 import sys
+import tempfile
+import time
 import uuid
 from pathlib import Path
 
@@ -29,9 +33,63 @@ def _no_ambient_data_lake(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("ORCA_DATA_ROOT", raising=False)
 
 
+def _session_temp_root() -> Path:
+    configured_root = os.environ.get("FORSETI_PYTEST_TMP_ROOT")
+    candidates = (
+        Path(configured_root).expanduser() if configured_root else None,
+        Path(tempfile.gettempdir()) / "forseti-harness-pytest",
+        PROJECT_ROOT.parent / "_scratch",
+    )
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER", "main")
+    failures: list[str] = []
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        session_root = candidate / f"session_{worker_id}_{uuid.uuid4().hex}"
+        try:
+            session_root.mkdir(parents=True)
+        except OSError as exc:
+            failures.append(f"{candidate}: {exc}")
+            continue
+        return session_root
+    raise OSError("Unable to create a pytest scratch root: " + "; ".join(failures))
+
+
+def _remove_readonly(func, path: str, exc: BaseException) -> None:
+    if not isinstance(exc, PermissionError):
+        raise exc
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
+
+def _remove_tree(path: Path) -> None:
+    last_error: OSError | None = None
+    for delay_seconds in (0.0, 0.1, 0.5, 1.5):
+        if delay_seconds:
+            time.sleep(delay_seconds)
+        try:
+            shutil.rmtree(path, onexc=_remove_readonly)
+            return
+        except FileNotFoundError:
+            return
+        except OSError as exc:
+            last_error = exc
+    assert last_error is not None
+    raise last_error
+
+
+@pytest.fixture(scope="session")
+def harness_tmp_root() -> Iterator[Path]:
+    path = _session_temp_root()
+    try:
+        yield path
+    finally:
+        _remove_tree(path)
+
+
 @pytest.fixture
-def tmp_path() -> Iterator[Path]:
-    path = PROJECT_ROOT.parent / "_scratch" / f"forseti_harness_tmp_path_{uuid.uuid4().hex}"
+def tmp_path(harness_tmp_root: Path) -> Iterator[Path]:
+    path = harness_tmp_root / f"test_{uuid.uuid4().hex}"
     path.mkdir(parents=True)
     try:
         yield path
@@ -39,20 +97,17 @@ def tmp_path() -> Iterator[Path]:
         shutil.rmtree(path, ignore_errors=True)
 
 
-def _copy_ignore(_directory: str, names: list[str]) -> set[str]:
-    ignored: set[str] = set()
-    for name in names:
-        if name in {"_test_runs", ".pytest_cache", ".pytest_tmp", "pytest_tmp", "_scratch"}:
-            ignored.add(name)
-        if (
-            name.startswith(".pytest_")
-            or name.startswith("pytest_run_")
-            or name.startswith("pytest-cache-files-")
-            or name.startswith("pytest_tmp")
-            or (name.startswith("pytest_") and name.endswith("_tmp"))
-        ):
-            ignored.add(name)
-    return ignored
+def _copy_project_fixture(destination: Path) -> None:
+    destination.mkdir()
+    for filename in ("harness_utils.py", "pyproject.toml"):
+        shutil.copy2(PROJECT_ROOT / filename, destination / filename)
+    for directory in ("reports", "runners", "schemas", "scoring"):
+        shutil.copytree(PROJECT_ROOT / directory, destination / directory)
+    shutil.copytree(
+        PROJECT_ROOT / "cases" / "plumbing" / CASE_ID,
+        destination / "cases" / "plumbing" / CASE_ID,
+    )
+    (destination / "memory" / "logs").mkdir(parents=True)
 
 
 def _reset_copied_outputs(project_root: Path) -> None:
@@ -71,16 +126,14 @@ def _reset_copied_outputs(project_root: Path) -> None:
 
 
 @pytest.fixture
-def copied_project() -> Path:
-    scratch_root = PROJECT_ROOT / "_test_runs"
-    scratch_root.mkdir(exist_ok=True)
-    destination = scratch_root / f"run_{uuid.uuid4().hex}"
-    shutil.copytree(PROJECT_ROOT, destination, ignore=_copy_ignore)
+def copied_project(harness_tmp_root: Path) -> Path:
+    destination = harness_tmp_root / f"project_{uuid.uuid4().hex}"
+    _copy_project_fixture(destination)
     _reset_copied_outputs(destination)
     try:
         yield destination
     finally:
-        shutil.rmtree(destination)
+        shutil.rmtree(destination, ignore_errors=True)
 
 
 @pytest.fixture

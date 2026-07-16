@@ -64,8 +64,18 @@ is a worse failure than over-reading a confirmatory one.
 Edit permission:
 Read-only unless the launch instruction explicitly assigns patch execution.
 
-Required skill invocation:
-Use `workflow-adversarial-artifact-review` after source readiness.
+Required method sequence:
+After the required source context is ready, first run this review lane's
+internalized failure-mode-framing pass: frame the boundary problem, failure
+modes, and decision criteria before any finding is listed. This framing pass
+is defined here and carried by the review lane; where the deep-thinking
+trigger rule owned by `.agents/workflow-overlay/prompt-orchestration.md`
+(Review Prompt Defaults) fires for a review commission, this pass satisfies it
+without a separate `workflow-deep-thinking` skill load. A separate
+`workflow-deep-thinking` load remains the route for owner-invoked decision
+work (explicit owner invocation or Mini God Tier), not for review commissions.
+
+Then use `workflow-adversarial-artifact-review`.
 
 If `workflow-adversarial-artifact-review` is unavailable, unresolved, or cannot
 be applied after `SOURCE_CONTEXT_READY`, return a blocked or advisory-only
@@ -73,11 +83,7 @@ result. Do not emit formal verdicts, severity authority, blocked/ready status,
 validation claims, readiness claims, mandatory remediation, patch queues,
 executor-ready handoffs, or alignment-complete claims.
 
-The review lane's internalized framing pass should frame the boundary problem,
-failure modes, and decision criteria before findings are listed. Do not load
-`workflow-deep-thinking` separately unless the launch instruction explicitly
-invokes it for owner-decision work. Neither the framing pass nor a separately
-triggered load widens review scope or authorizes patching.
+The framing pass does not widen review scope or authorize patching.
 
 Review authority:
 Findings-first (the Review Prompt Defaults default in

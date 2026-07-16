@@ -42,6 +42,7 @@ DIFF_BASE_RESOLVERS = (
     ("check_prompt_output_mode.py", "resolve_base_ref", False),
     ("check_review_summary.py", "resolve_base_ref", False),
     ("check_hash_pin_freshness.py", "resolve_base_ref", False),
+    ("check_shared_helper_duplication.py", "resolve_base_ref", False),
     ("check_full_gt_claims.py", "resolve_base_ref", False),
 )
 
@@ -220,6 +221,14 @@ def test_codex_apply_patch_guard_checks_all_payload_fields() -> None:
     for payload_key in ("command", "patch", "input"):
         reason = guard._check_apply_patch_paths({payload_key: patch_text})
         assert "EP-01 protected-path write" in reason
+
+    # Allow path: a benign repository target must pass through every payload
+    # field, so a regression that denies all apply_patch calls cannot pass.
+    benign_target = REPO_ROOT / "docs" / "x.md"
+    benign_patch = patch_text.replace(str(protected_target), str(benign_target))
+    for payload_key in ("command", "patch", "input"):
+        assert guard._check_apply_patch_paths({payload_key: benign_patch}) == ""
+
 
 def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> None:
     routing = DECISION_ROUTING_PATH.read_text(encoding="utf-8")
