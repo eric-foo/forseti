@@ -24,6 +24,7 @@ stale_if:
 ## Scan Intake Receipt
 
 ```yaml
+scan_receipt_version: 1
 commission_id: fragrance_native_db_live_probe_v0
 scan_date: 2026-06-29
 mode: forward

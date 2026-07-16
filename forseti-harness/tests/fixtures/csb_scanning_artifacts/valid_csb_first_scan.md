@@ -15,6 +15,7 @@ authority_boundary: retrieval_only
 ## Scan Intake Receipt
 
 ```yaml
+scan_receipt_version: 1
 commission_id: fixture_csb_first_scan
 scan_date: 2026-06-23
 mode: forward
