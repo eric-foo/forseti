@@ -100,16 +100,24 @@ belongs in core, satellite, deferred runtime, or another layer.
    source-access authority, armory components, packet lifecycle, source families,
    harness implementation, source-quality support) in one hop, plus the current
    bounded Reddit pre-commercial ordering.
-2. **What a packet must preserve:** open the obligation contract, then the
+2. **Lake-first radar preflight:** before external capture in a recurring or
+   actively radarred source family, inspect the relevant Silver/current view,
+   then packet or catalog inventory, then raw material when necessary. Reuse an
+   appropriate existing packet unless recapture materially improves currentness,
+   fidelity, provenance, cutoff compliance, inspectability, or fills a named
+   gap. Lake inspection is not proof of current external reality; absence from
+   Silver is not absence from the lake or the world, and a missing read model
+   does not block acquisition.
+3. **What a packet must preserve:** open the obligation contract, then the
    blueprint, for capture obligations, discharge states, and the ECR handoff
    boundary.
-3. **Method + tooling:** open the Source Capture Toolbox (Armory) README for
+4. **Method + tooling:** open the Source Capture Toolbox (Armory) README for
    source-access method, the anti-block ladder, the packet core, and
    source-quality support.
-4. **A known platform:** open the source-families catalog for the owning family
+5. **A known platform:** open the source-families catalog for the owning family
    index and its runner / projection / lake / cleaning seams. If a source has no
    row there, treat it as a new-source probe under the Source Capture Playbook.
-5. **Standing durability indicators:** open the demand-durability-indicators
+6. **Standing durability indicators:** open the demand-durability-indicators
    layer only for recurring price / availability / search-interest / review-
    velocity capture profiles; these are indicator capture profiles, not demand
    proof.
@@ -128,6 +136,11 @@ This front door — and the Capture spine it indexes — does **not** authorize:
   claims;
 - implementation authorization for any code root — that requires an explicit
   bounded grant in the current turn or an accepted handoff.
+
+Capture fulfills a bounded request or returns typed failure/route exhaustion.
+It does not decide evidence-world completeness, marginal acquisition closure,
+or final packet inclusion. No number of captures or targets establishes
+completion.
 
 ## Automatic Checks / Enforcement
 
