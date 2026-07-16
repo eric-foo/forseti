@@ -34,6 +34,7 @@ validator = _load_validator()
         "valid_source_backed_forward_output.txt",
         "valid_adjacent_research_proof_output.txt",
         "valid_company_competitive_intelligence_output.txt",
+        "valid_company_commission_stage_output.txt",
     ],
 )
 def test_valid_commission_signal_board_outputs_pass(fixture_name: str) -> None:
@@ -518,3 +519,35 @@ def test_board_status_values_are_constrained() -> None:
 
     assert "invalid_board_status" in codes
     assert "invalid_run_boundary" in codes
+
+
+def test_commission_stage_company_board_passes() -> None:
+    text = (FIXTURE_DIR / "valid_company_commission_stage_output.txt").read_text(encoding="utf-8")
+    assert validator.validate_text(text) == []
+
+
+def test_commission_scout_status_requires_commission_boundary() -> None:
+    text = _valid_company_text().replace(
+        "  quora_scout_status: experimental_checked_zero_yield",
+        "  quora_scout_status: commissioned_not_yet_run",
+        1,
+    )
+    assert "commission_scout_status_outside_commission_stage" in _company_codes(text)
+
+
+def test_commission_boundary_requires_open_coverage() -> None:
+    text = _valid_company_text().replace(
+        "  run_boundary: COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION",
+        "  run_boundary: COMMISSION_SEALED_PRE_SCAN",
+        1,
+    )
+    assert "commission_stage_without_open_coverage" in _company_codes(text)
+
+
+def test_company_scout_status_enums_are_constrained() -> None:
+    text = _valid_company_text().replace(
+        "  reddit_scout_status: checked_zero_yield",
+        "  reddit_scout_status: probably_checked_somewhere",
+        1,
+    )
+    assert "invalid_reddit_scout_status" in _company_codes(text)

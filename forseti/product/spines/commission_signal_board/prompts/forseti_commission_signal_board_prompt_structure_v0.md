@@ -815,8 +815,8 @@ completion_ledger:
   candidate_status: candidate_only_not_imported
   completeness_policy: necessary_complete_no_arbitrary_caps
   hidden_venue_discovery: category_aware
-  reddit_scout_status: checked_positive_yield | checked_zero_yield | blocked_with_typed_gap
-  quora_scout_status: experimental_checked_positive_yield | experimental_checked_zero_yield | blocked_with_typed_gap | not_required
+  reddit_scout_status: checked_positive_yield | checked_zero_yield | blocked_with_typed_gap | commissioned_not_yet_run
+  quora_scout_status: experimental_checked_positive_yield | experimental_checked_zero_yield | blocked_with_typed_gap | not_required | commissioned_not_yet_run
   customer_community_boundary: external_evidence_not_representative_demand_or_internal_fact
   deep_competitor_treatment: separate_named_follow_up_required
   classifier_handoff: omitted
@@ -843,13 +843,23 @@ completion_ledger:
       status: requested | complete | blocked
       description:
       source_surface:
-  run_boundary: COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION | INTAKE_ONLY | OWNER_DECISION_NEEDED
+  run_boundary: COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION | COMMISSION_SEALED_PRE_SCAN | INTAKE_ONLY | OWNER_DECISION_NEEDED
   next_authorized_step:
 ```
 
 Completeness is coverage of every required lens plus explicit typed gaps and
 requests, not a length, page, source-count, or observation cap. Remove
 duplication and ornament, not necessary completeness.
+
+Commission-stage rule: a company board sealed **before** its scan executes uses
+`run_boundary: COMMISSION_SEALED_PRE_SCAN`. That boundary is valid only while
+the coverage ledger still contains `status: not_checked` rows (the commissioned
+scan routes). At that stage `reddit_scout_status` and `quora_scout_status` may
+use `commissioned_not_yet_run`; those values are invalid under any other run
+boundary, and a completed company report must replace them with the earned
+checked/blocked values. `COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION`
+remains the completed-report boundary; it may still carry `not_checked` rows
+only as explicitly typed gaps.
 
 ## Final Rules
 
@@ -883,6 +893,56 @@ COMMISSION INPUTS FOLLOW:
 ````
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The company competitive-intelligence completion ledger gains commission-stage
+    vocabulary: run_boundary COMMISSION_SEALED_PRE_SCAN and scout status
+    commissioned_not_yet_run, valid only while the coverage ledger still carries
+    not_checked rows. A sealed pre-scan commission can now state its lifecycle
+    truthfully instead of borrowing the completed-report boundary. The validator
+    now also enforces scout-status enums and the stage coupling. Origin: finding
+    AR-07 of the 2026-07-17 Tower 28 adversarial artifact review.
+  trigger: output_authority
+  related_triggers:
+    - validation_philosophy
+  controlling_sources_updated:
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - forseti-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - forseti-harness/tests/fixtures/commission_signal_board_outputs/valid_company_commission_stage_output.txt
+    - forseti-harness/tests/fixtures/commission_signal_board_outputs/bad_company_commission_scout_status_output.txt
+  downstream_surfaces_checked:
+    - forseti/product/spines/commission_signal_board/README.md
+    - forseti/product/spines/commission_signal_board/spine.yaml
+    - docs/research/forseti_beauty_tower28_company_intelligence_csb_v1.md
+  intentionally_not_updated:
+    - path: forseti/product/spines/commission_signal_board/README.md
+      reason: >
+        Canonical entry points and profile routing are unchanged; the README
+        does not restate completion-ledger enums.
+    - path: forseti/product/spines/commission_signal_board/spine.yaml
+      reason: >
+        The spine manifest lists artifacts, not enum vocabularies.
+  stale_language_search: >
+    rg -n "run_boundary|reddit_scout_status|quora_scout_status|COMMISSION_SEALED_PRE_SCAN|commissioned_not_yet_run"
+    forseti/product/spines/commission_signal_board
+    .agents/hooks/check_commission_signal_board_output.py
+    forseti-harness/tests docs/research/forseti_beauty_tower28_company_intelligence_csb_v1.md
+  stale_language_search_result: >
+    Executed 2026-07-17 after edits. Hits are the amended contract enums, the
+    commission-stage rule, the validator and test enforcement, this receipt,
+    and the Tower 28 commission artifact which now uses the commission-stage
+    vocabulary. No surface still forces a pre-scan commission to claim a
+    completed-report boundary.
+  non_claims:
+    - not validation or readiness
+    - not scanning or capture authorization
+    - not a change to profile routing, classifier boundaries, or recency doctrine
+```
 
 ```yaml
 direction_change_propagation:

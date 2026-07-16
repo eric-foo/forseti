@@ -248,8 +248,24 @@ COMPANY_AGE_ANCHOR_BASES = {
 }
 COMPANY_RUN_BOUNDARIES = {
     "COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION",
+    "COMMISSION_SEALED_PRE_SCAN",
     "INTAKE_ONLY",
     "OWNER_DECISION_NEEDED",
+}
+COMMISSION_STAGE_RUN_BOUNDARY = "COMMISSION_SEALED_PRE_SCAN"
+COMMISSION_STAGE_SCOUT_STATUS = "commissioned_not_yet_run"
+COMPANY_REDDIT_SCOUT_STATUSES = {
+    "checked_positive_yield",
+    "checked_zero_yield",
+    "blocked_with_typed_gap",
+    COMMISSION_STAGE_SCOUT_STATUS,
+}
+COMPANY_QUORA_SCOUT_STATUSES = {
+    "experimental_checked_positive_yield",
+    "experimental_checked_zero_yield",
+    "blocked_with_typed_gap",
+    "not_required",
+    COMMISSION_STAGE_SCOUT_STATUS,
 }
 COMPANY_SOURCE_CLASSES = {
     "official_first_party",
@@ -1068,6 +1084,46 @@ def _validate_company_completion(
         findings.append(
             Finding("missing_company_next_authorized_step", "completion_ledger must include next_authorized_step.")
         )
+
+    reddit_scout = _normalize_vocab(completion.get("reddit_scout_status"))
+    quora_scout = _normalize_vocab(completion.get("quora_scout_status"))
+    if reddit_scout not in COMPANY_REDDIT_SCOUT_STATUSES:
+        findings.append(
+            Finding(
+                "invalid_reddit_scout_status",
+                "reddit_scout_status must be one of "
+                + ", ".join(sorted(COMPANY_REDDIT_SCOUT_STATUSES))
+                + f"; got {completion.get('reddit_scout_status') or '<blank>'}.",
+            )
+        )
+    if quora_scout not in COMPANY_QUORA_SCOUT_STATUSES:
+        findings.append(
+            Finding(
+                "invalid_quora_scout_status",
+                "quora_scout_status must be one of "
+                + ", ".join(sorted(COMPANY_QUORA_SCOUT_STATUSES))
+                + f"; got {completion.get('quora_scout_status') or '<blank>'}.",
+            )
+        )
+    commission_stage = run_boundary == COMMISSION_STAGE_RUN_BOUNDARY
+    if commission_stage and not any(
+        _normalize_vocab(row.get("status")) == "not_checked" for row in coverage.values()
+    ):
+        findings.append(
+            Finding(
+                "commission_stage_without_open_coverage",
+                "COMMISSION_SEALED_PRE_SCAN is valid only while the coverage ledger still contains not_checked rows.",
+            )
+        )
+    if not commission_stage:
+        for label, value in (("reddit_scout_status", reddit_scout), ("quora_scout_status", quora_scout)):
+            if value == COMMISSION_STAGE_SCOUT_STATUS:
+                findings.append(
+                    Finding(
+                        "commission_scout_status_outside_commission_stage",
+                        f"{label} commissioned_not_yet_run is valid only under run_boundary COMMISSION_SEALED_PRE_SCAN.",
+                    )
+                )
 
     lens = completion.get("required_lens_coverage")
     if not isinstance(lens, dict) or set(lens) != COMPANY_LENS_KEYS:
