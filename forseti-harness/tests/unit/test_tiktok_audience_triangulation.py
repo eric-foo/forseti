@@ -11,6 +11,7 @@ import pytest
 
 from capture_spine.creator_profile_current.tiktok_comment_attention_producer import (
     COMMENT_ATTENTION_LANE,
+    COMMENT_ATTENTION_POLICY_FINGERPRINT,
     build_comment_attention_records,
 )
 from evidence_binding.tiktok_audience_triangulation import (
@@ -33,17 +34,23 @@ from judgment.tiktok_audience_triangulation import (
 )
 from data_lake.root import DataLakeRoot
 from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    SilverRecordError,
     SilverSourceAuthority,
     append_silver_record,
+    classify_silver_vault_record_sources,
     silver_content_hash,
+    validate_silver_vault_record_for_write,
 )
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
 from runners.run_creator_profile_current_materialize import _verify_audience_judgment_outcomes
 from runners.run_tiktok_creator_audience_triangulation import (
     _silver_eligibility_residual,
     prepare_subscription_judgment,
+    select_current_audience_silver_records,
     submit_subscription_judgment,
 )
+from _silver_compatibility_fixture_lake import materialize_fixture_lake
 import runners.run_tiktok_creator_audience_triangulation as triangulation_runner
 from runners.run_tiktok_creator_onboarding_coordinator import prepare_onboarding
 import runners.run_tiktok_creator_onboarding_coordinator as onboarding_coordinator
@@ -169,6 +176,56 @@ def test_silver_eligibility_preserves_historical_compatibility_reason(
         "status": "historical_compatible",
         "reason_code": "legacy_tiktok_comment_attention_v1_bytes_verified",
     }
+
+
+def test_known_time_tiktok_v1_stays_current_write_retired_and_policy_excluded(
+    tmp_path: Path,
+) -> None:
+    """Composed v1 regression (PR #1006 F-3): a known-time TikTok v1 record is
+    physically current_source_backed, is closed to new writes, and is excluded
+    by the current triangulation reader with a policy_mismatch residual, while
+    the null-time v1 sibling stays a historical_compatible residual."""
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    seeded = materialize_fixture_lake(root)
+    null_time, _null_path = seeded["tiktok_comment_attention_v1"]
+    known_time = copy.deepcopy(null_time)
+    known_time["record_id"] = "comment_attention_known_time_fixture.json"
+    known_time["observed_at"] = known_time["payload"]["observation"]["temporal_pairing"][
+        "video_stats_observed_at"
+    ]
+    known_time["content_hash"] = f"sha256:{silver_content_hash(known_time)}"
+
+    authority = classify_silver_vault_record_sources(root, known_time)
+    assert authority.status == CURRENT_SOURCE_BACKED_AUTHORITY
+
+    with pytest.raises(SilverRecordError, match="read-only compatibility"):
+        validate_silver_vault_record_for_write(known_time)
+
+    v1_fingerprint = known_time["provenance"]["policy_fingerprint_sha256"]
+    assert v1_fingerprint != COMMENT_ATTENTION_POLICY_FINGERPRINT
+
+    attention, grid, residuals = select_current_audience_silver_records(
+        data_root=root,
+        comment_attention_records=[known_time, null_time],
+        grid_observation_records=[],
+    )
+    assert attention == []
+    assert grid == []
+    assert residuals == [
+        {
+            "lane": COMMENT_ATTENTION_LANE,
+            "record_id": known_time["record_id"],
+            "status": "policy_mismatch",
+            "actual_policy_version": "tiktok_comment_attention_ratio_v1",
+            "actual_policy_fingerprint_sha256": v1_fingerprint,
+        },
+        {
+            "lane": COMMENT_ATTENTION_LANE,
+            "record_id": null_time["record_id"],
+            "status": "historical_compatible",
+            "reason_code": "legacy_tiktok_comment_attention_v1_bytes_verified",
+        },
+    ]
 
 
 def _validated_submission(tmp_path: Path) -> tuple[Path, Path]:
