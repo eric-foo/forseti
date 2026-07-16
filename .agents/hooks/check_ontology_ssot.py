@@ -32,6 +32,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 ONT_DIR = "forseti/product/spines/foundation/ontology"
 YAML_REL = ONT_DIR + "/ontology.yaml"
 BACKLOG_REL = ONT_DIR + "/ontology_expansion_backlog_v0.json"
@@ -40,11 +43,6 @@ BACKBONE_REL = ONT_DIR + "/forseti_ontology_backbone_architecture_v0.md"
 VALID_STATUS = {"adopted", "reserved"}
 # Backbone section 2.2 roster rows: "| <n> | **<Type>** | ... |"
 _ROSTER_RE = re.compile(r"^\|\s*\d+\s*\|\s*\*\*(\w+)\*\*", re.M)
-
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
 
 
 def deferred_names(raw) -> set[str]:
