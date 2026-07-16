@@ -38,6 +38,17 @@ corrections:
   acquirable, with purchase effort governed by how badly the decision needs the
   fact;
 - use the **smallest complete** evidence world, not a universal minimum report;
+- include a CSB or Scanning item only for a named decision-material job when no
+  equal-or-better included item substitutes for it;
+- continue acquisition only while the best remaining move has expected decision
+  value that materially exceeds marginal cost, latency, access risk, and
+  duplication;
+- close acquisition only when every material requirement is answered,
+  contradicted, held as a typed gap, or has no remaining non-dominated path
+  worth its marginal burden;
+- inspect the Data Lake before external Scanning or Capture in recurring or
+  actively radarred source families, using Silver/current view first, then
+  packet/catalog inventory, then raw material when necessary;
 - keep compound concepts split into the precise underlying facts that can
   actually be observed or inferred; and
 - keep the architecture compatible with later Company Surface import without
@@ -143,6 +154,18 @@ It excludes material that merely makes the report feel comprehensive.
 answer. A smallest-complete evidence world may still be large when the decision
 is consequential or the evidence is conflicted.
 
+No numeric source, row, observation, venue, or capture target establishes this
+completeness. Collection targets are search hygiene only. Each included item
+must perform a named decision-material job and must not be substitutable by an
+equal-or-better included item.
+
+Scanning owns acquisition closure. It continues only while the best remaining
+move has a credible chance of changing the action, action ceiling, rival
+assessment, or hold condition enough to justify marginal cost, latency, access
+risk, and duplication. It closes only when every material requirement is
+answered, contradicted, held as a typed gap, or has no remaining non-dominated
+acquisition path whose expected decision value materially exceeds those costs.
+
 ## Architecture Layers
 
 ### Layer 1 — Decision frame
@@ -168,7 +191,9 @@ Translate the decision into atomic facts. Each required fact records:
 | --- | --- |
 | `fact_id` | Stable identifier inside the commission |
 | `underlying_fact` | The exact thing that must be known |
+| `information_job` | The named decision-material job this fact or route performs |
 | `decision_use` | Which action, threshold, or uncertainty it may change |
+| `decision_effect` | Action, action ceiling, rival assessment, or hold condition it could change |
 | `criticality` | Controlling, material, supporting, or descriptive |
 | `preferred_measurement` | What direct evidence would look like |
 | `acceptable_proxy` | Explicit fallback, if one can validly inform the decision |
@@ -179,6 +204,7 @@ Translate the decision into atomic facts. Each required fact records:
 | `access_options` | Open, paid/entitled, authorized internal, or unavailable |
 | `rights_requirement` | Inspect, preserve, quote, share, or redistribute need |
 | `missing_behavior` | Proceed, narrow, probe, or hold when absent |
+| `substitution_test` | Equal-or-better included fact or route that would make this item dominated |
 | `refresh_eligibility` | Whether later change in this fact can affect a recurring decision |
 
 Compound labels such as `demand durability`, `channel health`, or `execution
@@ -197,6 +223,20 @@ For example, `demand durability` might require separate facts about:
 ### Layer 3 — Evidence acquisition
 
 Choose sources after the facts are named.
+
+For a recurring or actively radarred source family, inspect the existing Data
+Lake before external Scanning or Capture through the highest-trustworthy
+current read surface available:
+
+1. relevant Silver/current view;
+2. packet or catalog inventory;
+3. raw material when necessary.
+
+This is a reuse, freshness, and coverage preflight, not proof of current
+external reality. Route external acquisition only to net-new, stale,
+incomplete, conflicting, or source-fidelity gaps. Absence from Silver is not
+absence from the lake or the external world, and lack of a relevant read model
+must not block acquisition.
 
 Open and paid web sources are both eligible. The decision to buy access should
 be based on:
@@ -219,8 +259,14 @@ does not remove source-specific legal, contractual, technical, or evidentiary
 limits.
 
 CSB may specify the information requirements and source-family coverage.
-Scanning discovers valuable venues, exact queries, hidden sources, negatives,
-and access walls. Capture owns lawful acquisition and preservation routes.
+CSB defines material information jobs and candidate routes; it does not freeze a
+participant packet. Scanning discovers valuable venues, exact queries, hidden
+sources, negatives, and access walls, records dominance, and owns marginal
+acquisition choice and closure. Capture fulfills bounded requests or reports
+typed failure/route exhaustion; it does not decide evidence-world completeness
+or final packet inclusion. Capture reuses appropriate existing lake packets
+before recapture unless reacquisition materially improves currentness, fidelity,
+provenance, cutoff compliance, inspectability, or fills a named gap.
 Downstream evidence owners preserve provenance, transformations, conflicts,
 and limitations.
 
@@ -429,6 +475,10 @@ This architecture is functioning when:
    importing GTM or decision judgment.
 7. Longitudinal refresh is attached only to variables with a named decision
    trigger and action.
+8. Acquisition closes by material requirements and non-dominated expected
+   decision value, never by a source, row, observation, venue, or capture count.
+9. Recurring/radarred families reuse the lake first without confusing lake state
+   with current external truth.
 
 ## Explicit Non-Claims
 
@@ -506,4 +556,105 @@ direction_change_propagation:
     - not source-access or purchase authorization
     - not Company Surface implementation
     - not buyer proof or willingness-to-pay proof
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Company-intelligence acquisition now uses job-based inclusion,
+    non-dominated expected-decision-value continuation and closure, and a
+    lake-first reuse/freshness/coverage preflight for recurring or actively
+    radarred source families; CSB defines jobs/routes without freezing a packet,
+    Scanning owns marginal acquisition and closure, and Capture fulfills bounded
+    requests or returns typed exhaustion while reusing suitable lake packets
+    before justified recapture.
+  trigger: architecture_doctrine
+  related_triggers:
+    - product_doctrine
+    - workflow_authority
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - docs/decisions/forseti_company_intelligence_information_architecture_v0.md
+    - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
+    - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
+    - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+    - forseti/product/spines/commission_signal_board/README.md
+    - forseti/product/spines/scanning/README.md
+    - forseti/product/spines/scanning/scan_core/forseti_scanning_intelligent_walk_mgt_operating_model_v0.md
+    - forseti/product/spines/capture/README.md
+    - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/retrieval-metadata.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - .agents/hooks/check_commission_signal_board_output.py
+    - .agents/hooks/check_csb_scanning_artifact.py
+    - forseti-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - forseti-harness/tests/unit/test_csb_scanning_artifact_validator.py
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The change is bounded to company-intelligence acquisition doctrine; no
+        repeated cross-domain defect justifies changing the global Smallest
+        Complete Intervention kernel.
+    - path: CSB and Scanning validator code
+      reason: >
+        Existing checkers remain structural/overclaim guards. This work adds
+        judgment-based inclusion, dominance, lake-reuse, and closure rules that
+        are not mechanically truth-verifiable, so no semantic ceremony was added.
+    - path: Packing Spine
+      reason: >
+        Packet assembly and final inclusion design are outside this work unit.
+    - path: e.l.f. backtest artifacts
+      reason: >
+        The architecture example remains historical context; the backtest was
+        not continued or modified.
+    - path: Reddit Silver lane claims
+      reason: >
+        No mature Reddit Silver lane is asserted without primary-source
+        verification.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        Its current routes already open the company-intelligence decision,
+        Scanning front door, Capture method, source-family catalog, and Silver
+        authority. The phrase "complete venue coverage" is confined to a
+        historical bounded Reddit pressure-test state and points to its owning
+        control note; it is not general evidence-world or acquisition-closure
+        doctrine.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        Its T1 routes already distinguish company intelligence, Scanning,
+        Capture/source families, and Silver authority. No owner or path moved.
+  stale_language_search: >
+    rg -n -i "source count|source-count|observation count|venue count|capture
+    target|minimum sources|at least [0-9]+|quota|coverage target|mandatory
+    Reddit|requires a bounded Reddit|completion.*(source|row|observation|venue|
+    capture)|authorized target is met"
+    forseti/product/spines/commission_signal_board
+    forseti/product/spines/scanning
+    forseti/product/spines/capture/README.md
+    forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+    docs/decisions/forseti_company_intelligence_information_architecture_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-17 across the nine affected authority files. Remaining
+    quota/count hits are explicit prohibitions, structural promotion/schema
+    language, the validator-compatible `mandatory_bounded_scout` row token, or
+    this receipt's search literal. No live affected authority treats a numeric
+    source, row, observation, venue, query, or capture-target count as inclusion
+    or acquisition closure. Structural section counts, recency windows, run
+    caps, temporal gates, source-independence checks, and schema fields remain
+    because they govern output shape, safety, validity, or claim strength rather
+    than collection completion.
+  non_claims:
+    - not validation or readiness
+    - not proof of current external source reality
+    - not Packing Spine design or implementation
+    - not final packet inclusion or freeze
+    - not source-access, capture, or implementation authorization
 ```
