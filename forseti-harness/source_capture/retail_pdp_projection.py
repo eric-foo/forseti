@@ -1631,6 +1631,7 @@ def _html_attr_value(tag: str, attr_name: str) -> str | None:
 
 
 def _string_or_none(value: object) -> str | None:
+    # helper-delta: does not strip and also renders float/bool, unlike harness_utils.string_or_none.
     if value is None:
         return None
     if isinstance(value, (str, int, float)):

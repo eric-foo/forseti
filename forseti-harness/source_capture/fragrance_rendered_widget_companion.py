@@ -945,6 +945,7 @@ def _rating_count_pattern(text: str) -> bool:
     return bool(re.search(r"\b\d(?:\.\d{1,2})?\s*\(\d+\)", text))
 
 def _int_or_none(value: object) -> int | None:
+    # helper-delta: int(float(...)) truncation, no comma stripping, accepts bool/signed strings, unlike harness_utils.int_or_none.
     if value is None or value == "":
         return None
     try:
