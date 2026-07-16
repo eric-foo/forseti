@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "review_id": "company-surface-silver-architecture-planning-review-v0",
+  "review_report_path": "docs/review-outputs/adversarial-artifact-reviews/company_surface_silver_architecture_planning_adversarial_review_v0.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "unrecorded",
+  "authored_by": "unrecorded",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "OpenAI Codex / GPT-5",
+  "accepted_net_new_material_findings": 7,
+  "decision_changed": "yes",
+  "closure_state": "closed",
+  "report_lines": 308,
+  "turn_count": 1,
+  "evidence_pointers": [
+    "docs/review-outputs/adversarial-artifact-reviews/company_surface_silver_architecture_planning_adversarial_review_v0.md",
+    "forseti/product/information/company_surface/company_identity_boundary_v0.md",
+    "forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md",
+    "forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md"
+  ],
+  "completed_at": "2026-07-15"
+}
