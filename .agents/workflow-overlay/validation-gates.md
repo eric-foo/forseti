@@ -73,13 +73,13 @@ inherit this floor.
 
   | Commission state | Acceptance result | Required evidence or recovery |
   | --- | --- | --- |
-  | Current work unit in its selected branch/worktree | `accepted` once | The task's registered root is the sole writable root; reuse through landing while receiver/root/target/material state remain unchanged. No synthetic write/index probe or hook canary. |
+  | Current actor in its selected branch/worktree | `accepted` after one snapshot | Observe exact target, revision and dirty state, and no competing writer. Continue unless a required tool actually denies access; launch-root mismatch alone is not failure. No synthetic write/index probe or hook canary. |
   | New managed-worktree receiver | `accepted` once after creation | The task is created and rooted in its app-managed worktree under explicit task-creation authority; exact/ancestor and dirty-state rules still apply. |
   | External controller targeting another worktree | `accepted` once after verification | Unique exact target and byte identity when dirty; demonstrated direct write; target-rooted operation; no concurrent writer. |
   | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
-  | Local/base-rooted Codex task with command-level `workdir` set to another worktree | `blocked` | A per-command directory override does not change task, hook, sandbox-root, or receiver identity; create the correctly rooted managed task. |
+  | Same actor targeting its selected worktree from another launch checkout | `accepted` after the target snapshot | A directory override does not expand a collaboration subagent's sandbox, but launch-root mismatch alone is not failure. Reroot only after an observed required-tool denial or root-bound feature mismatch. |
   | Unknown future/manual courier | `preparation_allowed`, dispatch and source loading `blocked` | Keep `receiver_class: receiver_to_bind`; bind and verify a concrete receiver before claiming dispatch readiness. |
-  | Wrongly launched Codex task that creates or finds another worktree | route or `BLOCKED_RECEIVER_REROOT_REQUIRED` | Automatically use an already-authorized capable managed task; block only when none exists or new authority is required. |
+  | Observed target ambiguity, required-tool denial, or root-bound feature mismatch | route or `BLOCKED_RECEIVER_REROOT_REQUIRED` | Reroot only when the mismatch is real and no already-authorized capable route exists. |
   | Dirty, ambiguous, byte-mismatched, or concurrently written target | `blocked` | Resolve exact target/state and eliminate concurrent writing; missing evidence is not a pass. |
 
   The binding is re-resolved only when receiver/task/root or material target
@@ -87,8 +87,7 @@ inherit this floor.
   dirty-state change invalidates it. This matrix accepts semantic user
   authorization for a new task or handoff when the visible instruction
   explicitly requests it; generic `proceed` alone is
-  not task-creation authority. It does not weaken the Codex registered non-
-  current-worktree denial or turn receipt fields into self-certifying proof.
+  not task-creation authority. Receipt fields remain evidence pointers, not self-certifying proof.
   For clean repo-changing receivers, the `revision_mode` assertions are exact:
   `exact` requires a clean worktree and `HEAD == required_revision`; `ancestor`
   requires a clean worktree and a zero exit from
@@ -102,6 +101,7 @@ inherit this floor.
   or `docs/review-outputs/`, or a shape-valid `review_routing_status:` line in
   one of the change's commit messages:
   `review_routing_status: routed <existing docs/prompts/reviews/... or docs/review-outputs/... path>`,
+  `review_routing_status: routed -- chat_only_adjudicated: <review return and adjudication disposition>`,
   `review_routing_status: blocked -- <reason>`, or
   `review_routing_status: not_needed -- <reason>`.
   A carried recommended or required adversarial review may close only as
@@ -347,15 +347,14 @@ triggers, not permission to add a telemetry ledger or silently change scope.
   `.agents/workflow-overlay/prompt-orchestration.md`.
 - Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Forseti overlay file.
 - Source-resolution gate: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy must not be imported.
-- Writable-root gate: same-lane prompts point to the active one-time binding;
-  they do not repeat root receipts, write/index probes, canaries, or capability
-  recitals. A new/external receiver or changed binding carries the class-specific
-  evidence in `decision-routing.md`. Only `external_direct_write` may use the
-  two-root route; collaboration is same-root; an unknown courier is preparation-
-  only. Naming or reading another worktree is not a reroot. A pre-edit mismatch
-  routes automatically to an already-authorized managed task when available and
-  returns `BLOCKED_RECEIVER_REROOT_REQUIRED` only when no capable authorized
-  route exists or a new binding cannot be established.
+- Effective-target gate: same-lane prompts point to the active one-time target
+  snapshot and do not repeat root receipts, probes, canaries, or capability
+  recitals. The current actor may continue against its selected worktree when
+  launch and target roots differ. New/external receivers carry class-specific
+  evidence; collaboration remains same-root and unknown couriers preparation-
+  only. Reroot only after observed ambiguity, required-tool denial, root-bound
+  feature mismatch, or writer conflict leaves no authorized capable path.
+
   The mechanically checkable commission shell is enforced by the existing
   `.agents/hooks/check_prompt_output_mode.py`: changed filed prompts use its
   diff-scoped `--strict` mode, and chat/courier authoring gates the frozen
@@ -517,14 +516,13 @@ truth (cf. the receipt-field provenance gate above). The per-rule
 classification and the owner gate for building each substrate live in
 `docs/decisions/overlay_enforcement_placement_classification_v0.md`.
 
-Receiver-mechanism selection is one such judgment rule: whether a commission is
-read-only, safe same-root contribution, or an independent repo-changing lane
-depends on the requested act and live harness capability. The existing Codex
-adapter deterministically blocks registered non-current-worktree writes at the
-write boundary. An independent external controller may use a different launch
-checkout only when it proves direct access to the exact effective target under
-the owning two-root rule. Do not add a registry, daemon, or static prompt
-checker that pretends it can prove a future receiver's runtime capability.
+Receiver selection is one such judgment rule: whether a commission is read-only,
+a same-actor work unit in selected isolation, or an independent repo-changing
+lane depends on the requested act and live capability. Deterministic enforcement
+remains at protected actions, exact or dirty-byte identity, and actual tool or
+sandbox denial; do not add a blanket path-location guard that treats a valid
+selected worktree as an error. An independent external controller still proves
+direct access to the exact target once.
 
 The Codex live adoption probe remains available only when hook adoption testing
 is itself commissioned. In that test it is a fail-closed runtime assertion:
@@ -623,8 +621,9 @@ change validation; `--selftest` present.
 EP-35). Diff-scoped, forward-only CI gate plus a local commit-msg advisory: a
 change touching code roots must carry its review disposition — a review
 artifact filed in the same change, or a shape-valid `review_routing_status`
-line (grammar owned by the Current Gates bullet above), with `routed` paths
-verified to exist. Born from the 2026-07-02 fused-lane audit: most fused
+line (grammar owned by the Current Gates bullet above), with path-routed targets
+verified to exist and chat-only adjudication carrying a non-empty durable
+disposition rather than duplicated findings. Born from the 2026-07-02 fused-lane audit: most fused
 implementation lanes closed without filing the delegated-review handoff their
 contract carried, several claimed it in commit prose without filing it, and
 the disposition lived only in chat where nothing durable could check it
