@@ -40,6 +40,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 WRITE_METHODS = {"append_record", "append_record_set"}
 LANE_KEYWORDS = {"lane", "completion_lane"}
 
@@ -62,10 +65,6 @@ class Unresolved:
 class WriteCall:
     call: ast.Call
     enclosing_function: str | None
-
-
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
 
 
 def _load_registry(root: Path):

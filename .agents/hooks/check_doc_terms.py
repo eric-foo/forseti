@@ -49,6 +49,9 @@ import sys
 from pathlib import Path
 from typing import NamedTuple
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 YAML_REL = "forseti/product/spines/foundation/ontology/ontology.yaml"
 CORPUS_REL = "forseti/product"
 ONTOLOGY_HOME_REL = "forseti/product/spines/foundation/ontology"  # the term home (excluded)
@@ -58,11 +61,6 @@ ONTOLOGY_HOME_REL = "forseti/product/spines/foundation/ontology"  # the term hom
 # (Brand), NOT acronyms (HTTP), NOT lowercase-leading identifiers.
 _CAMEL_TOKEN_RE = re.compile(r"\b[A-Z][a-z]+(?:[A-Z][a-z]+)+\b")
 _HUMP_RE = re.compile(r"[A-Z][a-z]+")
-
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
 
 
 # ---------------------------------------------------------------------------

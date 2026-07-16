@@ -27,6 +27,9 @@ from typing import Any, Iterable
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 YAML_FENCE_RE = re.compile(r"```yaml\s*(?P<body>.*?)\s*```", re.IGNORECASE | re.DOTALL)
 HEADING_RE = re.compile(r"^##\s+", re.MULTILINE)
 MOVE_ID_RE = re.compile(r"\bM\d{2,}\b")
@@ -1119,11 +1122,7 @@ def validate_text(text: str) -> list[Finding]:
     return findings
 
 
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
-
+# Kept local: returns None on git failure (callers distinguish infra gap from empty), unlike _hooklib.git_lines.
 def _git_lines(root: Path, args: list[str]) -> list[str] | None:
     try:
         result = subprocess.run(
@@ -1193,6 +1192,7 @@ def looks_like_csb_first_scan_artifact(relposix: str, text: str) -> bool:
     return explicit_version_marked or (route_marked and current_shape_marked)
 
 
+# Kept local: different contract from _hooklib.to_relposix (never None; falls back to backslash-normalized str).
 def _relposix(root: Path, path: Path) -> str:
     try:
         return path.resolve().relative_to(root.resolve()).as_posix()

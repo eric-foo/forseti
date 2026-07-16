@@ -23,6 +23,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 ZERO = "0" * 40
 MAIN_REFS = {"main", "refs/heads/main"}
 
@@ -54,11 +57,6 @@ SELECTED_GATE_AUTHORITY = (
     ".agents/workflow-overlay/validation-gates.md (Enforcement Placement); "
     "these mirror the CI gates in .github/workflows/ci.yml."
 )
-
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
 
 
 def _is_ancestor(remote_sha: str, local_sha: str) -> int:

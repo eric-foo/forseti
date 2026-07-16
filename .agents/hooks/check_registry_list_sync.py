@@ -29,8 +29,13 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 import re
-import subprocess
 import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    git_lines,
+    repo_root,
+)
 
 ENGAGEMENT_REGISTRY = "forseti/product/shared/engagement_registry/engagement_logic_registry_v0.md"
 FOUNDATION = "forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md"
@@ -65,10 +70,7 @@ SIGNAL_USE_BINDING = Binding(
 BINDINGS = (SIGNAL_USE_BINDING,)
 
 
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
+# Kept local: drifted from _hooklib.to_relposix (no empty/rooted-path -> None handling; FIND-01 class).
 def to_relposix(target: str, root: Path) -> str | None:
     path = Path(target)
     if path.is_absolute():
@@ -78,20 +80,6 @@ def to_relposix(target: str, root: Path) -> str | None:
             return None
     value = path.as_posix()
     return value[2:] if value.startswith("./") else value
-
-
-def git_lines(root: Path, args: list[str]) -> list[str]:
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(root), *args],
-            capture_output=True,
-            text=True,
-        )
-    except (FileNotFoundError, OSError):
-        return []
-    if result.returncode != 0:
-        return []
-    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
 def staged_paths(root: Path) -> list[str]:
