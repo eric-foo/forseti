@@ -28,6 +28,15 @@ output to design the rest (harvest before cook) -- never just to look safe.
 abstractions, broad rewrites, extra workflow ceremony, or nice-to-have
 improvements.
 
+Weigh subtraction equally with addition. Additive fixes feel safe --
+nothing visibly breaks -- so unchecked drift runs additive and rules,
+steps, and surface only grow. When choosing the intervention, give
+removing or simplifying an existing rule, step, artifact, or special case
+the same standing as adding a new one, and when both satisfy the request,
+prefer the one that leaves the smaller total surface. This is a
+solution-choice rule inside the bound request: it never authorizes
+speculative cleanup beyond it, and removals keep their evidence gates.
+
 Watch for ceremony debt: the recurring process cost a change installs when
 it adds a required step, preflight, gate, receipt, field, checklist, sync
 obligation, or review pass that every future work unit must pay. A change
@@ -134,29 +143,24 @@ guard, and owner steering all stay.
   independently reports missing or invalid credentials; report escalation or
   network denial as an access blocker, not an authentication failure. Never print
   credentials or tokens.
-- **Open a circuit after one silent sandboxed tool stall.** Set a realistic
-  timeout from expected command duration plus launch allowance; absent better
-  evidence, use 20 seconds for reads or patches and 60 seconds for tests. If a
-  call yields only a running/deferred handle with no output, wait at most once
-  for any remaining original budget, then terminate it. Record one
-  `sandboxed_tool_stall` for that failed tool-plus-permission route and do not
-  probe the route again merely because the command differs. A user interruption,
-  follow-up message, or automatic continuation does not reset an open circuit;
-  if current context reports the stall, inherit it. Carry an open circuit's
-  `sandboxed_tool_stall` record in any precompact or handoff packet so the
-  receiving lane inherits it. Retry a safe in-scope operation at most once
-  through a distinct approved route and reuse that working
-  route for the task/thread. If the stalled operation might have written, inspect
-  only its intended targets once before any alternate mutation. Then perform at
-  most one bounded alternate mutation; `.agents/tools/atomic_exact_edit.py` is an
-  option for short exact edits, not mandatory infrastructure. A transport or
-  preflight rejection that proves no bytes changed may be corrected once or split
-  into file-scoped atomic edits. Do not reroot, reload sources, create another task
-  or worktree, or redo receiver ceremony because a tool stalled. Stop when the
-  mutation outcome is unknown, target state drifted, another writer appeared, a
-  real guard denied the action, or the distinct alternate route also stalls.
-  Verify the final diff. Completion through an alternate route is mitigation, not
-  proof that the ordinary tool route is repaired.
+- **Open a task-local circuit after one silent sandboxed tool stall.** Set a
+  realistic timeout from expected command duration plus launch allowance;
+  absent better evidence, use 20 seconds for reads or patches and 60 seconds for
+  tests. If a call yields only a running/deferred handle with no output, wait at
+  most once for any remaining original budget, then terminate it. Do not use
+  that tool-plus-permission route again in the current task merely because the
+  command differs or a user follow-up or automatic continuation occurs. If the
+  stalled operation might have written, inspect only its intended targets once
+  before any alternate mutation. Retry a safe in-scope operation at most once
+  through a distinct approved route and reuse that working route for the task.
+  Stop when mutation outcome is unknown, target state drifted, another writer
+  appeared, a real guard denied the action, or the distinct alternate route also
+  stalls. A fresh task is a new sandbox route and does not inherit a prior
+  task's circuit, even when carried context reports the earlier stall; the
+  separate-small-worktree launch shape is performance containment owned by
+  `.agents/workflow-overlay/decision-routing.md`, not a route-freshness
+  condition. Verify the final diff. Completion through an alternate route is
+  mitigation, not proof that the ordinary tool route is repaired.
 - **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.

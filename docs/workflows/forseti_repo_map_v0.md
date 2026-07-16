@@ -93,6 +93,7 @@ not changes to source precedence.
 | Source-capture access / anti-blocking components | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` |
 | ECR source-side orientation | `docs/workflows/ecr_spine_submap_v0.md` |
 | Judgment Spine orientation or claim/gate routing | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` |
+| Creator ideal audience or commercial creator-fit method | `forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md` |
 | Cross-spine research-engine grouping | `docs/workflows/forseti_research_engine_map_v0.md` |
 | Repo-map architecture and T1/T2/T3 boundary | `docs/decisions/forseti_repo_map_architecture_mgt_v0.md` |
 | Rename compatibility boundary | `docs/decisions/forseti_compatibility_migration_boundary_v0.md` |
