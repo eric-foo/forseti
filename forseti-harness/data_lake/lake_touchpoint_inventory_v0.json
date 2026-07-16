@@ -169,6 +169,12 @@
       "module": "data_lake/silver_record.py"
     },
     {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "data_lake/silver_record.py"
+    },
+    {
       "a2_fork_impact": "packet_index",
       "call": "load_attachment_record_body",
       "count": 1,

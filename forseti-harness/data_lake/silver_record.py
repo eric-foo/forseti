@@ -76,6 +76,13 @@ HISTORICAL_COMPATIBLE_AUTHORITY = "historical_compatible"
 INVALID_SILVER_AUTHORITY = "invalid"
 UNRESOLVED_SILVER_AUTHORITY = "unresolved"
 PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS = "source_backed_complete"
+RAW_PACKET_TOMBSTONE_LANE = "raw_packet_tombstone_silver"
+RAW_PACKET_TOMBSTONE_PRODUCER_ID = (
+    "forseti-harness.data_lake.silver_record.append_raw_packet_tombstone"
+)
+RAW_PACKET_TOMBSTONE_SCHEMA_VERSION = "raw_packet_tombstone_relationship_v0"
+RAW_PACKET_TOMBSTONE_SOURCE_SURFACE = "operator_retention_action"
+RAW_PACKET_TOMBSTONE_SCOPE = "public_consumption"
 
 
 @dataclass(frozen=True)
@@ -995,6 +1002,88 @@ def silver_content_hash(record: Mapping[str, Any]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def build_raw_packet_tombstone_record(
+    *,
+    retained_packet_id: str,
+    tombstoned_packet_id: str,
+    captured_at: str,
+    reason: str,
+) -> dict[str, Any]:
+    """Build an append-only relationship that removes one raw packet from public reads."""
+    retained = _require_non_empty_string(retained_packet_id, "retained_packet_id")
+    tombstoned = _require_non_empty_string(
+        tombstoned_packet_id, "tombstoned_packet_id"
+    )
+    recorded_at = _require_non_empty_string(captured_at, "captured_at")
+    disposition_reason = _require_non_empty_string(reason, "reason")
+    if retained == tombstoned:
+        raise SilverRecordError("A raw packet cannot tombstone itself.")
+    identity = "\0".join(
+        (retained, tombstoned, recorded_at, disposition_reason)
+    ).encode("utf-8")
+    record_id = (
+        f"raw_packet_tombstone_{hashlib.sha256(identity).hexdigest()[:24]}.json"
+    )
+    record: dict[str, Any] = {
+        "record_id": record_id,
+        "raw_anchor": retained,
+        "lane_namespace": RAW_PACKET_TOMBSTONE_LANE,
+        "producer_id": RAW_PACKET_TOMBSTONE_PRODUCER_ID,
+        "schema_version": SILVER_VAULT_RECORD_SCHEMA_VERSION,
+        "producer_schema_version": RAW_PACKET_TOMBSTONE_SCHEMA_VERSION,
+        "record_kind": "relationship",
+        "payload_kind": "RelationshipEdge",
+        "producer_row_kind": "raw_packet_tombstone",
+        "source_surface": RAW_PACKET_TOMBSTONE_SOURCE_SURFACE,
+        "observed_at": None,
+        "captured_at": recorded_at,
+        "raw_refs": [
+            {"ref_type": "raw_packet", "packet_id": retained},
+            {"ref_type": "raw_packet", "packet_id": tombstoned},
+        ],
+        "derived_refs": [],
+        "content_hash": "",
+        "content_hash_basis": CONTENT_HASH_BASIS,
+        "payload": {
+            "relationship": {
+                "edge_type": "tombstones_record",
+                "from": {"ref_type": "record_id", "ref": retained},
+                "to": {"ref_type": "record_id", "ref": tombstoned},
+                "reason": disposition_reason,
+                "recorded_at": recorded_at,
+                "unavailability_scope": RAW_PACKET_TOMBSTONE_SCOPE,
+                "raw_bytes_retained": True,
+            }
+        },
+    }
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+    return record
+
+
+def append_raw_packet_tombstone(
+    data_root: "DataLakeRoot",
+    *,
+    retained_packet_id: str,
+    tombstoned_packet_id: str,
+    captured_at: str,
+    reason: str,
+) -> "Path":
+    """Persist a validated public-read tombstone while retaining both raw packets."""
+    record = build_raw_packet_tombstone_record(
+        retained_packet_id=retained_packet_id,
+        tombstoned_packet_id=tombstoned_packet_id,
+        captured_at=captured_at,
+        reason=reason,
+    )
+    return append_silver_record(
+        data_root,
+        raw_anchor=retained_packet_id,
+        lane=RAW_PACKET_TOMBSTONE_LANE,
+        record_id=record["record_id"],
+        record=record,
+    )
+
+
 def append_silver_record(
     data_root: "DataLakeRoot",
     *,
@@ -1102,11 +1191,18 @@ __all__ = [
     "INVALID_SILVER_AUTHORITY",
     "UNRESOLVED_SILVER_AUTHORITY",
     "PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS",
+    "RAW_PACKET_TOMBSTONE_LANE",
+    "RAW_PACKET_TOMBSTONE_PRODUCER_ID",
+    "RAW_PACKET_TOMBSTONE_SCHEMA_VERSION",
+    "RAW_PACKET_TOMBSTONE_SOURCE_SURFACE",
+    "RAW_PACKET_TOMBSTONE_SCOPE",
     "SilverSourceAuthority",
     "SILVER_VAULT_RECORD_SCHEMA_VERSION",
     "SilverRecordError",
+    "append_raw_packet_tombstone",
     "append_silver_record",
     "append_silver_record_set",
+    "build_raw_packet_tombstone_record",
     "classify_silver_vault_record_sources",
     "silver_content_hash",
     "silver_raw_refs_bound_to_own_anchor",

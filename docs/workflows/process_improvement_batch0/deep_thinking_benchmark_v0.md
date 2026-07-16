@@ -3,10 +3,9 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow validation note
-scope: Candidate register and scoring ledger for the Batch 0 retrospective comparison of 8-12 closed decisions.
+scope: Stopped-incomplete candidate register for the Batch 0 retrospective comparison of closed decisions.
 use_when:
-  - Selecting comparable closed decisions for the Batch 0 deep-thinking benchmark.
-  - Recording decision-quality observations without claiming causality.
+  - Interpreting why the Batch 0 deep-thinking benchmark produced no result.
 authority_boundary: retrieval_only
 open_next:
   - docs/workflows/process_improvement_batch0/README.md
@@ -14,7 +13,12 @@ open_next:
 
 ## State
 
-`active_candidate_selection`; no benchmark result is claimed.
+`stopped_incomplete` on 2026-07-17.
+
+No candidate reached completed comparable-case scoring, so the minimum useful
+sample was not met. The register and unknowns remain historical evidence. There
+is no future Batch 0 collection obligation and no conclusion about the value,
+effectiveness, or correct trigger for deep thinking.
 
 ## Scoring contract
 
@@ -26,8 +30,8 @@ deep-thinking caused an outcome.
 
 ## Candidate register
 
-All candidates remain `eligibility_pending` until their original input, decision,
-and outcome can be reconstructed.
+All candidates were still `eligibility_pending` when the probe stopped because
+their original input, decision, and outcome had not been reconstructed.
 
 | Slot | Candidate source | Eligibility | Deep-thinking use | Outcome reconstructable | Notes |
 | --- | --- | --- | --- | --- | --- |

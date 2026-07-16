@@ -451,6 +451,12 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "infrastructure",
         "reason": "ack-lane seam reader; reads every ack by contract, not a data consumer",
     },
+    "data_lake/root.py": {
+        "detection": "declared_free_walk",
+        "posture": "selection_rule",
+        "mechanism": "local:tombstoned_packet_ids",
+        "reason": "public-read filtering walks only the exact raw_packet_tombstone_silver lane under each derived anchor, validates every current Silver envelope and both raw packet refs, and excludes only the explicitly targeted packet ids; malformed or unresolved records fail closed",
+    },
     "data_lake/product_mention_selection.py": {
         "detection": "lane_dir",
         "posture": "selection_rule",
