@@ -17,6 +17,9 @@ All targets and replacement counts are checked before any write. Logical LF in
 the plan is rendered using each target's existing LF or CRLF convention. The
 helper rejects mixed-newline files, symlinks, path escapes, ambiguous matches,
 and no-op replacements. ``--apply`` performs preflight and apply in one call.
+
+The defensive preflight/rollback machinery here is deliberate, not bloat: the
+AGENTS.md stalled-edit fallback route depends on it. Do not simplify it away.
 """
 from __future__ import annotations
 

@@ -5,7 +5,6 @@ import json
 import os
 import re
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Mapping, Sequence
 from urllib.parse import urlparse
@@ -13,6 +12,7 @@ from urllib.parse import urlparse
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import utc_now_z
 from runners.run_source_capture_http_packet import run_source_capture_http_packet
 from source_capture import (
     CaptureModeCategory,
@@ -325,7 +325,7 @@ def build_parfumo_mgt_capture_summary(
         "source_family": SOURCE_FAMILY,
         "source_url": url,
         "parfumo_product_slug": extract_parfumo_product_slug(url),
-        "summary_generated_at": _utc_now_z(),
+        "summary_generated_at": utc_now_z(),
         "packet_publication_mode": (
             "data_lake_raw_packets_with_local_summary"
             if data_root_path is not None
@@ -384,7 +384,7 @@ def _targeted_source_slices(
         source_edit_or_version=unknown_with_reason(
             "Parfumo product-page edit or version timing was not supplied"
         ),
-        capture_time=known_fact(_utc_now_z()),
+        capture_time=known_fact(utc_now_z()),
         recapture_time=not_applicable("first targeted rendered Parfumo packet"),
         cutoff_posture=unknown_with_reason(
             "Parfumo targeted rendered capture does not model an external cutoff posture"
@@ -522,10 +522,6 @@ def _not_a_recapture():
 
 def _not_a_recapture_relationship():
     return not_applicable("Parfumo native wrapper did not receive a prior packet relationship")
-
-
-def _utc_now_z() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _build_parser() -> argparse.ArgumentParser:

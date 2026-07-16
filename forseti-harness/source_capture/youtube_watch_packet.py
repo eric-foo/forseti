@@ -481,6 +481,7 @@ def _string_or_none(value: object) -> str | None:
 
 
 def _utc_now_z() -> str:
+    # Diverges from harness_utils.utc_now_z: naive utcnow() and keeps microsecond precision.
     return datetime.datetime.utcnow().isoformat() + "Z"
 
 

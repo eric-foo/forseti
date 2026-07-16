@@ -81,6 +81,14 @@ checker costs one advisory, but in the hard guard it would disable the gate
 (including its fail-closed merge path). Do not refactor the guard onto
 `_hooklib`.
 
+**Adoption rule:** before writing a private helper in a checker, check
+`_hooklib.py`; if the shared home already has it, import it. When touching a
+checker, migrate a stale private copy in the same work unit only when the bound
+change already touches or depends on that helper contract (behavior-preserving
+only); otherwise leave the unrelated migration for a separately scoped work
+unit. A deliberately divergent copy stays, with a one-line comment naming the
+delta.
+
 ## The contract (harness-agnostic)
 
 - **CI diff base:** `.github/workflows/ci.yml` exports `FORSETI_DIFF_BASE`
@@ -208,7 +216,8 @@ and reload flow, then rerun the probe; Forseti cannot synthesize trust and must
 not edit Codex trust metadata.
 
 It also parses Codex `apply_patch` headers (`*** Add/Update/Delete File:` and
-`*** Move to:`) and checks those paths through the EP-01 protected-path rule,
+`*** Move to:`) from the supported `tool_input.command`, `.patch`, and `.input`
+payload fields and checks those paths through the EP-01 protected-path rule,
 because Codex reports patch edits as `tool_name: "apply_patch"` rather than
 Claude-style `Write` / `Edit` events.
 
