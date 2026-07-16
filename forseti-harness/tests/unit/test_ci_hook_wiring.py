@@ -42,6 +42,7 @@ DIFF_BASE_RESOLVERS = (
     ("check_prompt_output_mode.py", "resolve_base_ref", False),
     ("check_review_summary.py", "resolve_base_ref", False),
     ("check_hash_pin_freshness.py", "resolve_base_ref", False),
+    ("check_shared_helper_duplication.py", "resolve_base_ref", False),
     ("check_full_gt_claims.py", "resolve_base_ref", False),
 )
 

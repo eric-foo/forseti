@@ -175,6 +175,25 @@ inherit this floor.
   Enforced diff-scoped and forward-only by
   `.agents/hooks/check_hash_pin_freshness.py` (CI `--strict`; local pre-push
   mirror; whole-repo advisory via `--audit`, never gated).
+- Shared-helper adoption gate: an added line in `forseti-harness/**/*.py`
+  (excluding `forseti-harness/tests/**` and `harness_utils.py` itself) or
+  `.agents/hooks/*.py` (excluding `_hooklib.py` and
+  `guard_protected_actions.py`, whose import-free duplication is the
+  documented deliberate exception) that privately re-defines a shared helper
+  — `_utc_now` / `_now_utc` / `_utc_now_z` / `_utc_now_iso` / `_sha256*` /
+  `_as_dict` / `_hash_file` anywhere in scope, plus `repo_root` / `_git` /
+  `_git_lines` / `porcelain_paths` in `.agents/hooks/` only — must either use
+  the owning shared home (`forseti-harness/harness_utils.py` /
+  `.agents/hooks/_hooklib.py`) or carry, on the def line or the line
+  immediately above, a comment naming the delta vs the shared home (any
+  comment containing `harness_utils`, `_hooklib`, or `helper-delta`). The
+  rule itself is owned by the adoption-rule paragraphs in
+  `.agents/hooks/README.md` and `forseti-harness/README.md`; this gate is
+  their mechanical backstop and is forward-only: pre-existing private copies
+  are never gated. Shape only: never helper correctness, divergence
+  justification, validation, or readiness. Enforced diff-scoped by
+  `.agents/hooks/check_shared_helper_duplication.py` (CI `--strict`;
+  write-time PostToolUse `--hook` advisory).
 - Ontology-tag validity gate: changed tracked Markdown files are scanned against
   the ontology SSOT roster over the CI event base (or local pre-push
   `origin/main...HEAD`); an additive annotation
@@ -767,6 +786,27 @@ markdown sibling of the EP-37 JSON gate. Registered in
 `.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`;
 `--selftest` present.
 
+**Shared-helper duplication gate**
+(`.agents/hooks/check_shared_helper_duplication.py`). Diff-scoped,
+forward-only CI gate plus write-time PostToolUse advisory for the
+Shared-helper adoption gate bullet above. The mechanical backstop for the
+helper-adoption rule adopted by the 2026-07-16 helper-dedup lane (PRs
+#988–#992): the wired checkers and harness modules had accumulated diverged
+private copies of the same helpers, and the adopted rule — check the shared
+home first, import it when it already has the helper, and keep a deliberately
+divergent copy only with a one-line comment naming the delta — lived only in
+the two README paragraphs where nothing mechanical could catch the next
+private copy. Forward-only by design: only newly added def lines are gated;
+the escape hatch is the rule's own delta-comment convention (`harness_utils`
+/ `_hooklib` / `helper-delta` in a comment on the def line or the line
+above). `guard_protected_actions.py` stays excluded — its import-free
+duplication is the documented deliberate exception in the `_hooklib.py`
+docstring — as do `harness_utils.py`, `_hooklib.py`, and
+`forseti-harness/tests/**`. Registered in `.github/workflows/ci.yml` and
+`.claude/settings.json` (PostToolUse `--hook`); `--selftest` present.
+Adoption-rule shape only — a green run never proves imports are correct, a
+kept divergence is justified, validation, or readiness.
+
 
 ## Future Gates
 
@@ -775,6 +815,73 @@ markdown sibling of the EP-37 JSON gate. Registered in
 - Runtime or integration validation: UNKNOWN - requires owner input.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The shared-helper adoption rule (import the shared home; a deliberately
+    divergent copy stays only with a one-line comment naming the delta) now has
+    a mechanical backstop: a diff-scoped, forward-only CI gate plus write-time
+    advisory flags newly added private re-definitions of shared helpers in
+    forseti-harness Python and .agents/hooks checkers unless a comment on the
+    def line or the line above names the delta.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_shared_helper_duplication.py
+    - .agents/hooks/README.md
+    - .github/workflows/ci.yml
+    - .claude/settings.json
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - forseti-harness/README.md
+    - .agents/hooks/_hooklib.py
+    - .agents/hooks/pre_push_guard.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The kernel already routes validation placement and CI behavior to this
+        overlay file; restating the gate there would fork authority.
+    - path: forseti-harness/README.md
+      reason: >
+        The adoption-rule paragraph itself lands via the concurrent
+        helper-dedup lane (PRs #988-#992); this gate references that owner and
+        deliberately avoids editing the same region from a second lane.
+    - path: .agents/hooks/pre_push_guard.py
+      reason: >
+        The selected-gate mirror is chosen from observed CI failure frequency;
+        a brand-new gate has no failure history yet, and CI remains the
+        authoritative boundary.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        The backstop was commissioned by the helper-adoption work unit against
+        a README-owned rule, not by reclassifying an overlay rule already
+        registered there; adding an EP row is that registry's own maintenance.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        Its Active Hooks section routes generically to this overlay, the hooks
+        README, and the activation configs; no per-hook row exists to add.
+  stale_language_search: >
+    git grep -n -i -E "helper-delta|adoption rule|shared helper|private cop(y|ies)"
+    -- AGENTS.md .agents forseti-harness/README.md docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-16 on the authoring branch. Hits are the new gate text,
+    the _hooklib.py docstring (compatible: it documents the guard's deliberate
+    exception, which the gate excludes), and the unrelated skill-adoption
+    overlay rules. forseti-harness/README.md has no hits on this base because
+    its Shared Helpers paragraph lands via the concurrent helper-dedup lane.
+  non_claims:
+    - not validation, readiness, or approval
+    - not proof that shared-home imports are correct
+    - not proof a kept divergence is justified or a delta comment is truthful
+    - not a migration mandate for pre-existing private copies (forward-only)
+```
 
 ```yaml
 direction_change_propagation:
@@ -846,59 +953,6 @@ direction_change_propagation:
     - not a replacement for runtime receiver preflight
 ```
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Local pre-push now conditionally mirrors the existing data-lake inventory
-    and policy-module pin contract tests when outgoing changes touch harness
-    Python or the generated inventory snapshot; CI runs the identical
-    diff-scoped adapter before the full suite.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_harness_coupling.py
-    - .agents/hooks/pre_push_guard.py
-    - .github/workflows/ci.yml
-  downstream_surfaces_checked:
-    - .agents/hooks/README.md
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - .agents/workflow-overlay/decision-routing.md
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - AGENTS.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        The kernel already routes validation and CI behavior to the overlay;
-        duplicating the trigger or test list there would fork authority.
-    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
-      reason: >
-        This is a placement extension of existing deterministic pytest
-        substrates, not a new rule or enforcement-placement handle.
-    - path: full-suite pre-push policy
-      reason: >
-        An approximately 79-second gate on every push is not justified by the
-        repeated approximately 8.6-second coupling failure class.
-    - path: retry policy
-      reason: >
-        The 100-run sample contained no same-SHA failure followed by success;
-        retry would hide deterministic defects without observed flake evidence.
-  stale_language_search: >
-    rg -n -i "nine strict CI gates|DOC_GATES|doc gate|harness coupling"
-    .agents .github forseti-harness/tests
-  stale_language_search_result: >
-    Executed 2026-07-15 on the authoring branch. No `nine strict CI gates` or
-    `DOC_GATES` hits remain. Harness-coupling hits are confined to the new
-    checker, selected-gate wiring, CI step, registry, doctrine, and focused
-    tests. The remaining `doc gate` hits are the independent existing
-    `.github/scripts/run-doc-gates.ps1` runner, not stale pre-push naming.
-  non_claims:
-    - not full test-suite validation
-    - not readiness or approval
-    - not proof all CI failures are prevented
-    - not a retry or flake-masking policy
-```
-
-Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`
+(frozen 2026-07-11); receipts rotated out since then are preserved by Git and PR
+history per the delete-oldest rule in `.agents/workflow-overlay/source-of-truth.md`.
