@@ -143,6 +143,7 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("data_lake/silver_census.py", "is_record_set_complete"): 1,
         ("data_lake/silver_record.py", "append_record"): 1,
         ("data_lake/silver_record.py", "append_record_set"): 1,
+        ("data_lake/silver_record.py", "append_silver_record"): 1,
         ("data_lake/silver_record.py", "load_attachment_record_body"): 1,
         ("data_lake/silver_record.py", "record_path"): 1,
         ("data_lake/silver_record.py", "source_surface_catalog_rows"): 1,

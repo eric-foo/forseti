@@ -5,8 +5,7 @@ retrieval_header_version: 1
 artifact_role: Workflow validation note
 scope: Read-only baseline and failure classification for branch/worktree lifecycle accumulation.
 use_when:
-  - Assessing whether lane-start cleanup and lane closeout contain repository sprawl.
-  - Scoping a separately authorized lifecycle cleanup or enforcement fix.
+  - Interpreting the retired Batch 0 lifecycle probe and its read-only classifier evidence.
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
@@ -117,3 +116,14 @@ classifier only prepares live evidence for a separately guarded action. The
 same patch removes the unsafe `--force` instruction from
 `.github/scripts/spin-up-lane.ps1`; that implementation is not durable on
 `main` until its lane PR lands.
+
+## Closeout — 2026-07-17
+
+`closed`.
+
+Keep the read-only, fail-closed classifier in
+`.github/scripts/lane-health-check.ps1`. Retire this probe without installing an
+automatic cleanup schedule, an age or count deletion rule, or a standing audit.
+Every candidate table above is volatile historical evidence, not current state
+or cleanup authority. Future cleanup remains a separately authorized guarded
+action that must re-derive live state and preserve untracked and dirty work.

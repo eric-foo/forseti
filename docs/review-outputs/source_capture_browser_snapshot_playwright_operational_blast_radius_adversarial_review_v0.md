@@ -7,6 +7,13 @@ scope: >
   Post-smoke adversarial operational blast-radius review of the Browser Snapshot Playwright
   integration for the Orca Source Capture Toolbox. Reviews adapter code, CLI runner,
   pyproject.toml package discovery, docs/runbook, tests, prior review, and real install + smoke evidence.
+use_when:
+  - Inspecting Playwright-path operational blast-radius findings.
+  - Tracing Browser Snapshot operational decisions to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 review_type: adversarial_operational_blast_radius_review
 review_date: 2026-06-03
 reviewer: Claude Sonnet 4.6 (automated adversarial review; read-only)

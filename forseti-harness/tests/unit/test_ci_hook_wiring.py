@@ -415,11 +415,40 @@ def test_delegated_patch_gate_requires_cross_vendor_repo_courier() -> None:
         "delegate_eligibility: different_vendor_lineage_with_direct_repo_access",
         "access: repo",
         "delivery: operator_courier_only",
+        "execution_route: five_phase_fast_path_if_eligible",
+        "review_diff_route: review_report_mechanics_if_durable_report_embeds_diff",
         "receiver_binding:",
         "  receiver_class: receiver_to_bind",
         "  binding_state: receiver_to_bind",
     ]
     assert gate.evaluate_delegated_patch_lines("couriered.md", couriered) == []
+
+    missing_execution_route = [
+        line for line in couriered if not line.startswith("execution_route:")
+    ]
+    assert any(
+        finding.kind in {
+            "delegated_patch_field_count",
+            "delegated_patch_execution_route",
+        }
+        for finding in gate.evaluate_delegated_patch_lines(
+            "missing_execution_route.md", missing_execution_route
+        )
+    )
+
+    wrong_review_diff_route = [
+        line.replace(
+            "review_diff_route: review_report_mechanics_if_durable_report_embeds_diff",
+            "review_diff_route: hand_pasted_default_context_diff",
+        )
+        for line in couriered
+    ]
+    assert any(
+        finding.kind == "delegated_patch_review_diff_route"
+        for finding in gate.evaluate_delegated_patch_lines(
+            "wrong_review_diff_route.md", wrong_review_diff_route
+        )
+    )
 
     same_vendor = [
         line.replace("delegate_vendor: operator_to_fill", "delegate_vendor: OpenAI")

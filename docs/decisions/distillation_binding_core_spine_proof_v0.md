@@ -18,6 +18,12 @@ open_next:
 recorded outcomes; edits no product file; makes no validation or proof claim. **One proposed item is
 held as a hypothesis, not a cell** (see Hypotheses) — it is a design note, not a recorded outcome.
 
+**Currentness note (2026-07-17):** The
+`BLOCKED_COMPACTION_BEFORE_ARTIFACT_SEAL` wording below records the historical
+incident classification; it is not a standing token or current compaction
+gate. Current source-heavy evidence preservation is owned by
+`.agents/workflow-overlay/prompt-orchestration.md`.
+
 ## Harness bound
 
 The agent running a Core-Spine method-validation replay: build an at-cutoff packet from clean

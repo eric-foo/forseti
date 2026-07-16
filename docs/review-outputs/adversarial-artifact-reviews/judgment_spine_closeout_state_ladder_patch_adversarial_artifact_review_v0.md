@@ -1,4 +1,17 @@
 # Adversarial Artifact Review
+
+```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial artifact review of the Judgment Spine closeout-state ladder patch.
+use_when:
+  - Inspecting findings about the closeout-state ladder patch.
+  - Tracing later Judgment Spine closeout changes to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
+```
 ## Judgment Spine Closeout-State Ladder Patch
 
 ```yaml

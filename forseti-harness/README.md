@@ -336,7 +336,8 @@ For record-authoring guidance, see
 ## Shared Helpers
 
 `harness_utils.py` (package root) is the owning home for helpers shared across
-this package — hashing, UTC timestamps, staged directory publish, and version
+this package — hashing, UTC timestamps, staged directory publish, scalar
+coercion (`string_or_none` / `int_or_none` / `bool_or_none`), and version
 constants. `runners/_scaffold.py` is the owning home for runner-CLI scaffolding:
 new runners import `resolve_output_root` (the `--output`/`--data-root`/env
 target resolution) and `exit_on_failure` (the exception→`parser.exit` exit-code

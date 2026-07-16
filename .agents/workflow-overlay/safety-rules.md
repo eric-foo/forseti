@@ -33,7 +33,12 @@ authority_boundary: retrieval_only
   controlled lane in `.agents/workflow-overlay/skill-adoption.md`. That lane
   does not authorize global, user-level, plugin, installed, or external workflow
   source mutation.
-- Do not configure remotes or perform destructive cleanup unless explicitly authorized. Commit, push, pull-request preparation, and merge follow the work-unit completion rule in `AGENTS.md`: at the verified completion of a repo-changing work unit on the lane's own branch or worktree they proceed without a typed instruction, owner-gated by the harness permission prompts. The lane author self-merges only its own PR after all required validation, review return, and adjudication are complete; an explicit owner hold, unverifiable completion, foreign authorship, or any guard/server refusal fails closed to a human landing. The guard (`.agents/hooks/guard_protected_actions.py`) is the enforcement; the conditions and policy live in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
+- Treat credential failure and sandbox or network denial as different claims.
+  Before asking the owner to reauthenticate, repeat the smallest read-only
+  authentication check through the approved GitHub-action route. Ask only when
+  that independent check reports missing or invalid credentials; never print
+  credentials or tokens.
+- Do not configure remotes or perform destructive cleanup unless explicitly authorized. Commit, push, pull-request preparation, and merge follow `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`: at verified completion of a repo-changing work unit on the lane's own branch or worktree they proceed without a typed instruction, owner-gated by the harness permission prompts. The lane author self-merges only its own PR after all required validation, review return, and adjudication are complete; an explicit owner hold, unverifiable completion, foreign authorship, or any guard/server refusal fails closed to a human landing. The guard (`.agents/hooks/guard_protected_actions.py`) is the enforcement.
 - **Online/external source-data capture routes through the Source Capture Armory Runner Ladder.** Any capture of online or external source data for evidence or learning goes through the armory runners + Mini God-Tier source-quality discipline (the "Runner Ladder"), not ad-hoc web fetches; captures emit inspectable Source Capture Packets that also serve as Capture-lane data. Route via the repo map (`docs/workflows/forseti_repo_map_v0.md` -> Data Capture / Source Capture Armory submap) -> `forseti-harness/docs/source_capture_agent_runbook.md` + `forseti/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md`. Uncaptured scouting/diagnostic web reads (not entered as evidence) are exempt.
 
 ## Scope Discipline
@@ -49,74 +54,3 @@ extras.
 ## Rollback Boundary
 
 Rollback for this bootstrap is additive: remove the newly created Forseti directory only with explicit user approval. No rollback step may edit `jb`, installed skills, user-level skills, plugin skills, or external reference folders.
-
-## Direction Change Propagation
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: "Orca is no longer globally in non-implementation architecture/proof setup: bounded implementation, packages, and tests may proceed when explicitly authorized by the current turn or an accepted Orca decision, while default work remains docs/decision work and separate gates remain intact."
-  trigger: lifecycle_boundary
-  controlling_sources_updated:
-    - ".agents/workflow-overlay/project-authority.md"
-    - ".agents/workflow-overlay/safety-rules.md"
-    - ".agents/workflow-overlay/template-registry.md"
-    - ".agents/workflow-overlay/validation-gates.md"
-    - ".agents/workflow-overlay/source-loading.md"
-    - "forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md"
-    - "forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md"
-  downstream_surfaces_checked:
-    - "AGENTS.md"
-    - ".agents/workflow-overlay/README.md"
-    - ".agents/workflow-overlay/source-of-truth.md"
-    - "docs/workflows/orca_repo_map_v0.md"
-    - "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
-    - "forseti/product/spines/capture/core/source_capture_toolbox/README.md"
-    - "forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
-    - "docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md"
-  intentionally_not_updated:
-    - path: "AGENTS.md"
-      reason: "Already states Orca is no longer globally docs-first and permits bounded implementation by current turn or accepted handoff."
-    - path: ".agents/workflow-overlay/source-of-truth.md"
-      reason: "Source hierarchy and propagation mechanics did not change."
-    - path: "forseti/product/spines/capture/core/contracts/obligation_contracts/core_spine_v0_data_capture_spine_obligation_contract_v0.md"
-      reason: "Capture obligations did not change; implementation still requires separate bounded authorization."
-    - path: "docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md"
-      reason: "Already supplies the bounded first-tranche Source Capture Armory implementation authority."
-    - path: "forseti/product/spines/capture/core/source_capture_toolbox/README.md"
-      reason: "Already routes future Source Capture Armory work through the bounded first-tranche authorization and non-claims."
-    - path: "docs/decisions/data_capture_spine_source_observability_local_support_implementation_execution_authorization_v0.md"
-      reason: "That prior local-helper authorization remains accurate and bounded to its helper surface."
-  stale_language_search: "rg -n \"non-implementation architecture and proof setup|Orca remains in its non-implementation phase|exit the non-implementation phase|Implementation templates remain unbound while Orca is in non-implementation|direct-implementation.*unbound while Orca remains in non-implementation|No build, no install, no runtime authorized\" .agents/workflow-overlay forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_boundary_decision_v0.md forseti/product/spines/capture/core/contracts/source_access_boundary/data_capture_source_access_method_plan_v0.md docs/decisions/data_capture_spine_source_access_tooling_build_authorization_v0.md forseti/product/spines/capture/core/source_capture_toolbox/README.md docs/workflows/orca_repo_map_v0.md"
-  non_claims:
-    - "not validation"
-    - "not readiness"
-    - "not blanket implementation authorization"
-    - "not API, commercial-scraper, anti-detect, proxy, or production-runtime authorization"
-    - "not ECR, Cleaning, or Judgment design"
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: "Captures of online/external source data must route through the Source Capture Armory Runner Ladder (armory runners + Mini God-Tier source-quality discipline), not ad-hoc web fetches; emitted Source Capture Packets double as Capture-lane data. This is a behavioral routing rule that points to the existing armory owners via the repo map; the armory mechanics, source-access boundaries, and capture authorizations are unchanged. Uncaptured scouting/diagnostic web reads are exempt."
-  trigger: workflow_authority
-  related_triggers:
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - ".agents/workflow-overlay/safety-rules.md"
-  downstream_surfaces_checked:
-    - "docs/workflows/orca_repo_map_v0.md"
-    - "forseti-harness/docs/source_capture_agent_runbook.md"
-    - "forseti/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
-  intentionally_not_updated:
-    - path: "docs/workflows/orca_repo_map_v0.md"
-      reason: "Already routes capture/armory work to the Data Capture submap, runbook, and runner/adapter files; this rule points to that existing route rather than forking it."
-    - path: "forseti-harness/docs/source_capture_agent_runbook.md"
-      reason: "Owns the Runner Ladder mechanics and runner selection; this rule routes to it and changes none of it."
-    - path: "forseti/product/spines/capture/core/source_capture_toolbox/source_quality_mini_god_tier_profile_v0.md"
-      reason: "Owns the Mini God-Tier rungs/result tokens; referenced, not changed."
-  non_claims:
-    - "not new capture authorization"
-    - "not a source-access boundary change"
-    - "not an armory mechanics change"
-    - "not ECR, Cleaning, or Judgment authority"
-```

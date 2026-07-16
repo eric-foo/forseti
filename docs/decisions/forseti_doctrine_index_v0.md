@@ -25,11 +25,10 @@ stale_if:
 ## Why an index of doctrines is allowed when a venue registry was not
 
 This is a maintained list — the genus the venue-registry rejection killed. It
-survives on a different profile: doctrines are FEW, change RARELY, and every
-change is already owner-gated with its own ceremony (adoption records, DCP
-receipts), so rows update as a side effect of changes that must be recorded
-anyway. Owner: Eric. Review_by: 2026-12-11. A 13th+ row costs nothing — the
-cap here is the doctrine-adoption ceremony itself, not a number.
+survives on a different profile: doctrines are few, change rarely, and every
+change already requires targeted propagation through its owning source, so a
+row update is part of that bounded change rather than a separate lifecycle.
+Owner: Eric. Review_by: 2026-12-11.
 
 ## Kernel triggers (AGENTS.md — load every session automatically)
 
@@ -50,7 +49,6 @@ cap here is the doctrine-adoption ceremony itself, not a number.
 | Decision Routing Doctrine | decision-routing.md | Cynefin pre-planning regime routing for non-trivial work |
 | Prompt Orchestration Doctrine | prompt-orchestration.md | Prompt families, output modes |
 | Review Lanes Doctrine | review-lanes.md | Review lanes, reviewer permissions |
-| Decision-Gate Economics Pilot (TEMPORARY) | batch1-decision-gate-economics.md | Non-mandatory deep-thinking, assumption-gate, and fused ENTRY evidence ledger; bounded closeout and retirement |
 | Communication style | communication-style.md | Response style, chat topology |
 | Template registry | template-registry.md | Prompt template registry |
 | Product-proof semantics | product-proof.md | Buyer-proof definitions, non-claims |

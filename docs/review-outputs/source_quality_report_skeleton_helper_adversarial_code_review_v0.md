@@ -7,7 +7,11 @@ scope: Read-only adversarial implementation/code review of the Source Quality re
 use_when:
   - Deciding whether the helper is safe for agent-reuse.
   - Inspecting fake-pass, boundary leakage, result-token semantics, lifecycle claims, and test sufficiency.
-authority_boundary: advisory_review_output
+review_authority_boundary: advisory_review_output
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 ```
 
 ## Review Identity
