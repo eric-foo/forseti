@@ -22,6 +22,7 @@ stale_if:
 
 ```yaml
 commission_id: BEAUTY-TOWER28-DP-001
+scan_receipt_version: 1
 scan_date: 2026-07-16
 mode: forward
 subject: Tower 28 Beauty (USBEAUTY-019)
