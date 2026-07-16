@@ -102,18 +102,22 @@ Discovery/Capture a different one.
 
 `onboarding` is separate from freshness and routing state:
 
-- `not_onboarded`: no qualifying official committed Bronze content packet can
-  be exactly attributed to the platform account. Its evidence fields are null.
-- `onboarded`: at least one qualifying packet is hash/size verified and exactly
-  attributable. The row carries the earliest qualifying capture time, packet
-  id, source family, source surface, and policy version.
+- `not_onboarded`: no publicly available qualifying official committed Bronze
+  content packet can be exactly attributed to the platform account. Its
+  evidence fields are null.
+- `onboarded`: at least one publicly available qualifying packet is hash/size
+  verified and exactly attributable. The row carries the earliest qualifying
+  available capture time, packet id, source family, source surface, and policy
+  version.
 - Qualifying v0 surfaces are Instagram Reels grid packets, TikTok grid or
   admitted video/comment/subtitle packets, and YouTube watch metadata/comments
   packets. YouTube RSS, TikTok logged-out discovery snapshots, suggested-account
   discovery packets, scratch/staging artifacts, failed attempts, and partial
   uncommitted captures do not qualify.
-- The state is account-scoped and monotonic over immutable committed Bronze.
-  Recency, paused monitoring, and stale metrics remain separate fields.
+- The state is account-scoped and monotonic over publicly available immutable
+  committed Bronze. Owner-directed public-consumption tombstones remove
+  superseded packets from eligibility without deleting audit bytes. Recency,
+  paused monitoring, and stale metrics remain separate fields.
 
 `run_creator_registry_onboarding_refresh.py` is the named read-only materializer.
 It scans committed manifests, verifies only the schema-owned JSON member needed

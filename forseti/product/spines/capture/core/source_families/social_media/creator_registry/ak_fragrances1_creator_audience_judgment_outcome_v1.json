@@ -1,0 +1,307 @@
+{
+  "bundle_hash": "sha256:bd38f0602bff0ddb8c3e3e50836767131e8757c437d5079f170e1bd105b3571c",
+  "bundle_id": "caeb_c909ee47a864edf96a9a",
+  "creator_id": "tiktok:@ak.fragrances1",
+  "model_api_calls": 0,
+  "profile_subject_id": "acct_tiktok_fragrance_007",
+  "raw_anchor": "01KXJXHJPW0FT37CEBRKABG1Q8",
+  "record_id": "cajo_ee7c184a02dfee07534e",
+  "response_bytes_b64": "ewogICJzY2hlbWFfdmVyc2lvbiI6ICJjcmVhdG9yX2F1ZGllbmNlX3NlbWFudGljX3Jlc3BvbnNlX3YxIiwKICAiZ2VuZXJhdGVkX2F0IjogIjIwMjYtMDctMTZUMTg6MDQ6NDkuNjYxMzQ0NVoiLAogICJjbGFpbXMiOiBbCiAgICB7CiAgICAgICJjbGFpbV9rZXkiOiAiZGVjaXNpb25fdHJhZGVvZmZzIiwKICAgICAgImF4aXMiOiAicHVyY2hhc2VfZGVjaXNpb25fc3RhZ2UiLAogICAgICAic3RhdGVtZW50IjogIkFLIHJlcGVhdGVkbHkgdHVybnMgZnJhZ3JhbmNlIGNob2ljZSBpbnRvIHJhbmtlZCBjb21wYXJpc29ucyBhbmQgZXhwbGljaXQgdHJhZGUtb2ZmcyBhY3Jvc3Mgc2NlbnQgY2hhcmFjdGVyLCBwcm9qZWN0aW9uLCBzbW9vdGhuZXNzLCBsb25nZXZpdHksIGFuZCBhdmFpbGFiaWxpdHkuIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiVXNlIGhpbSB3aGVuIGEgYnV5ZXIgbmVlZHMgYSByZWFzb25lZCBzaG9ydGxpc3Qgb3IgY2FuZGlkIGZpcnN0IGltcHJlc3Npb24sIG5vdCB1bmRpZmZlcmVudGlhdGVkIHByYWlzZS4iLAogICAgICAicmVsYXRpb24iOiAiY3JlYXRvcl9vbmx5IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMTM2IiwgImUwMTczIiwgImUwMTY1IiwgImUwMTc4IiwgImUwMTg4Il0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDEzNiIsICJlMDE3MyIsICJlMDE2NSIsICJlMDE3OCIsICJlMDE4OCJdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiVGhlIGNhcHR1cmUgc2hvd3Mgc2VsZWN0ZWQgdmlkZW9zLCBub3QgZXZlcnkgZm9ybWF0IEFLIHB1Ymxpc2hlcy4iLAogICAgICAiZW5nYWdlbWVudF9zYWxpZW5jZV9yZWxpZWRfb24iOiBmYWxzZQogICAgfSwKICAgIHsKICAgICAgImNsYWltX2tleSI6ICJ2YWx1ZV9hbHRlcm5hdGl2ZXMiLAogICAgICAiYXhpcyI6ICJwcmljZV92YWx1ZV9wb3N0dXJlIiwKICAgICAgInN0YXRlbWVudCI6ICJIaXMgY29udGVudCBjYW4gZnJhbWUgdmFsdWUgdGhyb3VnaCBPRyBzaW1pbGFyaXR5LCBwZXJmb3JtYW5jZSBjb21wcm9taXNlLCBhbmQgcHJlbWl1bS1zbWVsbGluZyBhbHRlcm5hdGl2ZXMsIHdoaWxlIGNhcHR1cmVkIGNvbW1lbnRzIGFzayBkaXJlY3RseSBhYm91dCBkdXBlcy4iLAogICAgICAiY29tbWVyY2lhbF9pbXBsaWNhdGlvbiI6ICJUaGlzIHN1cHBvcnRzIGJyaWVmcyBmb3IgYWNjZXNzaWJsZSBhbHRlcm5hdGl2ZXMgd2hlbiB0aGUgY29tcGFyaXNvbiBhbmQgY29tcHJvbWlzZSBhcmUgc3RhdGVkIHBsYWlubHkuIiwKICAgICAgInJlbGF0aW9uIjogImFncmVlbWVudCIsCiAgICAgICJyZXByZXNlbnRhdGl2ZV9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDE4MCIsICJlMDExNCIsICJlMDE5OCIsICJlMDA3MCJdLAogICAgICAiYWxsX3N1cHBvcnRfZXZpZGVuY2VfYWxpYXNlcyI6IFsiZTAxODAiLCAiZTAxMTQiLCAiZTAxOTgiLCAiZTAwNzAiXSwKICAgICAgImNvdW50ZXJldmlkZW5jZV9hbGlhc2VzIjogW10sCiAgICAgICJsaW1pdGF0aW9uIjogIk5vIHByaWNlIG9yIHB1cmNoYXNlIG91dGNvbWUgd2FzIHZlcmlmaWVkLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogInNob3BwaW5nX3F1ZXN0aW9ucyIsCiAgICAgICJheGlzIjogInB1cmNoYXNlX2RlY2lzaW9uX3N0YWdlIiwKICAgICAgInN0YXRlbWVudCI6ICJDYXB0dXJlZCBwYXJ0aWNpcGFudHMgYXNrIHdoZXRoZXIgcHJvZHVjdHMgYXJlIGdvb2QsIHdoYXQgdGhleSBzbWVsbCBsaWtlLCB3aGV0aGVyIHRoZXkgYXJlIGR1cGVzLCBhbmQgZXhwcmVzcyBpbnRlcmVzdCBpbiBidXlpbmcgb3IgdHJ5aW5nIHRoZW0uIiwKICAgICAgImNvbW1lcmNpYWxfaW1wbGljYXRpb24iOiAiQSBjYW1wYWlnbiBzaG91bGQgYW5zd2VyIHdpdGggYSBjb25jcmV0ZSBzY2VudCBkZXNjcmlwdGlvbiwgY29tcGFyaXNvbiBhbmNob3IsIHRyYWRlLW9mZiwgYW5kIGF2YWlsYWJpbGl0eSBkZXRhaWwuIiwKICAgICAgInJlbGF0aW9uIjogImF1ZGllbmNlX2VtZXJnZW50IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMDc2IiwgImUwMDcwIiwgImUwMDA4IiwgImUwMDMwIiwgImUwMDAyIl0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDA3NiIsICJlMDA3MCIsICJlMDAwOCIsICJlMDAzMCIsICJlMDAwMiIsICJlMDA0NSJdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiVGhlc2UgYXJlIGNhcHR1cmVkIHRvcC1sZXZlbCBjb21tZW50cywgbm90IGNvbnZlcnNpb24gZXZpZGVuY2Ugb3IgYSBwbGF0Zm9ybSBjZW5zdXMuIiwKICAgICAgImVuZ2FnZW1lbnRfc2FsaWVuY2VfcmVsaWVkX29uIjogZmFsc2UKICAgIH0sCiAgICB7CiAgICAgICJjbGFpbV9rZXkiOiAiY29sbGFib3JhdGlvbl9zdHlsZSIsCiAgICAgICJheGlzIjogInByZXNlbnRhdGlvbl9zdHlsZV9yZXNvbmFuY2UiLAogICAgICAic3RhdGVtZW50IjogIkNvbnZlcnNhdGlvbmFsIGV2ZW50IGFuZCBjcmVhdG9yLWNvbGxhYm9yYXRpb24gdmlkZW9zIGRyYXcgZXhwbGljaXQgcHJhaXNlLCB3aGlsZSBvdGhlciBjYXB0dXJlZCBjb21tZW50cyBjYWxsIHNvbWUgZW5jb3VudGVycyBhd2t3YXJkIG9yIGZvcmNlZC4iLAogICAgICAiY29tbWVyY2lhbF9pbXBsaWNhdGlvbiI6ICJLZWVwIGNvbGxhYm9yYXRpb25zIHNwb250YW5lb3VzIGJ1dCBnaXZlIHRoZW0gYSBjbGVhciBwcm9kdWN0LXRlc3Rpbmcgam9iIGFuZCBlbm91Z2ggc2Vuc29yeSBkZXRhaWwgdG8gYXZvaWQgYW4gZW1wdHkgY2FtZW8uIiwKICAgICAgInJlbGF0aW9uIjogImF1ZGllbmNlX2VtZXJnZW50IiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMDI1IiwgImUwMDI2IiwgImUwMDE1IiwgImUwMDY3Il0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDAyNSIsICJlMDAyNiIsICJlMDAxNSIsICJlMDA2NyJdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbImUwMDY5IiwgImUwMDc0IiwgImUwMDE5Il0sCiAgICAgICJsaW1pdGF0aW9uIjogIlByYWlzZSBhbmQgY3JpdGljaXNtIGFyZSBib3RoIHNwYXJzZSBjYXB0dXJlZCBjb21tZW50cyB3aXRob3V0IGVuZ2FnZW1lbnQgd2VpZ2h0aW5nLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogImF1dGhvcml0eV9vYmplY3Rpb24iLAogICAgICAiYXhpcyI6ICJvYmplY3Rpb25zIiwKICAgICAgInN0YXRlbWVudCI6ICJBIGNhcHR1cmVkIG9iamVjdGlvbiBjaGFsbGVuZ2VzIGNhdGVnb3J5IGF1dGhvcml0eSB3aGVuIHJlY29tbWVuZGF0aW9ucyBjZW50ZXIgcG9wdWxhciBvciBiZXN0c2VsbGluZyBjaG9pY2VzLiIsCiAgICAgICJjb21tZXJjaWFsX2ltcGxpY2F0aW9uIjogIkJyYW5kIGJyaWVmcyBzaG91bGQgcmVxdWlyZSBmaXJzdC1oYW5kIGV4cGVyaWVuY2UsIGNvbXBhcmlzb24gcmF0aW9uYWxlLCBhbmQgZGlzY2xvc2VkIHVuY2VydGFpbnR5IHJhdGhlciB0aGFuIGFuIHVuY29udGVzdGVkIGV4cGVydCBwb3N0dXJlLiIsCiAgICAgICJyZWxhdGlvbiI6ICJjb250cmFkaWN0aW9uIiwKICAgICAgInJlcHJlc2VudGF0aXZlX2V2aWRlbmNlX2FsaWFzZXMiOiBbImUwMDc1IiwgImUwMDUxIiwgImUwMDE2IiwgImUwMDgyIl0sCiAgICAgICJhbGxfc3VwcG9ydF9ldmlkZW5jZV9hbGlhc2VzIjogWyJlMDA3NSIsICJlMDA1MSIsICJlMDAxNiIsICJlMDA4MiJdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiVGhlIG9iamVjdGlvbiBjb21lcyBmcm9tIG9uZSBjYXB0dXJlZCB2aWRlbydzIGNvbW1lbnQgc2V0LiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9LAogICAgewogICAgICAiY2xhaW1fa2V5IjogImdlb2dyYXBoeV91bmtub3duIiwKICAgICAgImF4aXMiOiAibGFuZ3VhZ2VfY29tbXVuaXR5X25vcm1zIiwKICAgICAgInN0YXRlbWVudCI6ICJBdWRpZW5jZSBnZW9ncmFwaHkgaXMgbm90IGVzdGFibGlzaGVkIGJ5IHRoaXMgY2FwdHVyZS4iLAogICAgICAiY29tbWVyY2lhbF9pbXBsaWNhdGlvbiI6ICJEbyBub3QgdXNlIGNyZWF0b3IgcG9zaXRpb25pbmcsIHByb2R1Y3QgYXZhaWxhYmlsaXR5LCBldmVudCBsb2NhdGlvbiwgb3IgaXNvbGF0ZWQgbG9jYXRpb24gbWVudGlvbnMgYXMgZ2VvZ3JhcGhpYyB0YXJnZXRpbmcgZXZpZGVuY2UuIiwKICAgICAgInJlbGF0aW9uIjogIm1pc3NpbmciLAogICAgICAicmVwcmVzZW50YXRpdmVfZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAiYWxsX3N1cHBvcnRfZXZpZGVuY2VfYWxpYXNlcyI6IFtdLAogICAgICAiY291bnRlcmV2aWRlbmNlX2FsaWFzZXMiOiBbXSwKICAgICAgImxpbWl0YXRpb24iOiAiTm8gYXVkaWVuY2UtbG9jYXRpb24gZXZpZGVuY2Ugd2FzIGFkbWl0dGVkLiIsCiAgICAgICJlbmdhZ2VtZW50X3NhbGllbmNlX3JlbGllZF9vbiI6IGZhbHNlCiAgICB9CiAgXSwKICAiY3JlYXRvcl9zaWduYWxfcHJvamVjdGlvbiI6IHsKICAgICJoaXJlX3ZlcmRpY3QiOiB7CiAgICAgICJzdGF0ZW1lbnQiOiAiSGlyZSBBSyBGcmFncmFuY2VzIHdoZW4gYSBmcmFncmFuY2UgY2FtcGFpZ24gbmVlZHMgYSBmYXN0LCBjYW5kaWQgY29tcGFyaXNvbiB0aGF0IGhlbHBzIHNob3BwZXJzIGNob29zZSBiZXR3ZWVuIHNjZW50cywgYWx0ZXJuYXRpdmVzLCBhbmQgcGVyZm9ybWFuY2UgdHJhZGUtb2Zmcy4iLAogICAgICAiY2xhaW1fa2V5cyI6IFsiZGVjaXNpb25fdHJhZGVvZmZzIiwgInZhbHVlX2FsdGVybmF0aXZlcyIsICJzaG9wcGluZ19xdWVzdGlvbnMiXQogICAgfSwKICAgICJwcm9kdWN0X2FkdmFudGFnZSI6IHsKICAgICAgInN0YXRlbWVudCI6ICJIaXMgZXZpZGVuY2VkIGFkdmFudGFnZSBpcyBjb252ZXJ0aW5nIHNjZW50IGxhbmd1YWdlIGludG8gYSBzaG9ydGxpc3Q6IHdoYXQgYSBmcmFncmFuY2UgcmVzZW1ibGVzLCBob3cgaXQgcGVyZm9ybXMsIHdoZXJlIGl0IGNvbXByb21pc2VzLCBhbmQgd2hldGhlciBpdCBpcyB3b3J0aCB0cnlpbmcuIiwKICAgICAgImNsYWltX2tleXMiOiBbImRlY2lzaW9uX3RyYWRlb2ZmcyIsICJ2YWx1ZV9hbHRlcm5hdGl2ZXMiXQogICAgfSwKICAgICJjcmVhdG9yX3NwZWNpZmljX2V4ZWN1dGlvbiI6IHsKICAgICAgInN0YXRlbWVudCI6ICJCdWlsZCBhcm91bmQgcmFua2VkIGNvbXBhcmlzb25zLCBjYW5kaWQgZmlyc3QgaW1wcmVzc2lvbnMsIGFuZCBjcmVhdG9yLXRvLWNyZWF0b3IgdGVzdHM7IGxldCBoaW0gc3RhdGUgZGlzbGlrZXMsIHVuY2VydGFpbnR5LCBhbmQgcGVyZm9ybWFuY2UgdHJhZGUtb2Zmcy4iLAogICAgICAiY2xhaW1fa2V5cyI6IFsiZGVjaXNpb25fdHJhZGVvZmZzIiwgImNvbGxhYm9yYXRpb25fc3R5bGUiLCAiYXV0aG9yaXR5X29iamVjdGlvbiJdCiAgICB9LAogICAgIm9ic2VydmVkX2F1ZGllbmNlX3Jlc3BvbnNlIjogewogICAgICAic3RhdGVtZW50IjogIkNhcHR1cmVkIHBhcnRpY2lwYW50cyBhc2sgd2hldGhlciBwcm9kdWN0cyBhcmUgZ29vZCwgd2hhdCB0aGV5IHNtZWxsIGxpa2UsIHdoYXQgdGhleSBkdXBlLCBhbmQgd2hldGhlciB0aGV5IGFyZSB3b3J0aCB0cnlpbmc7IGEgc2VwYXJhdGUgb2JqZWN0aW9uIGNoYWxsZW5nZXMgc2hhbGxvdyBiZXN0c2VsbGVyLWxlZCBhdXRob3JpdHkuIiwKICAgICAgImNsYWltX2tleXMiOiBbInNob3BwaW5nX3F1ZXN0aW9ucyIsICJhdXRob3JpdHlfb2JqZWN0aW9uIl0KICAgIH0sCiAgICAic3Ryb25nZXN0X2NhbXBhaWduX2pvYnMiOiBbCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIkxhdW5jaCBvciByZWxhdW5jaCBhIGZyYWdyYW5jZSB3aXRoIGEgY2FuZGlkIGZpcnN0IGltcHJlc3Npb24gYW5kIGEgY2xlYXIgY29tcGFyaXNvbiBhbmNob3IuIiwKICAgICAgICAiY2xhaW1fa2V5cyI6IFsiZGVjaXNpb25fdHJhZGVvZmZzIiwgInNob3BwaW5nX3F1ZXN0aW9ucyJdCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIlBvc2l0aW9uIGFuIGFjY2Vzc2libGUgYWx0ZXJuYXRpdmUgYWdhaW5zdCBhbiBPRyB3aGlsZSBuYW1pbmcgdGhlIHBlcmZvcm1hbmNlIGNvbXByb21pc2UuIiwKICAgICAgICAiY2xhaW1fa2V5cyI6IFsidmFsdWVfYWx0ZXJuYXRpdmVzIiwgImRlY2lzaW9uX3RyYWRlb2ZmcyJdCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIlVzZSBhIGNyZWF0b3ItZXZlbnQgY29sbGFib3JhdGlvbiB0byBnYXRoZXIgcXVpY2sgc2Vuc29yeSByZWFjdGlvbnMgYW5kIGFuc3dlciBhdmFpbGFiaWxpdHkgcXVlc3Rpb25zLiIsCiAgICAgICAgImNsYWltX2tleXMiOiBbImNvbGxhYm9yYXRpb25fc3R5bGUiLCAic2hvcHBpbmdfcXVlc3Rpb25zIl0KICAgICAgfQogICAgXSwKICAgICJicmllZmluZ19pbnN0cnVjdGlvbnMiOiBbCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIkdpdmUgQUsgdGhlIHByb2R1Y3QsIHR3byBvciB0aHJlZSBjb21wYXJpc29uIHJlZmVyZW5jZXMsIGFuZCBwZXJtaXNzaW9uIHRvIHJhbmsgdGhlbTsgcmVxdWlyZSBjb25jcmV0ZSBub3RlcyBvbiBzY2VudCBETkEsIGxvbmdldml0eSwgcHJvamVjdGlvbiwgYW5kIGF2YWlsYWJpbGl0eS4iLAogICAgICAgICJjbGFpbV9rZXlzIjogWyJkZWNpc2lvbl90cmFkZW9mZnMiLCAidmFsdWVfYWx0ZXJuYXRpdmVzIl0KICAgICAgfSwKICAgICAgewogICAgICAgICJzdGF0ZW1lbnQiOiAiS2VlcCBjb2xsYWJvcmF0aW9uIGJlYXRzIG5hdHVyYWwgYW5kIHByb2R1Y3QtY2VudGVyZWQ7IGRvIG5vdCBzY3JpcHQgdW5pdmVyc2FsIHByYWlzZSwgYW5kIHJlcXVpcmUgZGlzY2xvc3VyZSB3aGVuIGhlIGhhcyBub3QgdGVzdGVkIGEgcmVmZXJlbmNlLiIsCiAgICAgICAgImNsYWltX2tleXMiOiBbImNvbGxhYm9yYXRpb25fc3R5bGUiLCAiYXV0aG9yaXR5X29iamVjdGlvbiJdCiAgICAgIH0sCiAgICAgIHsKICAgICAgICAic3RhdGVtZW50IjogIlRyZWF0IGdlb2dyYXBoeSBhcyB1bmtub3duIGFuZCBrZWVwIHRhcmdldGluZyBjbGFpbXMgb3V0IG9mIHRoZSBicmllZiB1bmxlc3MgYXVkaWVuY2UtbG9jYXRpb24gZXZpZGVuY2UgaXMgYWRkZWQuIiwKICAgICAgICAiY2xhaW1fa2V5cyI6IFsiZ2VvZ3JhcGh5X3Vua25vd24iXQogICAgICB9CiAgICBdLAogICAgIndyb25nX2hpcmVfYm91bmRhcnkiOiB7CiAgICAgICJzdGF0ZW1lbnQiOiAiRG8gbm90IGhpcmUgQUsgRnJhZ3JhbmNlcyB0byBwcm92ZSBhdWRpZW5jZSBnZW9ncmFwaHksIGNvbnZlcnNpb24sIG9yIHVuY29udGVzdGVkIGx1eHVyeS1leHBlcnQgYXV0aG9yaXR5LiIsCiAgICAgICJjbGFpbV9rZXlzIjogWyJnZW9ncmFwaHlfdW5rbm93biIsICJhdXRob3JpdHlfb2JqZWN0aW9uIl0KICAgIH0sCiAgICAicm9idXN0bmVzc19zdGFtcCI6IG51bGwKICB9LAogICJsaW1pdGF0aW9ucyI6IFsKICAgICJUaGUgY2FwdHVyZSBpcyBsaW1pdGVkIHRvIGVpZ2h0IHNlbGVjdGVkIHZpZGVvcyBhbmQgY2FwdHVyZWQgdG9wLWxldmVsIGNvbW1lbnRzLiIsCiAgICAiVHdvIHNlbGVjdGVkIHZpZGVvcyBjb250cmlidXRlIGNvbW1lbnRzIHdpdGhvdXQgdHJhbnNjcmlwdCBjdWVzOyB0cmFuc2NyaXB0IGV2aWRlbmNlIHJlbWFpbnMgYXZhaWxhYmxlIGFjcm9zcyB0aGUgb3RoZXIgc2VsZWN0ZWQgdmlkZW9zLiIsCiAgICAiQ29tbWVudCBlbmdhZ2VtZW50IHNhbGllbmNlIHdhcyB1bmF2YWlsYWJsZSBhbmQgd2FzIG5vdCByZWxpZWQgb24uIiwKICAgICJUaGUgc2xpY2UgaXMgZXZlbnQtIGFuZCBjb2xsYWJvcmF0aW9uLWhlYXZ5IGFuZCBtYXkgbm90IHJlcHJlc2VudCBBSydzIGZ1bGwgcHVibGlzaGluZyBtaXguIiwKICAgICJBdWRpZW5jZSBkZW1vZ3JhcGhpY3MgYW5kIGdlb2dyYXBoeSB3ZXJlIG5vdCBlc3RpbWF0ZWQuIgogIF0sCiAgIm5vbl9jbGFpbXMiOiBbCiAgICAibm90IGF1ZGllbmNlIHByZXZhbGVuY2UiLAogICAgIm5vdCBjb252ZXJzaW9uLCBzYWxlcywgb3IgUk9JIGV2aWRlbmNlIiwKICAgICJub3QgcHJvb2Ygb2YgYSBVSyBhdWRpZW5jZSIsCiAgICAibm90IHByb29mIG9mIGF1ZGllbmNlIGxvY2F0aW9uIGZyb20gY3JlYXRvciBwb3NpdGlvbmluZywgYWNjZW50LCBldmVudCBsb2NhdGlvbiwgb3IgcHJvZHVjdCBhdmFpbGFiaWxpdHkiCiAgXSwKICAiYWN0dWFsX2F1ZGllbmNlX2RlbW9ncmFwaGljcyI6ICJub3RfZXN0aW1hdGVkIgp9DQo=",
+  "response_sha256": "sha256:ccd1ff456ab5d8fae05b4d122a6e2ab122f347d6429f804e268bfa21da805ffe",
+  "response_size_bytes": 8411,
+  "schema_version": "creator_audience_judgment_outcome_v1",
+  "snapshot_id_or_none": "cats_429711cc94298b9775b1",
+  "snapshot_or_none": {
+    "actual_audience_demographics": "not_estimated",
+    "creator_id": "tiktok:@ak.fragrances1",
+    "creator_signal_projection": {
+      "briefing_instructions": [
+        {
+          "claim_ids": [
+            "cac_5f65dc6b73629f1181a2",
+            "cac_7eec9306ec3c9d889698"
+          ],
+          "statement": "Give AK the product, two or three comparison references, and permission to rank them; require concrete notes on scent DNA, longevity, projection, and availability."
+        },
+        {
+          "claim_ids": [
+            "cac_8949fb95456a34c26e87",
+            "cac_12fd29034b3d0f6aacd2"
+          ],
+          "statement": "Keep collaboration beats natural and product-centered; do not script universal praise, and require disclosure when he has not tested a reference."
+        },
+        {
+          "claim_ids": [
+            "cac_35c567f9c50f8a027f02"
+          ],
+          "statement": "Treat geography as unknown and keep targeting claims out of the brief unless audience-location evidence is added."
+        }
+      ],
+      "creator_specific_execution": {
+        "claim_ids": [
+          "cac_5f65dc6b73629f1181a2",
+          "cac_8949fb95456a34c26e87",
+          "cac_12fd29034b3d0f6aacd2"
+        ],
+        "statement": "Build around ranked comparisons, candid first impressions, and creator-to-creator tests; let him state dislikes, uncertainty, and performance trade-offs."
+      },
+      "hire_verdict": {
+        "claim_ids": [
+          "cac_5f65dc6b73629f1181a2",
+          "cac_7eec9306ec3c9d889698",
+          "cac_86fe9bc5f1dbff35e82a"
+        ],
+        "statement": "Hire AK Fragrances when a fragrance campaign needs a fast, candid comparison that helps shoppers choose between scents, alternatives, and performance trade-offs."
+      },
+      "observed_audience_response": {
+        "claim_ids": [
+          "cac_86fe9bc5f1dbff35e82a",
+          "cac_12fd29034b3d0f6aacd2"
+        ],
+        "statement": "Captured participants ask whether products are good, what they smell like, what they dupe, and whether they are worth trying; a separate objection challenges shallow bestseller-led authority."
+      },
+      "product_advantage": {
+        "claim_ids": [
+          "cac_5f65dc6b73629f1181a2",
+          "cac_7eec9306ec3c9d889698"
+        ],
+        "statement": "His evidenced advantage is converting scent language into a shortlist: what a fragrance resembles, how it performs, where it compromises, and whether it is worth trying."
+      },
+      "robustness_stamp": null,
+      "strongest_campaign_jobs": [
+        {
+          "claim_ids": [
+            "cac_5f65dc6b73629f1181a2",
+            "cac_86fe9bc5f1dbff35e82a"
+          ],
+          "statement": "Launch or relaunch a fragrance with a candid first impression and a clear comparison anchor."
+        },
+        {
+          "claim_ids": [
+            "cac_7eec9306ec3c9d889698",
+            "cac_5f65dc6b73629f1181a2"
+          ],
+          "statement": "Position an accessible alternative against an OG while naming the performance compromise."
+        },
+        {
+          "claim_ids": [
+            "cac_8949fb95456a34c26e87",
+            "cac_86fe9bc5f1dbff35e82a"
+          ],
+          "statement": "Use a creator-event collaboration to gather quick sensory reactions and answer availability questions."
+        }
+      ],
+      "wrong_hire_boundary": {
+        "claim_ids": [
+          "cac_35c567f9c50f8a027f02",
+          "cac_12fd29034b3d0f6aacd2"
+        ],
+        "statement": "Do not hire AK Fragrances to prove audience geography, conversion, or uncontested luxury-expert authority."
+      }
+    },
+    "evidence_cutoff": "2026-07-15T12:55:34Z",
+    "generated_at": "2026-07-16T18:04:49.6613445Z",
+    "input_bundle_hash": "sha256:bd38f0602bff0ddb8c3e3e50836767131e8757c437d5079f170e1bd105b3571c",
+    "input_bundle_id": "caeb_c909ee47a864edf96a9a",
+    "judgment_claim_set": {
+      "agreements": [
+        "His content can frame value through OG similarity, performance compromise, and premium-smelling alternatives, while captured comments ask directly about dupes."
+      ],
+      "claims": [
+        {
+          "all_support_evidence_ids": [
+            "ttte_548ca39f733e887618f9",
+            "ttte_aba3c592f3bebafae639",
+            "ttte_97b028f6d002bfa8851c",
+            "ttte_b6fd1505684e6acefb55",
+            "ttte_d368867ccd1aeff61600"
+          ],
+          "axis": "purchase_decision_stage",
+          "claim_id": "cac_5f65dc6b73629f1181a2",
+          "commercial_implication": "Use him when a buyer needs a reasoned shortlist or candid first impression, not undifferentiated praise.",
+          "counterevidence_ids": [],
+          "limitation": "The capture shows selected videos, not every format AK publishes.",
+          "modality": "creator_content",
+          "relation": "creator_only",
+          "representative_evidence_ids": [
+            "ttte_548ca39f733e887618f9",
+            "ttte_aba3c592f3bebafae639",
+            "ttte_97b028f6d002bfa8851c",
+            "ttte_b6fd1505684e6acefb55",
+            "ttte_d368867ccd1aeff61600"
+          ],
+          "source_item_ids": [
+            "7658329072484863264",
+            "7659292309883735328",
+            "7659421510498635040"
+          ],
+          "statement": "AK repeatedly turns fragrance choice into ranked comparisons and explicit trade-offs across scent character, projection, smoothness, longevity, and availability.",
+          "support_scope": "content_only"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttte_b91a3cb501703d7b95fe",
+            "ttte_2f19e1485a794f0604ca",
+            "ttte_e402ef8f2b8ba14de832",
+            "ttce_d07ad32402dd26daf959"
+          ],
+          "axis": "price_value_posture",
+          "claim_id": "cac_7eec9306ec3c9d889698",
+          "commercial_implication": "This supports briefs for accessible alternatives when the comparison and compromise are stated plainly.",
+          "counterevidence_ids": [],
+          "limitation": "No price or purchase outcome was verified.",
+          "modality": "fused",
+          "relation": "agreement",
+          "representative_evidence_ids": [
+            "ttte_b91a3cb501703d7b95fe",
+            "ttte_2f19e1485a794f0604ca",
+            "ttte_e402ef8f2b8ba14de832",
+            "ttce_d07ad32402dd26daf959"
+          ],
+          "source_item_ids": [
+            "7658329072484863264",
+            "7658931548883864864",
+            "7659421510498635040"
+          ],
+          "statement": "His content can frame value through OG similarity, performance compromise, and premium-smelling alternatives, while captured comments ask directly about dupes.",
+          "support_scope": "mixed_multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_df0b008d68962b47caaf",
+            "ttce_d07ad32402dd26daf959",
+            "ttce_1dceb6f46dc83e8bc21d",
+            "ttce_4ad2496eae167f365027",
+            "ttce_0e6242ada6bc062c72bb",
+            "ttce_7afc4327e49f44e9e392"
+          ],
+          "axis": "purchase_decision_stage",
+          "claim_id": "cac_86fe9bc5f1dbff35e82a",
+          "commercial_implication": "A campaign should answer with a concrete scent description, comparison anchor, trade-off, and availability detail.",
+          "counterevidence_ids": [],
+          "limitation": "These are captured top-level comments, not conversion evidence or a platform census.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_df0b008d68962b47caaf",
+            "ttce_d07ad32402dd26daf959",
+            "ttce_1dceb6f46dc83e8bc21d",
+            "ttce_4ad2496eae167f365027",
+            "ttce_0e6242ada6bc062c72bb"
+          ],
+          "source_item_ids": [
+            "7658684731696893217",
+            "7658931548883864864",
+            "7659006132144344352",
+            "7659292309883735328",
+            "7659469523459902753"
+          ],
+          "statement": "Captured participants ask whether products are good, what they smell like, whether they are dupes, and express interest in buying or trying them.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_45ff7e3f8a3611067761",
+            "ttce_48d38db76c378eda13a0",
+            "ttce_2d252ca5e8a4c648def5",
+            "ttce_b5862bc1187e98dda1ef"
+          ],
+          "axis": "presentation_style_resonance",
+          "claim_id": "cac_8949fb95456a34c26e87",
+          "commercial_implication": "Keep collaborations spontaneous but give them a clear product-testing job and enough sensory detail to avoid an empty cameo.",
+          "counterevidence_ids": [
+            "ttce_bd22a387b69aebfad114",
+            "ttce_d7c97387213b66420d89",
+            "ttce_35b017e3c013e6628e20"
+          ],
+          "limitation": "Praise and criticism are both sparse captured comments without engagement weighting.",
+          "modality": "observed_comments",
+          "relation": "audience_emergent",
+          "representative_evidence_ids": [
+            "ttce_45ff7e3f8a3611067761",
+            "ttce_48d38db76c378eda13a0",
+            "ttce_2d252ca5e8a4c648def5",
+            "ttce_b5862bc1187e98dda1ef"
+          ],
+          "source_item_ids": [
+            "7658931548883864864",
+            "7659006132144344352",
+            "7659421510498635040"
+          ],
+          "statement": "Conversational event and creator-collaboration videos draw explicit praise, while other captured comments call some encounters awkward or forced.",
+          "support_scope": "multi_item"
+        },
+        {
+          "all_support_evidence_ids": [
+            "ttce_de236e11bcc7e3975547",
+            "ttce_8d7b3372b58b5c7d4326",
+            "ttce_2e50cefecace28d06bd5",
+            "ttce_e9613308799670d2d9ee"
+          ],
+          "axis": "objections",
+          "claim_id": "cac_12fd29034b3d0f6aacd2",
+          "commercial_implication": "Brand briefs should require first-hand experience, comparison rationale, and disclosed uncertainty rather than an uncontested expert posture.",
+          "counterevidence_ids": [],
+          "limitation": "The objection comes from one captured video's comment set.",
+          "modality": "observed_comments",
+          "relation": "contradiction",
+          "representative_evidence_ids": [
+            "ttce_de236e11bcc7e3975547",
+            "ttce_8d7b3372b58b5c7d4326",
+            "ttce_2e50cefecace28d06bd5",
+            "ttce_e9613308799670d2d9ee"
+          ],
+          "source_item_ids": [
+            "7658329072484863264"
+          ],
+          "statement": "A captured objection challenges category authority when recommendations center popular or bestselling choices.",
+          "support_scope": "single_item"
+        },
+        {
+          "all_support_evidence_ids": [],
+          "axis": "language_community_norms",
+          "claim_id": "cac_35c567f9c50f8a027f02",
+          "commercial_implication": "Do not use creator positioning, product availability, event location, or isolated location mentions as geographic targeting evidence.",
+          "counterevidence_ids": [],
+          "limitation": "No audience-location evidence was admitted.",
+          "modality": "fused",
+          "relation": "missing",
+          "representative_evidence_ids": [],
+          "source_item_ids": [],
+          "statement": "Audience geography is not established by this capture.",
+          "support_scope": "content_only"
+        }
+      ],
+      "contradictions": [
+        "A captured objection challenges category authority when recommendations center popular or bestselling choices."
+      ],
+      "missing_evidence": [
+        "Audience geography is not established by this capture."
+      ]
+    },
+    "limitations": [
+      "The capture is limited to eight selected videos and captured top-level comments.",
+      "Two selected videos contribute comments without transcript cues; transcript evidence remains available across the other selected videos.",
+      "Comment engagement salience was unavailable and was not relied on.",
+      "The slice is event- and collaboration-heavy and may not represent AK's full publishing mix.",
+      "Audience demographics and geography were not estimated."
+    ],
+    "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+    "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+    "non_claims": [
+      "not audience prevalence",
+      "not conversion, sales, or ROI evidence",
+      "not proof of a UK audience",
+      "not proof of audience location from creator positioning, accent, event location, or product availability"
+    ],
+    "platform_account_id": "acct_tiktok_fragrance_007",
+    "platform_scope": "tiktok",
+    "profile_subject_id": "acct_tiktok_fragrance_007",
+    "profile_subject_kind": "platform_account",
+    "schema_version": "creator_audience_triangulation_snapshot_v1",
+    "snapshot_id": "cats_429711cc94298b9775b1"
+  },
+  "snapshot_sha256_or_none": "sha256:7236050aebd870783f3305546881f2fe35bff4a00648cf72f9d38bf986c4080f",
+  "status": "validated",
+  "validation_errors": []
+}

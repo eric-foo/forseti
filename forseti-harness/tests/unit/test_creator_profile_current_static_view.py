@@ -108,6 +108,30 @@ INSTAGRAM_SNAPSHOT_PATH = (
     / "instagram_reels_creator_metric_rollup_snapshot_v0.json"
 )
 METRIC_SEED_PATHS = (YOUTUBE_SNAPSHOT_PATH, INSTAGRAM_SNAPSHOT_PATH)
+AK_AUDIENCE_SNAPSHOT_PATH = (
+    ROOT
+    / "forseti"
+    / "product"
+    / "spines"
+    / "capture"
+    / "core"
+    / "source_families"
+    / "social_media"
+    / "creator_registry"
+    / "ak_fragrances1_creator_audience_triangulation_snapshot_v1.json"
+)
+AK_AUDIENCE_OUTCOME_PATH = (
+    ROOT
+    / "forseti"
+    / "product"
+    / "spines"
+    / "capture"
+    / "core"
+    / "source_families"
+    / "social_media"
+    / "creator_registry"
+    / "ak_fragrances1_creator_audience_judgment_outcome_v1.json"
+)
 
 
 def _json(path: Path) -> dict:
@@ -236,14 +260,14 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
 
     assert view["schema_version"] == "creator_profile_current_view_v0"
     assert view["counts"] == {
-        "profiles_total": 51,
-        "platform_account_profiles": 51,
+        "profiles_total": 52,
+        "platform_account_profiles": 52,
         "creator_record_profiles": 0,
         "profiles_with_metric_rollups": 33,
-        "profiles_with_audience_triangulation": 0,
+        "profiles_with_audience_triangulation": 1,
         "engagement_rate_observed_profiles": 31,
         "cross_platform_rollup_profiles": 0,
-        "onboarded_profiles": 38,
+        "onboarded_profiles": 39,
         "not_onboarded_profiles": 13,
     }
     assert {profile["platform_accounts"][0]["platform"] for profile in view["profiles"]} == {"youtube", "instagram", "tiktok"}
@@ -256,7 +280,13 @@ def test_creator_profile_current_counts_and_boundaries() -> None:
         assert profile["identity_state"] == "single_platform_observed"
         assert profile["link_state_or_none"] is None
         assert profile["review_state_or_none"] is None
-        assert profile["audience_triangulation"] is None
+        if profile["profile_subject_id"] == "acct_tiktok_fragrance_007":
+            audience = profile["audience_triangulation"]
+            assert audience["snapshot_id"] == "cats_429711cc94298b9775b1"
+            assert audience["actual_audience_demographics"] == "not_estimated"
+            assert "not proof of a UK audience" in audience["non_claims"]
+        else:
+            assert profile["audience_triangulation"] is None
         assert profile["wind_calling_summary"] is None
         assert profile["onboarding"]["onboarding_state"] in {"not_onboarded", "onboarded"}
         if not profile["current_metric_rollups"]:
@@ -311,6 +341,7 @@ def test_creator_profile_current_rebuilds_from_identity_and_metric_seeds() -> No
         "acct_tiktok_fragrance_005",
         "acct_ig_fragrance_006",
         "acct_tiktok_fragrance_006",
+        "acct_tiktok_fragrance_007",
         "acct_yt_fragrance_032",
         "acct_yt_fragrance_033",
         "acct_yt_fragrance_034",
@@ -359,6 +390,8 @@ def test_creator_profile_current_materializer_matches_checked_in_view() -> None:
         account_ledger_path=ACCOUNT_LEDGER_PATH,
         creator_registry_index_path=CREATOR_REGISTRY_INDEX_PATH,
         metric_seed_paths=METRIC_SEED_PATHS,
+        audience_triangulation_snapshot_paths=(AK_AUDIENCE_SNAPSHOT_PATH,),
+        audience_judgment_outcome_paths=(AK_AUDIENCE_OUTCOME_PATH,),
         generated_at_utc=_view()["generated_at_utc"],
     )
 
@@ -444,6 +477,7 @@ def test_creator_profile_current_source_hashes_are_current() -> None:
         "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json": CREATOR_REGISTRY_INDEX_PATH,
         "forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_shorts_fragrance_creator_metric_rollup_snapshot_v0.json": YOUTUBE_SNAPSHOT_PATH,
         "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json": INSTAGRAM_SNAPSHOT_PATH,
+        "forseti/product/spines/capture/core/source_families/social_media/creator_registry/ak_fragrances1_creator_audience_triangulation_snapshot_v1.json": AK_AUDIENCE_SNAPSHOT_PATH,
     }
 
     assert set(inputs_by_pointer) == set(expected_paths)

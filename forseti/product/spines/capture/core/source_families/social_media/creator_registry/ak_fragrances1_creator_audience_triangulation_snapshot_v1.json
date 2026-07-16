@@ -1,0 +1,290 @@
+{
+  "actual_audience_demographics": "not_estimated",
+  "creator_id": "tiktok:@ak.fragrances1",
+  "creator_signal_projection": {
+    "briefing_instructions": [
+      {
+        "claim_ids": [
+          "cac_5f65dc6b73629f1181a2",
+          "cac_7eec9306ec3c9d889698"
+        ],
+        "statement": "Give AK the product, two or three comparison references, and permission to rank them; require concrete notes on scent DNA, longevity, projection, and availability."
+      },
+      {
+        "claim_ids": [
+          "cac_8949fb95456a34c26e87",
+          "cac_12fd29034b3d0f6aacd2"
+        ],
+        "statement": "Keep collaboration beats natural and product-centered; do not script universal praise, and require disclosure when he has not tested a reference."
+      },
+      {
+        "claim_ids": [
+          "cac_35c567f9c50f8a027f02"
+        ],
+        "statement": "Treat geography as unknown and keep targeting claims out of the brief unless audience-location evidence is added."
+      }
+    ],
+    "creator_specific_execution": {
+      "claim_ids": [
+        "cac_5f65dc6b73629f1181a2",
+        "cac_8949fb95456a34c26e87",
+        "cac_12fd29034b3d0f6aacd2"
+      ],
+      "statement": "Build around ranked comparisons, candid first impressions, and creator-to-creator tests; let him state dislikes, uncertainty, and performance trade-offs."
+    },
+    "hire_verdict": {
+      "claim_ids": [
+        "cac_5f65dc6b73629f1181a2",
+        "cac_7eec9306ec3c9d889698",
+        "cac_86fe9bc5f1dbff35e82a"
+      ],
+      "statement": "Hire AK Fragrances when a fragrance campaign needs a fast, candid comparison that helps shoppers choose between scents, alternatives, and performance trade-offs."
+    },
+    "observed_audience_response": {
+      "claim_ids": [
+        "cac_86fe9bc5f1dbff35e82a",
+        "cac_12fd29034b3d0f6aacd2"
+      ],
+      "statement": "Captured participants ask whether products are good, what they smell like, what they dupe, and whether they are worth trying; a separate objection challenges shallow bestseller-led authority."
+    },
+    "product_advantage": {
+      "claim_ids": [
+        "cac_5f65dc6b73629f1181a2",
+        "cac_7eec9306ec3c9d889698"
+      ],
+      "statement": "His evidenced advantage is converting scent language into a shortlist: what a fragrance resembles, how it performs, where it compromises, and whether it is worth trying."
+    },
+    "robustness_stamp": null,
+    "strongest_campaign_jobs": [
+      {
+        "claim_ids": [
+          "cac_5f65dc6b73629f1181a2",
+          "cac_86fe9bc5f1dbff35e82a"
+        ],
+        "statement": "Launch or relaunch a fragrance with a candid first impression and a clear comparison anchor."
+      },
+      {
+        "claim_ids": [
+          "cac_7eec9306ec3c9d889698",
+          "cac_5f65dc6b73629f1181a2"
+        ],
+        "statement": "Position an accessible alternative against an OG while naming the performance compromise."
+      },
+      {
+        "claim_ids": [
+          "cac_8949fb95456a34c26e87",
+          "cac_86fe9bc5f1dbff35e82a"
+        ],
+        "statement": "Use a creator-event collaboration to gather quick sensory reactions and answer availability questions."
+      }
+    ],
+    "wrong_hire_boundary": {
+      "claim_ids": [
+        "cac_35c567f9c50f8a027f02",
+        "cac_12fd29034b3d0f6aacd2"
+      ],
+      "statement": "Do not hire AK Fragrances to prove audience geography, conversion, or uncontested luxury-expert authority."
+    }
+  },
+  "evidence_cutoff": "2026-07-15T12:55:34Z",
+  "generated_at": "2026-07-16T18:04:49.6613445Z",
+  "input_bundle_hash": "sha256:bd38f0602bff0ddb8c3e3e50836767131e8757c437d5079f170e1bd105b3571c",
+  "input_bundle_id": "caeb_c909ee47a864edf96a9a",
+  "judgment_claim_set": {
+    "agreements": [
+      "His content can frame value through OG similarity, performance compromise, and premium-smelling alternatives, while captured comments ask directly about dupes."
+    ],
+    "claims": [
+      {
+        "all_support_evidence_ids": [
+          "ttte_548ca39f733e887618f9",
+          "ttte_aba3c592f3bebafae639",
+          "ttte_97b028f6d002bfa8851c",
+          "ttte_b6fd1505684e6acefb55",
+          "ttte_d368867ccd1aeff61600"
+        ],
+        "axis": "purchase_decision_stage",
+        "claim_id": "cac_5f65dc6b73629f1181a2",
+        "commercial_implication": "Use him when a buyer needs a reasoned shortlist or candid first impression, not undifferentiated praise.",
+        "counterevidence_ids": [],
+        "limitation": "The capture shows selected videos, not every format AK publishes.",
+        "modality": "creator_content",
+        "relation": "creator_only",
+        "representative_evidence_ids": [
+          "ttte_548ca39f733e887618f9",
+          "ttte_aba3c592f3bebafae639",
+          "ttte_97b028f6d002bfa8851c",
+          "ttte_b6fd1505684e6acefb55",
+          "ttte_d368867ccd1aeff61600"
+        ],
+        "source_item_ids": [
+          "7658329072484863264",
+          "7659292309883735328",
+          "7659421510498635040"
+        ],
+        "statement": "AK repeatedly turns fragrance choice into ranked comparisons and explicit trade-offs across scent character, projection, smoothness, longevity, and availability.",
+        "support_scope": "content_only"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttte_b91a3cb501703d7b95fe",
+          "ttte_2f19e1485a794f0604ca",
+          "ttte_e402ef8f2b8ba14de832",
+          "ttce_d07ad32402dd26daf959"
+        ],
+        "axis": "price_value_posture",
+        "claim_id": "cac_7eec9306ec3c9d889698",
+        "commercial_implication": "This supports briefs for accessible alternatives when the comparison and compromise are stated plainly.",
+        "counterevidence_ids": [],
+        "limitation": "No price or purchase outcome was verified.",
+        "modality": "fused",
+        "relation": "agreement",
+        "representative_evidence_ids": [
+          "ttte_b91a3cb501703d7b95fe",
+          "ttte_2f19e1485a794f0604ca",
+          "ttte_e402ef8f2b8ba14de832",
+          "ttce_d07ad32402dd26daf959"
+        ],
+        "source_item_ids": [
+          "7658329072484863264",
+          "7658931548883864864",
+          "7659421510498635040"
+        ],
+        "statement": "His content can frame value through OG similarity, performance compromise, and premium-smelling alternatives, while captured comments ask directly about dupes.",
+        "support_scope": "mixed_multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_df0b008d68962b47caaf",
+          "ttce_d07ad32402dd26daf959",
+          "ttce_1dceb6f46dc83e8bc21d",
+          "ttce_4ad2496eae167f365027",
+          "ttce_0e6242ada6bc062c72bb",
+          "ttce_7afc4327e49f44e9e392"
+        ],
+        "axis": "purchase_decision_stage",
+        "claim_id": "cac_86fe9bc5f1dbff35e82a",
+        "commercial_implication": "A campaign should answer with a concrete scent description, comparison anchor, trade-off, and availability detail.",
+        "counterevidence_ids": [],
+        "limitation": "These are captured top-level comments, not conversion evidence or a platform census.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_df0b008d68962b47caaf",
+          "ttce_d07ad32402dd26daf959",
+          "ttce_1dceb6f46dc83e8bc21d",
+          "ttce_4ad2496eae167f365027",
+          "ttce_0e6242ada6bc062c72bb"
+        ],
+        "source_item_ids": [
+          "7658684731696893217",
+          "7658931548883864864",
+          "7659006132144344352",
+          "7659292309883735328",
+          "7659469523459902753"
+        ],
+        "statement": "Captured participants ask whether products are good, what they smell like, whether they are dupes, and express interest in buying or trying them.",
+        "support_scope": "multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_45ff7e3f8a3611067761",
+          "ttce_48d38db76c378eda13a0",
+          "ttce_2d252ca5e8a4c648def5",
+          "ttce_b5862bc1187e98dda1ef"
+        ],
+        "axis": "presentation_style_resonance",
+        "claim_id": "cac_8949fb95456a34c26e87",
+        "commercial_implication": "Keep collaborations spontaneous but give them a clear product-testing job and enough sensory detail to avoid an empty cameo.",
+        "counterevidence_ids": [
+          "ttce_bd22a387b69aebfad114",
+          "ttce_d7c97387213b66420d89",
+          "ttce_35b017e3c013e6628e20"
+        ],
+        "limitation": "Praise and criticism are both sparse captured comments without engagement weighting.",
+        "modality": "observed_comments",
+        "relation": "audience_emergent",
+        "representative_evidence_ids": [
+          "ttce_45ff7e3f8a3611067761",
+          "ttce_48d38db76c378eda13a0",
+          "ttce_2d252ca5e8a4c648def5",
+          "ttce_b5862bc1187e98dda1ef"
+        ],
+        "source_item_ids": [
+          "7658931548883864864",
+          "7659006132144344352",
+          "7659421510498635040"
+        ],
+        "statement": "Conversational event and creator-collaboration videos draw explicit praise, while other captured comments call some encounters awkward or forced.",
+        "support_scope": "multi_item"
+      },
+      {
+        "all_support_evidence_ids": [
+          "ttce_de236e11bcc7e3975547",
+          "ttce_8d7b3372b58b5c7d4326",
+          "ttce_2e50cefecace28d06bd5",
+          "ttce_e9613308799670d2d9ee"
+        ],
+        "axis": "objections",
+        "claim_id": "cac_12fd29034b3d0f6aacd2",
+        "commercial_implication": "Brand briefs should require first-hand experience, comparison rationale, and disclosed uncertainty rather than an uncontested expert posture.",
+        "counterevidence_ids": [],
+        "limitation": "The objection comes from one captured video's comment set.",
+        "modality": "observed_comments",
+        "relation": "contradiction",
+        "representative_evidence_ids": [
+          "ttce_de236e11bcc7e3975547",
+          "ttce_8d7b3372b58b5c7d4326",
+          "ttce_2e50cefecace28d06bd5",
+          "ttce_e9613308799670d2d9ee"
+        ],
+        "source_item_ids": [
+          "7658329072484863264"
+        ],
+        "statement": "A captured objection challenges category authority when recommendations center popular or bestselling choices.",
+        "support_scope": "single_item"
+      },
+      {
+        "all_support_evidence_ids": [],
+        "axis": "language_community_norms",
+        "claim_id": "cac_35c567f9c50f8a027f02",
+        "commercial_implication": "Do not use creator positioning, product availability, event location, or isolated location mentions as geographic targeting evidence.",
+        "counterevidence_ids": [],
+        "limitation": "No audience-location evidence was admitted.",
+        "modality": "fused",
+        "relation": "missing",
+        "representative_evidence_ids": [],
+        "source_item_ids": [],
+        "statement": "Audience geography is not established by this capture.",
+        "support_scope": "content_only"
+      }
+    ],
+    "contradictions": [
+      "A captured objection challenges category authority when recommendations center popular or bestselling choices."
+    ],
+    "missing_evidence": [
+      "Audience geography is not established by this capture."
+    ]
+  },
+  "limitations": [
+    "The capture is limited to eight selected videos and captured top-level comments.",
+    "Two selected videos contribute comments without transcript cues; transcript evidence remains available across the other selected videos.",
+    "Comment engagement salience was unavailable and was not relied on.",
+    "The slice is event- and collaboration-heavy and may not represent AK's full publishing mix.",
+    "Audience demographics and geography were not estimated."
+  ],
+  "method_deck_path": "forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md",
+  "method_deck_sha256": "sha256:cf25e3b041462e592e3521ab98464a91cd57fc40f267284e24769ca9b5130335",
+  "non_claims": [
+    "not audience prevalence",
+    "not conversion, sales, or ROI evidence",
+    "not proof of a UK audience",
+    "not proof of audience location from creator positioning, accent, event location, or product availability"
+  ],
+  "platform_account_id": "acct_tiktok_fragrance_007",
+  "platform_scope": "tiktok",
+  "profile_subject_id": "acct_tiktok_fragrance_007",
+  "profile_subject_kind": "platform_account",
+  "schema_version": "creator_audience_triangulation_snapshot_v1",
+  "snapshot_id": "cats_429711cc94298b9775b1"
+}

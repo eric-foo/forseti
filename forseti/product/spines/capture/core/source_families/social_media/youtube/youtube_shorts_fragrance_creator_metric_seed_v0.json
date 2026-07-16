@@ -19,7 +19,7 @@
       },
       {
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json",
-        "sha256": "809d271314495520d0cff7d5fbc1e32b8aecc6a294ca2b12f5c68981bf0536b4",
+        "sha256": "66dd3a916d7890d7998f1f08992e58d2543b727a8343529c8324521af64d43c0",
         "role": "maps YouTube channel ids to platform_account ids for account-scoped profile subjects"
       },
       {
