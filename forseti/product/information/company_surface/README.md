@@ -38,6 +38,12 @@ correction rules, and current/history view semantics are controlled by
 `company_logical_record_and_view_contract_v0.md`. It is deliberately not named
 Company Intelligence: interpretation and action belong to downstream consumers.
 
+Cold agents start here, then open the owning contract for the question rather
+than reconstructing Company Surface from chat or review history. For a later
+record mapping, implementation, or acceptance check, use the logical-record
+contract's `Logical Record Success Signals` and `Cold-agent reference check`;
+they bind the success bar while leaving physical Data Lake mechanics deferred.
+
 ## Relationship To Operational Spines
 
 | Area | Relationship |

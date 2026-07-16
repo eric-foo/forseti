@@ -6,11 +6,14 @@ artifact_role: Product doctrine contract (Company Surface logical records and vi
 scope: >
   Storage-agnostic logical requirements for Company Surface assertions,
   company-linked activity, coverage and failure, append-only correction, and
-  reproducible current, historical-restated, and historical-as-known views.
+  reproducible current, historical-restated, and historical-as-known views,
+  plus the record-level success signals and cold-agent reference check that
+  form the acceptance bar for a later mapping or proving slice.
 use_when:
   - Designing a Company Surface record, ledger, projection, or consumer view.
   - Deciding which time boundary or evidence cutoff a company view must use.
   - Checking whether company history, uncertainty, coverage, and correction remain inspectable.
+  - Giving a cold agent the acceptance bar for later Company Surface mapping or implementation work.
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/information/company_surface/purpose_contract_v0.md
@@ -86,10 +89,12 @@ proves pain, opportunity, traction, contradiction, or an intervention.
 
 ### Coverage or failure marker
 
-Makes an attempted, partial, failed, excluded, or not-covered source interval
-visible for a subject and surface. It carries the upstream Capture posture and
-receipt. It distinguishes available evidence, partial coverage with the missing
-boundary named, failed capture, and a surface or interval not covered.
+Makes source-interval coverage and failure state visible for a subject and
+surface, including attempted-with-evidence, partial, failed, excluded,
+not-attempted, and not-covered cases. It carries the upstream Capture posture
+and receipt. It distinguishes available evidence, partial coverage with the
+missing boundary named, failed capture, explicit exclusion, an interval not
+attempted, and a surface or interval not covered.
 
 No marker may convert no observation into a resolved negative. Exact
 coverage-state labels remain an implementation choice.
@@ -288,6 +293,45 @@ produces all three view modes; retains exact, coarse, conflicting, and unknown
 time; preserves source and capture failures; and refuses convenient answers
 when evidence supports ambiguity or absent vocabulary.
 
+## Logical Record Success Signals
+
+These signals are the acceptance bar for a later record mapping or proving
+slice. They test the logical contract without choosing serialized fields,
+physical placement, producer names, or runtime behavior.
+
+| ID | Success signal | Observable pass condition |
+| --- | --- | --- |
+| LRS-01 | **A cold company can enter without a fabricated identity.** | A raw identifier and receipt can support a subject assertion, including provisional, ambiguous, or unresolved state, without requiring a fictional pre-existing Silver entity. Brand and Org remain distinct, and an ontology-governed Org encoding still stops at the Foundation graduation gate. |
+| LRS-02 | **Source facts remain single-source.** | Company Surface attaches evidence to a subject by reference. It does not copy an upstream observation payload, treat selection of a company into a downstream pool or list as evidence about that company, or create a maintained company dossier. |
+| LRS-03 | **Every company-specific claim is inspectable.** | A consumer can recover the cited supporting and conflicting evidence, subject or relationship, semantic state, effective or observation time, captured time, recorded time, precision, relevant capture posture, limitations, alternatives, and correction history relevant to the claim. |
+| LRS-04 | **Correction preserves what was known.** | A correction or supersession appends a new record, changes only later eligible selection, and leaves the prior record available to a historical-as-known view. |
+| LRS-05 | **Time-bounded views disagree correctly.** | Current, historical-restated, and historical-as-known views can return different correct answers because each declares both an effective boundary and a knowledge cutoff. |
+| LRS-06 | **Unknown and failed coverage cannot become a negative.** | Partial, failed, excluded, not-attempted, or not-covered source intervals remain visible, and no view turns missing activity into a claim that the company did not do it. |
+| LRS-07 | **Physical mapping fails visibly instead of inventing a fit.** | A later Data Lake mapping names its actual producer dependencies and a deterministic lawful raw anchor while retaining all evidence references. If the logical record cannot conform to the current Silver envelope, or a multi-source assertion admits no determinate lawful raw anchor under the current derived addressing grammar, the mapping stops and routes the incompatibility to the Data Lake owner; it does not presume an existing producer or an automatic core Silver amendment, and it does not pick an arbitrary anchor to force a fit. |
+| LRS-08 | **Reusable history does not launder evidence.** | A standing-capture-backed record may remain useful Company Surface substrate, but neither its existence nor a resolved identity state makes the underlying material Decision-Frame-ready; the Corpus Intake rebind gate remains enforceable from retained lineage. |
+| LRS-09 | **New sources extend one foundation.** | A new observable surface adds its owned capture route and mapping into the same four record families and view contract. It does not create another company registry, information architecture, pain score, or source-family-specific dossier. |
+| LRS-10 | **A cold agent can route the work without chat history.** | Starting from `company_surface/README.md`, a fresh agent can identify the controlling purpose, identity, and logical-record sources; distinguish authoritative records from rebuildable views; name Capture, Company Surface, Data Lake, Foundation, and consumer ownership; state the Org, physical-mapping, rebind, and implementation boundaries; and identify the next unresolved mapping decision without reading an authoring conversation or review report. |
+| LRS-11 | **An unresolved assertion is never upgraded by convenience.** | Only resolved assertions whose effective interval is determinate at the requested boundary under its declared precision enter a resolved roll-up. Provisional, ambiguous, unresolved, and temporally indeterminate assertions stay visible as alternatives and limitations, and neither a convenient roll-up nor a missing boundary silently upgrades their state. |
+
+### Cold-agent reference check
+
+A cold agent should start at `company_surface/README.md`, then read this
+contract plus only the owning source linked for the question at hand. The
+reference check passes when the agent can answer all five questions from those
+surfaces alone:
+
+1. Which logical records are authoritative, and which views are rebuildable?
+2. Which layer owns capture, company-specific meaning, physical persistence,
+   shared ontology, and downstream conclusions?
+3. What uncertainty, time, coverage, correction, and source lineage must remain
+   inspectable?
+4. Which decisions are still blocked or deferred?
+5. What is the smallest next mapping or proving-slice decision?
+
+Failure to answer one of these from the front door and controlling contracts is
+a retrieval or contract-clarity failure. It is not permission to fill the gap
+from a prior chat, review report, implementation guess, or adjacent GTM artifact.
+
 ## Nine Success Signals Made Testable
 
 | Owner-signed signal | Testable behavior |
@@ -385,4 +429,50 @@ direction_change_propagation:
     - not Org graduation or new relationship vocabulary
     - not stored corpus, source completeness, validation, or readiness proof
     - not buyer proof, GTM, outreach, contact, or intervention authorization
+```
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Company Surface logical-record contract now carries eleven
+    record-specific, implementation-independent success signals and a
+    cold-agent reference check that bind visible failure, ownership, deferred
+    decisions, and next-step discoverability without choosing physical schema
+    or runtime. Coverage and failure examples now mirror the semantic cases
+    exercised by LRS-06 while exact serialized labels remain deferred.
+  trigger: product_doctrine
+  related_triggers: [architecture_doctrine]
+  controlling_sources_updated:
+    - forseti/product/information/company_surface/company_logical_record_and_view_contract_v0.md
+    - forseti/product/information/company_surface/README.md
+  downstream_surfaces_checked:
+    - forseti/product/information/company_surface/purpose_contract_v0.md
+    - forseti/product/information/company_surface/company_identity_boundary_v0.md
+    - forseti/product/spines/foundation/ontology/ontology.yaml
+    - forseti/product/spines/foundation/ontology/forseti_ontology_backbone_architecture_v0.md
+    - forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md
+    - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: forseti/product/information/company_surface/purpose_contract_v0.md
+      reason: Its nine owner-signed domain-level signals remain unchanged; this amendment makes the logical-record acceptance bar explicit.
+    - path: Data Lake contracts or runtime
+      reason: No physical mapping, producer lane, raw-anchor rule, Silver amendment, materialized view, or implementation is selected here.
+    - path: Beauty GTM contract
+      reason: Temporary pool composition and the stop-by-eight rule remain run-specific GTM policy; this reusable contract binds only that selection is not evidence.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: The admitted Company Surface row already routes cold agents through the updated domain README; the map is not a per-contract inventory.
+  stale_language_search: >
+    rg -n -i "existing Silver producer|Silver amendment.*required|at most eight companies ever|Company Surface.*after Silver|chat history|review history|cold agent"
+    forseti/product/information/company_surface forseti/product/spines/capture/core/contracts/corpus_intake/data_capture_spine_corpus_intake_obligation_contract_proposal_v0.md forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-15 after the edit. Hits are confined to the intentional
+    cold-agent entry and reference-check wording in this contract and README;
+    no checked source requires an existing Silver producer, a mandatory Silver
+    amendment, a permanent eight-company limit, or chat/review reconstruction.
+  non_claims:
+    - not a schema, canonical identifier, Data Lake mapping, producer implementation, or runtime
+    - not Org graduation or a new relationship vocabulary
+    - not validation, readiness, source completeness, or cold-agent proof
+    - not GTM, outreach, contact, pain, or intervention authorization
 ```

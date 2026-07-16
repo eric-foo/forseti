@@ -3,11 +3,10 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow record
-scope: Active evidence pilot for review economics, deep-thinking decisions, resident-rule firing, and worktree lifecycle.
+scope: Retired evidence record and final keep/stop disposition for the four Batch 0 probes.
 use_when:
-  - Closing a material adversarial review during the Batch 0 sample.
-  - Recording or checking one of the four Batch 0 probes.
-  - Checking whether the tenth-review owner notification should have fired.
+  - Interpreting the preserved Batch 0 receipts and probe ledgers.
+  - Checking what ended at retirement and what remained unchanged.
 authority_boundary: retrieval_only
 open_next:
   - .agents/workflow-overlay/review-lanes.md
@@ -16,60 +15,49 @@ open_next:
 
 ## Operating state
 
-- `pilot_status`: `active`
+- `pilot_status`: `retired`
+- `activated`: `2026-07-11`
+- `retired`: `2026-07-17`
 - `review_sample_target`: `10`
-- `review_completion_unit`: one valid CA-adjudicated receipt for one material adversarial review
-- `owner_notification`: one deduplicated GitHub issue, assigned to and mentioning the repository owner, after the valid receipt count first reaches at least 10 on `main`
-- `non_claim`: starting or completing this pilot does not prove that a process improves decisions
+- `final_valid_receipts_observed`: `13`
+- `threshold_notification`: GitHub issue #1012
+- `replacement_behavior_authorized`: `no`
 
-This is a measurement batch, not a new review layer. It measures observed process
-value and failure modes before later doctrine, automation, or skill changes are
-considered.
+Batch 0 was a measurement batch, not a review layer. Its records remain
+available for interpretation, but no future work unit owes a Batch 0 receipt,
+ledger update, counter run, or notification check.
 
 ## Probe 1 — adversarial-review economics
 
-After the Chief Architect finishes adjudicating a material adversarial review,
-write one JSON receipt under `review_receipts/`. The receipt records net-new
-accepted material findings, decision change, closure state, provenance, evidence,
-and a small cost proxy. A report, prompt, patch, or unadjudicated review is not a
-completion unit.
-
-The validator is `.github/scripts/batch0_process_tracker.py`. The dedicated
-GitHub workflow rejects malformed or duplicated receipts on pull requests. The
-notification workflow is `.github/workflows/batch0-owner-notify.yml`.
-
-Stop or pivot if receipt production becomes manual ceremony that does not affect
-review selection, adjudication, or closure. Prefer automatic derivation from the
-CA closeout if that happens.
+The final tracker run observed 13 valid receipts. The first 12 synthesized
+receipts recorded 23 accepted net-new material findings and 11 decision changes.
+Cost evidence was weak because 11 of 12 recorded `turn_count: unknown`, and
+report length was only a rough proxy. Keep the existing selective review
+practice; stop the receipt obligation, tracker, CI steps, and notifier. Make no
+quantitative return-on-effort claim.
 
 ## Probe 2 — deep-thinking retrospective
 
-Use `deep_thinking_benchmark_v0.md` to examine 8–12 closed decisions. Compare
-strong, weak, absent, and unknown deep-thinking use without claiming causality.
-Keep `unknown` when the original decision input, invocation state, or observed
-outcome cannot be reconstructed.
-
-Stop or pivot if fewer than six cases are comparable. In that case, run only a
-decision-delta/conformance audit.
+Zero candidates reached completed comparable-case scoring. Stop incomplete,
+preserve the ledger, and draw no conclusion about deep-thinking method value.
 
 ## Probe 3 — resident-rule firing
 
-Use `resident_rule_firing_audit_v0.md` for ten varied work units. Record only
-applicable rules, whether they fired, and the observed consequence. Checklist
-completion without a concrete consequence is not evidence.
-
-Stop or pivot to incident-triggered sampling if 20 varied units show no
-consequential miss or the audit costs more than ten minutes per unit.
+Three of ten planned work units were recorded: one rule fired and two
+consequential misses were recovered later. Stop incomplete, preserve the
+observations, and add no standing audit or replacement sampling rule.
 
 ## Probe 4 — worktree lifecycle
 
-Use `worktree_lifecycle_audit_v0.md` for the intake baseline and lifecycle failure
-classification. This probe is read-only: it never removes a worktree or branch.
-Any cleanup or enforcement change is a separate guarded work unit.
+Keep the read-only, fail-closed classifier in
+`.github/scripts/lane-health-check.ps1`. Close the probe with no cleanup
+authority and no age, count, or automatic cleanup rule.
 
 ## Batch closeout
 
-After the owner notification fires, the next agent should summarize the four
-probes for the owner, distinguish method defects from adoption or enforcement
-defects, and recommend keep/change/stop decisions. It must not promote a lesson,
-change doctrine, or begin Batch 1 without separate authority.
+The sample supports retaining selective adversarial review. The observed misses
+were primarily adoption or enforcement failures recovered by later lanes, not
+evidence that more review layers or resident checklists are needed. No lesson is
+promoted, no replacement behavior is installed, and no later batch begins from
+this closeout. Receipts, reports, ledgers, and the historical commissioning
+prompt remain preserved evidence.
