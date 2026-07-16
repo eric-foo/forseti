@@ -151,8 +151,10 @@ guard, and owner steering all stay.
   `sandboxed_tool_stall` for that failed tool-plus-permission route and do not
   probe the route again merely because the command differs. A user interruption,
   follow-up message, or automatic continuation does not reset an open circuit;
-  if current context reports the stall, inherit it. Retry a safe in-scope
-  operation at most once through a distinct approved route and reuse that working
+  if current context reports the stall, inherit it. Carry an open circuit's
+  `sandboxed_tool_stall` record in any precompact or handoff packet so the
+  receiving lane inherits it. Retry a safe in-scope operation at most once
+  through a distinct approved route and reuse that working
   route for the task/thread. If the stalled operation might have written, inspect
   only its intended targets once before any alternate mutation. Then perform at
   most one bounded alternate mutation; `.agents/tools/atomic_exact_edit.py` is an
