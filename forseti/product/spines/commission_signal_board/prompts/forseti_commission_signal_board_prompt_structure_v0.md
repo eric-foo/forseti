@@ -4,10 +4,10 @@
 retrieval_header_version: 1
 artifact_role: Prompt Structure
 scope: >
-  Reusable prompt for producing a Forseti Commission Signal Board: an
-  evidence/signals-only board, graph retrieval brief, and classifier handoff
-  packet for one commission candidate or decision context. The board does not
-  decide demand, buyer proof, forecast, judgment, or graph scoring.
+  Reusable prompt for either a standard Forseti Commission Signal Board or a
+  decision-neutral one-company competitive-intelligence report. It owns profile,
+  source-family, time-posture, and typed-request contracts; it does not retrieve,
+  capture, classify demand, decide buyer proof, forecast, judge, or graph-score.
 use_when:
   - Preparing a first-pass signal board before retrieval, extraction, graph artifact construction, or demand classification.
   - Turning supplied case context into source-family routes, signal rows, counterevidence paths, and a classifier handoff packet.
@@ -30,7 +30,7 @@ stale_if:
 - Prompt Structure path: `forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md`.
 - Prompt family: product-planning / Prompt Structure.
 - Prompt output mode: `chat-only`.
-- Prompt authoring route: authored through `workflow-prompt-orchestrator` mechanics in the legacy-named `codex/commission-gate` lane.
+- Prompt authoring route: full `workflow-prompt-orchestrator` contract applied to this reusable canonical prompt; no downstream research executed.
 - Commission lane playbook: `forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md`.
 - Validator: `.agents/hooks/check_commission_signal_board_output.py`.
 - Implementation authorized: no.
@@ -162,6 +162,16 @@ Before producing the board, check whether the dispatcher supplied:
 ```yaml
 commission_id:
 mode: backtest | forward | unknown
+commission_profile: standard_signal_board | company_competitive_intelligence | default
+time_posture: recency_first | longitudinal | default
+as_of_date: YYYY-MM-DD
+longitudinal_period: {start: YYYY-MM-DD, end: YYYY-MM-DD} | not_applicable
+longitudinal_rationale: string | not_applicable
+initial_proving_run: true | false
+subject_identity:
+  entity_name:
+  entity_kind: Brand | Org | other | unresolved_brand_or_org
+  identity_status: resolved | unresolved
 candidate_or_subject:
 decision_context:
 market_or_geography:
@@ -179,8 +189,14 @@ If `candidate_or_subject`, `decision_context`, or `mode` is missing, do not
 produce the board sections. Return the **Missing-Input Intake Output** below
 with `next_authorized_step: NEEDS_COMMISSION_INTAKE`. If `mode: backtest` is
 present and `evidence_cutoff_at` is missing, return the same intake output with
-`next_authorized_step: NEEDS_CUTOFF_DATE`. Do not compensate by inventing a
-candidate, decision, or cutoff. Intake-only output is not a validator target.
+`next_authorized_step: NEEDS_CUTOFF_DATE`.
+
+Default a one-company Brand or Org subject, including unresolved Brand/Org
+identity, to `company_competitive_intelligence`; otherwise default to
+`standard_signal_board`. Default `time_posture` to `recency_first`. Accept
+`longitudinal` only for an explicit change, recurrence, or trajectory question
+with a declared period and rationale. Do not invent missing inputs. Intake-only
+output is not a validator target.
 
 ## Missing-Input Intake Output
 
@@ -252,6 +268,43 @@ especially cutoff-sensitive: for historical cutoffs before the relevant answer
 surface existed, treat them as post-cutoff visibility only, not a normal
 retrieval route.
 
+## Commission Profile And Time-Posture Routing
+
+Keep `mode: backtest | forward` unchanged. `commission_profile` and
+`time_posture` are orthogonal controls.
+
+- Default a one-company Brand or Org subject, including unresolved Brand/Org
+  identity, to `company_competitive_intelligence`.
+- Otherwise default to `standard_signal_board`.
+- Standard uses the existing Sections 1-10 and classifier handoff below,
+  unchanged.
+- Company uses the conditional company Sections 1-10 below and omits
+  classifier handoff.
+- Keep one company at a time. Comparator pointers may interpret the subject;
+  deep competitor treatment requires a separately named follow-up commission.
+
+CSB owns profiles, source-family requirements, time posture, and typed
+gaps/requests. Scanning owns intelligent-walk selection. Capture owns venue
+access and preservation adapters. Emit requests to those lanes; do not execute
+their runtimes.
+
+## Time Posture
+
+`recency_first` is the universal default:
+
+| Age at `as_of_date` | `recency_tier` | Allowed primary use |
+| --- | --- | --- |
+| 0-30 days | `days_0_30` | current-state anchor |
+| 31-90 days | `days_31_90` | current corroboration |
+| 91-180 days | `days_91_180` | context, or corroboration with rationale |
+| >180 days | `days_over_180` | chronology/background only; never relabel current |
+
+`longitudinal` is an explicit override only for change, recurrence, or
+trajectory. It requires a declared start/end period and rationale. Evidence
+inside that period may be primary for the longitudinal question, but its actual
+date and tier remain visible and it is never relabeled current. A named event is
+a route or query inside one of these two postures.
+
 ## Mini God Tier Target And Visible Limitations
 
 Aim for mini god tier in the limited Forseti sense: most of the value of a heavier
@@ -286,7 +339,7 @@ requires them.
 
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
-| Forums / community | Reddit, Quora, Basenotes, Fragrantica forums, specialist boards, public repeatable community threads | consumer language, objections, comparisons, repeat questions, question-and-answer threads, rebuttals, corrections | Reddit and Quora are explicit subfamilies. Include Quora Q&A route rows when the commission raises consumer/buyer questions, comparisons, objections, or recommendation-seeking; a bounded proven capture route exists (one profile-backed CloakBrowser Quora search-packet capture), so mark such rows `to_retrieve` with `capture_posture: manual_only` and route execution to the Capture spine playbook — bounded evidence, not broad Quora reliability or session durability. Discord is noisy_deferred unless a public, repeatable, bounded slice exists with noise controls. |
+| Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | For every company report, commission a bounded Reddit scout; zero yield is valid. For initial proving runs, also commission an explicit experimental Quora scout and preserve yield, recency, access, and relevance without pre-labeling it stale or low-yield. Discover other forums by category and hidden-venue cues, not a universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | Instagram has current adjacent capture/discovery work. TikTok, YouTube, and Reddit creator profiles are planned/deferred seams unless separately authorized. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
@@ -616,9 +669,228 @@ Use `run_boundary` for what happened in this invocation:
 If more than one applies, choose the most limiting status and explain the others
 in one sentence.
 
+## Conditional Company Competitive-Intelligence Output Contract
+
+Use this contract only when
+`commission_profile: company_competitive_intelligence`. Do not reuse the
+standard classifier handoff. All ten sections require one YAML document.
+
+### 1. Company Commission And Identity Receipt
+
+```yaml
+company_commission_receipt:
+  commission_id:
+  mode: backtest | forward
+  commission_profile: company_competitive_intelligence
+  subject_count: 1
+  subject_identity:
+    raw_name:
+    subject_kind: brand | org | brand_or_org_unresolved
+    identity_state: resolved | provisional | ambiguous | unresolved
+  as_of_date: YYYY-MM-DD
+  time_posture: recency_first | longitudinal
+  longitudinal_period: {start: YYYY-MM-DD, end: YYYY-MM-DD} | null
+  longitudinal_rationale: string | not_applicable
+  initial_proving_run: true | false
+```
+
+### 2. Decision-Neutral Boundary
+
+```yaml
+decision_neutral_boundary:
+  permitted:
+    - observable_positioning
+    - offerings_and_claims
+    - markets_and_channels
+    - recent_strategic_and_operating_moves
+    - customer_and_community_response
+    - bounded_competitor_or_substitute_context
+    - contradictions
+    - evidence_gaps
+  prohibited:
+    - pain
+    - buyer
+    - icp
+    - priority
+    - urgency
+    - willingness_to_pay
+    - outreach
+    - offer
+    - wedge
+  one_company_at_a_time: true
+  deep_competitor_treatment: separately_named_follow_up_required
+```
+
+### 3. Source-Family And Venue Coverage Ledger
+
+```yaml
+coverage_ledger:
+  - coverage_id: COV-001
+    source_family:
+    source_surface:
+    venue:
+    relevance_rationale:
+    route_or_query:
+    requirement: required | mandatory_bounded_scout | experimental_initial_proving_run | category_aware | conditional
+    status: checked | blocked | not_applicable | not_checked
+    yield: evidence_found | zero_yield | blocked | unknown | not_applicable
+    recency:
+    access:
+    relevance:
+    gap_id: GAP-001 | null
+```
+
+Every company report includes a bounded Reddit row. Zero yield is valid. An
+initial proving run includes an experimental Quora row. Other forum discovery
+is category-aware. A blocked or missing row needs a typed gap/request;
+`not_applicable` needs a rationale.
+
+### 4. Observation Ledger
+
+```yaml
+observation_ledger:
+  - observation_id: OBS-001
+    subject_name:
+    subject_kind: brand | org | brand_or_org_unresolved
+    identity_state: resolved | provisional | ambiguous | unresolved
+    coverage_id: COV-001
+    source_url_or_packet_locator:
+    source_family:
+    source_surface:
+    publisher_or_venue:
+    source_class: official_first_party | official_regulatory | independent | retailer | customer_community | creator_social | unknown
+    publication_date: YYYY-MM-DD | null
+    event_or_effective_date: YYYY-MM-DD | null
+    observation_at: ISO-8601
+    effective_time_precision: day | current_page_observation | undated
+    recency_tier: days_0_30 | days_31_90 | days_91_180 | days_over_180 | undated_unknown
+    age_anchor_date: YYYY-MM-DD | null
+    age_anchor_basis: event_effective | publication | current_page_observation | unknown
+    exact_locator:
+    evidence_excerpt:
+    lawful_access_route:
+    access_limitation:
+    independence_syndication_group:
+    independent_corroboration_ids: []
+    ambiguity_limitation:
+    contradiction_state:
+    fact_domain: company_fact | external_customer_evidence | competitor_context | contradiction | unknown
+    current_state_use: primary_current | current_corroboration | supporting_or_recurrence | chronology_historical_baseline | contradiction | longitudinal_primary | not_applicable
+    consumed_by_sections: [5]
+```
+
+A current page does not date every claim or event on it. Syndicated copies are
+one origin, not independent corroboration. Community rows use
+`fact_domain: external_customer_evidence` and cannot establish representative
+demand or internal company fact.
+
+### 5. Positioning, Offerings, Markets, And Channels
+
+```yaml
+positioning_offerings_markets_channels:
+  observation_ids: []
+  contradictions: []
+  evidence_gaps: []
+```
+
+### 6. Strategic And Operating Chronology
+
+```yaml
+strategic_operating_chronology:
+  observation_ids: []
+  change_recurrence_or_trajectory: []
+  evidence_gaps: []
+```
+
+### 7. Customer And Community Response
+
+```yaml
+customer_community_response:
+  observation_ids: []
+  representativeness_claim: none
+  internal_company_fact_claim: none
+  contradictions: []
+  evidence_gaps: []
+```
+
+### 8. Competitor Context, Contradictions, And Gaps
+
+```yaml
+competitor_context_contradictions_gaps:
+  observation_ids: []
+  comparator_pointers: []
+  deep_competitor_treatment: separately_named_follow_up_required
+  contradictions: []
+  evidence_gaps: []
+```
+
+### 9. Company Surface Candidate Ledger
+
+```yaml
+company_surface_candidate_ledger:
+  - candidate_id: CSC-001
+    observation_ids: []
+    candidate_only: true
+    import_status: not_imported
+    candidate_fact_class: company_fact | external_customer_evidence
+    bounded_fact:
+    identity_state: resolved | provisional | ambiguous | unresolved
+    time_scope:
+    limitations:
+```
+
+These rows are proposals only. This prompt never imports into Company Surface.
+
+### 10. Completion Ledger And Run Boundary
+
+```yaml
+completion_ledger:
+  coverage_status: complete | complete_with_typed_gap
+  observation_status: traceable
+  candidate_status: candidate_only_not_imported
+  completeness_policy: necessary_complete_no_arbitrary_caps
+  hidden_venue_discovery: category_aware
+  reddit_scout_status: checked_positive_yield | checked_zero_yield | blocked_with_typed_gap
+  quora_scout_status: experimental_checked_positive_yield | experimental_checked_zero_yield | blocked_with_typed_gap | not_required
+  customer_community_boundary: external_evidence_not_representative_demand_or_internal_fact
+  deep_competitor_treatment: separate_named_follow_up_required
+  classifier_handoff: omitted
+  required_lens_coverage:
+    positioning: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
+    offerings_and_claims: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
+    markets_and_channels: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
+    strategic_and_operating_moves: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
+    customer_and_community_response: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
+    competitor_and_substitute_context: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
+    contradictions: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
+    evidence_gaps: {status: complete | gap | not_applicable_with_rationale, observation_ids: [], rationale: }
+  gaps:
+    - gap_id: GAP-001
+      gap_type:
+      status: open | resolved
+      description:
+      affected_coverage_ids: []
+      request_ids: []
+  requests:
+    - request_id: REQ-001
+      request_type:
+      owner: scanning | capture
+      status: requested | complete | blocked
+      description:
+      source_surface:
+  run_boundary: COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION | INTAKE_ONLY | OWNER_DECISION_NEEDED
+  next_authorized_step:
+```
+
+Completeness is coverage of every required lens plus explicit typed gaps and
+requests, not a length, page, source-count, or observation cap. Remove
+duplication and ornament, not necessary completeness.
+
 ## Final Rules
 
-- Keep the board compact enough that a retrieval lane can act on it.
+- Use the selected profile's ten-section contract only.
+- Do not impose report-length, source-count, page, or observation caps; remove
+  duplication and ornament, not necessary completeness.
 - Prefer explicit gaps over invented completeness.
 - Preserve source family and subfamily identity.
 - Treat AEO as visibility annotation only.
@@ -636,11 +908,11 @@ in one sentence.
   relevant; route execution to Scanning/Capture, never to CSB-owned search
   capture, and never count SERP rank, query count, module recurrence, or
   autocomplete as demand proof.
-- If this is a repo-aware run that produced a full board, run the local
-  validator before claiming the board is mechanically safe for classifier
-  handoff. If this run produced only intake output, do not run the validator;
-  return the intake blocker instead.
-- End with the board status and run-boundary YAML block.
+- If this is a repo-aware run that produced a full output, run the local
+  validator before making a mechanical-completeness claim. Standard boards may
+  proceed to classifier handoff only under their existing contract; company
+  reports never emit one. Do not validate intake-only output.
+- End with the selected profile's Section 10 YAML block.
 
 COMMISSION INPUTS FOLLOW:
 ````
@@ -650,67 +922,71 @@ COMMISSION INPUTS FOLLOW:
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Commission Signal Board now names Quora as an explicit forums/community
-    Q&A subfamily: relevant future boards should include Quora question/answer
-    route rows (consumer/buyer questions, comparisons, objections,
-    recommendation-seeking) instead of omitting Quora as uncapturable, because
-    a bounded proven capture route now exists (one profile-backed CloakBrowser
-    Quora search-packet capture with caller-bound detail sufficiency). Board
-    rows stay to_retrieve with capture_posture manual_only; capture execution
-    stays routed to the Capture spine; the bounded evidence is not broad Quora
-    reliability, session durability, or proxy/geo proof.
+    Commission Signal Board preserves mode backtest|forward and adds two
+    orthogonal controls: profile standard_signal_board or
+    company_competitive_intelligence, and time posture recency_first or
+    longitudinal. One-company Brand/Org subjects default to the decision-neutral
+    company contract. CSB owns profiles, source-family requirements, posture,
+    and typed requests; Scanning owns intelligent walk and Capture owns venue
+    access/preservation. Company reports never import Company Surface candidates
+    or emit classifier handoff.
   trigger: product_doctrine
   related_triggers:
+    - workflow_authority
     - output_authority
+    - validation_philosophy
   controlling_sources_updated:
+    - forseti/product/spines/commission_signal_board/README.md
+    - forseti/product/spines/commission_signal_board/spine.yaml
     - forseti/product/spines/commission_signal_board/prompts/forseti_commission_signal_board_prompt_structure_v0.md
     - forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
-  downstream_surfaces_checked:
     - forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
     - .agents/hooks/check_commission_signal_board_output.py
+    - forseti-harness/tests/unit/test_commission_signal_board_output_validator.py
+    - forseti-harness/tests/fixtures/commission_signal_board_outputs/valid_company_competitive_intelligence_output.txt
+  downstream_surfaces_checked:
     - forseti/product/spines/scanning/README.md
+    - forseti/product/spines/scanning/scan_core/orca_scanning_intelligent_walk_mgt_operating_model_v0.md
+    - forseti/product/spines/capture/README.md
     - forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
-    - docs/workflows/quora_b2b_postmerge_capture_calibration_v0.md
+    - forseti/product/spines/company_surface/README.md
     - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
-    - path: .agents/hooks/check_commission_signal_board_output.py
+    - path: forseti/product/spines/scanning/
       reason: >
-        The validator enumerates source_family values only; source_subfamily
-        and surface are free text, so Quora rows under forums_community need
-        no new field or enum value.
-    - path: forseti/product/spines/commission_signal_board/workflows/commission_signal_board_playbook_v0.md
+        Scanning already owns intelligent-walk execution; CSB emits typed
+        requests only and adds no Scanning runtime.
+    - path: forseti/product/spines/capture/
       reason: >
-        The playbook owns run sequence and validator use, not source-family
-        route semantics; no operating-sequence or validator-applicability
-        change is needed.
-    - path: forseti/product/spines/capture/core/source_capture_toolbox/source_capture_playbook_v0.md
+        Capture already owns venue access and preservation adapters; CSB adds
+        no Capture runtime or access method.
+    - path: forseti/product/spines/company_surface/
       reason: >
-        The capture playbook already carries the bounded Quora route-maturity
-        note and owns capture method and rung discipline; CSB only routes to
-        it and must not fork capture doctrine.
+        Company Surface rows remain candidate_only and not_imported.
     - path: docs/workflows/forseti_repo_map_v0.md
       reason: >
-        Canonical CSB entry points are unchanged; a subfamily addition is an
-        in-file route-semantics edit, not a navigation change. repo-map-ack.
+        Canonical CSB entry points are unchanged and the existing Product Anchor
+        route remains current. repo-map-ack.
   stale_language_search: >
-    rg -i -n "quora" forseti/product/spines/commission_signal_board
-    forseti/product/spines/scanning docs/prompts
-    docs/workflows/forseti_repo_map_v0.md
-    (run 2026-07-10)
+    rg -n "time_posture|commission_profile|Company Surface|classifier_handoff|Reddit|Quora"
+    forseti/product/spines/commission_signal_board
+    .agents/hooks/check_commission_signal_board_output.py
+    forseti-harness/tests
   stale_language_search_result: >
-    Executed 2026-07-10 after edits. Before this change no live CSB surface
-    mentioned Quora at all (the omission this change fixes); after it, the
-    hits are the updated Source-Family Map rows, the Rules-doc
-    adjacent-record note, and this receipt. No checked CSB, scanning, prompt,
-    or repo-map surface treats Quora as unavailable or prohibited, makes it
-    an independent demand-origin surface, or turns the single proven capture
-    into broad reliability.
+    Executed 2026-07-16. The scoped contract search returned 295 expected
+    profile, posture, venue, classifier-boundary, validator, fixture, and
+    non-claim hits. A separate exact search for historical_window,
+    event_bounded, and wider_history returned no hits. Live company surfaces
+    keep candidates non-importing and classifier handoff omitted; the standard
+    classifier handoff remains in its unchanged profile contract.
   non_claims:
     - not validation
     - not readiness
-    - not capture authorization
-    - not Quora reliability, session durability, or proxy/geo proof
-    - not demand classification or buyer proof
+    - not Scanning runtime
+    - not Capture runtime or venue-access authorization
+    - not representative demand or internal company fact from community evidence
+    - not Company Surface import
+    - not GTM adjudication
 ```
 
 ```yaml
