@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Bidirectional retrieval link-check: repo map <-> disk, open_next <-> disk,
-folder coverage, and inline body links <-> disk.
+folder coverage, inline body links <-> disk, and live-router targets <-> disk.
 
 WHAT THIS DOES
-  Four mechanically-checkable invariants that keep the repo map, retrieval
-  headers, and inline markdown links honest without reading product-authority
-  sources:
+  Five mechanically-checkable invariants that keep the repo map, retrieval
+  headers, inline markdown links, and selected live routers honest without
+  reading product-authority sources:
 
   C1  MAP->DISK: every repo-relative path mentioned in the repo map or any
       submap must exist on disk.  Exempt: lines whose surrounding text says
@@ -31,6 +31,11 @@ WHAT THIS DOES
       "not retrieval-indexed").  Trailing comment "# nonresolving:<reason>"
       exempts a link and counts it as annotated debt.
 
+  C5  LIVE-ROUTER->DISK: every live row in the authoritative-target column of
+      Artifact Roles -> Role Bindings and the Doctrine Index product-spine
+      table must carry a repo-rooted path that exists directly in the current
+      tree. Moved-path indexes do not satisfy a live router.
+
 WHY (enforcement placement)
   The repo map and open_next headers are written by agents and humans.  Path
   rot happens silently: a file is renamed, a folder is added, a path is
@@ -50,8 +55,8 @@ HARD BOUNDARY
   only when an indexed successor path resolves in the current tree.
 
 MODES
-  check_map_links.py --strict         CI gate; print findings; exit 1 if any (C1-C4), else 0
-  check_map_links.py --strict-inline  alias for --strict (C4 included; kept for caller compat)
+  check_map_links.py --strict         CI gate; print findings; exit 1 if any (C1-C5), else 0
+  check_map_links.py --strict-inline  alias for --strict (C4/C5 included; kept for caller compat)
   check_map_links.py --check          human-readable; always exit 0
   check_map_links.py --selftest       pure-function cases; exit per pass/fail
 
@@ -68,13 +73,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple
 
-# ---------------------------------------------------------------------------
-# Repo root (this file lives at .agents/hooks/check_map_links.py)
-# ---------------------------------------------------------------------------
-
-def repo_root() -> Path:
-    """Repo root derived from this file's location (parents[2])."""
-    return Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
 
 
 # ---------------------------------------------------------------------------
@@ -207,6 +207,56 @@ def is_exempt_line(line: str) -> bool:
     """True if the line contains an exemption marker for C1."""
     lower = line.lower()
     return "does not exist yet" in lower or "created on first" in lower
+
+
+# ---------------------------------------------------------------------------
+# C5 helpers: selected live-router table targets
+# ---------------------------------------------------------------------------
+
+_LIVE_ROUTER_TABLES = (
+    (".agents/workflow-overlay/artifact-roles.md", "## Role Bindings", 1),
+    ("docs/decisions/forseti_doctrine_index_v0.md",
+     "## Product-spine doctrine (`forseti/product/`)", 1),
+)
+
+
+def extract_router_table_rows(
+    text: str, section_heading: str, target_column: int
+) -> tuple[bool, list[tuple[str, list[str]]]]:
+    """Return (section_found, [(row_label, repo-rooted target paths), ...]).
+
+    Only Markdown table data rows inside the exact H2 section are returned.
+    Header and separator rows are skipped. A data row with no repo-rooted path
+    remains in the result with an empty target list so C5 can fail visibly.
+    """
+    lines = text.splitlines()
+    try:
+        start = lines.index(section_heading)
+    except ValueError:
+        return False, []
+
+    rows: list[tuple[str, list[str]]] = []
+    for line in lines[start + 1:]:
+        if line.startswith("## "):
+            break
+        stripped = line.strip()
+        if not (stripped.startswith("|") and stripped.endswith("|")):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if not cells:
+            continue
+        if all(re.fullmatch(r":?-{3,}:?", cell) for cell in cells):
+            continue
+        if cells[0].lower() in {"role", "doctrine"}:
+            continue
+        row_label = cells[0] or "<unlabeled live-router row>"
+        targets = (
+            extract_paths_from_line(cells[target_column])
+            if target_column < len(cells)
+            else []
+        )
+        rows.append((row_label, targets))
+    return True, rows
 
 
 # ---------------------------------------------------------------------------
@@ -465,7 +515,7 @@ def inline_link_exists(path: str, linking_file: Path, root: Path) -> bool:
 # ---------------------------------------------------------------------------
 
 class Finding(NamedTuple):
-    check: str     # "C1", "C2", "C3", "C4"
+    check: str     # "C1", "C2", "C3", "C4", "C5"
     source: str    # which file reported the finding
     detail: str    # human-readable detail
 
@@ -684,14 +734,72 @@ def run_c4(root: Path, search_roots: list[Path] | None = None) -> tuple[list[Fin
     return findings, total_nonresolving
 
 
+def run_c5(root: Path) -> list[Finding]:
+    """C5: selected live-router table targets must exist directly on disk.
+
+    This deliberately does not use repo_path_exists(): moved-path indexes are
+    valid historical resolution aids for C1-C4, but a live router must name its
+    current primary target directly.
+    """
+    findings: list[Finding] = []
+    for source, section_heading, target_column in _LIVE_ROUTER_TABLES:
+        source_path = root / Path(source.replace("/", os.sep))
+        try:
+            text = source_path.read_text(encoding="utf-8", errors="replace")
+        except OSError as exc:
+            findings.append(Finding(
+                check="C5",
+                source=source,
+                detail="live router could not be read: %s" % exc,
+            ))
+            continue
+
+        section_found, rows = extract_router_table_rows(
+            text, section_heading, target_column
+        )
+        if not section_found:
+            findings.append(Finding(
+                check="C5",
+                source=source,
+                detail="live router section is missing: %s" % section_heading,
+            ))
+            continue
+        if not rows:
+            findings.append(Finding(
+                check="C5",
+                source=source,
+                detail="live router section has no data rows: %s" % section_heading,
+            ))
+            continue
+
+        for row_label, targets in rows:
+            if not targets:
+                findings.append(Finding(
+                    check="C5",
+                    source=source,
+                    detail="live router row has no repo-rooted target: %s" % row_label,
+                ))
+                continue
+            for target in targets:
+                direct = root / Path(target.replace("/", os.sep))
+                if not direct.exists():
+                    findings.append(Finding(
+                        check="C5",
+                        source=source,
+                        detail=("live router target does not exist directly: "
+                                "%s -> %s" % (row_label, target)),
+                    ))
+    return findings
+
+
 def run_all_checks(root: Path) -> tuple[list[Finding], int]:
-    """Single-pass collection of all checks (C1, C2, C3, C4).
+    """Single-pass collection of all checks (C1, C2, C3, C4, C5).
 
     Returns (findings, total_nonresolving) where total_nonresolving is the
     combined count of annotated nonresolving entries across C2 and C4
     (debt, not failures).
 
-    All four checks feed into --strict and --check.
+    All five checks feed into --strict and --check.
     """
     map_files = collect_map_files(root)
     map_text = load_map_text(map_files)
@@ -702,6 +810,7 @@ def run_all_checks(root: Path) -> tuple[list[Finding], int]:
     findings.extend(run_c3(root, map_text))
     c4_findings, c4_nonresolving = run_c4(root)
     findings.extend(c4_findings)
+    findings.extend(run_c5(root))
     total_nonresolving = c2_nonresolving + c4_nonresolving
     return findings, total_nonresolving
 
@@ -711,7 +820,7 @@ def run_all_checks(root: Path) -> tuple[list[Finding], int]:
 # ---------------------------------------------------------------------------
 
 def run_strict(root: Path) -> int:
-    """--strict: CI gate.  Gates on C1/C2/C3/C4.
+    """--strict: CI gate.  Gates on C1/C2/C3/C4/C5.
     Print findings; exit 1 if any, else 0.
     """
     findings, nonresolving = run_all_checks(root)
@@ -727,7 +836,7 @@ def run_strict(root: Path) -> int:
 
 
 def run_strict_inline(root: Path) -> int:
-    """--strict-inline: alias for --strict (C4 is already included in the gate).
+    """--strict-inline: alias for --strict (C4/C5 are already included).
     Kept for caller compatibility in case downstream automation uses this flag.
     """
     return run_strict(root)
@@ -781,9 +890,10 @@ def run_check(root: Path) -> int:
     c2 = [f for f in findings if f.check == "C2"]
     c3 = [f for f in findings if f.check == "C3"]
     c4 = [f for f in findings if f.check == "C4"]
-    gate_findings = c1 + c2 + c3 + c4
+    c5 = [f for f in findings if f.check == "C5"]
+    gate_findings = c1 + c2 + c3 + c4 + c5
     if not findings:
-        print("check_map_links: OK -- all map paths, open_next paths, folder coverage, and inline link checks passed.")
+        print("check_map_links: OK -- map paths, open_next paths, folder coverage, inline links, and live-router targets passed.")
         print("annotated nonresolving: %d (debt, not failures)" % nonresolving)
         return 0
     print("check_map_links --check: %d finding(s)" % len(findings))
@@ -810,6 +920,12 @@ def run_check(root: Path) -> int:
         c4_files = len(set(f.source for f in c4))
         print("C4  INLINE-LINK->DISK  (%d finding(s) across %d file(s))" % (len(c4), c4_files))
         for f in c4:
+            print("  source: %s" % f.source)
+            print("  detail: %s" % f.detail)
+            print()
+    if c5:
+        print("C5  LIVE-ROUTER->DISK  (%d)" % len(c5))
+        for f in c5:
             print("  source: %s" % f.source)
             print("  detail: %s" % f.detail)
             print()
@@ -884,6 +1000,38 @@ def selftest() -> int:
         if got != expected:
             ok = False
         print("%s  %-45s  expect=%s got=%s" % (status, label, expected, got))
+
+    # --- extract_router_table_rows cases ---
+    print()
+    print("--- extract_router_table_rows ---")
+    router_text = """# Router
+
+## Role Bindings
+
+| Role | Target | Notes |
+| --- | --- | --- |
+| Product artifact | `forseti/product/` | current |
+| Broken artifact | relative/path.md | invalid live target |
+| Short artifact row |
+
+## Next Section
+| Ignore | `docs/ignored/` |
+"""
+    router_cases = [
+        ("section and rows including short data row",
+         "## Role Bindings", 1, True,
+         [("Product artifact", ["forseti/product/"]), ("Broken artifact", []),
+          ("Short artifact row", [])]),
+        ("missing section", "## Missing", 1, False, []),
+    ]
+    for label, heading, column, exp_found, exp_rows in router_cases:
+        got_found, got_rows = extract_router_table_rows(router_text, heading, column)
+        passed = got_found == exp_found and got_rows == exp_rows
+        status = "PASS" if passed else "FAIL"
+        if not passed:
+            ok = False
+        print("%s  %-45s  expect=(%s, %s) got=(%s, %s)" % (
+            status, label, exp_found, exp_rows, got_found, got_rows))
 
     # --- is_exempt_line cases ---
     iel_cases = [
@@ -1151,8 +1299,8 @@ def main(argv: list[str]) -> int:
         return run_report_orca(root)
     # Default: print usage
     print("Usage: check_map_links.py --strict | --strict-inline | --check | --report-forseti | --report-orca | --selftest")
-    print("  --strict         CI gate: exit 1 if any finding (C1/C2/C3/C4)")
-    print("  --strict-inline  alias for --strict (C4 included; kept for caller compat)")
+    print("  --strict         CI gate: exit 1 if any finding (C1/C2/C3/C4/C5)")
+    print("  --strict-inline  alias for --strict (C4/C5 included; kept for caller compat)")
     print("  --check          human-readable report, always exit 0")
     print("  --report-forseti REPORT MODE over forseti/: measure debt, always exit 0 (not a gate)")
     print("  --report-orca    compatibility alias for --report-forseti")

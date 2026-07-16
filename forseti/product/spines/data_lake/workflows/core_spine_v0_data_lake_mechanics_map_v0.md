@@ -16,6 +16,7 @@ open_next:
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_core_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_capture_propagation_classification_contract_v0.md
   - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_storage_contract_v0.md
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   - forseti/product/spines/capture/core/packet_schema/source_capture_tenant_payload_attachment_boundary_v0.md
   - forseti/product/spines/capture/core/packet_schema/source_capture_core_payload_split_explainer_v0.md
   - forseti/product/spines/capture/core/source_families/retail_pdp/retail_pdp_typed_envelope_probe_v0.md
@@ -30,6 +31,7 @@ stale_if:
   - A later accepted storage/manifest/sidecar/projection-cache or Attachment Record serialization decision supersedes this logical map.
   - A non-IG envelope probe disproves or changes the packet/slice-keyed boundary.
   - ECR, SCR, Cleaning, or Judgment ownership changes in a later accepted source.
+  - The Silver/Vault Authority or Retrieval contract changes.
 ```
 
 ## Status
@@ -109,6 +111,8 @@ Shared handle family:
 | ECR | Raw packet/slice/file facts | Integrity postures SP-1/2/3/6 | Depend on Cleaning/projection or bind final Evidence Unit (EvidenceUnit) schema |
 | SCR | Raw body material + provenance/ECR refs | Per-slice content record by key | Become a second capture-payload home |
 | Cleaning | One raw-keyed input handle + optional sibling refs | Transform ledger, cleaned working view, warnings, raw-pull triggers | Decide credibility, independence, similarity effect, exclusion, or strength |
+| Silver Authority | Eligible source-backed facts plus exact provenance | Append-only `silver_vault_record_v0` entity, relationship, or observation records | Treat every derived receipt, ledger, or view as Silver fact authority |
+| Silver Retrieval | Silver Authority records | Rebuildable query tables and read models | Become a second authority or choose a sibling without a declared rule |
 | Judgment | Raw + derived chain + raw pull-in | Verdicts and decision-use outputs | Rewrite raw capture truth |
 
 ## Flow
@@ -123,8 +127,14 @@ Source Capture
   -> ECR integrity records
   -> SCR content records
   -> Cleaning ledger/view
-  -> Judgment effects, with raw pull-in when needed
+       \- eligible source-backed facts -> Silver Authority
+                                      -> Silver Retrieval [rebuildable]
+  -> Judgment effects, consuming exact raw/derived refs with raw pull-in when needed
 ```
+
+Silver is therefore not an extra transformation every packet must pass through.
+It is the governed home and read seam for eligible mechanical facts produced by
+the upstream owners. Processing receipts and audit packs remain their own kinds.
 
 ## Gates Before Physicalization
 

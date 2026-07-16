@@ -14,6 +14,7 @@ use_when:
   - Separating market-agnostic Judgment core work from fragrance-specific satellite work.
 authority_boundary: retrieval_only
 open_next:
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
   - forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md
   - forseti/product/spines/judgment/conductor/judgment_quality_promotion_operating_model_v0.md
   - docs/research/judgment-spine/judgment_spine_machinery_build_state_gap_map_v0.md
@@ -44,6 +45,20 @@ Claim cap: product-learning context only. The current closeout state for this
 artifact's own claim is `unreceipted_product_learning_context`: durable context
 exists, but no case run, product-learning receipt, buyer-proof receipt, or
 judgment-quality receipt exists for the fragrance Level 1 lane.
+
+## Product Role Update — 2026-07-12
+
+The controlling product thesis now places Judgment inside Forseti's terminal
+evidence-adjudication and decision-learning hypothesis. Decision-relative
+evidence weighting is the epistemic heart of the spine, but not the whole loop:
+frame, evidence allow/deny, weighting, verdict/action, counterfactual, reveal,
+and reliability memory remain separate responsibilities.
+
+This strategic adoption does not change the build state below. The detailed C2
+contract remains proposed, the signal-reliability ledger has no real rows, and
+no run has earned Judgment-quality evidence. Human analysts may make
+evidence-backed recommendations before autonomous Judgment maturity; that
+commercial allowance does not lift any Judgment claim tier.
 
 ## Operating Frame
 
@@ -78,7 +93,7 @@ market-agnostic.
 | Case-finder | Gap | Post-cutoff/prospective case sourcing | Fragrance casebook remains proposed until admitted |
 | Demand-read core C0-C4 | Product-learning design/input surface | Frame, allow, qualitative weight, verdict/action ceiling, counterfactual | Design input/product-learning; no scoring engine, no conductor edit |
 | C2 ledger read contract | Proposed consumer-side contract | Qualitative ledger read, caveat travel, direction plus reasoning, no numeric weight | Product-learning; no row/query/build |
-| C2 in-case evidence weighting doctrine | Proposed merits-basis instruction contract | Decision-relative fitness, merits axes, load-bearing partition, model-facing instruction core, weighting failure modes | Product-learning; no numeric weight, no prompt artifact, no run |
+| C2 in-case evidence weighting doctrine | Core decision-relative principle adopted at product-thesis level; detailed instruction contract remains proposed | Decision-relative fitness, merits axes, load-bearing partition, model-facing instruction core, weighting failure modes | Product-learning; no numeric weight, no prompt artifact, no run |
 | C3 verdict/action ceiling contract | Proposed binding-side contract | Two-axis demand-state verdict and action ceiling vocabulary | Product-learning; no numeric ceiling or live loop |
 | Near-half backtest shell | Proposed target architecture | Adversarial postmortem, validated-lesson cell, promotion gate, ledger emission | Product-learning; validates no lesson yet |
 | Signal-reliability ledger | Proposed schema and discipline | K-of-N report-all signal reliability record, product-learning cap, staleness/provenance | No real rows or source-family admission |
@@ -106,6 +121,8 @@ pointer:
 - The by-hand cap and no-tools/proven-isolation boundary.
 - The market-agnostic demand-read core shape: C0 frame, C1 allow, C2 qualitative
   weighting, C3 verdict/action ceiling, C4 counterfactual.
+- C2 decision-relative weighting as the epistemic heart: evidence is weighed
+  per item x claim x decision frame, never by a static source ladder.
 - Qualitative weighting constraints: no numeric weight, score, formula, or
   deterministic apply-rule.
 - Qualitative decision constraints: verdict/action ceiling vocabulary, weakest
@@ -268,3 +285,5 @@ direction_change_propagation:
     - no case run, prompt approval, source authority, score, proof, live/client readiness, or judgment-quality claim
   blocker: none for this deletion cleanup; downstream prompt artifacts that depended on the removed route need separate update before those artifacts merge
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

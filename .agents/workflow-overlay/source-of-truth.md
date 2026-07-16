@@ -40,7 +40,7 @@ resume/snapshot note. They are convenience copies, never a Forseti source of tru
   decision/contract/overlay), or against disk for build state, before relying on
   it. The source hierarchy above governs; a checkpoint never overrides it, even
   when more recent.
-- Single-consumption, one live instance per lane. A checkpoint exists to be consumed once; the consuming lane deletes it after recovery checks run and live state is re-established. Refresh by overwriting in place under a stable name — do not accumulate `_v2`/`_v3` copies. A checkpoint whose work has landed (committed/settled) is retired by deletion.
+- Single-consumption, one live instance per lane. A checkpoint exists to be consumed once; the consuming lane deletes it after recovery checks run and live state is re-established. Refresh by overwriting in place under a stable name — do not accumulate `_v2`/`_v3` copies. A checkpoint whose work has landed (committed/settled) is retired by deletion. A transport-only commit that stabilizes packet bytes for a receiver does not mean the underlying work has landed.
 - Point, do not copy. When a checkpoint must carry a volatile fact, record a
   pointer plus a re-confirm instruction (for example "authorization -> <decision>;
   build state -> glob disk"), not a copied snapshot that silently goes stale.
@@ -264,7 +264,9 @@ Legacy receipts #1–#13 remain frozen in `docs/decisions/dcp_receipts_archive_v
 - `docs/migration/import_queue.md`: read-only import queue state.
 - `docs/decisions/dcp_receipts_archive_v0.md`: frozen legacy receipt history; retrieval-only, no source authority, no new writes, and not part of ordinary doctrine work.
 - `docs/decisions/forseti_rename_migration_policy_v0.md`: rename policy binding Forseti as the canonical project/product name and Orca as the legacy alias; controls live-vs-historical rename classes and compatibility migration sequencing.
-- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`: current Forseti product thesis and value proposition (owner-ratified 2026-06-12; supersedes the earlier turn-08 thesis, retained as history).
+- `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`: current Forseti product thesis (owner-ratified direction 2026-07-14): a decision-adjudication product, beauty first application, bounded Decision Sprint initial form, exact buyer and first decision family deferred to GTM, and later product forms gated on repeated decisions and outcomes.
+- `docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md`: superseded 2026-07-12 capability-reset thesis, retained as historical product input; its decision-relative evidence-weighting and human-judgment-now principles continue through the successor.
+- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`: superseded consumer-demand / beauty-first thesis, retained as historical product input rather than current direction.
 - `forseti/product/spines/judgment/claim_ladder/judgment_spine_evidence_ladder_architecture_v0.md`: Judgment Spine claim-tier architecture for Product-Learning, Buyer-Proof, and Judgment-Quality evidence boundaries.
 - `forseti/product/spines/judgment/conductor/judgment_spine_gate_ownership_map_v0.md`: Judgment Spine gate ownership map for source identity, packet freeze, no-tools isolation, memorization probe, sealed output, scoring, reveal/calibration, classification, and closeout blockers.
 - `forseti/product/spines/judgment/conductor/judgment_spine_reveal_calibration_owner_contract_v0.md`: JSG-08 owner contract for outcome reveal/calibration receipt shape, satisfaction states, scoring relationship, and claim caps.

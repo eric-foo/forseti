@@ -1,6 +1,6 @@
 ---
 name: forseti-product-lead
-description: "Forseti product-lead reasoning for any Forseti product decision - value prop, offer, ICP/wedge, buyer-proof, positioning, packaging, pull/kill/graduation. Prepares the decision for owner sign-off."
+description: "Prepare explicit owner sign-off on Forseti's own product direction: its value proposition or offer, ICP/first-proof wedge, buyer-proof design, offer positioning/packaging/deliverable shape, or pull/kill/graduation. Trigger only when the user explicitly asks to make or review one of those decisions, asks for product-lead decision framing, or invokes /forseti-product-lead. Do not infer from routine creator/audience profiles, copywriting or commercial-language refinement, feature/runtime work, or ordinary artifact review."
 ---
 
 # forseti-product-lead (Forseti-local, accepted)
@@ -34,10 +34,12 @@ frozen decision.
 
 ## Use when / do not use
 
-Use when the turn is a Forseti product decision or review such as: confirming or
-revising the value proposition or offer; selecting or adjusting an ICP / first-
-proof wedge; designing or reviewing a buyer-proof loop; framing positioning,
-packaging, or deliverable shape; or judging buyer pull, kill, or graduation.
+Use only when the turn explicitly asks for an owner-signoff decision or review
+about Forseti's own product direction, such as: confirming or revising the
+Forseti value proposition or offer; selecting or adjusting an ICP / first-proof
+wedge; designing or reviewing a buyer-proof loop; framing Forseti's offer
+positioning, packaging, or deliverable shape; or judging buyer pull, kill, or
+graduation.
 
 Do not use for: running outreach or live buyer contact; producing a memo or
 executive deck; commercial-frame / pricing lock; roadmap, feature scope,
@@ -45,33 +47,41 @@ implementation, tooling, dashboard, data-spine, scoring, or automation work;
 or generic repo orientation. Each of those is owned by a separate lane and
 needs its own explicit owner authorization.
 
+Do not auto-trigger merely because a task mentions clients, commercial value,
+positioning, packaging, or buyers. Routine requests such as “make this creator
+profile more compelling to brands,” “rewrite this commercial line,” “compare
+these audience profiles,” or “improve this client-facing artifact” stay with the
+owning creator, evidence, copy, or artifact lane unless the user explicitly
+escalates the question to Forseti's product direction.
+
 ## Load step (smallest sufficient source pack)
 
 1. `AGENTS.md` and `.agents/workflow-overlay/README.md` first (authority entry).
 2. The **`S2 product anchor`** pack from
    `.agents/workflow-overlay/source-loading.md` (thesis, offer hypothesis, buyer
-   proof packet, Core Spine product contract, nearest boundary note), then only
+   proof packet when currently bound, Core Spine product contract, nearest boundary note), then only
    the nearest controlling product doc(s) for the specific decision. Use
    `docs/workflows/forseti_repo_map_v0.md` to choose among many docs.
 3. Controlling product sources, opened as the decision needs them:
-   - Current product thesis and first-proof wedge: resolve BOTH through the
-     repo map's "Product Anchor Files" table (route, don't restate — wedge
-     facts pinned in this file have rotted before). As of the 2026-06-20
-     refresh they are
-     `docs/decisions/forseti_product_thesis_consumer_demand_v0.md`
-     (evidence-backed strategic decisions for consumer-market leaders; demand
-     integrity and durability as first reads; beauty first vertical; US-first
-     geography; OWNER_LOCKED) and
-     `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` (beauty
-     operator first door; OWNER_LOCKED_DIRECTION) — but the repo-map row and
+   - Current product thesis and first application: resolve through the repo
+     map's decisive-file routes (route, don't restate — product facts pinned in
+     this file have rotted before). As of 2026-07-14 the thesis is
+     `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`
+     (beauty-first decision adjudication; Decision Sprint initial form). The
+     exact first beauty buyer and decision family remain unselected for GTM.
+     The evidence-adjudication reset, consumer-demand thesis, and prior
+     beauty-first wedge are historical inputs only; current router rows and
      the records' own supersession banners govern, not this line.
-   - `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md` — offer
-     hypothesis (broad offer + first-proof offer layer).
+   - `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md`
+     — current beauty application, admission universe, evidence model, product
+     form, proof boundary, and transfer test; not buyer or GTM authority.
+   - `forseti/product/spines/product_lead/offer/forseti_offer_hypothesis_v0.md` — suspended
+     buyer/offer binding; generic offer mechanics only until re-bound.
    - `forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md` —
      proof-lead ownership and exclusions.
-   - `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` — proof
-     standard, demand-substrate hard gate, qualification, rubric,
-     kill / graduation.
+   - `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md` — reusable
+     proof grammar; consumer-demand buyer, substrate, and rubric are historical
+     until re-bound.
    - `.agents/workflow-overlay/product-proof.md` — trust, pull-vs-praise, claim
      tiers, non-claims.
    - Superseded wedge-chain records (pricing-first, break-in-first, the v0
@@ -161,10 +171,14 @@ courier state only when useful.
   `forseti-product-lead`; active in-thread resolver did not expose a
   `forseti-product-lead` skill before this change. Existing `product-lead`
   remains jb-scoped and is not imported.
-- Trigger examples: "make a Forseti product decision", "review this ICP / wedge",
-  "design the buyer-proof loop", "is this buyer pull or praise?", "frame
-  Forseti's packaging / deliverable", "what should the next product move be
-  (decision framing)?"
+- Positive trigger examples: "make a Forseti product decision", "review this
+  ICP / wedge", "design the buyer-proof loop", "is this buyer pull or praise?",
+  "frame Forseti's offer packaging / deliverable", "what should the next
+  Forseti product move be (decision framing)?"
+- Negative trigger examples: "make this creator profile more compelling to
+  brands", "rewrite this commercial line", "compare these audience profiles",
+  and routine client-facing copy or artifact refinement without an explicit
+  Forseti product-direction decision.
 - Source boundary: not Forseti authority; defers all Forseti facts to `AGENTS.md`
   and `.agents/workflow-overlay/`; fails visibly when that authority is missing.
 - Overlay loaded for migration: README, decision-routing, source-of-truth,

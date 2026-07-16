@@ -30,6 +30,12 @@ stale_if:
 
 ## Goal Handoff
 
+Terminology note (2026-07-14): this packet's historical “Silver mechanics”
+shorthand means record integrity, lineage, idempotency/supersession, and reader
+selection. It does not classify Projection, ECR, Cleaning audit artifacts, or
+scratch analytics as Silver Authority. Current work should use the Silver/Vault
+contract's Silver Authority and Silver Retrieval terms.
+
 - long_term_goal: Make creator capture usable through a trustworthy, lineage-closed Forseti Silver read layer.
 - anchor_goal: Exercise the existing TikTok Silver producer and reader mechanics against TopFrag's completed eight-video staging evidence in an isolated scratch lake.
 - success_signal: All eight selected videos can be deterministically represented or explicitly rejected by the Silver mechanics, with raw anchors, policy fingerprints, reader selection, idempotency/supersession behavior, and residuals verified without mutating the live lake or Creator Registry.

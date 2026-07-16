@@ -26,6 +26,7 @@ from source_capture.browser_user_data import (
     read_browser_user_data_provenance,
     write_browser_user_data_provenance,
 )
+from source_capture.session_profiles import default_session_profile_auth_state_root
 from source_capture.source_access_provenance import (
     build_auth_state_source_access_provenance,
     build_browser_user_data_source_access_provenance,
@@ -49,7 +50,9 @@ def launch_and_export_chrome_cdp_session(
 ) -> tuple[int, str]:
     if not 1 <= int(cdp_port) <= 65535:
         raise ValueError("cdp_port must be in 1..65535")
-    auth_root = ensure_auth_state_directory(auth_state_root=auth_state_root)
+    auth_root = ensure_auth_state_directory(
+        auth_state_root=auth_state_root or default_session_profile_auth_state_root()
+    )
     state_path = auth_state_path_for_label(state_label, auth_state_root=auth_root)
     metadata_path = auth_state_metadata_path_for_label(
         state_label, auth_state_root=auth_root

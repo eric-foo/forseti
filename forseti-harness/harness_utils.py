@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import secrets
+import shutil
+import tempfile
 import time
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 import yaml
 
@@ -22,6 +26,11 @@ def utc_now_z() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def utc_now_z_microseconds() -> str:
+    """Like utc_now_z() but keeps microsecond precision (no truncation)."""
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
 def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -32,6 +41,90 @@ def sha256_bytes(data: bytes) -> str:
 
 def hash_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
+
+
+def as_dict(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def string_or_none(value: Any) -> str | None:
+    """Coerce ``value`` to a non-empty string, else ``None``.
+
+    Contract: a ``str`` is stripped and returned, or ``None`` when the
+    stripped result is empty; an ``int`` (``bool`` excluded) is rendered
+    with ``str()``; every other type -- including ``bool``, ``float``, and
+    ``None`` -- returns ``None``.
+    """
+    if isinstance(value, str):
+        stripped = value.strip()
+        return stripped or None
+    if isinstance(value, int) and not isinstance(value, bool):
+        return str(value)
+    return None
+
+
+def int_or_none(value: Any) -> int | None:
+    """Coerce ``value`` to an ``int``, else ``None``.
+
+    Contract: ``bool`` is rejected (``None``); an ``int`` passes through;
+    a ``float`` is accepted only when integral (``value.is_integer()``);
+    a ``str`` has commas removed and whitespace stripped, then parses only
+    when the result ``isdigit()`` (so signed, decimal, or suffixed strings
+    return ``None``); every other type returns ``None``.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str):
+        stripped = value.replace(",", "").strip()
+        return int(stripped) if stripped.isdigit() else None
+    return None
+
+
+def bool_or_none(value: Any) -> bool | None:
+    """Return ``value`` when it is exactly a ``bool``, else ``None``.
+
+    Contract: no coercion -- truthy/falsy strings, ``0``/``1`` ints, and
+    every other non-``bool`` value (including ``None``) return ``None``.
+    """
+    return value if isinstance(value, bool) else None
+
+
+@contextmanager
+def staged_directory_publish(destination: Path) -> Iterator[Path]:
+    """Build a complete directory off-tree, then publish it with one rename."""
+
+    final_directory = destination.resolve()
+    _require_empty_or_absent_directory(final_directory)
+    final_directory.parent.mkdir(parents=True, exist_ok=True)
+    staging_directory = Path(
+        tempfile.mkdtemp(
+            prefix=f".{final_directory.name}.staging-",
+            dir=final_directory.parent,
+        )
+    )
+
+    try:
+        yield staging_directory
+        _require_empty_or_absent_directory(final_directory)
+        if final_directory.exists():
+            final_directory.rmdir()
+        os.rename(staging_directory, final_directory)
+    except BaseException:
+        shutil.rmtree(staging_directory, ignore_errors=True)
+        raise
+
+
+def _require_empty_or_absent_directory(destination: Path) -> None:
+    if not destination.exists():
+        return
+    if not destination.is_dir():
+        raise ValueError(f"output path is not a directory: {destination}")
+    if any(destination.iterdir()):
+        raise ValueError(f"refusing to overwrite non-empty output directory: {destination}")
 
 
 def canonical_yaml_dump(data: Any) -> str:

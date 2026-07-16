@@ -20,8 +20,8 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - forseti/product/spines/capture/core/source_families/social_media/youtube/youtube_video_capture_surface_findings_v0.md
-  - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
-  - orca-harness/cleaning/audience_extractor.py
+  - forseti-harness/cleaning/raw_model_transport.py
+  - forseti-harness/cleaning/transcript_product_extractor.py
   - orca-harness/ecr/lake.py
   - orca-harness/data_lake/root.py
 stale_if:
@@ -49,11 +49,13 @@ same input shape (flat text + ms-timed cues). YouTube is the first lane; the spe
 lives here because that is the active lane and mirrors where the IG audience spec
 sits. IG/TikTok adoption is a separate lane (a Named Upgrade), not v0.
 
-This mirrors the IG audience-inference pattern (`ig_creator_ideal_audience_inference_spec_v0.md`)
-deliberately — same LLM-reads/code-decides doctrine, same two-pass lake flow, same
-evidence-with-a-source-pointer discipline — adapted from audience positioning to
-product mentions/verdicts. The reusable transport + parse + guard machinery is
-`cleaning/audience_extractor.py`; the lake-persist shape is `ecr/lake.py`.
+This uses the shared raw-model transport pattern while remaining product extraction,
+not audience inference: the same LLM-reads/code-decides discipline and
+evidence-with-a-source-pointer posture are applied to product mentions/verdicts.
+Reusable transport lives in `cleaning/raw_model_transport.py`; product-specific
+prompt, parse, and guard machinery lives in
+`cleaning/transcript_product_extractor.py`; the lake-persist shape is
+`cleaning/transcript_product_lake.py`.
 
 ## The medallion lake — where the DATA sits
 
@@ -76,7 +78,7 @@ silver producers `{projection, ecr, scr, cleaning}`, gold producer `{judgment}`.
 ```
 raw/<video-packet>/…                                          🥉 bronze
 derived/<video-packet>/silver__transcript__asr/<id>           🥈 silver (transcript; today plain `transcript_asr` — see Residual R7)
-derived/<video-packet>/silver__cleaning__product_mentions/<id> 🥈 silver (THIS spec, Pass 1)
+derived/<video-packet>/transcript_product_mentions_silver/<id> 🥈 Silver Vault (THIS spec, Pass 1)
 derived/<video-packet>/gold__judgment__product_verdict/<id>    🥇 gold   (Pass 2, DEFERRED)
 derived/<video-packet>/gold__judgment__transcript_summary/<id> 🥇 gold   (summary pass)
 ```
@@ -98,11 +100,17 @@ per-surface packets (watch / captions / audio) that share **no** raw anchor, so
   the exact captured bytes. (The cue timestamp is the traceability win transcripts
   have that captions-as-text alone do not.)
 - Read-side lineage eligibility: downstream consumers that treat
-  `silver__cleaning__product_mentions` as complete evidence must also require
+  `transcript_product_mentions_silver` as complete evidence must also require
   `silver_record_source_backed_status(record) == "source_backed_complete"`.
   A completion marker proves record-set membership only; it does not grandfather
   old no-lineage, invalid-lineage, or limitations-only records into source-backed
   evidence.
+- Temporal truth: transcript cue offsets remain evidence-local timestamps, not a
+  fabricated source-effective instant. Product-mention observations therefore
+  keep top-level `observed_at: null` and carry the generic Silver
+  explicit-unknown interval, transcript packet capture time as
+  `recorded_at`/`captured_at`, exact raw/derived evidence refs, and a visible
+  limitation.
 - Scale-ready: records are append-only / write-once with completion markers, so
   re-runs and parallel workers cannot corrupt or double-write.
 
@@ -175,7 +183,7 @@ The cron/daemon is deferred, but the runner is built daemon-*ready* so wrapping 
 later is zero-rework (a cron just calls the runner on a timer). Acceptance:
 
 1. **Idempotent** — skips any transcript that already has a completed
-   `silver__cleaning__product_mentions` record-set (checks the completion marker).
+   `transcript_product_mentions_silver` record-set (checks the completion marker).
    Run twice → no double-write (the lake refuses overwrite anyway).
 2. **Stateless / resumable** — derives "what is not done yet" from the lake each
    run; no memory between runs; crash → just re-run.
@@ -321,10 +329,9 @@ a downstream catalog join, not this extractor.
 
 ## The transport seam (caveat 3 — subscription now, metered API at scale)
 
-The reusable parts of `audience_extractor.py` — `build_extraction_prompt`,
-`parse_evidence`, the reject-bad-output guards — are transport-agnostic. The
-shipped `extract_post_evidence` is hard-wired to the two **metered provider APIs**
-(endpoint allow-list + `x-api-key`), so it is the metered path.
+The reusable transport lives in `raw_model_transport.py`; product-specific prompt,
+parse, and reject-bad-output guards live in `transcript_product_extractor.py`.
+The retired audience-extractor path is not a current dependency of this lane.
 
 v0 plan:
 - **Offline-testable library now** — tests run with a `FakeTransport`, no

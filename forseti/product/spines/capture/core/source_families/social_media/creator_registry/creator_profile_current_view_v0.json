@@ -15,9 +15,11 @@
       "creator_record_profiles": 0,
       "cross_platform_rollup_profiles": 0,
       "engagement_rate_observed_profiles": 31,
-      "platform_account_profiles": 41,
-      "profiles_total": 41,
-      "profiles_with_ideal_audience_profiles": 0,
+      "not_onboarded_profiles": 13,
+      "onboarded_profiles": 38,
+      "platform_account_profiles": 51,
+      "profiles_total": 51,
+      "profiles_with_audience_triangulation": 0,
       "profiles_with_metric_rollups": 33
     },
     "generated_at_utc": "2026-07-08T15:12:00Z",
@@ -33,6 +35,7 @@
     ],
     "profiles": [
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -129,7 +132,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/0",
           "source_pointers": [
@@ -143,7 +145,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -159,6 +161,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH1N631Z4T3SMMCY7TG286B",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:13:16Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_001",
         "platform_accounts": [
           {
@@ -202,6 +212,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -310,7 +321,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/1",
           "source_pointers": [
@@ -324,7 +334,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -340,6 +350,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPTZN1BCKXGSYQ9DJW7TEE",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:27:59Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_002",
         "platform_accounts": [
           {
@@ -395,6 +413,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -485,7 +504,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/2",
           "source_pointers": [
@@ -499,7 +517,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -515,6 +533,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3BBGX6A2DZ16A17TSRCQ0",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:42:51Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_003",
         "platform_accounts": [
           {
@@ -552,6 +578,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -636,7 +663,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/3",
           "source_pointers": [
@@ -650,7 +676,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -666,6 +692,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH4E076VKH9VHVWKFZ3M2F4",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T10:01:46Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_004",
         "platform_accounts": [
           {
@@ -697,6 +731,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -808,7 +843,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/4",
           "source_pointers": [
@@ -822,7 +856,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -838,6 +872,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPNSBDE41BF78P29022AJ0",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:25:09Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_005",
         "platform_accounts": [
           {
@@ -896,6 +938,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -995,7 +1038,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/5",
           "source_pointers": [
@@ -1009,7 +1051,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -1025,6 +1067,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH31RMX6NY3PJJ2N4HP5VQT",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:37:36Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_006",
         "platform_accounts": [
           {
@@ -1071,6 +1121,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -1173,7 +1224,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/6",
           "source_pointers": [
@@ -1187,7 +1237,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -1203,6 +1253,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPVC3PN1Z9DVRV1T5GP8Z8",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:28:12Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_007",
         "platform_accounts": [
           {
@@ -1252,6 +1310,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -1345,7 +1404,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/7",
           "source_pointers": [
@@ -1359,7 +1417,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -1375,6 +1433,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3N29Q58SZ5ZP79QH5VEN9",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:48:09Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_008",
         "platform_accounts": [
           {
@@ -1415,6 +1481,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -1515,7 +1582,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/8",
           "source_pointers": [
@@ -1529,7 +1595,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -1545,6 +1611,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPPK2YN1822AXPDB37E9Y8",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:25:35Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_009",
         "platform_accounts": [
           {
@@ -1592,6 +1666,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -1709,7 +1784,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/9",
           "source_pointers": [
@@ -1723,7 +1797,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -1739,6 +1813,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBNR61N28QRN3Z40FQ68MMR",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:08:59Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_010",
         "platform_accounts": [
           {
@@ -1803,6 +1885,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -1897,7 +1980,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/10",
           "source_pointers": [
@@ -1911,7 +1993,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -1927,6 +2009,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2ERZRF52XWNGNVF1AD6Y1",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:27:14Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_011",
         "platform_accounts": [
           {
@@ -1967,6 +2057,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -2069,7 +2160,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/11",
           "source_pointers": [
@@ -2083,7 +2173,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -2099,6 +2189,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2T4EZ0YZR6JCVEA51EKY3",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:33:26Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_012",
         "platform_accounts": [
           {
@@ -2148,6 +2246,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -2253,7 +2352,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/12",
           "source_pointers": [
@@ -2267,7 +2365,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -2283,6 +2381,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2DWCFQA74YFYWHN2WMBZG",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:26:45Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_013",
         "platform_accounts": [
           {
@@ -2335,6 +2441,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -2431,7 +2538,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/13",
           "source_pointers": [
@@ -2445,7 +2551,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -2461,6 +2567,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2V0M1SAHGQHRE5Z8YGJ2Z",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:33:55Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_014",
         "platform_accounts": [
           {
@@ -2504,6 +2618,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -2600,7 +2715,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/14",
           "source_pointers": [
@@ -2614,7 +2728,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -2630,6 +2744,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2TJ60N4JWPBAXF1DYXB95",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:33:41Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_015",
         "platform_accounts": [
           {
@@ -2673,6 +2795,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -2769,7 +2892,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/15",
           "source_pointers": [
@@ -2783,7 +2905,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -2799,6 +2921,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3AXARXPZ0QSMTB40C8PK0",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:42:36Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_016",
         "platform_accounts": [
           {
@@ -2842,6 +2972,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -2927,7 +3058,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/16",
           "source_pointers": [
@@ -2941,7 +3071,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -2957,6 +3087,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPVPTRMZT68Y8H33V8WPA1",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:28:23Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_017",
         "platform_accounts": [
           {
@@ -2987,6 +3125,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -3104,7 +3243,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/17",
           "source_pointers": [
@@ -3118,7 +3256,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -3134,6 +3272,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPRZQBYPSXTKQKVEJFH59W",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:26:54Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_018",
         "platform_accounts": [
           {
@@ -3198,6 +3344,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -3288,7 +3435,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/18",
           "source_pointers": [
@@ -3302,7 +3448,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -3318,6 +3464,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2VJGXZGR3ZWWXRJZGSDRJ",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:34:14Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_020",
         "platform_accounts": [
           {
@@ -3355,6 +3509,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -3452,7 +3607,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/19",
           "source_pointers": [
@@ -3466,7 +3620,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -3482,6 +3636,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2SP5TVMW4ZGSBAVDSE9B5",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:33:12Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_021",
         "platform_accounts": [
           {
@@ -3526,6 +3688,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -3643,7 +3806,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/20",
           "source_pointers": [
@@ -3657,7 +3819,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -3673,6 +3835,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPMNZVQ7AWVFM9RV1PW23X",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:24:33Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_022",
         "platform_accounts": [
           {
@@ -3737,6 +3907,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -3833,7 +4004,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/21",
           "source_pointers": [
@@ -3847,7 +4017,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -3863,6 +4033,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3BS3BAMVGCFHDD04FF18S",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:43:05Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_023",
         "platform_accounts": [
           {
@@ -3906,6 +4084,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -4013,7 +4192,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/22",
           "source_pointers": [
@@ -4027,7 +4205,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -4043,6 +4221,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPQAYT5C68C1YEMAVPMJAZ",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:26:00Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_024",
         "platform_accounts": [
           {
@@ -4097,6 +4283,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -4202,7 +4389,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/23",
           "source_pointers": [
@@ -4216,7 +4402,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -4232,6 +4418,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPT03FY3PYXZMFSPZNYN63",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:27:27Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_025",
         "platform_accounts": [
           {
@@ -4284,6 +4478,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -4389,7 +4584,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/24",
           "source_pointers": [
@@ -4403,7 +4597,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate, average likes, and average total comments are unavailable until source-backed numerator fields exist.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -4419,6 +4613,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPKM2D159VRNKQVXM27CB5",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:23:58Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_026",
         "platform_accounts": [
           {
@@ -4469,6 +4671,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -4577,7 +4780,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/25",
           "source_pointers": [
@@ -4591,7 +4793,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -4607,6 +4809,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH2EAW2HB4NCGP86KA9ZBB5",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:27:00Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_027",
         "platform_accounts": [
           {
@@ -4662,6 +4872,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -4749,7 +4960,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/26",
           "source_pointers": [
@@ -4763,7 +4973,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -4779,6 +4989,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3C72V8HHTVDDN7EZ7GERK",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:43:19Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_028",
         "platform_accounts": [
           {
@@ -4813,6 +5031,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -4905,7 +5124,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/27",
           "source_pointers": [
@@ -4919,7 +5137,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -4935,6 +5153,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH333N35765JKXNYKFTJHJF",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:38:20Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_029",
         "platform_accounts": [
           {
@@ -4974,6 +5200,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -5064,7 +5291,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/28",
           "source_pointers": [
@@ -5078,7 +5304,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -5094,6 +5320,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWH3ADTFRF5T3PPNNM9REVY6",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-07-02T09:42:20Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_030",
         "platform_accounts": [
           {
@@ -5131,6 +5365,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -5225,7 +5460,6 @@
           "metrics_computed_at_or_none": "2026-07-02T18:53:18Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/29",
           "source_pointers": [
@@ -5239,7 +5473,7 @@
           "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -5255,6 +5489,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWBPR6TCN4VPMRBPFT02B58J",
+          "evidence_source_family_or_none": "youtube",
+          "evidence_source_surface_or_none": "youtube_watch_metadata_comments",
+          "onboarded_at_or_none": "2026-06-30T07:26:28Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_yt_fragrance_031",
         "platform_accounts": [
           {
@@ -5296,6 +5538,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -5414,7 +5657,6 @@
           "metrics_computed_at_or_none": "2026-06-30T14:15:50Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/30",
           "source_pointers": [
@@ -5427,7 +5669,7 @@
           "Profile is account-scoped to one instagram platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -5443,6 +5685,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KW9T4ESARHD545RRPGCWWY1P",
+          "evidence_source_family_or_none": "instagram_creator",
+          "evidence_source_surface_or_none": "ig_reels_grid_dom_passive_json",
+          "onboarded_at_or_none": "2026-06-29T13:47:06Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_ig_reels_001",
         "platform_accounts": [
           {
@@ -5507,6 +5757,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -5625,7 +5876,6 @@
           "metrics_computed_at_or_none": "2026-06-30T14:15:50Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/31",
           "source_pointers": [
@@ -5638,7 +5888,7 @@
           "Profile is account-scoped to one instagram platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -5654,6 +5904,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KW9T5SGKBYD8HRVP3154F4Y8",
+          "evidence_source_family_or_none": "instagram_creator",
+          "evidence_source_surface_or_none": "ig_reels_grid_dom_passive_json",
+          "onboarded_at_or_none": "2026-06-29T13:47:50Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_ig_reels_002",
         "platform_accounts": [
           {
@@ -5718,6 +5976,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [
           {
@@ -5836,7 +6095,6 @@
           "metrics_computed_at_or_none": "2026-06-30T14:15:50Z",
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/32",
           "source_pointers": [
@@ -5849,7 +6107,7 @@
           "Profile is account-scoped to one instagram platform account; it is not a linked creator_record.",
           "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
           "Engagement rate is source-backed only for the admitted/selected source pool; it is not a platform-wide engagement benchmark.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
           "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output."
@@ -5865,6 +6123,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWC89MF50H39PEQRG9V53FYY",
+          "evidence_source_family_or_none": "instagram_creator",
+          "evidence_source_surface_or_none": "ig_reels_grid_dom_passive_json",
+          "onboarded_at_or_none": "2026-06-30T12:33:05Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_ig_reels_004",
         "platform_accounts": [
           {
@@ -5929,6 +6195,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
         "freshness": {
@@ -5937,7 +6204,6 @@
           "metrics_computed_at_or_none": null,
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/33",
           "source_pointers": [
@@ -5951,7 +6217,7 @@
           "Profile is account-scoped to one tiktok platform account; it is not a linked creator_record.",
           "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
           "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
         ],
@@ -5966,6 +6232,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KWCYZ9P72W4SJD7NDPRQT0DB",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_batch_comment_subtitle_admission",
+          "onboarded_at_or_none": "2026-06-30T19:09:24Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_tiktok_fragrance_001",
         "platform_accounts": [
           {
@@ -5993,6 +6267,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
         "freshness": {
@@ -6001,7 +6276,6 @@
           "metrics_computed_at_or_none": null,
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/34",
           "source_pointers": [
@@ -6015,7 +6289,7 @@
           "Profile is account-scoped to one tiktok platform account; it is not a linked creator_record.",
           "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
           "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
         ],
@@ -6030,6 +6304,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXFVWBVQXTDY8APJ4PAP05A0",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_grid_window",
+          "onboarded_at_or_none": "2026-07-14T08:28:47Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_tiktok_fragrance_002",
         "platform_accounts": [
           {
@@ -6057,6 +6339,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
         "freshness": {
@@ -6065,7 +6348,6 @@
           "metrics_computed_at_or_none": null,
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/35",
           "source_pointers": [
@@ -6079,7 +6361,7 @@
           "Profile is account-scoped to one tiktok platform account; it is not a linked creator_record.",
           "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
           "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
         ],
@@ -6094,6 +6376,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXFVWZ4RWRTNF4AVFPCMPDK4",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_grid_window",
+          "onboarded_at_or_none": "2026-07-14T08:29:07Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_tiktok_fragrance_003",
         "platform_accounts": [
           {
@@ -6121,6 +6411,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
         "freshness": {
@@ -6129,7 +6420,6 @@
           "metrics_computed_at_or_none": null,
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/36",
           "source_pointers": [
@@ -6143,7 +6433,7 @@
           "Profile is account-scoped to one tiktok platform account; it is not a linked creator_record.",
           "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
           "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
         ],
@@ -6158,6 +6448,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_tiktok_fragrance_004",
         "platform_accounts": [
           {
@@ -6185,6 +6483,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
         "freshness": {
@@ -6193,7 +6492,6 @@
           "metrics_computed_at_or_none": null,
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/37",
           "source_pointers": [
@@ -6206,7 +6504,7 @@
           "Profile is account-scoped to one instagram platform account; it is not a linked creator_record.",
           "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
           "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
         ],
@@ -6221,6 +6519,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_ig_fragrance_005",
         "platform_accounts": [
           {
@@ -6248,6 +6554,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
         "freshness": {
@@ -6256,7 +6563,6 @@
           "metrics_computed_at_or_none": null,
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/38",
           "source_pointers": [
@@ -6270,7 +6576,7 @@
           "Profile is account-scoped to one tiktok platform account; it is not a linked creator_record.",
           "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
           "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
         ],
@@ -6285,6 +6591,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXB08SJ9FTW2YXFZJWG9XQDD",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_batch_comment_subtitle_admission",
+          "onboarded_at_or_none": "2026-07-12T11:09:16Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_tiktok_fragrance_005",
         "platform_accounts": [
           {
@@ -6312,6 +6626,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
         "freshness": {
@@ -6320,7 +6635,6 @@
           "metrics_computed_at_or_none": null,
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/39",
           "source_pointers": [
@@ -6334,7 +6648,7 @@
           "Profile is account-scoped to one instagram platform account; it is not a linked creator_record.",
           "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
           "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
         ],
@@ -6349,6 +6663,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_ig_fragrance_006",
         "platform_accounts": [
           {
@@ -6376,6 +6698,7 @@
         "wind_calling_summary": null
       },
       {
+        "audience_triangulation": null,
         "creator_record_id_or_none": null,
         "current_metric_rollups": [],
         "freshness": {
@@ -6384,7 +6707,6 @@
           "metrics_computed_at_or_none": null,
           "profile_view_computed_at": "2026-07-08T15:12:00Z"
         },
-        "ideal_audience_profile": null,
         "identity_evidence_summary": {
           "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/40",
           "source_pointers": [
@@ -6398,7 +6720,7 @@
           "Profile is account-scoped to one tiktok platform account; it is not a linked creator_record.",
           "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
           "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-          "Ideal/content-fit audience profile is not joined in this static view.",
+          "Audience triangulation is not joined in this static view.",
           "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
           "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
         ],
@@ -6413,6 +6735,14 @@
           "not dashboard readiness",
           "not SQLite or data-lake physicalization"
         ],
+        "onboarding": {
+          "evidence_packet_id_or_none": "01KXBSSPVWSWFGJKQ6YZ6MQKJ1",
+          "evidence_source_family_or_none": "tiktok",
+          "evidence_source_surface_or_none": "tiktok_creator_batch_comment_subtitle_admission",
+          "onboarded_at_or_none": "2026-07-12T18:35:25Z",
+          "onboarding_state": "onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
         "platform_account_id_or_none": "acct_tiktok_fragrance_006",
         "platform_accounts": [
           {
@@ -6438,14 +6768,739 @@
           "source_metric_observation_ids": []
         },
         "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/41",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/0/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/0/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_032",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/0/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/0/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_032",
+            "platform_public_account_id_or_none": "UCJ7EzNsSGFBx1w5KQqRzMqA",
+            "public_display_name_or_none": "Aaron Terence Hughes",
+            "public_handle": "aaronterencehughes",
+            "public_profile_url": "https://www.youtube.com/channel/UCJ7EzNsSGFBx1w5KQqRzMqA"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_032",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/41",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/42",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/1/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/1/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_033",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/1/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/1/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_033",
+            "platform_public_account_id_or_none": "UC6IMPkOWzhBHWlIW0ca1z_Q",
+            "public_display_name_or_none": "AROMATIX",
+            "public_handle": "aromatixrrt",
+            "public_profile_url": "https://www.youtube.com/channel/UC6IMPkOWzhBHWlIW0ca1z_Q"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_033",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/42",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/43",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/2/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/2/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_034",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/2/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/2/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_034",
+            "platform_public_account_id_or_none": "UCiC5uxWi4WGrR1Suo8I4PqA",
+            "public_display_name_or_none": "Cal Cologne",
+            "public_handle": "calcologne",
+            "public_profile_url": "https://www.youtube.com/channel/UCiC5uxWi4WGrR1Suo8I4PqA"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_034",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/43",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/44",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/3/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/3/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_035",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/3/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/3/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_035",
+            "platform_public_account_id_or_none": "UCzi8yTLv2_lF22VqwfteRLA",
+            "public_display_name_or_none": "Eau D' Erica",
+            "public_handle": "eauderica",
+            "public_profile_url": "https://www.youtube.com/channel/UCzi8yTLv2_lF22VqwfteRLA"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_035",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/44",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/45",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/4/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/4/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_036",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/4/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/4/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_036",
+            "platform_public_account_id_or_none": "UC-SMshzkuetzs4mNHZmJwUg",
+            "public_display_name_or_none": "Erin Nicole TV",
+            "public_handle": "erinnicoletv",
+            "public_profile_url": "https://www.youtube.com/channel/UC-SMshzkuetzs4mNHZmJwUg"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_036",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/45",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/46",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/5/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/5/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_037",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/5/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/5/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_037",
+            "platform_public_account_id_or_none": "UCNDQy3YbPtp37i7B91f6kFQ",
+            "public_display_name_or_none": "FBFragrances",
+            "public_handle": "fbfragrances",
+            "public_profile_url": "https://www.youtube.com/channel/UCNDQy3YbPtp37i7B91f6kFQ"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_037",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/46",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/47",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/6/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/6/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_038",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/6/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/6/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_038",
+            "platform_public_account_id_or_none": "UCm10tytOAzlO42r9_4Oc8Eg",
+            "public_display_name_or_none": "FRAG-MENTAL",
+            "public_handle": "fragmental",
+            "public_profile_url": "https://www.youtube.com/channel/UCm10tytOAzlO42r9_4Oc8Eg"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_038",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/47",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/48",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/7/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/7/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_039",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/7/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/7/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_039",
+            "platform_public_account_id_or_none": "UCTMtNhRZ8-QRTsyiojH8Zqg",
+            "public_display_name_or_none": "FragranceFlan",
+            "public_handle": "fragranceflan",
+            "public_profile_url": "https://www.youtube.com/channel/UCTMtNhRZ8-QRTsyiojH8Zqg"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_039",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/48",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/49",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/8/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/8/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_040",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/8/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/8/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_040",
+            "platform_public_account_id_or_none": "UCNn5SzNLEe2F9M04sn2aoDA",
+            "public_display_name_or_none": "K&A Fragrances",
+            "public_handle": "kafragrances",
+            "public_profile_url": "https://www.youtube.com/channel/UCNn5SzNLEe2F9M04sn2aoDA"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_040",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/49",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
+      },
+      {
+        "audience_triangulation": null,
+        "creator_record_id_or_none": null,
+        "current_metric_rollups": [],
+        "freshness": {
+          "audience_computed_at_or_none": null,
+          "identity_updated_at": "2026-07-15T00:45:00Z",
+          "metrics_computed_at_or_none": null,
+          "profile_view_computed_at": "2026-07-08T15:12:00Z"
+        },
+        "identity_evidence_summary": {
+          "account_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/50",
+          "source_pointers": [
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/9/normalized_candidate/handles/0",
+            "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/9/normalized_candidate/display_name_or_none"
+          ],
+          "summary": "Single-platform youtube public account observed from source-backed creator registry identity evidence; no metric rollup exists yet."
+        },
+        "identity_state": "single_platform_observed",
+        "limitations": [
+          "Profile is account-scoped to one youtube platform account; it is not a linked creator_record.",
+          "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
+          "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
+          "Audience triangulation is not joined in this static view.",
+          "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
+          "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation."
+        ],
+        "link_state_or_none": null,
+        "non_claims": [
+          "not channel-wide creator influence",
+          "not platform-wide engagement rate",
+          "not buyer proof",
+          "not public person-level identity",
+          "not contact or outreach authorization",
+          "not cross-platform rollup",
+          "not dashboard readiness",
+          "not SQLite or data-lake physicalization"
+        ],
+        "onboarding": {
+          "evidence_packet_id_or_none": null,
+          "evidence_source_family_or_none": null,
+          "evidence_source_surface_or_none": null,
+          "onboarded_at_or_none": null,
+          "onboarding_state": "not_onboarded",
+          "policy_version": "creator_registry_onboarding_v0"
+        },
+        "platform_account_id_or_none": "acct_yt_fragrance_041",
+        "platform_accounts": [
+          {
+            "display_name_source_field_or_none": "normalized_candidate.display_name_or_none",
+            "display_name_source_pointer_or_none": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/9/normalized_candidate/display_name_or_none",
+            "handle_observed_at": "2026-07-15T00:45:00Z",
+            "handle_source_pointer": "docs/review-inputs/youtube_fragrance_10_creator_registry_match_preflight_receipt_20260715.json#/creator_registry_match_preflight_receipt/results/9/normalized_candidate/handles/0",
+            "platform": "youtube",
+            "platform_account_id": "acct_yt_fragrance_041",
+            "platform_public_account_id_or_none": "UC-kG1xY0duJPDjvNkAiSODg",
+            "public_display_name_or_none": "The Perfume Reviewer",
+            "public_handle": "theperfumereviewr",
+            "public_profile_url": "https://www.youtube.com/channel/UC-kG1xY0duJPDjvNkAiSODg"
+          }
+        ],
+        "profile_subject_id": "acct_yt_fragrance_041",
+        "profile_subject_kind": "platform_account",
+        "review_state_or_none": null,
+        "source_drill_back": {
+          "identity_ledger_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json#/creator_public_handle_linkage_ledger/platform_accounts/50",
+          "metric_rollup_pointer": null,
+          "metric_snapshot_pointer": null,
+          "source_metric_observation_ids": []
+        },
+        "wind_calling_summary": null
       }
     ],
     "schema_version": "creator_profile_current_view_v0",
     "source_inputs": [
       {
         "role": "source-backed platform accounts and identity state",
-        "sha256": "9acc15c8d46430d120db6b11f051179e62786de38289bab11ab4d06be4acf4b1",
+        "sha256": "809d271314495520d0cff7d5fbc1e32b8aecc6a294ca2b12f5c68981bf0536b4",
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_public_handle_linkage_ledger_v0.json"
+      },
+      {
+        "role": "account-level onboarding state derived from verified committed Bronze evidence",
+        "sha256": "1d323fd2d94ed09d77d945c89123bedbd01a3b3ad1dce0e52e0919cc8740a796",
+        "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_registry_index_v0.json"
       },
       {
         "role": "lake-backed admitted-pool YouTube metric rollups (live-lake snapshot)",
@@ -6458,7 +7513,7 @@
         "source_pointer": "forseti/product/spines/capture/core/source_families/social_media/instagram/instagram_reels_creator_metric_rollup_snapshot_v0.json"
       }
     ],
-    "source_policy_posture": "Static creator-profile-current export derived from the public-handle platform-account ledger and platform creator metric seeds. Profiles are account-scoped unless promoted public-handle linkage exists.",
+    "source_policy_posture": "Static creator-profile-current export derived from the public-handle platform-account ledger, Bronze-derived Creator Registry onboarding projection, and platform creator metric seeds. Profiles are account-scoped unless promoted public-handle linkage exists.",
     "view_id": "creator_profile_current_view_v0",
     "view_mode": "source_backed_static_json_export"
   }

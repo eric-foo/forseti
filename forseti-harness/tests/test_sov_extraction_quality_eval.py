@@ -9,11 +9,18 @@ mentions going to unscannable, and the runner's read-only fail-closed CLI.
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.derived_retrieval_views import MENTIONS_LANE
 from data_lake.root import DataLakeRoot
+from data_lake.silver_record import (
+    CONTENT_HASH_BASIS,
+    SILVER_VAULT_RECORD_SCHEMA_VERSION,
+    TEXT_OBSERVATION_SET_PAYLOAD_KIND,
+    silver_content_hash,
+)
 from data_lake.silver_lineage import (
     SilverAnchor,
     SilverDerivedRef,
@@ -23,6 +30,11 @@ from data_lake.silver_lineage import (
 )
 from runners.run_sov_extraction_quality_eval import main, run_eval
 from source_capture.models import known_fact
+_POLICY = {"policy_version": "test_policy_v1", "policy_fingerprint_sha256": "1" * 64}
+_POLICY_ARGS = [
+    "--product-mention-policy-version", "test_policy_v1",
+    "--product-mention-policy-fingerprint-sha256", "1" * 64,
+]
 from source_capture.writer import write_local_source_capture_packet
 
 
@@ -93,6 +105,8 @@ def _lineage_fields(packet_id: str, json3_entry: dict | None, native_id: str) ->
         source_object=SilverSourceObject(
             namespace="youtube", kind="transcript", native_id=native_id
         ),
+        observed_at="2026-07-15T00:00:00Z",
+        captured_at="2026-07-15T00:00:00Z",
         raw_refs=raw_refs,
         derived_refs=derived_refs,
     )
@@ -111,6 +125,14 @@ def _mention(mention_id: str, brand: str, line: str) -> dict:
 
 
 def _write_record(root: DataLakeRoot, raw_anchor: str, record_id: str, record: dict) -> None:
+    mentions = record.get("mentions")
+    if isinstance(mentions, list):
+        record = _official_record(
+            raw_anchor=raw_anchor,
+            record_id=record_id,
+            mentions=mentions,
+            lineage_fields={key: value for key, value in record.items() if key != "mentions"},
+        )
     root.append_record(
         subtree="derived",
         raw_anchor=raw_anchor,
@@ -118,6 +140,59 @@ def _write_record(root: DataLakeRoot, raw_anchor: str, record_id: str, record: d
         record_id=record_id,
         data=canonical_record_bytes(record),
     )
+
+
+def _official_record(
+    *, raw_anchor: str, record_id: str, mentions: list[dict], lineage_fields: dict
+) -> dict:
+    rows = []
+    for mention in mentions:
+        quote = mention["source_pointer"]
+        rows.append(
+            {
+                "row_id": mention["mention_id"],
+                "text_artifact_type": "transcript_quote",
+                "text_value": quote,
+                "text_ref": None,
+                "text_hash": f"sha256:{hashlib.sha256(quote.encode('utf-8')).hexdigest()}",
+                "text_posture": {"kind": "observed", "reason_code": None, "reason_detail": None},
+                "coverage_window": {"start": None, "end": None},
+                "source_span": {"start_ms": mention["start_ms"], "end_ms": mention["end_ms"]},
+                "mention": mention,
+            }
+        )
+    body = {
+        "record_id": record_id,
+        "raw_anchor": raw_anchor,
+        "lane_namespace": MENTIONS_LANE,
+        "producer_id": "test.producer",
+        "schema_version": SILVER_VAULT_RECORD_SCHEMA_VERSION,
+        "producer_schema_version": "transcript_product_mentions_record_v1",
+        "content_hash": "",
+        "content_hash_basis": CONTENT_HASH_BASIS,
+        "record_kind": "observation",
+        "payload_kind": TEXT_OBSERVATION_SET_PAYLOAD_KIND,
+        "producer_row_kind": "transcript_product_mentions",
+        "record_schema_version": "transcript_product_mentions_record_v1",
+        "source_family": "social_media",
+        **lineage_fields,
+        "provenance": {"transcript_source_key": record_id},
+        "payload": {
+            "observation": {
+                "subject": {
+                    "ref_type": "entity_key",
+                    "ref": {"namespace": "youtube", "kind": "public_content_object", "native_id": (lineage_fields.get("source_object") or {}).get("native_id", "unknown")},
+                },
+                "observation_set_kind": "transcript_product_mentions",
+                "policy_version": "test_policy_v1",
+                "policy_fingerprint_sha256": "1" * 64,
+                "row_count": len(rows),
+                "rows": rows,
+            }
+        },
+    }
+    body["content_hash"] = f"sha256:{silver_content_hash(body)}"
+    return body
 
 
 def test_leak_scan_classifies_present_leaked_unknown(tmp_path: Path) -> None:
@@ -139,7 +214,7 @@ def test_leak_scan_classifies_present_leaked_unknown(tmp_path: Path) -> None:
         },
     )
 
-    report = run_eval(root)
+    report = run_eval(root, product_mention_policy=_POLICY)
 
     scan = report["knowledge_leak_scan"]
     assert scan["named_mentions_scanned"] == 2
@@ -164,7 +239,7 @@ def test_leak_scan_classifies_present_leaked_unknown(tmp_path: Path) -> None:
     substrate = report["substrate"]
     assert substrate["mentions_named_brand"] == 2
     assert substrate["mentions_unknown_or_blank_brand"] == 1
-    assert substrate["mention_records_by_gate_status"] == {"source_backed_complete": 1}
+    assert substrate["mention_records_by_selection_status"] == {"selected_exact_policy": 1}
     assert (
         report["transcript_resolution"]["records_by_disposition"]["resolved_caption_json3"] == 1
     )
@@ -176,8 +251,8 @@ def test_unresolvable_and_gate_failing_records_are_counted_never_scanned(
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     pid, json3_entry = _commit_caption_packet(root, tmp_path, "alpha", "talking about Dior")
-    # Gate-complete record whose only ref is a derived (ASR) ref -> no raw
-    # transcript ref to resolve; its named mention must land in unscannable.
+    # Structurally complete record whose derived source does not exist: the
+    # physical authority gate excludes it before transcript scanning.
     _write_record(
         root,
         pid,
@@ -203,24 +278,22 @@ def test_unresolvable_and_gate_failing_records_are_counted_never_scanned(
         data=b"{not json",
     )
 
-    report = run_eval(root)
+    report = run_eval(root, product_mention_policy=_POLICY)
 
     assert report["substrate"]["mention_records_total"] == 3
-    assert report["substrate"]["mention_records_unreadable"] == 1
-    assert report["substrate"]["mention_records_by_gate_status"] == {
-        "source_backed_complete": 1,
-        "source_lineage_missing": 1,
+    assert report["substrate"]["mention_records_by_selection_status"] == {
+        "invalid_silver_envelope": 1,
+        "selected_exact_policy": 0,
+        "source_ref_unresolved": 1,
+        "unreadable": 1,
     }
-    assert report["substrate"]["mentions_excluded_not_source_backed"] == 1
-    assert report["transcript_resolution"]["records_by_disposition"] == {
-        "no_raw_transcript_ref": 1
-    }
-    assert report["transcript_resolution"]["named_mentions_unscannable"] == 1
+    assert report["transcript_resolution"]["records_by_disposition"] == {}
+    assert report["transcript_resolution"]["named_mentions_unscannable"] == 0
     assert report["knowledge_leak_scan"]["named_mentions_scanned"] == 0
     assert report["knowledge_leak_scan"]["leak_rate"] is None
 
 
-def test_raw_ref_mismatches_are_unscannable_not_fallback_scanned(
+def test_raw_ref_mismatches_are_non_authority_not_fallback_scanned(
     tmp_path: Path,
 ) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
@@ -238,7 +311,7 @@ def test_raw_ref_mismatches_are_unscannable_not_fallback_scanned(
         },
     )
 
-    bad_hash_ref = _lineage_fields(pid, json3_entry, "vid1")
+    bad_hash_ref = _lineage_fields(pid, json3_entry, "vid2")
     bad_hash_ref["raw_refs"][0]["sha256"] = "0" * 64
     _write_record(
         root,
@@ -250,22 +323,18 @@ def test_raw_ref_mismatches_are_unscannable_not_fallback_scanned(
         },
     )
 
-    report = run_eval(root)
+    report = run_eval(root, product_mention_policy=_POLICY)
 
     # Neither record may be scanned against a substitute transcript: the wrong
-    # file_id and the wrong hash are counted dispositions, never fallbacks.
+    # file_id and the wrong hash fail the shared physical authority gate.
     assert report["knowledge_leak_scan"]["named_mentions_scanned"] == 0
-    assert report["transcript_resolution"]["named_mentions_unscannable"] == 2
-    assert report["transcript_resolution"]["records_by_disposition"] == {
-        "raw_transcript_ref_hash_mismatch": 1,
-        "transcript_file_missing_in_packet": 1,
+    assert report["substrate"]["mention_records_by_selection_status"] == {
+        "selected_exact_policy": 0,
+        "source_ref_unresolved": 2,
     }
-    assert report["knowledge_leak_scan"]["per_brand"]["Dior"] == {
-        "mentions": 2,
-        "scanned": 0,
-        "leaked": 0,
-        "unscannable": 2,
-    }
+    assert report["transcript_resolution"]["named_mentions_unscannable"] == 0
+    assert report["transcript_resolution"]["records_by_disposition"] == {}
+    assert report["knowledge_leak_scan"]["per_brand"] == {}
 
 
 def test_records_without_named_mentions_get_not_attempted_disposition(
@@ -283,7 +352,7 @@ def test_records_without_named_mentions_get_not_attempted_disposition(
         },
     )
 
-    report = run_eval(root)
+    report = run_eval(root, product_mention_policy=_POLICY)
 
     assert report["substrate"]["mentions_unknown_or_blank_brand"] == 1
     assert report["transcript_resolution"]["records_by_disposition"] == {
@@ -293,7 +362,7 @@ def test_records_without_named_mentions_get_not_attempted_disposition(
 
 
 def test_runner_cli_fails_closed_on_in_repo_root(tmp_path: Path, capsys) -> None:
-    assert main(["--root", str(tmp_path / "lake")]) == 2
+    assert main(["--root", str(tmp_path / "lake"), *_POLICY_ARGS]) == 2
     out = json.loads(capsys.readouterr().out)
     assert out["status"] == "error"
 
@@ -315,13 +384,13 @@ def test_runner_cli_reports_and_refuses_out_inside_lake(
     monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(lambda **_kwargs: root))
 
     out_file = tmp_path / "report.json"
-    assert main(["--root", str(root.path), "--out", str(out_file)]) == 0
+    assert main(["--root", str(root.path), "--out", str(out_file), *_POLICY_ARGS]) == 0
     printed = json.loads(capsys.readouterr().out)
     assert printed["knowledge_leak_scan"]["leak_rate"] == 0.0
     assert json.loads(out_file.read_text(encoding="utf-8")) == printed
 
     # --out inside the data root is refused (read-only eval never writes into the lake).
-    assert main(["--root", str(root.path), "--out", str(root.path / "indexes" / "x.json")]) == 2
+    assert main(["--root", str(root.path), "--out", str(root.path / "indexes" / "x.json"), *_POLICY_ARGS]) == 2
     refused = json.loads(capsys.readouterr().out)
     assert refused["status"] == "error"
     assert not (root.path / "indexes" / "x.json").exists()

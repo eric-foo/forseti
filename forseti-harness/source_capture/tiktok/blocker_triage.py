@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from harness_utils import as_dict
+
 
 TIKTOK_BLOCKER_CLASS_NO_BLOCKER = "no_blocker"
 TIKTOK_BLOCKER_CLASS_BENIGN_DISMISSIBLE_OVERLAY = "benign_dismissible_overlay"
@@ -73,6 +75,7 @@ class TikTokBlockerTriage:
     challenge_marker_seen: bool = False
     hydration_present: bool | None = None
     item_struct_present: bool | None = None
+    visible_surface_ready: bool | None = None
     dismiss_candidate_count: int = 0
     reload_candidate_count: int = 0
     marker_family: str | None = None
@@ -92,6 +95,8 @@ class TikTokBlockerTriage:
             receipt["hydration_present"] = self.hydration_present
         if self.item_struct_present is not None:
             receipt["item_struct_present"] = self.item_struct_present
+        if self.visible_surface_ready is not None:
+            receipt["visible_surface_ready"] = self.visible_surface_ready
         if self.marker_family is not None:
             receipt["marker_family"] = self.marker_family
         if self.matched_marker is not None:
@@ -105,10 +110,11 @@ def classify_tiktok_capture(
     capture_result: object,
     *,
     item_struct_present: bool | None = None,
+    visible_surface_ready: bool | None = None,
     dismiss_candidate_count: int = 0,
     reload_candidate_count: int = 0,
 ) -> TikTokBlockerTriage:
-    dom_observation = _as_dict(getattr(capture_result, "dom_observation", {}))
+    dom_observation = as_dict(getattr(capture_result, "dom_observation", {}))
     hydration_present = bool(_first_str(dom_observation.get("hydration_json_text")))
     return classify_tiktok_blocker(
         final_url=_first_str(getattr(capture_result, "final_url", None)) or "",
@@ -116,6 +122,7 @@ def classify_tiktok_capture(
         visible_text=_first_str(getattr(capture_result, "visible_text", None)) or "",
         hydration_present=hydration_present,
         item_struct_present=item_struct_present,
+        visible_surface_ready=visible_surface_ready,
         dismiss_candidate_count=dismiss_candidate_count,
         reload_candidate_count=reload_candidate_count,
     )
@@ -128,6 +135,7 @@ def classify_tiktok_blocker(
     visible_text: str,
     hydration_present: bool | None,
     item_struct_present: bool | None,
+    visible_surface_ready: bool | None = None,
     dismiss_candidate_count: int = 0,
     reload_candidate_count: int = 0,
 ) -> TikTokBlockerTriage:
@@ -143,6 +151,7 @@ def classify_tiktok_blocker(
             challenge_marker_seen=True,
             hydration_present=hydration_present,
             item_struct_present=item_struct_present,
+            visible_surface_ready=visible_surface_ready,
             dismiss_candidate_count=dismiss_count,
             reload_candidate_count=reload_count,
             marker_family="login_or_auth_wall",
@@ -158,6 +167,7 @@ def classify_tiktok_blocker(
             challenge_marker_seen=True,
             hydration_present=hydration_present,
             item_struct_present=item_struct_present,
+            visible_surface_ready=visible_surface_ready,
             dismiss_candidate_count=dismiss_count,
             reload_candidate_count=reload_count,
             marker_family="challenge_or_security",
@@ -166,24 +176,30 @@ def classify_tiktok_blocker(
         )
 
     reload_marker_seen = _contains_any(haystack, _RELOAD_MARKERS) or reload_count > 0
-    if item_struct_present is False:
+    if item_struct_present is False and visible_surface_ready is not True:
         return TikTokBlockerTriage(
             blocker_class=TIKTOK_BLOCKER_CLASS_INFRASTRUCTURE_RELOAD,
             action=TIKTOK_BLOCKER_ACTION_RELOAD_ONCE_CANDIDATE,
             reason="missing_item_struct_or_empty_shell",
             hydration_present=hydration_present,
             item_struct_present=item_struct_present,
+            visible_surface_ready=visible_surface_ready,
             dismiss_candidate_count=dismiss_count,
             reload_candidate_count=reload_count,
             marker_family="reload_or_empty_shell",
         )
-    if reload_marker_seen and item_struct_present is not True:
+    if (
+        reload_marker_seen
+        and item_struct_present is not True
+        and visible_surface_ready is not True
+    ):
         return TikTokBlockerTriage(
             blocker_class=TIKTOK_BLOCKER_CLASS_INFRASTRUCTURE_RELOAD,
             action=TIKTOK_BLOCKER_ACTION_RELOAD_ONCE_CANDIDATE,
             reason="reload_marker_observed",
             hydration_present=hydration_present,
             item_struct_present=item_struct_present,
+            visible_surface_ready=visible_surface_ready,
             dismiss_candidate_count=dismiss_count,
             reload_candidate_count=reload_count,
             marker_family="reload_or_empty_shell",
@@ -198,6 +214,7 @@ def classify_tiktok_blocker(
             reason="benign_overlay_marker_with_dismiss_control",
             hydration_present=hydration_present,
             item_struct_present=item_struct_present,
+            visible_surface_ready=visible_surface_ready,
             dismiss_candidate_count=dismiss_count,
             reload_candidate_count=reload_count,
             marker_family="benign_overlay",
@@ -209,17 +226,23 @@ def classify_tiktok_blocker(
             reason="unclassified_dismiss_control",
             hydration_present=hydration_present,
             item_struct_present=item_struct_present,
+            visible_surface_ready=visible_surface_ready,
             dismiss_candidate_count=dismiss_count,
             reload_candidate_count=reload_count,
             marker_family="ambiguous_dismiss",
         )
-    if hydration_present is False and item_struct_present is not True:
+    if (
+        hydration_present is False
+        and item_struct_present is not True
+        and visible_surface_ready is not True
+    ):
         return TikTokBlockerTriage(
             blocker_class=TIKTOK_BLOCKER_CLASS_INFRASTRUCTURE_RELOAD,
             action=TIKTOK_BLOCKER_ACTION_RELOAD_ONCE_CANDIDATE,
             reason="missing_hydration",
             hydration_present=hydration_present,
             item_struct_present=item_struct_present,
+            visible_surface_ready=visible_surface_ready,
             dismiss_candidate_count=dismiss_count,
             reload_candidate_count=reload_count,
             marker_family="reload_or_empty_shell",
@@ -230,6 +253,7 @@ def classify_tiktok_blocker(
         reason="no_blocker_markers_observed",
         hydration_present=hydration_present,
         item_struct_present=item_struct_present,
+        visible_surface_ready=visible_surface_ready,
         dismiss_candidate_count=dismiss_count,
         reload_candidate_count=reload_count,
     )
@@ -264,10 +288,6 @@ def _first_contained_marker(text: str, markers: tuple[str, ...]) -> str | None:
         if marker in text:
             return marker
     return None
-
-
-def _as_dict(value: Any) -> dict[str, Any]:
-    return value if isinstance(value, dict) else {}
 
 
 def _first_str(*values: Any) -> str | None:

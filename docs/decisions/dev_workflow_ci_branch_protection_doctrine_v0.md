@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Forseti decision record
-scope: Forseti developer-workflow doctrine — CI test gate, branch protection on main, per-lane PR flow, auto-merge, and rebase cadence.
+scope: Forseti developer-workflow doctrine — CI test gate, branch protection on main, per-lane PR flow, auto-merge, and lane-update cadence.
 use_when:
   - Opening, merging, or gating a change to Forseti's main branch.
   - Setting up or changing CI, branch protection, or the per-lane PR workflow.
@@ -36,6 +36,10 @@ Accepted 2026-06-09 (owner sign-off, eric-foo); amended 2026-06-09 to record the
   server gate was established.
 - Agent and local Git guards remain defense in depth; they are no longer the
   only preventive boundary and do not weaken the server gate.
+- **Completed-work-unit landing default (owner-directed 2026-07-15):** the lane
+  author self-merges its own PR after the work unit is complete and all required
+  validation, review, and adjudication gates are satisfied. Human landing is a
+  fail-closed fallback or an explicit owner hold, not the routine gate.
 
 This state is an observed GitHub API readback, not a correctness or readiness claim.
 
@@ -102,21 +106,18 @@ At that historical point, this record did not assert that any server-side gate w
    Applied and read back through the GitHub API on 2026-07-11 after the repository
    became public. This is the harness-agnostic preventive boundary; local and
    agent guards remain defense in depth.
-3. **Per-lane PR flow.** Each lane branches off `main`, works in its own branch/worktree, and opens
-   one focused PR. No multi-workstream mega-batches (the PR #1 lesson).
-   **Codex/sandboxed lane-start writeability (harness-scoped, not a Claude Code rule).** For Codex or
-   any sandboxed harness whose writes are mediated by workspace writable roots, the lane is not ready
-   for repo-changing edits until the active worktree is the harness workspace root (or otherwise
-   owner-configured as a writable root) and a lane-start write + git-index preflight passes in that
-   worktree. The preflight writes a throwaway file, stages it, unstages it, deletes it, and reads
-   `git status --short`; failure to create, stage, unstage, or cleanly remove the probe is a stop
-   condition: reroot/reopen the harness on the active worktree, or create a new owner-configured
-   writable worktree and retry. Escalated writes are a bounded fallback for the current operation only,
-   not the normal lane path. This is Codex/sandboxed-harness scoped; it does **not** add a mandatory
-   lane-start probe to Claude Code lanes whose harness already writes to their active worktree and
-   reports write failures directly. Avoid relying on nested or secondary writable roots for Codex on
-   Windows unless this preflight passes.
-
+3. **Per-lane PR flow.** Each publication work unit branches off `main`, works in its own
+   branch/worktree, and opens one focused PR. No multi-workstream mega-batches (the PR #1 lesson).
+   A handoff-only packet is transport rather than a publication work unit until item 15's landing
+   condition is met; this exception does not apply to implementation, doctrine, code, or another
+   independently publishable artifact.
+   **One-time effective-target binding.** At the first repo-changing act, select isolation under
+   `decision-routing.md`: branch in the current checkout for clean solo/sequential work; a worktree off
+   the required base for dirty-base, concurrent, or independent work; neither for read-only work. The
+   current actor may continue the same commissioned work unit in that selected worktree after one target,
+   revision, dirty-state, and writer snapshot. Launch-root mismatch alone is not failure. Use a separate
+   receiver only for an independent concurrent actor or an observed required-tool, sandbox, hook, or guard
+   denial. Exact/ancestor revision rules, dirty-byte identity, protected guards, and server protection stay.
    **Codex/manual patch discipline.** For Codex `apply_patch`, generated diffs, or manual textual
    replacement flows, a corrupt patch, failed hunk, or expected-text mismatch is a stop-and-reread
    condition: read the live target lines, then patch from observed current text before continuing. Before
@@ -133,24 +134,39 @@ At that historical point, this record did not assert that any server-side gate w
    so the custom router/bot policy supplements rather than substitutes for it.
 5. **Merge method.** Lane PRs squash-merge by default — one tidy commit per lane on `main`. Other
    methods remain available; squash is the documented default.
-6. **Rebase cadence.** Each lane keeps its branch reasonably current with `main`; the
-   server gate also uses `strict: true`, so a behind head must update and rerun CI
-   before merging. This makes up-to-date state preventive rather than discretionary.
-7. **Defense-in-depth enforcement — structure B′ (guard-verified CLEAN self-merge; else human-landed).**
+6. **Lane-update cadence.** Each lane keeps its branch reasonably current with
+   `main`; the server gate also uses `strict: true`, so a behind head must update
+   and rerun CI before merging. Before the lane branch is first pushed, rebase onto
+   `origin/main` remains allowed. Once the branch is published or has a PR, do not
+   rebase it: fetch `main`, merge `origin/main` into the lane branch, resolve any
+   conflicts there, and use an ordinary fast-forwardable lane push. This is the
+   only update route compatible with both a stable published branch identity and
+   the hard no-force-push rule. Prefer the explicit pair `git fetch origin main`
+   then `git merge --no-edit origin/main`; do not rely on a plain `git pull`, whose
+   behavior can be changed by local rebase configuration.
+7. **Defense-in-depth enforcement — verified own-PR self-merge; else human-landed.**
    With the server gate active, agents still prepare green PRs. An agent may self-merge
    its own PR with a direct `gh pr merge <N>`, but **only when the protected-action guard
-   (`.agents/hooks/guard_protected_actions.py`) confirms the PR is `mergeStateStatus == CLEAN`, every
-   CI check has completed green, and it carries the opt-in `agent-automerge` label.** Every other case
-   — a non-CLEAN state (`UNSTABLE` / `BLOCKED` / `BEHIND` / `DIRTY` / `DRAFT` / `UNKNOWN` / …), pending
-   or failing checks, an empty check set, a missing/ambiguous PR number, the no-arg form, the
-   lower-level `gh api .../merge` form, a foreign `--repo`, or any lookup error/timeout — **fails
+   (`.agents/hooks/guard_protected_actions.py`) confirms that the PR targets `main`, is same-repo,
+   its head matches the current lane branch, `mergeStateStatus == CLEAN`, every CI check has
+   completed green, it carries the opt-in `agent-automerge` label, and it carries no live
+   `risk/blocked-for-merge-policy` hold.** Every other case — a non-main base, fork, head/current-
+   branch mismatch, live merge-policy hold, non-CLEAN state (`UNSTABLE` / `BLOCKED` / `BEHIND` /
+   `DIRTY` / `DRAFT` / `UNKNOWN` / …), pending or failing checks, an empty check set, a
+   missing/ambiguous PR number, the no-arg form, `gh pr merge --admin`, the lower-level `gh api .../merge` form, a foreign
+   `--repo`, or any lookup error/timeout — **fails
    closed**: the guard blocks (exit 2) and prints the repo-scoped manual command
    (`gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`) for a human to run from anywhere.
-   Push to `main`, force-push, and destructive `reset --hard` / `clean` stay hard-blocked; a benign
-   lane-branch push stays allowed. **Why CLEAN + green + label, not bare CLEAN:** the server
+   Push to `main`, force-push, destructive `reset --hard` / `clean`, and explicit
+   rebase starts on a mechanically confirmed published lane stay hard-blocked; a
+   benign lane-branch push, the fetch-plus-merge update route, and rebase recovery
+   commands stay allowed. **Why CLEAN + green + label, not bare CLEAN:** the server
    now requires the CI check, while the guard independently requires a present green rollup
    plus explicit opt-in before authorizing an agent merge. That preserves clear local failure,
-   closes the empty/early check-set race, and keeps self-merge auditable. The **opt-in label
+   closes the empty/early check-set race, and keeps self-merge auditable. The static
+   `risk/manual-review-required` label remains an unattended-bot exclusion and a signal that
+   resident completion/review gates must close; it does not select a human merge actor after those
+   gates close. The **opt-in label
    is the agent's deliberate marker**; one-time setup `gh label create agent-automerge --repo
    eric-foo/forseti` makes it applyable, and absent the label nothing auto-merges. **Liveness (durable on
    `main`):** the guard and its `.claude/settings.json` PreToolUse registration are **durable on
@@ -169,13 +185,34 @@ At that historical point, this record did not assert that any server-side gate w
    **human's** check-then-merge tool; agents must **not** use it to self-merge — it wraps `gh pr merge`
    inside a script subprocess the PreToolUse guard does **not** see (hooks fire on the agent's direct
    tool call, not on grandchild processes), so running it would **bypass the CLEAN/label
-   verification**. Agents self-merge only via a direct `gh pr merge <N>`, which the guard inspects.
+   verification**. In a shell route covered by the protected-action guard, agents self-merge only
+   via a direct `gh pr merge <N>`, which the guard inspects.
 
-   **GitHub API sandbox-egress classification.** A `gh` / GitHub API failure that names
+   **Harness-native merge route.** A purpose-built GitHub merge action that does not traverse the
+   local shell hook may be used by the lane author for its own completed PR, including a
+   `risk/manual-review-required` PR whose completion/review gates have closed, only after the agent
+   applies `agent-automerge` and freshly verifies authorship, the exact head SHA, CLEAN/mergeable
+   state, an up-to-date head, green required checks, and every item-11 completion gate. The merge
+   call must bind the expected head SHA so a moved PR fails atomically; GitHub's strict branch
+   protection remains the harness-agnostic enforcement. Missing, ambiguous, stale, or changed state
+   fails closed to a human landing. This does not authorize a lower-level `gh api .../merge`
+   shell bypass or a helper-script subprocess hidden from the protected-action guard.
+
+   **GitHub remote-access and publication routing.** A `gh` / GitHub API failure that names
    `127.0.0.1:9`, or connection-refused to a local proxy/discard port, is sandbox egress refusal,
    not evidence that the repository, PR, branch, or CI state failed. Prefer an available GitHub
-   connector for the read/write path; if using `gh`, network escalation is a bounded owner-gated
-   fallback for that operation only. Without a connector result or escalated readback, remote state is
+   connector for remote readback and GitHub-native PR/issue metadata. For a tracked repository file
+   on an existing lane branch with a configured `origin`, the publication route is the ordinary local
+   path — edit, commit, then `git push` that lane branch — not a connector file-create/update upload.
+   This route choice adds no chat permission gate: commit/push authority remains the work-unit
+   completion rule plus the harness permission prompt already named in `AGENTS.md` and
+   `.agents/workflow-overlay/safety-rules.md`. A connector's unverified-destination export refusal is
+   specific to that attempted connector disclosure; it is not evidence that an ordinary lane push
+   needs separate chat approval. Avoid the false block by choosing the local Git route before the
+   connector call. Once an export refusal has fired, do not switch tools to achieve the same
+   disclosure without the explicit destination approval the refusal requires. If `gh` is needed for
+   remote metadata/readback, network escalation is a bounded owner-gated fallback for that operation
+   only. Without a connector result, successful lane push, or escalated readback, remote state is
    unverified and must not be reported as failed, green, pushed, created, or merged.
 
 8. **Lane-isolation integrity — early detection, not a hard gate.** Lane isolation (the AGENTS.md
@@ -188,9 +225,9 @@ At that historical point, this record did not assert that any server-side gate w
    SessionStart reminder, which was considered and not taken. The detector is read-only with respect
    to the working tree, index, and local branches; `-Fetch` is its only network action.
 9. **Unattended auto-merge bot (extends structure B′).** `.github/workflows/auto-merge.yml` is the
-   **unattended** extension of item 7: where structure B′ lets the **in-session** agent self-merge a
-   CLEAN + green + `agent-automerge`-labeled PR via the guard, this workflow lands the **same** opt-in
-   PRs **with no agent session** — triggered on CI completion (`workflow_run` on `ci`), with a 3-hour
+   narrower **unattended** companion to item 7: where the **in-session** lane author may self-merge
+   its completed own-lane PR through the guard, this workflow lands only low-risk-routed opt-in PRs
+   **with no agent session** — triggered on CI completion (`workflow_run` on `ci`), with a 3-hour
    `cron` backstop and `workflow_dispatch`. It runs in Actions (declaring its own `contents` /
    `pull-requests: write`, since the repo default is read-only) and is **not** subject to the PreToolUse
    guard, so it carries its **own** guardrails in code: the `agent-automerge` label, the
@@ -250,52 +287,47 @@ At that historical point, this record did not assert that any server-side gate w
      is a behavioral/doctrine rule, not code — it is "live" only insofar as agents follow it, and it
      asserts **no** proven long-run bound on worktree/branch count (that outcome is unproven until the
      rule runs across several lanes). Owner-gated; lands via a per-lane PR off `main` (squash).
-11. **Standing self-label policy — when the lane author applies the opt-in marker.** Items 7 and 9 keep
-   `agent-automerge` an **opt-in marker** and the bot/guard act only on labeled PRs — that mechanism is
-   **unchanged**. This item adds the lane author's **standing policy for *when* to apply that marker**: a
-   lane author applies `agent-automerge` to its **own** CLEAN + green PR **by default for routine,
-   low-risk changes** it judges safe to land unattended, and **withholds** it — leaving the PR for owner
-   review — for higher-risk changes. The marker stays a deliberate, per-PR judgment (it is **not**
-   auto-applied by path or automation); this item only sets the default *direction* of that judgment, so
-   routine work lands unattended while the human gate is preserved exactly where it matters. It shifts
-   the routine-work default from "wait for the owner" to "land unattended," not the merge mechanism.
-   - **Apply by default (safe to land unattended) when ALL hold:** it is the author's **own** lane work,
-     scoped and traceable to the request; CLEAN + green; and a routine low-risk change — additive
-     documentation, decisions/prompts/reviews/migration notes the author is confident in, or a small
-     scoped code change with clear test coverage — that needs no human diff-review.
-   - **Withhold (leave for owner review) when ANY hold:** it touches enforcement/safety surfaces (the
-     EP-01/EP-03 guard, hooks, `.claude/settings.json`, CI or auto-merge workflows, this
-     branch-protection doctrine), makes a contested doctrine/tradeoff decision, carries high downstream
-     lock-in (schema, interface, persisted data shape), the author is uncertain, or the owner asked to
-     review it. **When in doubt, withhold.**
-   - **Authority unchanged:** this grants **no new merge authority** — item 7's guard (CLEAN + green +
-     label, fail-closed) and the per-lane / accepted-handoff authorization required to open the PR at all
-     are unchanged. The owner can always remove the label to hold a PR, and can still CLI-merge anything
-     directly. Unlabeled, non-CLEAN, or non-green PRs still go to a human (item 7) — unchanged.
-   - **Why author judgment, not a path Action:** "safe to land unattended" is a **content judgment**, not
-     a mechanically-checkable path fact, so per the overlay's Enforcement Placement principle
-     (`.agents/workflow-overlay/decision-routing.md`) it belongs in an actor-carried rule, not a
-     deterministic substrate. A path-scoped auto-label Action (deterministic; would apply to every PR,
-     including human- or other-harness-opened ones) remains an explicit **optional follow-on**,
-     deliberately not taken here.
-   - **Liveness / non-claims:** a behavioral/doctrine rule, not code — "live" only insofar as agents
-     follow it; it does **not** assert that auto-landed PRs are correct (CI is a test-suite signal only;
-     main is not deployed and a bad merge is reversible by a follow-up PR). Owner-gated; lands via a
-     per-lane PR off `main` (squash).
-12. **Up-to-date-before-merge — adopted MGT (bot-as-default + forward-ref annotation + red-main
-   detector).** Recurring red `push:main` CI from **combination breaks** — two independently-green PRs
-   that break when combined (e.g. one adds an `open_next` reference, another renames/removes the target).
-   **Root cause:** the up-to-date (`behind_by == 0`) check is enforced for **only one of three** merge
-   paths — the bot (item 9). The in-session guard (item 7) checks CLEAN+green+label but **not** up-to-date
-   (documented residual), and a human / other-harness raw `gh pr merge` checks nothing. CI tests
-   merge-with-base **at PR time**, so a PR merged while behind is never re-tested against current `main`.
-   Rationale + full option analysis: the up-to-date-merge enforcement proposal (PR #129). This adopts the
-   **mini-god-tier** target — most of the complete fix's value at a fraction of its cost, foregone limit
-   named:
-   - **Bot-as-default merge path.** Routine PRs land via the bot (apply `agent-automerge`; the bot
-     enforces `behind_by == 0` + green + mergeable); raw `gh pr merge` is reserved for urgent fixes. This
-     puts up-to-date enforcement on the default path **for free** (item 9's bot is proven) and extends
-     item 11 (self-label) from agents to the default merge habit.
+11. **Standing completed-work-unit self-merge policy — the lane author lands its own completed
+   work unit.** Items 7 and 9 keep `agent-automerge` as the opt-in marker and keep their
+   mechanical guardrails. This item changes the lane author's standing policy: after its own work
+   unit is complete, the author applies `agent-automerge` and self-merges the PR by default through
+   the direct, guard-visible item-7 route. A human landing is no longer required merely because the
+   completed work touched doctrine, enforcement, safety, CI, or another high-risk surface.
+   - **Completion is load-bearing:** the commissioned scope is satisfied; required validation is
+     green; every required commissioned or delegated review has returned; the home/Chief Architect
+     has adjudicated the findings and any returned patch; and no unresolved material issue or
+     owner-decision blocker remains. For `/fused`, the delegated review return and home
+     adjudication are part of the work unit, so implementation alone is not merge-ready.
+   - **Default land action:** for the author's own completed lane, apply `agent-automerge` and use
+     item 7's merge route: direct `gh pr merge <N> --squash --delete-branch --repo eric-foo/forseti`
+     when the protected-action guard covers the shell, or the bounded harness-native route with an
+     expected-head-SHA lock. The required server gate still enforces an up-to-date head and green
+     `forseti-harness-tests`; item 7 still requires the same own-PR, CLEAN/mergeable, green, labeled,
+     freshly verified state and fails closed. The static `risk/manual-review-required` label does
+     not block this author route after the required resident completion/review gates close.
+   - **Stop or leave for a human when ANY hold:** the owner explicitly requested a hold or
+     pre-merge review; PR authorship is not the acting agent's; a required review or adjudication is
+     incomplete; a material issue or owner decision remains; completion cannot be verified; or the
+     protected-action guard/server gate refuses the merge. Risk may add a completion gate, but once
+     that gate is satisfied the static `risk/manual-review-required` label is not by itself a reason
+     to withhold landing or choose a human merge actor.
+   - **Authority boundary:** this grants standing closeout authority only for the agent author's own
+     commissioned work-unit PR. It does not authorize merging another actor's PR, bypassing the
+     guard, treating CI as content approval, or expanding the commissioned scope.
+   - **Liveness / non-claims:** this is a behavioral/doctrine rule. It does not assert that a merged
+     change is correct, that CI proves review acceptance, or that any specific PR has satisfied
+     completion until those facts are freshly observed.
+
+12. **Up-to-date-before-merge — adopted MGT (strict server gate + forward-ref annotation +
+   red-main detector).** The original combination-break risk came from merge paths that could land a
+   PR without retesting it against current `main`. The 2026-07-11 strict branch-protection gate now
+   requires the head to be up to date and `forseti-harness-tests` green for every ordinary GitHub
+   merge path. The completed-work-unit self-merge default in item 11 therefore changes the actor, not
+   the up-to-date safety floor.
+   - **Merge-path default.** The lane author directly self-merges its own completed work-unit PR
+     through item 7. The item-9 bot remains an unattended option for routine PRs that also satisfy
+     its narrower risk-router policy. Both paths remain subject to the strict server gate; direct
+     self-merge is not an urgent-fix exception and does not bypass up-to-date or green CI.
    - **Forward-ref annotation discipline (closes the class up-to-date cannot).** An `open_next` /
      `derived_from` link to a file **intentionally not yet on `main`** (a branch-only forward-reference)
      MUST carry a trailing `# nonresolving: <reason>` comment, which `.agents/hooks/check_map_links.py`
@@ -307,11 +339,11 @@ At that historical point, this record did not assert that any server-side gate w
      goes green — so a break landed via an unenforced path is fixed in minutes, not discovered by the
      next lane. **Liveness:** code-backed, **not yet proven** on a live red `main` (the first real
      failure proves it). Detective, **not** preventive.
-   - **Downgraded (not adopted now):** *O2a* — add `behind_by == 0` to the EP-03 in-session guard's
-     self-merge allowance; covers only the rare agent in-session self-merge (agents route through the bot
-     by default) at the cost of editing the frozen, enforcement-lane-owned guard. *O2b* — make
-     `.github/scripts/merge-when-green.ps1` refuse when behind; a substrate that fires only if the helper
-     is used, so a raw `gh pr merge` bypasses it. Revisit either if agents become the primary mergers.
+   - **No separate in-session up-to-date hook added:** the earlier O2a proposal to duplicate
+     `behind_by == 0` inside EP-03 is no longer necessary for the ordinary merge path because strict
+     branch protection now enforces the same condition harness-agnostically. O2b, adding the check to
+     the human helper, remains unnecessary for the same reason. The protected-action guard continues
+     to provide the independent CLEAN + green + label floor.
    - **Server-side end-state adopted 2026-07-11:** classic branch protection now requires
      `forseti-harness-tests` with `strict: true`, requires a PR, includes administrators,
      and disables force-push/deletion. Zero required approvals preserves the accepted
@@ -351,12 +383,24 @@ At that historical point, this record did not assert that any server-side gate w
    while implementation stayed split behind a packet-mandated owner fork); (b) authority is
    deliberately withheld for a mid-chain owner fork (the second bullet above); (c) high-lock-in
    probe-first slicing per the Smallest Complete Intervention rule (`AGENTS.md`).
-   **Boundaries:** this rule governs PR *topology*, not merge *authority* — items 7/9/11 and the
-   human gate on landing to `main` are unchanged, and pre-granting implementation authority remains
+   **Boundaries:** this rule governs PR *topology*, not merge *authority* — items 7/9/11 govern
+   landing, including the completed-work-unit self-merge default, and pre-granting implementation
+   authority remains
    an owner choice recorded in the commissioning artifact, never an agent default. It is not a
    license for big-bang PRs: item 13's cadence and the Smallest Complete Intervention rule still
    govern work-unit size; this item only fixes where the PR boundary sits relative to the owner
    authorization fork.
+15. **Handoff transport is not publication.** A handoff-only packet becomes dispatch-ready when its
+   exact bytes are committed and the dispatcher verifies the receiving lane can resolve them through
+   the actual receiver mechanism. The courier binds the repository/worktree access route,
+   repository-relative path, branch/ref and commit SHA when revision access is needed, plus an
+   explicit revision-read fallback such as `git show <sha>:<path>`; a same-filesystem absolute path
+   is included only when that is the receiver's actual route. Push the handoff branch only when the
+   receiver cannot access the authoring worktree or local ref, and verify the remote ref before
+   dispatch. Open a PR only when the packet independently deserves durable publication on `main`, is
+   required by another landing artifact, or the owner requests landing. A PR must not be used merely
+   as packet discovery or transport. Handoffs riding an existing implementation, doctrine, code, or
+   other publication work unit remain in that work unit's ordinary PR.
 
 ## Why core-only CI (evidence)
 
@@ -425,230 +469,149 @@ four-worker plus scan-reuse result before its own live run.
 - Risk-router labels and merge-packet comments are routing/check signal only — **not** validation,
   approval, review acceptance, readiness, or proof that a PR is safe to merge.
 - Not validation, readiness, or acceptance of any lane's content beyond "the test suite passed."
-
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Adds Decision item 14 (owner-directed 2026-07-02): a lane PR is cut per WORK UNIT, not per
-    pipeline stage, and a planning/scoping-only artifact is not a standalone PR by default — it
-    rides with the work unit that produced it, or the chain continues when authority allows. The
-    commissioning artifact (handoff packet or /fused invocation) fixes the boundary at commissioning
-    time via the edit-permission grant it already states: pre-granted bounded implementation
-    authority means the full scope→spec→implement→review chain lands as one lane PR; deliberately
-    withheld authority makes the mid-chain owner authorization fork the explicit work-unit boundary
-    (split PRs — a deliberate choice, never the default drift). Named exceptions where splitting
-    stays correct even with pre-granted authority: (a) the earlier half carries shared-authority
-    doctrine other concurrent lanes need on main promptly (example: PR #585), (b) authority withheld
-    for a mid-chain owner fork, (c) high-lock-in probe-first slicing per Smallest Complete
-    Intervention. Item 13's example list is reconciled in place: an implementation-scoping decision
-    is a PR-worthy durable point only when it closes its work unit.
+    The agent author now self-merges its own PR by default after the commissioned
+    work unit is complete; completion includes all required validation, review,
+    and home/Chief Architect adjudication (for /fused, the delegate return and
+    adjudication), while a human landing becomes a fail-closed fallback or
+    explicit owner hold rather than the routine gate.
   trigger: workflow_authority
   related_triggers:
     - lifecycle_boundary
+    - review_authority
   controlling_sources_updated:
     - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-  downstream_surfaces_checked:
     - AGENTS.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/decision-routing.md
     - .agents/workflow-overlay/safety-rules.md
-    - docs/workflows/orca_repo_map_v0.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/hooks/README.md
+    - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
-    - path: AGENTS.md
+    - path: CLAUDE.md
       reason: >
-        Already routes landing through this doctrine's per-lane PR flow and already speaks in
-        work-unit vocabulary ("when a repo-changing work unit completes verified on its own lane
-        branch or worktree..."); the boundary rule lives here, so no kernel restatement is added.
+        It remains a shim importing AGENTS.md and must not duplicate Forseti policy.
     - path: .agents/workflow-overlay/prompt-orchestration.md
       reason: >
-        The commissioning-time authority-grant field already exists — the edit-permission preflight
-        enum (read-only | docs-write | patch-only | implementation-authorized) that every handoff
-        and routine prompt must state — so item 14 points at it and no new field or pointer is
-        added.
-    - path: .agents/workflow-overlay/decision-routing.md
+        It already requires delegated review adjudication before the single land
+        step; the changed doctrine makes that land step agent-executable rather
+        than changing review mechanics.
+    - path: .agents/workflow-overlay/validation-gates.md
       reason: >
-        Owns pre-planning routing and delegation, not PR topology; the stale-language search found
-        no cadence or boundary language there to reconcile.
-    - path: .agents/workflow-overlay/safety-rules.md
+        Existing Fused closeout gates already block unresolved material review or
+        replay failures; no validation criterion changed.
+    - path: .agents/workflow-overlay/review-lanes.md
       reason: >
-        Its work-unit completion rule already defers merge conditions and policy to this doctrine;
-        item 14 changes topology only and grants no authority, so nothing there moves.
-    - path: docs/workflows/orca_repo_map_v0.md
+        Review authority and Chief Architect adjudication ownership are unchanged.
+    - path: .agents/workflow-overlay/communication-style.md
       reason: >
-        Already indexes this doctrine at file level; an in-file decision item is not a structural
-        or navigation change.
+        It already collapses commit, push, PR, and merge into the post-adjudication
+        land step; this decision changes who may execute it, not its shape.
+    - path: .agents/hooks/README.md
+      reason: >
+        The protected-action mechanism and fail-closed behavior are unchanged;
+        the decision now separately binds a purpose-built harness-native route
+        that does not traverse the local shell hook.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        It already routes branch/merge doctrine to this decision; no owner moved.
   stale_language_search: >
-    rg -in "one focused PR|PR cadence|per-lane PR|work unit" AGENTS.md .agents/workflow-overlay/
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    (run 2026-07-02 in the sad-shirley worktree off origin/main @ 1dfbb2d0, before and after edits)
+    Targeted remote-main search for "self-merge", "human-gated", "human gate",
+    "merge authority", "agent-automerge", "work unit complete", and "adjudication"
+    across AGENTS.md, CLAUDE.md, .agents/workflow-overlay, .agents/hooks/README.md,
+    this decision, and docs/workflows/forseti_repo_map_v0.md.
   stale_language_search_result: >
-    Executed 2026-07-02. The only surface that presented a scoping artifact as a default standalone
-    PR boundary was item 13's example list ("...or implementation-scoping decision"), now qualified
-    in place with a pointer to item 14. All other hits are compatible: item 3's one-focused-PR flow
-    (one focused PR per work unit), items 10/11's "lands via a per-lane PR" closing lines,
-    AGENTS.md's work-unit completion rule and routing line, safety-rules.md's deference to this
-    doctrine, prompt-orchestration.md's lane-scoped-prompt and work-unit filing rules, and the
-    historical append-only DCP receipts (correctly not edited).
+    AGENTS.md and safety-rules.md contained the stale human-gated default and were
+    updated. Item 11 and item 14 in this decision contained the stale
+    low-risk-only/bot-default policy and were updated. Remaining human references
+    describe the fail-closed fallback, explicit owner holds, historical state, or
+    the human-only helper; review/adjudication surfaces remain same-direction.
   non_claims:
-    - not validation, readiness, or acceptance of any lane's content
-    - governs PR topology only; grants no commit, push, PR, or merge authority — items 7/9/11 and
-      the human gate on landing to main are unchanged
-    - pre-granting implementation authority remains an owner choice recorded in the commissioning
-      artifact, never an agent default
-    - not a retro-classification of past PRs (PR #585 was correct under its commissioning packet)
-    - a behavioral/doctrine rule, not code; live only insofar as commissioning artifacts follow it
+    - not validation or readiness
+    - not proof that a specific PR is complete
+    - not authority to merge another actor's PR
+    - not authority to bypass branch protection or the protected-action guard
 ```
 
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    The deferred private/free-plan merge posture is superseded: after the
-    repository became public, main branch protection was applied and read back
-    with PRs required, strict forseti-harness-tests, administrators included,
-    and force-push/deletion disabled; the custom auto-merge, risk-router, and
-    main-red workflows were restored as active defense-in-depth automation while
-    native allow_auto_merge remains off.
+    The static risk/manual-review-required classification excludes a PR from
+    unattended auto-merge without forcing a human merge actor after its resident
+    completion, independent-review, and home/Chief Architect adjudication gates
+    close. Governed deletions retain that substantive resident gate without
+    claiming it is mechanically certified by the label. The in-session guard
+    requires the current lane to match the same-repo main-targeting PR head,
+    keeps live risk/blocked-for-merge-policy holds fail-closed, and rejects the
+    `--admin` branch-protection bypass.
   trigger: workflow_authority
   related_triggers:
-    - validation_philosophy
     - lifecycle_boundary
+    - review_authority
   controlling_sources_updated:
     - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    - .github/workflows/auto-merge.yml
-    - .github/workflows/main-red-alert.yml
-    - .github/scripts/merge-when-green.ps1
-    - .github/scripts/install-local-hooks.ps1
     - .agents/hooks/guard_protected_actions.py
     - .agents/hooks/README.md
-    - .agents/checks/registration_integrity.py
+    - .github/workflows/pr-risk-router.yml
+    - .github/workflows/auto-merge.yml
+    - docs/decisions/deletion_evidence_doctrine_v0.md
+    - .agents/hooks/check_deletion_evidence.py
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/safety-rules.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/decision-routing.md
     - .agents/workflow-overlay/validation-gates.md
-    - docs/workflows/forseti_repo_map_v0.md
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - .codex/hooks/forseti_guard_codex_adapter.py
     - .claude/settings.json
-    - .codex/hooks.json
+    - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
-    - path: AGENTS.md
+    - path: AGENTS.md and .agents/workflow-overlay/safety-rules.md
       reason: >
-        Already routes landing conditions to this doctrine and keeps merges
-        human-gated except the guard-verified exception; no root rule changed.
-    - path: .agents/workflow-overlay/safety-rules.md
+        Both already make completed own-PR self-merge the default, leave
+        completion and review as resident gates, and point mechanical conditions
+        to this decision and the guard.
+    - path: .agents/workflow-overlay/validation-gates.md
       reason: >
-        Already defers merge conditions and policy to this doctrine; bounded
-        authorization and destructive-action rules are unchanged.
-    - path: .claude/settings.json
+        Enforcement placement is unchanged: branch, PR, label, and check state
+        are mechanical guard inputs; completion and review truth remain resident
+        judgment and cannot be self-certified by a label.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
       reason: >
-        The protected-action guard remains wired with the same local contract;
-        server protection strengthens the remote boundary without changing it.
-    - path: .codex/hooks.json
+        Its live EP-03 classification is generic and its detailed merge text is
+        explicitly dated historical enforcement provenance.
+    - path: .codex/hooks/forseti_guard_codex_adapter.py and .claude/settings.json
       reason: >
-        The Codex guard adapter remains wired; no matcher or denial contract
-        changed.
+        Both already invoke the shared guard; the adapter and registrations need
+        no forked policy.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        It already routes merge doctrine and active hooks to their owning files;
+        no path or owner changed.
   stale_language_search: >
-    rg -n "403-blocked|private/free|private\\+free|deferred server-side|branch protection remains the unbypassable target" AGENTS.md .agents .github .githooks docs/workflows/forseti_repo_map_v0.md docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    Targeted branch-content search for manual-review-required coupled to a human
+    merge actor, "human/manual merge decision", "human merger", "same opt-in
+    PRs", and "blocks in-session gh pr merge" across the changed files and
+    checked downstream surfaces.
   stale_language_search_result: >
-    Executed 2026-07-11 after propagation: the only remaining private/free and
-    403-blocked hits are inside the explicitly labeled historical pre-public
-    baseline in this decision; live guards, helpers, workflows, hook registry,
-    and repo-map surfaces describe active server protection.
-  non_claims:
-    - not validation
-    - not readiness
-    - not approval or review acceptance
-    - not proof that CI or automation establishes correctness
-    - not native auto-merge enablement
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The required CI job keeps the complete test suite and stable check identity while adding
-    slow-test timing plus conservative two-worker, file-grouped pytest execution; pytest-xdist is
-    pinned as test-only infrastructure, and change-based test selection remains excluded.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    - .github/workflows/ci.yml
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-  downstream_surfaces_checked:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/README.md
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        It owns failure classification and gate placement, neither of which changes; the required
-        job still runs all gates and the full suite with ordinary nonzero failure behavior.
-    - path: .agents/hooks/README.md
-      reason: >
-        Hook commands, local mirror behavior, and checker semantics are unchanged; only pytest
-        scheduling and timing telemetry change after those gates run.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: >
-        The consolidated map already routes CI activation to .github/workflows/ci.yml and does not
-        duplicate command-level CI configuration.
-  stale_language_search: >
-    rg -n "python -m pytest|pytest-xdist|~30s suite|pydantic.*PyYAML.*pytest"
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md .agents .github
-    forseti-harness/tests/unit/test_ci_hook_wiring.py
+    Executed 2026-07-15. Remaining hits are receipt search terms, dated history,
+    and explicit statements that the manual-review label does not choose a human
+    merge actor. The deletion-evidence doctrine and checker now name independent
+    review plus home/Chief Architect adjudication as a resident, non-mechanically
+    certified completion gate; no live statement couples the label to human
+    landing.
   non_claims:
     - not validation or readiness
-    - not a reduction in required tests or policy gates
-    - not proof of speedup until measured on GitHub Actions
-```
-
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The required public-repository CI job now uses all four documented ubuntu-latest CPUs while
-    retaining file-grouped isolation; the two measured slow contract gates reuse a single
-    per-process tracked-source snapshot; and silver-lane production discovery excludes gitignored
-    test scratch so concurrent copied-project fixtures cannot contaminate the live-repo gate.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-  controlling_sources_updated:
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    - .github/workflows/ci.yml
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - forseti-harness/tests/contract/test_data_lake_inventory_gate.py
-    - forseti-harness/tests/contract/test_silver_reader_selection_gate.py
-    - .agents/hooks/check_silver_lane_registry.py
-    - forseti-harness/tests/unit/test_silver_lane_registry_guard.py
-  downstream_surfaces_checked:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/README.md
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: .agents/workflow-overlay/validation-gates.md
-      reason: >
-        Gate classification, failure behavior, and the required full-suite boundary are unchanged.
-        Excluding already-gitignored generated scratch narrows discovery to production candidates;
-        it does not exempt any tracked production path.
-    - path: .agents/hooks/README.md
-      reason: >
-        Hook command and wiring are unchanged; the scratch exclusion is documented inline in the
-        checker and pinned by its unit regression test.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: >
-        The compact map already routes command-level CI configuration to .github/workflows/ci.yml.
-  stale_language_search: >
-    rg -n -- "-n 2|two file-grouped workers|four file-grouped workers|_inventory_snapshot|non_raw_lake_touchpoints|_PRODUCER_DISCOVERY_EXCLUDED_DIRS|_test_runs"
-    .github/workflows/ci.yml docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    forseti-harness/tests/unit/test_ci_hook_wiring.py
-    forseti-harness/tests/contract/test_data_lake_inventory_gate.py
-    forseti-harness/tests/contract/test_silver_reader_selection_gate.py
-    .agents/hooks/check_silver_lane_registry.py
-    forseti-harness/tests/unit/test_silver_lane_registry_guard.py
-  non_claims:
-    - not validation or readiness
-    - not a reduction in required tests or policy gates
-    - not proof of four-worker speedup until measured on GitHub Actions
+    - not proof that a specific PR completed its review gates
+    - not mechanical proof that independent review or adjudication completed
+    - not unattended auto-merge authority for high-risk PRs
+    - not authority to merge another lane's PR or bypass branch protection
 ```
 
 Older direction_change_propagation receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

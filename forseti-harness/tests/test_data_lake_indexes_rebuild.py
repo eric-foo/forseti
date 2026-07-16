@@ -1,4 +1,4 @@
-"""derived_retrieval object-level view builder + rebuild runner tests.
+"""Silver Vault derived-retrieval view builder + rebuild runner tests.
 
 Covers the seam contract's Rebuild Command Binding: manifest-backed rebuildable
 views, the by_mention read-side lineage gate, the undone view's documented
@@ -8,9 +8,11 @@ weaker semantics, and a prove-rebuildability that fails on tampered bytes
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 from data_lake.canonical_json import canonical_record_bytes
+import pytest
 from data_lake.consumption import append_ack
 from data_lake.derived_retrieval_views import (
     MENTIONS_LANE,
@@ -25,11 +27,18 @@ from data_lake.silver_lineage import (
     SilverRawRef,
     SilverSourceObject,
 )
+from data_lake.silver_record import silver_content_hash
+from data_lake.sibling_selection import SiblingSelectionError
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 
 _STAMP = {"generation_id": "0" * 32, "generated_at": "2026-07-02T00:00:00+00:00"}
 _NS = "projection_ig"
+_POLICY = {"policy_version": "v0", "policy_fingerprint_sha256": "a" * 64}
+_POLICY_ARGS = [
+    "--product-mention-policy-version", "v0",
+    "--product-mention-policy-fingerprint-sha256", "a" * 64,
+]
 
 
 def _commit_packet(root: DataLakeRoot, tmp_path: Path, body: str) -> str:
@@ -47,18 +56,21 @@ def _commit_packet(root: DataLakeRoot, tmp_path: Path, body: str) -> str:
     return receipt.packet.packet_id
 
 
-def _complete_lineage_fields(packet_id: str) -> dict:
+def _complete_lineage_fields(root: DataLakeRoot, packet_id: str) -> dict:
+    preserved = root.load_raw_packet(packet_id).manifest["preserved_files"][0]
     lineage = SilverLineage(
         producer_id="test.producer",
         producer_schema_version="v0",
         source_surface="youtube_captions",
         source_object=SilverSourceObject(namespace="youtube", kind="transcript", native_id="vid1"),
+        observed_at="2026-07-15T00:00:00Z",
+        captured_at="2026-07-15T00:00:00Z",
         raw_refs=[
             SilverRawRef(
                 packet_id=packet_id,
-                file_id="f1",
-                relative_packet_path="preserved/f1.json",
-                sha256="a" * 64,
+                file_id=preserved["file_id"],
+                relative_packet_path=preserved["relative_packet_path"],
+                sha256=preserved["sha256"],
                 hash_basis="raw_stored_bytes",
                 anchor=SilverAnchor(kind="file"),
                 relation="consumed",
@@ -71,7 +83,52 @@ def _complete_lineage_fields(packet_id: str) -> dict:
 def _write_mentions_record(
     root: DataLakeRoot, raw_anchor: str, record_id: str, record: dict
 ) -> None:
-    # silver_lineage-grammar lane (grammar B): raw append is the declared write path.
+    mentions = record.pop("mentions", [])
+    rows = []
+    for index, mention in enumerate(mentions):
+        quote = f"quote {index}"
+        rows.append(
+            {
+                "row_id": f"mention-{index}",
+                "text_artifact_type": "transcript_quote",
+                "text_value": quote,
+                "text_ref": None,
+                "text_hash": "sha256:" + hashlib.sha256(quote.encode()).hexdigest(),
+                "text_posture": {"kind": "observed", "reason_code": None, "reason_detail": None},
+                "mention": mention,
+            }
+        )
+    record = {
+        "record_id": record_id,
+        "raw_anchor": raw_anchor,
+        "lane_namespace": MENTIONS_LANE,
+        "producer_id": record.get("producer_id", "test.producer"),
+        "schema_version": "silver_vault_record_v0",
+        "producer_schema_version": record.get("producer_schema_version", "v0"),
+        "content_hash": "",
+        "content_hash_basis": "canonical_json_excluding_content_hash",
+        "record_kind": "observation",
+        "payload_kind": "TextObservationSet",
+        "producer_row_kind": "transcript_product_mentions",
+        "source_surface": record.get("source_surface", "youtube_captions"),
+        "observed_at": record.get("observed_at"),
+        "captured_at": record.get("captured_at"),
+        "raw_refs": record.get("raw_refs", []),
+        "derived_refs": record.get("derived_refs", []),
+        **{key: value for key, value in record.items() if key not in {"producer_id", "producer_schema_version", "source_surface", "observed_at", "captured_at", "raw_refs", "derived_refs"}},
+        "payload": {
+            "observation": {
+                "subject": {"ref_type": "entity_key", "ref": {"namespace": "youtube", "kind": "public_content_object", "native_id": "vid1"}},
+                "observation_set_kind": "transcript_product_mentions",
+                "policy_version": record.get("policy_version", "v0"),
+                "policy_fingerprint_sha256": record.get("policy_fingerprint_sha256", "a" * 64),
+                "row_count": len(rows),
+                "rows": rows,
+            }
+        },
+        "provenance": {"transcript_source_key": record.get("transcript_source_key", record_id)},
+    }
+    record["content_hash"] = "sha256:" + silver_content_hash(record)
     root.append_record(
         subtree="derived",
         raw_anchor=raw_anchor,
@@ -95,7 +152,7 @@ def _seeded_root(root: DataLakeRoot, tmp_path: Path) -> tuple[str, str]:
                 {"brand": "Dior", "line": "Sauvage Elixir"},
                 {"brand": "Dior", "line": "Homme Intense"},
             ],
-            **_complete_lineage_fields(first),
+            **_complete_lineage_fields(root, first),
         },
     )
     _write_mentions_record(
@@ -118,14 +175,23 @@ def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     first, second = _seeded_root(root, tmp_path)
 
-    report = rebuild_derived_retrieval(root, stamp=_STAMP)
+    legacy_root = root.path / "indexes" / "derived_retrieval" / "object_level"
+    legacy_root.mkdir(parents=True)
+    (legacy_root / "by_mention.json").write_text("legacy", encoding="utf-8")
+    silver_core = root.path / "indexes" / "derived_retrieval" / "silver_vault" / "core"
+    deferred = silver_core / "query_tables" / "by_creator.json"
+    deferred.parent.mkdir(parents=True, exist_ok=True)
+    deferred.write_text("deferred-sentinel", encoding="utf-8")
+
+    report = rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
     assert report["status"] == "rebuilt"
     assert report["views"] == ["by_mention", "undone"]
     assert report["deferred_views"] == ["by_creator"]
 
-    object_level = root.path / "indexes" / "derived_retrieval" / "object_level"
-    by_mention = json.loads((object_level / "by_mention" / "view.json").read_text("utf-8"))
-    undone = json.loads((object_level / "undone" / "view.json").read_text("utf-8"))
+    assert not legacy_root.exists()
+    assert deferred.read_text("utf-8") == "deferred-sentinel"
+    by_mention = json.loads((silver_core / "query_tables" / "by_mention.json").read_text("utf-8"))
+    undone = json.loads((silver_core / "query_tables" / "undone.json").read_text("utf-8"))
 
     # lineage gate: the complete record is evidence; the lineage-missing one is a residual.
     refs = by_mention["mentions"]["Dior"]["Sauvage Elixir"]
@@ -133,7 +199,7 @@ def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
     assert "Homme Intense" in by_mention["mentions"]["Dior"]
     assert "Ghost" not in by_mention["mentions"]
     assert by_mention["residual_count"] == 1
-    assert by_mention["residuals"][0]["status"] == "source_lineage_missing"
+    assert by_mention["residuals"][0]["status"] == "invalid_silver_envelope"
     assert by_mention["residuals"][0]["raw_anchor"] == second
 
     # undone view: adopted-namespace backlog only, weaker semantics stated in-body,
@@ -146,7 +212,7 @@ def test_rebuild_builds_views_and_manifests(tmp_path: Path) -> None:
 
     for view_name in ("by_mention", "undone"):
         manifest = json.loads(
-            (object_level / view_name / "manifest.json").read_text("utf-8")
+            (silver_core / "manifests" / f"{view_name}.json").read_text("utf-8")
         )
         assert manifest["generation_id"] == _STAMP["generation_id"]
         assert manifest["generated_at"] == _STAMP["generated_at"]
@@ -167,22 +233,85 @@ def test_by_mention_gates_unreadable_records(tmp_path: Path) -> None:
         record_id="m_corrupt.json",
         data=b"{not json",
     )
-    view, _refs = build_by_mention_view(root)
+    view, _refs = build_by_mention_view(root, product_mention_policy=_POLICY)
     assert view["mentions"] == {}
     assert view["residuals"][0]["status"] == "unreadable"
 
 
+def test_by_mention_selects_only_the_requested_policy(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "alpha")
+    _write_mentions_record(
+        root,
+        pid,
+        "old.json",
+        {
+            "mentions": [{"brand": "Old", "line": "Excluded"}],
+            "policy_version": "old",
+            "policy_fingerprint_sha256": "b" * 64,
+            "transcript_source_key": "same-source",
+            **_complete_lineage_fields(root, pid),
+        },
+    )
+    _write_mentions_record(
+        root,
+        pid,
+        "current.json",
+        {
+            "mentions": [{"brand": "Current", "line": "Included"}],
+            "transcript_source_key": "same-source",
+            **_complete_lineage_fields(root, pid),
+        },
+    )
+
+    view, _refs = build_by_mention_view(root, product_mention_policy=_POLICY)
+
+    assert set(view["mentions"]) == {"Current"}
+    assert view["selection_policy"] == _POLICY
+    assert [residual["status"] for residual in view["residuals"]] == ["policy_mismatch"]
+
+
+def test_by_mention_distinct_same_policy_siblings_fail_closed(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_packet(root, tmp_path, "alpha")
+    for record_id, brand in (("a.json", "A"), ("b.json", "B")):
+        _write_mentions_record(
+            root,
+            pid,
+            record_id,
+            {
+                "mentions": [{"brand": brand, "line": "line"}],
+                "transcript_source_key": "same-source",
+                **_complete_lineage_fields(root, pid),
+            },
+        )
+
+    with pytest.raises(SiblingSelectionError, match="ambiguous_sibling_derivation"):
+        build_by_mention_view(root, product_mention_policy=_POLICY)
+
+
+def test_by_mention_requires_exact_policy_identity(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    with pytest.raises(ValueError, match="policy_version"):
+        build_by_mention_view(
+            root,
+            product_mention_policy={
+                "policy_fingerprint_sha256": "a" * 64,
+            },
+        )
+
 def test_prove_rebuildability_green_then_tamper_fails(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     _seeded_root(root, tmp_path)
-    rebuild_derived_retrieval(root, stamp=_STAMP)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
 
     proof = prove_derived_retrieval_rebuildability(root)
     assert proof["status"] == "proven"
     assert proof["results"] == {"by_mention": "rebuildable", "undone": "rebuildable"}
 
     view_path = (
-        root.path / "indexes" / "derived_retrieval" / "object_level" / "undone" / "view.json"
+        root.path / "indexes" / "derived_retrieval" / "silver_vault" / "core"
+        / "query_tables" / "undone.json"
     )
     view_path.write_bytes(view_path.read_bytes() + b" ")  # smuggled state
     proof = prove_derived_retrieval_rebuildability(root)
@@ -196,7 +325,7 @@ def test_prove_detects_source_change_since_generation(tmp_path: Path) -> None:
     # the stored view no longer matches a regeneration -> drift is reported.
     root = DataLakeRoot.for_test(tmp_path / "lake")
     _seeded_root(root, tmp_path)
-    rebuild_derived_retrieval(root, stamp=_STAMP)
+    rebuild_derived_retrieval(root, product_mention_policy=_POLICY, stamp=_STAMP)
     assert prove_derived_retrieval_rebuildability(root)["status"] == "proven"
 
     _commit_packet(root, tmp_path, "gamma")
@@ -220,7 +349,7 @@ def test_runner_cli_fails_closed_on_in_repo_root(tmp_path: Path, capsys) -> None
     # refuse it (write-boundary fail-closed rule), exit 2, and write nothing.
     from runners.run_data_lake_indexes_rebuild import main
 
-    assert main(["--root", str(tmp_path / "lake"), "--target", "all"]) == 2
+    assert main(["--root", str(tmp_path / "lake"), "--target", "all", *_POLICY_ARGS]) == 2
     report = json.loads(capsys.readouterr().out)
     assert report["status"] == "error"
 
@@ -234,7 +363,7 @@ def test_runner_cli_rebuild_then_prove(tmp_path: Path, capsys, monkeypatch) -> N
     # verified test root to exercise the runner's rebuild/prove flow itself.
     monkeypatch.setattr(DataLakeRoot, "resolve", staticmethod(lambda **_kwargs: root))
 
-    assert main(["--root", str(root.path), "--target", "all"]) == 0
+    assert main(["--root", str(root.path), "--target", "all", *_POLICY_ARGS]) == 0
     report = json.loads(capsys.readouterr().out)
     assert report["status"] == "ok"
     assert report["availability"]["status"] == "rebuilt"
@@ -246,7 +375,8 @@ def test_runner_cli_rebuild_then_prove(tmp_path: Path, capsys, monkeypatch) -> N
     assert report["derived_retrieval"]["status"] == "proven"
 
     view_path = (
-        root.path / "indexes" / "derived_retrieval" / "object_level" / "by_mention" / "view.json"
+        root.path / "indexes" / "derived_retrieval" / "silver_vault" / "core"
+        / "query_tables" / "by_mention.json"
     )
     view_path.write_bytes(view_path.read_bytes() + b" ")
     assert main(["--root", str(root.path), "--target", "derived_retrieval", "--prove-rebuildability"]) == 1

@@ -284,9 +284,6 @@ def test_runner_reads_bare_list_input(tmp_path: Path) -> None:
     [
         ([_item("one", 100, 10)], 2, "complete-grid coverage required"),
         ([_item("one", 100, 10), _item("one", 90, 9)], 2, "duplicate video_id"),
-        ([{"id": "one", "stats": {"playCount": 100}}], 1, "diggCount"),
-        ([_item("one", 0, 0)], 1, "playCount must be positive"),
-        ([_item("one", 100, 101)], 1, "diggCount exceeds playCount"),
     ],
 )
 def test_selection_fails_closed_on_untrustworthy_inputs(
@@ -296,6 +293,54 @@ def test_selection_fails_closed_on_untrustworthy_inputs(
 ) -> None:
     with pytest.raises(TikTokGridVideoSelectionError, match=message):
         build_tiktok_grid_video_selection(items, expected_item_count=expected_count)
+
+
+def test_fixed_reach_selection_keeps_missing_like_rows_eligible() -> None:
+    selection = build_tiktok_grid_video_selection(
+        [
+            _item("eligible_one", 300, 30),
+            {"id": "missing_like", "stats": {"playCount": 200}},
+            _item("zero_views", 0, 0),
+            _item("eligible_two", 100, 10),
+        ],
+        expected_item_count=4,
+        selection_count=1,
+    )
+
+    assert selection["coverage"] == {
+        "expected_item_count": 4,
+        "observed_item_count": 4,
+        "selection_eligible_item_count": 3,
+        "selection_ineligible_item_count": 1,
+        "complete": True,
+    }
+    by_id = {row["video_id"]: row for row in selection["ranked_items"]}
+    assert by_id["missing_like"]["reach_rank"] == 2
+    assert by_id["missing_like"]["like_count"] is None
+    assert by_id["missing_like"]["like_rate"] is None
+    assert by_id["zero_views"]["reach_rank"] is None
+    assert by_id["zero_views"]["exclusion_reason_or_none"] == (
+        "selection_ineligible:playCount_zero"
+    )
+
+
+def test_selection_fails_only_when_eligible_rows_are_insufficient() -> None:
+    items = [
+        _item("eligible", 100, 10),
+        {"id": "missing_views", "stats": {"diggCount": 9}},
+        _item("zero_views", 0, 0),
+        {"id": "negative_views", "stats": {"playCount": -1}},
+    ]
+
+    with pytest.raises(
+        TikTokGridVideoSelectionError,
+        match="insufficient selection-eligible rows: required 2, found 1",
+    ):
+        build_tiktok_grid_video_selection(
+            items,
+            expected_item_count=4,
+            selection_count=2,
+        )
 
 
 def test_runner_reads_probe_summary_shape_and_writes_receipt(tmp_path: Path) -> None:
@@ -372,6 +417,30 @@ def test_fixed_selection_count_is_recorded_and_applied() -> None:
     assert selection["selection_policy"]["selection_fraction"] is None
     assert selection["selection_policy"]["configured_selection_count_or_none"] == 8
     assert selection["selection_summary"]["selection_count"] == 8
+
+
+def test_fixed_selection_count_is_strict_reach_rank_and_only_records_pinned() -> None:
+    items = [
+        {**_item("reach_one", 1_000, 10), "pinned_visible": False},
+        {**_item("reach_two", 900, 9), "pinned_visible": False},
+        {**_item("pinned_low", 100, 50), "pinned_visible": True},
+    ]
+
+    selection = build_tiktok_grid_video_selection(
+        items, expected_item_count=3, selection_count=2
+    )
+
+    assert selection["selection_summary"]["selected_video_ids_in_reach_order"] == [
+        "reach_one",
+        "reach_two",
+    ]
+    assert selection["selection_summary"][
+        "selected_video_ids_in_review_priority_order"
+    ] == ["reach_one", "reach_two"]
+    by_id = {row["video_id"]: row for row in selection["ranked_items"]}
+    assert by_id["pinned_low"]["pinned_visible"] is True
+    assert by_id["pinned_low"]["selected"] is False
+    assert selection["selection_summary"]["range_override_count"] == 0
 
 
 @pytest.mark.parametrize("selection_count", [0, -1, 11, True, 1.5])

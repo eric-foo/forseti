@@ -10,6 +10,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[3]
 VALIDATOR_PATH = REPO_ROOT / ".agents" / "hooks" / "check_commission_signal_board_output.py"
 FIXTURE_DIR = REPO_ROOT / "forseti-harness" / "tests" / "fixtures" / "commission_signal_board_outputs"
+COMPANY_FIXTURE = FIXTURE_DIR / "valid_company_competitive_intelligence_output.txt"
 
 
 def _load_validator():
@@ -32,11 +33,220 @@ validator = _load_validator()
         "valid_source_backed_backtest_output.txt",
         "valid_source_backed_forward_output.txt",
         "valid_adjacent_research_proof_output.txt",
+        "valid_company_competitive_intelligence_output.txt",
     ],
 )
 def test_valid_commission_signal_board_outputs_pass(fixture_name: str) -> None:
     findings = validator.validate_text((FIXTURE_DIR / fixture_name).read_text(encoding="utf-8"))
     assert findings == []
+
+
+def _valid_company_text() -> str:
+    return COMPANY_FIXTURE.read_text(encoding="utf-8")
+
+
+def _company_codes(text: str) -> set[str]:
+    return {finding.code for finding in validator.validate_text(text)}
+
+
+def test_company_subject_defaults_to_company_competitive_intelligence() -> None:
+    text = _valid_company_text().replace(
+        "commission_profile: company_competitive_intelligence",
+        "commission_profile: standard_signal_board",
+        1,
+    )
+    assert "invalid_company_profile" in _company_codes(text)
+
+
+def test_company_report_requires_complete_observation_traceability() -> None:
+    text = _valid_company_text().replace("    exact_locator: page heading Current products\n", "", 1)
+    assert "missing_observation_fields" in _company_codes(text)
+
+
+def test_current_page_observation_is_not_silently_converted_to_dated_event() -> None:
+    text = _valid_company_text().replace(
+        "    event_or_effective_date: null\n    observation_at: \"2026-07-16T09:00:00Z\"",
+        "    event_or_effective_date: \"2026-07-16\"\n    observation_at: \"2026-07-16T09:00:00Z\"",
+        1,
+    )
+    assert "current_page_as_dated_event" in _company_codes(text)
+
+
+def test_company_recency_tier_is_deterministic() -> None:
+    text = _valid_company_text().replace("    recency_tier: days_0_30", "    recency_tier: days_over_180", 1)
+    assert "invalid_recency_tier" in _company_codes(text)
+
+
+def test_syndicated_sources_are_not_independent_corroboration() -> None:
+    text = _valid_company_text().replace(
+        "    independence_syndication_group: distribution_announcement_001\n    independent_corroboration_ids: []",
+        "    independence_syndication_group: distribution_announcement_001\n    independent_corroboration_ids: [OBS-003]",
+        1,
+    )
+    assert "syndicated_as_independent" in _company_codes(text)
+
+
+def test_community_evidence_cannot_become_company_fact() -> None:
+    text = _valid_company_text().replace(
+        "    fact_domain: external_customer_evidence",
+        "    fact_domain: company_fact",
+        1,
+    )
+    assert "community_as_company_fact" in _company_codes(text)
+
+
+def test_blocked_venue_remains_a_typed_gap() -> None:
+    text = _valid_company_text().replace(
+        "    requirement: mandatory_bounded_scout\n    status: checked\n    yield: zero_yield",
+        "    requirement: mandatory_bounded_scout\n    status: blocked\n    yield: blocked",
+        1,
+    )
+    assert "blocked_coverage_gap_unresolved" in _company_codes(text)
+
+
+def test_not_applicable_venue_requires_rationale() -> None:
+    text = _valid_company_text().replace(
+        "    relevance_rationale: Category-aware hidden-venue discovery surfaced a relevant specialist thread.",
+        "    relevance_rationale: \"\"",
+        1,
+    ).replace(
+        "    requirement: category_aware\n    status: checked",
+        "    requirement: category_aware\n    status: not_applicable",
+        1,
+    )
+    assert "not_applicable_missing_rationale" in _company_codes(text)
+
+
+def test_company_report_rejects_gtm_fields() -> None:
+    text = _valid_company_text().replace(
+        "  commission_id: fixture_company_example_labs",
+        "  commission_id: fixture_company_example_labs\n  buyer: forbidden",
+        1,
+    )
+    assert "prohibited_company_field" in _company_codes(text)
+
+
+def test_older_evidence_cannot_masquerade_as_current() -> None:
+    text = _valid_company_text().replace(
+        "    current_state_use: chronology_historical_baseline",
+        "    current_state_use: primary_current",
+        1,
+    )
+    assert "older_evidence_as_current" in _company_codes(text)
+
+
+def test_company_completeness_has_no_arbitrary_cap_policy() -> None:
+    text = _valid_company_text().replace(
+        "completeness_policy: necessary_complete_no_arbitrary_caps",
+        "completeness_policy: max_ten_sources",
+        1,
+    )
+    assert "invalid_completeness_policy" in _company_codes(text)
+
+
+def test_company_report_is_one_company_at_a_time() -> None:
+    text = _valid_company_text().replace("  subject_count: 1", "  subject_count: 2", 1)
+    assert "one_company_only" in _company_codes(text)
+
+
+def test_company_surface_rows_are_candidate_only_and_not_imported() -> None:
+    text = _valid_company_text().replace("    candidate_only: true", "    candidate_only: false", 1)
+    assert "company_surface_import_forbidden" in _company_codes(text)
+
+
+def test_company_report_has_no_classifier_handoff_packet() -> None:
+    text = _valid_company_text().replace(
+        "  classifier_handoff: omitted",
+        "  classifier_handoff: omitted\n  classifier_handoff_packet: {}",
+        1,
+    )
+    assert "company_classifier_handoff_forbidden" in _company_codes(text)
+
+
+def test_recency_first_is_the_required_explicit_default() -> None:
+    text = _valid_company_text().replace("  time_posture: recency_first\n", "", 1)
+    assert "invalid_time_posture" in _company_codes(text)
+
+
+def test_longitudinal_is_a_valid_declared_override() -> None:
+    text = _valid_company_text().replace(
+        "  time_posture: recency_first\n  longitudinal_period: null\n  longitudinal_rationale: not_applicable",
+        "  time_posture: longitudinal\n  longitudinal_period:\n    start: \"2025-01-01\"\n    end: \"2026-07-16\"\n  longitudinal_rationale: Trace change and recurrence across the declared period.",
+        1,
+    ).replace(
+        "    current_state_use: chronology_historical_baseline",
+        "    current_state_use: longitudinal_primary",
+        1,
+    )
+    assert validator.validate_text(text) == []
+
+
+def test_company_report_rejects_engagement_overclaim() -> None:
+    text = _valid_company_text().replace(
+        "The Reddit scout yielded no attributable material.",
+        "The Reddit scout yielded no attributable material. High engagement proves demand.",
+        1,
+    )
+    assert "engagement_as_proof" in _company_codes(text)
+
+
+def test_company_source_family_uses_shared_vocabulary() -> None:
+    text = _valid_company_text().replace(
+        "    source_family: owned_channels",
+        "    source_family: official_company",
+        1,
+    )
+    assert "invalid_company_source_family" in _company_codes(text)
+
+
+def test_company_effective_time_precision_vocabulary_is_enforced() -> None:
+    text = _valid_company_text().replace(
+        "    effective_time_precision: current_page_observation",
+        "    effective_time_precision: current_page",
+        1,
+    )
+    assert "invalid_effective_time_precision" in _company_codes(text)
+
+
+def test_unknown_effective_time_precision_cannot_bypass_dated_event_guard() -> None:
+    text = _valid_company_text().replace(
+        "    effective_time_precision: current_page_observation",
+        "    effective_time_precision: current_page",
+        1,
+    ).replace(
+        "    event_or_effective_date: null\n    observation_at: \"2026-07-16T09:00:00Z\"",
+        "    event_or_effective_date: \"2026-07-16\"\n    observation_at: \"2026-07-16T09:00:00Z\"",
+        1,
+    )
+    assert "invalid_effective_time_precision" in _company_codes(text)
+
+
+def test_company_age_anchor_basis_vocabulary_is_enforced() -> None:
+    text = _valid_company_text().replace(
+        "    age_anchor_basis: current_page_observation",
+        "    age_anchor_basis: currentish",
+        1,
+    )
+    assert "invalid_age_anchor_basis" in _company_codes(text)
+
+
+def test_company_run_boundary_values_are_constrained() -> None:
+    text = _valid_company_text().replace(
+        "  run_boundary: COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION",
+        "  run_boundary: IMPORTED_TO_COMPANY_SURFACE_AND_RAN_CLASSIFIER",
+        1,
+    )
+    assert "invalid_company_run_boundary" in _company_codes(text)
+
+
+def test_company_completion_requires_next_authorized_step() -> None:
+    text = _valid_company_text().replace(
+        "  next_authorized_step: A separately commissioned Scanning or Capture run may address the typed request;"
+        " no import or classifier handoff occurred.\n",
+        "",
+        1,
+    )
+    assert "missing_company_next_authorized_step" in _company_codes(text)
 
 
 

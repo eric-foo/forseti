@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Sequence
 
@@ -13,12 +12,15 @@ from capture_spine.creator_profile_current.materialize import (
     build_creator_profile_current_view_from_files,
     dump_creator_profile_current_view,
     load_json,
+    verify_audience_judgment_outcomes as _verify_audience_judgment_outcomes,
 )
 from capture_spine.creator_profile_current.registry_match_preflight import (
     RECEIPT_SCHEMA_VERSION,
     RECEIPT_WRAPPER_KEY,
     has_blocking_preflight_results,
 )
+from harness_utils import utc_now_z
+
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,6 +47,18 @@ DEFAULT_ACCOUNT_LEDGER = (
     / "social_media"
     / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
+)
+DEFAULT_CREATOR_REGISTRY_INDEX = (
+    ROOT
+    / "forseti"
+    / "product"
+    / "spines"
+    / "capture"
+    / "core"
+    / "source_families"
+    / "social_media"
+    / "creator_registry"
+    / "creator_registry_index_v0.json"
 )
 # Lake cut-over §5/§8: both Instagram and YouTube materialize from their
 # committed lake snapshots (each seed stays the no-drift value oracle).
@@ -79,11 +93,17 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Materialize the static creator_profile_current view from the public-handle "
-            "account ledger and creator metric seeds."
+            "account ledger, Creator Registry onboarding projection, and creator metric seeds."
         )
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--account-ledger", type=Path, default=DEFAULT_ACCOUNT_LEDGER)
+    parser.add_argument(
+        "--creator-registry-index",
+        type=Path,
+        default=DEFAULT_CREATOR_REGISTRY_INDEX,
+        help="Creator Registry index carrying the Bronze-derived onboarding projection.",
+    )
     parser.add_argument(
         "--metric-seed",
         type=Path,
@@ -96,11 +116,18 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Timestamp for profile_view_computed_at. Defaults to the existing output timestamp when present.",
     )
     parser.add_argument(
-        "--audience-profile-snapshot",
+        "--audience-triangulation-snapshot",
         type=Path,
         action="append",
-        dest="audience_profile_snapshots",
-        help="Optional creator_ideal_audience_profile_snapshot JSON document. Repeat to join multiple documents.",
+        dest="audience_triangulation_snapshots",
+        help="Optional validated creator-audience triangulation snapshot. Repeat to join multiple documents.",
+    )
+    parser.add_argument(
+        "--audience-judgment-outcome",
+        type=Path,
+        action="append",
+        dest="audience_judgment_outcomes",
+        help="Successful Judgment outcome paired positionally with each audience snapshot.",
     )
     parser.add_argument("--check", action="store_true", help="Fail if the output is stale.")
     parser.add_argument("--write", action="store_true", help="Write the materialized output JSON.")
@@ -123,13 +150,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.check == args.write:
         parser.error("choose exactly one of --check or --write")
 
-    generated_at = args.generated_at_utc or _existing_generated_at(args.output) or _now_utc()
+    generated_at = args.generated_at_utc or _existing_generated_at(args.output) or utc_now_z()
     metric_seeds = tuple(args.metric_seeds) if args.metric_seeds else DEFAULT_METRIC_SEEDS
+    audience_snapshots = tuple(args.audience_triangulation_snapshots or ())
+    audience_outcomes = tuple(args.audience_judgment_outcomes or ())
     try:
         document = build_creator_profile_current_view_from_files(
             account_ledger_path=args.account_ledger,
+            creator_registry_index_path=args.creator_registry_index,
             metric_seed_paths=metric_seeds,
-            audience_profile_snapshot_paths=tuple(args.audience_profile_snapshots or ()),
+            audience_triangulation_snapshot_paths=audience_snapshots,
+            audience_judgment_outcome_paths=audience_outcomes,
             generated_at_utc=generated_at,
         )
         rendered = dump_creator_profile_current_view(document)
@@ -154,6 +185,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     except Exception as exc:
         parser.exit(status=2, message=f"creator profile materialization failed: {exc}\n")
+
 
 
 def _enforce_new_account_preflight(
@@ -223,6 +255,16 @@ def _enforce_new_account_preflight(
             continue
         candidate = row.get("normalized_candidate")
         if isinstance(candidate, dict):
+            handles = candidate.get("handles")
+            if isinstance(handles, list):
+                covered_handles.update(
+                    handle.strip().lower()
+                    for handle in handles
+                    if isinstance(handle, str) and handle.strip()
+                )
+            # Compatibility with early hand-authored receipt fixtures that used
+            # one scalar handle before the preflight contract standardized the
+            # normalized ``handles`` list.
             handle = candidate.get("handle")
             if isinstance(handle, str) and handle.strip():
                 covered_handles.add(handle.strip().lower())
@@ -260,10 +302,6 @@ def _existing_generated_at(path: Path) -> str | None:
     except (KeyError, TypeError, ValueError):
         return None
     return value if isinstance(value, str) and value.strip() else None
-
-
-def _now_utc() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 if __name__ == "__main__":

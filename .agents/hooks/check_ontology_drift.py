@@ -41,6 +41,9 @@ import sys
 import typing
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 YAML_REL = "forseti/product/spines/foundation/ontology/ontology.yaml"
 HARNESS_REL = "forseti-harness"
 EXPECTED_BINDINGS = ("CapturePacket", "EvidenceUnit", "Case")
@@ -55,11 +58,6 @@ EXPECTED_FORBIDS_FIELDS = {
 EXPECTED_COMPOSED_WITH = {
     "Case": ("forseti-harness/schemas/scoring_models.py:CaseReport",),
 }
-
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
 
 
 def _normalize_module(spec_module: str) -> str:

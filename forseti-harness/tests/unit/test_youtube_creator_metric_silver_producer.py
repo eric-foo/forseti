@@ -16,6 +16,7 @@ from collections import Counter
 from copy import deepcopy
 import hashlib
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -36,7 +37,10 @@ from capture_spine.creator_profile_current.youtube_silver_metric_producer import
 )
 from data_lake.attachment_record_entry import ATTACHMENT_RECORD_SCHEMA_VERSION
 from data_lake.catalog import rebuild_catalog
-from data_lake.root import DataLakeRoot
+from data_lake.root import DataLakeRoot, raw_shard
+from data_lake.silver_record import SilverRecordError, validate_silver_vault_record, verify_silver_vault_record_sources
+from source_capture.models import known_fact
+from source_capture.writer import write_local_source_capture_packet
 from source_capture.youtube_watch_packet import YoutubeWatchFetch, write_youtube_watch_packet
 
 EXPECTED_OBSERVATIONS = 196
@@ -84,6 +88,7 @@ def _youtube_watch_packet(*, view_count: int) -> dict:
         "video_id": YOUTUBE_AR_PROOF_VIDEO_ID,
         "surface_type": "watch",
         "watch_url": f"https://www.youtube.com/watch?v={YOUTUBE_AR_PROOF_VIDEO_ID}",
+        "canonical_url": f"https://www.youtube.com/watch?v={YOUTUBE_AR_PROOF_VIDEO_ID}",
         "channel": {"channel_id": "UCzKrJ5NSA9o7RHYRG12kHZw", "author": "JeremyFragrance"},
         "metadata": {
             "title": "UNIQUE BLUE, By SUPERZ",
@@ -110,6 +115,13 @@ def _youtube_watch_packet(*, view_count: int) -> dict:
         },
         "comments_posture": "comments_not_exposed",
         "comments": [],
+        "comment_capture_coverage": {
+            "requested_page_limit": 1,
+            "pages_fetched": 0,
+            "selected_comment_count": 0,
+            "continuation_remaining_after_stop": False,
+            "ordering_posture": "source_default_order_as_served",
+        },
         "receipts": {"http_status": 200, "retrieval_time_utc": YOUTUBE_AR_PROOF_CAPTURED_AT},
     }
 
@@ -128,11 +140,52 @@ def _commit_youtube_watch_packet(data_root: DataLakeRoot, *, view_count: int) ->
     assert code == 0
     packet_id = Path(output_dir).name
     preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
-    assert preserved["relative_packet_path"].endswith("raw_watch.html")
+    assert preserved["relative_packet_path"].endswith("youtube_watch_capture.json")
     return packet_id, preserved
 
 
-def _single_observation_seed_document(*, packet_id: str, watch_hash: str, view_count: int) -> dict:
+def _commit_unrelated_packet(
+    data_root: DataLakeRoot, tmp_path: Path
+) -> tuple[str, dict]:
+    source = tmp_path / "unrelated.json"
+    source.write_text('{"fixture":"unrelated"}', encoding="utf-8")
+    result = write_local_source_capture_packet(
+        data_root=data_root,
+        input_files=[source],
+        source_family="unrelated_fixture",
+        source_surface="unrelated_surface",
+        source_locator=known_fact("https://example.com/unrelated"),
+        decision_question="YouTube missing Attachment Record fixture",
+        capture_context="Silver physical source verification test",
+    )
+    packet_id = result.packet.packet_id
+    preserved = data_root.load_raw_packet(packet_id).manifest["preserved_files"][0]
+    return packet_id, preserved
+
+
+def _commit_exact_watch_html_packet(data_root: DataLakeRoot) -> tuple[str, dict]:
+    packet_id = "01J00000000000000000000009"
+    body = YOUTUBE_AR_PROOF_WATCH_HTML
+    digest = hashlib.sha256(body).hexdigest()
+    container = data_root.path / "raw" / raw_shard(packet_id) / packet_id
+    preserved_path = container / "preserved" / "raw_watch.html"
+    preserved_path.parent.mkdir(parents=True)
+    preserved_path.write_bytes(body)
+    preserved = {
+        "file_id": "raw_watch",
+        "relative_packet_path": "preserved/raw_watch.html",
+        "size_bytes": len(body),
+        "sha256": digest,
+        "hash_basis": "raw_stored_bytes",
+    }
+    (container / "manifest.json").write_text(
+        json.dumps({"packet_id": packet_id, "preserved_files": [preserved]}),
+        encoding="utf-8",
+    )
+    return packet_id, preserved
+
+
+def _single_observation_seed_document(*, packet_id: str, evidence_hash: str, view_count: int) -> dict:
     seed_document = _committed_seed_document()
     seed = deepcopy(seed_document[YOUTUBE_SEED_WRAPPER_KEY])
     seed_observation = deepcopy(seed["metric_observations"][0])
@@ -140,8 +193,11 @@ def _single_observation_seed_document(*, packet_id: str, watch_hash: str, view_c
         {
             "source_packet_id_or_none": packet_id,
             "source_packet_pointer_or_none": None,
-            "source_watch_html_sha256_or_none": watch_hash,
-            "source_watch_byte_size_or_none": len(YOUTUBE_AR_PROOF_WATCH_HTML),
+            "source_evidence_sha256": evidence_hash,
+            "source_evidence_hash_basis": "source_captured_selective_payload_sha256",
+            "source_evidence_byte_size": 1,
+            "source_watch_html_sha256_or_none": None,
+            "source_watch_byte_size_or_none": None,
             "source_pointer": "youtube_watch_packet_fixture#/metric_receipts/view_count",
             "source_field": "/metric_receipts/view_count/value",
             "source_file": "youtube_watch_packet_fixture",
@@ -185,16 +241,72 @@ def _single_observation_seed_document(*, packet_id: str, watch_hash: str, view_c
 
 
 def _run(tmp_path: Path):
-    seed_document = _committed_seed_document()
+    seed_document = deepcopy(_committed_seed_document())
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _materialize_seed_sources(data_root, seed_document)
     result = derive_youtube_creator_metric_silver_records_from_seed(
         data_root=data_root, seed_document=seed_document
     )
     return result, seed_document[YOUTUBE_SEED_WRAPPER_KEY]
 
 
-def test_producer_emits_conformant_metric_observation_records(tmp_path: Path) -> None:
-    result, seed = _run(tmp_path)
+@pytest.fixture(scope="module")
+def committed_seed_run(harness_tmp_root: Path):
+    path = harness_tmp_root / "youtube_creator_metric_silver_committed_seed"
+    path.mkdir()
+    try:
+        yield _run(path)
+    finally:
+        shutil.rmtree(path, ignore_errors=True)
+
+
+def _materialize_seed_sources(data_root: DataLakeRoot, seed_document: dict) -> None:
+    """Give the committed metric fixture real verified temp-lake raw sources.
+
+    The committed seed points at a private historical lake that is deliberately
+    unavailable to unit tests. The metric facts stay unchanged; only each copied
+    observation's source hash is rebound to synthetic temp bytes so the authority
+    write gate is exercised instead of bypassed. This is structural verifier
+    proof, not evidence that the private-lake seed sources resolve.
+    """
+    hashes: dict[str, str] = {}
+    for observation in seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_observations"]:
+        packet_id = observation["source_packet_id_or_none"]
+        if packet_id not in hashes:
+            body = json.dumps({"packet_id": packet_id}, sort_keys=True).encode("utf-8")
+            digest = hashlib.sha256(body).hexdigest()
+            hashes[packet_id] = digest
+            container = data_root.path / "raw" / raw_shard(packet_id) / packet_id
+            preserved = container / "preserved" / "source.json"
+            preserved.parent.mkdir(parents=True)
+            preserved.write_bytes(body)
+            (container / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "packet_id": packet_id,
+                        "preserved_files": [
+                            {
+                                "file_id": "source",
+                                "relative_packet_path": "preserved/source.json",
+                                "size_bytes": len(body),
+                                "sha256": digest,
+                                "hash_basis": "raw_stored_bytes",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+        observation["source_evidence_sha256"] = hashes[packet_id]
+        observation["source_evidence_hash_basis"] = (
+            "source_captured_selective_payload_sha256"
+        )
+        observation["source_watch_html_sha256_or_none"] = None
+        observation["source_file"] = "preserved/source.json"
+
+
+def test_producer_emits_conformant_metric_observation_records(committed_seed_run) -> None:
+    result, seed = committed_seed_run
     assert len(result.observation_records) == EXPECTED_OBSERVATIONS == len(seed["metric_observations"])
 
     seed_by_id = {o["metric_observation_id"]: o for o in seed["metric_observations"]}
@@ -222,9 +334,9 @@ def test_producer_emits_conformant_metric_observation_records(tmp_path: Path) ->
         assert raw_ref["packet_id"] == seed_obs["source_packet_id_or_none"]
         assert raw_ref["source_pointer"] == seed_obs["source_pointer"]
         assert raw_ref["source_field"] == seed_obs["source_field"]
-        assert raw_ref["sha256"] == seed_obs["source_watch_html_sha256_or_none"]
+        assert raw_ref["sha256"] == seed_obs["source_evidence_sha256"]
         assert raw_ref["sha256"]
-        assert raw_ref["hash_basis"] == "source_captured_watch_html_sha256"
+        assert raw_ref["hash_basis"] == "raw_stored_bytes"
 
         observation = record["payload"]["observation"]
         # Subject is the public content object keyed by stable ids only.
@@ -253,7 +365,7 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
     packet_id, preserved = _commit_youtube_watch_packet(data_root, view_count=view_count)
     assert rebuild_catalog(data_root)["status"] == "rebuilt"
     seed_document = _single_observation_seed_document(
-        packet_id=packet_id, watch_hash=preserved["sha256"], view_count=view_count
+        packet_id=packet_id, evidence_hash=preserved["sha256"], view_count=view_count
     )
 
     result = derive_youtube_creator_metric_silver_records_from_seed(
@@ -265,7 +377,7 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
     assert len(result.observation_records) == 1
     record = result.observation_records[0]
     raw_ref = record["raw_refs"][0]
-    assert raw_ref["raw_ref_kind"] == "bronze_attachment_record"
+    assert raw_ref["ref_type"] == "bronze_attachment_record"
     assert raw_ref["attachment_record_id"].startswith("ar_")
     assert raw_ref["attachment_record_schema_version"] == ATTACHMENT_RECORD_SCHEMA_VERSION
     assert raw_ref["attachment_record_physicalization"] == "manifest_equivalent_entry_over_raw_packet_body_v0"
@@ -285,16 +397,126 @@ def test_observation_raw_refs_use_bronze_attachment_records_when_requested(tmp_p
     }
     assert raw_ref["source_family"] == "youtube"
     assert raw_ref["source_surface"] == "youtube_watch_metadata_comments"
-    assert raw_ref["payload_kind"] == "html_body"
+    assert raw_ref["payload_kind"] == "json_body"
     assert "lineage_limitations" not in record
+
+
+def test_watch_html_fallback_verifies_exact_bytes_and_rejects_alteration(
+    tmp_path: Path,
+) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    view_count = 479
+    packet_id, watch_html = _commit_exact_watch_html_packet(data_root)
+    loaded = data_root.load_raw_packet(packet_id)
+    assert loaded.manifest["preserved_files"] == [watch_html]
+    seed_document = _single_observation_seed_document(
+        packet_id=packet_id,
+        evidence_hash=watch_html["sha256"],
+        view_count=view_count,
+    )
+    seed_observation = seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_observations"][0]
+    seed_observation["source_evidence_sha256"] = None
+    seed_observation["source_evidence_hash_basis"] = None
+    seed_observation["source_watch_html_sha256_or_none"] = watch_html["sha256"]
+    seed_observation["source_file"] = watch_html["relative_packet_path"]
+
+    result = derive_youtube_creator_metric_silver_records_from_seed(
+        data_root=data_root,
+        seed_document=seed_document,
+    )
+    raw_ref = result.observation_records[0]["raw_refs"][0]
+    assert raw_ref["sha256"] == watch_html["sha256"]
+    assert raw_ref["hash_basis"] == "raw_stored_bytes"
+    assert raw_ref["watch_html_sha256"] == watch_html["sha256"]
+
+    (loaded.container / watch_html["relative_packet_path"]).write_bytes(
+        b"<html>altered after capture</html>"
+    )
+    with pytest.raises(SilverRecordError, match="physically unresolved or tampered"):
+        verify_silver_vault_record_sources(data_root, result.observation_records[0])
+
+
+def test_bronze_attachment_ref_rejects_catalog_basis_disagreement(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from data_lake import catalog
+
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id, preserved = _commit_youtube_watch_packet(data_root, view_count=479)
+    assert rebuild_catalog(data_root)["status"] == "rebuilt"
+    seed_document = _single_observation_seed_document(
+        packet_id=packet_id, evidence_hash=preserved["sha256"], view_count=479
+    )
+    result = derive_youtube_creator_metric_silver_records_from_seed(
+        data_root=data_root,
+        seed_document=seed_document,
+        use_bronze_attachment_records=True,
+    )
+    record = result.observation_records[0]
+    actual_rows = catalog.source_surface_catalog_rows(
+        data_root,
+        source_family="youtube",
+        source_surface="youtube_watch_metadata_comments",
+    )
+    bad_row = deepcopy(actual_rows["attachment_record_rows"][0])
+    bad_row["hash_basis"] = "derived_record_bytes"
+    monkeypatch.setattr(
+        catalog,
+        "source_surface_catalog_rows",
+        lambda *_args, **_kwargs: {"attachment_record_rows": [bad_row]},
+    )
+
+    with pytest.raises(SilverRecordError, match="catalog row hash_basis"):
+        verify_silver_vault_record_sources(data_root, record)
+
+
+def test_bronze_attachment_ref_rejects_altered_body_bytes(tmp_path: Path) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id, preserved = _commit_youtube_watch_packet(data_root, view_count=479)
+    assert rebuild_catalog(data_root)["status"] == "rebuilt"
+    seed_document = _single_observation_seed_document(
+        packet_id=packet_id, evidence_hash=preserved["sha256"], view_count=479
+    )
+    result = derive_youtube_creator_metric_silver_records_from_seed(
+        data_root=data_root,
+        seed_document=seed_document,
+        use_bronze_attachment_records=True,
+    )
+    loaded = data_root.load_raw_packet(packet_id)
+    (loaded.container / preserved["relative_packet_path"]).write_bytes(b"altered")
+
+    with pytest.raises(SilverRecordError, match="physically unresolved or tampered"):
+        verify_silver_vault_record_sources(data_root, result.observation_records[0])
+
+
+def test_unknown_source_time_uses_explicit_unknown_grammar() -> None:
+    seed_document = _committed_seed_document()
+    seed = seed_document[YOUTUBE_SEED_WRAPPER_KEY]
+    seed_observation = deepcopy(seed["metric_observations"][0])
+    seed_observation["observed_at"] = None
+
+    record = build_metric_observation_record(
+        seed_observation=seed_observation,
+        recorded_at=seed["generated_at_utc"],
+    )
+    validate_silver_vault_record(record)
+
+    observation = record["payload"]["observation"]
+    assert record["observed_at"] is None
+    assert record["captured_at"] == seed["generated_at_utc"]
+    assert observation["effective_interval"]["start_precision"] == "unknown"
+    assert observation["recorded_at"] == seed["generated_at_utc"]
+    assert observation["evidence_refs"]
+    assert observation["limitations"]
 
 
 def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    assert rebuild_catalog(data_root)["status"] == "rebuilt"
+    packet_id, preserved = _commit_unrelated_packet(data_root, tmp_path)
     seed_document = _single_observation_seed_document(
-        packet_id="01KWYTARPROOFFALLBACK0001", watch_hash="f" * 64, view_count=479
+        packet_id=packet_id, evidence_hash=preserved["sha256"], view_count=479
     )
+    assert rebuild_catalog(data_root)["status"] == "rebuilt"
 
     result = derive_youtube_creator_metric_silver_records_from_seed(
         data_root=data_root,
@@ -303,7 +525,7 @@ def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path:
     )
 
     raw_ref = result.observation_records[0]["raw_refs"][0]
-    assert raw_ref["raw_ref_kind"] == "raw_packet_fallback_missing_attachment_record"
+    assert raw_ref["ref_type"] == "raw_packet"
     assert raw_ref["typed_attachment_record_status"] == "missing"
     assert raw_ref["attachment_record_residual"] == "typed_attachment_record_missing_for_raw_ref"
     assert result.observation_records[0]["lineage_limitations"] == [
@@ -316,7 +538,7 @@ def test_ambiguous_bronze_attachment_record_stays_visible_when_requested(tmp_pat
     view_count = 479
     packet_id, preserved = _commit_youtube_watch_packet(data_root, view_count=view_count)
     seed_document = _single_observation_seed_document(
-        packet_id=packet_id, watch_hash=preserved["sha256"], view_count=view_count
+        packet_id=packet_id, evidence_hash=preserved["sha256"], view_count=view_count
     )
     seed_observation = seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_observations"][0]
     ambiguous_candidates = [
@@ -333,7 +555,7 @@ def test_ambiguous_bronze_attachment_record_stays_visible_when_requested(tmp_pat
     )
 
     raw_ref = record["raw_refs"][0]
-    assert raw_ref["raw_ref_kind"] == "raw_packet_fallback_ambiguous_attachment_record"
+    assert raw_ref["ref_type"] == "raw_packet"
     assert raw_ref["typed_attachment_record_status"] == "ambiguous"
     assert raw_ref["attachment_record_residual"] == "typed_attachment_record_ambiguous_for_raw_ref"
     assert raw_ref["packet_id"] == packet_id
@@ -342,8 +564,8 @@ def test_ambiguous_bronze_attachment_record_stays_visible_when_requested(tmp_pat
         {"reason": "other", "detail": "typed_attachment_record_ambiguous_for_raw_ref"}
     ]
 
-def test_observation_no_drift_against_committed_seed(tmp_path: Path) -> None:
-    result, seed = _run(tmp_path)
+def test_observation_no_drift_against_committed_seed(committed_seed_run) -> None:
+    result, seed = committed_seed_run
     seed_by_id = {o["metric_observation_id"]: o for o in seed["metric_observations"]}
     for record in result.observation_records:
         seed_obs = seed_by_id[record["provenance"]["seed_metric_observation_id"]]
@@ -357,8 +579,8 @@ def test_observation_no_drift_against_committed_seed(tmp_path: Path) -> None:
         assert observation["metric_posture"]["reason_detail"] == seed_obs["posture_reason_or_none"]
 
 
-def test_observation_records_written_and_reload_with_stable_hash(tmp_path: Path) -> None:
-    result, _ = _run(tmp_path)
+def test_observation_records_written_and_reload_with_stable_hash(committed_seed_run) -> None:
+    result, _ = committed_seed_run
     assert len(result.observation_paths) == len(result.observation_records) == EXPECTED_OBSERVATIONS
     # Spot-check the first/last 5 reload with a self-reproducing hash (full set is
     # already covered by the conformance test; this proves the bytes-on-disk path).
@@ -371,8 +593,8 @@ def test_observation_records_written_and_reload_with_stable_hash(tmp_path: Path)
         assert on_disk["content_hash"] == f"sha256:{_content_hash(on_disk)}"
 
 
-def test_rollup_records_lineage_and_no_drift(tmp_path: Path) -> None:
-    result, seed = _run(tmp_path)
+def test_rollup_records_lineage_and_no_drift(committed_seed_run) -> None:
+    result, seed = committed_seed_run
     assert len(result.rollup_records) == EXPECTED_ROLLUPS == len(seed["metric_rollups"])
 
     seed_by_id = {r["metric_rollup_id"]: r for r in seed["metric_rollups"]}
@@ -430,8 +652,8 @@ def test_rollup_records_lineage_and_no_drift(tmp_path: Path) -> None:
             assert rollup_metric["metric_posture"]["reason_detail"] == seed_metric.get("posture_reason_or_none")
 
 
-def test_rollup_metric_posture_value_coupling(tmp_path: Path) -> None:
-    result, _ = _run(tmp_path)
+def test_rollup_metric_posture_value_coupling(committed_seed_run) -> None:
+    result, _ = committed_seed_run
     saw_observed = False
     saw_non_observed = False
     for rollup in result.rollup_records:
@@ -451,8 +673,8 @@ def test_rollup_metric_posture_value_coupling(tmp_path: Path) -> None:
     assert saw_observed and saw_non_observed
 
 
-def test_observations_anchor_to_distinct_packets_rollups_to_accounts(tmp_path: Path) -> None:
-    result, seed = _run(tmp_path)
+def test_observations_anchor_to_distinct_packets_rollups_to_accounts(committed_seed_run) -> None:
+    result, seed = committed_seed_run
     # Each observation anchors to its own distinct per-Short packet.
     obs_anchors = [r["raw_anchor"] for r in result.observation_records]
     assert len(set(obs_anchors)) == EXPECTED_OBSERVATIONS
@@ -483,7 +705,7 @@ def test_observation_missing_source_hash_fails_closed() -> None:
     seed_document = _committed_seed_document()
     seed_obs = dict(seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_observations"][0])
     seed_obs["source_watch_html_sha256_or_none"] = None
-    with pytest.raises(ValueError, match="source_watch_html_sha256_or_none"):
+    with pytest.raises(ValueError, match="source evidence sha256"):
         build_metric_observation_record(seed_observation=seed_obs)
 
 
@@ -493,6 +715,7 @@ def test_rollup_platform_account_mismatch_fails_closed(tmp_path: Path) -> None:
     seed_document = _committed_seed_document()
     seed_document[YOUTUBE_SEED_WRAPPER_KEY]["metric_rollups"][0]["platform_account_ids"] = ["acct_mismatch"]
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    _materialize_seed_sources(data_root, seed_document)
     with pytest.raises(ValueError, match="does not match profile_subject_id"):
         derive_youtube_creator_metric_silver_records_from_seed(
             data_root=data_root, seed_document=seed_document

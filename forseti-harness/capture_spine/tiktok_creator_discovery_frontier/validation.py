@@ -9,6 +9,7 @@ from dataclasses import fields
 from typing import Any, Callable
 from urllib.parse import urlparse
 
+from capture_spine import shared_validation as _spine_shared
 from capture_spine.creator_profile_current.registry_match_preflight import (
     RECEIPT_SCHEMA_VERSION as CREATOR_REGISTRY_PREFLIGHT_RECEIPT_SCHEMA_VERSION,
     RECEIPT_WRAPPER_KEY as CREATOR_REGISTRY_PREFLIGHT_RECEIPT_WRAPPER_KEY,
@@ -282,10 +283,10 @@ def validate_tiktok_creator_discovery_scan_receipt(receipt: Mapping[str, Any]) -
     if receipt.get("candidate_profiles_opened") != 0:
         _fail("candidate_profile_open_forbidden", "scan receipt must not open candidate profiles")
     follow_unfollow_actions_taken = int(receipt.get("follow_unfollow_actions_taken"))
-    if follow_unfollow_actions_taken > 1:
+    if follow_unfollow_actions_taken > 0:
         _fail(
-            "follow_unfollow_limit_exceeded",
-            "scan receipt may record at most one owner-authorized root follow action",
+            "follow_unfollow_action_forbidden",
+            "creator discovery scan receipt must record zero follow/unfollow actions",
         )
     if receipt.get("screenshots_emitted_to_chat") != 0:
         _fail("screenshot_chat_output_forbidden", "scan receipt must not emit screenshots to chat")
@@ -1031,29 +1032,22 @@ def _is_negated(claim: str) -> bool:
 
 
 def _assert_no_forbidden_output_fields(value: Any, *, path: str = "$") -> None:
-    if isinstance(value, Mapping):
-        for key, child in value.items():
-            key_name = str(key)
-            if key_name.lower() in _FORBIDDEN_OUTPUT_FIELDS:
-                _fail("forbidden_output_field", f"forbidden output field at {path}.{key_name}")
-            _assert_no_forbidden_output_fields(child, path=f"{path}.{key_name}")
-        return
-    if _is_list(value):
-        for index, child in enumerate(value):
-            _assert_no_forbidden_output_fields(child, path=f"{path}[{index}]")
-        return
-    if isinstance(value, str):
-        for marker, pattern in _FORBIDDEN_OUTPUT_VALUE_PATTERNS:
-            if pattern.search(value):
-                _fail("forbidden_output_value", f"forbidden value ({marker}) at {path}")
+    _spine_shared.assert_no_forbidden_output_fields(
+        value,
+        forbidden_fields=_FORBIDDEN_OUTPUT_FIELDS,
+        value_patterns=_FORBIDDEN_OUTPUT_VALUE_PATTERNS,
+        fail=_fail,
+        value_message_prefix="forbidden value",
+        path=path,
+    )
 
 
 def _reject_unknown_keys(value_map: Mapping[str, Any], allowed_keys: frozenset[str], label: str) -> None:
-    unknown = sorted(str(key) for key in value_map if str(key) not in allowed_keys)
-    if unknown:
-        _fail("unknown_field", f"{label} contains unknown field(s): {unknown}")
+    _spine_shared.reject_unknown_keys(value_map, allowed_keys, label, fail=_fail)
 
 
+# helper-delta: unlike shared require_fields (absent key OR explicit None OR blank
+# string = missing), this lane requires key PRESENCE but accepts an explicit None.
 def _require(value_map: Mapping[str, Any], field_names: Sequence[str], label: str) -> None:
     for field_name in field_names:
         if field_name not in value_map:

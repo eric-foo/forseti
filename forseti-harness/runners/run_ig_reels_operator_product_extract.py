@@ -23,6 +23,7 @@ from cleaning.transcript_product_extractor import (
     parse_mentions,
 )
 from cleaning.transcript_product_lake import (
+    PRODUCT_MENTIONS_LANE,
     mentions_record_id,
     write_product_mentions_result_into_lake,
 )
@@ -102,7 +103,7 @@ def build_operator_packet(*, transcript: TranscriptInput, model: str = DEFAULT_O
             "return_shape": "JSON array of product mention objects",
             "return_only": "No prose, no markdown fence, no timestamps.",
             "import_validator": "cleaning.transcript_product_extractor.parse_mentions",
-            "write_lane": "silver__cleaning__product_mentions",
+            "write_lane": PRODUCT_MENTIONS_LANE,
         },
         "transcript": {
             "joined_text": transcript.joined_text,

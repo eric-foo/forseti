@@ -18,6 +18,9 @@ authority_boundary: retrieval_only
   on 2026-07-05; DEPLOYED/ACTIVATED for the Claude Code runtime,
   project-scoped — not user-global). See `## Accepted Forseti-Local Candidate
   Skills` below.
+- Forseti has one additional owner-authorized local candidate source,
+  `creator-audience-triangulation`. It supplies the narrow onboarding/on-demand
+  firing point only; it is not accepted/frozen or externally deployed.
 - Forseti retains `orca-product-lead` as a legacy compatibility wrapper for one
   transition window. It is an alias into `forseti-product-lead`, not the primary
   skill identity.
@@ -136,6 +139,23 @@ behavior was not proven in-thread.
 - Missing overlay authority must fail visibly when a reusable skill requires
   project facts.
 
+## Owner-Authorized Candidate Sources
+
+- `creator-audience-triangulation`
+  - Source path: `.agents/skills/creator-audience-triangulation/SKILL.md`.
+  - Normalized LF sha256: `e8508b1bc374dbe4c37f23dd935a66cfc9f176ffd16321844c757281ef8863dd`
+    (observed 2026-07-15 after source creation).
+  - Scope: full TikTok creator onboarding after Bronze admission, or explicit
+    generation/refresh of one creator's transcript-plus-comment audience
+    triangulation. Comparisons, copy critique, presentation review, comment
+    analysis, Silver maintenance, and capture debugging are negative triggers.
+  - Collision: no same-name repo/project, user Codex/Agents/Claude, or installed
+    plugin skill directory was observed before creation on 2026-07-15.
+  - Boundary: Forseti-local source only; not accepted/frozen, not user-global,
+    not plugin-installed, and no external deployment claim.
+  - Rollback: remove this source and this candidate record. Do not modify
+    plugin, installed-cache, user-level, or external skill source.
+
 ## Accepted Forseti-Local Candidate Skills
 
 Forseti does accept Forseti-local candidate skills, but only specific, narrowly scoped
@@ -150,13 +170,12 @@ skill-governance action under the Protected Skill Boundary.
   the old command/path remains as a thin compatibility wrapper for one
   transition window.
   - Source path: `.agents/skills/forseti-product-lead/SKILL.md` (Forseti-local).
-  - Source sha256: `c8b38c9bcb991b30dd13baeda9d420fe02bc412a8dae9b6a56ac59a9f2cec58c`
-    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-10 so the pin
-    is checkout-independent, superseding the raw-CRLF Get-FileHash value
-    observed 2026-07-08; `.agents` source and `.claude` deployment copy are
-    byte-identical; git content blob
-    `b4e05b63c86ca793418409821a94e27519525e28` on both copies, re-verified
-    2026-07-10).
+  - Source sha256: `671de6e4a0d0fdfc06279bdb6f5576c2190405a0760e537779bc7748b8d7c22b`
+    (sha256 over CRLF-normalized bytes (LF), recomputed 2026-07-15 after the
+    current-main auto-trigger narrowing and the controlling-thesis / beauty-
+    application route refresh were combined; `.agents` source and `.claude`
+    deployment copy were byte-identical at verification. Commit blob is
+    reread-required after closeout).
     Reread-required if the file changes; pin freshness enforced by
     `.agents/hooks/check_hash_pin_freshness.py`.
   - Compatibility wrapper path: `.agents/skills/orca-product-lead/SKILL.md` with
@@ -170,12 +189,16 @@ skill-governance action under the Protected Skill Boundary.
     re-verified 2026-07-10).
     The wrapper loads the sibling `forseti-product-lead` skill and carries no
     product method of its own.
-  - Scope: prepares — does not freeze, run outreach, produce, or build — any
-    Forseti product decision (value proposition, offer, ICP / first-proof wedge,
-    buyer-proof design, positioning / packaging, deliverable shape, pull / kill /
-    graduation). A thin router into Forseti product authority; defers every fact
-    to `AGENTS.md`, the overlay, and the decision records; fails visibly when
-    authority is missing.
+  - Scope: prepares — does not freeze, run outreach, produce, or build — an
+    explicitly requested owner-signoff decision about Forseti's own value
+    proposition or offer, ICP / first-proof wedge, buyer-proof design, offer
+    positioning / packaging / deliverable shape, or pull / kill / graduation.
+    It does not auto-trigger on routine creator/audience profile work,
+    copywriting, commercial-language refinement, feature/runtime work, or
+    ordinary artifact review merely because those tasks mention clients,
+    buyers, positioning, packaging, or commercial value. A thin router into
+    Forseti product authority; defers every fact to `AGENTS.md`, the overlay,
+    and the decision records; fails visibly when authority is missing.
   - Shadow name: distinct from the resolver-visible jb-scoped `product-lead`.
   - Collision (checked 2026-07-05): no repo-local, project-level Claude,
     user-level Codex, user-level Agents, or user-level Claude skill folder named
@@ -193,10 +216,10 @@ skill-governance action under the Protected Skill Boundary.
     `.agents/skills/forseti-product-lead/` file is source-of-record; on any
     source change, regenerate the `.claude/skills/forseti-product-lead/` copy and
     re-pin the sha256 here. Invocation: `/forseti-product-lead` (command name
-    from the directory), description auto-trigger, or the Skill tool. Legacy
-    invocation `/orca-product-lead` remains as a wrapper for one transition
-    window. Codex / other-runtime activation is a separate target, not claimed by
-    this record.
+    from the directory), its narrowed explicit product-direction description
+    auto-trigger, or the Skill tool. Legacy invocation `/orca-product-lead`
+    remains as a wrapper for one transition window. Codex / other-runtime
+    activation is a separate target, not claimed by this record.
   - Retirement readiness (checked 2026-07-08): NOT READY. The `.claude`
     deployment copy was re-synced to the `.agents` source after current-main
     filename migrations left it stale; do not delete the `orca-product-lead`
@@ -239,65 +262,121 @@ cache files, global/user skill roots, or external workflow source.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Product-lead skill identity migrated from compatibility `orca-product-lead`
-    to primary `forseti-product-lead`; `/orca-product-lead` remains as a thin
-    project-local compatibility wrapper for one transition window, while source,
-    deployment copy, hash pins, collision evidence, rollback, and live route docs
-    now bind the Forseti-primary skill ID.
+    The primary `forseti-product-lead` identity remains unchanged, but its
+    automatic trigger now requires an explicit owner-signoff decision about
+    Forseti's own product direction; routine creator/audience profiles,
+    copywriting, commercial-language refinement, feature/runtime work, and
+    ordinary artifact review no longer trigger it merely by mentioning buyers,
+    clients, positioning, packaging, or commercial value. The project-level
+    Claude deployment copy and normalized source hash pin move in lockstep.
   trigger: workflow_authority
-  related_triggers:
-    - lifecycle_boundary
-    - output_authority
+  related_triggers: []
   controlling_sources_updated:
     - .agents/workflow-overlay/skill-adoption.md
-    - .agents/workflow-overlay/artifact-folders.md
     - .agents/skills/forseti-product-lead/SKILL.md
-    - .agents/skills/orca-product-lead/SKILL.md
     - .claude/skills/forseti-product-lead/SKILL.md
-    - .claude/skills/orca-product-lead/SKILL.md
   downstream_surfaces_checked:
     - AGENTS.md
     - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
     - .agents/workflow-overlay/source-loading.md
     - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/guard_protected_actions.py
-    - docs/decisions/forseti_skill_preflight_identity_migration_plan_v0.md
-    - docs/decisions/forseti_compatibility_migration_boundary_v0.md
-    - docs/decisions/forseti_external_identity_path_migration_decision_v0.md
-    - docs/workflows/forseti_post_harness_migration_status_v0.md
     - docs/workflows/forseti_repo_map_v0.md
+    - .agents/skills/orca-product-lead/SKILL.md
+    - .claude/skills/orca-product-lead/SKILL.md
   intentionally_not_updated:
-    - path: docs/prompts/** and docs/review-outputs/** historical artifacts
+    - path: .agents/skills/orca-product-lead/SKILL.md and .claude/skills/orca-product-lead/SKILL.md
       reason: >
-        Historical prompts/reviews preserve provenance; legacy
-        `orca-product-lead` mentions there are not live skill identity defaults.
-    - path: orca_start_preflight references
+        Both remain thin compatibility aliases that trigger only on explicit
+        legacy invocation and load the narrowed primary skill; they duplicate
+        no product-lead trigger doctrine.
+    - path: AGENTS.md, overlay route/index files, and docs/workflows/forseti_repo_map_v0.md
       reason: >
-        Start-preflight alias retirement remains explicitly deferred; this lane
-        only migrates the product-lead skill command/path.
+        These surfaces route product-lead work to the accepted skill or own
+        project authority but do not define the broad automatic trigger that
+        failed; adding negative examples there would duplicate the skill owner.
+    - path: user-level, plugin, installed, or external skills
+      reason: >
+        Protected Skill Boundary remains intact; this change is confined to the
+        accepted Forseti-local source and its existing project deployment copy.
+    - path: historical prompts, reviews, decisions, and migration records
+      reason: >
+        They preserve provenance and are not live auto-trigger sources.
   stale_language_search: >
-    rg -n "orca-product-lead|forseti-product-lead|orca_start_preflight|forseti_start_preflight"
-    AGENTS.md CLAUDE.md README.md .agents .claude docs/decisions docs/workflows docs/prompts
+    rg -n -i "any Forseti product decision|make this creator profile more compelling|rewrite this commercial line|compare these audience profiles|commercial-language refinement"
+    AGENTS.md CLAUDE.md .agents/skills .claude/skills .agents/workflow-overlay docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
-    Executed 2026-07-05 in codex/forseti-product-lead-skill-identity. Counts in
-    the checked source set: 13 files mention `forseti-product-lead`, 25 files
-    mention `orca-product-lead`, and 180 files mention `orca_start_preflight`.
-    Live primary skill identity hits are the new `.agents`/`.claude`
-    `forseti-product-lead` copies plus skill-adoption, skill/preflight plan,
-    repo-map, post-harness status, external-identity, compatibility-boundary,
-    and hook-fixture surfaces. Remaining `orca-product-lead` hits are the thin
-    compatibility wrappers, live docs explaining that wrapper, and historical
-    prompt/review/workflow/decision provenance. Remaining `orca_start_preflight`
-    hits are the explicitly deferred alias and historical prompt/review
-    consumers; no start-preflight retirement is claimed. A stale-phrase scan for
-    old "frozen compatibility" wording returned only two hits in the older
-    stale-reference audit record, treated as superseded provenance.
+    Executed 2026-07-15 after the trigger and hash-pin patch. The former broad
+    phrase `any Forseti product decision` is absent. Hits for creator-profile,
+    commercial-line, audience-profile, and commercial-language wording are
+    confined to the paired primary skill copies and this adoption record, where
+    they define the new negative trigger boundary; no checked router or
+    compatibility wrapper independently broadens that boundary.
   non_claims:
     - not validation
     - not readiness
     - not resolver activation proof
-    - not start-preflight alias retirement
+    - not proof that an already-running resolver has reloaded the description
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The owner-authorized creator-audience candidate skill now routes the
+    post-Bronze onboarding lifecycle through one executable prepare / submit /
+    complete coordinator: exact response bytes receive append-only Judgment
+    outcomes, clerical video closure is derived, validation reports all visible
+    defects, blocked attempts remain resumable without recapture, and
+    materialization requires the successful outcome paired to the exact
+    snapshot.
+  trigger: workflow_authority
+  related_triggers: [lifecycle_boundary, validation_philosophy]
+  controlling_sources_updated:
+    - .agents/skills/creator-audience-triangulation/SKILL.md
+    - .agents/workflow-overlay/skill-adoption.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md and CLAUDE.md
+      reason: >
+        They route reusable-skill and lifecycle detail to the owning overlay;
+        the TikTok-specific executable sequence does not belong in the kernel.
+    - path: .agents/workflow-overlay/README.md, source-loading.md, and validation-gates.md
+      reason: >
+        Their section ownership, source-loading budgets, and global validation
+        doctrine do not restate this candidate skill's TikTok sequence.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        The repo map does not carry this candidate skill's command sequence, so
+        no stale route required replacement.
+    - path: forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+      reason: >
+        The product source already delegates the onboarding firing point to the
+        candidate skill and carries no conflicting runtime command sequence.
+  stale_language_search: >
+    rg -n -i
+    "run_tiktok_creator_audience_triangulation\.py validate|scratch bundle,
+    prompt, and response|SUBSCRIPTION_JUDGMENT_REQUIRED|creator-audience-triangulation"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/skills
+    docs/workflows/forseti_repo_map_v0.md
+    forseti/product/spines/creator_signal
+  stale_language_search_result: >
+    Executed 2026-07-15 after the source edit. No obsolete validate command,
+    transient-response authority, or old terminal-status wording remains in
+    the checked live routing surfaces. Remaining candidate-name hits are the
+    updated skill, its adoption record, and the product source that delegates
+    the firing point to it.
+  non_claims:
+    - not validation
+    - not readiness
+    - not skill acceptance or deployment
+    - not resolver activation proof
+```

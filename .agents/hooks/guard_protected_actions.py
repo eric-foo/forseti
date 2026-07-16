@@ -7,17 +7,23 @@ must never take unattended:
   EP-01  writes/edits into protected external roots (jb, agent-workflow, and the
          user-level plugin/skill caches) — corrupting another repo/tooling.
   EP-03  irreversible / main-affecting git: blocks direct push to main,
-         force-push, and bare/ambiguous push, plus `reset --hard` / `clean` — via
-         Bash OR PowerShell. ALLOWS an explicit non-main, non-force lane push
-         (`git push -u origin <lane>`) so lanes can prep PRs under the per-lane PR
-         flow.
+          force-push, and bare/ambiguous push, plus `reset --hard` / `clean` — via
+          Bash OR PowerShell. It also blocks an explicit rebase (including
+          `pull --rebase`) once the current lane branch has been published, because
+          the resulting rewritten branch cannot be pushed under the no-force-push
+          policy. ALLOWS an explicit non-main, non-force lane push
+          (`git push -u origin <lane>`) so lanes can prep PRs under the per-lane PR
+          flow, and allows rebase recovery commands so an existing rebase is never
+          trapped.
          Landing a PR to main (`gh pr merge <N>`) is CONDITIONALLY allowed: the
          guard queries the PR and allows the merge ONLY when it is mergeStateStatus
          == CLEAN, every CI check has completed green, it carries the opt-in
-         `agent-automerge` label, AND the router did NOT flag it
-         `risk/manual-review-required` / `risk/blocked-for-merge-policy` (so a
-         governed deletion or protected-surface PR is never self-merged). Any other
-         state, a missing/ambiguous PR number, the lower-level `gh api .../merge`
+         `agent-automerge` label, the PR head matches the current lane branch,
+         and the router did NOT flag it `risk/blocked-for-merge-policy`.
+         `risk/manual-review-required` remains an unattended-bot exclusion and
+         completion/review signal; after those judgment gates close it does not
+         choose a human merge actor. Any other state, a missing/ambiguous PR number,
+         an `--admin` branch-protection bypass, the lower-level `gh api .../merge`
          form, or any lookup error/timeout FAILS CLOSED (blocks) — and the block
          message prints the repo-scoped manual `gh pr merge ... --repo` command a
          human can run from anywhere.
@@ -35,9 +41,10 @@ Dev-workflow doctrine:     docs/decisions/dev_workflow_ci_branch_protection_doct
 Placement principle:       .agents/workflow-overlay/validation-gates.md -> "Enforcement Placement"
 Per-rule classification:   docs/decisions/overlay_enforcement_placement_classification_v0.md
 
-Scope (deliberately narrow): `git commit` and an explicit lane-branch push are
-NOT blocked (reversible; required by the per-lane PR flow); generic file deletion
-is NOT blocked. Only the irreversible / main-affecting few are blocked.
+Scope (deliberately narrow): `git commit`, an explicit lane-branch push, and an
+unpublished-branch rebase are NOT blocked; generic file deletion is NOT blocked.
+Only the irreversible / main-affecting few and the mechanically identifiable
+published-branch history rewrite are blocked.
 Authorized exceptions: run the action yourself, or temporarily remove this hook.
 
 Contract: reads the PreToolUse JSON on stdin; exit 2 + stderr = BLOCK; exit 0 =
@@ -77,16 +84,18 @@ REPO_SLUG = _configured_repo_slug()
 # A PR without it never auto-merges (safe default). One-time repo setup to make
 # the label applyable: `gh label create agent-automerge --repo <configured-repo>`.
 AUTOMERGE_LABEL = "agent-automerge"
-# Router risk labels meaning "a human must land this" (deletions, protected
-# surfaces). The guard honors them so an in-session self-merge cannot override
-# the router's routing -- the same labels the unattended auto-merge bot already
-# respects. Closes the gap where a router-flagged PR (e.g. a governed deletion)
-# could still self-merge on CLEAN + green + agent-automerge alone.
-MANUAL_RISK_LABELS = ("risk/manual-review-required", "risk/blocked-for-merge-policy")
+# Router labels that represent a live mechanical policy block. The static
+# `risk/manual-review-required` label is deliberately absent: it keeps the
+# unattended bot out and signals a resident completion/review gate, but PR #938
+# says that risk no longer chooses a human merge actor after that gate closes.
+POLICY_BLOCK_LABELS = ("risk/blocked-for-merge-policy",)
 # Self-imposed ceiling on the PR-state `gh` call, kept below the hook's own
 # settings.json timeout so we fail CLOSED in-script rather than relying on the
 # harness's (unspecified) timeout-kill behavior.
 GH_TIMEOUT = 6
+# Local git-state probes are bounded independently so a damaged checkout cannot
+# turn a preventive check into tool-call latency. Probe failures fail open.
+GIT_TIMEOUT = 2
 # statusCheckRollup conclusions that count as "green" for a completed check.
 _OK_CONCLUSIONS = {"SUCCESS", "NEUTRAL", "SKIPPED"}
 
@@ -140,8 +149,18 @@ _GIT_PREFIX = r"\bgit\b(?:\s+-C\s+\S+|\s+-c\s+\S+|\s+--?\S+)*\s+"
 _RESET_HARD = re.compile(_GIT_PREFIX + r"reset\b[^&|;]*--hard\b", re.I)
 _CLEAN = re.compile(_GIT_PREFIX + r"clean\b", re.I)
 _PUSH = re.compile(_GIT_PREFIX + r"push\b(.*)$", re.I)
+_REBASE = re.compile(_GIT_PREFIX + r"rebase\b(.*)$", re.I)
+_PULL = re.compile(_GIT_PREFIX + r"pull\b(.*)$", re.I)
+_REBASE_RECOVERY = re.compile(
+    r"(?:^|\s)--(?:continue|abort|skip|quit|edit-todo|show-current-patch)\b", re.I
+)
+_PULL_REBASE = re.compile(
+    r"(?:^|\s)(?:--rebase(?:=(?!false(?:\s|$))\S*)?|-[A-Za-z]*r[A-Za-z]*)(?:\s|$)",
+    re.I,
+)
 _GH_PR_MERGE = re.compile(r"\bgh\s+pr\s+merge\b(.*)$", re.I)
 _GH_API_MERGE = re.compile(r"\bgh\s+api\b.*?(?:pulls?/\d+/merge|/merges)\b", re.I)
+_ADMIN_MERGE_FLAG = re.compile(r"(?<!\S)--admin(?:=\S+)?(?=\s|$)", re.I)
 # `--repo owner/name` / `-R owner/name` on a merge: the guard only ever queries
 # REPO_SLUG, so a merge explicitly aimed at a different repo cannot be verified
 # here and must fail closed (never auto-allowed on this guard's authority).
@@ -174,6 +193,51 @@ def _push_block_reason(rest):
     return None
 
 
+def _git_result(args):
+    """Return ``(returncode, stdout)`` for one bounded local git probe."""
+    try:
+        out = subprocess.run(
+            ["git"] + list(args), capture_output=True, text=True, timeout=GIT_TIMEOUT
+        )
+    except (OSError, subprocess.SubprocessError):
+        return 1, ""
+    return out.returncode, (out.stdout or "").strip()
+
+
+def _published_branch_ref(git_result=None):
+    """Return the matching remote branch ref when the current branch is published.
+
+    A branch merely tracking ``origin/main`` is still unpublished. Publication
+    requires either an upstream whose suffix exactly matches the local branch or
+    the conventional local ``origin/<branch>`` remote-tracking ref. All probe
+    failures return ``None`` so this preventive path fails open.
+    """
+    git_result = _git_result if git_result is None else git_result
+    rc, branch = git_result(["symbolic-ref", "--quiet", "--short", "HEAD"])
+    if rc != 0 or not branch:
+        return None
+    rc, upstream = git_result(
+        ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"]
+    )
+    if rc == 0 and upstream.endswith("/" + branch):
+        return upstream
+    rc, _ = git_result(
+        ["show-ref", "--verify", "--quiet", "refs/remotes/origin/" + branch]
+    )
+    return "origin/" + branch if rc == 0 else None
+
+
+def _history_rewrite_kind(seg):
+    """Name an explicit rebase-starting command; recovery forms return ``None``."""
+    match = _REBASE.search(seg)
+    if match and not _REBASE_RECOVERY.search(match.group(1)):
+        return "git rebase"
+    match = _PULL.search(seg)
+    if match and _PULL_REBASE.search(match.group(1)):
+        return "git pull --rebase"
+    return None
+
+
 # --- EP-03: conditional `gh pr merge` (CLEAN self-merge) -------------------
 def _parse_pr_ref(rest):
     """`rest` = text after `gh pr merge`. Return an explicit PR number string, or
@@ -203,28 +267,42 @@ def _check_ok(c):
     return False
 
 
+def _with_current_branch(state, git_result=None):
+    """Attach the fail-closed current-branch identity used by merge decisions."""
+    if git_result is None:
+        git_result = _git_result
+    rc, current_branch = git_result(
+        ["symbolic-ref", "--quiet", "--short", "HEAD"]
+    )
+    state["_currentBranch"] = current_branch if rc == 0 else None
+    return state
+
+
 def _query_pr_state(pr):
     """Real PR-state lookup: ONE repo-scoped `gh` call, self-timed below the hook
     budget. Returns the parsed JSON dict, or None on any non-zero exit (the caller
     wraps this in try/except and treats every failure as a CLOSED block)."""
     out = subprocess.run(
         ["gh", "pr", "view", str(pr), "--repo", REPO_SLUG,
-         "--json", "number,mergeStateStatus,statusCheckRollup,labels"],
+         "--json", ("number,mergeStateStatus,statusCheckRollup,labels,"
+                    "headRefName,baseRefName,isCrossRepository")],
         capture_output=True, text=True, timeout=GH_TIMEOUT,
     )
     if out.returncode != 0:
         return None
-    return json.loads(out.stdout or "")
+    return _with_current_branch(json.loads(out.stdout or ""))
 
 
 def _merge_decision(pr_ref, lookup):
     """Decide one `gh pr merge` segment. Return None to ALLOW, else a block reason.
 
     FAIL CLOSED: a missing/ambiguous PR number, any lookup error or timeout, a
-    non-CLEAN mergeStateStatus, an empty/non-green check set, a router
-    manual/blocked risk label, or a missing opt-in label all block. Only an
-    explicit, CLEAN, all-checks-green, `agent-automerge`-labeled PR that the
-    router did NOT flag for manual review is allowed to self-merge."""
+    non-main/fork PR, a PR whose head is not the current lane branch, a non-CLEAN
+    mergeStateStatus, an empty/non-green check set, a router policy-block label,
+    or a missing opt-in label all block. Only an explicit own-lane, CLEAN,
+    all-checks-green, `agent-automerge`-labeled PR without a live mechanical
+    policy block is allowed to self-merge. Static manual-review routing remains
+    a resident completion gate, not a merge-actor selector."""
     if not pr_ref:
         return ("EP-03 merge blocked - needs an explicit PR number "
                 "(`gh pr merge <N>`); a no-arg / branch-name merge fails closed")
@@ -235,6 +313,18 @@ def _merge_decision(pr_ref, lookup):
     if not state:
         return ("EP-03 merge blocked - PR %s mergeability lookup failed "
                 "(fail-closed)" % pr_ref)
+    if state.get("isCrossRepository") is not False:
+        return ("EP-03 merge blocked - PR %s is cross-repository or its "
+                "repository identity is unverified" % pr_ref)
+    if state.get("baseRefName") != "main":
+        return ("EP-03 merge blocked - PR %s targets base '%s', not main"
+                % (pr_ref, state.get("baseRefName") or "?"))
+    head_branch = state.get("headRefName")
+    current_branch = state.get("_currentBranch")
+    if not head_branch or not current_branch or head_branch != current_branch:
+        return ("EP-03 merge blocked - PR %s head branch '%s' does not match "
+                "the current lane branch '%s' (own-lane check)"
+                % (pr_ref, head_branch or "?", current_branch or "?"))
     mss = state.get("mergeStateStatus")
     if mss != "CLEAN":
         return ("EP-03 merge blocked - PR %s mergeStateStatus=%s, not CLEAN"
@@ -247,24 +337,25 @@ def _merge_decision(pr_ref, lookup):
         return ("EP-03 merge blocked - PR %s has non-green or pending checks"
                 % pr_ref)
     labels = {(l or {}).get("name") for l in (state.get("labels") or [])}
-    blocking = sorted(labels & set(MANUAL_RISK_LABELS))
+    blocking = sorted(labels & set(POLICY_BLOCK_LABELS))
     if blocking:
-        return ("EP-03 merge blocked - PR %s carries router label '%s'; it must be "
-                "landed by a human (deletion / protected surface), not self-merged"
+        return ("EP-03 merge blocked - PR %s carries live merge-policy block '%s'"
                 % (pr_ref, blocking[0]))
     if AUTOMERGE_LABEL not in labels:
         return ("EP-03 merge blocked - PR %s missing opt-in label '%s'"
                 % (pr_ref, AUTOMERGE_LABEL))
-    return None  # CLEAN + green + opt-in label + no manual-risk label → allow self-merge
+    return None  # own lane + CLEAN + green + opt-in + no policy block → allow
 
 
-def _shell_block_reason(cmd, lookup=None):
+def _shell_block_reason(cmd, lookup=None, publication_lookup=None):
     """Return an EP-03 block reason for a shell command, or None to allow.
 
-    `lookup` is the PR-state fetcher (injected so --selftest stays offline);
-    defaults to the real `gh` query."""
+    `lookup` is the PR-state fetcher and `publication_lookup` identifies a
+    published current branch. Both are injectable so --selftest stays offline."""
     if lookup is None:
         lookup = _query_pr_state
+    if publication_lookup is None:
+        publication_lookup = _published_branch_ref
     cmd = _QUOTED.sub(" ", cmd or "")
     for seg in _SEP.split(cmd):
         seg = seg.strip()
@@ -278,6 +369,9 @@ def _shell_block_reason(cmd, lookup=None):
         m = _GH_PR_MERGE.search(seg)
         if m:
             rest = m.group(1)
+            if _ADMIN_MERGE_FLAG.search(rest):
+                return ("EP-03 merge blocked - `gh pr merge --admin` bypasses "
+                        "branch protection and is never agent-authorized")
             rflag = _REPO_FLAG.search(rest)
             if rflag and rflag.group(1).lower() != REPO_SLUG.lower():
                 return ("EP-03 merge blocked - targets a different repo (%s); "
@@ -291,6 +385,18 @@ def _shell_block_reason(cmd, lookup=None):
             return "EP-03 destructive (git reset --hard): %s" % seg[:160]
         if _CLEAN.search(seg):
             return "EP-03 destructive (git clean): %s" % seg[:160]
+        rewrite = _history_rewrite_kind(seg)
+        if rewrite:
+            try:
+                published_ref = publication_lookup()
+            except Exception:
+                published_ref = None
+            if published_ref:
+                return (
+                    "EP-03 published-branch history rewrite blocked (%s; %s): %s. "
+                    "Fetch main, then merge origin/main into the lane branch instead"
+                    % (rewrite, published_ref, seg[:160])
+                )
         m = _PUSH.search(seg)
         if m:
             why = _push_block_reason(m.group(1))
@@ -299,10 +405,11 @@ def _shell_block_reason(cmd, lookup=None):
     return None
 
 
-def decide(tool_name, tool_input, lookup=None):
+def decide(tool_name, tool_input, lookup=None, publication_lookup=None):
     """Decision. Returns (block: bool, reason: str). EP-01 (write paths) is pure;
-    the EP-03 merge path may consult `lookup` (the PR-state fetcher, injected in
-    tests, real `gh` query in production)."""
+    the EP-03 merge path may consult `lookup`, while the published-rebase path
+    may consult `publication_lookup`; both are injected in tests and use bounded
+    real probes in production."""
     tool_input = tool_input or {}
     if tool_name in WRITE_TOOLS:
         target = (tool_input.get("file_path")
@@ -312,7 +419,9 @@ def decide(tool_name, tool_input, lookup=None):
         if hit:
             return True, "EP-01 protected-path write: %s (under %s)" % (target, hit)
     elif tool_name in SHELL_TOOLS:
-        reason = _shell_block_reason(tool_input.get("command", "") or "", lookup)
+        reason = _shell_block_reason(
+            tool_input.get("command", "") or "", lookup, publication_lookup
+        )
         if reason:
             return True, reason
     return False, ""
@@ -323,12 +432,14 @@ _BLOCK_MSG = (
     "Reason: %s\n"
     "%s"
     "Authority: .agents/workflow-overlay/safety-rules.md + dev-workflow doctrine "
-    "(push-to-main / force-push / destructive-clean are blocked, and edits to "
+    "(push-to-main / force-push / destructive-clean / published-branch rebase are "
+    "blocked, and edits to "
     "jb/external/installed skills, unless explicitly authorized; `gh pr merge <N>` "
     "self-merge is allowed ONLY for a CLEAN + CI-green + '" + AUTOMERGE_LABEL +
     "'-labeled PR). Fires in all modes incl. auto.\n"
     "Authorized exception: a human lands the PR with the command above, or remove "
-    "this hook. An explicit lane push `git push -u origin <lane>` is allowed."
+    "this hook. An explicit lane push `git push -u origin <lane>` is allowed; "
+    "published lanes update from main with fetch + merge, not rebase."
 )
 
 # --- selftest ---------------------------------------------------------------
@@ -355,9 +466,34 @@ def _selftest():
                 "labels": [{"name": AUTOMERGE_LABEL}]},              # review/required-check block
         "106": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
                 "labels": [{"name": AUTOMERGE_LABEL},
-                           {"name": "risk/manual-review-required"}]},  # router-flagged -> human only
+                           {"name": "risk/manual-review-required"}]},  # review complete -> author may land
+        "107": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL},
+                           {"name": "risk/blocked-for-merge-policy"}]}, # live policy block
+        "108": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "headRefName": "codex/another-lane"},                  # not current lane
+        "109": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "isCrossRepository": True},                           # fork
+        "110": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "baseRefName": "release"},                            # non-main base
+        "111": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "headRefName": None},                                 # missing PR head identity
+        "112": {"mergeStateStatus": "CLEAN", "statusCheckRollup": [_green],
+                "labels": [{"name": AUTOMERGE_LABEL}],
+                "_currentBranch": None},                              # detached/unresolved checkout
     }
+    for _state in _FAKE.values():
+        _state.setdefault("headRefName", "codex/example-lane")
+        _state.setdefault("baseRefName", "main")
+        _state.setdefault("isCrossRepository", False)
+        _state.setdefault("_currentBranch", "codex/example-lane")
     _fake = lambda pr: _FAKE.get(str(pr))            # unknown PR -> None -> fail closed
+    _published = lambda: "origin/codex/example-lane"
+    _unpublished = lambda: None
 
     def _raises(pr):                                 # lookup error -> fail closed
         raise RuntimeError("simulated gh/network failure")
@@ -372,13 +508,21 @@ def _selftest():
         ("Bash", {"command": "gh pr merge 103"}, True, _fake),                            # pending check
         ("Bash", {"command": "gh pr merge 104"}, True, _fake),                            # empty checkset
         ("Bash", {"command": "gh pr merge 105"}, True, _fake),                            # BLOCKED
-        ("Bash", {"command": "gh pr merge 106"}, True, _fake),                            # router manual-review label -> human only
+        ("Bash", {"command": "gh pr merge 106"}, False, _fake),                           # manual-review label does not choose actor
+        ("Bash", {"command": "gh pr merge 107"}, True, _fake),                            # live policy block
+        ("Bash", {"command": "gh pr merge 108"}, True, _fake),                            # another lane's PR
+        ("Bash", {"command": "gh pr merge 109"}, True, _fake),                            # fork
+        ("Bash", {"command": "gh pr merge 110"}, True, _fake),                            # non-main base
+        ("Bash", {"command": "gh pr merge 111"}, True, _fake),                            # missing PR head
+        ("Bash", {"command": "gh pr merge 112"}, True, _fake),                            # detached/unresolved checkout
         ("Bash", {"command": "gh pr merge 999"}, True, _fake),                            # unknown PR -> lookup None
         ("Bash", {"command": "gh pr merge 100"}, True, _raises),                          # lookup raises -> fail closed
         ("PowerShell", {"command": "gh pr merge"}, True, _fake),                          # no explicit PR number
         ("Bash", {"command": "gh pr merge 9 --squash"}, True, _fake),                     # 9 not in fake -> fail closed
         ("Bash", {"command": f"gh api -X PUT repos/{REPO_SLUG}/pulls/9/merge"}, True, _fake),  # api form always manual
         ("Bash", {"command": f"gh pr merge 100 --repo {REPO_SLUG} --squash"}, False, _fake),  # explicit own-repo -> ALLOW
+        ("Bash", {"command": "gh pr merge 100 --admin"}, True, _fake),                    # branch-protection bypass
+        ("Bash", {"command": "gh pr merge --admin 100"}, True, _fake),                    # flag-before-number bypass
         ("Bash", {"command": "gh pr merge 100 --repo someone/else"}, True, _fake),        # foreign repo -> fail closed
         ("Bash", {"command": "gh pr merge 100 -R other/repo"}, True, _fake),              # foreign repo (-R) -> fail closed
         ("Bash", {"command": "gh pr merge 100 && git push origin main"}, True, _fake),    # merge ALLOWED, push-to-main still blocks
@@ -394,6 +538,11 @@ def _selftest():
         ("Bash", {"command": "git -C . reset --hard HEAD~1"}, True),
         ("PowerShell", {"command": "git clean -fd"}, True),
         ("Bash", {"command": "git reset HEAD~1 --hard"}, True),
+        # EP-03 block: a published lane cannot be rewritten under no-force-push.
+        ("Bash", {"command": "git rebase origin/main"}, True, _fake, _published),
+        ("PowerShell", {"command": "git pull --rebase origin main"}, True, _fake, _published),
+        ("Bash", {"command": "git pull --rebase=merges origin main"}, True, _fake, _published),
+        ("Bash", {"command": "git pull -r origin main"}, True, _fake, _published),
         # EP-01 block: protected paths
         ("Write", {"file_path": j("Desktop", "projects", "jb", "x.md")}, True),
         ("Write", {"file_path": j("Desktop", "projects", "jb nonrepo", "x.md")}, True),
@@ -413,6 +562,14 @@ def _selftest():
         ("Bash", {"command": "git status"}, False),
         ("Bash", {"command": "git commit -m 'x'"}, False),
         ("Bash", {"command": "git log --grep=push"}, False),
+        # ALLOW: unpublished rebase, explicit merge route, and rebase recovery.
+        ("Bash", {"command": "git rebase origin/main"}, False, _fake, _unpublished),
+        ("Bash", {"command": "git merge --no-edit origin/main"}, False, _fake, _published),
+        ("Bash", {"command": "git rebase --continue"}, False, _fake, _published),
+        ("Bash", {"command": "git rebase --abort"}, False, _fake, _published),
+        ("Bash", {"command": "git pull --rebase=false origin main"}, False, _fake, _published),
+        ("Bash", {"command": "git pull --no-rebase origin main"}, False, _fake, _published),
+        ("Bash", {"command": "echo 'git rebase origin/main'"}, False, _fake, _published),
         ("Write", {"file_path": j("Desktop", "projects", "orca", "docs", "x.md")}, False),
         ("Edit", {"file_path": j("Desktop", "projects", "orca", ".claude", "skills", "forseti-product-lead", "SKILL.md")}, False),
         ("Edit", {"file_path": j("Desktop", "projects", "orca", ".claude", "skills", "orca-product-lead", "SKILL.md")}, False),
@@ -421,12 +578,69 @@ def _selftest():
     ok = True
     for i, (tn, ti, expect, *rest) in enumerate(cases, 1):
         lookup = rest[0] if rest else _fake
-        got, reason = decide(tn, ti, lookup=lookup)
+        publication_lookup = rest[1] if len(rest) > 1 else _unpublished
+        got, reason = decide(
+            tn, ti, lookup=lookup, publication_lookup=publication_lookup
+        )
         status = "PASS" if got == expect else "FAIL"
         if got != expect:
             ok = False
         print("%s case %02d  %-12s expect_block=%-5s got=%-5s  %s"
               % (status, i, tn, expect, got, reason or ""))
+    def _fake_git(mapping):
+        return lambda args: mapping.get(tuple(args), (1, ""))
+
+    publication_cases = [
+        (
+            {
+                ("symbolic-ref", "--quiet", "--short", "HEAD"): (0, "codex/lane"),
+                ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+                    (0, "origin/codex/lane"),
+            },
+            "origin/codex/lane",
+        ),
+        (
+            {
+                ("symbolic-ref", "--quiet", "--short", "HEAD"): (0, "codex/lane"),
+                ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+                    (0, "origin/main"),
+            },
+            None,
+        ),
+        (
+            {
+                ("symbolic-ref", "--quiet", "--short", "HEAD"): (0, "codex/lane"),
+                ("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"):
+                    (0, "origin/main"),
+                ("show-ref", "--verify", "--quiet", "refs/remotes/origin/codex/lane"):
+                    (0, ""),
+            },
+            "origin/codex/lane",
+        ),
+    ]
+    for i, (mapping, expect) in enumerate(publication_cases, 1):
+        got = _published_branch_ref(_fake_git(mapping))
+        passed = got == expect
+        ok = ok and passed
+        print("%s publication case %02d expect=%r got=%r"
+              % ("PASS" if passed else "FAIL", i, expect, got))
+    branch_identity_cases = [
+        (
+            {("symbolic-ref", "--quiet", "--short", "HEAD"):
+                 (0, "codex/example-lane")},
+            "codex/example-lane",
+        ),
+        (
+            {("symbolic-ref", "--quiet", "--short", "HEAD"): (1, "")},
+            None,
+        ),
+    ]
+    for i, (mapping, expect) in enumerate(branch_identity_cases, 1):
+        got = _with_current_branch({}, _fake_git(mapping)).get("_currentBranch")
+        passed = got == expect
+        ok = ok and passed
+        print("%s branch-identity case %02d expect=%r got=%r"
+              % ("PASS" if passed else "FAIL", i, expect, got))
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 

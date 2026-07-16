@@ -38,7 +38,7 @@ from source_capture.models import (
 from source_capture.writer import write_local_source_capture_packet
 
 _CAPTURE_TIME = "2026-06-28T18:57:58Z"
-_BASENOTES_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_BASENOTES_SURFACE = "basenotes_product_page_user_cleared_persistent_chrome_current_window"
 _PARFUMO_DIRECT_SURFACE = "parfumo_product_page_direct_http"
 _PARFUMO_RENDERED_SURFACE = "parfumo_product_page_chrome_extension_targeted_rendered_session"
 
@@ -203,6 +203,9 @@ def test_output_shaping_policy_tokens_are_in_obligation() -> None:
         frag_runner.REVIEW_TEXT_NORMALIZATION_RULE
     )
     assert obligation["review_vote_carry_rule"] == frag_runner.REVIEW_VOTE_CARRY_RULE
+    assert obligation["review_vote_policy_version"] == (
+        frag_runner.FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION
+    )
     assert obligation["review_vote_metric_specs"] == [
         list(spec) for spec in frag_runner._REVIEW_VOTE_METRIC_SPECS
     ]
@@ -253,6 +256,31 @@ def test_cleaning_method_policy_bump_resurfaces_and_rederives(tmp_path, monkeypa
     assert {ack["obligation"]["cleaning_method_id"] for ack in acks} == {
         original_method,
         "method-vnext",
+    }
+
+
+def test_review_vote_policy_bump_resurfaces_and_rederives(tmp_path, monkeypatch) -> None:
+    data_root = DataLakeRoot.for_test(tmp_path / "lake")
+    pid = _commit_family_packet(data_root, tmp_path)
+    original_policy = frag_runner.FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION
+
+    first = run_catchup(data_root=data_root)
+    assert [r["status"] for r in first] == ["derived"]
+    assert run_catchup(data_root=data_root) == []
+
+    monkeypatch.setattr(
+        frag_runner,
+        "FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION",
+        "fragrantica_review_vote_valid_ordinal_vnext",
+    )
+    third = run_catchup(data_root=data_root)
+    assert [r["status"] for r in third] == ["derived"]
+    assert third[0]["audit_record_id"] != first[0]["audit_record_id"]
+
+    acks = find_acks(data_root, raw_anchor=pid, ack_namespace=FRAGRANTICA_CLEANING_AUDIT_LANE)
+    assert {ack["obligation"]["review_vote_policy_version"] for ack in acks} == {
+        original_policy,
+        "fragrantica_review_vote_valid_ordinal_vnext",
     }
 
 

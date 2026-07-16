@@ -3,7 +3,7 @@
 Implements the field-level contract
 ``core_spine_v0_data_lake_metric_family_share_of_voice_field_contract_v0.md``
 under the consumption seam contract's on-demand-first metrics policy: the
-readout is COMPUTED ON DEMAND from committed ``silver__cleaning__product_mentions``
+readout is COMPUTED ON DEMAND from committed ``transcript_product_mentions_silver``
 records (never from another index), and may optionally be materialized as a
 rebuildable, manifest-backed, non-authoritative cache under
 ``indexes/derived_retrieval/metric_family/<family>/<readout_id>/`` subject to
@@ -44,15 +44,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from data_lake.canonical_json import canonical_record_bytes
-from data_lake.derived_retrieval_views import MENTIONS_LANE, generation_stamp
-from data_lake.root import DataLakeRootError
-from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
-    silver_record_source_backed_status,
+from data_lake.derived_retrieval_views import generation_stamp
+from data_lake.product_mention_selection import (
+    MENTIONS_LANE,
+    ProductMentionPolicyError,
+    normalize_product_mention_policy,
+    select_product_mention_records,
 )
+from data_lake.root import DataLakeRootError
+from data_lake.silver_record import PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS
 
 METRIC_FAMILY = "source_backed_brand_line_share_of_voice"
-FAMILY_SCHEMA_VERSION = 1
+FAMILY_SCHEMA_VERSION = 2
 SOV_MANIFEST_SCHEMA_VERSION = 1
 GROUPING_BASIS = "exact_string_v0"
 DENOMINATOR_BASIS = "captured_source_backed_mentions_only"
@@ -172,6 +175,13 @@ def normalize_sov_spec(spec: object) -> dict:
     if start_ts > end_ts:
         raise SovSpecError("coverage_window.start must be <= coverage_window.end")
 
+    try:
+        product_mention_policy = normalize_product_mention_policy(
+            spec.get("product_mention_policy")
+        )
+    except ProductMentionPolicyError as exc:
+        raise SovSpecError(f"invalid product_mention_policy: {exc}") from exc
+
     normalized = {
         "metric_family": METRIC_FAMILY,
         "family_schema_version": FAMILY_SCHEMA_VERSION,
@@ -188,6 +198,7 @@ def normalize_sov_spec(spec: object) -> dict:
         "cohort_selection": _require_non_empty_str(
             spec.get("cohort_selection"), "cohort_selection"
         ),
+        "product_mention_policy": product_mention_policy,
     }
     if spec.get("comparison_set") is not None:
         normalized["comparison_set"] = _normalize_comparison_set(spec["comparison_set"])
@@ -293,109 +304,98 @@ def compute_sov_readout(root, spec: dict) -> tuple[dict, list[str]]:
     member_refs = normalized["cohort"]["member_refs"]
     member_keys = {(m["namespace"], m["kind"], m["native_id"]) for m in member_refs}
 
-    timing_cache: dict[str, dict] = {}
-    source_refs: list[str] = []
-    counted: dict[tuple[str, str], list[dict]] = {}
-    rubric_versions: set[str] = set()
+    selection = select_product_mention_records(
+        root,
+        policy=normalized["product_mention_policy"],
+    )
+    residual_counts: dict[str, int] = {}
+    for residual in selection.residuals:
+        status = str(residual["status"])
+        residual_counts[status] = residual_counts.get(status, 0) + 1
 
+    timing_cache: dict[str, dict] = {}
+    source_refs = list(selection.source_refs)
+    counted: dict[tuple[str, str], list[dict]] = {}
     packets_in_scope: set[str] = set()
     packets_with_transcripts: set[str] = set()
     members_with_records: set[tuple[str, str, str]] = set()
-    members_with_gated_records: set[tuple[str, str, str]] = set()
     mention_records_in_scope = 0
-    excluded_not_source_backed = 0
     window_basis_missing = 0
     zero_mention_records = 0
-    unreadable_lane_records = 0
     malformed_mention_entries = 0
 
-    for raw_anchor in sorted(root.list_available()):
-        lane_dir = root.lane_dir(subtree="derived", raw_anchor=raw_anchor, lane=MENTIONS_LANE)
-        if not lane_dir.is_dir():
+    for selected in selection.selected:
+        raw_anchor = selected.raw_anchor
+        record = selected.record
+        source_object = record.get("source_object")
+        if not isinstance(source_object, dict):
             continue
-        for record_file in sorted(p for p in lane_dir.iterdir() if p.is_file()):
-            body = record_file.read_bytes()
-            source_refs.append(f"{raw_anchor}/{MENTIONS_LANE}/{record_file.name}")
-            try:
-                record = json.loads(body.decode("utf-8"))
-            except ValueError:
-                record = None
-            if not isinstance(record, dict):
-                # Unattributable to any cohort; disclosed lake-wide, never dropped silently.
-                unreadable_lane_records += 1
+        member_key = (
+            str(source_object.get("namespace") or ""),
+            str(source_object.get("kind") or ""),
+            str(source_object.get("native_id") or ""),
+        )
+        if member_key not in member_keys:
+            continue
+        mention_records_in_scope += 1
+        packets_in_scope.add(raw_anchor)
+        members_with_records.add(member_key)
+        packets_with_transcripts.add(raw_anchor)
+        ts = _basis_timestamp(record, _packet_timing(root, raw_anchor, timing_cache), basis)
+        if ts is None:
+            window_basis_missing += 1
+            continue
+        if not (window_start <= ts <= window_end):
+            continue
+        payload = record.get("payload")
+        observation = payload.get("observation") if isinstance(payload, dict) else None
+        text_rows = observation.get("rows") if isinstance(observation, dict) else None
+        if not isinstance(text_rows, list):
+            if text_rows is not None:
+                malformed_mention_entries += 1
+            text_rows = []
+        mentions = [row.get("mention") for row in text_rows if isinstance(row, dict)]
+        if not mentions:
+            zero_mention_records += 1
+            continue
+        for mention in mentions:
+            well_formed = _well_formed_mention(mention)
+            if well_formed is None:
+                malformed_mention_entries += 1
                 continue
-            source_object = record.get("source_object")
-            if not isinstance(source_object, dict):
-                continue  # no source-local identity -> not claimable by any declared cohort
-            member_key = (
-                str(source_object.get("namespace") or ""),
-                str(source_object.get("kind") or ""),
-                str(source_object.get("native_id") or ""),
+            counted.setdefault((well_formed["brand"], well_formed["line"]), []).append(
+                {
+                    "raw_anchor": raw_anchor,
+                    "lane": MENTIONS_LANE,
+                    "record_id": selected.record_id,
+                    "sha256": selected.sha256,
+                    "mention_id": well_formed["mention_id"],
+                    "source_pointer": well_formed["source_pointer"],
+                    "start_ms": well_formed["start_ms"],
+                    "end_ms": well_formed["end_ms"],
+                }
             )
-            if member_key not in member_keys:
-                continue  # out of the declared cohort scope
-            mention_records_in_scope += 1
-            packets_in_scope.add(raw_anchor)
-            members_with_records.add(member_key)
-            status = silver_record_source_backed_status(record)
-            if status != SOURCE_BACKED_COMPLETE_STATUS:
-                excluded_not_source_backed += 1
-                continue
-            members_with_gated_records.add(member_key)
-            packets_with_transcripts.add(raw_anchor)
-            ts = _basis_timestamp(record, _packet_timing(root, raw_anchor, timing_cache), basis)
-            if ts is None:
-                window_basis_missing += 1
-                continue
-            if not (window_start <= ts <= window_end):
-                continue  # outside the declared window: excluded by definition, not a residual
-            rubric_versions.add(str(record.get("rubric_version") or "unversioned"))
-            sha256 = hashlib.sha256(body).hexdigest()
-            mentions = record.get("mentions")
-            if not isinstance(mentions, list):
-                if mentions is not None:
-                    malformed_mention_entries += 1
-                mentions = []
-            if not mentions:
-                zero_mention_records += 1
-                continue
-            for mention in mentions:
-                well_formed = _well_formed_mention(mention)
-                if well_formed is None:
-                    malformed_mention_entries += 1
-                    continue
-                counted.setdefault((well_formed["brand"], well_formed["line"]), []).append(
-                    {
-                        "raw_anchor": raw_anchor,
-                        "lane": MENTIONS_LANE,
-                        "record_id": record_file.name,
-                        "sha256": sha256,
-                        "mention_id": well_formed["mention_id"],
-                        "source_pointer": well_formed["source_pointer"],
-                        "start_ms": well_formed["start_ms"],
-                        "end_ms": well_formed["end_ms"],
-                    }
-                )
 
     denominator = sum(len(refs) for refs in counted.values())
     coverage = {
         "packets_in_scope": len(packets_in_scope),
         "packets_with_transcripts": len(packets_with_transcripts),
         "mention_records_in_scope": mention_records_in_scope,
-        "mention_records_excluded_not_source_backed": excluded_not_source_backed,
+        "product_mention_policy": selection.policy,
+        "selection_residual_count_lake_wide": len(selection.residuals),
+        "selection_residuals_by_status": dict(sorted(residual_counts.items())),
         "window_basis_missing": window_basis_missing,
         "source_objects_in_scope": len(member_refs),
-        "source_objects_with_transcripts": len(members_with_gated_records),
+        "source_objects_with_transcripts": len(members_with_records),
         "source_backed_records_with_zero_mentions": zero_mention_records,
         "cohort_selection_residuals": {
             "members_without_committed_records": len(member_refs) - len(members_with_records)
         },
-        "unreadable_mention_lane_records": unreadable_lane_records,
         "malformed_mention_entries": malformed_mention_entries,
     }
     selection_policy_versions = {
-        "extractor_rubric_versions": sorted(rubric_versions),
-        "silver_lineage_gate": SOURCE_BACKED_COMPLETE_STATUS,
+        "product_mention_policy": selection.policy,
+        "silver_lineage_gate": PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
         "family_schema_version": FAMILY_SCHEMA_VERSION,
         "brand_grouping": GROUPING_BASIS,
         "cohort_selection": normalized["cohort_selection"],
@@ -408,6 +408,7 @@ def compute_sov_readout(root, spec: dict) -> tuple[dict, list[str]]:
         "metric_family": METRIC_FAMILY,
         "family_schema_version": FAMILY_SCHEMA_VERSION,
         "platform": platform,
+        "product_mention_policy": selection.policy,
         "cohort": {
             **normalized["cohort"],
             "member_count": len(member_refs),
@@ -424,13 +425,12 @@ def compute_sov_readout(root, spec: dict) -> tuple[dict, list[str]]:
     if denominator == 0:
         # An empty scope is a posture, never a table of zeros: no share rows,
         # no denominator field, no comparison zero rows.
-        gated_count = mention_records_in_scope - excluded_not_source_backed
-        if gated_count == 0:
-            reason = "no_source_backed_mention_records_in_scope"
-        elif window_basis_missing == gated_count:
-            reason = "window_basis_missing_for_all_source_backed_records_in_scope"
+        if mention_records_in_scope == 0:
+            reason = "no_exact_policy_mention_records_in_scope"
+        elif window_basis_missing == mention_records_in_scope:
+            reason = "window_basis_missing_for_all_exact_policy_records_in_scope"
         else:
-            reason = "no_source_backed_mentions_in_window"
+            reason = "no_exact_policy_mentions_in_window"
         view["readout_posture"] = "unavailable_with_reason"
         view["readout_reason"] = reason
         view["rows"] = []

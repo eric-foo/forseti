@@ -1,10 +1,10 @@
-"""Gate-opened ``indexes/derived_retrieval`` object-level view builder.
+"""Gate-opened Silver Vault generated-read-model builder.
 
 Builds the two currently-buildable views the 2026-06-25 gate opening named
 (``undone``, ``by_mention``; ``by_creator`` stays deferred behind the
-audience-silver lake wiring), as rebuildable JSON caches under
-``indexes/derived_retrieval/object_level/<view>/`` with a per-view manifest
-carrying the Silver Vault read-model obligations. Contract:
+audience-silver lake wiring), as rebuildable JSON query tables under the Silver
+Vault contract-owned ``indexes/derived_retrieval/silver_vault/core/`` home,
+with paired manifest rows carrying the read-model obligations. Contract:
 ``core_spine_v0_data_lake_consumption_seam_contract_v0.md`` (Rebuild Command
 Binding section); command shape pinned by the derived-layout contract.
 
@@ -26,8 +26,8 @@ Invariants enforced here:
   itself).
 
 Writes follow the incumbent generated-index pattern (``data_lake.catalog``):
-``root._reverify()`` + ``root._within(...)`` + wipe-and-rewrite of the
-rebuildable tier. No behavior is added to ``DataLakeRoot``.
+``root._reverify()`` + ``root._within(...)`` + replacement of only the two
+owned generated views. No behavior is added to ``DataLakeRoot``.
 """
 from __future__ import annotations
 
@@ -42,20 +42,20 @@ from typing import Any
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.consumption import iter_all_acks
 from data_lake.lane_registry import LANE_ROLES
-from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
-    silver_record_source_backed_status,
+from data_lake.product_mention_selection import (
+    MENTIONS_LANE,
+    normalize_product_mention_policy,
+    select_product_mention_records,
 )
+from data_lake.silver_record import PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS
 
-VIEW_SCHEMA_VERSION = 1
+UNDONE_VIEW_SCHEMA_VERSION = 1
+BY_MENTION_VIEW_SCHEMA_VERSION = 2
+VIEW_SCHEMA_VERSION = BY_MENTION_VIEW_SCHEMA_VERSION
 MANIFEST_SCHEMA_VERSION = 1
-OBJECT_LEVEL_PARTS = ("indexes", "derived_retrieval", "object_level")
+SILVER_VAULT_CORE_PARTS = ("indexes", "derived_retrieval", "silver_vault", "core")
 BUILT_VIEWS = ("by_mention", "undone")
 
-# The mentions lane the by_mention view indexes. String mirrored from the
-# CI-guarded lane registry (asserted below) rather than imported from
-# cleaning/, which would invert the base-layer boundary.
-MENTIONS_LANE = "silver__cleaning__product_mentions"
 assert MENTIONS_LANE in LANE_ROLES, "by_mention source lane must stay registered"
 
 _UNDONE_SEMANTICS = (
@@ -84,7 +84,7 @@ def build_undone_view(root) -> tuple[dict, list[str]]:
         ack_refs.append(f"{raw_anchor}/{namespace}/{ack.get('obligation_fingerprint', '')}")
     view = {
         "view": "undone",
-        "view_schema_version": VIEW_SCHEMA_VERSION,
+        "view_schema_version": UNDONE_VIEW_SCHEMA_VERSION,
         "semantics": _UNDONE_SEMANTICS,
         "zero_rows_meaning": (
             "zero ack records for the namespace — NOT current-obligation satisfied; "
@@ -104,90 +104,86 @@ def build_undone_view(root) -> tuple[dict, list[str]]:
     return view, source_refs
 
 
-def build_by_mention_view(root) -> tuple[dict, list[str]]:
-    """The by_mention view body plus the source refs its manifest must cite."""
+def build_by_mention_view(
+    root,
+    *,
+    product_mention_policy: dict[str, str],
+) -> tuple[dict, list[str]]:
+    """The exact-policy by_mention view plus every non-evidence residual."""
+    selection = select_product_mention_records(root, policy=product_mention_policy)
     mentions: dict[str, dict[str, list[dict]]] = {}
-    residuals: list[dict] = []
-    source_refs: list[str] = []
-    for raw_anchor in sorted(root.list_available()):
-        lane_dir = root.lane_dir(subtree="derived", raw_anchor=raw_anchor, lane=MENTIONS_LANE)
-        if not lane_dir.is_dir():
-            continue
-        for record_file in sorted(p for p in lane_dir.iterdir() if p.is_file()):
-            body = record_file.read_bytes()
-            source_refs.append(f"{raw_anchor}/{MENTIONS_LANE}/{record_file.name}")
-            try:
-                record = json.loads(body.decode("utf-8"))
-            except ValueError:
-                record = None
-            if not isinstance(record, dict):
-                residuals.append(
-                    {"raw_anchor": raw_anchor, "record_id": record_file.name, "status": "unreadable"}
-                )
+    for selected in selection.selected:
+        ref = {
+            "raw_anchor": selected.raw_anchor,
+            "lane": MENTIONS_LANE,
+            "record_id": selected.record_id,
+            "sha256": selected.sha256,
+        }
+        payload = selected.record.get("payload")
+        observation = payload.get("observation") if isinstance(payload, dict) else None
+        rows = observation.get("rows") if isinstance(observation, dict) else []
+        for row in rows or []:
+            mention = row.get("mention") if isinstance(row, dict) else None
+            if not isinstance(mention, dict):
                 continue
-            status = silver_record_source_backed_status(record)
-            if status != SOURCE_BACKED_COMPLETE_STATUS:
-                # Read-side Silver lineage gate: named residual, never evidence.
-                residuals.append(
-                    {"raw_anchor": raw_anchor, "record_id": record_file.name, "status": status}
-                )
-                continue
-            sha256 = hashlib.sha256(body).hexdigest()
-            ref = {
-                "raw_anchor": raw_anchor,
-                "lane": MENTIONS_LANE,
-                "record_id": record_file.name,
-                "sha256": sha256,
-            }
-            for mention in record.get("mentions") or []:
-                if not isinstance(mention, dict):
-                    continue
-                brand = str(mention.get("brand") or "unknown")
-                line = str(mention.get("line") or "")
-                refs = mentions.setdefault(brand, {}).setdefault(line, [])
-                if ref not in refs:
-                    refs.append(ref)
+            brand = str(mention.get("brand") or "unknown")
+            line = str(mention.get("line") or "")
+            refs = mentions.setdefault(brand, {}).setdefault(line, [])
+            if ref not in refs:
+                refs.append(ref)
     view = {
         "view": "by_mention",
-        "view_schema_version": VIEW_SCHEMA_VERSION,
+        "view_schema_version": BY_MENTION_VIEW_SCHEMA_VERSION,
+        "selection_policy": selection.policy,
         "semantics": (
-            "exact (brand, line) strings from source-backed-complete "
-            f"{MENTIONS_LANE} records -> committed record refs; residuals are "
-            "records failing the read-side Silver lineage gate and are not evidence"
+            "exact (brand, line) strings from exact-policy, source-backed-complete "
+            f"{MENTIONS_LANE} records -> committed record refs; residuals are non-evidence"
         ),
         "mentions": {
             brand: {line: refs for line, refs in sorted(lines.items())}
             for brand, lines in sorted(mentions.items())
         },
-        "residuals": sorted(
-            residuals, key=lambda r: (r["raw_anchor"], r["record_id"])
-        ),
-        "residual_count": len(residuals),
+        "selected_record_count": len(selection.selected),
+        "residuals": list(selection.residuals),
+        "residual_count": len(selection.residuals),
     }
-    return view, sorted(source_refs)
+    return view, list(selection.source_refs)
 
 
-_BUILDERS = {
-    "by_mention": build_by_mention_view,
-    "undone": build_undone_view,
+_VIEW_SCHEMA_VERSIONS = {
+    "by_mention": BY_MENTION_VIEW_SCHEMA_VERSION,
+    "undone": UNDONE_VIEW_SCHEMA_VERSION,
 }
 
 
-def _manifest(view_name: str, view_bytes: bytes, source_refs: list[str], stamp: dict) -> dict:
+def _manifest(
+    view_name: str,
+    view_bytes: bytes,
+    source_refs: list[str],
+    stamp: dict,
+    product_mention_policy: dict[str, str] | None,
+) -> dict:
+    selection_policy_versions: dict[str, Any] = {
+        "view_schema": _VIEW_SCHEMA_VERSIONS[view_name],
+    }
+    if view_name == "by_mention":
+        selection_policy_versions.update(
+            {
+                "silver_lineage_gate": PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
+                "product_mention_policy": product_mention_policy,
+            }
+        )
     return {
         "manifest_schema_version": MANIFEST_SCHEMA_VERSION,
         "view": view_name,
-        "view_schema_version": VIEW_SCHEMA_VERSION,
+        "view_schema_version": _VIEW_SCHEMA_VERSIONS[view_name],
         "generation_id": stamp["generation_id"],
         "generated_at": stamp["generated_at"],
         "source_record_ids": source_refs,
         "source_high_watermark": hashlib.sha256(
             canonical_record_bytes(source_refs)
         ).hexdigest(),
-        "selection_policy_versions": {
-            "view_schema": VIEW_SCHEMA_VERSION,
-            "silver_lineage_gate": SOURCE_BACKED_COMPLETE_STATUS,
-        },
+        "selection_policy_versions": selection_policy_versions,
         "view_sha256": hashlib.sha256(view_bytes).hexdigest(),
         "stale_if": (
             "any committed availability/derived/acknowledgement change after "
@@ -196,33 +192,68 @@ def _manifest(view_name: str, view_bytes: bytes, source_refs: list[str], stamp: 
     }
 
 
-def _generate(root, stamp: dict) -> dict[str, bytes]:
-    """All object-level view files as relpath -> bytes, regenerated purely from
+def _generate(
+    root,
+    stamp: dict,
+    *,
+    product_mention_policy: dict[str, str] | None,
+    views: tuple[str, ...] = BUILT_VIEWS,
+) -> dict[str, bytes]:
+    """All owned view files as relpath -> bytes, regenerated purely from
     committed material under the given stamp."""
+    normalized_policy = (
+        normalize_product_mention_policy(product_mention_policy)
+        if "by_mention" in views else None
+    )
     files: dict[str, bytes] = {}
-    for view_name in BUILT_VIEWS:
-        view, source_refs = _BUILDERS[view_name](root)
+    for view_name in views:
+        if view_name == "by_mention":
+            view, source_refs = build_by_mention_view(
+                root,
+                product_mention_policy=normalized_policy,
+            )
+        else:
+            view, source_refs = build_undone_view(root)
         view_bytes = canonical_record_bytes(view)
         manifest_bytes = canonical_record_bytes(
-            _manifest(view_name, view_bytes, source_refs, stamp)
+            _manifest(
+                view_name,
+                view_bytes,
+                source_refs,
+                stamp,
+                normalized_policy,
+            )
         )
-        files[f"{view_name}/view.json"] = view_bytes
-        files[f"{view_name}/manifest.json"] = manifest_bytes
+        files[f"query_tables/{view_name}.json"] = view_bytes
+        files[f"manifests/{view_name}.json"] = manifest_bytes
     return files
 
 
-def _object_level_root(root) -> Path:
-    return root._within(*OBJECT_LEVEL_PARTS)
+def _silver_vault_core_root(root) -> Path:
+    return root._within(*SILVER_VAULT_CORE_PARTS)
 
 
-def rebuild_derived_retrieval(root, *, stamp: dict | None = None) -> dict:
-    """Wipe and rewrite the object-level views (rebuildable tier, catalog pattern)."""
+def rebuild_derived_retrieval(
+    root,
+    *,
+    product_mention_policy: dict[str, str],
+    stamp: dict | None = None,
+) -> dict:
+    """Replace the owned views and remove their contradictory legacy home."""
     root._reverify()
     stamp = stamp or generation_stamp()
-    files = _generate(root, stamp)
-    target_root = _object_level_root(root)
-    if target_root.exists():
-        shutil.rmtree(target_root)
+    files = _generate(root, stamp, product_mention_policy=product_mention_policy)
+    target_root = _silver_vault_core_root(root)
+    legacy_root = root._within("indexes", "derived_retrieval", "object_level")
+    if legacy_root.exists():
+        shutil.rmtree(legacy_root)
+    for view_name in BUILT_VIEWS:
+        for target in (
+            target_root / "query_tables" / f"{view_name}.json",
+            target_root / "manifests" / f"{view_name}.json",
+        ):
+            if target.exists():
+                target.unlink()
     for relpath, data in files.items():
         target = target_root / relpath
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -241,12 +272,12 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
     stored manifest recorded and byte-compare. Never compares a rebuild against
     itself; never writes."""
     root._reverify()
-    target_root = _object_level_root(root)
+    target_root = _silver_vault_core_root(root)
     results: dict[str, str] = {}
     failures: list[str] = []
     for view_name in BUILT_VIEWS:
-        view_path = target_root / view_name / "view.json"
-        manifest_path = target_root / view_name / "manifest.json"
+        view_path = target_root / "query_tables" / f"{view_name}.json"
+        manifest_path = target_root / "manifests" / f"{view_name}.json"
         if not view_path.is_file() and not manifest_path.is_file():
             results[view_name] = "absent_nothing_to_prove"
             continue
@@ -260,14 +291,26 @@ def prove_derived_retrieval_rebuildability(root) -> dict:
                 "generation_id": stored_manifest["generation_id"],
                 "generated_at": stored_manifest["generated_at"],
             }
+            product_mention_policy = (
+                normalize_product_mention_policy(
+                    stored_manifest["selection_policy_versions"]["product_mention_policy"]
+                )
+                if view_name == "by_mention"
+                else None
+            )
         except (ValueError, KeyError):
             results[view_name] = "failed_unreadable_manifest"
             failures.append(view_name)
             continue
-        regenerated = _generate(root, stamp)
+        regenerated = _generate(
+            root,
+            stamp,
+            product_mention_policy=product_mention_policy,
+            views=(view_name,),
+        )
         if (
-            regenerated[f"{view_name}/view.json"] == view_path.read_bytes()
-            and regenerated[f"{view_name}/manifest.json"] == manifest_path.read_bytes()
+            regenerated[f"query_tables/{view_name}.json"] == view_path.read_bytes()
+            and regenerated[f"manifests/{view_name}.json"] == manifest_path.read_bytes()
         ):
             results[view_name] = "rebuildable"
         else:
@@ -284,7 +327,7 @@ __all__ = [
     "BUILT_VIEWS",
     "MANIFEST_SCHEMA_VERSION",
     "MENTIONS_LANE",
-    "OBJECT_LEVEL_PARTS",
+    "SILVER_VAULT_CORE_PARTS",
     "VIEW_SCHEMA_VERSION",
     "build_by_mention_view",
     "build_undone_view",

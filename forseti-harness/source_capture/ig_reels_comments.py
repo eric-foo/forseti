@@ -68,7 +68,7 @@ def _is_comment_typename_pair(text: str, key_start: int, key_end: int) -> bool:
     return value_end is not None and text[value_start:value_end] == _COMMENT_TYPENAME_TOKEN
 
 
-def _iter_comment_nodes(dom: str) -> Iterator[dict]:
+def _iter_comment_node_sources(dom: str) -> Iterator[tuple[str, dict]]:
     """Yield each decoded ``XIGComment`` node dict from the embedded JSON.
 
     Scans JSON tokens once and decodes only complete objects that declare
@@ -104,10 +104,45 @@ def _iter_comment_nodes(dom: str) -> Iterator[dict]:
                         pass
                     else:
                         if isinstance(obj, dict) and obj.get("__typename") == _COMMENT_TYPENAME:
-                            yield obj
+                            yield dom[frame.start : index + 1], obj
             index += 1
             continue
         index += 1
+
+
+def _iter_comment_nodes(dom: str) -> Iterator[dict]:
+    for _source, node in _iter_comment_node_sources(dom):
+        yield node
+
+
+def extract_comment_substrate_from_rendered_dom(
+    dom: str,
+    *,
+    shortcode: str,
+    forbidden_strings: tuple[str, ...] = (),
+) -> bytes:
+    """Preserve the exact rendered-JSON objects that support admitted comments.
+
+    The full rendered page also carries signed, expiring media handles and is not
+    durable evidence.  This function therefore retains the source-exact
+    ``XIGComment`` object substrings only.  A comment object containing a forbidden
+    transient handle is excluded rather than rewritten; downstream parsing of the
+    returned bytes consequently cannot admit text that the retained substrate does
+    not prove.
+    """
+    if not shortcode or not shortcode.strip():
+        raise ValueError("extract_comment_substrate_from_rendered_dom requires a non-empty shortcode")
+    kept: list[str] = []
+    seen: set[str] = set()
+    for source, node in _iter_comment_node_sources(dom):
+        if any(needle and needle in source for needle in forbidden_strings):
+            continue
+        parsed = parse_comments_from_rendered_dom(source, shortcode=shortcode)
+        if len(parsed) != 1 or parsed[0].comment_id in seen:
+            continue
+        seen.add(parsed[0].comment_id)
+        kept.append(source)
+    return ("\n".join(kept) + ("\n" if kept else "")).encode("utf-8")
 
 
 def parse_comments_from_rendered_dom(dom: str, *, shortcode: str) -> list[AudienceComment]:

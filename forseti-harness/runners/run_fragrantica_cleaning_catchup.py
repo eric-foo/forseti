@@ -57,6 +57,7 @@ from cleaning.fragrantica_lake import (
     FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION,
     FRAGRANTICA_CLEANING_AUDIT_LANE,
     FRAGRANTICA_CLEANING_METHOD_ID,
+    FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION,
     FRAGRANTICA_CLEANING_SILVER_LANE,
     FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION,
     FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION,
@@ -90,7 +91,7 @@ _SOURCE_FAMILY = "fragrance_native_database"
 _FRAGRANTICA_SURFACE = "fragrantica_product_page_direct_http"
 _KNOWN_OUT_OF_SCOPE_SURFACES = frozenset(
     {
-        "basenotes_product_page_cloakbrowser_deep_scroll_current_window",
+        "basenotes_product_page_user_cleared_persistent_chrome_current_window",
         "parfumo_product_page_direct_http",
         "parfumo_product_page_chrome_extension_targeted_rendered_session",
     }
@@ -124,6 +125,7 @@ def _packet_obligation() -> dict:
         "cleaning_method_id": FRAGRANTICA_CLEANING_METHOD_ID,
         "review_text_normalization_rule": REVIEW_TEXT_NORMALIZATION_RULE,
         "review_vote_carry_rule": REVIEW_VOTE_CARRY_RULE,
+        "review_vote_policy_version": FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION,
         "review_vote_metric_specs": [list(spec) for spec in _REVIEW_VOTE_METRIC_SPECS],
     }
 

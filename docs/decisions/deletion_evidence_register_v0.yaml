@@ -282,3 +282,12 @@ deletions:
       semantic_delta: |
         Deletes a single-consumption lane-state checkpoint after the pointed direction and downstream cascade settled. No current decision or unique evidence is lost: the checkpoint only copied orientation and pointed to canonical decision and research sources; the current consumer-demand-first wedge decision and its executed propagation record remain. Historical references remain valid as provenance through Git.
       rollback: git revert <executing merge sha>
+  - targets:
+      - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+    evidence:
+      reverse_ref_check: |
+        Repo-wide exact-path, filename, and title searches were run in the creator-audience triangulation cutover branch. No live map, open_next, current-authority, runtime, or test reference requires the deleted Forseti path. Remaining filename hits are historical provenance only: legacy Orca-path review prompts and review outputs, the closed-lane inventory, and the product-root migration manifest/index. The active Instagram README and field map no longer route audience inference through this retired design, and check_map_links --strict passes.
+      successor: forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+      semantic_delta: |
+        The deleted artifact was a proposed, non-authorizing Instagram-only ideal-audience design over captions, bio, and link text. It was never the current runtime and explicitly lacked transcript and observed-comment triangulation. The successor preserves the durable content-fit boundary while replacing the stale design with the owner-ratified creator-isolated transcript-plus-comment architecture, explicit content-fit versus observed-participant claims, Judgment-owned fusion, Creator Signal commercial projection, exact evidence binding, and a no-invented-demographics rule. Lost from the live tree are only the superseded Instagram-specific proposed weights, Tier-1/Tier-2-A schema proposal, and unbuilt two-pass mechanics; their history remains recoverable from git and frozen review/migration records.
+      rollback: git revert <executing merge sha>

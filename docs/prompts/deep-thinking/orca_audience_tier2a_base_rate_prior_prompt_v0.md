@@ -21,8 +21,10 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/wind_caller_calibration_carveout_v0.md
-  - docs/decisions/orca_audience_ballot_taxonomy_v0.md
-  - orca/product/spines/capture/core/source_families/social_media/instagram/ig_creator_ideal_audience_inference_spec_v0.md
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+  - forseti-harness/schemas/tiktok_audience_evidence_models.py
+superseded_by:
+  - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
 stale_if:
   - The Tier-2-A binding posture (aggregate / text-only / legitimate-interests / transient / no special-category) is amended.
   - The defeasible-prior treatment (CE2) changes.

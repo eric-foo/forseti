@@ -13,6 +13,7 @@ use_when:
   - Separating Cleaning mechanics from Judgment-owned credibility, independence, salience, and decision-use effects.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
   - forseti/product/shared/projection_doctrine/core_spine_v0_projection_doctrine_v0.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
   - forseti/product/spines/cleaning/contracts/core_spine_v0_corroboration_vs_amplification_discipline_v0.md
@@ -21,6 +22,7 @@ stale_if:
   - Owner changes the 2026-06-16 OD-1 / OD-4 / OD-7 direction recorded here.
   - Projection Doctrine v0 is amended, superseded, ratified differently, or rejected.
   - The Data Capture / ECR / Cleaning / Judgment boundary note changes Cleaning ownership.
+  - The Silver/Vault record contract changes the Cleaning-audit-pack boundary.
 ```
 
 - Status: `FOUNDATION_DRAFT_FROM_PROJECTION_CANDIDATE`

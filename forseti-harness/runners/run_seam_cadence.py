@@ -55,6 +55,8 @@ from runners import run_fragrance_review_projection_catchup as _fragrance_review
 from runners import run_fragrantica_cleaning_catchup as _fragrantica
 from runners import run_ig_reels_grid_projection_catchup as _ig_reels_grid
 from runners import run_parfumo_cleaning_catchup as _parfumo
+from runners import run_tiktok_comment_attention_producer as _tiktok_comment_attention
+from runners import run_tiktok_grid_observation_producer as _tiktok_grid_observation
 
 
 @dataclass(frozen=True)
@@ -135,6 +137,20 @@ CADENCE_ENTRYPOINTS: tuple[CadenceEntrypoint, ...] = (
         run=lambda ctx: _ig_reels_grid.run_catchup(data_root=ctx.data_root),
     ),
     CadenceEntrypoint(
+        runner="run_tiktok_comment_attention_producer.py",
+        pending=lambda ctx: len(
+            _tiktok_comment_attention.pending_packets(data_root=ctx.data_root)
+        ),
+        run=lambda ctx: _tiktok_comment_attention.run_catchup(data_root=ctx.data_root),
+    ),
+    CadenceEntrypoint(
+        runner="run_tiktok_grid_observation_producer.py",
+        pending=lambda ctx: len(
+            _tiktok_grid_observation.pending_packets(data_root=ctx.data_root)
+        ),
+        run=lambda ctx: _tiktok_grid_observation.run_catchup(data_root=ctx.data_root),
+    ),
+    CadenceEntrypoint(
         runner="run_asr_transcript_catchup.py",
         pending=lambda ctx: len(
             _asr.pending_packets(
@@ -151,10 +167,6 @@ CADENCE_ENTRYPOINTS: tuple[CadenceEntrypoint, ...] = (
 # enforces that these plus CADENCE_ENTRYPOINTS exactly cover the discovered
 # seam-consumer surface.
 CLASSIFIED_OUT_SEAM_CONSUMERS: dict[str, str] = {
-    "run_tiktok_audience_evidence_extract.py": (
-        "LLM audience-evidence lane: owner-gated per-turn compute, not a compute-free "
-        "cadence entrypoint; execution requires an injected provider transport"
-    ),
     "run_ig_reels_product_extract.py": (
         "LLM extraction lane: owner-gated per-turn compute, not a compute-free "
         "cadence entrypoint; backlog visible via its own --check"

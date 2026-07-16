@@ -3,17 +3,18 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Product artifact
-scope: Revised Forseti offer hypothesis aligned to the value proposition, selected first ICP wedge, product docs, and owner feedback that the buyer-facing artifact is an executive decision deck.
+scope: Suspended historical offer binding; preserves reusable offer mechanics while candidate-universe regeneration selects a new buyer and decision.
 use_when:
   - Preparing Forseti customer-discovery framing or buyer-facing offer language.
   - Checking whether offer language preserves Forseti product-proof boundaries.
   - Comparing future ICP, commercial-frame, or deliverable-shape decisions against this hypothesis.
 authority_boundary: retrieval_only
 open_next:
-  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # controlling thesis (supersedes turn_08; ratified 2026-06-12)
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md # controlling thesis; Decision Sprint form bound, buyer/decision unbound (2026-07-14)
+  - docs/decisions/forseti_product_thesis_consumer_demand_v0.md      # superseded — historical consumer-demand thesis
   - forseti/product/spines/foundation/product_contract/core_spine_v0_product_contract.md
   - forseti/product/spines/foundation/product_contract/core_spine_v0_information_production_foundation_v0.md
-  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # current wedge authority (supersedes pricing-first)
+  - docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md     # superseded — historical beauty-first wedge
   - forseti/product/spines/product_lead/icp_wedge/forseti_product_lead_first_icp_wedge_decision_v0.md # superseded — historical
   - forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md
   - forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md
@@ -45,14 +46,24 @@ input_hashes:
 
 ## Status
 
-Status: `PROVISIONAL_LOCK_OFFER_HYPOTHESIS_V0`.
+Status: `SUSPENDED_PENDING_CANDIDATE_UNIVERSE_RESET`.
 
-This artifact defines the provisionally locked offer hypothesis for now. It is
-not a hard lock, accepted commercial offer, buyer validation,
+Its generic offer mechanics remain reusable, but its consumer-demand buyer,
+first-proof offer, and beauty-wedge bindings are not current under
+`docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`. A new GTM
+buyer/decision binding must explicitly rebind any reused offer language. It is not a
+hard lock, accepted commercial offer, buyer validation,
 willingness-to-pay proof, repeatability proof, product readiness, feature
 readiness, implementation readiness, or commercial readiness.
 
-## Consumer-Demand Refinement (2026-06-12, ratified cascade)
+## Candidate-Universe Reset (2026-07-12)
+
+The broad idea of a paid, evidence-backed decision artifact remains a candidate
+mechanism, not the selected offer. The consumer-demand refinements below are
+historical. Do not use this artifact for customer discovery, pricing, outreach,
+or product-form selection until a new buyer and decision family rebind it.
+
+## Historical Consumer-Demand Refinement (2026-06-12, ratified cascade)
 
 This artifact's first-proof framing is RE-TARGETED by the owner-ratified
 consumer-demand direction. Controlling authority:
@@ -102,7 +113,7 @@ refinement and unchanged in substance. (Proof standard, evaluation rubric, and
 kill/graduation criteria live in the buyer-proof packet and charter, not in
 this offer doc.)
 
-## Commercial Target Selection Update (2026-06-16)
+## Historical Commercial Target Selection Update (2026-06-16)
 
 Owner direction confirms the first commercial target as US-market tractioned
 indie/DTC beauty or personal-care operators with a named decision owner and a
@@ -136,13 +147,12 @@ integrations, or source-system buildout are considered.
 
 Controlling Forseti sources:
 
-- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` — controlling
-  thesis (owner-ratified 2026-06-12; supersedes `turn_08_product_thesis_v0.md`)
+- `docs/decisions/forseti_product_thesis_consumer_demand_v0.md` — superseded
+  historical thesis (owner-ratified 2026-06-12)
 - `docs/product/core_spine_v0_product_contract.md`
 - `docs/product/core_spine_v0_information_production_foundation_v0.md`
-- `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` — current wedge
-  authority (supersedes pricing-first, 2026-06-12; pricing-first was the
-  wedge authority at this artifact's 2026-06-08 refinement)
+- `docs/decisions/forseti_icp_wedge_consumer_demand_first_v0.md` — superseded
+  historical beauty-first wedge (2026-06-12)
 - `docs/product/orca_product_lead_first_icp_wedge_decision_v0.md` — superseded; historical
 - `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`
 - `forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md`
@@ -171,8 +181,8 @@ This offer hypothesis should therefore lead with the executive deck externally.
 It should not front a memo in buyer meetings. Internally, the memo and evidence
 appendix still exist so the deck cannot become presentation theater.
 
-The selected first ICP wedge and the patched product-proof docs now constrain
-the first proof offer. This artifact should preserve the broader Forseti value
+The then-selected first ICP wedge and patched product-proof docs constrained
+the historical first-proof offer. This artifact preserves the broader Forseti value
 proposition while making the first offer surface specific enough for buyer
 qualification.
 
@@ -288,9 +298,9 @@ fund-screen door uses the same read later; it is not the first door.
 
 ## ICP (Buyer) Status
 
-The first proof ICP wedge is selected, not proven.
+The historical first-proof ICP wedge was selected, not proven.
 
-Selected first proof ICP / wedge (selected, not proven):
+Historical first-proof ICP / wedge (selected then, not proven):
 
 US-market tractioned indie/DTC beauty / personal-care brands (geography per
 the thesis doctrine, 2026-06-12) facing a live 30-90 day consumer-demand
@@ -648,10 +658,10 @@ Do not narrow the entire Forseti value proposition to this wedge. The wedge is t
 first market-facing proof container, chosen because it is specific enough to
 test buyer pull and broad enough to matter if it works.
 
-This recommendation aligns with the current first proof lane in
+This historical recommendation aligned with the then-current first-proof lane in
 `forseti/product/spines/product_lead/buyer_proof/forseti_buyer_proof_packet_v0.md`,
 `forseti/product/spines/product_lead/proof_charter/forseti_product_proof_lead_charter_v0.md`, and the
-controlling consumer-demand thesis + wedge records (pricing-first is
+the now-superseded consumer-demand thesis + wedge records (pricing-first is
 superseded as first proof — re-entry disposition in its banner).
 
 Do not front a memo as the offer. Keep the memo-like reasoning substrate and

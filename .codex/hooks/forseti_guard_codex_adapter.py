@@ -16,7 +16,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 GUARD = ROOT / ".agents" / "hooks" / "guard_protected_actions.py"
 PATCH_PATH = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$")
 PATCH_MOVE = re.compile(r"^\*\*\* Move to: (.+)$")
-WRITE_TOOLS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
+
 SHELL_TOOLS = {"Bash", "PowerShell"}
 DURABLE_EXT = r"(?:md|py|ya?ml|json|toml|ps1)"
 DURABLE_PATH = re.compile(r"[A-Za-z0-9_./\\:-]+\." + DURABLE_EXT + r"\b", re.I)
@@ -30,6 +30,14 @@ SHELL_WRITE_PRIMITIVE = re.compile(
 )
 REDIRECT_DURABLE = re.compile(
     r"(?:^|[^>])>>?\s*['\"]?[^'\"\s|&;>]+\." + DURABLE_EXT + r"\b", re.I
+)
+HOOK_ADOPTION_CANARY_ARG = "--live-adoption-probe"
+HOOK_ADOPTION_ADOPTED = "FORSETI_CODEX_HOOK_ADOPTION=ADOPTED"
+HOOK_ADOPTION_NOT_INTERCEPTED = "FORSETI_CODEX_HOOK_ADOPTION=NOT_INTERCEPTED"
+HOOK_ADOPTION_CANARY_COMMAND = re.compile(
+    r"\s*python(?:\.exe)?\s+['\"]?(?:\.\\|\./)?\.codex[\\/]hooks[\\/]"
+    r"forseti_guard_codex_adapter\.py['\"]?\s+--live-adoption-probe\s*",
+    re.I,
 )
 
 
@@ -46,6 +54,16 @@ def _deny(reason):
     )
     sys.stdout.write("\n")
     return 0
+
+
+def _is_hook_adoption_canary(tool_input):
+    command = tool_input.get("command") or ""
+    return bool(HOOK_ADOPTION_CANARY_COMMAND.fullmatch(command))
+
+
+def _not_intercepted():
+    print(HOOK_ADOPTION_NOT_INTERCEPTED, file=sys.stderr)
+    return 3
 
 
 def _run_guard(event):
@@ -69,67 +87,6 @@ def _path_for_guard(path_text):
     return str(ROOT / path)
 
 
-def _norm_path(path):
-    try:
-        resolved = pathlib.Path(path).resolve()
-    except OSError:
-        resolved = pathlib.Path(path).absolute()
-    return str(resolved).replace("\\", "/").lower().rstrip("/")
-
-
-def _contains_path(parent, child):
-    parent = parent.rstrip("/")
-    child = child.rstrip("/")
-    return child == parent or child.startswith(parent + "/")
-
-
-def _registered_worktree_roots():
-    try:
-        out = subprocess.run(
-            ["git", "-C", str(ROOT), "worktree", "list", "--porcelain"],
-            text=True,
-            capture_output=True,
-            timeout=4,
-        )
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
-        return []
-    if out.returncode != 0:
-        return []
-    roots = []
-    for line in out.stdout.splitlines():
-        if line.startswith("worktree "):
-            roots.append(_norm_path(line[len("worktree "):].strip()))
-    return roots
-
-
-def _nested_worktree_reason(path_text, roots=None):
-    target = _norm_path(path_text)
-    current = _norm_path(ROOT)
-    roots = roots if roots is not None else _registered_worktree_roots()
-    for root in roots:
-        if root == current:
-            continue
-        if _contains_path(root, target):
-            return (
-                "Codex nested-worktree write blocked: target is under registered "
-                "worktree %s while this hook is rooted at %s. Open/reroot Codex "
-                "in the target worktree and rerun the lane-start writeability "
-                "preflight before editing."
-            ) % (root, current)
-    return ""
-
-
-def _check_direct_write_path(tool_input):
-    target = (
-        tool_input.get("file_path")
-        or tool_input.get("notebook_path")
-        or tool_input.get("path")
-    )
-    if not target:
-        return ""
-    return _nested_worktree_reason(_path_for_guard(target))
-
-
 def _check_shell_durable_write(tool_input):
     command = tool_input.get("command") or ""
     if not command:
@@ -139,9 +96,8 @@ def _check_shell_durable_write(tool_input):
     if not DURABLE_PATH.search(command):
         return ""
     return (
-        "Codex raw shell durable-write blocked: use apply_patch from the active "
-        "worktree. If apply_patch fails against a nested worktree, reroot Codex "
-        "in that worktree instead of rewriting repo files through Bash/PowerShell."
+        "Codex raw shell durable-write blocked: use apply_patch so every edited "
+        "path is checked by the Forseti protected-action guard."
     )
 
 
@@ -155,17 +111,21 @@ def _apply_patch_paths(patch_text):
 
 
 def _check_apply_patch_paths(tool_input):
-    patch_text = tool_input.get("command") or ""
-    for path in _apply_patch_paths(patch_text):
-        reason = _nested_worktree_reason(_path_for_guard(path))
-        if reason:
-            return reason
-        event = json.dumps({"tool_name": "Edit", "tool_input": {"file_path": path}})
-        proc = _run_guard(event)
-        if proc.returncode == 2:
-            return _reason_from(proc)
-        if proc.returncode != 0:
-            return _reason_from(proc)
+    seen = set()
+    for key in ("command", "patch", "input"):
+        patch_text = tool_input.get(key)
+        if not isinstance(patch_text, str) or not patch_text:
+            continue
+        for path in _apply_patch_paths(patch_text):
+            if path in seen:
+                continue
+            seen.add(path)
+            event = json.dumps({"tool_name": "Edit", "tool_input": {"file_path": path}})
+            proc = _run_guard(event)
+            if proc.returncode == 2:
+                return _reason_from(proc)
+            if proc.returncode != 0:
+                return _reason_from(proc)
     return ""
 
 
@@ -183,183 +143,131 @@ def _run_guard_event(event_text):
 
 
 def _selftest():
-    ok = True
-    guard = subprocess.run([sys.executable, str(GUARD), "--selftest"], text=True)
-    ok = ok and guard.returncode == 0
+    failures = []
 
-    blocked = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps({"tool_name": "Bash", "tool_input": {"command": "git clean -n"}}),
+    def _run_adapter(event):
+        return subprocess.run(
+            [sys.executable, str(pathlib.Path(__file__))],
+            input=json.dumps(event),
+            text=True,
+            capture_output=True,
+        )
+
+    def _shell_event(tool_name, command):
+        return {"tool_name": tool_name, "tool_input": {"command": command}}
+
+    def _expect_denied(name, event, *, reason=None):
+        # Fail-safe: an unexpected exception (no JSON, missing keys) records a
+        # named failure instead of being silently swallowed.
+        proc = _run_adapter(event)
+        try:
+            output = json.loads(proc.stdout)["hookSpecificOutput"]
+            decision = output["permissionDecision"]
+            got_reason = output["permissionDecisionReason"]
+        except Exception as exc:
+            failures.append(f"{name}: no denial JSON ({type(exc).__name__}: {exc})")
+            return
+        if proc.returncode != 0:
+            failures.append(f"{name}: exit {proc.returncode}, expected 0")
+        elif decision != "deny":
+            failures.append(f"{name}: permissionDecision {decision!r}, expected 'deny'")
+        elif reason is not None and got_reason != reason:
+            failures.append(f"{name}: unexpected denial reason {got_reason!r}")
+
+    def _expect_allowed(name, event):
+        proc = _run_adapter(event)
+        if proc.returncode != 0 or proc.stdout.strip():
+            failures.append(
+                f"{name}: expected silent allow "
+                f"(exit {proc.returncode}, stdout {proc.stdout.strip()!r})"
+            )
+
+    guard = subprocess.run([sys.executable, str(GUARD), "--selftest"], text=True)
+    if guard.returncode != 0:
+        failures.append(f"guard --selftest: exit {guard.returncode}, expected 0")
+
+    direct_canary = subprocess.run(
+        [sys.executable, str(pathlib.Path(__file__)), HOOK_ADOPTION_CANARY_ARG],
         text=True,
         capture_output=True,
     )
-    try:
-        denial = json.loads(blocked.stdout)
-        ok = ok and blocked.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
+    if direct_canary.returncode != 3:
+        failures.append(f"direct canary: exit {direct_canary.returncode}, expected 3")
+    if direct_canary.stderr.strip() != HOOK_ADOPTION_NOT_INTERCEPTED:
+        failures.append("direct canary: NOT_INTERCEPTED marker missing on stderr")
+
+    _expect_denied(
+        "hooked canary",
+        _shell_event(
+            "PowerShell",
+            "python .codex/hooks/forseti_guard_codex_adapter.py "
+            f"{HOOK_ADOPTION_CANARY_ARG}",
+        ),
+        reason=HOOK_ADOPTION_ADOPTED,
+    )
+
+    _expect_allowed(
+        "chained canary",
+        _shell_event(
+            "PowerShell",
+            "python .codex/hooks/forseti_guard_codex_adapter.py "
+            f"{HOOK_ADOPTION_CANARY_ARG}; git status --short",
+        ),
+    )
+
+    _expect_denied("git clean", _shell_event("Bash", "git clean -n"))
 
     protected = pathlib.Path.home() / "Desktop" / "projects" / "jb" / "x.md"
-    patch_event = {
-        "tool_name": "apply_patch",
-        "tool_input": {
-            "command": (
-                "*** Begin Patch\n"
-                f"*** Update File: {protected}\n"
-                "@@\n"
-                "-old\n"
-                "+new\n"
-                "*** End Patch\n"
-            )
+    _expect_denied(
+        "apply_patch protected path",
+        {
+            "tool_name": "apply_patch",
+            "tool_input": {
+                "command": (
+                    "*** Begin Patch\n"
+                    f"*** Update File: {protected}\n"
+                    "@@\n"
+                    "-old\n"
+                    "+new\n"
+                    "*** End Patch\n"
+                )
+            },
         },
-    }
-    patch = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(patch_event),
-        text=True,
-        capture_output=True,
     )
-    try:
-        denial = json.loads(patch.stdout)
-        ok = ok and patch.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
 
-    allowed = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps({"tool_name": "Bash", "tool_input": {"command": "git status --short"}}),
-        text=True,
-        capture_output=True,
+    _expect_allowed("git status", _shell_event("Bash", "git status --short"))
+
+    _expect_denied(
+        "powershell WriteAllText",
+        _shell_event("PowerShell", "[System.IO.File]::WriteAllText('docs/x.md', 'bad')"),
     )
-    ok = ok and allowed.returncode == 0 and not allowed.stdout.strip()
-
-    ps_write = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "PowerShell",
-                "tool_input": {
-                    "command": "[System.IO.File]::WriteAllText('docs/x.md', 'bad')"
-                },
-            }
-        ),
-        text=True,
-        capture_output=True,
+    _expect_denied(
+        "powershell Set-Content",
+        _shell_event("PowerShell", "Set-Content docs/x.md 'bad'"),
     )
-    try:
-        denial = json.loads(ps_write.stdout)
-        ok = ok and ps_write.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
-
-    set_content = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "PowerShell",
-                "tool_input": {"command": "Set-Content docs/x.md 'bad'"},
-            }
-        ),
-        text=True,
-        capture_output=True,
+    _expect_denied("shell redirect", _shell_event("Bash", "echo bad > docs/x.md"))
+    _expect_denied(
+        "shell redirect no space", _shell_event("Bash", "echo bad>docs/x.md")
     )
-    try:
-        denial = json.loads(set_content.stdout)
-        ok = ok and set_content.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
-
-    redirect = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "echo bad > docs/x.md"},
-            }
-        ),
-        text=True,
-        capture_output=True,
+    _expect_allowed(
+        "python open read",
+        _shell_event("Bash", "python -c \"open('docs/x.md').read()\""),
     )
-    try:
-        denial = json.loads(redirect.stdout)
-        ok = ok and redirect.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
-
-    redirect_no_space = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "echo bad>docs/x.md"},
-            }
-        ),
-        text=True,
-        capture_output=True,
+    _expect_denied(
+        "python open write",
+        _shell_event("Bash", "python -c \"open('docs/x.md', 'w').write('bad')\""),
     )
-    try:
-        denial = json.loads(redirect_no_space.stdout)
-        ok = ok and redirect_no_space.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
 
-    py_open_read = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "python -c \"open('docs/x.md').read()\""},
-            }
-        ),
-        text=True,
-        capture_output=True,
-    )
-    ok = ok and py_open_read.returncode == 0 and not py_open_read.stdout.strip()
-
-    py_open_write = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "python -c \"open('docs/x.md', 'w').write('bad')\""},
-            }
-        ),
-        text=True,
-        capture_output=True,
-    )
-    try:
-        denial = json.loads(py_open_write.stdout)
-        ok = ok and py_open_write.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
-
-    current_root = _norm_path(ROOT)
-    fake_other = current_root + "/worktrees/other-lane"
-    fake_roots = [
-        current_root,
-        fake_other,
-        current_root + "/.codex/worktrees/another-lane",
-    ]
-    ok = ok and bool(
-        _nested_worktree_reason(
-            fake_other + "/docs/x.md",
-            roots=fake_roots,
-        )
-    )
-    ok = ok and not _nested_worktree_reason(current_root + "/docs/x.md", roots=fake_roots)
-
+    for failure in failures:
+        print(f"SELFTEST FAILURE: {failure}", file=sys.stderr)
+    ok = not failures
     print("CODEX ADAPTER SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 
 
 def main():
+    if HOOK_ADOPTION_CANARY_ARG in sys.argv:
+        return _not_intercepted()
     if "--selftest" in sys.argv:
         return _selftest()
 
@@ -369,14 +277,15 @@ def main():
     except Exception:
         return _run_guard_event(event_text)
 
+    if event.get("tool_name") in SHELL_TOOLS and _is_hook_adoption_canary(
+        event.get("tool_input") or {}
+    ):
+        return _deny(HOOK_ADOPTION_ADOPTED)
     if event.get("tool_name") == "apply_patch":
         reason = _check_apply_patch_paths(event.get("tool_input") or {})
         if reason:
             return _deny(reason)
-    elif event.get("tool_name") in WRITE_TOOLS:
-        reason = _check_direct_write_path(event.get("tool_input") or {})
-        if reason:
-            return _deny(reason)
+
     elif event.get("tool_name") in SHELL_TOOLS:
         reason = _check_shell_durable_write(event.get("tool_input") or {})
         if reason:

@@ -3,8 +3,8 @@
 No network, no credentials. Commits real IG-Reel ASR transcripts into a temp lake, runs the
 extractor through a fake transport, and asserts mentions land in the silver lane, that the
 packet-backed route rides the consumption seam (acked-and-unchanged packets emit no rerun
-entries; obligation growth re-surfaces a packet; partials block the ack), that the deep-capture
-route stays marker-based and NEVER acks its non-committed shortcode anchors, that grid-metadata
+entries; obligation growth re-surfaces a packet; partials block the ack), that current deep-capture
+packets use that seam while historical shortcode records stay audit-only, that grid-metadata
 packets in the SAME instagram_creator family are skipped (surface filter), and that failure is
 isolated at both grains.
 """
@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from cleaning.audience_extractor import RawApiProvider
+from cleaning.raw_model_transport import RawApiProvider
 from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, mentions_record_id
 from data_lake.consumption import find_acks
 from data_lake.root import DataLakeRoot
@@ -105,30 +105,40 @@ def _commit_ig_audio_transcript(
     return rel_path.parts[-3], rel_path.name
 
 
-def _commit_ig_deep_capture(data_root, shortcode: str = "DZ69knlsDb1", posture: str = "transcribed") -> str:
-    cues = tuple(_cues() if posture in {"ok", "transcribed"} else [])
+def _commit_ig_deep_capture(data_root, shortcode: str = "DZ69knlsDb1") -> tuple[str, str]:
+    cues = tuple(_cues())
+    comment = AudienceComment(
+        comment_id=f"comment-{shortcode}",
+        reel_shortcode=shortcode,
+        author_username="zoe",
+        text="works",
+        like_count=1,
+        created_at_unix=1782400000,
+    )
+    substrate = (json.dumps({
+        "pk": comment.comment_id,
+        "user": {"username": comment.author_username},
+        "text": comment.text,
+        "created_at": comment.created_at_unix,
+        "comment_like_count": comment.like_count,
+        "__typename": "XIGComment",
+    }) + "\n").encode()
     result = ReelDeepCaptureResult(
         reel_shortcode=shortcode,
-        comments=(
-            AudienceComment(
-                comment_id=f"comment-{shortcode}",
-                reel_shortcode=shortcode,
-                author_username="zoe",
-                text="works",
-                like_count=1,
-                created_at_unix=1782400000,
-            ),
-        ),
-        transcript_posture=posture,
+        comments=(comment,),
+        transcript_posture="transcribed",
         transcript_cues=cues,
         media_url_used="https://x.fbcdn.net/o1/v/clip.mp4",
+        comment_substrate=substrate,
+        audio_bytes=b"deep-capture-audio",
+        audio_ext="mp4",
     )
-    write_reel_deep_capture_into_lake(
+    written = write_reel_deep_capture_into_lake(
         data_root=data_root,
         result=result,
         generated_at="2026-06-29T00:01:00Z",
     )
-    return deep_capture_record_id(result)
+    return written.packet_id, written.record_id
 
 
 def _assert_exact_transcript_lineage(
@@ -224,12 +234,13 @@ def test_runner_extracts_ig_transcript_then_skips_on_rerun(tmp_path) -> None:
     assert first[0]["asr_record_id"] == asr_record_id
 
     written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
-    assert written["mention_count"] == 1
-    assert written["mentions"][0]["start_ms"] == 3000  # CE5 timestamp from the cue
-    assert written["mentions"][0]["video_id"] == "DZ69knlsDb1"
-    assert written["transcript_source_key"] == source_key
-    assert written["source_route"] == "standalone_audio_packet"
-    assert written["asr_record_id"] == asr_record_id
+    assert written["payload"]["observation"]["row_count"] == 1
+    mention = written["payload"]["observation"]["rows"][0]["mention"]
+    assert mention["start_ms"] == 3000  # CE5 timestamp from the cue
+    assert mention["video_id"] == "DZ69knlsDb1"
+    assert written["provenance"]["transcript_source_key"] == source_key
+    assert written["provenance"]["source_route"] == "standalone_audio_packet"
+    assert written["provenance"]["asr_record_id"] == asr_record_id
     _assert_exact_transcript_lineage(
         written,
         source_surface="ig_reels_audio",
@@ -254,15 +265,15 @@ def test_runner_extracts_ig_transcript_then_skips_on_rerun(tmp_path) -> None:
 
 def test_runner_extracts_deep_capture_transcript_records(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
-    deep_key = f"DZ69knlsDb1:asr:{deep_record_id}"
+    deep_anchor, deep_record_id = _commit_ig_deep_capture(data_root)
+    deep_key = f"{deep_anchor}:asr:{deep_record_id}"
     assert count_pending_extractions(data_root=data_root, model="m") == 1
 
     transport = FakeTransport(_anthropic([_item()]))
     first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
     assert first == [
         {
-            "anchor": "DZ69knlsDb1",
+            "anchor": deep_anchor,
             "video_id": "DZ69knlsDb1",
             "transcript_source_key": deep_key,
             "source_route": "deep_capture_render_audio",
@@ -273,42 +284,40 @@ def test_runner_extracts_deep_capture_transcript_records(tmp_path) -> None:
     ]
 
     written = json.loads((data_root.path / first[0]["path"]).read_text(encoding="utf-8"))
-    assert written["transcript_anchor"] == "DZ69knlsDb1"
-    assert written["transcript_source"] == "asr"
-    assert written["transcript_source_key"] == deep_key
-    assert written["source_route"] == "deep_capture_render_audio"
-    assert written["asr_record_id"] == deep_record_id
+    assert written["raw_anchor"] == deep_anchor
+    assert written["provenance"]["transcript_source"] == "asr"
+    assert written["provenance"]["transcript_source_key"] == deep_key
+    assert written["provenance"]["source_route"] == "deep_capture_render_audio"
+    assert written["provenance"]["asr_record_id"] == deep_record_id
     _assert_exact_transcript_lineage(
         written,
         source_surface="ig_reels_deep_capture_render_audio",
         native_id="DZ69knlsDb1",
-        raw_anchor="DZ69knlsDb1",
+        raw_anchor=deep_anchor,
         lane=REEL_TRANSCRIPT_LANE,
         record_id=deep_record_id,
         completion_lane=DEEP_CAPTURE_SET_LANE,
     )
 
-    # Deep-capture route is OUT of the seam: marker-based skip-if-done means the
-    # rerun still emits a per-run entry, and NO ack is ever written under the
-    # non-committed shortcode anchor.
+    # The source-backed deep-capture packet is acknowledged at the same consumption seam.
+    acks = find_acks(data_root, raw_anchor=deep_anchor, ack_namespace=PRODUCT_MENTIONS_LANE)
+    assert len(acks) == 1
+    assert acks[0]["evidence"][0]["kind"] == "record_set_complete"
     second = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
-    assert len(second) == 1
-    assert second[0]["status"] == "skipped_done"
-    assert second[0]["transcript_source_key"] == deep_key
-    assert find_acks(data_root, raw_anchor="DZ69knlsDb1", ack_namespace=PRODUCT_MENTIONS_LANE) == []
+    assert second == []
 
 
 def test_runner_surfaces_deep_capture_shortcode_mismatch_without_fake_success(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root)
+    deep_anchor, deep_record_id = _commit_ig_deep_capture(data_root)
     transcript_path = data_root.record_path(
         subtree="derived",
-        raw_anchor="DZ69knlsDb1",
+        raw_anchor=deep_anchor,
         lane=REEL_TRANSCRIPT_LANE,
         record_id=deep_record_id,
     )
     transcript_record = json.loads(transcript_path.read_text(encoding="utf-8"))
-    transcript_record["reel_shortcode"] = "OtherShort"
+    transcript_record["payload"]["observation"]["subject"]["ref"]["native_id"] = "OtherShort"
     transcript_path.write_text(json.dumps(transcript_record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     results = run_extraction(
@@ -321,22 +330,26 @@ def test_runner_surfaces_deep_capture_shortcode_mismatch_without_fake_success(tm
 
     assert len(results) == 1
     assert results[0]["status"] == "discovery_failed"
-    assert results[0]["transcript_source_key"] == f"DZ69knlsDb1:asr:{deep_record_id}"
-    assert "shortcode mismatch" in results[0]["error"]
+    assert results[0]["packet_id"] == deep_anchor
+    assert "exact source refs invalid" in results[0]["error"]
     assert count_pending_extractions(data_root=data_root, model="m") == 0
 
 
-def test_runner_extracts_legacy_ok_deep_capture_transcript_records(tmp_path) -> None:
+def test_runner_excludes_legacy_deep_capture_transcript_as_audit_only(tmp_path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
-    deep_record_id = _commit_ig_deep_capture(data_root, posture="ok")
-    deep_key = f"DZ69knlsDb1:asr:{deep_record_id}"
-    assert count_pending_extractions(data_root=data_root, model="m") == 1
-
-    transport = FakeTransport(_anthropic([_item()]))
-    first = run_extraction(data_root=data_root, transport=transport, provider=_PROVIDER, model="m", api_key="k")
+    deep_record_id = "legacy.json"
+    data_root.append_record_set(
+        subtree="derived",
+        raw_anchor="DZ69knlsDb1",
+        record_id=deep_record_id,
+        members={REEL_TRANSCRIPT_LANE: json.dumps({"reel_shortcode": "DZ69knlsDb1", "transcript_posture": "ok", "cues": _cues()}).encode()},
+        completion_lane=DEEP_CAPTURE_SET_LANE,
+    )
+    assert count_pending_extractions(data_root=data_root, model="m") == 0
+    first = run_extraction(data_root=data_root, transport=FakeTransport(_anthropic([_item()])), provider=_PROVIDER, model="m", api_key="k")
     assert len(first) == 1
-    assert first[0]["status"] == "extracted"
-    assert first[0]["transcript_source_key"] == deep_key
+    assert first[0]["status"] == "historical_audit_only"
+    assert first[0]["transcript_source_key"] == f"DZ69knlsDb1:asr:{deep_record_id}"
 
 
 def test_check_count_tracks_completed_mentions_for_model(tmp_path) -> None:

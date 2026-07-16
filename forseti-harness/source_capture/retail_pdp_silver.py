@@ -19,7 +19,7 @@ from data_lake.silver_lineage import (
     SilverRawRef,
     SilverRowLocator,
     SilverSourceObject,
-    is_silver_record_source_backed_complete,
+    has_complete_silver_lineage_structure,
 )
 from data_lake.silver_record import append_silver_record, validate_silver_vault_record
 from harness_utils import generate_ulid
@@ -107,7 +107,7 @@ def derive_retail_pdp_silver_from_projection(
     # create a partial-success record prefix.
     for record in records:
         validate_silver_vault_record(record)
-        if not is_silver_record_source_backed_complete(record):
+        if not has_complete_silver_lineage_structure(record):
             raise RetailPdpSilverError(
                 f"Retail/PDP Silver record is not source-backed complete: {record['record_id']}"
             )

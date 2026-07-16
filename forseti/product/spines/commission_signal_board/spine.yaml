@@ -7,6 +7,18 @@ owner_authorization:
   global_docs_migration: staged_not_executed
 authority_boundary: retrieval_only_docs_structure_not_runtime
 
+commission_contract:
+  modes: [backtest, forward]
+  commission_profiles: [standard_signal_board, company_competitive_intelligence]
+  default_profile_for_one_company_brand_or_org: company_competitive_intelligence
+  time_postures: [recency_first, longitudinal]
+  universal_time_posture_default: recency_first
+  company_report:
+    section_count: 10
+    classifier_handoff: omitted
+    company_surface_disposition: candidate_only_not_imported
+    subject_scope: one_company
+
 canonical_artifacts:
   readme: forseti/product/spines/commission_signal_board/README.md
   prompt_structure_rules: forseti/product/spines/commission_signal_board/authority/forseti_commission_signal_board_prompt_structure_rules_v0.md
@@ -48,3 +60,6 @@ non_goals:
   - no_demand_classification
   - no_graph_construction
   - no_buyer_proof_or_readiness_claim
+  - no_gtm_interpretation
+  - no_scanning_or_capture_runtime
+  - no_company_surface_import

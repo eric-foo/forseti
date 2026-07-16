@@ -6,7 +6,7 @@ product-facing tree; runtime stays in `forseti-harness/`.
 ## Structure
 
 Second-level axis: `spines/` (by function) plus `satellites/`, `case_families/`,
-and `shared/`.
+`information/`, and `shared/`.
 
 - `spines/`
   - `foundation/` — product contract, ontology, evidence standard, demand-read taxonomy, vertical exploration, shared primitives
@@ -21,6 +21,9 @@ and `shared/`.
   - `data_lake/` — **shared-foundation spine**: cross-layer storage contracts (raw-packet preservation, keyed retrievability, Attachment Record, passive Availability Index) consumed by projection/ECR/cleaning/judgment. Authority and workflow content landed in the R2 move pass.
 - `satellites/` — domain-specific context (e.g. `beauty/`, `fragrance/`)
 - `case_families/` — corpora, runs, and case docs (e.g. `product_learning/`)
+- `information/` — reusable, decision-agnostic information-domain contracts;
+  the first accepted domain is `company_surface/`. Actual records remain in
+  Data Lake-owned storage, and operational work remains in the owning spine.
 - `shared/` — cross-spine registries: `engagement_registry/`, `projection_doctrine/` (both transitional, pending their own re-home decisions)
 
 ## Authority
@@ -45,7 +48,9 @@ Keep the split explicit:
 
 ## Conventions
 
-- New product artifacts go in the matching spine folder (forward-only).
+- New product artifacts go in the matching bound product area (forward-only):
+  operational contracts in the owning spine, reusable information-domain
+  contracts in `information/`, and domain or case material in its existing axis.
 - Decisions, prompts, reviews, research, and migration records stay under `docs/`,
   not here.
 - Runtime code and tests stay in `forseti-harness/`.

@@ -34,9 +34,43 @@ from data_lake.inventory import HARNESS_ROOT as _HARNESS_ROOT
 # module path -> (version token(s) the changer must consider, pinned sha256 of
 # LF-normalized source bytes).
 POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
+    "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py": (
+        (
+            "COMMENT_ATTENTION_RECIPE_VERSION",
+            "COMMENT_ATTENTION_PRODUCER_SCHEMA_VERSION",
+            "COMMENT_ATTENTION_POLICY_FINGERPRINT",
+        ),
+        # Output-shaping: temporal pairing, amplification/rank context, and the
+        # cid-less mechanics fix now ride the producer's v1 recipe/schema tokens.
+        "38def9d04a913acd1818be5194d23122f51c182ca0f59bfdf0859606b0e2dcd6",
+    ),
+    "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py": (
+        (
+            "TIKTOK_GRID_OBSERVATION_POLICY_VERSION",
+            "TIKTOK_GRID_OBSERVATION_PRODUCER_SCHEMA_VERSION",
+            "TIKTOK_GRID_OBSERVATION_POLICY_FINGERPRINT",
+        ),
+        # Output-shaping v1: admitted onboarding batch grid windows now produce
+        # the same packet-grain metric set and prior not-applicable acks resurface.
+        "77cc704f5c618c6e57140eb2df91e673480f1ff4308e809cfb2a0f3baa7cf1d9",
+    ),
+    "cleaning/_shared.py": (
+        (
+            "the cleaning method / producer schema tokens of all three cleaning "
+            "lanes (fragrantica, parfumo, basenotes) -- shared helper home",
+        ),
+        # Initial pin: byte-identical helpers consolidated out of the three
+        # cleaning adapters and *_lake modules; not output-shaping.
+        # Pin bumped: raw_refs None-first sort key (bugfix -- mixed None/str ref
+        # keys raised TypeError; previously-successful inputs order identically),
+        # not output-shaping.
+        "99aee399f1a989c50c3c100ad6aebd84daef3fcfaa6fb62dcc8ce4eddc182f0f",
+    ),
     "cleaning/basenotes.py": (
         ("BASENOTES_CLEANING_METHOD_ID (cleaning/basenotes_lake.py)",),
-        "947303e81e95122488bd7ad4c9577503881cb663b1a5f77b63ad792209658333",
+        # Admission-shaping v1: user-cleared persistent Chrome replaces the retired proxy surface.
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py; not output-shaping.
+        "c1f3fa8e66d16551e585c734cb2fa76da1bf44f69a31499807104afb7794f734",
     ),
     "cleaning/basenotes_lake.py": (
         (
@@ -44,20 +78,27 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "BASENOTES_SILVER_PRODUCER_SCHEMA_VERSION",
             "BASENOTES_CLEANING_METHOD_ID",
         ),
-        "b18ef028e21a94a165ee159cf86bfa3b541c08a5e81ba14744f56ef8fd2617d3",
+        # Cleaning method v1 re-fingerprints obligations for the changed source admission.
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py and
+        # data_lake/canonical_json.py; not output-shaping.
+        "a44fe51c0908f38b53a48092e12c9c4c1c75f0c2528941b18c60b3f4a98467ad",
     ),
     "cleaning/fragrantica.py": (
         ("FRAGRANTICA_CLEANING_METHOD_ID (cleaning/fragrantica_lake.py)",),
-        "21a0f124bd42972285eb1cea7a07861bf79cf2dcda4819d612762481d220d1b7",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py; not output-shaping.
+        "b90d7f269cdd6c159b168f128f3a7e4511e5f930f8fd1d26bf6ec73a8c508371",
     ),
     "cleaning/fragrantica_lake.py": (
         (
             "FRAGRANTICA_AUDIT_PACK_PRODUCER_SCHEMA_VERSION",
             "FRAGRANTICA_SILVER_PRODUCER_SCHEMA_VERSION",
             "FRAGRANTICA_SILVER_METRIC_PRODUCER_SCHEMA_VERSION",
+            "FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION",
             "FRAGRANTICA_CLEANING_METHOD_ID",
         ),
-        "6ba53c8c2ee91bdf727fb2d690763aaa7ef2519c8ac6742cfc106df324c186e5",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py and
+        # data_lake/canonical_json.py; not output-shaping.
+        "7eb76831994b33ec2115e7d447128765c15eb8239f47a63860a3bfb96da38f9b",
     ),
     "cleaning/models.py": (
         ("CLEANING_CORE_VERSION",),
@@ -65,7 +106,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/parfumo.py": (
         ("PARFUMO_RATING_CARRY_RULE", "PARFUMO_CLEANING_METHOD_ID (cleaning/parfumo_lake.py)"),
-        "65a13d65228ed78737664d023a6d498b8703a294dc133ee0db7d6035cd6a1e32",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py; not output-shaping.
+        "6f4c4cda538e94056eb124d6006c8e5c7ea4749df4fe4bfe22ec92d57009b176",
     ),
     "cleaning/parfumo_lake.py": (
         (
@@ -74,15 +116,21 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION",
             "PARFUMO_CLEANING_METHOD_ID",
         ),
-        "16a34bddff60ab660720c0cef63f198a275e36b2bd47b1bbc1bf8ca7b5d6a608",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py and
+        # data_lake/canonical_json.py; not output-shaping.
+        "d19fd40113b4410530804fcadab0689db125885af9af058477deaf1a6fe59911",
     ),
     "cleaning/transcript_product_extractor.py": (
         ("EXTRACTOR_RUBRIC_VERSION",),
-        "2301b2977bfcdeaa5963bc4e30b0b4c6adcc6d76075d8dda0d9351eb08d4d08c",
+        # Import-only transport relocation; output-shaping rubric is unchanged.
+        "45a1878754192b6cab344fc11d74770851e19c49f46741947e7ac3378136054f",
     ),
     "cleaning/transcript_product_lake.py": (
         ("EXTRACTOR_RUBRIC_VERSION (cleaning/transcript_product_extractor.py)", "PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
-        "5e26f61b50082dd214ae6f2fe756308607a06009c09c84b33f9c95be1f2fddf4",
+        # Output-shaping: the official Silver envelope is retained, while durable
+        # record/completion identity now binds the full policy fingerprint; the
+        # PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION bump to v2 re-surfaces V1 records.
+        "6885729bc1b5bee6b250ce2d40f4b3bd7ca66e225fbbc6cc3c6c5649dd1afbef",
     ),
     "ecr/deriver.py": (
         ("ECR_DERIVER_VERSION",),
@@ -90,11 +138,12 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/basenotes_projection.py": (
         ("BASENOTES_PROJECTION_VERSION",),
-        "e3daca78e9dc238844d6452a93a16728fb6b6e8f0e4be936df3e1a98e2ffa2da",
+        # Projection v1 rejects the retired proxy surface and admits the proven persistent-Chrome surface.
+        "cd56c89c207ad9716cb6104c576b7cb1951bc75cc1256b499d119980c905cd7d",
     ),
     "source_capture/fragrance_review_coverage.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION", "FRAGRANCE_REVIEW_RECORD_SCHEMA_VERSION (record-shape token; weak-envelope residual closed)"),
-        "b98de11e2a67abe4fd75c048926ba2b3e95b3dddfc9446a20cdef93adb6a1bad",
+        "df33ab6c6de41986fcc796fbb9b4e162884ef650796a25398cdd1597cc1b29fc",
     ),
     "source_capture/fragrance_review_lake.py": (
         ("FRAGRANCE_REVIEW_COVERAGE_VERSION (source_capture/fragrance_review_coverage.py; weak-envelope residual)",),
@@ -106,7 +155,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "source_capture/ig_reels_grid_projection.py": (
         ("IG_REELS_PROJECTION_VERSION",),
-        "6ad096feefc6e992c56135f87f6f343da9b3d05d895fd30c0435b3862ade1729",
+        "47c5b75baefc4543363b09513ee55e712368ce5682d10240f8a9c97e66623213",
     ),
     "source_capture/parfumo_projection.py": (
         ("PARFUMO_PROJECTION_VERSION",),
@@ -128,6 +177,12 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # -- only the hang-failure path changes; a successful Reel bestaudio download derives identically.
         "3f2bcd15d3f201fc30fe066d4ebfd0e6b2c592e7e7a85ad9209253095204ee57",
     ),
+    "runners/run_tiktok_product_extract.py": (
+        ("EXTRACTOR_RUBRIC_VERSION", "TikTok cue-normalization and packet-obligation policy"),
+        # Output-shaping obligation change: record schema version now re-surfaces
+        # packets for the envelope migration even when the extraction rubric is unchanged.
+        "054645d4501ed6084197efa3e34620b54dda7bb80e22ab6dda7907e23cc5414e",
+    ),
 }
 
 # Record-shape schema tokens close the weak-envelope class only if they are
@@ -136,7 +191,7 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
 # accidentally drops the payload field itself.
 RECORD_SCHEMA_TOKEN_FIELD_SITES: dict[str, tuple[str, ...]] = {
     "cleaning/transcript_product_lake.py": (
-        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v0"',
+        'PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION = "transcript_product_mentions_record_v3"',
         '"record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION',
     ),
     "source_capture/fragrance_review_coverage.py": (

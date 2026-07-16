@@ -13,6 +13,7 @@ change (never self-comparing).
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -26,6 +27,7 @@ from data_lake.silver_lineage import (
     SilverRawRef,
     SilverSourceObject,
 )
+from data_lake.silver_record import silver_content_hash
 from data_lake.sov_readout import (
     METRIC_FAMILY,
     SovSpecError,
@@ -39,6 +41,7 @@ from source_capture.writer import write_local_source_capture_packet
 
 _STAMP = {"generation_id": "0" * 32, "generated_at": "2026-07-03T00:00:00+00:00"}
 
+_POLICY = {"policy_version": "rubric_v0", "policy_fingerprint_sha256": "a" * 64}
 
 def _commit_packet(root: DataLakeRoot, tmp_path: Path, body: str) -> str:
     src = tmp_path / f"{body}.json"
@@ -56,12 +59,17 @@ def _commit_packet(root: DataLakeRoot, tmp_path: Path, body: str) -> str:
 
 
 def _lineage_fields(
+    root: DataLakeRoot,
     packet_id: str,
     native_id: str,
     *,
     captured_at: str | None = None,
     observed_at: str | None = None,
 ) -> dict:
+    manifest = json.loads(
+        (root.find_packet(packet_id) / "manifest.json").read_text(encoding="utf-8")
+    )
+    preserved = manifest["preserved_files"][0]
     lineage = SilverLineage(
         producer_id="test.producer",
         producer_schema_version="v0",
@@ -74,9 +82,9 @@ def _lineage_fields(
         raw_refs=[
             SilverRawRef(
                 packet_id=packet_id,
-                file_id="f1",
-                relative_packet_path="preserved/f1.json",
-                sha256="a" * 64,
+                file_id=preserved["file_id"],
+                relative_packet_path=preserved["relative_packet_path"],
+                sha256=preserved["sha256"],
                 hash_basis="raw_stored_bytes",
                 anchor=SilverAnchor(kind="file"),
                 relation="consumed",
@@ -98,6 +106,72 @@ def _mention(mention_id: str, brand: str, line: str, start_ms: int = 0) -> dict:
 
 
 def _write_record(root: DataLakeRoot, raw_anchor: str, record_id: str, record: dict) -> None:
+    mentions = record.pop("mentions", [])
+    source_object = record.get("source_object") if isinstance(record.get("source_object"), dict) else {}
+    native_id = str(source_object.get("native_id") or "unknown")
+    rows = []
+    for index, mention in enumerate(mentions):
+        quote = str(mention.get("source_pointer") or f"malformed quote {index}") if isinstance(mention, dict) else f"malformed quote {index}"
+        rows.append(
+            {
+                "row_id": f"row-{index}",
+                "text_artifact_type": "transcript_quote",
+                "text_value": quote,
+                "text_ref": None,
+                "text_hash": "sha256:" + hashlib.sha256(quote.encode()).hexdigest(),
+                "text_posture": {"kind": "observed", "reason_code": None, "reason_detail": None},
+                "mention": mention,
+            }
+        )
+    record = {
+        "record_id": record_id,
+        "raw_anchor": raw_anchor,
+        "lane_namespace": MENTIONS_LANE,
+        "producer_id": record.get("producer_id", "test.producer"),
+        "schema_version": "silver_vault_record_v0",
+        "producer_schema_version": record.get("producer_schema_version", "v0"),
+        "content_hash": "",
+        "content_hash_basis": "canonical_json_excluding_content_hash",
+        "record_kind": "observation",
+        "payload_kind": "TextObservationSet",
+        "producer_row_kind": "transcript_product_mentions",
+        "source_surface": record.get("source_surface", "youtube_captions"),
+        "observed_at": record.get("observed_at"),
+        "captured_at": record.get("captured_at"),
+        "raw_refs": record.get("raw_refs", []),
+        "derived_refs": record.get("derived_refs", []),
+        **{key: value for key, value in record.items() if key not in {"producer_id", "producer_schema_version", "source_surface", "observed_at", "captured_at", "raw_refs", "derived_refs"}},
+        "payload": {
+            "observation": {
+                "subject": {"ref_type": "entity_key", "ref": {"namespace": "youtube", "kind": "public_content_object", "native_id": native_id}},
+                "observation_set_kind": "transcript_product_mentions",
+                "policy_version": "rubric_v0",
+                "policy_fingerprint_sha256": "a" * 64,
+                "row_count": len(rows),
+                "rows": rows,
+            }
+        },
+        "provenance": {
+            "rubric_version": record.get("rubric_version", "rubric_v0"),
+            "transcript_source_key": record.get("transcript_source_key", record_id),
+        },
+    }
+    if record["observed_at"] is None and record["captured_at"] is not None:
+        record["payload"]["observation"].update(
+            {
+                "effective_interval": {
+                    "start": None,
+                    "start_precision": "unknown",
+                    "unknown_reason": "The transcript fixture has no source-effective time.",
+                },
+                "recorded_at": record["captured_at"],
+                "evidence_refs": list(record["raw_refs"]),
+                "limitations": [
+                    "Source-effective time is unknown; recorded_at is capture time."
+                ],
+            }
+        )
+    record["content_hash"] = "sha256:" + silver_content_hash(record)
     root.append_record(
         subtree="derived",
         raw_anchor=raw_anchor,
@@ -128,6 +202,7 @@ def _spec(
         },
         "coverage_window": {"start": start, "end": end, "window_basis": basis},
         "cohort_selection": "declared_member_refs_v0",
+        "product_mention_policy": _POLICY,
     }
     if comparison_set is not None:
         spec["comparison_set"] = comparison_set
@@ -154,7 +229,7 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
                 _mention("m-2", "Dior", "Sauvage", 900),
                 _mention("m-3", "Chanel", "Bleu", 500),
             ],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     _write_record(
@@ -164,14 +239,15 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
         {
             "rubric_version": "rubric_v0",
             "mentions": [_mention("m-4", "unknown", "mystery scent")],
-            **_lineage_fields(second, "vid2", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, second, "vid2", captured_at=_IN_WINDOW),
         },
     )
 
     view, source_refs = compute_sov_readout(root, _spec())
 
     assert view["metric_family"] == METRIC_FAMILY
-    assert view["family_schema_version"] == 1
+    assert view["product_mention_policy"] == _POLICY
+    assert view["family_schema_version"] == 2
     assert view["platform"] == "youtube"
     assert view["readout_posture"] == "observed"
     assert view["denominator"] == 4
@@ -198,8 +274,8 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
     assert policies["silver_lineage_gate"] == "source_backed_complete"
     assert policies["brand_grouping"] == "exact_string_v0"
     assert policies["cohort_selection"] == "declared_member_refs_v0"
-    assert policies["family_schema_version"] == 1
-    assert policies["extractor_rubric_versions"] == ["rubric_v0"]
+    assert policies["family_schema_version"] == 2
+    assert policies["product_mention_policy"] == _POLICY
 
     cohort = view["cohort"]
     assert cohort["member_basis"] == "captured_set"
@@ -210,6 +286,7 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
 
     # Schema pin: exactly the contract fields, nothing forbidden can hide here.
     assert set(view) == {
+        "product_mention_policy",
         "metric_family",
         "family_schema_version",
         "platform",
@@ -236,7 +313,7 @@ def test_lineage_gate_excludes_and_counts(tmp_path: Path) -> None:
         "m_ok.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     # Gate-failing record: carries a cohort identity but no lineage fields.
@@ -255,8 +332,9 @@ def test_lineage_gate_excludes_and_counts(tmp_path: Path) -> None:
     assert view["readout_posture"] == "observed"
     assert view["denominator"] == 1
     assert ("Ghost", "Should Not Count") not in {(r["brand"], r["line"]) for r in view["rows"]}
-    assert view["coverage"]["mention_records_in_scope"] == 2
-    assert view["coverage"]["mention_records_excluded_not_source_backed"] == 1
+    assert view["coverage"]["mention_records_in_scope"] == 1
+    assert view["coverage"]["selection_residual_count_lake_wide"] == 1
+    assert view["coverage"]["selection_residuals_by_status"] == {"invalid_silver_envelope": 1}
 
 
 def test_cohort_scoping_and_residuals(tmp_path: Path) -> None:
@@ -268,7 +346,7 @@ def test_cohort_scoping_and_residuals(tmp_path: Path) -> None:
         "m_member.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     # A committed record from a NON-member source object: out of scope entirely.
@@ -278,7 +356,7 @@ def test_cohort_scoping_and_residuals(tmp_path: Path) -> None:
         "m_other.json",
         {
             "mentions": [_mention("m-2", "Chanel", "Bleu")],
-            **_lineage_fields(first, "vid_other", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid_other", captured_at=_IN_WINDOW),
         },
     )
 
@@ -302,7 +380,7 @@ def test_capture_time_window_excludes_out_of_window(tmp_path: Path) -> None:
         "m_in.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     _write_record(
@@ -311,7 +389,7 @@ def test_capture_time_window_excludes_out_of_window(tmp_path: Path) -> None:
         "m_out.json",
         {
             "mentions": [_mention("m-2", "Chanel", "Bleu")],
-            **_lineage_fields(first, "vid1", captured_at="2020-06-01T00:00:00Z"),
+            **_lineage_fields(root, first, "vid1", captured_at="2020-06-01T00:00:00Z"),
         },
     )
 
@@ -334,7 +412,7 @@ def test_capture_time_falls_back_to_packet_manifest(tmp_path: Path) -> None:
         "m_fallback.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1"),
+            **_lineage_fields(root, first, "vid1", observed_at=_IN_WINDOW),
         },
     )
 
@@ -359,7 +437,7 @@ def test_publication_basis_missing_is_counted_and_can_empty_the_scope(tmp_path: 
         "m_no_basis.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
 
@@ -372,9 +450,7 @@ def test_publication_basis_missing_is_counted_and_can_empty_the_scope(tmp_path: 
     view, _refs = compute_sov_readout(root, spec)
 
     assert view["readout_posture"] == "unavailable_with_reason"
-    assert view["readout_reason"] == (
-        "window_basis_missing_for_all_source_backed_records_in_scope"
-    )
+    assert view["readout_reason"] == "window_basis_missing_for_all_exact_policy_records_in_scope"
     assert view["rows"] == []
     assert "denominator" not in view
     assert view["coverage"]["window_basis_missing"] == 1
@@ -387,7 +463,7 @@ def test_publication_basis_missing_is_counted_and_can_empty_the_scope(tmp_path: 
         "m_observed.json",
         {
             "mentions": [_mention("m-2", "Chanel", "Bleu")],
-            **_lineage_fields(first, "vid1", observed_at="2026-02-01T00:00:00Z"),
+            **_lineage_fields(root, first, "vid1", observed_at="2026-02-01T00:00:00Z"),
         },
     )
     view, _refs = compute_sov_readout(root, spec)
@@ -406,7 +482,7 @@ def test_zero_rows_exist_only_under_declared_comparison_set(tmp_path: Path) -> N
         "m1.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
 
@@ -443,7 +519,7 @@ def test_empty_scope_is_posture_never_a_zero_table(tmp_path: Path) -> None:
     view, _refs = compute_sov_readout(root, _spec(members=("vid1",), comparison_set=comparison))
 
     assert view["readout_posture"] == "unavailable_with_reason"
-    assert view["readout_reason"] == "no_source_backed_mention_records_in_scope"
+    assert view["readout_reason"] == "no_exact_policy_mention_records_in_scope"
     assert view["rows"] == []
     assert "denominator" not in view and "denominator_basis" not in view
     assert view["coverage"]["cohort_selection_residuals"] == {
@@ -466,7 +542,7 @@ def test_zero_mention_and_malformed_and_unreadable_are_disclosed(tmp_path: Path)
                 {**_mention("m-3", "Broken", "")},
                 {**_mention("m-4", "Broken", "Bad Span", 200), "end_ms": 100},
             ],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     _write_record(
@@ -475,7 +551,7 @@ def test_zero_mention_and_malformed_and_unreadable_are_disclosed(tmp_path: Path)
         "m_zero.json",
         {
             "mentions": [],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     root.append_record(
@@ -492,7 +568,7 @@ def test_zero_mention_and_malformed_and_unreadable_are_disclosed(tmp_path: Path)
     coverage = view["coverage"]
     assert coverage["source_backed_records_with_zero_mentions"] == 1
     assert coverage["malformed_mention_entries"] == 4
-    assert coverage["unreadable_mention_lane_records"] == 1
+    assert coverage["selection_residuals_by_status"] == {"unreadable": 1}
     assert {(row["brand"], row["line"]) for row in view["rows"]} == {("Dior", "Sauvage")}
 
 
@@ -532,7 +608,7 @@ def test_materialize_and_prove_rebuildability(tmp_path: Path) -> None:
         "m1.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     spec = _spec(members=("vid1",))
@@ -583,7 +659,7 @@ def test_materialize_and_prove_rebuildability(tmp_path: Path) -> None:
         "m2.json",
         {
             "mentions": [_mention("m-2", "Chanel", "Bleu")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     proof = prove_sov_rebuildability(root)
@@ -619,7 +695,7 @@ def test_runner_cli_compute_materialize_prove(tmp_path: Path, capsys, monkeypatc
         "m1.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     spec_path = tmp_path / "spec.json"

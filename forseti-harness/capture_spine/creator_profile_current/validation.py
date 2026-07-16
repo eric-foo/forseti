@@ -16,8 +16,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from capture_spine.creator_profile_current.ideal_audience_snapshot import (
-    validate_creator_ideal_audience_profile_snapshot,
+from capture_spine.creator_profile_current.audience_triangulation_snapshot import (
+    validate_creator_audience_triangulation_snapshot,
 )
 from capture_spine.creator_public_handle_linkage.models import CreatorPublicHandleLinkageError
 from capture_spine.creator_public_handle_linkage.validation import assert_no_forbidden_output_fields
@@ -49,9 +49,11 @@ _ALLOWED_COUNTS_KEYS = frozenset(
         "platform_account_profiles",
         "creator_record_profiles",
         "profiles_with_metric_rollups",
-        "profiles_with_ideal_audience_profiles",
+        "profiles_with_audience_triangulation",
         "engagement_rate_observed_profiles",
         "cross_platform_rollup_profiles",
+        "onboarded_profiles",
+        "not_onboarded_profiles",
     }
 )
 _ALLOWED_PROFILE_KEYS = frozenset(
@@ -65,8 +67,9 @@ _ALLOWED_PROFILE_KEYS = frozenset(
         "review_state_or_none",
         "platform_accounts",
         "identity_evidence_summary",
+        "onboarding",
         "current_metric_rollups",
-        "ideal_audience_profile",
+        "audience_triangulation",
         "wind_calling_summary",
         "freshness",
         "source_drill_back",
@@ -136,6 +139,16 @@ _ALLOWED_FRESHNESS_KEYS = frozenset(
 )
 _ALLOWED_IDENTITY_EVIDENCE_SUMMARY_KEYS = frozenset(
     {"summary", "account_pointer", "source_pointers"}
+)
+_ALLOWED_ONBOARDING_KEYS = frozenset(
+    {
+        "onboarding_state",
+        "onboarded_at_or_none",
+        "evidence_packet_id_or_none",
+        "evidence_source_family_or_none",
+        "evidence_source_surface_or_none",
+        "policy_version",
+    }
 )
 _ALLOWED_SOURCE_DRILL_BACK_KEYS = frozenset(
     {
@@ -254,10 +267,11 @@ def _validate_profiles(value: Any) -> list[Mapping[str, Any]]:
         _validate_identity_boundary(profile, subject_kind, subject_id)
         _validate_platform_accounts(profile["platform_accounts"], subject_kind, profile)
         _validate_identity_evidence_summary(profile["identity_evidence_summary"])
+        _validate_onboarding(profile["onboarding"])
         _validate_profile_non_claims(profile["non_claims"])
         _validate_str_list(profile["limitations"], "profile_limitations", allow_empty=False)
         rollups = _validate_rollups(profile["current_metric_rollups"], profile)
-        _validate_ideal_audience_profile(profile["ideal_audience_profile"], profile)
+        _validate_audience_triangulation(profile["audience_triangulation"], profile)
         _validate_unjoined_profile_surface(profile["wind_calling_summary"], "wind_calling_summary")
         _validate_source_drill_back(profile["source_drill_back"], profile["identity_evidence_summary"], rollups)
         _validate_freshness(profile["freshness"])
@@ -335,35 +349,55 @@ def _validate_identity_evidence_summary(value: Any) -> None:
     _validate_str_list(value["source_pointers"], "identity_evidence_summary.source_pointers", allow_empty=False)
 
 
+def _validate_onboarding(value: Any) -> None:
+    if not isinstance(value, Mapping):
+        _fail("invalid_onboarding", "onboarding must be a mapping")
+    _reject_unknown_keys(value, _ALLOWED_ONBOARDING_KEYS, "onboarding")
+    _require(value, tuple(_ALLOWED_ONBOARDING_KEYS), "onboarding")
+    state = value["onboarding_state"]
+    if state not in {"not_onboarded", "onboarded"}:
+        _fail("invalid_onboarding_state", "onboarding_state must be not_onboarded or onboarded")
+    _validate_non_empty_str(value["policy_version"], "onboarding.policy_version")
+    evidence_keys = (
+        "onboarded_at_or_none",
+        "evidence_packet_id_or_none",
+        "evidence_source_family_or_none",
+        "evidence_source_surface_or_none",
+    )
+    if state == "onboarded":
+        for key in evidence_keys:
+            _validate_non_empty_str(value[key], f"onboarding.{key}")
+    elif any(value[key] is not None for key in evidence_keys):
+        _fail(
+            "not_onboarded_has_evidence",
+            "not_onboarded profiles must not carry onboarding evidence",
+        )
+
+
 def _validate_unjoined_profile_surface(value: Any, context: str) -> None:
     if value is not None:
         _fail(f"unsupported_{context}", f"{context} is not joined into creator_profile_current_view_v0")
 
 
-def _validate_ideal_audience_profile(value: Any, profile: Mapping[str, Any]) -> None:
+def _validate_audience_triangulation(value: Any, profile: Mapping[str, Any]) -> None:
     if value is None:
         return
     if not isinstance(value, Mapping):
-        _fail("invalid_ideal_audience_profile", "ideal_audience_profile must be an object or null")
+        _fail("invalid_audience_triangulation", "audience_triangulation must be an object or null")
     try:
-        snapshot = validate_creator_ideal_audience_profile_snapshot(value)
+        snapshot = validate_creator_audience_triangulation_snapshot(value)
     except ValueError as exc:
-        _fail("invalid_ideal_audience_profile", f"invalid ideal_audience_profile snapshot: {exc}")
+        _fail("invalid_audience_triangulation", f"invalid audience_triangulation snapshot: {exc}")
     if snapshot["profile_subject_kind"] != profile["profile_subject_kind"]:
-        _fail("ideal_audience_profile_subject_mismatch", "ideal_audience_profile subject kind must match profile")
+        _fail("audience_triangulation_subject_mismatch", "audience_triangulation subject kind must match profile")
     if snapshot["profile_subject_id"] != profile["profile_subject_id"]:
-        _fail("ideal_audience_profile_subject_mismatch", "ideal_audience_profile subject id must match profile")
+        _fail("audience_triangulation_subject_mismatch", "audience_triangulation subject id must match profile")
     if profile["profile_subject_kind"] == "platform_account":
-        if snapshot["platform_account_ids"] != [profile["platform_account_id_or_none"]]:
+        if snapshot["platform_account_id"] != profile["platform_account_id_or_none"]:
             _fail(
-                "ideal_audience_profile_subject_mismatch",
-                "platform_account ideal_audience_profile must point at the same platform account",
+                "audience_triangulation_subject_mismatch",
+                "audience_triangulation must point at the same platform account",
             )
-    elif snapshot["creator_record_id_or_none"] != profile["creator_record_id_or_none"]:
-        _fail(
-            "ideal_audience_profile_subject_mismatch",
-            "creator_record ideal_audience_profile must point at the same creator record",
-        )
 
 
 def _validate_rollups(value: Any, profile: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -547,9 +581,9 @@ def _validate_counts(counts: Any, profiles: Sequence[Mapping[str, Any]]) -> None
         "profiles_with_metric_rollups",
     )
     _assert_equal(
-        counts["profiles_with_ideal_audience_profiles"],
-        sum(1 for profile in profiles if profile["ideal_audience_profile"] is not None),
-        "profiles_with_ideal_audience_profiles",
+        counts["profiles_with_audience_triangulation"],
+        sum(1 for profile in profiles if profile["audience_triangulation"] is not None),
+        "profiles_with_audience_triangulation",
     )
     _assert_equal(
         counts["engagement_rate_observed_profiles"],
@@ -571,6 +605,16 @@ def _validate_counts(counts: Any, profiles: Sequence[Mapping[str, Any]]) -> None
             if any(rollup["platform_scope"] == "cross_platform" for rollup in profile["current_metric_rollups"])
         ),
         "cross_platform_rollup_profiles",
+    )
+    _assert_equal(
+        counts["onboarded_profiles"],
+        sum(1 for profile in profiles if profile["onboarding"]["onboarding_state"] == "onboarded"),
+        "onboarded_profiles",
+    )
+    _assert_equal(
+        counts["not_onboarded_profiles"],
+        sum(1 for profile in profiles if profile["onboarding"]["onboarding_state"] == "not_onboarded"),
+        "not_onboarded_profiles",
     )
 
 

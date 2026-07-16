@@ -1,27 +1,36 @@
-"""Build the static creator-profile-current view from sibling source ledgers."""
+"""Build creator-profile-current from identity, onboarding, and metric sources."""
 
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Sequence
 
-from capture_spine.creator_profile_current.ideal_audience_snapshot import (
+from capture_spine.creator_profile_current.audience_triangulation_snapshot import (
     SNAPSHOT_WRAPPER_KEY as AUDIENCE_SNAPSHOT_WRAPPER_KEY,
-    load_creator_ideal_audience_snapshot_document,
+    load_creator_audience_triangulation_snapshot_document,
 )
 from capture_spine.creator_profile_current.validation import (
     CREATOR_PROFILE_CURRENT_VIEW_SCHEMA_VERSION,
     validate_creator_profile_current_view,
 )
 
+from schemas.creator_audience_models import CreatorAudienceJudgmentOutcomeV1
+from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
+
+
 
 WRAPPER_KEY = "creator_profile_current_view"
 ACCOUNT_LEDGER_POINTER = (
     "forseti/product/spines/capture/core/source_families/social_media/creator_registry/"
     "creator_public_handle_linkage_ledger_v0.json"
+)
+CREATOR_REGISTRY_INDEX_POINTER = (
+    "forseti/product/spines/capture/core/source_families/social_media/creator_registry/"
+    "creator_registry_index_v0.json"
 )
 YOUTUBE_METRIC_SEED_POINTER = (
     "forseti/product/spines/capture/core/source_families/social_media/youtube/"
@@ -108,25 +117,38 @@ def load_json(path: str | Path) -> dict[str, Any]:
 def build_creator_profile_current_view_from_files(
     *,
     account_ledger_path: str | Path,
+    creator_registry_index_path: str | Path,
     metric_seed_path: str | Path | None = None,
     metric_seed_paths: Sequence[str | Path] | None = None,
-    audience_profile_snapshot_path: str | Path | None = None,
-    audience_profile_snapshot_paths: Sequence[str | Path] | None = None,
+    audience_triangulation_snapshot_path: str | Path | None = None,
+    audience_triangulation_snapshot_paths: Sequence[str | Path] | None = None,
+    audience_judgment_outcome_path: str | Path | None = None,
+    audience_judgment_outcome_paths: Sequence[str | Path] | None = None,
     generated_at_utc: str,
 ) -> dict[str, Any]:
     account_path = Path(account_ledger_path)
+    registry_index_path = Path(creator_registry_index_path)
     account_document = load_json(account_path)
+    registry_document = load_json(registry_index_path)
+    onboarding_by_account = _onboarding_by_account_from_registry(registry_document)
     metric_paths = _normalize_metric_seed_paths(metric_seed_path=metric_seed_path, metric_seed_paths=metric_seed_paths)
     metric_seed_inputs = [_load_metric_seed_input(path) for path in metric_paths]
     audience_paths = _normalize_audience_snapshot_paths(
-        audience_profile_snapshot_path=audience_profile_snapshot_path,
-        audience_profile_snapshot_paths=audience_profile_snapshot_paths,
+        audience_triangulation_snapshot_path=audience_triangulation_snapshot_path,
+        audience_triangulation_snapshot_paths=audience_triangulation_snapshot_paths,
     )
     audience_snapshot_inputs = [_load_audience_snapshot_input(path) for path in audience_paths]
+    audience_outcome_paths = _normalize_audience_outcome_paths(
+        audience_judgment_outcome_path=audience_judgment_outcome_path,
+        audience_judgment_outcome_paths=audience_judgment_outcome_paths,
+    )
+    verify_audience_judgment_outcomes(audience_paths, audience_outcome_paths)
+
     return build_creator_profile_current_view_document(
         account_ledger=account_document["creator_public_handle_linkage_ledger"],
+        onboarding_by_account=onboarding_by_account,
         metric_seeds=[seed_input["seed"] for seed_input in metric_seed_inputs],
-        audience_profile_snapshots=[
+        audience_triangulation_snapshots=[
             snapshot
             for snapshot_input in audience_snapshot_inputs
             for snapshot in snapshot_input["snapshots"]
@@ -134,6 +156,7 @@ def build_creator_profile_current_view_from_files(
         generated_at_utc=generated_at_utc,
         source_input_hashes={
             ACCOUNT_LEDGER_POINTER: _sha256_repo_text(account_path),
+            CREATOR_REGISTRY_INDEX_POINTER: _sha256_repo_text(registry_index_path),
             **{
                 seed_input["pointer"]: _sha256_repo_text(seed_input["path"])
                 for seed_input in metric_seed_inputs
@@ -151,9 +174,10 @@ def build_creator_profile_current_view_from_files(
 def build_creator_profile_current_view_document(
     *,
     account_ledger: dict[str, Any],
+    onboarding_by_account: Mapping[str, Mapping[str, Any]],
     metric_seed: dict[str, Any] | None = None,
     metric_seeds: Sequence[dict[str, Any]] | None = None,
-    audience_profile_snapshots: Sequence[dict[str, Any]] | None = None,
+    audience_triangulation_snapshots: Sequence[dict[str, Any]] | None = None,
     generated_at_utc: str,
     source_input_hashes: dict[str, str],
     metric_seed_inputs: Sequence[dict[str, Any]] | None = None,
@@ -163,9 +187,15 @@ def build_creator_profile_current_view_document(
     seeds = _normalize_metric_seeds(metric_seed=metric_seed, metric_seeds=metric_seeds)
     rollup_records = _collect_metric_rollup_records(seeds, metric_seed_inputs)
     accounts_by_id = {account["platform_account_id"]: account for account in accounts}
+    if set(onboarding_by_account) != set(accounts_by_id):
+        raise ValueError(
+            "Creator Registry onboarding rows must exactly match linkage-ledger accounts; "
+            f"missing={sorted(set(accounts_by_id) - set(onboarding_by_account))!r}, "
+            f"extra={sorted(set(onboarding_by_account) - set(accounts_by_id))!r}"
+        )
     rollups_by_subject = {record["rollup"]["profile_subject_id"]: record for record in rollup_records}
     audience_by_subject = _collect_audience_snapshots_by_subject(
-        snapshots=audience_profile_snapshots or [],
+        snapshots=audience_triangulation_snapshots or [],
         known_profile_subject_ids=set(accounts_by_id),
     )
     if len(rollups_by_subject) != len(rollup_records):
@@ -199,7 +229,9 @@ def build_creator_profile_current_view_document(
             profiles.append(
                 _build_identity_only_platform_account_profile(
                     account=account,
+                    onboarding=onboarding_by_account[account_id],
                     account_index=account_index[account_id],
+                    audience_triangulation_snapshot=audience_by_subject.get(account_id),
                     generated_at_utc=generated_at_utc,
                 )
             )
@@ -207,12 +239,13 @@ def build_creator_profile_current_view_document(
         profiles.append(
             _build_platform_account_profile(
                 account=account,
+                onboarding=onboarding_by_account[account_id],
                 account_index=account_index[account_id],
                 rollup=rollup_record["rollup"],
                 rollup_index=rollup_index[account_id],
                 metric_source_pointer=rollup_record["pointer"],
                 metric_source_wrapper=rollup_record["wrapper"],
-                audience_profile_snapshot=audience_by_subject.get(account_id),
+                audience_triangulation_snapshot=audience_by_subject.get(account_id),
                 generated_at_utc=generated_at_utc,
             )
         )
@@ -224,8 +257,9 @@ def build_creator_profile_current_view_document(
         "generated_at_utc": generated_at_utc,
         "source_policy_posture": (
             "Static creator-profile-current export derived from the public-handle "
-            "platform-account ledger and platform creator metric seeds. Profiles "
-            "are account-scoped unless promoted public-handle linkage exists."
+            "platform-account ledger, Bronze-derived Creator Registry onboarding "
+            "projection, and platform creator metric seeds. Profiles are account-scoped "
+            "unless promoted public-handle linkage exists."
         ),
         "authority_pointers": [
             "forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md",
@@ -237,6 +271,11 @@ def build_creator_profile_current_view_document(
                 "source_pointer": ACCOUNT_LEDGER_POINTER,
                 "sha256": source_input_hashes[ACCOUNT_LEDGER_POINTER],
                 "role": "source-backed platform accounts and identity state",
+            },
+            {
+                "source_pointer": CREATOR_REGISTRY_INDEX_POINTER,
+                "sha256": source_input_hashes[CREATOR_REGISTRY_INDEX_POINTER],
+                "role": "account-level onboarding state derived from verified committed Bronze evidence",
             },
             *[
                 {
@@ -293,12 +332,13 @@ def dump_creator_profile_current_view(document: dict[str, Any]) -> str:
 def _build_platform_account_profile(
     *,
     account: dict[str, Any],
+    onboarding: Mapping[str, Any],
     account_index: int,
     rollup: dict[str, Any],
     rollup_index: int,
     metric_source_pointer: str,
     metric_source_wrapper: str,
-    audience_profile_snapshot: dict[str, Any] | None,
+    audience_triangulation_snapshot: dict[str, Any] | None,
     generated_at_utc: str,
 ) -> dict[str, Any]:
     account_id = account["platform_account_id"]
@@ -317,6 +357,7 @@ def _build_platform_account_profile(
         "identity_state": "single_platform_observed",
         "link_state_or_none": None,
         "review_state_or_none": None,
+        "onboarding": deepcopy(dict(onboarding)),
         "platform_accounts": [deepcopy(account)],
         "identity_evidence_summary": {
             "summary": (
@@ -331,13 +372,17 @@ def _build_platform_account_profile(
             "source_pointers": source_pointers,
         },
         "current_metric_rollups": [_profile_rollup(rollup, metric_rollup_pointer)],
-        "ideal_audience_profile": deepcopy(audience_profile_snapshot) if audience_profile_snapshot else None,
+        "audience_triangulation": (
+            deepcopy(audience_triangulation_snapshot) if audience_triangulation_snapshot else None
+        ),
         "wind_calling_summary": None,
         "freshness": {
             "identity_updated_at": account["handle_observed_at"],
             "metrics_computed_at_or_none": rollup["computed_at"],
             "audience_computed_at_or_none": (
-                audience_profile_snapshot["computed_at"] if audience_profile_snapshot else None
+                audience_triangulation_snapshot["generated_at"]
+                if audience_triangulation_snapshot
+                else None
             ),
             "profile_view_computed_at": generated_at_utc,
         },
@@ -353,7 +398,7 @@ def _build_platform_account_profile(
         "limitations": _profile_limitations(
             platform=platform,
             rollup=rollup,
-            audience_profile_joined=audience_profile_snapshot is not None,
+            audience_triangulation_joined=audience_triangulation_snapshot is not None,
         ),
         "non_claims": [
             "not channel-wide creator influence",
@@ -370,7 +415,9 @@ def _build_platform_account_profile(
 def _build_identity_only_platform_account_profile(
     *,
     account: dict[str, Any],
+    onboarding: Mapping[str, Any],
     account_index: int,
+    audience_triangulation_snapshot: dict[str, Any] | None,
     generated_at_utc: str,
 ) -> dict[str, Any]:
     account_id = account["platform_account_id"]
@@ -388,6 +435,7 @@ def _build_identity_only_platform_account_profile(
         "identity_state": "single_platform_observed",
         "link_state_or_none": None,
         "review_state_or_none": None,
+        "onboarding": deepcopy(dict(onboarding)),
         "platform_accounts": [deepcopy(account)],
         "identity_evidence_summary": {
             "summary": (
@@ -401,12 +449,18 @@ def _build_identity_only_platform_account_profile(
             "source_pointers": source_pointers,
         },
         "current_metric_rollups": [],
-        "ideal_audience_profile": None,
+        "audience_triangulation": (
+            deepcopy(audience_triangulation_snapshot) if audience_triangulation_snapshot else None
+        ),
         "wind_calling_summary": None,
         "freshness": {
             "identity_updated_at": account["handle_observed_at"],
             "metrics_computed_at_or_none": None,
-            "audience_computed_at_or_none": None,
+            "audience_computed_at_or_none": (
+                audience_triangulation_snapshot["generated_at"]
+                if audience_triangulation_snapshot
+                else None
+            ),
             "profile_view_computed_at": generated_at_utc,
         },
         "source_drill_back": {
@@ -418,7 +472,10 @@ def _build_identity_only_platform_account_profile(
             "metric_snapshot_pointer": None,
             "source_metric_observation_ids": [],
         },
-        "limitations": _identity_only_profile_limitations(platform=platform),
+        "limitations": _identity_only_profile_limitations(
+            platform=platform,
+            audience_triangulation_joined=audience_triangulation_snapshot is not None,
+        ),
         "non_claims": [
             "not channel-wide creator influence",
             "not platform-wide engagement rate",
@@ -431,7 +488,9 @@ def _build_identity_only_platform_account_profile(
         ],
     }
 
-def _profile_limitations(*, platform: str, rollup: dict[str, Any], audience_profile_joined: bool) -> list[str]:
+def _profile_limitations(
+    *, platform: str, rollup: dict[str, Any], audience_triangulation_joined: bool
+) -> list[str]:
     engagement = rollup["metric_rollups"]["engagement_rate"]
     if engagement["posture"] == "observed":
         engagement_limitation = (
@@ -448,22 +507,29 @@ def _profile_limitations(*, platform: str, rollup: dict[str, Any], audience_prof
         "Metric rollup covers the admitted/selected source pool only; it is not a channel-wide average.",
         engagement_limitation,
         (
-            "Ideal/content-fit audience profile is joined from a source-backed snapshot; "
-            "actual_audience remains not_estimated."
-            if audience_profile_joined
-            else "Ideal/content-fit audience profile is not joined in this static view."
+            "Audience triangulation is joined from transcript, observed-comment, and persisted "
+            "comment-attention evidence; demographics remain not_estimated."
+            if audience_triangulation_joined
+            else "Audience triangulation is not joined in this static view."
         ),
         "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
         "Average/median view rollups are directional admitted-pool statistics; sample_support must be shown or used to downgrade thin rows before influence-summary presentation.",
         "The admitted pool is fragrance and transcript-bearing, so selection can bias view averages relative to the creator's full Shorts or channel output.",
     ]
 
-def _identity_only_profile_limitations(*, platform: str) -> list[str]:
+def _identity_only_profile_limitations(
+    *, platform: str, audience_triangulation_joined: bool
+) -> list[str]:
     return [
         f"Profile is account-scoped to one {platform} platform account; it is not a linked creator_record.",
         "No creator metric rollup is joined yet; do not infer average views, engagement rate, posting cadence, or comment performance.",
         "Identity evidence is source-backed, but metrics remain unavailable until a separate source-backed metric observation and rollup exists.",
-        "Ideal/content-fit audience profile is not joined in this static view.",
+        (
+            "Audience triangulation is joined from transcript, observed-comment, and persisted "
+            "comment-attention evidence; demographics remain not_estimated."
+            if audience_triangulation_joined
+            else "Audience triangulation is not joined in this static view."
+        ),
         "Cross-platform aggregate influence is blocked until promoted public-handle linkage evidence exists.",
         "sample_support is unavailable because no metric rollup is joined; downgrade or withhold influence-summary presentation.",
     ]
@@ -483,7 +549,9 @@ def _counts(profiles: list[dict[str, Any]]) -> dict[str, int]:
         "platform_account_profiles": sum(1 for profile in profiles if profile["profile_subject_kind"] == "platform_account"),
         "creator_record_profiles": sum(1 for profile in profiles if profile["profile_subject_kind"] == "creator_record"),
         "profiles_with_metric_rollups": sum(1 for profile in profiles if profile["current_metric_rollups"]),
-        "profiles_with_ideal_audience_profiles": sum(1 for profile in profiles if profile["ideal_audience_profile"] is not None),
+        "profiles_with_audience_triangulation": sum(
+            1 for profile in profiles if profile["audience_triangulation"] is not None
+        ),
         "engagement_rate_observed_profiles": sum(
             1
             for profile in profiles
@@ -497,7 +565,36 @@ def _counts(profiles: list[dict[str, Any]]) -> dict[str, int]:
             for profile in profiles
             if any(rollup["platform_scope"] == "cross_platform" for rollup in profile["current_metric_rollups"])
         ),
+        "onboarded_profiles": sum(
+            1 for profile in profiles if profile["onboarding"]["onboarding_state"] == "onboarded"
+        ),
+        "not_onboarded_profiles": sum(
+            1
+            for profile in profiles
+            if profile["onboarding"]["onboarding_state"] == "not_onboarded"
+        ),
     }
+
+
+def _onboarding_by_account_from_registry(document: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
+    wrapper = document.get("creator_registry_index")
+    if not isinstance(wrapper, Mapping):
+        raise ValueError("creator_registry_index wrapper is required")
+    rows = wrapper.get("platform_accounts")
+    if not isinstance(rows, list):
+        raise ValueError("creator_registry_index platform_accounts must be a list")
+    result: dict[str, Mapping[str, Any]] = {}
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise ValueError("creator_registry_index platform account rows must be objects")
+        account_id = row.get("platform_account_id")
+        onboarding = row.get("onboarding")
+        if not isinstance(account_id, str) or not account_id or not isinstance(onboarding, Mapping):
+            raise ValueError("creator_registry_index row requires platform_account_id and onboarding")
+        if account_id in result:
+            raise ValueError(f"duplicate Creator Registry onboarding row: {account_id!r}")
+        result[account_id] = onboarding
+    return result
 
 
 def _normalize_metric_seed_paths(
@@ -520,17 +617,92 @@ def _normalize_metric_seed_paths(
 
 def _normalize_audience_snapshot_paths(
     *,
-    audience_profile_snapshot_path: str | Path | None,
-    audience_profile_snapshot_paths: Sequence[str | Path] | None,
+    audience_triangulation_snapshot_path: str | Path | None,
+    audience_triangulation_snapshot_paths: Sequence[str | Path] | None,
 ) -> list[Path]:
-    if audience_profile_snapshot_path is not None and audience_profile_snapshot_paths is not None:
-        raise ValueError("provide either audience_profile_snapshot_path or audience_profile_snapshot_paths, not both")
-    if audience_profile_snapshot_paths is not None:
-        return [Path(path) for path in audience_profile_snapshot_paths]
-    if audience_profile_snapshot_path is not None:
-        return [Path(audience_profile_snapshot_path)]
+    if (
+        audience_triangulation_snapshot_path is not None
+        and audience_triangulation_snapshot_paths is not None
+    ):
+        raise ValueError(
+            "provide either audience_triangulation_snapshot_path or "
+            "audience_triangulation_snapshot_paths, not both"
+        )
+    if audience_triangulation_snapshot_paths is not None:
+        return [Path(path) for path in audience_triangulation_snapshot_paths]
+    if audience_triangulation_snapshot_path is not None:
+        return [Path(audience_triangulation_snapshot_path)]
     return []
 
+
+
+def _normalize_audience_outcome_paths(
+    *,
+    audience_judgment_outcome_path: str | Path | None,
+    audience_judgment_outcome_paths: Sequence[str | Path] | None,
+) -> list[Path]:
+    if (
+        audience_judgment_outcome_path is not None
+        and audience_judgment_outcome_paths is not None
+    ):
+        raise ValueError(
+            "provide either audience_judgment_outcome_path or "
+            "audience_judgment_outcome_paths, not both"
+        )
+    if audience_judgment_outcome_paths is not None:
+        return [Path(path) for path in audience_judgment_outcome_paths]
+    if audience_judgment_outcome_path is not None:
+        return [Path(audience_judgment_outcome_path)]
+    return []
+
+
+def verify_audience_judgment_outcomes(
+    snapshot_paths: Sequence[Path], outcome_paths: Sequence[Path]
+) -> None:
+    """Require one exact successful Judgment outcome for every audience snapshot."""
+
+    if len(snapshot_paths) != len(outcome_paths):
+        raise ValueError(
+            "each audience triangulation snapshot requires one paired successful "
+            "Judgment outcome"
+        )
+    for snapshot_path, outcome_path in zip(snapshot_paths, outcome_paths):
+        snapshots = load_creator_audience_triangulation_snapshot_document(snapshot_path)
+        if len(snapshots) != 1:
+            raise ValueError(
+                f"paired audience snapshot must contain exactly one record: {snapshot_path}"
+            )
+        snapshot = snapshots[0]
+        raw_outcome = load_json(outcome_path)
+        outcome_model = (
+            CreatorAudienceJudgmentOutcomeV1
+            if raw_outcome.get("schema_version") == "creator_audience_judgment_outcome_v1"
+            else CreatorAudienceJudgmentOutcome
+        )
+        outcome = outcome_model.model_validate(raw_outcome)
+        if outcome.status != "validated" or outcome.snapshot_or_none is None:
+            raise ValueError(
+                f"audience Judgment outcome is not successful: {outcome_path}"
+            )
+        snapshot_sha256 = f"sha256:{hashlib.sha256(snapshot_path.read_bytes()).hexdigest()}"
+        if outcome.snapshot_sha256_or_none != snapshot_sha256:
+            raise ValueError(
+                f"audience snapshot bytes do not match Judgment outcome: {snapshot_path}"
+            )
+        if outcome.snapshot_or_none.model_dump(mode="json") != snapshot:
+            raise ValueError(
+                f"audience snapshot content does not match Judgment outcome: {snapshot_path}"
+            )
+        if (
+            outcome.snapshot_id_or_none != snapshot.get("snapshot_id")
+            or outcome.bundle_id != snapshot.get("input_bundle_id")
+            or outcome.bundle_hash != snapshot.get("input_bundle_hash")
+            or outcome.creator_id != snapshot.get("creator_id")
+            or outcome.profile_subject_id != snapshot.get("profile_subject_id")
+        ):
+            raise ValueError(
+                f"audience snapshot identity does not match Judgment outcome: {snapshot_path}"
+            )
 
 def _load_metric_seed_input(path: Path) -> dict[str, Any]:
     config = _METRIC_SEED_CONFIG_BY_NAME.get(path.name)
@@ -552,10 +724,10 @@ def _load_metric_seed_input(path: Path) -> dict[str, Any]:
 def _load_audience_snapshot_input(path: Path) -> dict[str, Any]:
     return {
         "path": path,
-        "snapshots": load_creator_ideal_audience_snapshot_document(path),
+        "snapshots": load_creator_audience_triangulation_snapshot_document(path),
         "wrapper": AUDIENCE_SNAPSHOT_WRAPPER_KEY,
         "pointer": _source_pointer_for_path(path),
-        "role": "source-backed Tier-1 ideal/content-fit audience profile snapshots",
+        "role": "validated transcript/comment audience triangulation snapshots",
     }
 
 

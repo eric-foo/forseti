@@ -35,12 +35,14 @@ import json
 from cleaning.transcript_product_extractor import EXTRACTOR_RUBRIC_VERSION, TranscriptInput
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
+    PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
     PRODUCT_MENTIONS_SET_LANE,
     build_transcript_source_lineage,
     cues_from_asr_record,
     cues_from_json3,
     extract_products_into_lake,
     mentions_record_id,
+    product_mentions_policy_fingerprint,
 )
 from data_lake.consumption import (
     PickupItem,
@@ -163,10 +165,14 @@ def _packet_obligation(data_root, packet_id: str, model: str) -> dict:
     the extraction model and rubric version are policy inputs too (their change must
     re-trigger a re-check). No raw bodies are loaded or re-hashed here."""
     return {
-        "obligation_schema": 1,
+        "obligation_schema": 2,
         "consumer": "transcript_product_extract",
         "model": model,
         "rubric_version": EXTRACTOR_RUBRIC_VERSION,
+        "policy_fingerprint_sha256": product_mentions_policy_fingerprint(
+            EXTRACTOR_RUBRIC_VERSION
+        ),
+        "record_schema_version": PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
         "asr_records": sorted(_asr_record_obligation_entries(data_root, packet_id)),
     }
 
@@ -232,6 +238,7 @@ def _transcripts_for_packet(data_root, packet_id: str) -> list[TranscriptInput]:
                     source_surface=surface,
                     video_id=meta_video_id,
                     raw_ref=raw_ref,
+                    captured_at=str(meta.get("capture_timestamp") or "") or None,
                 )
                 transcripts.append(
                     TranscriptInput(meta_video_id, packet_id, "caption", cues, source_lineage=lineage)
@@ -311,7 +318,14 @@ def run_extraction(
         for transcript in transcripts:
             anchor = transcript.transcript_anchor
             try:
-                rid = mentions_record_id(transcript, model)
+                policy_fingerprint = product_mentions_policy_fingerprint(
+                    EXTRACTOR_RUBRIC_VERSION
+                )
+                rid = mentions_record_id(
+                    transcript,
+                    model,
+                    policy_fingerprint_sha256=policy_fingerprint,
+                )
                 if data_root.is_record_set_complete(
                     subtree="derived",
                     raw_anchor=anchor,
@@ -346,6 +360,8 @@ def run_extraction(
                     model=model,
                     api_key=api_key,
                     record_id=rid,
+                    policy_version=EXTRACTOR_RUBRIC_VERSION,
+                    policy_fingerprint_sha256=policy_fingerprint,
                     max_tokens=max_tokens,
                 )
                 written = next(iter(paths.values()), None)

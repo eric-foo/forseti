@@ -26,6 +26,7 @@ stale_if:
   - A standing / corpus-capture obligation contract is accepted, giving this slice its obligation home.
   - A build authorization or a per-adapter source-access authorization supersedes this scope-only decision.
   - The capture-lane obligation contract is amended to cover standing / forward time-series capture.
+  - The accepted Company Surface identity boundary changes identity or relationship ownership.
 ```
 
 ## Status
@@ -210,6 +211,12 @@ yet exist**. Consequences:
 This condition does not block authoring the scope; it blocks a clean build and
 is flagged for the owner as the first prerequisite.
 
+> **Identity-authority currentness (2026-07-15):** the original scope used a
+> placeholder identity owner. The accepted Company Surface identity
+> boundary now owns company-specific subject and relationship assertions. This
+> currentness correction changes no Capture scope and authorizes no schema or
+> runtime work.
+
 ## Decision 2 — Record shape (capture-method level, NOT an ECR schema)
 
 A **source-agnostic, entity-keyed observation series**. The atomic unit is one
@@ -217,12 +224,12 @@ A **source-agnostic, entity-keyed observation series**. The atomic unit is one
 
 Per-observation facts to preserve:
 
-- `entity_key` — a canonical-entity reference the **entity-resolution spine**
-  owns and resolves (LinkedIn slug, Companies House number, CIK, brand-vs-parent
-  surface forms map to it). Capture **carries** the key and the raw surface form;
-  it does **not** invent canonical identity or roll up the brand->parent tree
-  (the discovery note flags brand->parent as load-bearing in beauty; that is the
-  entity spine's job, not Capture's).
+- `entity_key` — a subject reference whose identity meaning is governed by the
+  **Company Surface identity boundary**. Capture **carries** an already-resolved
+  reference when one is supplied and always preserves the raw surface form; it
+  does **not** mint canonical identity or roll up the brand->parent tree. The
+  Company Surface assertion history owns that resolution and relationship
+  meaning. The exact identifier format remains deferred.
 - `numberOfEmployees` — integer, when an official source supplies it.
 - `size_band` — coarse band (e.g. `10,001+`), when supplied.
 - `follower_count` — coarse count/band, LinkedIn-only corroboration figure.

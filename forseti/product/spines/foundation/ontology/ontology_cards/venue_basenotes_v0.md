@@ -15,7 +15,8 @@ naming_authority: forseti/product/spines/foundation/ontology/forseti_ontology_ba
 
 > Dated instance hint, fail-soft (venue-card-set discipline) — **not** a current-state
 > claim, **not** authority, restates no survival terms or gate definitions (it points to
-> them). Reserved / weak-backing types (`Buyer`, `Org`) get no card.
+> them). The remaining reserved type (`Buyer`) gets no card; Org adoption does
+> not require an unsupported instance card.
 
 - **id:** `venue:basenotes` (§2.1 grammar; canonical dotted form)
 - **type:** `Venue` — §2.2 row 4 ("a demand-signal surface; where observations originate")

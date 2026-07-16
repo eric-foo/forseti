@@ -9,7 +9,10 @@ from pathlib import Path
 
 import pytest
 
+import harness_utils
 from harness_utils import hash_file
+from runners import run_source_capture_packet as packet_runner
+from source_capture import writer as packet_writer
 from source_capture.models import (
     CaptureModeCategory,
     PacketTiming,
@@ -405,6 +408,105 @@ def test_writer_handles_multiple_files_in_default_single_slice(scratch_dir: Path
     assert (output_dir / "raw" / "02_second.txt").exists()
 
 
+@pytest.mark.parametrize(
+    "failure_boundary",
+    ["second_copy", "manifest_write", "receipt_write", "publish"],
+)
+def test_cli_atomic_packet_failure_leaves_no_final_set_and_retry_converges(
+    scratch_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    failure_boundary: str,
+) -> None:
+    first_input = scratch_dir / "first.txt"
+    second_input = scratch_dir / "second.txt"
+    output_dir = scratch_dir / "packet"
+    first_input.write_text("first source\n", encoding="utf-8")
+    second_input.write_text("second source\n", encoding="utf-8")
+    argv = [
+        "--source-family",
+        "docs_page",
+        "--source-locator",
+        "bounded local file set",
+        "--decision-question",
+        "What changed before the decision cutoff?",
+        "--input-file",
+        str(first_input),
+        "--input-file",
+        str(second_input),
+        "--output",
+        str(output_dir),
+    ]
+
+    if failure_boundary == "second_copy":
+        original = packet_writer.shutil.copy2
+        copy_calls = 0
+
+        def fail_second_copy(*args: object, **kwargs: object) -> object:
+            nonlocal copy_calls
+            copy_calls += 1
+            if copy_calls == 2:
+                raise OSError("injected second body copy failure")
+            return original(*args, **kwargs)
+
+        monkeypatch.setattr(packet_writer.shutil, "copy2", fail_second_copy)
+        restore = lambda: monkeypatch.setattr(packet_writer.shutil, "copy2", original)
+        expected_diagnostic = "injected second body copy failure"
+    elif failure_boundary in {"manifest_write", "receipt_write"}:
+        original = Path.write_text
+        failed_name = "manifest.json" if failure_boundary == "manifest_write" else "receipt.md"
+
+        def fail_packet_text_write(
+            path: Path, *args: object, **kwargs: object
+        ) -> int:
+            if path.name == failed_name:
+                raise OSError(f"injected {failed_name} write failure")
+            return original(path, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "write_text", fail_packet_text_write)
+        restore = lambda: monkeypatch.setattr(Path, "write_text", original)
+        expected_diagnostic = f"injected {failed_name} write failure"
+    else:
+        original = harness_utils.os.rename
+
+        def fail_publish(*args: object, **kwargs: object) -> None:
+            raise OSError("injected packet publish failure")
+
+        monkeypatch.setattr(harness_utils.os, "rename", fail_publish)
+        restore = lambda: monkeypatch.setattr(harness_utils.os, "rename", original)
+        expected_diagnostic = "injected packet publish failure"
+
+    with pytest.raises(SystemExit) as exc_info:
+        packet_runner.main(argv)
+
+    assert exc_info.value.code == 2
+    captured = capsys.readouterr()
+    assert expected_diagnostic in captured.err
+    assert captured.out == ""
+    assert not output_dir.exists()
+    assert list(scratch_dir.glob(".packet.staging-*")) == []
+
+    restore()
+    assert packet_runner.main(argv) == 0
+    capsys.readouterr()
+
+    assert sorted(
+        path.relative_to(output_dir).as_posix()
+        for path in output_dir.rglob("*")
+        if path.is_file()
+    ) == [
+        "manifest.json",
+        "raw/01_first.txt",
+        "raw/02_second.txt",
+        "receipt.md",
+    ]
+    packet = SourceCapturePacket.model_validate_json(
+        (output_dir / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert packet.preserved_files[0].sha256 == hash_file(output_dir / "raw" / "01_first.txt")
+    assert packet.preserved_files[1].sha256 == hash_file(output_dir / "raw" / "02_second.txt")
+
+
 def test_writer_accepts_explicit_multi_slice_path(scratch_dir: Path) -> None:
     first_input = scratch_dir / "first.txt"
     second_input = scratch_dir / "second.txt"
@@ -476,6 +578,9 @@ def test_writer_rejects_non_empty_output_directory(scratch_dir: Path) -> None:
             decision_question="What changed before the decision cutoff?",
             capture_context="local file packaging of already-local source artifacts",
         )
+
+    assert (output_dir / "keep.txt").read_text(encoding="utf-8") == "occupied\n"
+    assert list(scratch_dir.glob(".packet.staging-*")) == []
 
 
 def test_cli_writes_packet_from_local_input_file(scratch_dir: Path) -> None:

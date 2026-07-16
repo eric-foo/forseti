@@ -22,6 +22,8 @@ EXTRACTION_PROBLEM_STATUSES = {
     "source_lineage_missing",
     "source_lineage_incomplete",
     "source_lineage_invalid",
+    "invalid_silver_envelope",
+    "source_ref_unresolved",
 }
 SOURCE_COMPLETION_PROBLEMS = {
     "partial_needs_cleanup",
@@ -333,7 +335,11 @@ def _deep_capture_source(
         )
     source = _base_transcript_source(
         platform_item_id=shortcode,
-        transcript_anchor=shortcode,
+        transcript_anchor=(
+            _string_or_none(record.get("transcript_anchor"))
+            or _string_or_none(record.get("raw_anchor"))
+            or shortcode
+        ),
         asr_record_id=asr_record_id,
         source_route="deep_capture_render_audio",
         source_status=_string_or_none(record.get("source_status")) or "complete",
@@ -750,6 +756,7 @@ def _strings(value: Any) -> list[str]:
 
 
 def _string_or_none(value: Any) -> str | None:
+    # helper-delta: coerces any non-None value via str() (bool/float included), unlike harness_utils.string_or_none.
     if value is None:
         return None
     text = str(value).strip()
@@ -757,6 +764,7 @@ def _string_or_none(value: Any) -> str | None:
 
 
 def _int_or_none(value: Any) -> int | None:
+    # helper-delta: str branch uses int() so signed strings parse, unlike harness_utils.int_or_none (isdigit-only).
     if isinstance(value, bool):
         return None
     if isinstance(value, int):

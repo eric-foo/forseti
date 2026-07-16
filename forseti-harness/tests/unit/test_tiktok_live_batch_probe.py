@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+import pytest
+
 from data_lake.root import DataLakeRoot, raw_shard
 from runners import run_source_capture_tiktok_live_batch_probe as runner
 from source_capture.adapters.browser_snapshot import (
@@ -13,6 +15,7 @@ from source_capture.adapters.browser_snapshot import (
     PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME,
     BrowserPagePointerAction,
     BrowserPageResponse,
+    BrowserPageWheelAction,
 )
 from source_capture.auth_state import (
     AuthenticatedSessionMode,
@@ -73,6 +76,7 @@ class _FakeObservationEngine:
         response_url_predicate: Callable[[str], bool],
         post_load_action_script: str | None = None,
         post_load_action_arg: object = None,
+        post_load_wheel_action: BrowserPageWheelAction | None = None,
         post_load_pointer_action: BrowserPagePointerAction | None = None,
         post_load_pointer_actions: tuple[BrowserPagePointerAction, ...] = (),
         selector: str | None = None,
@@ -95,6 +99,7 @@ class _FakeObservationEngine:
                 "headless": headless,
                 "storage_state_path": storage_state_path,
                 "post_load_action_script": post_load_action_script,
+                "post_load_wheel_action": post_load_wheel_action,
                 "post_load_pointer_action": post_load_pointer_action,
                 "post_load_pointer_actions": post_load_pointer_actions,
                 "response_predicate_matches_comment_list": response_url_predicate(
@@ -343,6 +348,25 @@ def test_live_probe_captures_source_native_subtitle_transcript(
         "This fragrance is everywhere\nBronze shimmer test"
     )
     assert cadence["capture_contract"]["raw_subtitle_urls_persisted"] is False
+    assert (
+        cadence["capture_contract"]["video_navigation_mode"]
+        == "direct_selected_url_sequence"
+    )
+    assert cadence["capture_contract"]["video_page_reuse_policy"] == (
+        "capture_engine_defined"
+    )
+    assert cadence["capture_contract"]["terminal_page_policy"] == (
+        "capture_engine_defined"
+    )
+    assert cadence["capture_contract"]["pointer_movement_policy"] == (
+        "meaningful_page_actions_only"
+    )
+    assert cadence["capture_contract"]["address_bar_simulation"] is False
+    assert cadence["capture_contract"]["referrer_spoofing"] is False
+    assert cadence["capture_contract"]["return_to_grid_between_videos"] is False
+    assert cadence["capture_contract"]["account_safety_pre_action_circuit_breaker"] is False
+    assert cadence["capture_contract"]["account_safety_automatic_retry"] is False
+    assert cadence["capture_contract"]["cleared_human_captcha_continues_batch"] is True
     assert cadence["capture_contract"]["raw_subtitle_bodies_persisted"] is False
     assert cadence["capture_contract"]["subtitle_tier"] == (
         "source_native_webvtt_transcript_live_probe_v0"
@@ -367,6 +391,27 @@ def test_live_probe_captures_source_native_subtitle_transcript(
     assert subtitles["cue_count"] == 2
     assert subtitles["transcript_text"] == "This fragrance is everywhere\nBronze shimmer test"
     assert subtitle_url not in json.dumps(packet_payload)
+
+def test_capture_contract_reports_verified_session_engine_guarantees() -> None:
+    contract = live_batch_probe._capture_contract(
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        session_engine_reused=True,
+        account_safety_pre_action_circuit_breaker=True,
+    )
+
+    assert contract["video_page_reuse_policy"] == (
+        "one_page_sequential_navigation"
+    )
+    assert contract["terminal_page_policy"] == "leave_last_selected_video_open"
+    assert contract["account_safety_pre_action_circuit_breaker"] is True
+
+    fallback = live_batch_probe._capture_contract(
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+    )
+    assert fallback["video_page_reuse_policy"] == "capture_engine_defined"
+    assert fallback["terminal_page_policy"] == "capture_engine_defined"
+    assert fallback["account_safety_pre_action_circuit_breaker"] is False
+
 
 def test_live_probe_rejects_unanchored_subtitle_host_without_fetch(
     tmp_path: Path,
@@ -2636,6 +2681,62 @@ def test_live_probe_stops_on_platform_challenge(tmp_path: Path) -> None:
     assert len(engine.calls) == 1
 
 
+def test_live_probe_account_risk_is_non_retriable_batch_stop(tmp_path: Path) -> None:
+    auth_root = _auth_state(tmp_path)
+    engine = _FakeObservationEngine(
+        outcomes=[
+            BrowserPageObservationSuccess(
+                requested_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                final_url="https://www.tiktok.com/@funmi/video/7390000000000000001",
+                title="TikTok",
+                visible_text="Your account might be at risk",
+                dom_observation={"hydration_json_text": "{}"},
+                responses=[],
+                metadata={
+                    "post_load_pointer_actions": [],
+                    "pre_action_stop_attempts": [
+                        {
+                            "action_name": "pre_action_terminal_stop_v0",
+                            "automatic_retry_allowed": False,
+                        }
+                    ],
+                },
+                warning_notes=[],
+                limitation_notes=[],
+            ),
+            _success_observation(video_id="7390000000000000002"),
+        ]
+    )
+
+    paths = write_tiktok_live_batch_probe_outputs(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[
+            "https://www.tiktok.com/@funmi/video/7390000000000000001",
+            "https://www.tiktok.com/@funmi/video/7390000000000000002",
+        ],
+        state_label="test-session",
+        session_mode=AuthenticatedSessionMode.FREE_ACCOUNT_CREATED,
+        auth_state_root=auth_root,
+        output_dir=tmp_path / "out",
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        random_seed=1,
+        engine=engine,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    cadence = json.loads(paths.cadence_result_json_path.read_text(encoding="utf-8"))
+    assert cadence["attempted_count"] == 1
+    assert cadence["completed_count"] == 0
+    assert len(engine.calls) == 1
+    triage = cadence["failures"][0]["blocker_triage"]
+    assert triage["challenge_kind"] == "account_risk"
+    assert triage["account_safety_stop"] is True
+    assert triage["automatic_retry_allowed"] is False
+    assert triage["operator_next_action"] == "review_security_alerts_before_new_run"
+
+
 def test_live_probe_stops_on_missing_video_detail_hydration(tmp_path: Path) -> None:
     auth_root = _auth_state(tmp_path)
     engine = _FakeObservationEngine(
@@ -2908,6 +3009,431 @@ def _success_observation(
         },
         warning_notes=[],
         limitation_notes=[],
+    )
+
+
+def test_overlay_route_uses_grid_metadata_without_item_struct() -> None:
+    video_id = "7390000000000000001"
+    capture = _success_observation(
+        video_id=video_id,
+        response=_comment_response(video_id=video_id),
+    )
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": False,
+            "visible_comment_candidates": [],
+            "subtitle_tracks": [],
+        }
+    )
+    sequence_calls: list[tuple[int, list[str]]] = []
+
+    def capture_from_grid(
+        index: int, pending_urls: list[str]
+    ) -> tuple[str, BrowserPageObservationSuccess]:
+        sequence_calls.append((index, list(pending_urls)))
+        return pending_urls[0], capture
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[f"https://www.tiktok.com/@funmi/video/{video_id}"],
+        logged_out=True,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=capture_from_grid,
+        grid_candidates_by_video_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": f"https://www.tiktok.com/@funmi/video/{video_id}",
+                "desc": "Grid description",
+                "createTime": 1710000000,
+                "author": {"id": "author-1", "uniqueId": "funmi"},
+                "stats": {
+                    "playCount": 1000,
+                    "diggCount": 50,
+                    "commentCount": 42,
+                    "shareCount": 3,
+                    "collectCount": 2,
+                },
+                "music": {"id": "music-1", "title": "Original sound"},
+            }
+        },
+        sleep_fn=lambda _seconds: None,
+    )
+
+    assert sequence_calls == [
+        (0, [f"https://www.tiktok.com/@funmi/video/{video_id}"])
+    ]
+    assert result["cadence_result"]["completed_count"] == 1
+    row = result["cadence_result"]["results"][0]
+    assert row["capture_receipt"]["deep_capture_route"] == "grid_tile_overlay"
+    assert row["capture_receipt"]["item_struct_present"] is False
+    assert row["capture_receipt"]["comment_outcome"] == "captured"
+    assert row["capture_receipt"]["overlay_evidence"]["ready"] is True
+    assert row["subtitle"] == {
+        "attempted": False,
+        "success": False,
+        "reason": "no_subtitle_url_in_hydration_v0",
+    }
+    assert result["grid_result"]["response_items"][0]["desc"] == "Grid description"
+    contract = result["cadence_result"]["capture_contract"]
+    assert contract["video_navigation_mode"] == "grid_tile_overlay_sequence"
+    assert contract["direct_video_navigation"] is False
+    assert contract["item_struct_required"] is False
+
+
+def test_overlay_route_uses_exact_profile_grid_subtitle_source() -> None:
+    video_id = "7390000000000000001"
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+    subtitle_url = "https://v16-webapp.tiktok.com/grid-subtitle.webvtt"
+    subtitle_body = (
+        b"WEBVTT\n\n"
+        b"00:00:00.000 --> 00:00:01.000\n"
+        b"Grid transcript recovered\n"
+    )
+    fetched_urls: list[str] = []
+    capture = _success_observation(
+        video_id=video_id,
+        response=_comment_response(video_id=video_id),
+    )
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": False,
+            "visible_comment_candidates": [],
+            "subtitle_tracks": [],
+        }
+    )
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[video_url],
+        logged_out=True,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=lambda _index, _pending: (video_url, capture),
+        grid_candidates_by_video_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": video_url,
+                "author": {"uniqueId": "funmi"},
+                "stats": {"playCount": 1000},
+            }
+        },
+        profile_grid_subtitle_sources_by_video_id={
+            video_id: {
+                "id": video_id,
+                "video": {
+                    "subtitleInfos": [
+                        {
+                            "Format": "webvtt",
+                            "LanguageCodeName": "eng-US",
+                            "Url": subtitle_url,
+                        }
+                    ]
+                },
+            }
+        },
+        subtitle_fetcher=lambda url: fetched_urls.append(url) or subtitle_body,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    row = result["cadence_result"]["results"][0]
+    assert fetched_urls == [subtitle_url]
+    assert row["capture_receipt"]["item_struct_present"] is False
+    assert (
+        row["capture_receipt"]["field_provenance"]["subtitles"]
+        == "profile_grid_item_list_item_struct"
+    )
+    assert row["hydration"]["subtitle_metadata_source"] == (
+        "profile_grid_item_list_item_struct"
+    )
+    assert row["subtitle"]["success"] is True
+    assert row["subtitle"]["parsed_webvtt"]["cue_count"] == 1
+    assert (
+        row["subtitle"]["parsed_webvtt"]["transcript_text"]
+        == "Grid transcript recovered"
+    )
+    assert subtitle_url not in json.dumps(result)
+
+
+def test_overlay_route_uses_exact_react_video_subtitle_source() -> None:
+    video_id = "7390000000000000001"
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+    subtitle_url = "https://v16-webapp.tiktok.com/react-subtitle.webvtt"
+    subtitle_body = (
+        b"WEBVTT\n\n"
+        b"00:00:00.000 --> 00:00:01.000\n"
+        b"React transcript recovered\n"
+    )
+    fetched_urls: list[str] = []
+    capture = _success_observation(
+        video_id=video_id,
+        response=_comment_response(video_id=video_id),
+    )
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": False,
+            "visible_comment_candidates": [],
+            "subtitle_tracks": [],
+            "react_video_subtitle_source": {
+                "id": video_id,
+                "video": {
+                    "subtitleInfos": [
+                        {
+                            "Format": "webvtt",
+                            "LanguageCodeName": "eng-US",
+                            "Url": subtitle_url,
+                        }
+                    ]
+                },
+            },
+        }
+    )
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[video_url],
+        logged_out=True,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=lambda _index, _pending: (video_url, capture),
+        grid_candidates_by_video_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": video_url,
+                "author": {"uniqueId": "funmi"},
+                "stats": {"playCount": 1000},
+            }
+        },
+        subtitle_fetcher=lambda url: fetched_urls.append(url) or subtitle_body,
+        sleep_fn=lambda _seconds: None,
+    )
+
+    row = result["cadence_result"]["results"][0]
+    assert fetched_urls == [subtitle_url]
+    assert row["capture_receipt"]["item_struct_present"] is False
+    assert (
+        row["capture_receipt"]["field_provenance"]["subtitles"]
+        == "overlay_react_video_info"
+    )
+    assert row["subtitle"]["success"] is True
+    assert row["subtitle"]["parsed_webvtt"]["cue_count"] == 1
+    assert (
+        row["subtitle"]["parsed_webvtt"]["transcript_text"]
+        == "React transcript recovered"
+    )
+    assert subtitle_url not in json.dumps(result)
+
+
+def test_overlay_route_rejects_mismatched_react_video_subtitle_source() -> None:
+    video_id = "7390000000000000001"
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+    capture = _success_observation(video_id=video_id)
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": True,
+            "visible_comment_candidates": [],
+            "subtitle_tracks": [],
+            "react_video_subtitle_source": {
+                "id": "7390000000000000002",
+                "video": {"subtitleInfos": []},
+            },
+        }
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="overlay React subtitle source id does not match",
+    ):
+        live_batch_probe.run_tiktok_live_batch_probe(
+            creator_handle="funmi",
+            creator_profile_url="https://www.tiktok.com/@funmi",
+            video_urls=[video_url],
+            logged_out=True,
+            cadence_min_gap_seconds=0,
+            cadence_max_gap_seconds=0,
+            capture_route="grid_tile_overlay",
+            page_capture_sequence_fn=lambda _index, _pending: (
+                video_url,
+                capture,
+            ),
+            grid_candidates_by_video_id={
+                video_id: {
+                    "video_id": video_id,
+                    "video_url": video_url,
+                    "stats": {"playCount": 1000},
+                }
+            },
+            sleep_fn=lambda _seconds: None,
+        )
+
+
+def test_overlay_route_rejects_mismatched_profile_grid_subtitle_source() -> None:
+    video_id = "7390000000000000001"
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+
+    with pytest.raises(
+        ValueError,
+        match="profile grid subtitle source id does not match",
+    ):
+        live_batch_probe.run_tiktok_live_batch_probe(
+            creator_handle="funmi",
+            creator_profile_url="https://www.tiktok.com/@funmi",
+            video_urls=[video_url],
+            logged_out=True,
+            capture_route="grid_tile_overlay",
+            page_capture_sequence_fn=lambda _index, _pending: (
+                video_url,
+                _success_observation(video_id=video_id),
+            ),
+            grid_candidates_by_video_id={
+                video_id: {
+                    "video_id": video_id,
+                    "video_url": video_url,
+                    "stats": {"playCount": 1000},
+                }
+            },
+            profile_grid_subtitle_sources_by_video_id={
+                video_id: {
+                    "id": "7390000000000000002",
+                    "video": {"subtitleInfos": []},
+                }
+            },
+        )
+
+
+def test_overlay_route_preserves_dom_view_provenance_without_zero_filling_engagement() -> None:
+    video_id = "7390000000000000001"
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+    capture = _success_observation(video_id=video_id, response=_comment_response(video_id=video_id))
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": False,
+            "visible_comment_candidates": [],
+            "subtitle_tracks": [],
+        }
+    )
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[video_url],
+        logged_out=True,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=lambda _index, _pending: (video_url, capture),
+        grid_candidates_by_video_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": video_url,
+                "author": {"uniqueId": "funmi"},
+                "stats": {"playCount": 31_800},
+                "grid_view_count": {
+                    "raw_text_or_none": "31.8K",
+                    "parsed_approximate_count_or_none": 31_800,
+                    "source": "profile_grid_dom_view_count_footer",
+                    "source_display_precision": "rounded_compact",
+                    "used_for_play_count": True,
+                },
+            }
+        },
+        sleep_fn=lambda _seconds: None,
+    )
+
+    grid_candidate = result["grid_result"]["response_items"][0]
+    assert grid_candidate["stats"] == {"playCount": 31_800}
+    assert grid_candidate["grid_view_count"]["raw_text_or_none"] == "31.8K"
+    field_provenance = result["cadence_result"]["results"][0]["capture_receipt"][
+        "field_provenance"
+    ]
+    assert field_provenance["play_count"] == (
+        "profile_grid_dom_view_count_footer_rounded_compact"
+    )
+    assert field_provenance["structured_video_metadata"] == (
+        "profile_grid_item_response_with_rounded_dom_view_fallback"
+    )
+
+
+def test_overlay_route_preserves_visible_empty_comment_outcome() -> None:
+    video_id = "7390000000000000001"
+    capture = _success_observation(video_id=video_id, responses=[])
+    capture.dom_observation.update(
+        {
+            "hydration_json_text": None,
+            "video_overlay_detected": True,
+            "visible_video_element_count": 1,
+            "overlay_video_id_or_none": video_id,
+            "overlay_creator_handle_or_none": "funmi",
+            "comment_surface_detected": True,
+            "comment_surface_visible_empty": True,
+            "visible_comment_candidates": [],
+        }
+    )
+    video_url = f"https://www.tiktok.com/@funmi/video/{video_id}"
+
+    result = live_batch_probe.run_tiktok_live_batch_probe(
+        creator_handle="funmi",
+        creator_profile_url="https://www.tiktok.com/@funmi",
+        video_urls=[video_url],
+        logged_out=True,
+        cadence_min_gap_seconds=0,
+        cadence_max_gap_seconds=0,
+        capture_route="grid_tile_overlay",
+        page_capture_sequence_fn=lambda _index, _pending: (video_url, capture),
+        grid_candidates_by_video_id={
+            video_id: {
+                "video_id": video_id,
+                "video_url": video_url,
+                "author": {"uniqueId": "funmi"},
+                "stats": {"playCount": 1000, "diggCount": 50},
+            }
+        },
+        sleep_fn=lambda _seconds: None,
+    )
+
+    assert result["cadence_result"]["completed_count"] == 1
+    assert result["cadence_result"]["failures"] == []
+    assert (
+        result["cadence_result"]["results"][0]["capture_receipt"][
+            "comment_outcome"
+        ]
+        == "visible_empty"
     )
 
 

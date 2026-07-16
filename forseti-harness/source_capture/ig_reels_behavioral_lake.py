@@ -17,15 +17,21 @@ from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
     PRODUCT_MENTIONS_SET_LANE,
 )
-from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
-    silver_record_source_backed_status,
+from data_lake.silver_record import (
+    PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
+    SILVER_VAULT_RECORD_SCHEMA_VERSION,
+    validate_silver_vault_record,
+    verify_silver_vault_record_sources,
 )
 from source_capture.ig_reels_behavioral_projection import project_ig_reels_behavioral_item
 from source_capture.ig_reels_deep_capture_lake import (
     AUDIENCE_COMMENTS_LANE,
     DEEP_CAPTURE_SET_LANE,
     REEL_TRANSCRIPT_LANE,
+    comments_compatibility_view,
+    current_deep_capture_record,
+    deep_capture_shortcode,
+    transcript_compatibility_view,
 )
 from source_capture.ig_reels_grid_projection import build_ig_reels_grid_projection
 from source_capture.models import SourceCapturePacket
@@ -106,7 +112,7 @@ def _collect_ig_reels_behavioral_inputs(
     index: dict[str, _BehavioralInputs] = {}
     global_residuals: list[str] = []
     _collect_packet_backed_inputs(data_root, index, global_residuals)
-    _collect_deep_capture_inputs(data_root, index)
+    _collect_deep_capture_inputs(data_root, index, global_residuals)
     _collect_product_extraction_results(data_root, index, global_residuals)
 
     for shortcode in target_shortcodes:
@@ -189,44 +195,108 @@ def _collect_grid_packet_inputs(
         index.setdefault(shortcode, _BehavioralInputs()).grid_rows.append(row_data)
 
 
-def _collect_deep_capture_inputs(data_root: Any, index: dict[str, _BehavioralInputs]) -> None:
-    for shortcode, record_id, _marker in _iter_derived_lane_records(data_root, DEEP_CAPTURE_SET_LANE):
-        bucket = index.setdefault(shortcode, _BehavioralInputs())
+def _append_unresolved_deep_capture_residual(
+    index: dict[str, _BehavioralInputs],
+    global_residuals: list[str],
+    *,
+    raw_anchor: str,
+    residual: str,
+) -> None:
+    """Route a residual for a set whose reel identity could not be resolved.
+
+    A current set is anchored on its packet id, so ``raw_anchor`` must never be
+    allowed to key the shortcode index. Only an anchor another collector already
+    established -- which makes it a real shortcode -- is a safe local target;
+    otherwise the residual stays global rather than inventing a reel.
+    """
+    if raw_anchor in index:
+        _append_once(index[raw_anchor].adapter_residuals, residual)
+    else:
+        _append_once(global_residuals, residual)
+
+
+def _collect_deep_capture_inputs(
+    data_root: Any,
+    index: dict[str, _BehavioralInputs],
+    global_residuals: list[str],
+) -> None:
+    for raw_anchor, record_id, marker_path in _iter_derived_lane_records(data_root, DEEP_CAPTURE_SET_LANE):
+        marker = _read_json_file(marker_path)
+        member_lanes = set(marker.get("member_lanes", [])) if isinstance(marker, dict) else set()
         try:
             complete = data_root.is_record_set_complete(
                 subtree="derived",
-                raw_anchor=shortcode,
+                raw_anchor=raw_anchor,
                 record_id=record_id,
                 completion_lane=DEEP_CAPTURE_SET_LANE,
             )
         except Exception:  # noqa: BLE001 - preserve target-visible failure without aborting index
             complete = False
         if not complete:
-            _append_once(bucket.adapter_residuals, f"ig_deep_capture_record_set_incomplete:{shortcode}:{record_id}")
+            _append_unresolved_deep_capture_residual(
+                index,
+                global_residuals,
+                raw_anchor=raw_anchor,
+                residual=f"ig_deep_capture_record_set_incomplete:{raw_anchor}:{record_id}",
+            )
             continue
 
-        comment_record = _read_derived_json_record(
-            data_root,
-            raw_anchor=shortcode,
-            lane=AUDIENCE_COMMENTS_LANE,
-            record_id=record_id,
+        records: dict[str, dict[str, Any] | None] = {
+            lane: _read_derived_json_record(data_root, raw_anchor=raw_anchor, lane=lane, record_id=record_id)
+            for lane in member_lanes
+            if lane in {AUDIENCE_COMMENTS_LANE, REEL_TRANSCRIPT_LANE}
+        }
+        current = {
+            lane: record
+            for lane, record in records.items()
+            if record is not None
+            and current_deep_capture_record(
+                data_root,
+                record=record,
+                raw_anchor=raw_anchor,
+                lane=lane,
+                record_id=record_id,
+            )
+        }
+        invalid_current_lanes = {
+            lane
+            for lane, record in records.items()
+            if record is not None
+            and record.get("schema_version") == SILVER_VAULT_RECORD_SCHEMA_VERSION
+            and lane not in current
+        }
+        if not current:
+            posture = (
+                "current_source_invalid"
+                if invalid_current_lanes
+                else "historical_audit_only"
+            )
+            _append_once(global_residuals, f"ig_deep_capture_{posture}:{raw_anchor}:{record_id}")
+            continue
+        shortcode = next(
+            (deep_capture_shortcode(record) for record in current.values() if deep_capture_shortcode(record)),
+            None,
         )
-        transcript_record = _read_derived_json_record(
-            data_root,
-            raw_anchor=shortcode,
-            lane=REEL_TRANSCRIPT_LANE,
-            record_id=record_id,
-        )
-        if comment_record is None:
-            _append_once(bucket.adapter_residuals, f"ig_deep_capture_comment_record_unreadable:{shortcode}:{record_id}")
-        else:
-            comment_record.setdefault("record_id", record_id)
-            bucket.comment_sets.append(comment_record)
-        if transcript_record is None:
-            _append_once(bucket.adapter_residuals, f"ig_deep_capture_transcript_record_unreadable:{shortcode}:{record_id}")
-        else:
-            transcript_record.setdefault("record_id", record_id)
-            bucket.deep_capture_transcript_records.append(transcript_record)
+        if shortcode is None:
+            _append_unresolved_deep_capture_residual(
+                index,
+                global_residuals,
+                raw_anchor=raw_anchor,
+                residual=f"ig_deep_capture_shortcode_absent:{raw_anchor}:{record_id}",
+            )
+            continue
+        bucket = index.setdefault(shortcode, _BehavioralInputs())
+        for lane in sorted(invalid_current_lanes):
+            _append_once(
+                bucket.adapter_residuals,
+                f"ig_deep_capture_current_source_invalid:{raw_anchor}:{lane}:{record_id}",
+            )
+        comment_record = current.get(AUDIENCE_COMMENTS_LANE)
+        if comment_record is not None:
+            bucket.comment_sets.append(comments_compatibility_view(comment_record))
+        transcript_record = current.get(REEL_TRANSCRIPT_LANE)
+        if transcript_record is not None:
+            bucket.deep_capture_transcript_records.append(transcript_compatibility_view(transcript_record))
 
 
 def _collect_product_extraction_results(
@@ -239,7 +309,18 @@ def _collect_product_extraction_results(
         if not isinstance(body, dict):
             _append_once(global_residuals, f"ig_lake_product_mentions_record_unreadable:{anchor}:{record_id}")
             continue
-        shortcode = _string_or_none(body.get("video_id")) or _string_or_none(body.get("shortcode"))
+        source_object = body.get("source_object")
+        source_native_id = (
+            _string_or_none(source_object.get("native_id"))
+            if isinstance(source_object, dict)
+            and source_object.get("namespace") == "instagram"
+            else None
+        )
+        shortcode = (
+            source_native_id
+            or _string_or_none(body.get("video_id"))
+            or _string_or_none(body.get("shortcode"))
+        )
         if shortcode is None:
             _append_once(global_residuals, f"ig_lake_product_mentions_record_video_id_absent:{anchor}:{record_id}")
             continue
@@ -252,8 +333,19 @@ def _collect_product_extraction_results(
             )
         except Exception:  # noqa: BLE001
             complete = False
-        source_backed_status = silver_record_source_backed_status(body)
-        if complete and source_backed_status != SOURCE_BACKED_COMPLETE_STATUS:
+        try:
+            validate_silver_vault_record(body)
+        except (TypeError, ValueError):
+            source_backed_status = "invalid_silver_envelope"
+        else:
+            try:
+                verify_silver_vault_record_sources(data_root, body)
+            except (TypeError, ValueError):
+                source_backed_status = "source_ref_unresolved"
+            else:
+                source_backed_status = PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS
+        provenance = body.get("provenance") if isinstance(body.get("provenance"), dict) else {}
+        if complete and source_backed_status != PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS:
             status = source_backed_status
         else:
             status = "extracted" if complete else "partial_needs_cleanup"
@@ -263,9 +355,15 @@ def _collect_product_extraction_results(
                 "video_id": shortcode,
                 "status": status,
                 "path": str(record_path),
-                "transcript_source_key": _string_or_none(body.get("transcript_source_key")),
-                "source_route": _string_or_none(body.get("source_route")),
-                "asr_record_id": _string_or_none(body.get("asr_record_id")),
+                "transcript_source_key": _string_or_none(
+                    provenance.get("transcript_source_key") or body.get("transcript_source_key")
+                ),
+                "source_route": _string_or_none(
+                    provenance.get("source_route") or body.get("source_route")
+                ),
+                "asr_record_id": _string_or_none(
+                    provenance.get("asr_record_id") or body.get("asr_record_id")
+                ),
                 "source_backed_status": source_backed_status,
             }
         )
@@ -418,6 +516,7 @@ def _mapping_or_empty(value: Any) -> dict[str, Any]:
 
 
 def _string_or_none(value: Any) -> str | None:
+    # helper-delta: str-only -- no int-to-str coercion, unlike harness_utils.string_or_none.
     if isinstance(value, str) and value.strip():
         return value.strip()
     return None

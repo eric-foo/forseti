@@ -34,6 +34,10 @@ from source_capture.ig_reels_grid_capture import (
     DEFAULT_IG_REELS_VIEWPORT_HEIGHT,
     DEFAULT_IG_REELS_VIEWPORT_WIDTH,
 )
+from source_capture.social_heartbeat_run_control import (
+    assign_lane_id as assign_social_heartbeat_lane_id,
+    find_committed_packet_by_session_identity,
+)
 
 
 CONTROLLER_VERSION = "ig_daily_heartbeat_controller_v0"
@@ -68,6 +72,8 @@ class HeartbeatRosterEntry:
     roster_status: str = "active"
     stable_partition_key: str = ""
     partition_key_source: str = ""
+    attempt_id: str | None = None
+    attempt_resume: bool = False
     limitations: tuple[str, ...] = ()
 
     @property
@@ -137,6 +143,10 @@ class _PacketSummary:
     limitations: tuple[str, ...] = ()
 
 
+class HeartbeatRecoveryError(RuntimeError):
+    """Raised when an interrupted attempt cannot be resumed without recapture."""
+
+
 def normalize_handle(value: str) -> str:
     normalized = value.strip().lstrip("@")
     if not normalized or "/" in normalized or "\\" in normalized:
@@ -172,11 +182,7 @@ def load_ig_heartbeat_roster(path: Path) -> HeartbeatRosterSnapshot:
 
 
 def assign_lane_id(partition_key: str, lane_count: int) -> str:
-    if lane_count < 1:
-        raise ValueError("lane_count must be at least 1")
-    digest = hashlib.sha256(partition_key.encode("utf-8")).hexdigest()
-    lane_index = int(digest, 16) % lane_count
-    return f"lane_{lane_index + 1}"
+    return assign_social_heartbeat_lane_id(partition_key, lane_count)
 
 
 def load_breakout_candidates(path: Path | None) -> dict[str, tuple[BreakoutCandidate, ...]]:
@@ -235,6 +241,7 @@ def run_ig_daily_heartbeat(
     viewport_height: int = DEFAULT_IG_REELS_VIEWPORT_HEIGHT,
     max_response_bytes: int = DEFAULT_IG_REELS_MAX_RESPONSE_BYTES,
     block_heavy_assets: bool = True,
+    partition_preselected: bool = False,
     grid_runner: GridRunner = run_source_capture_ig_reels_grid_packet,
     now_func: NowFunc = utc_now_z,
     monotonic_func: MonotonicFunc = time.monotonic,
@@ -253,7 +260,7 @@ def run_ig_daily_heartbeat(
     receipt_jsonl.parent.mkdir(parents=True, exist_ok=True)
     receipt_jsonl.touch(exist_ok=True)
 
-    selected = [
+    selected = list(roster.active_entries) if partition_preselected else [
         entry
         for entry in roster.active_entries
         if assign_lane_id(entry.stable_partition_key, lane_count) == lane_id
@@ -278,6 +285,7 @@ def run_ig_daily_heartbeat(
             sequence=index,
             roster=roster,
             entry=entry,
+            attempt_id=entry.attempt_id or generate_ulid(),
             lane_id=lane_id,
             lane_count=lane_count,
             output_root=output_root,
@@ -322,6 +330,7 @@ def _run_one_creator(
     sequence: int,
     roster: HeartbeatRosterSnapshot,
     entry: HeartbeatRosterEntry,
+    attempt_id: str,
     lane_id: str,
     lane_count: int,
     output_root: Path | None,
@@ -346,6 +355,7 @@ def _run_one_creator(
         lane_id=lane_id,
         sequence=sequence,
         handle=entry.normalized_handle,
+        attempt_id=attempt_id,
     )
     packet_pointer: str | None = None
     packet_summary = _PacketSummary()
@@ -353,29 +363,47 @@ def _run_one_creator(
     message = ""
     error_class: str | None = None
 
+    reconciled = False
     try:
-        kwargs = {
-            "handle": entry.normalized_handle,
-            "output_directory": packet_output_directory,
-            "data_root": data_root,
-            "decision_question": f"IG daily heartbeat grid capture for @{entry.normalized_handle}",
-            "max_rows": max_rows,
-            "timeout_seconds": timeout_seconds,
-            "settle_seconds": settle_seconds,
-            "viewport_width": viewport_width,
-            "viewport_height": viewport_height,
-            "max_response_bytes": max_response_bytes,
-            "block_heavy_assets": block_heavy_assets,
-            "warnings": (
-                f"heartbeat_policy_version:{BEHAVIOR_POLICY_VERSION}",
-                f"heartbeat_controller_version:{CONTROLLER_VERSION}",
-            ),
-            "limitations": tuple(entry.limitations) + tuple(roster.limitations),
-        }
-        exit_code, message = grid_runner(**kwargs)
-        if exit_code == 0:
-            packet_pointer = message
-            packet_summary = _read_packet_summary(Path(message))
+        if entry.attempt_resume:
+            existing = _find_existing_attempt_packet(
+                output_directory=packet_output_directory,
+                data_root=data_root,
+                attempt_id=attempt_id,
+            )
+            if existing is None:
+                raise HeartbeatRecoveryError(
+                    "resumed attempt has neither a verified committed packet nor a reusable frozen artifact"
+                )
+            packet_pointer = str(existing)
+            message = packet_pointer
+            exit_code = 0
+            packet_summary = _read_packet_summary(existing)
+            reconciled = True
+        else:
+            kwargs = {
+                "handle": entry.normalized_handle,
+                "output_directory": packet_output_directory,
+                "data_root": data_root,
+                "decision_question": f"IG daily heartbeat grid capture for @{entry.normalized_handle}",
+                "max_rows": max_rows,
+                "timeout_seconds": timeout_seconds,
+                "settle_seconds": settle_seconds,
+                "viewport_width": viewport_width,
+                "viewport_height": viewport_height,
+                "max_response_bytes": max_response_bytes,
+                "block_heavy_assets": block_heavy_assets,
+                "session_id": attempt_id,
+                "warnings": (
+                    f"heartbeat_policy_version:{BEHAVIOR_POLICY_VERSION}",
+                    f"heartbeat_controller_version:{CONTROLLER_VERSION}",
+                ),
+                "limitations": tuple(entry.limitations) + tuple(roster.limitations),
+            }
+            exit_code, message = grid_runner(**kwargs)
+            if exit_code == 0:
+                packet_pointer = message
+                packet_summary = _read_packet_summary(Path(message))
     except Exception as exc:  # noqa: BLE001 - receipt must preserve visible failure
         exit_code = None
         message = str(exc)
@@ -407,6 +435,7 @@ def _run_one_creator(
         "lane_id": lane_id,
         "lane_count": lane_count,
         "partition_algorithm_version": PARTITION_ALGORITHM_VERSION,
+        "attempt_id": attempt_id,
         "partition_key": entry.stable_partition_key,
         "partition_key_source": entry.partition_key_source,
         "assigned_lane_id": assign_lane_id(entry.stable_partition_key, lane_count),
@@ -428,6 +457,8 @@ def _run_one_creator(
         "grid_runner_exit_code": exit_code,
         "grid_runner_message": message,
         "packet_pointer": packet_pointer,
+        "packet_id": packet_summary.fields.get("packet_id"),
+        "reconciled_existing_packet": reconciled,
         "access_gap_reason": access_gap_reason,
         "source_surface": SOURCE_SURFACE,
         "heartbeat_source_surface": SOURCE_SURFACE_HEARTBEAT,
@@ -524,13 +555,18 @@ def _entry_from_row(row: Mapping[str, Any], *, index: int, source_kind: str) -> 
     creator_record_id = _first_string(row, ("creator_record_id", "creator_record_id_or_none"))
     ig_roster_record_id = _first_string(row, ("ig_roster_record_id", "roster_record_id"))
     normalized_handle = normalize_handle(raw_handle)
-    stable_partition_key, partition_key_source = _stable_partition_key(
-        ig_roster_record_id=ig_roster_record_id,
-        platform_account_id=platform_account_id,
-        platform_public_account_id=platform_public_account_id,
-        handle=normalized_handle,
-        limitations=limitations,
-    )
+    stable_partition_key = _first_string(row, ("stable_partition_key",))
+    partition_key_source = _first_string(row, ("partition_key_source",))
+    if stable_partition_key is None:
+        stable_partition_key, partition_key_source = _stable_partition_key(
+            ig_roster_record_id=ig_roster_record_id,
+            platform_account_id=platform_account_id,
+            platform_public_account_id=platform_public_account_id,
+            handle=normalized_handle,
+            limitations=limitations,
+        )
+    elif partition_key_source is None:
+        raise ValueError(f"instagram roster row {index} has stable_partition_key without partition_key_source")
 
     return HeartbeatRosterEntry(
         handle=normalized_handle,
@@ -542,6 +578,8 @@ def _entry_from_row(row: Mapping[str, Any], *, index: int, source_kind: str) -> 
         roster_status=roster_status,
         stable_partition_key=stable_partition_key,
         partition_key_source=partition_key_source,
+        attempt_id=_first_string(row, ("attempt_id",)),
+        attempt_resume=row.get("attempt_resume") is True,
         limitations=tuple(limitations),
     )
 
@@ -604,10 +642,32 @@ def _packet_output_directory(
     lane_id: str,
     sequence: int,
     handle: str,
+    attempt_id: str,
 ) -> Path | None:
     if output_root is None:
         return None
-    return output_root / run_id / lane_id / f"{sequence:04d}_{_safe_path_segment(handle)}"
+    return output_root / "heartbeat_attempts" / attempt_id / _safe_path_segment(handle)
+
+
+def _find_existing_attempt_packet(
+    *, output_directory: Path | None, data_root: object | None, attempt_id: str
+) -> Path | None:
+    if data_root is not None:
+        found = find_committed_packet_by_session_identity(
+            data_root,
+            session_identity=attempt_id,
+            source_surface=SOURCE_SURFACE,
+        )
+        return found[1] if found is not None else None
+    if output_directory is None or not (output_directory / "manifest.json").is_file():
+        return None
+    try:
+        manifest = json.loads((output_directory / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(manifest, dict) or manifest.get("session_identity") != attempt_id:
+        return None
+    return output_directory
 
 
 def _safe_path_segment(value: str) -> str:

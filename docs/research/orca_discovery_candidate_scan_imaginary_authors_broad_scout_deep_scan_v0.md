@@ -53,6 +53,7 @@ Disallowed next move: No crawler, monitor, registry, atlas, Capture run, route b
 ```
 
 ```yaml
+scan_receipt_version: 0
 commission_id: scanning_mgt_imaginary_authors_broad_scout_deep_scan_v0
 scan_date: 2026-06-22
 mode: forward

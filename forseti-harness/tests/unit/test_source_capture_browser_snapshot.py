@@ -19,6 +19,7 @@ from source_capture.adapters.browser_snapshot import (
     BrowserContextResponsesSuccess,
     BrowserPageObservationSuccess,
     BrowserPagePointerAction,
+    BrowserPageWheelAction,
     BrowserPageResponse,
     BrowserSnapshotFailure,
     BrowserSnapshotFailureKind,
@@ -149,8 +150,9 @@ class _FakeObservationMouse:
         self.page = page
         self.moves: list[tuple[float, float, int]] = []
         self.clicks: list[tuple[float, float]] = []
+        self.wheels: list[tuple[float, float]] = []
 
-    def move(self, x: float, y: float, *, steps: int) -> None:
+    def move(self, x: float, y: float, *, steps: int = 1) -> None:
         self.moves.append((x, y, steps))
         self.page.event_log.append(f"mouse_move:{steps}")
 
@@ -158,6 +160,11 @@ class _FakeObservationMouse:
         self.clicks.append((x, y))
         self.page.event_log.append("mouse_click")
         self.page.emit_response_once()
+
+    def wheel(self, delta_x: float, delta_y: float) -> None:
+        self.wheels.append((delta_x, delta_y))
+        self.page.scroll_y = max(0.0, self.page.scroll_y + delta_y)
+        self.page.event_log.append("mouse_wheel")
 
 
 class _FakeObservationPage:
@@ -178,6 +185,7 @@ class _FakeObservationPage:
     ) -> None:
         self.event_log = event_log
         self.height = height
+        self.scroll_y = 0.0
         self.url = "https://example.com/source"
         self.response_callback: object | None = None
         self.route_bindings: list[tuple[str, object]] = []
@@ -249,6 +257,16 @@ class _FakeObservationPage:
         return _FakeObservationLocator(self.event_log)
 
     def evaluate(self, script: str, arg: object | None = None) -> object:
+        if "viewport_width" in script and "viewport_height" in script:
+            self.event_log.append("wheel_viewport_lookup")
+            return {
+                "scroll_y": self.scroll_y,
+                "viewport_width": 1280,
+                "viewport_height": 720,
+            }
+        if "scroll_y: Math.max" in script:
+            self.event_log.append("wheel_after_lookup")
+            return {"scroll_y": self.scroll_y}
         if "scrollTo" in script:
             self.event_log.append("scroll")
             self.emit_response_once()
@@ -1186,6 +1204,103 @@ def test_post_action_handoff_stops_remaining_actions_when_challenge_persists(
     assert attempts[0]["timeout_exceeded"] is True
 
 
+def test_page_load_account_safety_stop_suppresses_actions_without_handoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+        marker_match_results=[
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "account might be at risk",
+                "marker_count": 1,
+            }
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+    monkeypatch.setattr(
+        browser_snapshot_module,
+        "_show_human_challenge_prompt",
+        lambda _prompt: pytest.fail("account safety stop must not prompt CAPTCHA handoff"),
+    )
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        pre_action_stop_markers=("account might be at risk",),
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda url: "widget" in url,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="must_not_run",
+                candidate_selector="button",
+                text_markers=("continue",),
+                wait_after_ms=0,
+            ),
+        ),
+    )
+
+    assert result.metadata["pointer_actions_suppressed_by_pre_action_stop"] is True
+    assert result.metadata["pointer_actions_suppressed_by_human_challenge_handoff"] is False
+    assert result.metadata["human_challenge_handoff_attempts"] == []
+    assert result.metadata["post_load_pointer_actions"] == []
+    assert result.metadata["pre_action_stop_attempts"][0]["automatic_retry_allowed"] is False
+    assert "pointer_target_lookup" not in event_log
+    assert "mouse_click" not in event_log
+
+
+def test_page_load_account_safety_stop_suppresses_lazy_load_scrolls(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        marker_match_results=[
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "account might be at risk",
+                "marker_count": 1,
+            }
+        ],
+    )
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine(
+        pre_action_stop_markers=("account might be at risk",),
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda _url: False,
+        lazy_load_scroll_passes=2,
+        lazy_load_scroll_step_px=500,
+    )
+
+    assert result.metadata["pointer_actions_suppressed_by_pre_action_stop"] is True
+    assert result.metadata["lazy_load_scroll_passes_executed"] == 0
+    assert result.metadata["lazy_load_scroll_stop_reason"] == "scripted_actions_suppressed"
+    assert "page_evaluate" not in event_log
+
+
 def test_page_load_handoff_suppresses_pointer_actions_until_challenge_clears(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1327,19 +1442,87 @@ def test_cloakbrowser_page_load_handoff_suppresses_pointer_actions(
                 wait_after_ms=0,
             ),
         ),
+        lazy_load_scroll_passes=2,
+        lazy_load_scroll_step_px=500,
     )
 
     assert result.metadata["browser_backend"] == "cloakbrowser"
     assert result.metadata["pointer_actions_suppressed_by_human_challenge_handoff"] is True
     assert result.metadata["post_load_pointer_actions"] == []
+    assert result.metadata["lazy_load_scroll_passes_executed"] == 0
+    assert result.metadata["lazy_load_scroll_stop_reason"] == "scripted_actions_suppressed"
     assert "pointer_target_lookup" not in event_log
     assert "mouse_click" not in event_log
+    assert "scroll" not in event_log
     attempt = result.metadata["human_challenge_handoff_attempts"][0]
     assert attempt["after_action_name"] == (
         browser_snapshot_module.PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
     )
     assert attempt["cleared"] is False
     assert attempt["timeout_exceeded"] is True
+
+
+def test_cloakbrowser_account_safety_stop_suppresses_actions_without_handoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(
+        event_log,
+        pointer_target={
+            "candidate_count": 1,
+            "matched_count": 1,
+            "target_found": True,
+            "target_kind": "button",
+            "box": {"x": 10, "y": 20, "width": 100, "height": 50},
+        },
+        marker_match_results=[
+            {
+                "checked": True,
+                "matched": True,
+                "matched_marker": "account might be at risk",
+                "marker_count": 1,
+            }
+        ],
+    )
+    fake_cloakbrowser = _FakeCloakBrowserModule(page)
+
+    def fake_import_module(name: str) -> object:
+        if name == "cloakbrowser":
+            return fake_cloakbrowser
+        raise ModuleNotFoundError(name)
+
+    monkeypatch.setattr(browser_snapshot_module, "import_module", fake_import_module)
+    monkeypatch.setattr(
+        browser_snapshot_module,
+        "_show_human_challenge_prompt",
+        lambda _prompt: pytest.fail("account safety stop must not prompt CAPTCHA handoff"),
+    )
+
+    result = browser_snapshot_module._CloakBrowserPageObservationEngine(
+        pre_action_stop_markers=("account might be at risk",),
+    ).capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda _url: False,
+        post_load_pointer_actions=(
+            BrowserPagePointerAction(
+                action_name="must_not_run",
+                candidate_selector="button",
+                text_markers=("continue",),
+                wait_after_ms=0,
+            ),
+        ),
+    )
+
+    assert result.metadata["pointer_actions_suppressed_by_pre_action_stop"] is True
+    assert result.metadata["human_challenge_handoff_attempts"] == []
+    assert result.metadata["post_load_pointer_actions"] == []
+    assert "mouse_click" not in event_log
 
 
 def test_pointer_action_target_script_matches_data_attributes() -> None:
@@ -1527,6 +1710,11 @@ def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_re
     assert receipt["page_text_gate_matched"] is True
     assert receipt["page_text_matched_marker"] == "drag the slider"
     assert receipt["selection_strategy"] == "top_right"
+    assert receipt["target_geometry_freshly_resolved"] is True
+    assert receipt["target_box_width"] == 100.0
+    assert receipt["target_box_height"] == 50.0
+    assert 0.35 <= receipt["click_fraction_x"] <= 0.65
+    assert 0.35 <= receipt["click_fraction_y"] <= 0.65
     assert "x" not in receipt
     assert "y" not in receipt
     assert result.metadata["post_load_action_executed"] is True
@@ -1536,6 +1724,50 @@ def test_playwright_page_observation_runs_pointer_action_before_dom_and_reads_re
     assert event_log.index("mouse_click") < event_log.index("wait:2500")
     assert event_log.index("wait:2500") < event_log.index("inner_text")
     assert event_log.index("dom_extract") < event_log.index("response_text")
+
+
+def test_playwright_page_observation_runs_bounded_wheel_burst_before_dom(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    event_log: list[str] = []
+    page = _FakeObservationPage(event_log)
+    _install_fake_playwright(monkeypatch, page)
+
+    result = browser_snapshot_module._PlaywrightBrowserSnapshotEngine().capture_page_observation(
+        url="https://example.com/source",
+        timeout_seconds=1,
+        wait_until="load",
+        viewport_width=1280,
+        viewport_height=720,
+        dom_extract_script="() => ({items: []})",
+        dom_extract_arg={},
+        response_url_predicate=lambda _: False,
+        post_load_wheel_action=BrowserPageWheelAction(
+            action_name="test_grid_wheel_v0",
+            direction="down",
+            viewport_fraction_min=0.75,
+            viewport_fraction_max=0.75,
+            wheel_chunk_px_min=30,
+            wheel_chunk_px_max=30,
+            wheel_pause_ms_min=10,
+            wheel_pause_ms_max=10,
+            settle_ms_min=500,
+            settle_ms_max=500,
+            random_seed=11,
+        ),
+    )
+
+    receipt = result.metadata["post_load_wheel_action"]
+    assert receipt["completed"] is True
+    assert receipt["input_method"] == "page.mouse.wheel_burst"
+    assert receipt["planned_delta_y_px"] == 540
+    assert receipt["actual_scroll_delta_y_px"] == 540
+    assert receipt["wheel_event_count"] == 18
+    assert len(page.mouse.wheels) == 18
+    assert all(delta_x == 0 and 0 < delta_y <= 30 for delta_x, delta_y in page.mouse.wheels)
+    assert result.metadata["post_load_action_executed"] is True
+    assert event_log.index("wheel_viewport_lookup") < event_log.index("mouse_move:1")
+    assert event_log.index("mouse_wheel") < event_log.index("dom_extract")
 
 
 
@@ -3066,3 +3298,120 @@ def test_chrome_cdp_session_detaches_without_closing_context_or_page(
     assert engine.lifecycle_receipt["close_policy"] == (
         "detach_only_leave_browser_and_page_open"
     )
+
+
+def test_chrome_cdp_session_adopts_latest_tiktok_page_and_discloses_exact_matches() -> None:
+    class FakePage:
+        def __init__(self, url: str, *, closed: bool = False) -> None:
+            self.url = url
+            self.closed = closed
+
+        def is_closed(self) -> bool:
+            return self.closed
+
+    unrelated = FakePage("https://www.tiktok.com/@someone_else")
+    first_exact = FakePage("http://www.tiktok.com/@Creator/?from=old#grid")
+    closed_exact = FakePage("https://www.tiktok.com/@creator", closed=True)
+    latest_exact = FakePage("https://tiktok.com/@creator?lang=en")
+
+    class FakeContext:
+        pages = [unrelated, first_exact, closed_exact, latest_exact]
+
+        def new_page(self) -> FakePage:
+            raise AssertionError("an exact target page must be adopted")
+
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+    engine._real_context = FakeContext()
+    engine._pending_requested_page_url = "https://www.tiktok.com/@CREATOR/"
+
+    assert engine._get_or_create_page() is latest_exact
+    assert engine._get_or_create_page() is latest_exact
+    receipt = engine.lifecycle_receipt
+    assert receipt["page_acquisition_policy"] == "adopt_same_platform_else_create"
+    assert receipt["initial_platform_match_count"] == 3
+    assert receipt["initial_exact_match_count"] == 2
+    assert receipt["page_adoption_count"] == 1
+    assert receipt["page_creation_count"] == 0
+    assert receipt["adopted_page_enumeration_index_or_none"] == 3
+    assert receipt["duplicate_platform_match_policy"] == (
+        "adopt_most_recently_enumerated_non_closed_platform_match"
+    )
+
+
+def test_chrome_cdp_session_adopts_latest_unrelated_tiktok_page() -> None:
+    class FakePage:
+        def __init__(self, url: str) -> None:
+            self.url = url
+
+        def is_closed(self) -> bool:
+            return False
+
+    unrelated_creator = FakePage("https://www.tiktok.com/@someone_else")
+    unrelated_path = FakePage("https://www.tiktok.com/@creator/video/123")
+    created = FakePage("about:blank")
+
+    class FakeContext:
+        pages = [unrelated_creator, unrelated_path]
+
+        def new_page(self) -> FakePage:
+            return created
+
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+    engine._real_context = FakeContext()
+    engine._pending_requested_page_url = "https://www.tiktok.com/@creator"
+
+    assert engine._get_or_create_page() is unrelated_path
+    receipt = engine.lifecycle_receipt
+    assert receipt["initial_platform_match_count"] == 2
+    assert receipt["initial_exact_match_count"] == 0
+    assert receipt["page_adoption_count"] == 1
+    assert receipt["page_creation_count"] == 0
+
+
+def test_chrome_cdp_session_creates_only_when_no_tiktok_page_exists() -> None:
+    class FakePage:
+        def __init__(self, url: str) -> None:
+            self.url = url
+
+        def is_closed(self) -> bool:
+            return False
+
+    created = FakePage("about:blank")
+
+    class FakeContext:
+        pages = [FakePage("https://example.com/"), FakePage("https://chatgpt.com/")]
+
+        def new_page(self) -> FakePage:
+            return created
+
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+    engine._real_context = FakeContext()
+    engine._pending_requested_page_url = "https://www.tiktok.com/@creator"
+
+    assert engine._get_or_create_page() is created
+    receipt = engine.lifecycle_receipt
+    assert receipt["initial_platform_match_count"] == 0
+    assert receipt["page_adoption_count"] == 0
+    assert receipt["page_creation_count"] == 1
+
+
+def test_chrome_cdp_session_suppresses_same_target_navigation_only() -> None:
+    class FakePage:
+        def __init__(self) -> None:
+            self.url = "https://www.tiktok.com/@creator?lang=en#grid"
+            self.goto_calls: list[str] = []
+
+        def goto(self, url: str, **_kwargs: object) -> str:
+            self.goto_calls.append(url)
+            self.url = url
+            return "navigated"
+
+    page = FakePage()
+    engine = ChromeCdpPageObservationSessionEngine(humanize_context_fn=lambda _: None)
+
+    assert engine._navigate_page(page, "http://tiktok.com/@CREATOR/") is None
+    assert engine._navigate_page(page, "https://www.tiktok.com/@other") == "navigated"
+    assert page.goto_calls == ["https://www.tiktok.com/@other"]
+    receipt = engine.lifecycle_receipt
+    assert receipt["same_url_navigation_suppression_count"] == 1
+    assert receipt["page_navigation_count"] == 1

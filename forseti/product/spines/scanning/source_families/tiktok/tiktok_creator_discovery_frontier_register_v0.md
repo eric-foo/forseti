@@ -65,8 +65,9 @@ For this register:
 - `discovered_from_run` means the node was observed during one bounded discovery
   run.
 - `platform_suggested_account_relation` means TikTok displayed the candidate as
-  a suggested/related account from the seed profile, profile carousel, or
-  Followers/Following modal Suggested tab.
+  a suggested/related account from the primary visible Followers relationship
+  dialog's Suggested tab, or from the visible seed-profile Suggested accounts /
+  exact View All fallback.
 - `already_seen` means the candidate was already present in this or another
   register and should not be re-added as a fresh candidate.
 - `selected_as_next_frontier` means a human/agent selected that node for a later
@@ -196,13 +197,87 @@ candidate account sizes, regions, sibling channels, and quality remain unknown
 until a later authorized candidate-profile run captures them. This is an
 anti-overclaim label, not a new blocker or capture restraint.
 
-When the scan uses the intended CloakBrowser/equivalent surface and captures a
-parent profile/grid packet, suggested-account graphing is the next same-surface
-step. If the seed profile has a source-visible Follow button and the owner has
-authorized it, click once and verify the state; capture the profile suggested
-carousel if present, click `View all` once when available to expand more rows,
-otherwise check `Following` or `Followers` -> `Suggested`, then record a packet
-or blocked/empty outcome before link-hub or sibling-channel work.
+When the scan uses the retained Chrome CDP surface patched with CloakBrowser
+`resolve_config("careful")` and captures a parent profile/grid packet,
+suggested-account graphing is the next same-surface step. Click the visible
+creator `Followers` count, wait for the visible relationship dialog, click that
+dialog's `Suggested` tab, and extract profile rows only from that visible dialog.
+Only when the primary route is not visible may the runner use the visible
+`Suggested accounts` heading plus exact `View All` fallback. Record `captured`,
+`visible_empty`, or `not_visible` distinctly, keep the outer route separate from
+the humanized pointer-layer disclosure, and record a packet before link-hub or
+sibling-channel work. Never click Follow, open a candidate profile, like, or
+message.
+
+On first capture, the CDP adapter adopts the most recently enumerated non-closed
+TikTok page, regardless of its current creator/path. It never adopts a
+cross-platform page and creates one page only when no TikTok page exists. The
+acquired page is reused until detach; it navigates to the requested creator when
+the adopted TikTok path differs and suppresses `goto` when normalized TikTok
+host/path already matches (scheme, query, and fragment do not affect that
+comparison). Receipts carry
+`page_acquisition_policy=adopt_same_platform_else_create`, platform and exact
+match counts, adoption/creation/navigation counts, and same-URL suppression
+count. Duplicate platform matches use the latest enumerated page; active focus
+is never inferred.
+
+The creator grid is established once on that acquired page. Suggested primary,
+fallback, modal close, grid collection, and every onboarding deep capture remain
+on the same page without reloading the same creator or clicking Latest, Popular,
+or Oldest. Acquisition reads the initial exact-creator DOM order. An already-
+loaded window of at least 27 videos uses zero acquisition wheels; otherwise use
+bounded adaptive normal 20-35 percent viewport mouse-wheel bursts only until the
+first positive exact-video-ID batch delta. It performs no further wheel action
+after initial sufficiency or that first new batch and requires the ordered
+sequence to remain unchanged for two consecutive passive DOM polls. It never
+scrolls to page bottom, repeats wheel bursts until a response count reaches 30,
+loads another batch after sufficiency, or accepts a stabilized one-batch window
+below 27 videos. Freeze up to 30 stabilized rows. Fixed-count onboarding ranks by reach: prefer structured profile-grid
+`playCount`, else use the exact tile's compact view footer as explicitly rounded
+DOM evidence with raw text and field provenance. Naturally available engagement
+metrics are preserved but do not gate fixed-count membership; pinning remains
+recorded without displacing reach rank.
+
+After the existing randomized 8-13 second wait, each selected video is opened by
+randomly choosing among currently viewport-visible selected grid tiles.
+Resolve the chosen tile's link-routed view-count footer immediately before the
+pointer action, then click a randomized point within that footer's central 70
+percent (15-85 percent on each axis). The footer itself must intersect the
+viewport; partial thumbnail visibility does not make an off-screen footer
+actionable. Do not cache absolute screen coordinates or click the hover-preview
+`<video>` body, which may consume the click as playback.
+After capture, close the overlay back to the creator grid before choosing the next
+tile. If fewer selected tiles are currently visible, bounded normal-grid viewport
+pagination may expose them. Remember stable video identities and logical grid
+positions, compare them with the freshly observed visible position range, and use
+receipt-backed 20-35 percent viewport mouse-wheel bursts in the required
+direction; never target-scroll a tile into view. Once the live grid has loaded
+through the frozen window's logical bound, zero live/frozen video-ID overlap
+stops as `frozen_window_identity_drift`. Repeating a prior non-consecutive grid
+state stops as `progress_cycle`; changed scroll position alone is not useful
+progress when it cycles. The receipt distinguishes the CloakBrowser-humanized
+cursor move from the raw bounded wheel burst. If a pointer
+click does not materialize the matching visible video overlay, wait 60 seconds,
+recompute the visible subset, and retry once; a second failure stops loudly.
+The overlay URL plus clicked grid identity bind the video, profile-grid responses
+provide structured video metadata, and page-owned comment responses or visible
+overlay DOM provide initially exposed comments. Direct-video `itemStruct` is
+optional on this route. Direct-video navigation remains a separate diagnostic or
+future collector capability and is never an onboarding fallback.
+
+Close the primary relationship dialog or collapse fallback Suggested accounts
+through its exact profile toggle immediately after extracting its rows. A
+page-wide generic Close/X target is forbidden. Grid collection, wheel pagination,
+and tile clicks must not begin while the route surface, a blocking modal, or page
+scroll lock remains; a required close that cannot be verified stops loudly before
+the grid phase.
+
+With `--data-root`, a captured non-empty suggested result must produce a non-null
+frontier artifact or fail loudly. Validated external-profile evidence may become
+sibling-channel linkage only through the existing Creator Registry identity
+contracts; the discovery frontier does not infer such edges. A historical
+recapture is written as a separate Bronze supplement with
+`re_capture_relationship: supplement` and never rewrites prior provenance.
 
 
 ## PROMOTE Receipt-Evidence Binding
@@ -269,6 +344,12 @@ candidate's own source-visible evidence supports it:
 4. Registry exact-match preflight routes known accounts as updates and unknown
    accounts as candidates.
 
+Routine onboarding dogfood selects a Suggested/frontier candidate that is absent
+from the Creator Registry and uses `new_capture`. An exact match means choose a
+different eligible candidate; `update_existing` is reserved for a run whose
+stated subject is recapture or an existing-creator regression. The registry is
+identity/current-profile authority, not dogfood-run history.
+
 The discovery frontier can point to registry candidate IDs when known, but it
 must not create them by itself.
 
@@ -277,7 +358,7 @@ must not create them by itself.
 | Residual | Why acceptable now | Remaining risk | Upgrade trigger |
 | --- | --- | --- | --- |
 | No standing TikTok crawler | Keeps the lane bounded and avoids crawler/runtime lock-in. | Some adjacent creators will be missed between owner-launched runs. | Repeated missed high-value creators or sustained multi-operator discovery cadence. |
-| No live auto-pagination requirement | Keeps capture posture safe and session-visible. | The register may under-sample a suggested list. | Owner authorizes a bounded pagination probe with explicit caps and source-access posture. |
+| No Suggested pagination in onboarding | Keeps capture posture safe and session-visible. | The register may under-sample a suggested list. | Owner authorizes a separate bounded pagination probe with explicit caps and source-access posture. |
 | Candidate count may differ from observed suggestion count | Allows bounded filtering/deduping without making false completeness claims. | A cold agent could overstate recall if it ignores accepted_residuals. | Exact completeness becomes product-critical and receives an explicit schema mode. |
 | No ranking model | Superseded: `tiktok_creator_discovery_frontier_selector_v0.md` now provides an advisory duplicate-pressure ranker (frequency/expanded/fragrance heuristic scoring) over caller-supplied registers; it is not a quality model. | Ordering reflects duplicate-pressure heuristics only, not creator quality. | A quality-bearing or learned ranking model would need a separate decision. |
 | No registry mutation | Preserves identity quality and duplicate safety. | Extra preflight step before onboarding. | Registry adopts a typed weak-edge intake lane with deterministic duplicate routing. |
@@ -297,6 +378,8 @@ For code-versus-doctrine placement before further scouting, open `forseti/produc
 - No contact enrichment.
 - No private identity inference.
 - No screenshots in chat by default.
+- No Follow, like, message, candidate-profile open, or automated state-changing
+  soft-restriction probe/retry.
 - No metric zero-fill from discovery/link-hub observations.
 - No CAPTCHA solving, proxy/account-rotation plan, forged signatures, or
   platform API replay.
@@ -309,6 +392,100 @@ proof, country/region evidence, metric rollup, commercial permission, or
 production infrastructure authorization.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Followers-dialog Suggested capture is the primary TikTok discovery route and
+    profile Suggested accounts/View All is fallback. Retained CDP acquisition now
+    reuses the latest non-closed TikTok page at platform scope, suppresses same-path
+    reloads, keeps Suggested-to-grid work on that page, closes and verifies the
+    Suggested surface before any grid wheel or tile action using the
+    relationship-dialog close for the primary route or the exact profile
+    Suggested-accounts toggle for fallback; a generic page Close/X search is
+    forbidden, and blocking-modal or scroll-lock residue fails loud. Grid
+    acquisition accepts an already-loaded 27-video initial window with zero
+    wheels; otherwise it uses bounded adaptive 20-35 percent viewport wheel
+    bursts only until the first positive exact-video-ID batch delta, then zero
+    further wheels and two consecutive stable passive DOM polls. It freezes up
+    to 30 stabilized rows, fails when the one-batch window remains below 27, and
+    does not page-bottom-scroll or chase a response count.
+    Fixed-count reach selection prefers structured playCount and may use an
+    explicitly rounded, provenance-bearing grid view footer when it is absent;
+    optional engagement metrics no longer gate membership. The runner opens every
+    selected video through a random currently visible selected grid tile,
+    returning to the grid between overlays. Each chosen tile's link-routed view-count footer is
+    freshly measured and clicked at a randomized point inside its 15-85 percent
+    safe inset; the hover-preview body is not a click target. Bounded normal-grid
+    pagination remembers logical positions and uses receipt-backed 20-35 percent
+    viewport mouse-wheel bursts without caching screen coordinates. Live/frozen
+    video-ID divergence stops once the frozen bound is loaded, and repeated
+    non-consecutive grid state stops as a progress cycle instead of reversing
+    indefinitely. Targeted tile scrolling and direct-video onboarding navigation
+    are forbidden. Routine dogfood selects a Suggested/frontier candidate absent
+    from the Creator Registry with `new_capture`; `update_existing` is reserved
+    for an explicitly recapture-specific test. A failed overlay
+    materialization gets one receipt-backed 60-second retry. Grid/API plus overlay
+    evidence replaces a mandatory direct `itemStruct`.
+    Account mutations and candidate
+    opens remain forbidden; captured data-root runs fail loud without a frontier,
+    and historical recaptures supplement rather than rewrite Bronze provenance.
+  trigger: product_doctrine
+  related_triggers:
+    - architecture_doctrine
+    - validation_philosophy
+  controlling_sources_updated:
+    - forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_frontier_register_v0.md
+    - forseti/product/spines/scanning/source_families/tiktok/tiktok_creator_discovery_enforcement_placement_v0.md
+    - forseti-harness/docs/source_capture_agent_runbook.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - forseti-harness/source_capture/adapters/browser_snapshot.py
+    - forseti-harness/source_capture/tiktok/creator_onboarding.py
+    - forseti-harness/source_capture/tiktok/batch_packet.py
+    - forseti-harness/source_capture/tiktok/blocker_triage.py
+    - forseti-harness/source_capture/tiktok/live_batch_probe.py
+    - forseti-harness/source_capture/tiktok/grid_video_selection.py
+    - forseti-harness/capture_spine/tiktok_creator_discovery_frontier/validation.py
+    - forseti-harness/runners/run_source_capture_tiktok_creator_onboarding.py
+    - forseti-harness/tests/unit/test_source_capture_browser_snapshot.py
+    - forseti-harness/tests/unit/test_tiktok_batch_admission.py
+    - forseti-harness/tests/unit/test_tiktok_blocker_triage.py
+    - forseti-harness/tests/unit/test_tiktok_creator_onboarding.py
+    - forseti-harness/tests/unit/test_tiktok_grid_video_selection.py
+    - forseti-harness/tests/unit/test_tiktok_live_batch_probe.py
+  intentionally_not_updated:
+    - path: AGENTS.md and .agents/workflow-overlay/
+      reason: >
+        Global behavior, authority, source-loading, and validation doctrine remain
+        unchanged; this is a bounded TikTok product/source-family route change.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        Existing TikTok and source-capture index entries still resolve all controlling
+        sources; no path or owner changed.
+  stale_language_search: >
+    rg -n -i "response_target_reached|scrollTo\(0, document.body.scrollHeight\)|playCount/diggCount.*fixed|fixed.*diggCount|required.*30.*grid|first deep entry|remaining selected videos|direct selected-video|source item detail|adopt_exact_target_else_create|arbitrary TikTok tab|profile suggested|View all.*Following|View all.*Followers|root follow|owner-authorized root follow|allows one.*follow|small mouse-wheel|update_existing.*dogfood|dogfood.*update_existing|identity drift|progress cycle|scroll.*suggested.*open|suggested.*open.*scroll|tiktok_suggested_surface_close_before_grid_v0"
+    forseti/product/spines/scanning/source_families/tiktok forseti-harness/docs/source_capture_agent_runbook.md
+    forseti-harness/source_capture/tiktok forseti-harness/capture_spine/tiktok_creator_discovery_frontier
+  stale_language_search_result: >
+    Executed 2026-07-15. Live hits outside the two receipt queries are the
+    selection implementation's explicit fraction-mode playCount/diggCount list,
+    the retained direct-page diagnostic helper, and accepted doctrine statements
+    naming profile Suggested fallback or progress-cycle safeguards. No live
+    onboarding source retains response-target/page-bottom acquisition, makes
+    diggCount a fixed-count membership requirement, or uses the retired generic
+    Suggested-surface close action.
+  non_claims:
+    - not validation
+    - not readiness
+    - not live capture success
+    - not Creator Registry identity proof or mutation
+```
 
 ```yaml
 direction_change_propagation:

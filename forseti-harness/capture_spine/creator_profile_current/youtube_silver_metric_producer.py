@@ -119,8 +119,8 @@ DEFAULT_YOUTUBE_SEED_PATH = (
     / "youtube_shorts_fragrance_creator_metric_seed_v0.json"
 )
 
-METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricobservation_v0"
-METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricrollupobservation_v0"
+METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricobservation_v3"
+METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "youtube_creator_metric_silver_metricrollupobservation_v1"
 
 _OBS_PRODUCER_ID = (
     "forseti-harness.capture_spine.creator_profile_current.youtube_silver_metric_producer"
@@ -135,6 +135,7 @@ _SOURCE_SURFACE = "youtube_shorts"
 _YOUTUBE_BRONZE_SOURCE_FAMILY = "youtube"
 _YOUTUBE_BRONZE_SOURCE_SURFACE = "youtube_watch_metadata_comments"
 _BRONZE_AR_RAW_REF_KIND = "bronze_attachment_record"
+_RAW_STORED_BYTES_HASH_BASIS = "raw_stored_bytes"
 _RAW_PACKET_FALLBACK_MISSING_AR_REF_KIND = "raw_packet_fallback_missing_attachment_record"
 _RAW_PACKET_FALLBACK_AMBIGUOUS_AR_REF_KIND = "raw_packet_fallback_ambiguous_attachment_record"
 _MISSING_AR_LIMITATION = "typed_attachment_record_missing_for_raw_ref"
@@ -195,6 +196,7 @@ def derive_youtube_creator_metric_silver_records_from_seed(
     for seed_observation in seed["metric_observations"]:
         record = build_metric_observation_record(
             seed_observation=seed_observation,
+            recorded_at=seed.get("generated_at_utc"),
             bronze_attachment_records_by_packet_body_hash=(
                 bronze_attachment_records_by_packet_body_hash
             ),
@@ -210,6 +212,7 @@ def derive_youtube_creator_metric_silver_records_from_seed(
         observation_records.append(record)
         observation_paths.append(path)
         ref_by_seed_observation_id[seed_observation["metric_observation_id"]] = {
+            "raw_anchor": record["raw_anchor"],
             "lane_namespace": METRIC_OBSERVATION_LANE,
             "record_id": record["record_id"],
             "content_hash": record["content_hash"],
@@ -263,6 +266,7 @@ def derive_youtube_creator_metric_silver_records_from_seed_file(
 def build_metric_observation_record(
     *,
     seed_observation: Mapping[str, Any],
+    recorded_at: str | None = None,
     bronze_attachment_records_by_packet_body_hash: Mapping[
         tuple[str, str], list[Mapping[str, Any]]
     ] | None = None,
@@ -303,7 +307,7 @@ def build_metric_observation_record(
         "source_family": _SOURCE_FAMILY,
         "source_surface": _SOURCE_SURFACE,
         "observed_at": observed_at,
-        "captured_at": observed_at,
+        "captured_at": observed_at if observed_at is not None else recorded_at,
         "raw_refs": [raw_ref],
         "derived_refs": [],
         "payload": {
@@ -344,6 +348,27 @@ def build_metric_observation_record(
     }
     if lineage_limitations:
         record["lineage_limitations"] = lineage_limitations
+    if observed_at is None:
+        if not isinstance(recorded_at, str) or not recorded_at.strip():
+            raise ValueError("Unknown-time YouTube metric observation requires recorded_at")
+        observation = record["payload"]["observation"]
+        observation.update(
+            {
+                "effective_interval": {
+                    "start": None,
+                    "start_precision": "unknown",
+                    "unknown_reason": (
+                        "The YouTube source row has no known caption or attempt observation time."
+                    ),
+                },
+                "recorded_at": recorded_at,
+                "evidence_refs": [raw_ref],
+                "limitations": [
+                    "Source-effective time is unknown; recorded_at is the metric-seed "
+                    "generation time and is not observed_at."
+                ],
+            }
+        )
     record["content_hash"] = f"sha256:{_content_hash(record)}"
     return record
 
@@ -373,6 +398,7 @@ def build_metric_rollup_record(
         derived_refs.append(
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": ref["raw_anchor"],
                 "lane_namespace": ref["lane_namespace"],
                 "record_id": ref["record_id"],
                 "content_hash": ref["content_hash"],
@@ -507,25 +533,40 @@ def _raw_ref(
 ) -> dict[str, Any]:
     """Build an honest portable provenance ref from the fields the YouTube seed
     actually declares as portable (the YouTube seed carries NO IG-style
-    raw_anchor dict). ``sha256``+``hash_basis`` use the captured watch-page HTML
-    hash, which IS the hash-checkable source material per the Silver Vault
-    raw_refs rule; the shorts-page HTML hash is preserved alongside."""
-    watch_hash = _required_source_hash(
-        seed_observation,
-        "source_watch_html_sha256_or_none",
+    raw_anchor dict). Historical v0 seeds use the preserved watch HTML; selective
+    v1 seeds use the preserved compact capture payload that contains the exact
+    source-visible metric values and comment rows."""
+    evidence_hash = seed_observation.get("source_evidence_sha256")
+    evidence_hash_basis = seed_observation.get("source_evidence_hash_basis")
+    if evidence_hash is None and evidence_hash_basis is None:
+        evidence_hash = seed_observation.get("source_watch_html_sha256_or_none")
+        evidence_hash_basis = "source_captured_watch_html_sha256"
+    if evidence_hash_basis not in {
+        "source_captured_watch_html_sha256",
+        "source_captured_selective_payload_sha256",
+    }:
+        raise ValueError(
+            f"metric observation {seed_observation.get('metric_observation_id')!r} raw_ref "
+            f"has unsupported source_evidence_hash_basis {evidence_hash_basis!r}"
+        )
+    evidence_hash = _required_hash_value(
+        evidence_hash,
         what=f"metric observation {seed_observation.get('metric_observation_id')!r} raw_ref",
     )
     raw_ref: dict[str, Any] = {
+        "ref_type": "raw_packet",
         "packet_id": seed_observation.get("source_packet_id_or_none"),
         "source_pointer": seed_observation.get("source_pointer"),
         "source_field": seed_observation.get("source_field"),
         "source_file": seed_observation.get("source_file"),
         "source_row_id": seed_observation.get("source_row_id_or_none"),
-        "sha256": watch_hash,
-        "hash_basis": "source_captured_watch_html_sha256",
-        "watch_html_sha256": watch_hash,
+        "sha256": evidence_hash,
+        "hash_basis": _RAW_STORED_BYTES_HASH_BASIS,
+        "evidence_sha256": evidence_hash,
         "shorts_html_sha256": seed_observation.get("source_shorts_html_sha256_or_none"),
     }
+    if evidence_hash_basis == "source_captured_watch_html_sha256":
+        raw_ref["watch_html_sha256"] = evidence_hash
     if not use_bronze_attachment_records:
         return raw_ref
 
@@ -548,10 +589,10 @@ def _raw_ref(
         return raw_ref
 
     attachment_record = candidates[0]
-    body_sha256 = attachment_record.get("body_sha256") or watch_hash
+    body_sha256 = attachment_record.get("body_sha256") or evidence_hash
     raw_ref.update(
         {
-            "raw_ref_kind": _BRONZE_AR_RAW_REF_KIND,
+            "ref_type": _BRONZE_AR_RAW_REF_KIND,
             "attachment_record_id": attachment_record.get("attachment_record_id"),
             "attachment_record_schema_version": attachment_record.get(
                 "attachment_record_schema_version"
@@ -580,12 +621,12 @@ def _raw_ref(
 def _fallback_raw_ref_fields(*, residual: str) -> dict[str, str]:
     if residual == _AMBIGUOUS_AR_LIMITATION:
         return {
-            "raw_ref_kind": _RAW_PACKET_FALLBACK_AMBIGUOUS_AR_REF_KIND,
+            "ref_type": "raw_packet",
             "typed_attachment_record_status": "ambiguous",
             "attachment_record_residual": residual,
         }
     return {
-        "raw_ref_kind": _RAW_PACKET_FALLBACK_MISSING_AR_REF_KIND,
+        "ref_type": "raw_packet",
         "typed_attachment_record_status": "missing",
         "attachment_record_residual": _MISSING_AR_LIMITATION,
     }
@@ -632,10 +673,9 @@ def _raw_ref_lineage_limitations(raw_ref: Mapping[str, Any]) -> list[dict[str, s
     return [{"reason": "other", "detail": detail}]
 
 
-def _required_source_hash(seed_observation: Mapping[str, Any], field: str, *, what: str) -> str:
-    value = seed_observation.get(field)
+def _required_hash_value(value: object, *, what: str) -> str:
     if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{what} requires a non-empty {field}")
+        raise ValueError(f"{what} requires a non-empty source evidence sha256")
     return value
 
 

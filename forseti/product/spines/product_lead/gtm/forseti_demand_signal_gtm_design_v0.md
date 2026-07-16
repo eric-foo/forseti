@@ -2,7 +2,7 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: GTM design capture (owner-directed 2026-07-10; decision-prep pending owner sign-off; not ratified GTM, not an ICP decision)
+artifact_role: Historical GTM design capture (deferred and stale after 2026-07-12 thesis reset)
 scope: >
   Captures the consented SP-API micro-panel as the selected calibration +
   go-to-market motion for the demand-signal product direction (institutional
@@ -12,11 +12,12 @@ scope: >
   owner dispositions on the alternatives (license bootstrap, become-a-seller,
   seller-SaaS panel).
 use_when:
-  - Designing or reviewing the demand-signal calibration/GTM motion.
+  - Reviewing the former demand-signal calibration/GTM motion as historical input.
   - Checking which data-input classes are allowed in the sold signal chain.
-  - Picking up the micro-panel design for formalization or execution planning.
+  - Comparing its access and calibration constraints only after a later candidate reselects this lane.
 authority_boundary: retrieval_only
 open_next:
+  - docs/decisions/forseti_product_thesis_decision_adjudication_v0.md
   - docs/research/forseti_demand_signal_backtest_probe_findings_v0.md
   - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
   - docs/decisions/forseti_unbackfillable_signal_moat_doctrine_v0.md # nonresolving: on PR #832 until that PR merges; Class A/B/C vocabulary used here
@@ -29,7 +30,12 @@ stale_if:
 
 ## Status
 
-`GTM_DESIGN_CAPTURED_DEFERRED_FAR_FUTURE`. Owner-directed capture from the
+`STALE_PENDING_CANDIDATE_UNIVERSE_RESET`. The 2026-07-12 reset discards the
+earnings-print proving ground and institutional demand-signal direction as
+current anchors. This design may contribute factual access, cost, or GTM
+constraints after fresh verification; it does not define the next wedge.
+
+Historical status: `GTM_DESIGN_CAPTURED_DEFERRED_FAR_FUTURE`. Owner-directed capture from the
 2026-07-10 demand-signal probe readout thread ("micro panel - that's very
 interesting. let's put that in the GTM document and explain why in detail").
 Enacts nothing: no panel exists, no recruitment is authorized, no SP-API

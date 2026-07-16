@@ -32,9 +32,33 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/social_metric_history_reader.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "append_silver_record",
-      "count": 2,
-      "module": "capture_spine/creator_profile_current/tiktok_silver_metric_producer.py"
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/tiktok_comment_attention_producer.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "capture_spine/creator_profile_current/tiktok_grid_observation_producer.py"
     },
     {
       "a2_fork_impact": "none",
@@ -92,13 +116,7 @@
     },
     {
       "a2_fork_impact": "none",
-      "call": "append_record_set",
-      "count": 2,
-      "module": "cleaning/tiktok_audience_evidence_lake.py"
-    },
-    {
-      "a2_fork_impact": "none",
-      "call": "append_record_set",
+      "call": "append_silver_record_set",
       "count": 1,
       "module": "cleaning/transcript_product_lake.py"
     },
@@ -110,6 +128,12 @@
     },
     {
       "a2_fork_impact": "none",
+      "call": "append_silver_record",
+      "count": 1,
+      "module": "data_lake/company_surface.py"
+    },
+    {
+      "a2_fork_impact": "none",
       "call": "append_record",
       "count": 1,
       "module": "data_lake/consumption.py"
@@ -124,7 +148,13 @@
       "a2_fork_impact": "none",
       "call": "lane_dir",
       "count": 1,
-      "module": "data_lake/derived_retrieval_views.py"
+      "module": "data_lake/product_mention_selection.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "is_record_set_complete",
+      "count": 1,
+      "module": "data_lake/silver_census.py"
     },
     {
       "a2_fork_impact": "none",
@@ -134,9 +164,27 @@
     },
     {
       "a2_fork_impact": "none",
-      "call": "lane_dir",
+      "call": "append_record_set",
       "count": 1,
-      "module": "data_lake/sov_readout.py"
+      "module": "data_lake/silver_record.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "load_attachment_record_body",
+      "count": 1,
+      "module": "data_lake/silver_record.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 1,
+      "module": "data_lake/silver_record.py"
+    },
+    {
+      "a2_fork_impact": "packet_index",
+      "call": "source_surface_catalog_rows",
+      "count": 1,
+      "module": "data_lake/silver_record.py"
     },
     {
       "a2_fork_impact": "none",
@@ -200,27 +248,45 @@
     },
     {
       "a2_fork_impact": "none",
-      "call": "is_record_set_complete",
+      "call": "record_path",
       "count": 1,
-      "module": "runners/run_source_capture_ig_reels_deep_capture.py"
+      "module": "runners/run_ig_reels_product_extract.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 1,
+      "module": "runners/run_instagram_creator_audience_triangulation.py"
     },
     {
       "a2_fork_impact": "none",
       "call": "lane_dir",
       "count": 1,
-      "module": "runners/run_sov_extraction_quality_eval.py"
+      "module": "runners/run_instagram_creator_audience_triangulation.py"
     },
     {
       "a2_fork_impact": "none",
-      "call": "is_record_set_complete",
+      "call": "record_path",
       "count": 2,
-      "module": "runners/run_tiktok_audience_evidence_extract.py"
+      "module": "runners/run_instagram_creator_audience_triangulation.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 2,
+      "module": "runners/run_tiktok_creator_audience_triangulation.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "runners/run_tiktok_creator_audience_triangulation.py"
     },
     {
       "a2_fork_impact": "none",
       "call": "record_path",
       "count": 3,
-      "module": "runners/run_tiktok_audience_evidence_extract.py"
+      "module": "runners/run_tiktok_creator_audience_triangulation.py"
     },
     {
       "a2_fork_impact": "none",
@@ -302,7 +368,7 @@
     },
     {
       "a2_fork_impact": "none",
-      "call": "append_record_set",
+      "call": "append_silver_record_set",
       "count": 1,
       "module": "source_capture/ig_reels_deep_capture_lake.py"
     },
@@ -381,6 +447,15 @@
   ],
   "raw_packet_writers": {
     "runner_seams": [
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "mechanism": "before packet write, the bundle metadata requested_url and final_url must equal the caller-supplied Basenotes product URL, and the rendered DOM must contain the exact caller-bound product path plus Product/review/reviewBody JSON-LD markers; challenge-only content fails closed",
+          "status": "bound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_basenotes_mgt_capture.py"
+      },
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
@@ -501,8 +576,17 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
-          "reason": "handle-shape normalization plus login/challenge-redirect detection fail visibly and the served final_url is recorded, but the served grid/web_profile_info identity is never compared to the requested handle",
+          "reason": "the public Reel render is requested by shortcode and exact rendered comment objects plus downloaded audio bytes are preserved, but the served page does not independently expose and bind a shortcode identity before packet admission",
           "status": "unbound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_ig_reels_deep_capture.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "mechanism": "the normalized requested handle is compared case-insensitively with the source-visible username parsed and preserved from web_profile_info before slice/packet/lake publication; missing, invalid, or mismatched served identity fails closed with a distinct diagnostic and no packet write",
+          "status": "bound"
         },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_ig_reels_grid_packet.py"
@@ -555,6 +639,24 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
+          "reason": "the frozen plan is stably keyed by platform_account_id and the grid seam checks author/DOM URLs plus canonical creator/video URL shape against the planned handle, but the served grid does not expose and verify the numeric platform_account_id; a stale handle-to-account roster binding remains visible",
+          "status": "unbound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_tiktok_daily_heartbeat.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "reason": "grid-only admission validates every preserved row's canonical video URL suffix against the artifact's creator_handle and tiktok video_id, but it admits an operator-supplied artifact without independently proving that TikTok served that creator/video authorship",
+          "status": "unbound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_source_capture_tiktok_grid_packet.py"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
           "reason": "live probe validates requested creator/profile/video URL shape and can admit only sanitized page-owned staging through the TikTok batch gate, but the resulting packet is still attributed to the requested creator/video without an end-to-end served author identity proof",
           "status": "unbound"
         },
@@ -600,8 +702,8 @@
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {
-          "reason": "platform_video_id is copied from the request after an id-format check; the served watch HTML's canonical URL and channelId are preserved in the capture JSON but never compared to the requested video id",
-          "status": "unbound"
+          "mechanism": "the requested 11-character video id is compared exactly with the id parsed from the source-visible served canonical URL immediately before packet/lake publication; unavailable or mismatched served identity fails closed with a distinct diagnostic and no packet write",
+          "status": "bound"
         },
         "kind": "direct_packet_writer",
         "runner": "run_source_capture_youtube_watch_packet.py"
@@ -621,13 +723,6 @@
           "source_capture/transcript/asr_packet.py"
         ],
         "function": "write_asr_transcript"
-      },
-      {
-        "a2_fork_impact": "manifest_shape",
-        "defined_in": [
-          "source_capture/audience_post_packet.py"
-        ],
-        "function": "write_audience_post_packet"
       },
       {
         "a2_fork_impact": "manifest_shape",
@@ -660,9 +755,23 @@
       {
         "a2_fork_impact": "manifest_shape",
         "defined_in": [
+          "source_capture/ig_reels_deep_capture_lake.py"
+        ],
+        "function": "write_reel_deep_capture_into_lake"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
           "source_capture/tiktok/batch_packet.py"
         ],
         "function": "write_tiktok_batch_packet"
+      },
+      {
+        "a2_fork_impact": "manifest_shape",
+        "defined_in": [
+          "source_capture/tiktok/grid_packet.py"
+        ],
+        "function": "write_tiktok_grid_packet"
       },
       {
         "a2_fork_impact": "manifest_shape",

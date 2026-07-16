@@ -2,9 +2,9 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Decision record (controlling product thesis — owner-ratified)
+artifact_role: Historical decision record (superseded product thesis)
 scope: >
-  V1 product thesis re-centering Forseti on evidence-backed strategic
+  Historical V1 product thesis that re-centered Forseti on evidence-backed strategic
   decisions for consumer-market leaders, with consumer-demand integrity and
   durability as the first reads, beauty/personal-care as the first vertical
   (Vertical), and the existing outside-in engine and frozen Core Spine
@@ -14,10 +14,12 @@ scope: >
   Supersedes
 supersedes:
   - docs/decisions/turn_08_product_thesis_v0.md
+superseded_by:
+  - docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md
 use_when:
-  - Owner sign-off on or review of the current product thesis.
-  - Anchoring product, capture, judgment, or proof lanes to the product center.
-  - Checking whether a proposed product claim, artifact, or lane fits the thesis.
+  - Reviewing the historical consumer-demand / beauty-first thesis.
+  - Harvesting its factual market, capture, or proof constraints after fresh verification.
+  - Comparing the 2026-06-12 direction with its 2026-07-12 successor.
 authority_boundary: retrieval_only
 open_next:
   - docs/decisions/turn_08_product_thesis_v0.md
@@ -32,10 +34,12 @@ stale_if:
 
 ## Status
 
-`OWNER_LOCKED` — ratified by the owner 2026-06-12, in-thread. The owner then
-authorized a 2026-06-20 active-body integration: the decision-led,
-evidence-backed headline value proposition and action vocabulary are operative
-inside this thesis body, not as separate override notes.
+`SUPERSEDED_AS_CONTROLLING_THESIS` — this direction was owner-ratified on
+2026-06-12 and was controlling until the owner adopted
+`docs/decisions/forseti_product_thesis_evidence_adjudication_v0.md` on
+2026-07-12. It remains historical evidence and may supply factual market inputs
+after fresh verification; its consumer-demand center, beauty-first direction,
+buyer ladder, offer binding, and wedge implications are no longer operative.
 
 The 2026-06-12 ratification receipt remains (ask 1 ratified AS AMENDED;
 verbatim words and effects recorded in the Owner Decision Record of
@@ -74,11 +78,12 @@ capture-entitlement walls, both encoded below.
 This thesis states a DIRECTION and a center of gravity. It is not validation,
 buyer proof, willingness-to-pay, judgment-quality evidence, or readiness.
 
-## Active Reading
+## Historical Operative Reading
 
-Owner-ratified directions through 2026-06-20 are folded into the active thesis
-body below. Historical ratification receipts remain in the propagation section;
-the operative product wording is this body, not a stack of override notes.
+Owner-ratified directions through 2026-06-20 were folded into the thesis body
+below while this record was controlling. Historical ratification receipts
+remain in the propagation section. The body records the operative wording for
+that period; it does not override the 2026-07-12 successor thesis.
 
 ## Thesis (the bet)
 
@@ -391,87 +396,9 @@ Ratification executed per
 this receipt also covers the co-ratified wedge record's cascade — one
 ratification event, one receipt, pointed to from the wedge record).
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    The controlling Forseti product thesis moves to consumer-demand decision
-    intelligence (beauty first vertical) with the owner's measured-ToS-risk
-    capture posture amendment, and the first-proof wedge moves to the beauty
-    operator door, superseding turn_08 and pricing-first; subordinate
-    product-lead artifacts re-targeted via the prepared consumer-demand
-    revision packages (applied with recorded deviations).
-  trigger: product_doctrine
-  related_triggers: []
-  controlling_sources_updated:
-    - docs/decisions/forseti_product_thesis_consumer_demand_v0.md
-    - docs/decisions/turn_08_product_thesis_v0.md
-    - docs/decisions/orca_icp_wedge_consumer_demand_first_v0.md
-    - docs/decisions/orca_icp_wedge_pricing_first_v0.md
-    - docs/decisions/orca_consumer_demand_ratification_decision_memo_v0.md
-    - docs/product/product_lead/orca_offer_hypothesis_v0.md
-    - docs/product/product_lead/orca_buyer_proof_packet_v0.md
-    - docs/product/product_lead/orca_product_proof_lead_charter_v0.md
-    - docs/product/product_lead/orca_discovery_consumer_demand_target_selection_brief_v0.md
-    - docs/product/product_lead/orca_discovery_batch_0_target_selection_brief_v0.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/project-authority.md
-    - .agents/workflow-overlay/artifact-roles.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - docs/workflows/orca_repo_map_v0.md
-    - docs/hygiene/queue.md
-  downstream_surfaces_checked:
-    - AGENTS.md                                   # no thesis/wedge content; routes to overlay — unchanged
-    - CLAUDE.md                                   # shim — unchanged
-    - .agents/workflow-overlay/product-proof.md   # wedge-agnostic semantics — unchanged
-    - docs/product/core_spine/core_spine_v0_product_contract.md  # senior frozen contract — unchanged
-    - docs/product/judgment_spine/judgment_spine_evidence_ladder_architecture_v0.md  # senior; one-way subordination — unchanged
-    - docs/product/product_lead/orca_claim_defense_doctrine_v0.md  # owner-signed wording policy — unchanged
-    - docs/product/product_lead/orca_discovery_batch_0_qualification_prep_sentry_clerk_v0.md  # already superseded-bannered; resolves via chain
-    - docs/product/product_lead/orca_discovery_batch_0_candidate_context_scan_v0.md  # same chain resolution
-  intentionally_not_updated:
-    - path: docs/prompts/product-planning/orca_product_proof_lead_customer_discovery_prompt_v0.md
-      reason: >
-        Prompt artifact outside the product lane's write scope; queued as
-        ORCA-HYGIENE-018 for a prompt-orchestration lane. Until realigned it
-        remains pricing-gated and must not drive consumer-demand discovery.
-    - path: .agents/skills/orca-product-lead/SKILL.md and .claude/skills/orca-product-lead/SKILL.md
-      reason: >
-        Skill source is sha-pinned under skill-adoption governance; queued as
-        ORCA-HYGIENE-019 for an authorized skill-edit lane.
-    - path: capture-lane source-access boundary decisions (LinkedIn/TikTok walls, Reddit ordering)
-      reason: >
-        The ask-1 amendment sets the product-level risk posture; per-venue
-        route bindings are owned by capture-lane decisions and are revisited
-        there, not silently rewritten by ratification.
-    - path: pre-migration flat docs/product/ paths inside product-lead docs
-      reason: >
-        Owned by the Phase-2 migration posture (forward-only resolve via
-        moved_paths_index.md; ORCA-HYGIENE-016 owner decision).
-  stale_language_search: >
-    rg -in "turn_08_product_thesis|pricing.first|PROPOSED_PENDING_OWNER_SIGNOFF"
-    docs/decisions docs/product/product_lead .agents/workflow-overlay
-    docs/workflows/orca_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-06-12 after the cascade edits. Overlay + repo-map hits for
-    turn_08 are all supersedes-annotations on the new thesis path; the only
-    live-routing residue is the two orca-product-lead skill copies (queued,
-    ORCA-HYGIENE-019) and the customer-discovery prompt (queued,
-    ORCA-HYGIENE-018). PROPOSED_PENDING_OWNER_SIGNOFF survives only in the
-    two anchors' "Historical: proposed as" lines and this receipt's own
-    search string. A "current wedge authority" sweep caught two stale
-    Source Use / Source Basis lines still labeling pricing-first as current
-    (offer hypothesis; charter) — both fixed in the same pass, dated.
-    Remaining pricing-first / turn_08 mentions are superseded banners,
-    historical reasoning, review records, input_hash provenance pins, and
-    the prep lane's own consistency report — intended residue, none of it a
-    live routing surface.
-  non_claims:
-    - not validation
-    - not readiness
-    - not buyer proof
-    - not judgment-quality evidence
-    - ratification locks a direction; every gated lane keeps its own authorization boundary
-```
+The executed 2026-06-12 receipt was moved verbatim to
+`docs/decisions/dcp_receipts_archive_v0.md` under the inline-receipt rotation
+rule. The historical event and its meaning are unchanged.
 
 ## Owner Sign-Off Asks (decided 2026-06-12 — outcomes in Status; retained as asked)
 
@@ -546,3 +473,7 @@ direction_change_propagation:
     - not buyer proof
     - not outreach or publishing authorization — creator-level selling is permitted in scope; phase/outreach gates unchanged
 ```
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.

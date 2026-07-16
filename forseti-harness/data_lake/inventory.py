@@ -86,6 +86,10 @@ EXPLICIT_DATA_ROOT_RUNNERS: dict[str, str] = {
     "run_source_capture_tiktok_creator_onboarding.py": (
         "supervised live onboarding stages first; durable lake admission requires explicit --data-root"
     ),
+    "run_source_capture_tiktok_daily_heartbeat.py": (
+        "live grid capture is invoked by the operator/control wrapper, which supplies an "
+        "explicit output_root or resolved data_root; this adapter does not use ambient admission"
+    ),
 }
 # Orchestrator runners that forward data_root into raw-packet sub-runners
 # instead of calling a packet writer directly. Declared, not auto-discovered.
@@ -114,7 +118,15 @@ BRONZE_PACKET_ORCHESTRATORS: dict[str, tuple[str, ...]] = {
 # declaration. Backfilled 2026-07-03 from a source read of each runner
 # (including the source_capture fetch/writer path it delegates to).
 RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
-    "run_fragrance_review_lake_packet.py": {
+    "run_basenotes_mgt_capture.py": {
+        "status": "bound",
+        "mechanism": (
+            "before packet write, the bundle metadata requested_url and final_url must equal "
+            "the caller-supplied Basenotes product URL, and the rendered DOM must contain the "
+            "exact caller-bound product path plus Product/review/reviewBody JSON-LD markers; "
+            "challenge-only content fails closed"
+        ),
+    },    "run_fragrance_review_lake_packet.py": {
         "status": "unbound",
         "reason": (
             "preserved bytes must match the companion receipt's capture-time "
@@ -231,12 +243,21 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "served-id-keyed name and the audio bytes carry no observable identity to check"
         ),
     },
-    "run_source_capture_ig_reels_grid_packet.py": {
+    "run_source_capture_ig_reels_deep_capture.py": {
         "status": "unbound",
         "reason": (
-            "handle-shape normalization plus login/challenge-redirect detection fail "
-            "visibly and the served final_url is recorded, but the served "
-            "grid/web_profile_info identity is never compared to the requested handle"
+            "the public Reel render is requested by shortcode and exact rendered comment "
+            "objects plus downloaded audio bytes are preserved, but the served page does "
+            "not independently expose and bind a shortcode identity before packet admission"
+        ),
+    },
+    "run_source_capture_ig_reels_grid_packet.py": {
+        "status": "bound",
+        "mechanism": (
+            "the normalized requested handle is compared case-insensitively with the "
+            "source-visible username parsed and preserved from web_profile_info before "
+            "slice/packet/lake publication; missing, invalid, or mismatched served identity "
+            "fails closed with a distinct diagnostic and no packet write"
         ),
     },
     "run_source_capture_media_packet.py": {
@@ -273,6 +294,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "creator without a served-content author check"
         ),
     },
+    "run_source_capture_tiktok_grid_packet.py": {
+        "status": "unbound",
+        "reason": (
+            "grid-only admission validates every preserved row's canonical video URL "
+            "suffix against the artifact's creator_handle and tiktok video_id, but it "
+            "admits an operator-supplied artifact without independently proving that "
+            "TikTok served that creator/video authorship"
+        ),
+    },
     "run_source_capture_tiktok_live_batch_probe.py": {
         "status": "unbound",
         "reason": (
@@ -288,6 +318,15 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
             "onboarding binds grid metrics to source-visible creator rows and reuses the "
             "validated session across selected-video capture, but admitted comment/subtitle "
             "artifacts still lack an end-to-end served author identity proof"
+        ),
+    },
+    "run_source_capture_tiktok_daily_heartbeat.py": {
+        "status": "unbound",
+        "reason": (
+            "the frozen plan is stably keyed by platform_account_id and the grid seam "
+            "checks author/DOM URLs plus canonical creator/video URL shape against the "
+            "planned handle, but the served grid does not expose and verify the numeric "
+            "platform_account_id; a stale handle-to-account roster binding remains visible"
         ),
     },
     "run_source_capture_tiktok_video_packet.py": {
@@ -329,11 +368,12 @@ RUNNER_IDENTITY_BINDINGS: dict[str, dict[str, str]] = {
         ),
     },
     "run_source_capture_youtube_watch_packet.py": {
-        "status": "unbound",
-        "reason": (
-            "platform_video_id is copied from the request after an id-format check; the "
-            "served watch HTML's canonical URL and channelId are preserved in the capture "
-            "JSON but never compared to the requested video id"
+        "status": "bound",
+        "mechanism": (
+            "the requested 11-character video id is compared exactly with the id parsed "
+            "from the source-visible served canonical URL immediately before packet/lake "
+            "publication; unavailable or mismatched served identity fails closed with a "
+            "distinct diagnostic and no packet write"
         ),
     },
 }
@@ -351,6 +391,7 @@ NON_RAW_LAKE_TOUCHPOINT_CALLS = {
     "append_record",
     "append_record_set",
     "append_silver_record",
+    "append_silver_record_set",
     "catalog_coverage_census",
     "inspect_catalog",
     "is_record_set_complete",
@@ -375,8 +416,8 @@ A2_FORK_IMPACT_VALUES = ("manifest_shape", "packet_index", "none")
 
 # --- silver/derived reader selection postures (V3: consumer-enumerated) ---------
 # Every production file that walks derived lanes (detected via its `lane_dir`
-# touchpoint, or hand-declared below when its walk is indirect/path-based and
-# invisible to call detection) must declare HOW it selects among sibling records.
+# touchpoint or a direct traversal rooted at ``data_root.path / "derived"``) must
+# declare HOW it selects among sibling records.
 # The reader gate (tests/contract/test_silver_reader_selection_gate.py) keeps this
 # registry exact, so a NEW reader cannot appear without declaring its posture.
 # Postures classify observed behavior; they are not correctness verdicts.
@@ -390,10 +431,15 @@ SILVER_READER_POSTURES = (
 )
 
 # detection: "lane_dir" entries are enforced against the mechanical touchpoint
-# census; "declared_free_walk" entries are hand-declared readers whose walks are
-# path-based or indirect (getattr) and thus invisible to call detection --
-# mechanical free-walk detection is a NAMED residual, not silently claimed.
+# census; "declared_free_walk" entries are enforced against direct derived-root
+# traversal plus the narrow indirect/path-based census in the contract gate.
 SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
+    "capture_spine/creator_profile_current/social_metric_history_reader.py": {
+        "detection": "declared_free_walk",
+        "posture": "selection_rule",
+        "mechanism": "local:read_social_metric_history",
+        "reason": "requires an explicit policy fingerprint and deterministic per-anchor record-id function; exact-policy by-key records only, with shared physical source verification and no latest-sibling guess",
+    },
     "capture_spine/creator_profile_current/silver_metric_reader.py": {
         "detection": "lane_dir",
         "posture": "selection_rule",
@@ -405,25 +451,43 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "infrastructure",
         "reason": "ack-lane seam reader; reads every ack by contract, not a data consumer",
     },
-    "data_lake/derived_retrieval_views.py": {
+    "data_lake/product_mention_selection.py": {
         "detection": "lane_dir",
-        "posture": "all_siblings",
-        "reason": "rebuildable inspection views only, never pickup authority; residuals disclosed per record",
+        "posture": "selection_rule",
+        "mechanism": "shared:select_current_record_per_subject",
+        "reason": "single exact-policy product-mention reader; all consumers bind version plus fingerprint, residuals remain visible, and ambiguous same-policy siblings fail closed",
     },
-    "data_lake/sov_readout.py": {
-        "detection": "lane_dir",
+    "data_lake/creator_metric_lineage.py": {
+        "detection": "declared_free_walk",
         "posture": "all_siblings",
-        "reason": "counts every source-backed mentions record; policy re-derivation double-count is a flagged unit (c) design input, recorded not adjudicated",
+        "reason": "lineage classification and reconciliation intentionally enumerate every creator-metric observation and rollup sibling; no latest sibling is selected",
+    },
+    "data_lake/silver_census.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "read-only inventory intentionally enumerates every registered Silver record; observation-unit deduplication and policy qualification are reported separately from stored-record counts",
+    },
+    "data_lake/silver_record.py": {
+        "detection": "declared_free_walk",
+        "posture": "fail_closed_singleton",
+        "reason": "physical authority verification resolves only the exact derived raw_anchor + lane + record_id address claimed by each Silver ref; it never selects among siblings",
     },
     "runners/run_capture_ecr_cleaning_smoke.py": {
         "detection": "lane_dir",
         "posture": "fail_closed_singleton",
         "reason": "exactly one transcribed transcript_asr record per anchor or raise",
     },
-    "runners/run_sov_extraction_quality_eval.py": {
+    "runners/run_instagram_creator_audience_triangulation.py": {
         "detection": "lane_dir",
-        "posture": "all_siblings",
-        "reason": "quality eval over the full committed record population by design",
+        "posture": "selection_rule",
+        "mechanism": "local:prepare_instagram_subscription_judgment",
+        "reason": "the caller supplies explicit admitted comment/transcript record paths; the runner verifies data-root containment, requested lane, canonical record path, raw-anchor identity, and current source validity, while lane_dir is used only for path-shape validation and never to select an arbitrary sibling",
+    },
+    "runners/run_tiktok_creator_audience_triangulation.py": {
+        "detection": "lane_dir",
+        "posture": "selection_rule",
+        "mechanism": "local:select_current_audience_silver_records",
+        "reason": "selects physically resolved source-backed grid-observation and comment-attention records under the current exact policy, names unresolved refs and policy mismatches as residuals, and fails closed on ambiguous current evidence",
     },
     "runners/run_transcript_product_extract.py": {
         "detection": "lane_dir",
@@ -433,7 +497,7 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
     "source_capture/ig_reels_behavioral_lake.py": {
         "detection": "lane_dir",
         "posture": "set_marker_pinned",
-        "reason": "deep-capture lanes read pinned record ids via set markers; ASR/mentions inputs accumulated all-siblings with explicit status labels",
+        "reason": "deep-capture lanes read pinned record ids via set markers and admit only valid source-backed envelopes whose exact packet/file/hash resolves; historical grammar-B sets remain residual-only",
     },
     "youtube_capture/behavioral_projection.py": {
         "detection": "lane_dir",
@@ -446,10 +510,15 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "mechanism": "shared:select_current_record_per_subject",
         "reason": "path-based derived-tree discovery (sha-deduped) feeding data_lake.sibling_selection fail-closed per-username selection",
     },
+    "capture_spine/creator_profile_current/rollup_formula_revalidation.py": {
+        "detection": "declared_free_walk",
+        "posture": "all_siblings",
+        "reason": "independent formula audit intentionally revalidates every creator-metric observation and rollup record across all anchors; it never selects pickup authority",
+    },
     "runners/run_ig_reels_product_extract.py": {
         "detection": "declared_free_walk",
         "posture": "all_siblings",
-        "reason": "indirect lane_dir via getattr + path-based deep-capture walk; records consumed with set-completion checks",
+        "reason": "path-based deep-capture walk consumes only set-complete, source-backed envelope transcripts with exact packet/file/hash resolution; legacy records are emitted audit-only",
     },
 }
 
@@ -501,6 +570,45 @@ def lane_dir_reader_files() -> set[str]:
         for (file_path, call_name) in non_raw_lake_touchpoints()
         if call_name == "lane_dir"
     }
+
+
+def derived_root_traversal_files() -> set[str]:
+    """Tracked production files that traverse a directly bound derived root.
+
+    This closes the census gap for readers that bypass ``DataLakeRoot.lane_dir``
+    with ``derived = data_root.path / "derived"`` followed by ``derived.iterdir``
+    (or glob/rglob). It intentionally does not infer arbitrary path dataflow.
+    """
+    readers: set[str] = set()
+    traversal_calls = {"iterdir", "glob", "rglob"}
+    for path in tracked_harness_python_files():
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        root_names: set[str] = set()
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            value = node.value
+            if not (
+                isinstance(value, ast.BinOp)
+                and isinstance(value.op, ast.Div)
+                and isinstance(value.right, ast.Constant)
+                and value.right.value == "derived"
+            ):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            root_names.update(target.id for target in targets if isinstance(target, ast.Name))
+        if any(
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in traversal_calls
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id in root_names
+            for node in ast.walk(tree)
+        ):
+            readers.add(path.relative_to(HARNESS_ROOT).as_posix())
+    # A reader already covered by the stricter lane_dir census keeps that
+    # detection class even if the same module also performs a direct traversal.
+    return readers - lane_dir_reader_files()
 
 
 STRUCTURAL_EXCLUSIONS: tuple[dict[str, str], ...] = (

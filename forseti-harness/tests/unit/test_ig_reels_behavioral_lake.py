@@ -3,8 +3,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from cleaning.transcript_product_lake import PRODUCT_MENTIONS_LANE, PRODUCT_MENTIONS_SET_LANE
+from cleaning.transcript_product_extractor import TranscriptExtractionResult, TranscriptInput
+from cleaning.transcript_product_lake import (
+    PRODUCT_MENTIONS_LANE,
+    PRODUCT_MENTIONS_SET_LANE,
+    build_transcript_source_lineage,
+    write_product_mentions_result_into_lake,
+)
 from data_lake.root import DataLakeRoot
+from data_lake.silver_lineage import SilverDerivedRef
 from schemas.audience_comment_models import AudienceComment
 from source_capture.ig_reels_behavioral_lake import (
     IG_REELS_BEHAVIORAL_LAKE_ADAPTER_METHOD,
@@ -13,6 +20,7 @@ from source_capture.ig_reels_behavioral_lake import (
 )
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
 from source_capture.ig_reels_deep_capture_lake import (
+    AUDIENCE_COMMENTS_LANE,
     DEEP_CAPTURE_SET_LANE,
     REEL_TRANSCRIPT_LANE,
     deep_capture_record_id,
@@ -43,7 +51,7 @@ _CORRUPT_PRODUCT_RECORD_ID = "mentions_bad__0000000000000000.json"
 def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     audio_packet_id, asr_record_id = _write_audio_transcript(root)
-    deep_record_id = _write_deep_capture(root)
+    deep_anchor, deep_record_id = _write_deep_capture(root)
     _write_product_mentions(
         root,
         raw_anchor=audio_packet_id,
@@ -53,8 +61,8 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
     )
     _write_product_mentions(
         root,
-        raw_anchor=_SHORTCODE,
-        transcript_source_key=f"{_SHORTCODE}:asr:{deep_record_id}",
+        raw_anchor=deep_anchor,
+        transcript_source_key=f"{deep_anchor}:asr:{deep_record_id}",
         source_route="deep_capture_render_audio",
         asr_record_id=deep_record_id,
     )
@@ -90,14 +98,14 @@ def test_lake_adapter_injects_durable_record_ids_from_real_lake_paths(tmp_path: 
     assert f"ig_grid_candidate_absent:{_SHORTCODE}" in residuals
 
 
-def test_lake_adapter_blocks_complete_product_record_without_source_lineage(tmp_path: Path) -> None:
+def test_lake_adapter_blocks_complete_non_envelope_product_record(tmp_path: Path) -> None:
     root = DataLakeRoot.for_test(tmp_path / "lake")
     _write_grid_packet(root)
-    deep_record_id = _write_deep_capture(root)
-    deep_key = f"{_SHORTCODE}:asr:{deep_record_id}"
+    deep_anchor, deep_record_id = _write_deep_capture(root)
+    deep_key = f"{deep_anchor}:asr:{deep_record_id}"
     _write_product_mentions(
         root,
-        raw_anchor=_SHORTCODE,
+        raw_anchor=deep_anchor,
         transcript_source_key=deep_key,
         source_route="deep_capture_render_audio",
         asr_record_id=deep_record_id,
@@ -110,12 +118,12 @@ def test_lake_adapter_blocks_complete_product_record_without_source_lineage(tmp_
     )
 
     source_status = projection["extraction"]["source_statuses"][0]
-    assert source_status["extraction_status"] == "source_lineage_missing"
-    assert source_status["source_backed_status"] == "source_lineage_missing"
+    assert source_status["extraction_status"] == "invalid_silver_envelope"
+    assert source_status["source_backed_status"] == "invalid_silver_envelope"
     assert projection["transcript"]["extraction_rollup"]["status"] == "failed"
     assert projection["behavioral_completeness"]["complete"] is False
     assert (
-        f"ig_transcript_extraction_source_lineage_missing:{deep_key}"
+        f"ig_transcript_extraction_invalid_silver_envelope:{deep_key}"
         in projection["behavioral_completeness"]["residuals"]
     )
 
@@ -405,29 +413,68 @@ def _write_audio_transcript(root: DataLakeRoot) -> tuple[str, str]:
     return rel_path.parts[-3], rel_path.name
 
 
-def _write_deep_capture(root: DataLakeRoot) -> str:
+def _write_deep_capture(root: DataLakeRoot) -> tuple[str, str]:
+    comment = AudienceComment(
+        comment_id="c1",
+        reel_shortcode=_SHORTCODE,
+        author_username="zoe",
+        text="works",
+        like_count=1,
+        created_at_unix=1782400000,
+    )
+    substrate = (json.dumps({
+        "pk": comment.comment_id,
+        "user": {"username": comment.author_username},
+        "text": comment.text,
+        "created_at": comment.created_at_unix,
+        "comment_like_count": comment.like_count,
+        "__typename": "XIGComment",
+    }) + "\n").encode()
     result = ReelDeepCaptureResult(
         reel_shortcode=_SHORTCODE,
-        comments=(
-            AudienceComment(
-                comment_id="c1",
-                reel_shortcode=_SHORTCODE,
-                author_username="zoe",
-                text="works",
-                like_count=1,
-                created_at_unix=1782400000,
-            ),
-        ),
+        comments=(comment,),
         transcript_posture="transcribed",
         transcript_cues=tuple(_CUES),
         media_url_used="https://x.fbcdn.net/o1/v/clip.mp4",
+        comment_substrate=substrate,
+        audio_bytes=b"deep-capture-audio",
+        audio_ext="mp4",
     )
-    write_reel_deep_capture_into_lake(
+    written = write_reel_deep_capture_into_lake(
         data_root=root,
         result=result,
         generated_at="2026-06-29T00:01:00Z",
     )
-    return deep_capture_record_id(result)
+    return written.packet_id, written.record_id
+
+
+def test_incomplete_deep_capture_set_never_keys_the_index_by_its_packet_anchor(
+    tmp_path: Path,
+) -> None:
+    """A current set is anchored on its packet id, so an unresolved set must not
+    mint a reel whose ``platform_item_id`` is that packet id."""
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    packet_id, record_id = _write_deep_capture(root)
+    root.record_path(
+        subtree="derived",
+        raw_anchor=packet_id,
+        lane=AUDIENCE_COMMENTS_LANE,
+        record_id=record_id,
+    ).unlink()
+
+    index = project_ig_reels_behavioral_index_from_lake(data_root=root)
+
+    assert packet_id not in index
+    assert not any(item["platform_item_id"] == packet_id for item in index.values())
+    # The failure stays visible on a real target rather than being dropped.
+    projection = project_ig_reels_behavioral_item_from_lake(
+        data_root=root,
+        platform_item_id=_SHORTCODE,
+    )
+    assert (
+        f"ig_deep_capture_record_set_incomplete:{packet_id}:{record_id}"
+        in projection["behavioral_completeness"]["residuals"]
+    )
 
 
 def _write_corrupt_product_mentions(root: DataLakeRoot, *, raw_anchor: str) -> None:
@@ -449,6 +496,46 @@ def _write_product_mentions(
     asr_record_id: str | None = None,
     source_lineage: bool = True,
 ) -> None:
+    if source_lineage:
+        if source_route == "deep_capture_render_audio":
+            source_surface = "ig_reels_deep_capture_render_audio"
+            lane = REEL_TRANSCRIPT_LANE
+        else:
+            source_surface = "ig_reels_audio"
+            lane = "transcript_asr"
+        lineage = build_transcript_source_lineage(
+            namespace="instagram",
+            source_surface=source_surface,
+            video_id=_SHORTCODE,
+            derived_ref=SilverDerivedRef(
+                raw_anchor=raw_anchor,
+                lane=lane,
+                record_id=asr_record_id or "asr_unknown.json",
+            ),
+            captured_at=_CAPTURE_TIME,
+        )
+        transcript = TranscriptInput(
+            video_id=_SHORTCODE,
+            transcript_anchor=raw_anchor,
+            transcript_source="asr",
+            cues=list(_CUES),
+            source_lineage=lineage,
+            transcript_source_key=transcript_source_key,
+            source_route=source_route,
+            asr_record_id=asr_record_id,
+        )
+        write_product_mentions_result_into_lake(
+            data_root=root,
+            transcript=transcript,
+            result=TranscriptExtractionResult(),
+            model="test",
+            record_id="mentions_test__0000000000000000.json",
+            extraction_backend="test",
+        )
+        return
+
+    # Explicit pre-envelope fixture: proves read-side rejection only and never
+    # passes through the authoritative Silver append API.
     payload = {
         "video_id": _SHORTCODE,
         "transcript_anchor": raw_anchor,
@@ -463,14 +550,6 @@ def _write_product_mentions(
         "mentions": [],
         "rejected": [],
     }
-    if source_lineage:
-        payload.update(
-            _source_lineage_fields(
-                raw_anchor=raw_anchor,
-                source_route=source_route,
-                asr_record_id=asr_record_id,
-            )
-        )
     root.append_record_set(
         subtree="derived",
         raw_anchor=raw_anchor,
@@ -482,38 +561,3 @@ def _write_product_mentions(
         },
         completion_lane=PRODUCT_MENTIONS_SET_LANE,
     )
-
-
-def _source_lineage_fields(
-    *,
-    raw_anchor: str,
-    source_route: str | None,
-    asr_record_id: str | None,
-) -> dict[str, object]:
-    if source_route == "deep_capture_render_audio":
-        source_surface = "ig_reels_deep_capture_render_audio"
-        derived_ref = {
-            "ref_type": "derived_record",
-            "raw_anchor": raw_anchor,
-            "lane": REEL_TRANSCRIPT_LANE,
-            "record_id": asr_record_id or "deepcap_unknown.json",
-            "record_set_completion_lane": DEEP_CAPTURE_SET_LANE,
-        }
-    else:
-        source_surface = "ig_reels_audio"
-        derived_ref = {
-            "ref_type": "derived_record",
-            "raw_anchor": raw_anchor,
-            "lane": "transcript_asr",
-            "record_id": asr_record_id or "asr_unknown.json",
-        }
-    return {
-        "lineage_schema_version": "silver_lineage_v0",
-        "producer_id": "cleaning.transcript_product_extractor",
-        "producer_schema_version": "test",
-        "source_surface": source_surface,
-        "source_object": {"namespace": "instagram", "kind": "transcript", "native_id": _SHORTCODE},
-        "raw_refs": [],
-        "derived_refs": [derived_ref],
-        "lineage_limitations": [],
-    }

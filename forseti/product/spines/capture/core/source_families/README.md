@@ -4,7 +4,7 @@
 retrieval_header_version: 1
 artifact_role: Capture source-family lane catalog
 scope: >
-  Cold-start catalog for known Capture source families. Routes from the
+  Cold-start catalog for landed Capture source-family routes only. Routes from the
   source-agnostic Source Capture Playbook / Armory into the owning source-family
   lane index, then onward to runner, projection, Data Lake, ECR, and Cleaning
   surfaces without moving those downstream contracts here.
@@ -26,7 +26,13 @@ stale_if:
 ## Cold-Start Rule
 
 Use this catalog after the Source Capture Playbook has answered the
-source-access/method question.
+source-access/method question. This is not a discovery inventory, theoretical
+surface list, or capability backlog.
+
+The lifecycle is: **unproven candidate → playbook-governed probe → bounded
+route and owning lane land → catalog row**. A newly named surface family remains
+an unprobed candidate until observed route evidence exists and its bounded route
+and owner have landed; naming it does not earn a row.
 
 Authority split:
 
@@ -35,6 +41,8 @@ Authority split:
 - This folder owns the Capture source-family routing home: where to open for a
   known family, which runner/projection/cleaning surfaces exist, and which
   residuals travel forward.
+- Family indexes and route cards point to the Source Capture Playbook and probe
+  receipts for volatile access mechanics; they do not duplicate those mechanics.
 - `forseti/product/spines/data_lake/authority/` owns raw admission, path grammar,
   derived layout, write boundary, Silver, and medallion semantics.
 - Projection, ECR, and Cleaning keep their own layer semantics. A source-family
@@ -52,11 +60,15 @@ before making strict or actionable claims.
 | Retail/PDP, including fragrance purchase-review retailers | `forseti/product/spines/capture/core/source_families/retail_pdp/README.md` | Retail/PDP contracts and sidecar playbooks in this family; Source Capture Playbook | CloakBrowser packet runner sidecar; fragrance review rendered/widget companion and lake-packet runners | `retail_pdp_projection.py`, `fragrance_review_lake.py`; Data Lake authority docs | Retail/PDP projection and preserved-body seams; no ECR/Cleaning/Judgment claim from the family index. |
 | Vendor pricing page | `forseti/product/spines/capture/core/source_families/vendor_pricing_page/README.md` | Source Capture Playbook; rung-1.5 embedded-payload extraction doc | `run_source_capture_price_payload_packet.py` | `price_payload_extraction.py`; Data Lake authority docs | Narrow SPA/JS-payload pricing route under `source_family="vendor_pricing_page"`; not rendered retail price, standing scheduler, ECR/Cleaning/Judgment, or price truth. |
 | Instagram public creator/reels capture | `forseti/product/spines/capture/core/source_families/social_media/instagram/README.md` | Instagram capture findings, route docs, and Source Capture Playbook | IG grid/audio/deep-capture runners; audience post-text packet seam | IG projection helpers, deep-capture lake adapter, audience-post Cleaning adapter, IG product-extraction lane; Data Lake authority docs | Multiple public-web routes landed; durable media/video and scale residuals remain source-family local. |
-| TikTok public/sessioned creator capture | `forseti/product/spines/capture/core/source_families/social_media/tiktok/README.md` | TikTok capture lane spec, blocker playbook, Source Capture Playbook | Live one-creator staging runner and batch-admission packet runner | TikTok batch coverage/projection helpers; Data Lake authority docs | Partial/source-specific: Funmi N30 admitted batch proof exists; cross-creator scale, account safety, and durable media remain residuals. |
+| TikTok public/sessioned creator capture | `forseti/product/spines/capture/core/source_families/social_media/tiktok/README.md` | TikTok capture lane spec, blocker playbook, Source Capture Playbook | Live one-creator staging, grid-only daily heartbeat, and batch-admission runners | Shared social heartbeat control; TikTok batch coverage/projection helpers; Data Lake authority docs | Daily multi-creator mechanics exist; live scale, account safety, numeric-account served binding, and durable media remain residuals. |
 | YouTube public watch/Shorts/transcript capture | `forseti/product/spines/capture/core/source_families/social_media/youtube/README.md` | YouTube agent playbook and recon | Watch, caption, ASR, RSS monitor packet runners; audience post-text packet seam | YouTube metric rollup producers, transcript product Cleaning/Silver lane, audience-post Cleaning adapter; Data Lake authority docs | Public YouTube route is source-family specific; comments/transcripts/products carry their own residuals. |
 | Reddit bounded candidate/intake/capture | `forseti/product/spines/capture/core/source_families/social_media/reddit/README.md` | Reddit operator playbook, candidate intake/Graph Frontier contracts, Source Capture Playbook | Old Reddit direct HTTP batch, consolidation, archive fallback, one-URL CloakBrowser when needed | Reddit consolidation/projection/ECR consumption findings; Data Lake authority docs | Pre-commercial bounded route only; no broad crawl, monitoring, or commercial Reddit authority. |
 | Creator registry / public-handle linkage | `forseti/product/spines/capture/core/source_families/social_media/creator_registry/README.md` | Creator registry specs | Static ledgers/materializers, not a live capture runner | Creator profile current view / Creator Signal surfaces | Cross-platform known-account preflight and profile-current view, not a source-access lane. |
 | Cross-archive historical capture (not a source family) | Source Capture Playbook, section "Cross-archive historical capture"; `orca-harness/source_capture/historical_capture.py` | Source Capture Playbook | `run_source_capture_historical_packet.py` | Data Lake authority docs if raw packets are written | Cross-source route for historical/pre-cutoff state; do not create a fake source-family identity. |
+
+`Current posture` records the residuals and limits of a landed route. It proves
+none of permission, validation, readiness, completeness, scale, or standing-
+capture authorization.
 
 ## Enforcement Candidate (Evaluated, Not Built)
 
@@ -73,8 +85,10 @@ missed family-index row proves the route layer alone is not enough.
 
 ## Non-Claims
 
-This catalog is not source-access permission, live network authorization,
-validation, readiness, fixture admission, lake contract authority, ECR or
-Cleaning authority, Judgment, buyer proof, source completeness, or commercial
-readiness. It is a routing layer so a cold reader can find the correct owning
-lane without searching the whole repo.
+This catalog is not a discovery inventory, theoretical surface list, capability
+backlog, source-access permission, live network authorization, validation,
+readiness, fixture admission, lake contract authority, ECR or Cleaning
+authority, Judgment, buyer proof, source completeness, route completeness,
+scale proof, standing-capture authorization, or commercial readiness. It is a
+routing layer so a cold reader can find the correct landed owning lane without
+searching the whole repo.

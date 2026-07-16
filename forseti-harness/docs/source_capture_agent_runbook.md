@@ -151,6 +151,16 @@ registry identity; `ambiguous_match` and `invalid_candidate` stop the capture
 until resolved. A manual visual scan of the registry or projection is useful
 orientation, but it is not a substitute for the preflight receipt.
 
+Routine TikTok onboarding dogfood must choose a candidate from a prior
+Suggested/frontier receipt that is not an exact Creator Registry match and run
+with the default `creator_intent=new_capture`. If preflight returns
+`existing_match`, choose another eligible Suggested candidate rather than
+silently switching to `update_existing`. Use `update_existing` only when the
+test's stated subject is recapture, supplement provenance, or an existing
+creator regression. The Creator Registry remains identity/current-profile
+authority, not a dogfood-run history; use the preflight receipt and capture
+receipts together rather than adding a false onboarding-complete identity flag.
+
 For Authenticated Browser Snapshot, `session_mode` must be exactly one of:
 
 - `free_account_created_session`
@@ -188,6 +198,189 @@ slider/captcha opens the owner prompt before any scripted pointer action. If the
 marker does not clear, scripted actions stay suppressed and capture fails closed.
 The agent must not drag or solve the puzzle, and any manual owner action is
 source-access intervention rather than clean capture.
+
+Before implementing or revising a live-browser route whose correctness depends
+on a new or changed UI transition (selector, control, navigation mode, or
+post-action state), run a bounded retained-session transition probe before
+patching runtime. Independently prove that the exact action target materializes
+and that its required postcondition holds without acting on an unrelated
+control. Do not begin end-to-end dogfood until every changed transition passes;
+a failed probe returns to diagnosis, not a partial runtime patch followed by
+repeated dogfood. This gate does not apply to pure parsing or ranking changes, or
+to a route whose target and postcondition already have current successful
+evidence.
+
+An account-risk warning, unexpected logged-out/comment-auth wall, or `/login`
+redirect is different from a CAPTCHA. It is a terminal account-safety stop:
+scripted actions are suppressed before the next pointer action, automatic retry
+is forbidden, Chrome remains open, and the operator checks TikTok Security
+Alerts before starting a new run. Check Account Status only when login remains
+restricted or another account capability appears limited. A CAPTCHA that the
+owner clears successfully may continue the current batch; CAPTCHA presence
+alone is not this circuit breaker.
+
+For supervised creator onboarding with an already-running retained Chrome CDP
+session, invoke the onboarding runner directly. It owns the Creator Registry
+preflight and session-alias resolution; do not precede it with separate registry,
+alias, browser, or CDP probes unless it emits a blocker. Those duplicate checks
+add operator latency without improving the runner's failure visibility.
+
+On its first CDP capture, the runner adopts the most recently enumerated
+non-closed TikTok page even when it shows another creator/path. It never infers
+active focus, never adopts a cross-platform page, and creates one page only when
+no TikTok page exists. The adopted page navigates to the requested creator when
+needed; when normalized TikTok host/path already matches, scheme/query/fragment
+differences do not trigger another `goto`. The runner reuses that page and
+detaches without closing operator Chrome. Read `page_acquisition_policy`,
+`initial_platform_match_count`, `initial_exact_match_count`,
+`page_adoption_count`, `page_creation_count`, `page_navigation_count`, and
+`same_url_navigation_suppression_count` from the receipt. Duplicate TikTok pages
+use the disclosed latest-enumerated policy.
+
+Suggested-account discovery is modal-primary. The runner clicks the visible
+creator `Followers` count through `BrowserPagePointerAction`, waits for the
+visible relationship dialog, clicks that dialog's `Suggested` tab through the
+same action routing, and extracts profile rows only from that visible dialog.
+The retained CDP context is patched with CloakBrowser
+`resolve_config("careful")`; outer action `move_steps` disclose routing input,
+not CloakBrowser's internal humanized pointer path. Only when the modal route is
+not visible may the runner use the visible `Suggested accounts` heading plus
+exact `View All` fallback. Preserve `captured`, `visible_empty`, and
+`not_visible` distinctly. Never click Follow, open a candidate profile, like,
+or message.
+
+Establish the creator grid once on the acquired page. Suggested primary,
+fallback, relationship-modal close, grid collection, and every onboarding deep
+capture stay on that page; do not reload an already matching creator path or
+click Latest, Popular, or Oldest. Grid acquisition reads the initial exact-
+creator DOM order. If at least 27 videos are already loaded, it performs zero
+wheel actions; otherwise it uses bounded adaptive normal 20-35 percent viewport
+mouse-wheel bursts only until the first positive exact-video-ID batch delta.
+After the sufficient initial window or first new batch is identified, perform no
+further wheel action and use passive DOM reads until the exact ordered video-ID
+sequence is unchanged for two consecutive polls. It does not scroll to page
+bottom, repeat wheel bursts to reach a response count, accept a sub-27 one-batch
+window, or require all 30 rows. Freeze up to the 30-row cap from that stabilized
+DOM order and fail if fewer than the selected count are usable. Read the
+collection receipt for policy, the 27-video sufficiency threshold, whether the
+initial window was sufficient, initial/final/new DOM counts, whether a new batch
+appeared, bounded wheel count and action receipts, passive-poll count, two-poll
+stability, and stop reason.
+
+After grid acquisition and selection, wait a randomized 8-13 seconds before the
+first deep capture. The onboarding receipt records planned and actual wait, UTC
+`observed_at`, and elapsed-seconds phase chronology. Select the top eight
+eligible videos by reach rank. Prefer structured profile-grid `playCount`; when
+it is absent, the exact tile's compact view-count footer may supply an explicitly
+rounded/approximate DOM reach value with raw text and field provenance. Likes,
+comments, shares, and saves are preserved when naturally available but do not
+gate fixed-count reach membership. Record pinned state, but pinning never
+displaces reach ranking.
+
+For every selected video, intersect the pending selection with tiles that are
+CSS-visible and intersect the current viewport, randomly click one through
+`BrowserPagePointerAction` on the retained CloakBrowser-`careful` context,
+capture its matching video overlay, then click the overlay X to return to the
+creator grid. Resolve the chosen tile's link-routed view-count footer immediately
+before the pointer action and click a randomized point within that footer's
+15-85 percent inset on both axes. Treat the tile as actionable only when that
+footer itself intersects the viewport; partial thumbnail visibility is not
+enough. Do not click the thumbnail body after the
+humanized move activates TikTok's hover-preview `<video>`; that surface may
+consume the click as playback without opening an overlay. Remember stable video
+IDs and logical grid positions, never absolute
+screen coordinates. If no pending selected tile is visible, compare those
+positions with the freshly observed visible range and use bounded small mouse-
+wheel bursts covering 20-35 percent of the viewport in the required direction.
+Before wheeling through a frozen logical range, compare the live loaded video-ID
+order with the frozen window. Once the live grid has loaded through that
+window's bound, zero identity overlap is `frozen_window_identity_drift` and must
+stop immediately. A non-consecutive repeated grid-state fingerprint is
+`progress_cycle` and must also stop rather than reverse direction indefinitely.
+The wheel receipt distinguishes the CloakBrowser-humanized cursor move from the
+raw wheel burst. Do not use
+`scrollIntoView`, otherwise
+target-scroll a tile, or navigate to a selected video URL directly. If a click
+does not materialize the matching overlay, wait 60 seconds, recompute the visible
+subset, and retry once; a second failure stops loudly. Read
+`grid_deep_entry_or_none` for visible candidates, random choices, grid positions,
+pointer receipts, pagination/retry timing, final URLs,
+`logical_grid_positions_remembered=true`,
+`absolute_pixel_positions_cached=false`,
+`targeted_tile_scroll_performed=false`, and
+`direct_video_navigation_count=0`.
+
+After Suggested extraction, close the surface through its own route-specific
+control before grid collection: the relationship-dialog close control for the
+primary route, or the exact profile `Suggested accounts` toggle for the View All
+fallback. Never use a page-wide generic Close/X search or geometric X fallback
+for this transition. No grid wheel burst or tile click is allowed while the
+route surface remains expanded, any blocking modal remains, or the page remains
+scroll-locked. Read `suggested_surface_close_before_grid_or_none` for the outer
+route, route-specific close action, expanded/modal state, blocking-modal count,
+and scroll-lock state. Any required close that does not click or clear all of
+those gates stops loudly before the first grid interaction.
+
+The overlay URL plus clicked grid identity bind each video. Preserve structured
+metadata naturally present in profile-grid responses, the raw/parsed rounded DOM
+view footer when used, initially exposed comments from page-owned comment
+responses or visible overlay DOM, and source-native
+subtitle tracks when available. Direct-page `itemStruct` is optional on this
+route. Record field provenance and preserve unavailable optional values as
+unavailable; do not manufacture zeroes. Direct-video capture remains a separate
+diagnostic/future collector capability and is never an onboarding fallback.
+Capture initially exposed top comments only: no comment pagination and no sticker
+reverse-image feature. Silent like/follow failure is operator-observed
+soft-restriction evidence only; do not run an automated state-changing probe or
+retry.
+
+With `--data-root`, a captured non-empty suggested result must return a non-null
+written frontier path; any packet or frontier write failure stops loudly.
+Validated external profile links may create sibling-channel linkage only through
+the existing Creator Registry identity contracts; this discovery runner does not
+infer those edges. A historical recapture requires `--prior-capture-pointer` and
+writes a separate Bronze supplement with
+`re_capture_relationship=supplement`; it never rewrites prior provenance.
+
+The runner emits flushed `tiktok_creator_onboarding_progress_json=` phase events
+and a `tiktok_creator_onboarding_blocker_json=` event before a fail-loud exit.
+Treat those events as the live status source. The runner returns from every
+captured overlay to the creator grid before choosing the next visible pending
+tile; it never simulates address-bar typing, spoofs a referrer, or directly loads
+a selected video URL. After the final capture, CDP detaches without closing the
+operator-owned Chrome; the final selected overlay remains open unless a blocker
+requires the page to remain at its supervised stop surface.
+
+The separate alias check below remains a diagnostic command for a blocker or an
+explicit session-health check; it is not a required preamble to onboarding.
+
+For recurring TikTok grid monitoring, use the daily heartbeat operator instead
+of creator onboarding. The input is an explicit active roster; each row must
+name `platform: tiktok`, a stable `platform_account_id`, the current public
+`handle`, `monitoring_status: active`, and `cadence: daily`. This runner captures
+only the bounded creator grid, freezes it before packet admission, and reports
+completion only after verified Bronze admission. It does not collect suggested
+accounts, comments, subtitles, or deep captures, and it does not run Silver or
+install a scheduler.
+
+```powershell
+python runners/run_source_capture_tiktok_daily_heartbeat_operator.py `
+  --active-roster "<active-tiktok-roster.json>" `
+  --run-control-root "<run-control-root>" `
+  --plan-date "<YYYY-MM-DD>" `
+  --bucket 1 `
+  --lane-id lane_1 `
+  --lane-count 1 `
+  --data-root "<verified-data-root>" `
+  --session-profile "chowdakr_sg_tiktok"
+```
+
+Run additional bucket/lane invocations externally as needed. Reusing the same
+date plan is idempotent for terminal creators; retries require an explicit
+`--retry-status` and `succeeded` is never retryable. A missing or malformed
+receipt, attempt mismatch, or unverified success packet makes the operator exit
+nonzero. After an account-safety or unresolved-challenge stop, remaining
+creators are recorded as skipped-before-attempt rather than fabricated failures.
 
 Validate the machine-local alias without opening a browser:
 

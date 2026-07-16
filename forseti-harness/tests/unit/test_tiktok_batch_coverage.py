@@ -14,7 +14,10 @@ from source_capture.tiktok.batch_coverage import (
     build_tiktok_batch_coverage_from_packet_directory,
     tiktok_batch_coverage_json_text,
 )
-from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
+from source_capture.tiktok.batch_packet import (
+    TIKTOK_BATCH_CAPTURE_SURFACE,
+    write_tiktok_batch_packet,
+)
 from test_tiktok_batch_admission import PROFILE_URL, _cadence_payload, _grid_payload
 
 
@@ -135,6 +138,24 @@ def test_tiktok_batch_coverage_rejects_non_tiktok_payload() -> None:
         build_tiktok_batch_coverage_from_payload(
             {"platform": "instagram", "source_surface": "ig_reels_grid", "videos": []}
         )
+
+
+def test_tiktok_batch_coverage_never_zero_fills_missing_video_stats() -> None:
+    coverage = build_tiktok_batch_coverage_from_payload(
+        {
+            "platform": "tiktok",
+            "source_surface": TIKTOK_BATCH_CAPTURE_SURFACE,
+            "videos": [
+                {
+                    "video_id": "1",
+                    "stats": {"playCount": 31_800},
+                }
+            ],
+        }
+    )
+
+    assert coverage["video_rows"][0]["stats"] == {"playCount": 31_800}
+    assert coverage["batch_summary"]["stats_sums"] == {}
 
 
 def test_tiktok_batch_coverage_has_no_hidden_network_browser_or_proxy_imports() -> None:
