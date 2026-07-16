@@ -23,6 +23,7 @@ stale_if:
 `OWNER_ACCEPTED_CALIBRATION_APPENDIX_V0` — optional examples companion. Routine
 Judgment prompts must not load this file. A named example is contaminated for a
 cold test unless a leave-one-example-out source is recorded.
+
 ## Calibration Patterns, Not Creator Buckets
 
 The four patterns below show the required specificity and commercial force.

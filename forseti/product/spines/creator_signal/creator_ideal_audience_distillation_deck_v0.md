@@ -138,6 +138,7 @@ Routine Judgment does not load named creator examples. When a human reviewer or
 explicit calibration exercise needs accepted examples, open
 `creator_ideal_audience_calibration_examples_v0.md`. Those examples calibrate
 force and specificity; they are never evidence for another creator.
+
 ## Acceptance Gates
 
 A commercial panel is not ready unless all of these pass:

@@ -35,7 +35,9 @@ from evidence_binding.tiktok_audience_triangulation import (
     build_creator_audience_evidence_bundle,
 )
 from judgment.creator_audience import (
+    METHOD_DECK_RELATIVE_PATH,
     build_creator_audience_prompt,
+    load_method_deck,
     parse_creator_audience_response,
 )
 from judgment.tiktok_audience_triangulation import TriangulationValidationError
@@ -263,6 +265,7 @@ def prepare_subscription_judgment(
         raise ValueError(
             "SILVER_AUDIENCE_EVIDENCE_REQUIRED: run the packet-scoped TikTok grid-observation producer"
         )
+    method_text, method_hash = load_method_deck()
     bundle = build_creator_audience_evidence_bundle(
         creator_id=creator_id,
         profile_subject_id=profile_subject_id,
@@ -272,10 +275,15 @@ def prepare_subscription_judgment(
         grid_observation_refs=_grid_refs(grid_records),
         question=question,
         evidence_cutoff=evidence_cutoff,
+        method_deck_path=METHOD_DECK_RELATIVE_PATH,
+        method_deck_sha256=method_hash,
         silver_selection_residuals=silver_residuals,
     )
     _write_new_json(bundle_out, bundle)
-    _write_new(prompt_out, build_creator_audience_prompt(bundle) + "\n")
+    _write_new(
+        prompt_out,
+        build_creator_audience_prompt(bundle, method_text=method_text) + "\n",
+    )
 
     receipt = build_assembly_receipt(bundle)
     receipt_path = data_root.record_path(

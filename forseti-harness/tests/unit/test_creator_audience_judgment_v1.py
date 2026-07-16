@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
+import judgment.creator_audience as creator_audience
 from data_lake.root import DataLakeRoot
 from evidence_binding.instagram_audience_triangulation import (
     build_instagram_creator_audience_evidence_bundle,
@@ -14,6 +16,7 @@ from judgment.creator_audience import (
     build_capability_manifest,
     build_compact_judgment_view,
     build_creator_audience_prompt,
+    load_method_deck,
     parse_creator_audience_response,
 )
 from judgment.tiktok_audience_triangulation import TriangulationValidationError
@@ -27,6 +30,7 @@ from source_capture.ig_reels_deep_capture_lake import (
 
 
 def _bundle(*, platform: str = "tiktok", eligible: bool = True) -> dict:
+    _, method_hash = load_method_deck()
     return {
         "schema_version": "creator_audience_evidence_bundle_v0",
         "creator_id": f"{platform}:@alpha",
@@ -36,6 +40,8 @@ def _bundle(*, platform: str = "tiktok", eligible: bool = True) -> dict:
         "raw_anchor": "01AUDIENCEV1TEST",
         "question": "Who should hire this creator and why?",
         "evidence_cutoff": "2026-07-16T00:00:00Z",
+        "method_deck_path": METHOD_DECK_RELATIVE_PATH,
+        "method_deck_sha256": method_hash,
         "capture_scope": {"selected_video_ids": ["v1", "v2"]},
         "transcript_evidence": [
             {
@@ -128,22 +134,70 @@ def _semantic_response(bundle: dict, *, engagement: bool = False) -> dict:
 
 def test_prompt_embeds_method_and_compact_view_but_not_named_examples() -> None:
     bundle = _bundle()
-    prompt = build_creator_audience_prompt(bundle)
+    method_text, _ = load_method_deck()
+    prompt = build_creator_audience_prompt(bundle, method_text=method_text)
     view = build_compact_judgment_view(bundle)
 
     assert f"METHOD_DECK_PATH: {METHOD_DECK_RELATIVE_PATH}" in prompt
     assert "METHOD_DECK_SHA256: sha256:" in prompt
     assert "category_knowledge|purchase_decision_stage|price_value_posture" in prompt
     assert "one allowed axis" not in prompt
+    assert "1-5 representative aliases" in prompt
+    assert "robustness_stamp to null unless a named ablation" in prompt
+    assert "Hire <creator> when <campaign job>" in prompt
+    assert "anywhere in the buyer-facing projection" in prompt
     assert "Hire Funmi" not in prompt
     assert "Hire Noel" not in prompt
     assert "/private/audit/path/1" not in prompt
+    # Durable evidence IDs stay out of the model context: aliases only.
+    assert "content-1" not in prompt
+    assert "comment-1" not in prompt
+    assert "capability_manifest" not in view
     assert len(view["evidence"]) == 3
     assert {row["text"] for row in view["evidence"]} == {
         row["text"]
         for key in ("transcript_evidence", "comment_evidence")
         for row in bundle[key]
     }
+
+
+def test_prompt_rejects_method_text_outside_bundle_binding() -> None:
+    with pytest.raises(ValueError, match="does not match the audience bundle"):
+        build_creator_audience_prompt(_bundle(), method_text="tampered method")
+
+
+def test_semantic_compile_uses_bundle_method_binding_without_reload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle = _bundle()
+
+    def unexpected_reload() -> tuple[str, str]:
+        raise AssertionError("submit-time compilation reloaded the method deck")
+
+    monkeypatch.setattr(creator_audience, "load_method_deck", unexpected_reload)
+    snapshot = parse_creator_audience_response(
+        json.dumps(_semantic_response(bundle)), bundle
+    )
+    assert snapshot.method_deck_path == bundle["method_deck_path"]
+    assert snapshot.method_deck_sha256 == bundle["method_deck_sha256"]
+
+
+def test_manifest_fails_closed_on_duplicate_evidence_ids() -> None:
+    bundle = _bundle()
+    bundle["comment_evidence"] = [
+        *bundle["comment_evidence"],
+        dict(bundle["comment_evidence"][0]),
+    ]
+    with pytest.raises(ValueError, match="duplicate evidence_id"):
+        build_capability_manifest(bundle)
+
+
+def test_snapshot_rejects_blank_generated_at() -> None:
+    bundle = _bundle()
+    response = _semantic_response(bundle)
+    response["generated_at"] = "   "
+    with pytest.raises(ValidationError, match="non-blank"):
+        parse_creator_audience_response(json.dumps(response), bundle)
 
 
 def test_compiler_derives_clerical_fields_and_source_item_closure() -> None:
@@ -219,6 +273,7 @@ def _instagram_records() -> tuple[list[dict], list[dict]]:
 
 def test_instagram_adapter_preserves_all_selected_evidence_without_elevation() -> None:
     comments, transcripts = _instagram_records()
+    _, method_hash = load_method_deck()
     bundle = build_instagram_creator_audience_evidence_bundle(
         creator_id="@alpha",
         profile_subject_id="platform_account:instagram:alpha",
@@ -227,10 +282,14 @@ def test_instagram_adapter_preserves_all_selected_evidence_without_elevation() -
         transcript_records=transcripts,
         question="Who should hire Alpha?",
         evidence_cutoff="2026-07-16T00:00:00Z",
+        method_deck_path=METHOD_DECK_RELATIVE_PATH,
+        method_deck_sha256=method_hash,
     )
 
     assert bundle["platform_scope"] == "instagram"
     assert bundle["creator_id"] == "instagram:@alpha"
+    assert bundle["method_deck_path"] == METHOD_DECK_RELATIVE_PATH
+    assert bundle["method_deck_sha256"] == method_hash
     assert bundle["capture_scope"]["selected_source_item_ids"] == ["R1", "R2"]
     assert len(bundle["transcript_evidence"]) == 2
     assert len(bundle["comment_evidence"]) == 2
@@ -267,7 +326,7 @@ def test_instagram_prepare_writes_prompt_bundle_and_assembly_receipt(tmp_path: P
         data_root=data_root,
         creator_id="instagram:@alpha",
         profile_subject_id="platform_account:instagram:alpha",
-        primary_raw_anchor="01INSTAGRAMAUDIENCE",
+        primary_raw_anchor="R1",
         comment_record_paths=comment_paths,
         transcript_record_paths=transcript_paths,
         question="Who should hire Alpha?",
@@ -282,11 +341,25 @@ def test_instagram_prepare_writes_prompt_bundle_and_assembly_receipt(tmp_path: P
     assert "BEGIN_METHOD_DECK" in prompt_path.read_text(encoding="utf-8")
     receipt = data_root.record_path(
         subtree="derived",
-        raw_anchor="01INSTAGRAMAUDIENCE",
+        raw_anchor="R1",
         lane="creator_audience_evidence_assembly_receipt",
         record_id=result["assembly_receipt_record_id"],
     )
     assert receipt.is_file()
+
+    with pytest.raises(ValueError, match="primary_raw_anchor must be the raw anchor"):
+        prepare_instagram_subscription_judgment(
+            data_root=data_root,
+            creator_id="instagram:@alpha",
+            profile_subject_id="platform_account:instagram:alpha",
+            primary_raw_anchor="01INSTAGRAMAUDIENCE",
+            comment_record_paths=comment_paths,
+            transcript_record_paths=transcript_paths,
+            question="Who should hire Alpha?",
+            evidence_cutoff="2026-07-16T00:00:00Z",
+            bundle_out=tmp_path / "foreign.bundle.json",
+            prompt_out=tmp_path / "foreign.prompt.txt",
+        )
 
 
 def test_instagram_prepare_rejects_records_outside_silver_lanes(tmp_path: Path) -> None:

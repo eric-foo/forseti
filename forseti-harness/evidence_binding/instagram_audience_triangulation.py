@@ -70,10 +70,20 @@ def build_instagram_creator_audience_evidence_bundle(
     transcript_records: Sequence[Mapping[str, Any]],
     question: str,
     evidence_cutoff: str,
+    method_deck_path: str,
+    method_deck_sha256: str,
 ) -> dict[str, Any]:
     """Assemble one deterministic audit bundle from 1-8 already-selected Reels."""
 
-    required = (creator_id, profile_subject_id, primary_raw_anchor, question, evidence_cutoff)
+    required = (
+        creator_id,
+        profile_subject_id,
+        primary_raw_anchor,
+        question,
+        evidence_cutoff,
+        method_deck_path,
+        method_deck_sha256,
+    )
     if any(not value.strip() for value in required):
         raise ValueError("creator, subject, anchor, question, and cutoff are required")
     normalized_creator = creator_id.strip().casefold()
@@ -179,6 +189,8 @@ def build_instagram_creator_audience_evidence_bundle(
         "raw_anchor": primary_raw_anchor.strip(),
         "question": question.strip(),
         "evidence_cutoff": evidence_cutoff.strip(),
+        "method_deck_path": method_deck_path.strip(),
+        "method_deck_sha256": method_deck_sha256.strip(),
         "capture_scope": {
             "selected_source_item_ids": item_ids,
             "selected_video_ids": item_ids,

@@ -28,6 +28,7 @@ _MAJORITY_LANGUAGE = re.compile(r"\b(most|majority|nearly all|the audience as a 
 _GUARANTEED_OUTCOME = re.compile(
     r"\b(guaranteed conversion|guaranteed roi|will convert|guarantees? sales)\b", re.I
 )
+_METHOD_SHA256 = re.compile(r"^sha256:[0-9a-f]{64}$")
 _BANNED_FIRST_SCREEN = re.compile(r"\brituals?\b", re.I)
 _CREATOR_WIDE_EFFECT = re.compile(
     r"\b(generates (?:observed )?engagement|makes products? memorable)\b", re.I
@@ -42,6 +43,18 @@ def load_method_deck() -> tuple[str, str]:
     path = _repository_root() / METHOD_DECK_RELATIVE_PATH
     body = path.read_text(encoding="utf-8")
     return body, f"sha256:{hashlib.sha256(body.encode('utf-8')).hexdigest()}"
+
+
+def _method_binding(bundle: Mapping[str, Any]) -> tuple[str, str]:
+    path = bundle.get("method_deck_path")
+    digest = bundle.get("method_deck_sha256")
+    if not isinstance(path, str) or not path.strip():
+        raise ValueError("audience bundle method_deck_path must be non-blank")
+    if path != METHOD_DECK_RELATIVE_PATH:
+        raise ValueError(f"unsupported audience method_deck_path: {path!r}")
+    if not isinstance(digest, str) or not _METHOD_SHA256.fullmatch(digest):
+        raise ValueError("audience bundle method_deck_sha256 must be sha256:<64 lowercase hex>")
+    return path, digest
 
 
 def _rows(bundle: Mapping[str, Any]) -> list[tuple[str, Mapping[str, Any]]]:
@@ -61,13 +74,18 @@ def _rows(bundle: Mapping[str, Any]) -> list[tuple[str, Mapping[str, Any]]]:
 
 def build_capability_manifest(bundle: Mapping[str, Any]) -> dict[str, Any]:
     evidence: dict[str, dict[str, Any]] = {}
+    seen_evidence_ids: set[str] = set()
     for index, (kind, row) in enumerate(
         sorted(_rows(bundle), key=lambda pair: str(pair[1].get("evidence_id"))),
         start=1,
     ):
+        evidence_id = str(row.get("evidence_id"))
+        if evidence_id in seen_evidence_ids:
+            raise ValueError(f"duplicate evidence_id in audience bundle: {evidence_id}")
+        seen_evidence_ids.add(evidence_id)
         alias = f"e{index:04d}"
         evidence[alias] = {
-            "evidence_id": str(row.get("evidence_id")),
+            "evidence_id": evidence_id,
             "source_item_id": str(row.get("video_id") or row.get("source_item_id") or ""),
             "kind": kind,
             "engagement_salience_eligible": bool(
@@ -118,7 +136,7 @@ def build_compact_judgment_view(bundle: Mapping[str, Any]) -> dict[str, Any]:
         evidence.append(compact)
     scope = bundle.get("capture_scope")
     return {
-        "view_version": "creator_audience_compact_judgment_view_v1",
+        "view_version": "creator_audience_compact_judgment_view_v2",
         "identity": {
             "creator_id": bundle.get("creator_id"),
             "profile_subject_id": bundle.get("profile_subject_id"),
@@ -128,12 +146,19 @@ def build_compact_judgment_view(bundle: Mapping[str, Any]) -> dict[str, Any]:
         "evidence_cutoff": bundle.get("evidence_cutoff"),
         "capture_scope": scope if isinstance(scope, Mapping) else {},
         "evidence": evidence,
-        "capability_manifest": manifest,
+        "engagement_salience_rule": manifest["engagement_rule"],
     }
 
 
-def build_creator_audience_prompt(bundle: Mapping[str, Any]) -> str:
-    method, method_hash = load_method_deck()
+def build_creator_audience_prompt(
+    bundle: Mapping[str, Any], *, method_text: str
+) -> str:
+    method_path, method_hash = _method_binding(bundle)
+    observed_hash = f"sha256:{hashlib.sha256(method_text.encode('utf-8')).hexdigest()}"
+    if observed_hash != method_hash:
+        raise ValueError(
+            "supplied method text does not match the audience bundle method binding"
+        )
     view = build_compact_judgment_view(bundle)
     allowed_axes = "|".join(get_args(AudienceClaimAxis))
     response_shape = {
@@ -186,15 +211,20 @@ def build_creator_audience_prompt(bundle: Mapping[str, Any]) -> str:
         "Return only semantic choices: never invent durable IDs, identity fields, "
         "modality, support scope, source-item closure, hashes, summaries, or snapshot "
         "IDs; the compiler derives them. Use only evidence aliases in the compact view. "
-        "For a missing claim, all evidence-alias arrays must be empty. Engagement changes "
-        "salience, not truth; set engagement_salience_relied_on true only when the "
-        "capability manifest permits every cited comment. Never claim audience prevalence, "
-        "demographics, guaranteed conversion, sales, or ROI. Draft commercially forceful "
-        "copy inside the evidence ceiling and do not use 'ritual' on the first screen.\n\n"
-        f"METHOD_DECK_PATH: {METHOD_DECK_RELATIVE_PATH}\n"
+        "Every non-missing claim cites 1-5 representative aliases and lists every "
+        "relied-on alias in all_support_evidence_aliases. For a missing claim, all "
+        "evidence-alias arrays must be empty. Engagement changes salience, not truth; "
+        "set engagement_salience_relied_on true only when every cited comment has "
+        "engagement_salience_eligible true in the compact view. Never claim audience "
+        "prevalence, demographics, guaranteed conversion, sales, or ROI. Write "
+        "hire_verdict as `Hire <creator> when <campaign job>`. Set robustness_stamp to "
+        "null unless a named ablation actually ran against this same evidence. Draft "
+        "commercially forceful copy inside the evidence ceiling and never use 'ritual' "
+        "anywhere in the buyer-facing projection.\n\n"
+        f"METHOD_DECK_PATH: {method_path}\n"
         f"METHOD_DECK_SHA256: {method_hash}\n\n"
         "BEGIN_METHOD_DECK\n"
-        f"{method}\n"
+        f"{method_text}\n"
         "END_METHOD_DECK\n\n"
         "RETURN_ONLY_THIS_JSON_SHAPE\n"
         f"{json.dumps(response_shape, ensure_ascii=False, indent=2)}\n\n"
@@ -231,6 +261,7 @@ def _projection_points(projection: Mapping[str, Any]) -> list[Mapping[str, Any]]
 def _compile_semantic_response(
     response: CreatorAudienceSemanticResponse, bundle: Mapping[str, Any]
 ) -> CreatorAudienceTriangulationSnapshotV1:
+    method_path, method_hash = _method_binding(bundle)
     manifest = build_capability_manifest(bundle)
     aliases: Mapping[str, Mapping[str, Any]] = manifest["evidence"]
     errors: list[str] = []
@@ -386,7 +417,6 @@ def _compile_semantic_response(
         "wrong_hire_boundary": compile_point(projection["wrong_hire_boundary"]),
         "robustness_stamp": projection["robustness_stamp"],
     }
-    _, method_hash = load_method_deck()
     snapshot = {
         "schema_version": "creator_audience_triangulation_snapshot_v1",
         "snapshot_id": "",
@@ -399,7 +429,7 @@ def _compile_semantic_response(
         "evidence_cutoff": bundle.get("evidence_cutoff"),
         "input_bundle_id": bundle.get("bundle_id"),
         "input_bundle_hash": bundle.get("bundle_hash"),
-        "method_deck_path": METHOD_DECK_RELATIVE_PATH,
+        "method_deck_path": method_path,
         "method_deck_sha256": method_hash,
         "judgment_claim_set": {
             "claims": compiled_claims,
@@ -428,6 +458,12 @@ def _compile_semantic_response(
     return CreatorAudienceTriangulationSnapshotV1.model_validate(snapshot)
 
 
+LEGACY_V0_METHOD_PATH = (
+    "judgment/tiktok_audience_triangulation.py::build_triangulation_prompt"
+)
+LEGACY_V0_METHOD_SHA256 = "unrecorded:legacy_v0_response_upgrade"
+
+
 def _upgrade_legacy_snapshot(
     legacy: Any, bundle: Mapping[str, Any]
 ) -> CreatorAudienceTriangulationSnapshotV1:
@@ -439,13 +475,15 @@ def _upgrade_legacy_snapshot(
             "multi_video": "multi_item",
             "mixed_multi_video": "mixed_multi_item",
         }.get(claim["support_scope"], claim["support_scope"])
-    _, method_hash = load_method_deck()
+    # A v0 response was judged under the legacy inline prompt, never under the
+    # current method deck; stamping the live deck here would fabricate method
+    # provenance on a durable artifact.
     raw.update(
         {
             "schema_version": "creator_audience_triangulation_snapshot_v1",
             "snapshot_id": "",
-            "method_deck_path": METHOD_DECK_RELATIVE_PATH,
-            "method_deck_sha256": method_hash,
+            "method_deck_path": LEGACY_V0_METHOD_PATH,
+            "method_deck_sha256": LEGACY_V0_METHOD_SHA256,
         }
     )
     raw["snapshot_id"] = _snapshot_id(raw)
@@ -476,6 +514,8 @@ def parse_creator_audience_response(
 
 
 __all__ = [
+    "LEGACY_V0_METHOD_PATH",
+    "LEGACY_V0_METHOD_SHA256",
     "METHOD_DECK_RELATIVE_PATH",
     "build_capability_manifest",
     "build_compact_judgment_view",

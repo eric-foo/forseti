@@ -19,7 +19,11 @@ from evidence_binding.tiktok_audience_triangulation import (
     ASSEMBLY_RECEIPT_LANE,
     build_assembly_receipt,
 )
-from judgment.creator_audience import build_creator_audience_prompt, load_method_deck
+from judgment.creator_audience import (
+    METHOD_DECK_RELATIVE_PATH,
+    build_creator_audience_prompt,
+    load_method_deck,
+)
 from runners.run_tiktok_creator_audience_triangulation import (
     _write_new,
     _write_new_json,
@@ -41,7 +45,7 @@ def _load_object(path: Path) -> dict[str, Any]:
 
 def _load_admitted_silver_record(
     data_root: DataLakeRoot, path: Path, *, lane: str
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], str]:
     resolved = path.resolve(strict=True)
     try:
         resolved.relative_to(data_root.path.resolve())
@@ -73,7 +77,7 @@ def _load_admitted_silver_record(
             raise ValueError(f"Silver envelope is not current and source-valid: {path}")
     elif record.get("reel_shortcode") != raw_anchor:
         raise ValueError(f"legacy Silver record does not match its Reel anchor: {path}")
-    return record
+    return record, raw_anchor
 
 
 def prepare_instagram_subscription_judgment(
@@ -91,23 +95,38 @@ def prepare_instagram_subscription_judgment(
 ) -> dict[str, Any]:
     if bundle_out.resolve() == prompt_out.resolve():
         raise ValueError("bundle_out and prompt_out must be different files")
+    comment_loaded = [
+        _load_admitted_silver_record(data_root, path, lane=AUDIENCE_COMMENTS_LANE)
+        for path in comment_record_paths
+    ]
+    transcript_loaded = [
+        _load_admitted_silver_record(data_root, path, lane=REEL_TRANSCRIPT_LANE)
+        for path in transcript_record_paths
+    ]
+    observed_anchors = {anchor for _, anchor in [*comment_loaded, *transcript_loaded]}
+    if primary_raw_anchor.strip() not in observed_anchors:
+        raise ValueError(
+            "primary_raw_anchor must be the raw anchor of an admitted evidence "
+            f"record (observed anchors: {sorted(observed_anchors)!r}): "
+            f"{primary_raw_anchor!r}"
+        )
+    method_text, method_hash = load_method_deck()
     bundle = build_instagram_creator_audience_evidence_bundle(
         creator_id=creator_id,
         profile_subject_id=profile_subject_id,
         primary_raw_anchor=primary_raw_anchor,
-        comment_records=[
-            _load_admitted_silver_record(data_root, path, lane=AUDIENCE_COMMENTS_LANE)
-            for path in comment_record_paths
-        ],
-        transcript_records=[
-            _load_admitted_silver_record(data_root, path, lane=REEL_TRANSCRIPT_LANE)
-            for path in transcript_record_paths
-        ],
+        comment_records=[record for record, _ in comment_loaded],
+        transcript_records=[record for record, _ in transcript_loaded],
         question=question,
         evidence_cutoff=evidence_cutoff,
+        method_deck_path=METHOD_DECK_RELATIVE_PATH,
+        method_deck_sha256=method_hash,
     )
     _write_new_json(bundle_out, bundle)
-    _write_new(prompt_out, build_creator_audience_prompt(bundle) + "\n")
+    _write_new(
+        prompt_out,
+        build_creator_audience_prompt(bundle, method_text=method_text) + "\n",
+    )
 
     receipt = build_assembly_receipt(bundle)
     receipt_bytes = (
@@ -131,7 +150,6 @@ def prepare_instagram_subscription_judgment(
             record_id=str(receipt["record_id"]),
             data=receipt_bytes,
         )
-    _, method_hash = load_method_deck()
     return {
         "status": "SUBSCRIPTION_JUDGMENT_REQUIRED",
         "creator_id": bundle["creator_id"],

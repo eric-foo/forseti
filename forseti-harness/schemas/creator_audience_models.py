@@ -156,6 +156,26 @@ class CreatorAudienceTriangulationSnapshotV1(StrictModel):
     non_claims: list[str]
     actual_audience_demographics: Literal["not_estimated"] = "not_estimated"
 
+    @field_validator(
+        "snapshot_id",
+        "profile_subject_id",
+        "platform_account_id",
+        "creator_id",
+        "generated_at",
+        "evidence_cutoff",
+        "input_bundle_id",
+        "input_bundle_hash",
+        "method_deck_path",
+        "method_deck_sha256",
+    )
+    @classmethod
+    def snapshot_text_non_blank(cls, value: str) -> str:
+        # Reject-only (no strip): the compiler owns canonical bytes, and a
+        # transforming validator would desynchronize snapshot_id from content.
+        if not value.strip():
+            raise ValueError("snapshot field must be non-blank")
+        return value
+
 
 class CreatorAudienceJudgmentOutcomeV1(StrictModel):
     schema_version: Literal["creator_audience_judgment_outcome_v1"]

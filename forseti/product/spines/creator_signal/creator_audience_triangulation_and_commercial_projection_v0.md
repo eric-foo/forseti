@@ -128,6 +128,7 @@ inference context. Both content/transcript and captured comments are mandatory;
 missing either ends as `INCOMPLETE_AUDIENCE_EVIDENCE` without a partial snapshot.
 On-demand refresh reuses existing complete evidence and does not recapture by
 default.
+
 ## Evidence And Inference Rules
 
 - Use all admissible captured top-level comments from the selected videos after
