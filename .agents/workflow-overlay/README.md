@@ -27,7 +27,7 @@ This overlay is the project authority for Forseti. Skills may provide task-local
 - `communication-style.md`: Forseti response style for Chief Architect sequencing, review closeouts, and prompt handoffs.
 - `validation-gates.md`: checks required before claiming completion.
 - `review-lanes.md`: read-only review lanes, patch/integration execution boundaries, and template retrieval rules.
-- `batch0-process-pilot.md`: temporary four-probe process-improvement pilot, review-economics receipt binding, and tenth-review owner notification boundary.
+- `batch0-process-pilot.md`: retired four-probe process-improvement pilot, preserved evidence boundary, and final keep/stop disposition.
 - `batch1-decision-gate-economics.md`: temporary non-mandatory decision-gate economics pilot for deep-thinking, assumption-gate, and fused ENTRY evidence.
 - `delegated-review-patch.md`: provisional, opt-in Delegated Review-and-Patch convention for high-stakes authored artifacts, and the overlay-interface fields a future skill implementation may read. Not a bound review lane.
 - `safety-rules.md`: project-specific safety and forbidden drift.

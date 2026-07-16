@@ -63,6 +63,7 @@ LANE_ROLES: dict[str, LaneRole] = {
     "social_metric_observation_set_silver": LaneRole.SILVER_ENVELOPE,
     "tiktok_comment_attention_silver": LaneRole.SILVER_ENVELOPE,
     "transcript_product_mentions_silver": LaneRole.SILVER_ENVELOPE,
+    "raw_packet_tombstone_silver": LaneRole.SILVER_ENVELOPE,
     "transcript_product_mentions_completion": LaneRole.COMPLETION_MARKER,
     "retail_pdp_silver": LaneRole.SILVER_ENVELOPE,
     "silver__capture__audience_comments": LaneRole.SILVER_ENVELOPE,

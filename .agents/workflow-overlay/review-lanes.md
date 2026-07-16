@@ -226,10 +226,10 @@ handoffs remain prompt-orchestration work.
   when retrieval metadata is in scope. Retrieval metadata defects are routing
   and authority-hygiene issues; they do not create approval, validation proof,
   readiness, lifecycle completion, or edit permission.
-- While the temporary Batch 0 pilot is active, the Chief Architect closing a
-  material adversarial review must write the process-economics receipt required
-  by `.agents/workflow-overlay/batch0-process-pilot.md` after adjudication. The
-  receipt is measurement only and changes no review verdict or authority.
+- Batch 0's temporary process-economics receipt obligation is retired. Its
+  preserved evidence and final disposition are recorded in
+  `.agents/workflow-overlay/batch0-process-pilot.md`; no current review closeout
+  owes a Batch 0 receipt.
 - Executor threads must not report success without file and validation evidence.
 - Installed global `review`, implementation/code review, and artifact review remain separate lanes until Forseti accepts more specific routing.
 - Runtime model recommendations for review lanes: forbidden. Template target

@@ -616,6 +616,7 @@ def _iter_committed_packet_ids(root: DataLakeRoot) -> list[str]:
     raw_dir = root.path / "raw"
     if not raw_dir.is_dir():
         return []
+    tombstoned = root.tombstoned_packet_ids()
     packet_ids: list[str] = []
     for shard_dir in sorted(raw_dir.iterdir()):
         if not shard_dir.is_dir():
@@ -626,6 +627,7 @@ def _iter_committed_packet_ids(root: DataLakeRoot) -> list[str]:
                 and _PACKET_ID_RE.fullmatch(container.name)
                 and shard_dir.name == raw_shard(container.name)
                 and (container / "manifest.json").is_file()
+                and container.name not in tombstoned
             ):
                 packet_ids.append(container.name)
     return packet_ids
