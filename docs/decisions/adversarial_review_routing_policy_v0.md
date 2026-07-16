@@ -92,7 +92,7 @@ Same-family native strengths (still cued): **D4** domain/product defensibility, 
 
 ### 3. Tier-A composition — two cross-family configurations
 
-"Cross-family" here means a **decorrelation-family property** (a reviewer of a different model family than the author), **not a named model/vendor** — the specific model stays an operator/tooling choice (see §9). Both versions follow the **`adversarial-artifact-review` registry template** for prompt structure, trigger `workflow-deep-thinking` then `workflow-adversarial-artifact-review`, return the compact `review_summary` YAML, and close with the review-use boundary (review-lanes.md).
+"Cross-family" here means a **decorrelation-family property** (a reviewer of a different model family than the author), **not a named model/vendor** — the specific model stays an operator/tooling choice (see §9). Both versions follow the **`adversarial-artifact-review` registry template** for prompt structure, run the template's internalized failure-mode-framing pass then `workflow-adversarial-artifact-review` (per the 2026-07-16 deep-thinking single-owner narrowing, a review commission needs no separate `workflow-deep-thinking` load; that load remains owner-invoked decision work), return the compact `review_summary` YAML, and close with the review-use boundary (review-lanes.md).
 
 #### Version 1 — cross-family pass, **NO repo access** (token-limited / paste-only)
 

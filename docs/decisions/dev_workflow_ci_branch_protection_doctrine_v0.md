@@ -111,15 +111,13 @@ At that historical point, this record did not assert that any server-side gate w
    A handoff-only packet is transport rather than a publication work unit until item 15's landing
    condition is met; this exception does not apply to implementation, doctrine, code, or another
    independently publishable artifact.
-   **One-time writable-root binding.** At the first repo-changing act, select isolation under
-   `decision-routing.md`: branch in the current checkout for clean solo/sequential work; a task rooted
-   in a managed worktree for dirty-base, concurrent, or independent work; neither for read-only work.
-   Bind that task's registered root once as the work unit's sole writable root and reuse it through
-   landing. Do not repeat synthetic file-write/index probes or hook canaries unless capability is
-   genuinely unknown or hook adoption testing is the commissioned task. A command `workdir`, absolute
-   path, or `git -C` never reroots a task. The Codex registered non-current-worktree write guard remains
-   fail-closed as the deterministic backstop; an observed write failure or guard denial remains visible.
-
+   **One-time effective-target binding.** At the first repo-changing act, select isolation under
+   `decision-routing.md`: branch in the current checkout for clean solo/sequential work; a worktree off
+   the required base for dirty-base, concurrent, or independent work; neither for read-only work. The
+   current actor may continue the same commissioned work unit in that selected worktree after one target,
+   revision, dirty-state, and writer snapshot. Launch-root mismatch alone is not failure. Use a separate
+   receiver only for an independent concurrent actor or an observed required-tool, sandbox, hook, or guard
+   denial. Exact/ancestor revision rules, dirty-byte identity, protected guards, and server protection stay.
    **Codex/manual patch discipline.** For Codex `apply_patch`, generated diffs, or manual textual
    replacement flows, a corrupt patch, failed hunk, or expected-text mismatch is a stop-and-reread
    condition: read the live target lines, then patch from observed current text before continuing. Before
