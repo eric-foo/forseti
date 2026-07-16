@@ -33,15 +33,14 @@ observable success signal; pointer-preferred to a controlling contract,
 decision, or gate that already carries the signal):
 [FILL_GOAL_AND_SUCCESS_SIGNAL_OR_POINTER, or "none bound"]
 
+preflight_defaults: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md v0 - constants bound; deltas stated inline.
+
 Required authority sources:
-- `AGENTS.md`
-- `.agents/workflow-overlay/README.md`
-- `.agents/workflow-overlay/source-of-truth.md`
-- `.agents/workflow-overlay/source-loading.md`
-- `.agents/workflow-overlay/artifact-roles.md`
-- `.agents/workflow-overlay/review-lanes.md`
-- `.agents/workflow-overlay/prompt-orchestration.md`
-- `.agents/workflow-overlay/validation-gates.md`
+- intake constants per the preflight defaults above (`AGENTS.md`,
+  `.agents/workflow-overlay/README.md`);
+- `.agents/workflow-overlay/review-lanes.md` and the overlay sections it names
+  for this review lane; load other overlay files targeted-section only when a
+  finding, strict claim, or route depends on them.
 
 Default review source pack:
 - the review target;
@@ -53,16 +52,11 @@ Default review source pack:
 - [FILL_ADDITIONAL_TASK_SOURCES]
 
 Source-read budget (default, not a gate):
-Before the heavy reads, record a one-line-per-source disposition in your
-source-read ledger: `full`, `targeted <section>`, `grep <token>`, or
-`skip: <reason>`.
-Default to targeted-section or grep-to-claim reads for confirmatory
-sources; use full reads for the review target (or bound target excerpt) and
-whenever a source could materially change a finding, non-finding, strict claim,
-route, or blocker. This is the High-Context Guard in
-`.agents/workflow-overlay/source-loading.md` applied to review; it is not a cap
-on thoroughness -- expand to a full read the moment a source could materially
-change the current review judgment, noting why. Under-reading a material source
+Record a one-line-per-source disposition (`full`, `targeted <section>`,
+`grep <token>`, `skip: <reason>`) before the heavy reads; full-read the review
+target and any source that could materially change a finding, strict claim,
+route, or blocker. Owner: High-Context Guard in
+`.agents/workflow-overlay/source-loading.md`. Under-reading a material source
 is a worse failure than over-reading a confirmatory one.
 
 Edit permission:
@@ -84,53 +78,26 @@ decision criteria before findings are listed. It does not widen review scope or
 authorize patching.
 
 Review authority:
-Use findings-first review output by default. Formal verdicts, blocked/ready
-status, validation pass/fail claims, approval, readiness, mandatory
-remediation, patch queues, and executor-ready handoffs require explicit Forseti
-overlay or prompt binding. In this template, `critical`, `major`, and `minor`
-severity labels are finding-priority labels only; they are not approval,
-rejection, readiness, validation, or mandatory-remediation authority.
-
-Review target and review purpose are commission-bound. Within that
+Findings-first (the Review Prompt Defaults default in
+`.agents/workflow-overlay/prompt-orchestration.md`); formal verdicts,
+blocked/ready status, validation claims, mandatory remediation, patch queues,
+and executor-ready handoffs require explicit overlay or prompt binding.
+`critical`/`major`/`minor` are finding-priority labels only. Within the
 commission-bound target and purpose, be maximally adversarial and
-coverage-first: report every issue you find, including uncertain and
-low-severity ones. Do not filter for importance or confidence at this stage --
-a downstream adjudication pass ranks and filters findings. Materiality,
-severity, and confidence are labels you attach, never thresholds for
-reporting. Do not retarget or widen the review, and do not soften or drop a
-failure mode because remediation would be difficult, confidence is low, or the
-finding seems minor.
+coverage-first: report every issue found, including uncertain and low-severity
+ones — adjudication ranks and filters, not the find stage. Do not retarget or
+widen the review, and do not soften or drop a failure mode because remediation
+is hard, confidence is low, or the finding seems minor.
 
 Output mode and report contract:
-Use exactly one output mode for the run.
-
-If output mode is `review-report`, bind a durable report destination under
-`docs/review-outputs/` or a typed child folder before review work starts. The
-human-readable review belongs in that durable report. Chat YAML is courier
-output only and is valid only after the required durable report has been
-successfully written.
-
-After a successful report write, return the compact `review_summary` YAML from
-`.agents/workflow-overlay/communication-style.md` with `status: completed` and
-`report_path` pointing to the written report.
-
-If the required report cannot be written after `review-report` is selected,
-do not use `report_path` and do not treat chat YAML as a substitute report.
-Return a failed blocked `review_summary` with `status: failed`,
-`review_location: chat_only_current_thread`, and `recommendation: blocked`;
-name the failed path and include enough human-readable failure detail in
-`summary` or `next_action` to route the issue. Do not add extra YAML keys.
-
-If no write authority or report destination is bound before review work starts,
-use `paste-ready-chat` instead of `review-report`.
-
-For `paste-ready-chat` reviews, start with the compact `review_summary` YAML
-shape from `.agents/workflow-overlay/communication-style.md`, using
-`review_location: chat_only_current_thread` and no `report_path`. Then provide
-human-readable findings in prose. Courier YAML preserves routing state; it is
-not a substitute for the review findings. Do not use `paste-ready-chat` to
-replace a required `review-report` durable destination after review work
-starts.
+Use exactly one output mode for the run. `review-report` and
+`paste-ready-chat` mechanics — durable-report binding under
+`docs/review-outputs/`, the compact `review_summary` YAML, and the failed-write
+blocked shape — are owned by `.agents/workflow-overlay/prompt-orchestration.md`
+(Output Modes) and `.agents/workflow-overlay/communication-style.md`; follow
+them there. If no write authority or report destination is bound before review
+work starts, use `paste-ready-chat` instead of `review-report`; never treat
+chat YAML as a substitute for a required durable report.
 
 Review checks:
 - Source hierarchy and authority boundary.
