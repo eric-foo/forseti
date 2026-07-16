@@ -1,5 +1,15 @@
 # Moved Paths Index - Phase-2 product consolidation (generated)
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Migration moved-path index
+scope: Resolves historical pre-Phase-2 product paths to their consolidated successors.
+use_when:
+  - Resolving historical product paths recorded before the Phase-2 consolidation.
+  - Interpreting retained references that were intentionally not rewritten.
+authority_boundary: retrieval_only
+```
+
 Historical records reference old paths by design; resolve them here.
 
 | Old path | New path |

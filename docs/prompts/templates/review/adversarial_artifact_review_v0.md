@@ -65,17 +65,13 @@ Edit permission:
 Read-only unless the launch instruction explicitly assigns patch execution.
 
 Required method sequence:
-After the required source context is ready, first run this review lane's
-internalized failure-mode-framing pass: frame the boundary problem, failure
-modes, and decision criteria before any finding is listed. This framing pass
-is defined here and carried by the review lane; where the deep-thinking
-trigger rule owned by `.agents/workflow-overlay/prompt-orchestration.md`
-(Review Prompt Defaults) fires for a review commission, this pass satisfies it
-without a separate `workflow-deep-thinking` skill load. A separate
-`workflow-deep-thinking` load remains the route for owner-invoked decision
-work (explicit owner invocation or Mini God Tier), not for review commissions.
-
-Then use `workflow-adversarial-artifact-review`.
+After the required source context is ready, use
+`workflow-adversarial-artifact-review`. As native review work, frame the
+boundary problem, identify failure modes, and establish decision criteria before
+listing findings. Do not reference-load, invoke, apply, or require
+`workflow-deep-thinking`; review complexity, Mini God Tier, and historical prompt
+wording do not add it unless a new current-turn owner instruction explicitly
+overrides the overlay default for this one commission.
 
 If `workflow-adversarial-artifact-review` is unavailable, unresolved, or cannot
 be applied after `SOURCE_CONTEXT_READY`, return a blocked or advisory-only
@@ -171,4 +167,57 @@ only, not as approval, validation, product proof, mandatory remediation, or
 executor-ready instructions. Do not anchor downstream work to this review as
 binding authority unless a separate authorized Forseti decision, patch,
 validation, or implementation lane accepts it.
+```
+
+## Direction Change Propagation — Review Deep-Thinking Removal
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Forseti review prompts, review methods, delegated review commissions, and
+    adjudication tails no longer load, invoke, apply, require, or automatically
+    add workflow-deep-thinking; reviews retain native failure-mode analysis, and
+    only a new explicit current-turn owner instruction may override this default.
+  trigger: review_authority
+  related_triggers:
+    - workflow_authority
+    - output_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/communication-style.md
+    - docs/prompts/templates/review/adversarial_artifact_review_v0.md
+    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md
+    - docs/prompts/reviews/
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: It already makes deep thinking triggered-only and routes review doctrine to the overlay; no conflicting review requirement exists.
+    - path: .agents/workflow-overlay/README.md
+      reason: Existing section descriptions remain accurate; no route or file role changed.
+    - path: .agents/workflow-overlay/template-registry.md
+      reason: Template identity and routing remain unchanged.
+    - path: .agents/workflow-overlay/validation-gates.md
+      reason: No validation gate depends on deep thinking.
+    - path: docs/prompts/reviews/
+      reason: Existing task-specific commission prompts are historical lane records; the current overlay supersedes their deep-thinking instructions for any rerun.
+  stale_language_search: >
+    rg -n -i "deep-thinking|deep-think" .agents/workflow-overlay docs/prompts/templates
+  stale_language_search_result: >
+    Executed 2026-07-17. No current review authority or template positively
+    instructs a reviewer or adjudicator to load, invoke, apply, or run deep
+    thinking. Remaining hits are explicit non-use rules, the separate deep
+    reasoning prompt family, the Batch 1 decision-gate pilot, portable-method
+    provenance notes, or historical DCP records.
+  non_claims:
+    - not removal or retirement of the deep-thinking skill outside reviews
+    - not weaker review coverage or reduced failure-mode analysis
+    - not validation or readiness
+    - not authorization to rewrite historical review prompts
 ```

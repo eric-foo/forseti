@@ -148,15 +148,14 @@ Then route the next step by the adjudicated state:
 - If a blocker, major, material unresolved issue, or material uncertainty
   remains that is not self-closable -- it needs another review round, another
   lane, an architecture pass, or an owner decision -- the next step is the
-  smallest complete closure route for that issue. Do not deep-think downstream
+  smallest complete closure route for that issue. Do not plan downstream
   material moves until the review is clean enough to move on.
 - Once no unresolved material issue remains, admin/lifecycle steps (commit, push,
-  PR, merge) collapse into exactly one batched "land" step, with no
-  deep-thinking -- they are rote.
+  PR, merge) collapse into exactly one batched "land" step; they are rote.
 - After a clean adjudication, if a visible active goal,
-  `thread_operating_target`, or accepted next objective exists, material moves
-  get the deep-thinking in the same turn: name the next 1-5 substantive steps
-  that best advance it, with why each compounds and its main risk. Pure admin
+  `thread_operating_target`, or accepted next objective exists, identify the
+  next 1-5 substantive steps in the same turn, with why each compounds and its
+  main risk. This is ordinary next-step reasoning, not deep thinking. Pure admin
   never counts as a material move.
 - If no such goal or objective is visible, do not invent one and do not spend a
   follow-up turn asking merely to run the material-move pass. Record

@@ -4,6 +4,13 @@
 retrieval_header_version: 1
 artifact_role: Adversarial artifact review report
 scope: Read-only adversarial review of Slot 3 post-recapture Mini God-Tier source-quality scratch pass outputs.
+use_when:
+  - Inspecting the Slot 3 post-recapture source-quality findings and their evidence boundary.
+  - Tracing later source-quality decisions to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 commissioned_by: Commissioning thread (main session)
 review_method: workflow-adversarial-artifact-review + workflow-deep-thinking
 output_mode: filesystem-output

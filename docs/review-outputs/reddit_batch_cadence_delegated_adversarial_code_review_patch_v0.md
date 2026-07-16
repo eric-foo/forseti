@@ -2,7 +2,14 @@
 retrieval_header_version: 1
 artifact_role: Orca review output
 scope: Delegated adversarial code review-and-patch output for the Reddit old-HTTP batch cadence patch.
-authority_boundary: decision_input_only
+use_when:
+  - Inspecting Reddit batch-cadence findings or the proposed patch.
+  - Tracing CA adjudication to this delegated review.
+review_authority_boundary: decision_input_only
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
 ---
 
 # Reddit Batch Cadence Delegated Adversarial Code Review-and-Patch v0
@@ -38,7 +45,7 @@ Findings are ordered by severity. No blockers or major issues were identified.
 
 ### F1 — MINOR: Bounded-jitter test does not assert `cadence["delay_seconds"] is None`
 
-**File:** `orca-harness/tests/unit/test_reddit_old_http_batch.py`  
+**File:** `orca-harness/tests/unit/test_reddit_old_http_batch.py`
 **Lines:** ~197–206 (`test_batch_runner_bounded_jitter_records_budgeted_cadence`)
 
 The test asserts `summary["delay_seconds"] is None` (the top-level summary key) but does not assert `cadence["delay_seconds"] is None` (the field inside the cadence sub-dict returned by `CadencePlan.to_dict()`). Both fields are present in `batch_summary.json`.
@@ -55,7 +62,7 @@ This is a receipts-contract gap: the test does not fully pin the `bounded_jitter
 
 ### F2 — INFORMATIONAL (no patch): Float rounding can push `sum(planned_waits_seconds)` above `window_seconds` by at most ~0.5 ms
 
-**File:** `orca-harness/source_capture/cadence.py`  
+**File:** `orca-harness/source_capture/cadence.py`
 **Lines:** 108–121 (`_build_bounded_jitter_plan` wait loop)
 
 `wait = round(rng.uniform(min_gap_seconds, upper), 3)` is applied after computing `upper = min(max_gap_seconds, max_allowed_now)`. Because `max_allowed_now` is derived from floating-point subtraction and `upper` may not be exactly representable with 3 decimal places, `round(x, 3)` can produce a value that is at most `~0.0005` above `upper`. At the last loop iteration (where `max_allowed_now = window_seconds - elapsed`), this means `sum(waits)` could exceed `window_seconds` by at most ~0.0005 seconds (0.5 ms).
