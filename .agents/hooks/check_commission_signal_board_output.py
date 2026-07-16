@@ -248,8 +248,34 @@ COMPANY_AGE_ANCHOR_BASES = {
 }
 COMPANY_RUN_BOUNDARIES = {
     "COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION",
+    "COMMISSION_SEALED_PRE_SCAN",
     "INTAKE_ONLY",
     "OWNER_DECISION_NEEDED",
+}
+COMMISSION_STAGE_RUN_BOUNDARY = "COMMISSION_SEALED_PRE_SCAN"
+COMMISSION_STAGE_SCOUT_STATUS = "commissioned_not_yet_run"
+NOT_REQUIRED_SCOUT_STATUS = "not_required_no_decision_material_job"
+COMPANY_REDDIT_SCOUT_STATUSES = {
+    "checked_positive_yield",
+    "checked_zero_yield",
+    "blocked_with_typed_gap",
+    NOT_REQUIRED_SCOUT_STATUS,
+    COMMISSION_STAGE_SCOUT_STATUS,
+}
+COMPANY_QUORA_SCOUT_STATUSES = {
+    "experimental_checked_positive_yield",
+    "experimental_checked_zero_yield",
+    "blocked_with_typed_gap",
+    NOT_REQUIRED_SCOUT_STATUS,
+    COMMISSION_STAGE_SCOUT_STATUS,
+}
+COMPANY_SCOUT_STATUS_COVERAGE_STATES = {
+    "checked_positive_yield": ("checked", "evidence_found"),
+    "experimental_checked_positive_yield": ("checked", "evidence_found"),
+    "checked_zero_yield": ("checked", "zero_yield"),
+    "experimental_checked_zero_yield": ("checked", "zero_yield"),
+    "blocked_with_typed_gap": ("blocked", "blocked"),
+    COMMISSION_STAGE_SCOUT_STATUS: ("not_checked", "unknown"),
 }
 COMPANY_SOURCE_CLASSES = {
     "official_first_party",
@@ -1039,6 +1065,27 @@ def _validate_company_candidates(candidates: Any, observations: dict[str, dict[s
     return findings
 
 
+def _scout_status_matches_coverage(
+    rows: list[dict[str, Any]],
+    scout_status: str,
+) -> bool:
+    if scout_status == NOT_REQUIRED_SCOUT_STATUS:
+        return not rows or all(
+            _normalize_vocab(row.get("status")) == "not_applicable"
+            and _normalize_vocab(row.get("yield")) == "not_applicable"
+            for row in rows
+        )
+    expected = COMPANY_SCOUT_STATUS_COVERAGE_STATES.get(scout_status)
+    if expected is None:
+        return False
+    expected_status, expected_yield = expected
+    return any(
+        _normalize_vocab(row.get("status")) == expected_status
+        and _normalize_vocab(row.get("yield")) == expected_yield
+        for row in rows
+    )
+
+
 def _validate_company_completion(
     completion: Any,
     coverage: dict[str, dict[str, Any]],
@@ -1068,6 +1115,65 @@ def _validate_company_completion(
         findings.append(
             Finding("missing_company_next_authorized_step", "completion_ledger must include next_authorized_step.")
         )
+
+    reddit_scout = _normalize_vocab(completion.get("reddit_scout_status"))
+    quora_scout = _normalize_vocab(completion.get("quora_scout_status"))
+    if reddit_scout not in COMPANY_REDDIT_SCOUT_STATUSES:
+        findings.append(
+            Finding(
+                "invalid_reddit_scout_status",
+                "reddit_scout_status must be one of "
+                + ", ".join(sorted(COMPANY_REDDIT_SCOUT_STATUSES))
+                + f"; got {completion.get('reddit_scout_status') or '<blank>'}.",
+            )
+        )
+    if quora_scout not in COMPANY_QUORA_SCOUT_STATUSES:
+        findings.append(
+            Finding(
+                "invalid_quora_scout_status",
+                "quora_scout_status must be one of "
+                + ", ".join(sorted(COMPANY_QUORA_SCOUT_STATUSES))
+                + f"; got {completion.get('quora_scout_status') or '<blank>'}.",
+            )
+        )
+    scout_checks = (
+        ("reddit", "reddit_scout_status", reddit_scout, COMPANY_REDDIT_SCOUT_STATUSES),
+        ("quora", "quora_scout_status", quora_scout, COMPANY_QUORA_SCOUT_STATUSES),
+    )
+    for venue, label, scout_status, valid_statuses in scout_checks:
+        if scout_status not in valid_statuses:
+            continue
+        rows = [
+            row
+            for row in coverage.values()
+            if _normalize_vocab(row.get("venue")) == venue
+        ]
+        if not _scout_status_matches_coverage(rows, scout_status):
+            findings.append(
+                Finding(
+                    f"{label}_coverage_mismatch",
+                    f"{label} {scout_status} must match the {venue.title()} coverage row status and yield.",
+                )
+            )
+    commission_stage = run_boundary == COMMISSION_STAGE_RUN_BOUNDARY
+    if commission_stage and not any(
+        _normalize_vocab(row.get("status")) == "not_checked" for row in coverage.values()
+    ):
+        findings.append(
+            Finding(
+                "commission_stage_without_open_coverage",
+                "COMMISSION_SEALED_PRE_SCAN is valid only while the coverage ledger still contains not_checked rows.",
+            )
+        )
+    if not commission_stage:
+        for label, value in (("reddit_scout_status", reddit_scout), ("quora_scout_status", quora_scout)):
+            if value == COMMISSION_STAGE_SCOUT_STATUS:
+                findings.append(
+                    Finding(
+                        "commission_scout_status_outside_commission_stage",
+                        f"{label} commissioned_not_yet_run is valid only under run_boundary COMMISSION_SEALED_PRE_SCAN.",
+                    )
+                )
 
     lens = completion.get("required_lens_coverage")
     if not isinstance(lens, dict) or set(lens) != COMPANY_LENS_KEYS:
