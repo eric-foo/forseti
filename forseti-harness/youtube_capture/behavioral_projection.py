@@ -11,7 +11,11 @@ import json
 from typing import Any, Iterable, Mapping, Sequence
 
 from data_lake.root import DataLakeRootError
-from harness_utils import int_or_none as _int_or_none, string_or_none as _string_or_none
+from harness_utils import (
+    append_residual_once as _append_residual_once,
+    int_or_none as _int_or_none,
+    string_or_none as _string_or_none,
+)
 
 
 YOUTUBE_BEHAVIORAL_PROJECTION_METHOD = "youtube_behavioral_projection"
@@ -710,11 +714,6 @@ def _transcript_source_key(
     if source_kind == "asr":
         return f"{transcript_anchor}:asr:{asr_record_id or 'unknown_record'}"
     return f"{transcript_anchor}:{source_kind}"
-
-
-def _append_residual_once(residuals: list[str], residual: str) -> None:
-    if residual not in residuals:
-        residuals.append(residual)
 
 
 def _file_paths(manifest: Mapping[str, Any]) -> dict[str, str]:
