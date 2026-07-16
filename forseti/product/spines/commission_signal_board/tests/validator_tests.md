@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Test pointer
-scope: Spine-local pointer to the executable Commission Signal Board validator tests and fixtures.
+scope: Spine-local pointer to executable validator tests and fixtures for standard CSB boards and the conditional company report.
 use_when:
   - Finding the CSB validator test suite from the live CSB spine.
   - Checking why executable tests and fixtures remain in forseti-harness during the pilot.

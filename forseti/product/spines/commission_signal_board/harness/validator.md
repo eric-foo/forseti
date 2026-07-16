@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Harness pointer
-scope: Spine-local pointer to the manual Commission Signal Board output validator.
+scope: Spine-local pointer to the manual conditional validator for standard CSB boards and company competitive-intelligence reports.
 use_when:
   - Finding how to run the Commission Signal Board validator from the live CSB spine.
   - Checking why validator code remains outside the spine during the pilot.
@@ -35,5 +35,7 @@ Selftest command:
 python -B .agents\hooks\check_commission_signal_board_output.py --selftest
 ```
 
+The checker selects the standard or company contract from the output headings.
 This pointer does not move validator code, install a hook, create CI, classify
-demand, validate evidence truth, prove readiness, or authorize runtime work.
+demand, validate evidence truth, import Company Surface candidates, prove
+readiness, or authorize runtime work.
