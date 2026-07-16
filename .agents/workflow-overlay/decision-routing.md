@@ -45,7 +45,7 @@ patching, doctrine work, and messy worktrees are escalation cues because they
 often contain those unknowns. They are not sufficient triggers by themselves.
 If the outcome, authority, sources, touch points, and validation route are
 already bounded, proceed without a full-router artifact. An explicit `/fused`
-invocation supersedes the `AGENTS.md` five-phase fast path for that work unit;
+invocation supersedes the bounded-change fast path below for that work unit;
 a continuation that only executes already-cleared fused lanes runs under the
 fast path.
 
@@ -146,6 +146,42 @@ blocker. If a correctly rooted Desktop lane still stalls or needs sustained
 shell-heavy parallelism, standalone CLI or WSL2 is an explicit fallback, not the
 standing default.
 
+### Task-Local Tool-Stall Circuit
+
+After one silent sandboxed tool stall, open a circuit for that
+tool-plus-permission route in the current task. Use a realistic timeout; absent
+better evidence, allow 20 seconds for reads or patches and 60 seconds for tests.
+Wait at most once for any remaining original budget, then terminate the call.
+Do not retry the same route merely because the command or conversation turn
+changed.
+
+If the stalled operation might have written, inspect only its intended targets
+once. Retry a safe in-scope operation at most once through a distinct approved
+route and reuse that route for the task. Stop when the mutation outcome is
+unknown, target state drifted, another writer appeared, a real guard denied the
+action, or the alternate route also stalls. A fresh task is a fresh route even
+when carried context reports an earlier task's stall. Verify the final diff;
+alternate-route completion is mitigation, not proof that the ordinary route is
+repaired.
+
+### Bounded-Change Fast Path
+
+For a named handoff with a small candidate-authority set, one bound edit unit,
+and known validation, use at most five latency-bearing rounds:
+
+1. receiver instructions;
+2. one read-only intake containing the handoff, bounded candidate authority,
+   status/inventory, likely targets, edit-helper usage, and relevant untracked
+   baseline, resolving authority and binding the edit only after that output;
+3. one isolated mutation;
+4. one ordered validation call that preserves each exit/output, runs focused
+   before broad, and skips broad after focused failure; and
+5. one read-only closeout containing diff check, exact diff, status, failure
+   attribution, and untracked verification.
+
+Never hide a retry or external action inside a phase. Do not use this fast path
+when the intake cannot be safely bounded before launch.
+
 The current actor may continue the same commissioned work unit directly in its
 selected worktree after one fresh snapshot records the exact target path,
 revision and dirty state, and whether another writer is active. Launch checkout
@@ -208,8 +244,9 @@ new managed task is sufficient. A durable commission may carry the bounded
 do not create that authority; a task's mere existence is never authority.
 
 When a real pre-edit mismatch invalidates the binding, route to an already-
-authorized capable receiver when one exists, including a valid one-task creation
-authorization without chat-double-asking. Return
+authorized capable receiver when one exists.
+An already-authorized capable worktree-backed task is such a receiver. A valid
+one-task creation authorization may be used without chat-double-asking. Return
 `BLOCKED_RECEIVER_REROOT_REQUIRED` only when target identity, revision or dirty-
 byte identity, writer isolation, or required capability cannot be established,
 no authorized capable route exists, or the one allowed creation fails. Capable
@@ -325,66 +362,42 @@ or promote the underlying work to source-of-truth status.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Repo-changing work now selects isolation at the first write, binds the task's
-    registered root once, and reuses that sole writable root through landing.
-    Same-lane prompts point to the active binding; exact root and capability
-    details recur only for a new, external, or materially changed receiver or
-    genuinely unknown capability. The registered cross-worktree guard remains
-    fail-closed as the backstop, while synthetic write/index probes and routine
-    hook canaries are retired.
+    AGENTS.md is reduced to the SCI-centered global kernel. Decision Priority
+    and Operating Economy no longer exist as parallel doctrines; their
+    independent invariants are folded into the kernel, while the tested
+    bounded-change fast path and task-local tool-stall circuit move to
+    decision-routing as their single operational owner.
   trigger: workflow_authority
-  related_triggers: [validation_philosophy, output_authority, lifecycle_boundary]
+  related_triggers: [validation_philosophy, lifecycle_boundary]
   controlling_sources_updated:
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/hooks/README.md
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - .codex/hooks/forseti_guard_codex_adapter.py
-  downstream_surfaces_checked:
     - AGENTS.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/safety-rules.md
+    - .agents/workflow-overlay/batch1-decision-gate-economics.md
+  downstream_surfaces_checked:
     - CLAUDE.md
     - .agents/workflow-overlay/README.md
     - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/safety-rules.md
-    - .codex/hooks.json
-    - .agents/hooks/guard_protected_actions.py
-    - .agents/hooks/check_prompt_output_mode.py
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
+    - docs/decisions/forseti_mini_god_tier_doctrine_v0.md
     - docs/workflows/forseti_repo_map_v0.md
   intentionally_not_updated:
-    - {path: AGENTS.md and CLAUDE.md, reason: "The kernel and shim already route isolation and receiver binding to the owning overlay; repeating the detailed one-time-binding contract would fork authority."}
-    - {path: .agents/hooks/guard_protected_actions.py and .codex/hooks.json, reason: "The registered cross-worktree guard's conditions, authorization, wiring, and fail-closed enforcement remain unchanged."}
-    - {path: .agents/hooks/check_prompt_output_mode.py, reason: "Its receiver-binding fields remain required for the still-valid new managed-receiver and external delegated-courier shells, not same-lane repetition."}
-    - {path: docs/workflows/forseti_repo_map_v0.md, reason: "No source location, precedence, or live-router ownership changed."}
-    - {path: docs/decisions/archive/direction_change_propagation_log_v0.md, reason: "The archive is frozen history and receives no new entries."}
+    - {path: CLAUDE.md, reason: "It remains a shim importing AGENTS.md and must not duplicate the kernel."}
+    - {path: prompt, review, validation, and lifecycle owners, reason: "Their detailed contracts remain authoritative; AGENTS.md now points instead of restating them."}
+    - {path: historical efficiency and review records, reason: "They preserve dated evidence and are not live routing authority."}
   stale_language_search: >
-    rg -n -i "lane-start write|write/index probe|live adoption probe|live-adoption-probe|receiver_binding|capability proof|no-concurrent-writer|BLOCKED_RECEIVER_REROOT_REQUIRED|command-level.{0,30}workdir|sole writable root"
-    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md .codex/hooks
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    docs/prompts/templates/shared/forseti_preflight_defaults_v0.md docs/workflows/forseti_repo_map_v0.md
-    .agents/hooks/check_prompt_output_mode.py forseti-harness/tests/unit/test_ci_hook_wiring.py
-  stale_language_search_result: >
-    Executed 2026-07-16 against the owning overlay, prompt defaults, hook docs,
-    adapter, prompt checker, doctrine, repo map, and focused contract test.
-    Live normative hits are the new one-time binding, its same-lane versus
-    new/external receiver split, and the preserved fail-closed reroute blocker.
-    The prompt checker intentionally retains receiver_binding for new managed or
-    external receiver shells. Historical inline DCP receipts retain their dated
-    probe/canary wording, and --live-adoption-probe remains available only when a
-    hook adoption test is itself commissioned. The adapter denial now points to
-    the active binding or an already-authorized capable worktree-backed task.
-    No live authority requires routine lane-start write/index probes, repeated
-    root receipts, or command-workdir rerooting.
+    rg -n -i "Operating Economy|Decision Priority|AGENTS.md five-phase|owner of
+    triggered-only pre-build gates|Open a task-local circuit|five-phase fast
+    path" AGENTS.md CLAUDE.md .agents/workflow-overlay
+    docs/workflows/forseti_repo_map_v0.md
   non_claims:
-    - not validation or readiness
-    - not automatic task creation when the product or user has not authorized it
-    - not cross-worktree write authority or permission for concurrent writers
-    - not permission for destructive Git or ignoring dirty-state changes
-    - not permission to weaken target-revision pins or bypass the registered-worktree guard
-    - not proof that any receiver, provider, or controller has the claimed capability
+    - not a weakening of SCI, validation, review, deletion evidence, or protected-action guards
+    - not implementation authorization
+    - not proof that the Codex Desktop sandbox route is repaired
 ```
 
 ```yaml
