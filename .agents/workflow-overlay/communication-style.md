@@ -152,27 +152,9 @@ Then route the next step by the adjudicated state:
   material moves until the review is clean enough to move on.
 - Once no unresolved material issue remains, admin/lifecycle steps (commit, push,
   PR, merge) collapse into exactly one batched "land" step; they are rote.
-- After a clean adjudication, if a visible active goal or accepted next objective
-  exists, identify the next 1-5 substantive steps in the same turn, with why
-  each compounds and its main risk. This is ordinary next-step reasoning. Pure admin
-  never counts as a material move.
-- If no such goal or objective is visible, do not invent one and do not spend a
-  follow-up turn asking merely to run the material-move pass. Record
-  `no_visible_active_goal` compactly and stop after the closure or land step.
-
-The tail remains a required same-turn check: the closeout ends with the one land
-step (or the closure route when a non-self-closable issue blocks) plus either
-1-5 goal-bound material moves or an empty material-moves result with one reason
-(`no_visible_active_goal` or `material_issue_blocks_planning`). A closeout that
-stops at the verdict without this check is malformed. In prose, the empty result
-may be one line; do not turn it into a form. The tail fills the
-closeout's `next_action` (YAML form) or "next authorized step" (prose form);
-`next_action` stays a single string -- unresolved-review closure first when
-needed; otherwise the land step first, then goal-bound material moves when they
-exist. Review prompts and review-return prompts carry this check (see
-`.agents/workflow-overlay/prompt-orchestration.md`, Review Prompt Defaults).
-This governs an adjudicated review's next step; it does not change failed-write
-routing.
+- Delegated-review closeout applies the same-turn material-continuation rule in
+  `delegated-review-patch.md`. That file owns the rule; do not restate or expand
+  it here. This does not change failed-write routing.
 
 ## Adversarial Review Summary Pattern
 
