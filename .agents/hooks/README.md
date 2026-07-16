@@ -205,7 +205,8 @@ and reload flow, then rerun the probe; Forseti cannot synthesize trust and must
 not edit Codex trust metadata.
 
 It also parses Codex `apply_patch` headers (`*** Add/Update/Delete File:` and
-`*** Move to:`) and checks those paths through the EP-01 protected-path rule,
+`*** Move to:`) from the supported `tool_input.command`, `.patch`, and `.input`
+payload fields and checks those paths through the EP-01 protected-path rule,
 because Codex reports patch edits as `tool_name: "apply_patch"` rather than
 Claude-style `Write` / `Edit` events.
 

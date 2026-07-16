@@ -56,6 +56,7 @@ from typing import Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import utc_now_z
 from source_capture.cadence import build_cadence_plan
 from runners.run_source_capture_http_packet import main as run_http_packet_main
 from runners.run_source_capture_cloakbrowser_packet import main as run_cloakbrowser_packet_main
@@ -93,11 +94,6 @@ SERIES_RUNNER_NON_CLAIMS = [
     "not a durable-vs-hollow judgment",
     "a gap is recorded as un-observed, never as no-change",
 ]
-
-
-def _utc_now_z() -> str:
-    """Current UTC instant in the ISO-8601 ``...Z`` form used across the capture envelope."""
-    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
 def _parse_z(timestamp: str) -> datetime:
@@ -183,7 +179,7 @@ def build_series_index(
         max_gap_seconds=max_gap_seconds,
         random_seed=random_seed,
     )
-    anchor = anchor_time or _utc_now_z()
+    anchor = anchor_time or utc_now_z()
     anchor_dt = _parse_z(anchor)
     pins = pins or DurabilityPins()
 
@@ -415,7 +411,7 @@ def run_slot(
     # any writer is invoked so a bad passthrough fails visibly (exit 2), never silently.
     _validate_writer_extra_argv(writer_extra_argv)
     cold_start = not _any_slot_observed(index)
-    realized_now = now_z or _utc_now_z()
+    realized_now = now_z or utc_now_z()
 
     observations: list[dict[str, object]] = []
     failures: list[str] = []
@@ -508,7 +504,7 @@ def mark_gap(*, series_dir: Path, slot_index: int, reason: str, now_z: str | Non
     slot["status"] = SLOT_UN_OBSERVED
     slot["gap_reason"] = reason
     slot["gap_kind"] = "skipped"
-    slot["recorded_at"] = now_z or _utc_now_z()
+    slot["recorded_at"] = now_z or utc_now_z()
     _write_index(series_dir, index)
     return slot
 

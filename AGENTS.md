@@ -125,24 +125,27 @@ guard, and owner steering all stay.
   network denial as an access blocker, not an authentication failure. Never print
   credentials or tokens.
 - **Open a circuit after one silent sandboxed tool stall.** Set a realistic
-timeout from expected command duration plus launch allowance; absent better
-evidence, use 20 seconds for reads or patches and 60 seconds for tests. If a
-call yields only a running/deferred handle with no output, wait at most once
-for any remaining original budget, then terminate it. Record one
-`sandboxed_tool_stall` for that failed tool-plus-permission route and do not
-probe the route again merely because the command differs. Retry a safe in-scope
-operation at most once through a distinct approved route and reuse that working
-route for the turn. If the stalled operation might have written, inspect only
-its intended targets once before any alternate mutation. Then perform at most
-one bounded alternate mutation; `.agents/tools/atomic_exact_edit.py` is an
-option for short exact edits, not mandatory infrastructure. A transport or
-preflight rejection that proves no bytes changed may be corrected once or split
-into file-scoped atomic edits. Do not reroot, reload sources, create another task
-or worktree, or redo receiver ceremony because a tool stalled. Stop when the
-mutation outcome is unknown, target state drifted, another writer appeared, a
-real guard denied the action, or the distinct alternate route also stalls.
-Verify the final diff. Completion through an alternate route is mitigation, not
-proof that the ordinary tool route is repaired.- **Load each skill once per thread.** A skill whose contract is already in
+  timeout from expected command duration plus launch allowance; absent better
+  evidence, use 20 seconds for reads or patches and 60 seconds for tests. If a
+  call yields only a running/deferred handle with no output, wait at most once
+  for any remaining original budget, then terminate it. Record one
+  `sandboxed_tool_stall` for that failed tool-plus-permission route and do not
+  probe the route again merely because the command differs. A user interruption,
+  follow-up message, or automatic continuation does not reset an open circuit;
+  if current context reports the stall, inherit it. Retry a safe in-scope
+  operation at most once through a distinct approved route and reuse that working
+  route for the task/thread. If the stalled operation might have written, inspect
+  only its intended targets once before any alternate mutation. Then perform at
+  most one bounded alternate mutation; `.agents/tools/atomic_exact_edit.py` is an
+  option for short exact edits, not mandatory infrastructure. A transport or
+  preflight rejection that proves no bytes changed may be corrected once or split
+  into file-scoped atomic edits. Do not reroot, reload sources, create another task
+  or worktree, or redo receiver ceremony because a tool stalled. Stop when the
+  mutation outcome is unknown, target state drifted, another writer appeared, a
+  real guard denied the action, or the distinct alternate route also stalls.
+  Verify the final diff. Completion through an alternate route is mitigation, not
+  proof that the ordinary tool route is repaired.
+- **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.
 - **Use the five-phase fast path for bounded repo changes.** When the task has a

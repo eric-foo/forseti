@@ -1,0 +1,188 @@
+{
+  "commission_id": "forseti_research_engine_repeatability_first_peach_20260716",
+  "cost_yield": [
+    {
+      "packets_handoff_ready": 2,
+      "request_id_or_none": null,
+      "requests_declined": 0,
+      "requests_emitted": 2,
+      "requests_fulfilled": 2,
+      "source_family_or_none": null,
+      "stage_id": "scan",
+      "stage_type": "scan",
+      "token_cost_posture": "unknown_with_reason",
+      "token_count_or_none": null,
+      "token_unknown_reason_or_none": "the bounded web search calls did not expose token metering",
+      "venues_touched": 2,
+      "wall_clock_seconds": 16.214
+    },
+    {
+      "packets_handoff_ready": 1,
+      "request_id_or_none": "cr_repeat_parfumo",
+      "requests_declined": 0,
+      "requests_emitted": 0,
+      "requests_fulfilled": 1,
+      "source_family_or_none": "fragrance_native_database",
+      "stage_id": "capture_parfumo",
+      "stage_type": "capture",
+      "token_cost_posture": "unknown_with_reason",
+      "token_count_or_none": null,
+      "token_unknown_reason_or_none": "the deterministic direct HTTP capture runner used no metered model",
+      "venues_touched": 1,
+      "wall_clock_seconds": 1.924
+    },
+    {
+      "packets_handoff_ready": 1,
+      "request_id_or_none": "cr_repeat_reddit",
+      "requests_declined": 0,
+      "requests_emitted": 0,
+      "requests_fulfilled": 1,
+      "source_family_or_none": "reddit_thread",
+      "stage_id": "capture_reddit",
+      "stage_type": "capture",
+      "token_cost_posture": "unknown_with_reason",
+      "token_count_or_none": null,
+      "token_unknown_reason_or_none": "the deterministic capture and consolidation runners used no metered model",
+      "venues_touched": 1,
+      "wall_clock_seconds": 7.088
+    }
+  ],
+  "events": [
+    {
+      "event_id": "evt_repeat_parfumo_requested",
+      "evidence_refs": [
+        "docs/research/forseti_research_engine_first_peach_repeatability_receipt_v0.md"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-16T07:20:49Z",
+      "packet_id_or_none": null,
+      "reason_or_none": null,
+      "request_id": "cr_repeat_parfumo",
+      "state": "requested"
+    },
+    {
+      "event_id": "evt_repeat_reddit_requested",
+      "evidence_refs": [
+        "docs/research/forseti_research_engine_first_peach_repeatability_receipt_v0.md"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-16T07:20:49Z",
+      "packet_id_or_none": null,
+      "reason_or_none": null,
+      "request_id": "cr_repeat_reddit",
+      "state": "requested"
+    },
+    {
+      "event_id": "evt_repeat_parfumo_route_bound",
+      "evidence_refs": [
+        "docs/workflows/parfumo_targeted_capture_contract_v0.md",
+        "preflight:parfumo_native_capture_preflight_passed"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-16T07:21:35Z",
+      "packet_id_or_none": null,
+      "reason_or_none": null,
+      "request_id": "cr_repeat_parfumo",
+      "state": "route_bound"
+    },
+    {
+      "event_id": "evt_repeat_parfumo_captured",
+      "evidence_refs": [
+        "packet:01KXMWTRSJ4AY3PBP9FP4T3WE6",
+        "access:direct_http_200_ok"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-16T07:21:35Z",
+      "packet_id_or_none": "01KXMWTRSJ4AY3PBP9FP4T3WE6",
+      "reason_or_none": null,
+      "request_id": "cr_repeat_parfumo",
+      "state": "captured"
+    },
+    {
+      "event_id": "evt_repeat_parfumo_handoff_ready",
+      "evidence_refs": [
+        "manifest_sha256:5c04b5fb2050c0fde3a10a8583a3931f21c2963c6ef15bca198452c278fa7f30",
+        "caller_detail:first_peach_identity_and_rating_review_statement_markers_present"
+      ],
+      "manifest_sha256_or_none": "5c04b5fb2050c0fde3a10a8583a3931f21c2963c6ef15bca198452c278fa7f30",
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-16T07:21:36Z",
+      "packet_id_or_none": "01KXMWTRSJ4AY3PBP9FP4T3WE6",
+      "reason_or_none": null,
+      "request_id": "cr_repeat_parfumo",
+      "state": "handoff_ready"
+    },
+    {
+      "event_id": "evt_repeat_reddit_route_bound",
+      "evidence_refs": [
+        "forseti/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md",
+        "preflight:exact_old_reddit_thread_url_valid",
+        "operator_correction:cutoff_metadata_closed_vocabulary"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-16T07:23:04Z",
+      "packet_id_or_none": null,
+      "reason_or_none": null,
+      "request_id": "cr_repeat_reddit",
+      "state": "route_bound"
+    },
+    {
+      "event_id": "evt_repeat_reddit_captured",
+      "evidence_refs": [
+        "packet:01KXMWXF3RPTMFKMQYN5X46A0M",
+        "access:direct_http_200_ok",
+        "warning:first_invocation_published_no_packet"
+      ],
+      "manifest_sha256_or_none": null,
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-16T07:23:04Z",
+      "packet_id_or_none": "01KXMWXF3RPTMFKMQYN5X46A0M",
+      "reason_or_none": null,
+      "request_id": "cr_repeat_reddit",
+      "state": "captured"
+    },
+    {
+      "event_id": "evt_repeat_reddit_handoff_ready",
+      "evidence_refs": [
+        "manifest_sha256:da6e4ce86de9faacbdbd679a9d5a4c34644b91ec572c8a893f871c05a0c90413",
+        "consolidation:reddit_thread_consolidation_v0_comments_13",
+        "caller_detail:first_peach_launch_thread_identity_present"
+      ],
+      "manifest_sha256_or_none": "da6e4ce86de9faacbdbd679a9d5a4c34644b91ec572c8a893f871c05a0c90413",
+      "mode_ladder_receipt_or_none": null,
+      "observed_at": "2026-07-16T07:23:16Z",
+      "packet_id_or_none": "01KXMWXF3RPTMFKMQYN5X46A0M",
+      "reason_or_none": null,
+      "request_id": "cr_repeat_reddit",
+      "state": "handoff_ready"
+    }
+  ],
+  "requests": [
+    {
+      "demand_origin_eligible": true,
+      "request_id": "cr_repeat_parfumo",
+      "source_family": "fragrance_native_database",
+      "urls": [
+        "https://www.parfumo.com/Perfumes/Imaginary_Authors/first-peach-of-the-season"
+      ],
+      "venue": "Parfumo"
+    },
+    {
+      "demand_origin_eligible": true,
+      "request_id": "cr_repeat_reddit",
+      "source_family": "reddit_thread",
+      "urls": [
+        "https://old.reddit.com/r/Perfumes/comments/1s9hx08/imaginary_authors_first_peach_of_the_season_april/"
+      ],
+      "venue": "Reddit r/Perfumes"
+    }
+  ],
+  "schema_version": "capture_request_lifecycle_v0",
+  "source_scan": "docs/research/forseti_research_engine_first_peach_repeatability_receipt_v0.md",
+  "subject": "Imaginary Authors / First Peach of the Season"
+}

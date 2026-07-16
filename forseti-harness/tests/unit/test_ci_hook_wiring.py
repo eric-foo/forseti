@@ -206,6 +206,21 @@ def test_one_time_binding_preserves_guard_and_limits_canary() -> None:
         "permissionDecisionReason"
     ]
 
+def test_codex_apply_patch_guard_checks_all_payload_fields() -> None:
+    guard = _load_codex_adapter()
+    protected_target = Path.home() / ".codex" / "skills" / "x" / "SKILL.md"
+    patch_text = f"""*** Begin Patch
+*** Update File: {protected_target}
+@@
+-old
++new
+*** End Patch
+"""
+
+    for payload_key in ("command", "patch", "input"):
+        reason = guard._check_apply_patch_paths({payload_key: patch_text})
+        assert "EP-01 protected-path write" in reason
+
 def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> None:
     routing = DECISION_ROUTING_PATH.read_text(encoding="utf-8")
     prompt_contract = PROMPT_ORCHESTRATION_PATH.read_text(encoding="utf-8")

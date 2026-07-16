@@ -578,19 +578,25 @@ no`, and not the alignment-axis-not-pass-bar guardrail.
 
 ## Review Prompt Defaults
 
-Forseti review prompts include `workflow-deep-thinking` before the relevant
-review skill when the owner explicitly invokes it or Mini God Tier, or when the
-review is doctrine- or authority-changing, source-heavy, materially ambiguous,
-or carries substantial seam risk whose framing could change the review route.
-Adversarial wording, a formal-verdict request, delegation, patch authorization,
-multiple named files in one bounded technical diff, or a high-stakes label alone
-does not trigger deep-thinking. A bounded technical review with an exact
-revision, file scope, authority, and validation route may omit it.
+Forseti review prompts include a deep-thinking framing pass before the relevant
+review skill when the owner explicitly invokes `workflow-deep-thinking` or Mini
+God Tier, or when the review is doctrine- or authority-changing, source-heavy,
+materially ambiguous, or carries substantial seam risk whose framing could
+change the review route. Adversarial wording, a formal-verdict request,
+delegation, patch authorization, multiple named files in one bounded technical
+diff, or a high-stakes label alone does not trigger deep-thinking. A bounded
+technical review with an exact revision, file scope, authority, and validation
+route may omit it. For a review commission, the review lane's own internalized
+failure-mode-framing discipline satisfies the pass -- the adversarial review
+skill carries it and the review templates define it -- without a second skill
+load; a separate `workflow-deep-thinking` load remains the route for
+owner-invoked decision work.
 
-When deep-thinking is invoked, the reviewer may `REFERENCE-LOAD` the methods
-before source loading, but must not `APPLY` deep-thinking or the review method
-until the required source context is ready. The step frames the boundary problem,
-failure modes, and decision criteria before findings are listed. It does not
+When the framing pass is triggered, the reviewer may `REFERENCE-LOAD` the
+methods before source loading, but must not `APPLY` the framing pass or the
+review method until the required source context is ready. The step frames the
+boundary problem, failure modes, and decision criteria before findings are
+listed. It does not
 widen review scope, authorize patching, or turn a narrow review into product
 planning.
 
