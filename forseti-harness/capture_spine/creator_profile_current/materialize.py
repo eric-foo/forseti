@@ -18,6 +18,7 @@ from capture_spine.creator_profile_current.validation import (
     validate_creator_profile_current_view,
 )
 
+from schemas.creator_audience_models import CreatorAudienceJudgmentOutcomeV1
 from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
 
 
@@ -672,7 +673,13 @@ def verify_audience_judgment_outcomes(
                 f"paired audience snapshot must contain exactly one record: {snapshot_path}"
             )
         snapshot = snapshots[0]
-        outcome = CreatorAudienceJudgmentOutcome.model_validate(load_json(outcome_path))
+        raw_outcome = load_json(outcome_path)
+        outcome_model = (
+            CreatorAudienceJudgmentOutcomeV1
+            if raw_outcome.get("schema_version") == "creator_audience_judgment_outcome_v1"
+            else CreatorAudienceJudgmentOutcome
+        )
+        outcome = outcome_model.model_validate(raw_outcome)
         if outcome.status != "validated" or outcome.snapshot_or_none is None:
             raise ValueError(
                 f"audience Judgment outcome is not successful: {outcome_path}"
