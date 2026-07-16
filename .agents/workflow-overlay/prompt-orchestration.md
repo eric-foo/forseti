@@ -257,7 +257,10 @@ Every durable or cross-recipient commission with edit permission
 begin in a task that is not the receiver must make the task-creation request
 explicit in the visible commission. Include this bounded block next to that new
 receiver's single `receiver_binding` receipt. A prompt continuing the active
-binding includes neither block merely for lifecycle continuity.
+binding includes neither block merely for lifecycle continuity. The current
+actor selecting or creating a Git worktree for the same commissioned work unit
+is not a new receiver and continues there unless an actual required capability
+is denied.
 
 ```yaml
 receiver_creation_authorization:
@@ -319,14 +322,14 @@ conditions hold:
 - there is no unresolved authority, target, state, or scope conflict.
 
 The author records the single inline `receiver_binding` receipt owned
-by `.agents/workflow-overlay/decision-routing.md`. A bound active receiver then
-performs exactly one fresh target-state read: worktree path, branch and HEAD,
-dirty state, named or changed files, and the material validation commands or
-evidence already bound to the lane. An unknown courier completes that read and
-the external direct-write capability proof as its first action, before source
-loading. The author does not pre-load the receiver's target sources, reconstruct the receiver's source
-ledger, traverse the template registry, or claim the delegated lane execution-
-ready before the binding is verified.
+by `.agents/workflow-overlay/decision-routing.md`. A bound active receiver uses
+one combined target-state and authority-pointer intake, then inspects the actual
+diff by its second latency-bearing tool call. Full overlay or source loading
+before diff inspection is a routing defect unless a named authority or target
+ambiguity blocks diff resolution. An unknown courier completes the same intake
+plus its external direct-write proof as its first action. The author does not
+pre-load target sources, reconstruct the source ledger, or traverse the template
+registry before the binding is verified.
 
 An explicit `delegate patch` invocation is an authoring request: return exactly
 one paste-ready prompt for the operator to courier. Do not inspect installed
@@ -429,37 +432,28 @@ separate:
 
 ### Handoff Transport Versus Publication
 
-A handoff-only packet has two distinct lifecycle states:
+For a bounded cold handoff, the receiving task's initial prompt is the default
+authoritative handoff. It carries the objective, exact target and revision,
+allowed dirty state, bounded source pointers, edit authority, validation route,
+and real stop conditions. Create a durable packet only for a distinct
+persistence, reuse, or separate-consumer need. A courier is transport-only: it
+points to the prompt or packet and does not restate its body.
 
-- **Dispatch-ready / transport.** The receiving cold lane has a concrete,
-  `receiver_verified` binding and can resolve the exact packet bytes through
-  that receiver's actual mechanism before dispatch. A prepared unknown-receiver
-  courier remains preparation-only and cannot enter this state. Commit is
-  the stable local transport boundary; once its SHA is couriered as the packet's
-  revision handle, that commit is not rewritten (no amend, rebase, or squash) for
-  the packet's transport lifetime, and a required history change re-couriers the
-  new SHA, because a `git show <sha>:<path>` fallback resolves nothing against an
-  orphaned SHA. The courier/context identifies the
-  repository or worktree access route, repository-relative packet path,
-  branch/ref and commit SHA when revision access is needed, and an explicit
-  fallback such as `git show <sha>:<path>`. Include a same-filesystem absolute
-  path only when that is the receiver's actual route. The dispatcher verifies
-  discoverability by reading the packet through that actual route; path
-  existence in the author's checkout or a path merely written in chat is not
-  verification for a different receiver mechanism. If the receiver cannot use
-  the authoring worktree or local ref, push the branch and verify the remote ref
-  before dispatch. If no verified route exists, stop with a visible transport
-  blocker.
-- **Publication-ready / landing.** The packet independently merits durable
-  publication on `main`, another landing artifact requires it, or the owner
-  requests landing. Only this state opens a packet PR. A PR is never created
-  merely to make the packet discoverable; it publishes an independently
-  justified durable artifact.
+When a durable handoff-only packet is needed:
 
-This split is specific to handoff-only transport. A packet that rides an
-existing implementation, doctrine, code, or other publication work unit still
-lands in that work unit's normal PR. A handoff-only branch is pushed only when
-the receiving mechanism cannot reach the local worktree/ref, not by default.
+- **Dispatch-ready / transport.** Verify the receiver can resolve the packet by
+  its actual route once. For clean tracked sources, the packet commit SHA pins
+  the bytes; add per-file hashes only for dirty, external, generated, or
+  ambiguous content. A couriered SHA is not rewritten during the packet's
+  transport lifetime; a required history change re-couriers the new SHA. Push
+  only when the receiver cannot reach the local worktree
+  or ref. Stop visibly if no route exists.
+- **Publication-ready / landing.** Open a packet PR only when the packet
+  independently merits publication, another landing artifact requires it, or
+  the owner requests landing. A PR is not a discoverability mechanism.
+
+A packet riding an implementation, doctrine, code, or other publication work
+unit lands in that work unit's normal PR.
 
 The `docs/prompts/**` PostToolUse hook (`check_prompt_provenance.py`) fires only
 for canonical filed prompt writes and injects the preflight — output mode, edit
@@ -915,7 +909,7 @@ Before using a generated Forseti prompt, apply these gates:
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
-4. Writable-root binding present when repository state matters: same-lane prompts point to the active one-time binding without repeating its root/capability recital; new/external receivers and materially changed bindings carry the single `receiver_binding`, and a not-yet-created managed receiver also carries the exact one-task `receiver_creation_authorization`. Collaboration remains same-root, unknown receivers remain preparation-only, and a command `workdir` is never a reroot. A delegated review-and-patch courier remains operator-courier-only, direct-repo, and different-vendor, with no Codex-managed fallback. A prompt fails this gate when it invents task-creation authority, applies external two-root discovery to a wrongly launched Codex task, claims dispatch readiness before a new binding exists, or repeats capability ceremony as if it were required for an unchanged active binding.
+4. Writable-root binding present when repository state matters: same-lane prompts point to the active one-time binding without repeating its root/capability recital; new/external receivers and materially changed bindings carry the single `receiver_binding`, and a not-yet-created managed receiver also carries the exact one-task `receiver_creation_authorization`. Collaboration remains same-root and unknown receivers remain preparation-only. The same actor may target its selected worktree when launch and target roots differ; a command `workdir` neither expands a collaboration subagent's sandbox nor proves failure by itself. A delegated review-and-patch courier remains operator-courier-only, direct-repo, and different-vendor, with no Codex-managed fallback. A prompt fails this gate when it invents task-creation authority, ignores an observed capability denial, claims dispatch readiness before a new binding exists, or repeats capability ceremony as if it were required for an unchanged active binding.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source-capsule budget satisfied: source capsules stay within

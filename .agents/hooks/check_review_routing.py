@@ -10,10 +10,12 @@ WHAT THIS DOES
     - otherwise at least one commit message in the range must carry a
       shape-valid `review_routing_status:` line:
         review_routing_status: routed <existing review-root path>
+        review_routing_status: routed -- chat_only_adjudicated: <durable disposition>
         review_routing_status: blocked -- <reason>
         review_routing_status: not_needed -- <reason>
-      For `routed`, the named path must exist in the HEAD tree. For `blocked`
-      and `not_needed`, a non-empty reason is required.
+      For path-routed review, the named path must exist in the HEAD tree. For
+      chat-only adjudication, blocked, and not-needed forms, the required text
+      must be non-empty.
   The rule is owned by:
 
       .agents/workflow-overlay/validation-gates.md  (Review-routing disposition gate)
@@ -91,6 +93,9 @@ TOKEN_RE = re.compile(
 REVIEW_PATH_RE = re.compile(
     r"(docs/(?:prompts/reviews|review-outputs)/[^\s`'\"\)\]]+)"
 )
+CHAT_ONLY_ADJUDICATED_RE = re.compile(
+    r"(?i)\bchat_only_adjudicated\b[ \t]*:[ \t]*(\S(?:.*\S)?)"
+)
 
 
 def repo_root() -> Path:
@@ -148,16 +153,19 @@ def token_findings(messages: str, path_exists) -> tuple[bool, list[str]]:
     for value, remainder in matches:
         if value == "routed":
             m = REVIEW_PATH_RE.search(remainder)
+            if m:
+                rel = m.group(1).rstrip(".,;")
+                if path_exists(rel):
+                    return True, []
+                problems.append("`routed` names a path that does not exist: %s" % rel)
+            if CHAT_ONLY_ADJUDICATED_RE.search(remainder):
+                return True, []
             if not m:
                 problems.append(
-                    "`routed` names no docs/prompts/reviews/ or docs/review-outputs/ path"
+                    "`routed` names neither an existing review path nor a non-empty "
+                    "`chat_only_adjudicated:` disposition"
                 )
-                continue
-            rel = m.group(1).rstrip(".,;")
-            if not path_exists(rel):
-                problems.append("`routed` names a path that does not exist: %s" % rel)
-                continue
-            return True, []
+            continue
         else:  # blocked | not_needed
             if not _reason_of(remainder):
                 problems.append("`%s` carries no reason text" % value)
@@ -379,6 +387,15 @@ def selftest() -> int:
     check("routed with dangling path fails",
           evaluate(["forseti-harness/a.py"], [],
                    "review_routing_status: routed docs/prompts/reviews/ghost.md\n",
+                   exists_none) != [], True)
+    check("routed chat-only adjudicated passes",
+          evaluate(["forseti-harness/a.py"], [],
+                   "review_routing_status: routed -- chat_only_adjudicated: "
+                   "Anthropic review returned; findings adjudicated\n",
+                   exists_none), [])
+    check("routed chat-only bare fails",
+          evaluate(["forseti-harness/a.py"], [],
+                   "review_routing_status: routed -- chat_only_adjudicated:\n",
                    exists_none) != [], True)
     check("routed with no path fails",
           evaluate(["forseti-harness/a.py"], [], "review_routing_status: routed\n",
