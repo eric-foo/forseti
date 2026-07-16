@@ -333,6 +333,19 @@ required capture gate or as proof that the underlying capture is complete.
 For record-authoring guidance, see
 [`docs/source_observability_operator_records.md`](docs/source_observability_operator_records.md).
 
+## Shared Helpers
+
+`harness_utils.py` (package root) is the owning home for helpers shared across
+this package — hashing, UTC timestamps, staged directory publish, and version
+constants. Before writing a private helper in a `forseti-harness/` module,
+check it; if the shared home already has it, import it. When touching a module
+that still carries a stale private copy of a shared helper, migrate that copy
+in the same work unit (behavior-preserving only); a deliberately divergent
+copy stays, with a one-line comment naming the delta. Deliberate exception:
+the injected `sleep_fn` / `monotonic_fn` / `utc_now_fn` seams in the capture
+modules are what make them testable without real time or network pacing — do
+not remove them as bloat.
+
 ## Commands
 
 Run tests:
