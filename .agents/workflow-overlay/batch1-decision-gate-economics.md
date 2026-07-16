@@ -29,8 +29,9 @@ chain. A case may use one, several, none, or have unknown use. `fused_entry`
 means only the fused implementation-scoping entry decision; it does not mean
 that the whole fused pipeline ran or that implementation succeeded.
 
-This pilot changes no trigger for any measured method. `AGENTS.md` remains the
-owner of triggered-only pre-build gates.
+This pilot changes no trigger for any measured method. Each method's own
+resolver-visible trigger contract remains authoritative; the pilot measures use
+and does not make any method a mandatory chain.
 
 ## Case contract
 

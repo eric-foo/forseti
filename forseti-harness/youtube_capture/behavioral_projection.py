@@ -11,6 +11,7 @@ import json
 from typing import Any, Iterable, Mapping, Sequence
 
 from data_lake.root import DataLakeRootError
+from harness_utils import int_or_none as _int_or_none, string_or_none as _string_or_none
 
 
 YOUTUBE_BEHAVIORAL_PROJECTION_METHOD = "youtube_behavioral_projection"
@@ -830,28 +831,6 @@ def _source_rank(source: Mapping[str, Any]) -> int:
 
 def _compact_dict(data: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in data.items() if value is not None}
-
-
-def _string_or_none(value: Any) -> str | None:
-    if isinstance(value, str):
-        stripped = value.strip()
-        return stripped or None
-    if isinstance(value, int) and not isinstance(value, bool):
-        return str(value)
-    return None
-
-
-def _int_or_none(value: Any) -> int | None:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    if isinstance(value, str):
-        stripped = value.replace(",", "").strip()
-        return int(stripped) if stripped.isdigit() else None
-    return None
 
 
 __all__ = [

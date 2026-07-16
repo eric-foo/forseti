@@ -13,6 +13,8 @@ import re
 from dataclasses import asdict, dataclass
 from typing import Any, Iterable, Mapping, Sequence
 
+from harness_utils import bool_or_none as _bool_or_none, int_or_none as _int_or_none
+
 TIKTOK_COMMENT_LIST_ROUTE = "/api/comment/list"
 TIKTOK_PROFILE_LIST_SURFACES = ("/api/post/item_list/", "/api/repost/item_list/")
 
@@ -417,20 +419,6 @@ def _first_int(*containers: Mapping[str, Any], keys: Sequence[str]) -> int | Non
     return None
 
 
-def _int_or_none(value: object) -> int | None:
-    if isinstance(value, bool) or value is None:
-        return None
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    if isinstance(value, str):
-        stripped = value.replace(",", "").strip()
-        if stripped.isdigit():
-            return int(stripped)
-    return None
-
-
 def _int_or_string_or_none(value: object) -> int | str | None:
     parsed_int = _int_or_none(value)
     if parsed_int is not None:
@@ -444,13 +432,8 @@ def _bool_int_or_none(value: object) -> int | bool | None:
     return _int_or_none(value)
 
 
-def _bool_or_none(value: object) -> bool | None:
-    if isinstance(value, bool):
-        return value
-    return None
-
-
 def _string_or_none(value: object, *, allow_empty: bool = False) -> str | None:
+    # helper-delta: allow_empty keyword can keep a stripped-empty string, unlike harness_utils.string_or_none.
     if isinstance(value, str):
         stripped = value.strip()
         if stripped or allow_empty:

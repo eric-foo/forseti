@@ -1,0 +1,1142 @@
+{
+  "reddit_subreddit_registry": {
+    "schema_version": "reddit_subreddit_registry_v0",
+    "accepted_residuals": [
+      "Seed rows come from the 2026-07-16 web-search-only inventory verification; counts are cached third-party readings (~2025 vintage), directional only, and several rows carry a null count with an absent reason pending one direct check.",
+      "title/public_description/created_utc are null in the seed: no direct Reddit page reads were performed; a future bounded run fills them under the update-on-change rule.",
+      "capture_state reflects packets recorded IN THIS REGISTRY only; it is not a scan of the lake or packet stores.",
+      "The checked-in registry is a hand-maintained JSON projection fed by bounded runs and operator refreshes, not a runtime database or monitor."
+    ],
+    "authority_pointers": [
+      "forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_spec_v0.md",
+      "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+      "forseti/product/spines/capture/core/source_families/social_media/reddit/README.md"
+    ],
+    "registry_non_claims": [
+      "not metric authority",
+      "not demand, resonance, or audience-quality proof",
+      "not venue quality or fit scoring",
+      "not capture, monitoring, or engagement authorization",
+      "not a crawl queue or standing monitor",
+      "not a substitute for CSB venue evaluation or the broad-scout miss-check"
+    ],
+    "counts": {
+      "subreddits_total": 33,
+      "by_status": {
+        "active": 29,
+        "unverified": 4
+      }
+    },
+    "subreddits": [
+      {
+        "subreddit": "30plusskincare",
+        "url": "https://www.reddit.com/r/30plusskincare/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/skincare"
+        ],
+        "venue_roles": [
+          "hub",
+          "demographic"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "no reliable count surfaced; needs one direct check"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "asianbeauty",
+        "url": "https://www.reddit.com/r/asianbeauty/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "strict sourcing rules (model_knowledge)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/skincare",
+          "beauty/makeup"
+        ],
+        "venue_roles": [
+          "hub",
+          "regional"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "a 3.7M web claim looks inflated; needs one direct check"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "ausskincare",
+        "url": "https://www.reddit.com/r/ausskincare/",
+        "status": "unverified",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/skincare"
+        ],
+        "venue_roles": [
+          "regional"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "beauty",
+        "url": "https://www.reddit.com/r/beauty/",
+        "status": "unverified",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "beautyboxes",
+        "url": "https://www.reddit.com/r/beautyboxes/",
+        "status": "unverified",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty"
+        ],
+        "venue_roles": [
+          "specialist"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "beautyguruchatter",
+        "url": "https://www.reddit.com/r/beautyguruchatter/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "strict; no brigading (model_knowledge)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty"
+        ],
+        "venue_roles": [
+          "creator_watch"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "a 3.1M web claim looks inflated; likely mid-hundreds-K; needs one direct check"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "colognes",
+        "url": "https://www.reddit.com/r/colognes/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "sidebar-verified 2026-07-16: no swap/sell (routes to r/fragranceswap); fake-checks route to r/colognecheck",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_210000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "curlyhair",
+        "url": "https://www.reddit.com/r/curlyhair/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/hair"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "no numeric snippet obtained; needs one direct check"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "desifragranceaddicts",
+        "url": "https://www.reddit.com/r/desifragranceaddicts/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance"
+        ],
+        "venue_roles": [
+          "dupe_value",
+          "regional"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_256000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "diyfragrance",
+        "url": "https://www.reddit.com/r/diyfragrance/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance"
+        ],
+        "venue_roles": [
+          "specialist"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_39000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "euroskincare",
+        "url": "https://www.reddit.com/r/euroskincare/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/skincare"
+        ],
+        "venue_roles": [
+          "regional"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_98000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "femfraglab",
+        "url": "https://www.reddit.com/r/femfraglab/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "community-strict moderation (model_knowledge)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "existence confirmed via cross-sub aggregation citations only; count needs one direct check"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "fragrance",
+        "url": "https://www.reddit.com/r/fragrance/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "strict no-self-promo (model_knowledge; rules text unverified)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_2400000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "fragranceclones",
+        "url": "https://www.reddit.com/r/fragranceclones/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance"
+        ],
+        "venue_roles": [
+          "dupe_value"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_270000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "fragranceswap",
+        "url": "https://www.reddit.com/r/fragranceswap/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "trade-rule heavy (rules text not retrieved)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance"
+        ],
+        "venue_roles": [
+          "exchange"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_121000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "haircarescience",
+        "url": "https://www.reddit.com/r/haircarescience/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/hair"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_1000000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "indianskincareaddicts",
+        "url": "https://www.reddit.com/r/indianskincareaddicts/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/skincare"
+        ],
+        "venue_roles": [
+          "regional"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_311000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "indiemakeupandmore",
+        "url": "https://www.reddit.com/r/indiemakeupandmore/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "web_verified: consumers, creators, and shop owners welcome; indie self-promo tolerated",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance",
+          "beauty/makeup"
+        ],
+        "venue_roles": [
+          "specialist"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_147000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "koreanbeauty",
+        "url": "https://www.reddit.com/r/koreanbeauty/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/skincare"
+        ],
+        "venue_roles": [
+          "regional",
+          "specialist"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "described as smaller than r/asianbeauty; no count surfaced"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "lacqueristas",
+        "url": "https://www.reddit.com/r/lacqueristas/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/nails"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_68000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "makeupaddiction",
+        "url": "https://www.reddit.com/r/makeupaddiction/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "some self-promo limits (web-cited)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/makeup"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "band_3000000_to_4000000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "makeupdupes",
+        "url": "https://www.reddit.com/r/makeupdupes/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/makeup"
+        ],
+        "venue_roles": [
+          "dupe_value"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "makeuprehab",
+        "url": "https://www.reddit.com/r/makeuprehab/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "no-buy/low-buy support-community rules (web-cited)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/makeup"
+        ],
+        "venue_roles": [
+          "counterevidence"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "only vague 'thousands of members' surfaced; needs one direct check"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "malegrooming",
+        "url": "https://www.reddit.com/r/malegrooming/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty"
+        ],
+        "venue_roles": [
+          "demographic"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "muaonthecheap",
+        "url": "https://www.reddit.com/r/muaonthecheap/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "actively moderated, deal-format rules (web-cited)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/makeup"
+        ],
+        "venue_roles": [
+          "deal"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_1100000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "panporn",
+        "url": "https://www.reddit.com/r/panporn/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/makeup"
+        ],
+        "venue_roles": [
+          "counterevidence"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "a 1M+ claim is unverified precision; needs one direct check"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "perfumeoils",
+        "url": "https://www.reddit.com/r/perfumeoils/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance"
+        ],
+        "venue_roles": [
+          "specialist"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_9000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "perfumes",
+        "url": "https://www.reddit.com/r/perfumes/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "no self-promo (model_knowledge)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/fragrance"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "web search conflates with unrelated K-pop r/Perfume; count needs one direct check"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "sephora",
+        "url": "https://www.reddit.com/r/sephora/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty"
+        ],
+        "venue_roles": [
+          "retailer",
+          "deal"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_1000000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "skincareaddiction",
+        "url": "https://www.reddit.com/r/skincareaddiction/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "web_verified: strict structured-post/routine-template rules, flair-gating, heavy self-promo restriction",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/skincare"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": "conflicting web claims (1.4M-5M); multi-million band; needs one direct check"
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "skincareaddicts",
+        "url": "https://www.reddit.com/r/skincareaddicts/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": "looser rules than r/skincareaddiction (web-cited)",
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/skincare"
+        ],
+        "venue_roles": [
+          "hub"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_1000000_unverified_precision",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "tretinoin",
+        "url": "https://www.reddit.com/r/tretinoin/",
+        "status": "active",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty/skincare"
+        ],
+        "venue_roles": [
+          "specialist"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": "approx_275000",
+            "active_user_count_or_none": null,
+            "source_surface": "web_search_cached_third_party_stats",
+            "provenance_pointer": "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md",
+            "absent_reason_or_none": null
+          }
+        ],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      },
+      {
+        "subreddit": "ulta",
+        "url": "https://www.reddit.com/r/ulta/",
+        "status": "unverified",
+        "status_observed_at": "2026-07-16",
+        "created_utc_or_none": null,
+        "title_or_none": null,
+        "public_description_or_none": null,
+        "posting_posture_or_none": null,
+        "descriptive_observed_at": "2026-07-16",
+        "descriptive_changes": [],
+        "niche_paths": [
+          "beauty"
+        ],
+        "venue_roles": [
+          "retailer",
+          "deal"
+        ],
+        "discovery_state": "known_subreddit",
+        "capture_state": "no_packet_recorded",
+        "observations": [],
+        "first_seen_at": "2026-07-16",
+        "register_pointers": [],
+        "source_pointers": [
+          "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
+        ]
+      }
+    ]
+  }
+}

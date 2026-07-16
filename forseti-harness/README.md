@@ -336,7 +336,8 @@ For record-authoring guidance, see
 ## Shared Helpers
 
 `harness_utils.py` (package root) is the owning home for helpers shared across
-this package — hashing, UTC timestamps, staged directory publish, and version
+this package — hashing, UTC timestamps, staged directory publish, scalar
+coercion (`string_or_none` / `int_or_none` / `bool_or_none`), and version
 constants. Before writing a private helper in a `forseti-harness/` module,
 check it; if the shared home already has it, import it. When touching a module,
 migrate a stale private copy in the same work unit only when the bound change
