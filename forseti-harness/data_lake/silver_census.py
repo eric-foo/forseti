@@ -114,6 +114,7 @@ _LANE_APPLICABILITY: dict[str, tuple[tuple[str, str | None], ...]] = {
         ("tiktok", "tiktok_creator_batch_comment_subtitle_admission"),
         ("instagram_creator", None),
     ),
+    "raw_packet_tombstone_silver": (),
     "retail_pdp_silver": (
         ("fragrance_purchase_review_pdp", None),
         ("retail_pdp", None),
