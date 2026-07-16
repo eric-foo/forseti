@@ -82,9 +82,11 @@ checker costs one advisory, but in the hard guard it would disable the gate
 
 **Adoption rule:** before writing a private helper in a checker, check
 `_hooklib.py`; if the shared home already has it, import it. When touching a
-checker that still carries a stale private copy of a shared helper, migrate
-that copy in the same work unit (behavior-preserving only); a deliberately
-divergent copy stays, with a one-line comment naming the delta.
+checker, migrate a stale private copy in the same work unit only when the bound
+change already touches or depends on that helper contract (behavior-preserving
+only); otherwise leave the unrelated migration for a separately scoped work
+unit. A deliberately divergent copy stays, with a one-line comment naming the
+delta.
 
 ## The contract (harness-agnostic)
 
