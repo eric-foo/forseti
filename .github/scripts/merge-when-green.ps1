@@ -53,6 +53,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# helper-delta vs _common.ps1 Stop-WithError: 'REFUSED:' wording is deliberate
+# human-facing refusal semantics (this gate refuses to merge; nothing aborted).
 function Stop-WithRefusal([string]$Message) {
     Write-Host "REFUSED: $Message" -ForegroundColor Red
     exit 1

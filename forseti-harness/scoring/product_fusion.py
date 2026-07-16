@@ -22,6 +22,7 @@ from dataclasses import asdict, dataclass
 from math import sqrt, tanh
 
 from harness_utils import utc_now_z
+from scoring.calibration_corpus import brand_line_key
 from schemas.product_mention_models import (
     ProductMention,
     ProductVerdict,
@@ -90,11 +91,6 @@ class FusionConfig:
 
 
 DEFAULT_FUSION_CONFIG = FusionConfig()
-
-
-def _brand_line_key(mention: ProductMention) -> tuple[str, str]:
-    """Normalized grouping key so casing/whitespace variants are one product."""
-    return (mention.brand.strip().lower(), mention.line.strip().lower())
 
 
 def _fuse_product(
@@ -194,7 +190,7 @@ def fuse_product_verdicts(
     by_product: dict[tuple[str, str], list[ProductMention]] = defaultdict(list)
     display: dict[tuple[str, str], tuple[str, str]] = {}
     for mention in mentions:
-        key = _brand_line_key(mention)
+        key = brand_line_key(mention.brand, mention.line)
         by_product[key].append(mention)
         display.setdefault(key, (mention.brand, mention.line))  # first-seen original casing
 
