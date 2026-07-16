@@ -6,7 +6,8 @@ artifact_role: Product method operating model (owner-invoked Mini God Tier targe
 scope: >
   Defines the high-signal scanning target shape the owner invoked as Mini God
   Tier: bounded intelligent walks, default CSB broad-scout phase, frontier
-  selection, recency/current-state priority, branch decay/pivot discipline,
+  selection, lake-first radar preflight, recency/current-state priority,
+  branch decay/pivot discipline, dominance recording, value-based closure,
   CSB-first venue-value evaluation, exact-query discovery, hidden-venue
   discovery, precursor-signal handling, minimum evidence for promotion, shared scan
   vocabulary, and the capture-request handoff from scanning to the Capture
@@ -101,6 +102,15 @@ value; which exact queries test the remaining gap; which recent/current-state
 surfaces deserve main deepening; and which access walls or decisive negatives
 should stop wasted effort.
 
+Before external scanning in a recurring or actively radarred source family,
+inspect the existing Data Lake through the highest-trustworthy current read
+surface available: relevant Silver/current view first, then packet or catalog
+inventory, then raw material when necessary. Use the result to reuse prior work
+and identify stale, incomplete, conflicting, or source-fidelity gaps. Do not
+treat lake inspection as proof of current external reality. Absence from Silver
+is not absence from the lake or external world, and a missing read model does
+not block acquisition.
+
 The broad-scout phase is bounded by the scan commission's run cap. A scan may
 use one route-ledger subagent for the scout when subagent support is available;
 if not, the main operator runs the scout inline. The required default is the
@@ -123,6 +133,9 @@ Scanning does not own:
   expansion;
 - capture route binding or source-access policy decisions;
 - replacing the demand gate with collection quotas;
+- treating any numeric source, row, observation, venue, query, or capture-target
+  count as acquisition completion;
+- freezing final packet inclusion, which remains downstream;
 - full-schema burden on every exploratory move;
 - contact, outreach, lead-list, follower-graph, comment-scraping,
   channel-dossier, person-dossier, or standing creator-monitoring work.
@@ -130,6 +143,10 @@ Scanning does not own:
 Scanning owns, inside an authorized run:
 
 - choosing the next public read by expected decision value;
+- recording why a plausible move is dominated by an equal-or-better included
+  move;
+- deciding marginal acquisition and acquisition closure under the value test
+  below;
 - producing screen-light summaries, short quotes, precursor signals, precursor
   surfaces, venue evaluations, hidden-venue pointers, negatives, access notes,
   and candidate observations;
@@ -143,6 +160,8 @@ A frontier is a next-read candidate: a URL, venue, search phrase, hub, thread,
 byline trail, source-family surface, or cross-reference the walk may inspect.
 
 Choose the next frontier by expected decision value, not by crawl coverage.
+Compare its credible effect on the action, action ceiling, rival assessment, or
+hold condition against marginal cost, latency, access risk, and duplication.
 High-value reasons include:
 
 - likely value of a CSB-nominated venue for this decision;
@@ -231,21 +250,33 @@ Rules:
 
 ## Branch Decay, Pivot, And Stop
 
-Do not stop at the first sign of signal degradation. Walk through degradation
-while marginal expected value remains non-trivial. When an active branch decays,
-pivot to the best remaining frontier or to a different direction if that route
-has higher expected value.
+Continue acquisition only while the best remaining move has a credible chance
+of changing the action, action ceiling, rival assessment, or hold condition
+enough to justify its marginal cost, latency, access risk, and duplication.
+When an active branch decays, pivot only to a non-dominated frontier with higher
+expected decision value.
 
-Stop when one of these fires:
+Close acquisition when every material requirement is answered, contradicted,
+held as a typed gap, or has no remaining non-dominated acquisition path whose
+expected decision value materially exceeds its marginal cost, latency, access
+risk, and duplication.
+A typed gap closes a requirement only when no remaining non-dominated path
+whose expected decision value materially exceeds its marginal cost, latency,
+access risk, and duplication could still answer it within the commission's
+lawful, access, and safety bounds.
 
-- the authorized target is met;
+The following conditions stop the current run but do not by themselves prove
+acquisition closure:
+
 - the run budget, cap, or source-policy boundary is reached;
-- all declared and discovered frontiers have decayed to minimal or zero
-  expected value;
 - the remaining path would require standing monitoring, bulk access,
   auth-gated data, packet-grade capture, or a capture-owned route decision;
 - the current guide or run-specific walk contract fires a hard stop that this
   operating model did not explicitly supersede.
+
+When a safety or policy stop fires before the closure test is satisfied, record
+the unanswered material requirement as a typed gap or hold. No numeric target
+or exhausted collection allowance earns completion.
 
 For ordinary vertical walks, the Vertical Exploration Guide's dry rule remains
 the default. For explicitly declared MGT / intelligent-walk scans with multiple
@@ -264,7 +295,8 @@ A **run cap** (move budget, read limit, or equivalent) must be stated in any
 MGT scan commission. Caps are the primary enforcement mechanism that makes
 branch-aware pivot behavior bounded rather than open-ended. A scan commission
 without a stated cap does not qualify as a bounded intelligent walk under this
-model and must not invoke the branch-aware dry rule.
+model and must not invoke the branch-aware dry rule. A cap is a safety boundary,
+not an acquisition-completion target.
 
 ## Shared Vocabulary
 
@@ -293,6 +325,9 @@ separate downstream shapes:
 - `hidden_venue_pointer` - a URL, venue, hub, or source-family surface not
   surfaced by the starting CSB board but worth returning to CSB, scanning, or
   Capture as a route candidate;
+- `dominance_record` - a rejected route plus the equal-or-better included route
+  that substitutes for its decision-material job, with the cost, latency,
+  access-risk, or duplication reason;
 - `candidate` - possible target/company/topic worth carrying forward;
 - `observation` - screen-light evidence or contradiction tied to a URL;
 - `pointer` - a URL, venue, byline, hub, or cross-reference likely to improve
@@ -309,11 +344,12 @@ These terms are screen-light. They do not mint ECR, Cleaning, Judgment,
 claim-ladder, packet, buyer-proof vocabulary, source-access authority, or gate
 proof.
 
-## Minimum Evidence, Not Quotas
+## Promotion Schema, Not Collection Quotas
 
-Quotas are collection hygiene, not inference. A scan may set collection
-coverage targets, but a quota does not decide whether demand is real, durable,
-manufactured, or action-worthy.
+Collection targets are search hygiene only. They do not decide inclusion,
+acquisition closure, or whether demand is real, durable, manufactured, or
+action-worthy. The schemas below are structural promotion requirements, not
+numeric collection minimums.
 
 Promote a move note to an observation when the signal is worth carrying for
 downstream gate or capture evaluation: it ties to a specific URL and a possible
@@ -370,6 +406,10 @@ not merely because a venue produced a non-empty clue. At least one must be true:
   preserve provenance before gate use;
 - a hidden venue is high-yield enough that Capture-owned acquisition is the
   right next action, not another screen-light scan move.
+
+The request must name the decision-material information job and why no
+equal-or-better included observation or existing lake packet substitutes for
+the requested capture.
 
 Do not emit a capture request for ordinary owned-only chronology, retailer
 presence, editorial visibility, AEO visibility, or weak precursor material
@@ -461,7 +501,7 @@ avoid the rejected maximal infrastructure.
 | --- | --- | --- | --- |
 | Long-tail miss risk | No standing crawl or exhaustive atlas keeps cost and policy risk low. | Some useful sources will be missed. | Repeated missed-source postmortems or sustained scan throughput bottleneck. |
 | Rediscovery cost | Append-only provenance and card-set promotion cover reuse without maintaining a general registry. | Operators may revisit known venues before a trigger fires. | Same vertical third screen, multi-operator cadence, or sustained weekly cadence per the guide. |
-| Capture re-fetch | Capture must re-acquire under its own provenance discipline. | Duplicate fetch effort and possible source drift between scan and capture. | Capture owns a formal request intake or freshness-preserving acquisition handoff. |
+| Capture re-fetch | Capture reuses appropriate existing lake packets before recapture and re-acquires only when currentness, fidelity, provenance, cutoff compliance, inspectability, or a named gap materially improves. | A justified recapture can still duplicate effort, and reuse can carry stale-state risk. | Repeated stale or insufficient packet reuse despite typed recapture reasons. |
 | Judgment-dependent frontier choice | Human/agent judgment gives high signal without building crawler ranking infrastructure. | Frontier selection may be inconsistent across operators. | Repeated low-yield scans from poor frontier ordering. |
 | Full schema deferred until promotion | Lightweight moves keep exploration fast. | Some weak signals may be under-structured until promoted. | Review finds promoted observations lack fields needed for gate or capture. |
 | Source-family gaps cap ceilings | Review surfaces, search-interest, and AEO are not all sourced or gate-recordable today. | Some candidates stay hold/low-commitment or gap-tagged. | Owner adjudicates source-class cards and capture bindings. |

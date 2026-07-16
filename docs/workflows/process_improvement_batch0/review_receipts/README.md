@@ -1,17 +1,15 @@
 # Batch 0 Review-Economics Receipts
 
-This directory contains one JSON completion receipt per material adversarial
-review after Chief Architect adjudication. Files beginning with `_` are examples
-and are ignored by the counter.
+`historical_closed` on 2026-07-17.
 
-Before committing a receipt, copy `_template.json`, choose a descriptive unique
-filename, fill every field, and run:
+This directory preserves the receipts filed during Batch 0. A final
+pre-retirement tracker run observed 13 valid receipts and no schema errors. The
+counter and notification automation were then retired.
 
-```powershell
-python .github/scripts/batch0_process_tracker.py --json
-```
+Do not add new Batch 0 receipts. Files beginning with `_` are preserved
+examples, not counted evidence.
 
-Counting rules:
+Historical counting rules were:
 
 - `status` and `ca_adjudication_status` must both be `completed`.
 - `material_review` must be `true`.
@@ -29,7 +27,5 @@ Counting rules:
   that adjudication genuinely occurred. Treat the sample as a measurement of
   filed receipts, not an independently verified one.
 
-The tenth valid receipt merged to `main` makes the sample notification-eligible.
-The workflow creates exactly one historical issue titled
-`Batch 0 review sample reached 10 completions` and assigns/mentions the repository
-owner. A pre-existing exact-title issue prevents a duplicate notification.
+The corpus is process-measurement evidence only. It creates no future receipt,
+validation, counting, or notification obligation.

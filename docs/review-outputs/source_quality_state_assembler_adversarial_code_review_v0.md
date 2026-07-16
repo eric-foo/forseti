@@ -4,6 +4,12 @@
 retrieval_header_version: 1
 artifact_role: Review output
 scope: Adversarial implementation review of the Source Quality State Assembler over source-quality queue rows and existing Source Capture Packet manifests.
+use_when:
+  - Inspecting Source Quality State Assembler findings before patching or reuse.
+  - Tracing assembler changes to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
 review_lane: adversarial_implementation_review
 output_mode: filesystem-output
 required_output_path: docs/review-outputs/source_quality_state_assembler_adversarial_code_review_v0.md

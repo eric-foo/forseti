@@ -254,17 +254,19 @@ COMPANY_RUN_BOUNDARIES = {
 }
 COMMISSION_STAGE_RUN_BOUNDARY = "COMMISSION_SEALED_PRE_SCAN"
 COMMISSION_STAGE_SCOUT_STATUS = "commissioned_not_yet_run"
+NOT_REQUIRED_SCOUT_STATUS = "not_required_no_decision_material_job"
 COMPANY_REDDIT_SCOUT_STATUSES = {
     "checked_positive_yield",
     "checked_zero_yield",
     "blocked_with_typed_gap",
+    NOT_REQUIRED_SCOUT_STATUS,
     COMMISSION_STAGE_SCOUT_STATUS,
 }
 COMPANY_QUORA_SCOUT_STATUSES = {
     "experimental_checked_positive_yield",
     "experimental_checked_zero_yield",
     "blocked_with_typed_gap",
-    "not_required",
+    NOT_REQUIRED_SCOUT_STATUS,
     COMMISSION_STAGE_SCOUT_STATUS,
 }
 COMPANY_SCOUT_STATUS_COVERAGE_STATES = {
@@ -1067,7 +1069,7 @@ def _scout_status_matches_coverage(
     rows: list[dict[str, Any]],
     scout_status: str,
 ) -> bool:
-    if scout_status == "not_required":
+    if scout_status == NOT_REQUIRED_SCOUT_STATUS:
         return not rows or all(
             _normalize_vocab(row.get("status")) == "not_applicable"
             and _normalize_vocab(row.get("yield")) == "not_applicable"

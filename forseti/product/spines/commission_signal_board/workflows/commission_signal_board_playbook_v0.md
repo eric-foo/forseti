@@ -44,7 +44,9 @@ This playbook keeps four objects distinct:
 CSB owns the commission profile, source-family requirements, time posture, and
 typed gaps/requests. Scanning owns the intelligent walk. Capture owns venue
 access and preservation adapters. This playbook does not authorize downstream
-runtime.
+runtime. CSB defines decision-material information jobs and candidate routes; it
+does not freeze the participant packet, decide final inclusion, or declare
+acquisition complete.
 
 ## Operating Sequence
 
@@ -58,12 +60,22 @@ runtime.
    declares both a period and rationale.
 4. Check profile-specific required inputs. Return the prompt's intake scaffold
    if any are missing; intake-only output is not a validator target.
-5. Generate exactly the selected profile's Sections 1-10.
-6. Save the exact output to a temporary file or bound durable artifact.
-7. Run the validator. If it fails, repair the output or report its finding
+5. Include an item only when its named job can materially change the action,
+   action ceiling, rival assessment, or hold condition and no equal-or-better
+   included item performs that job. Use exclusion or `not_applicable` records
+   for dominated routes.
+6. For a recurring or actively radarred source family, put a lake-first
+   preflight in the downstream request: relevant Silver/current view, then
+   packet or catalog inventory, then raw material when necessary. Treat the
+   result as reuse/freshness/coverage context, not current-world proof.
+7. Generate exactly the selected profile's Sections 1-10.
+8. Save the exact output to a temporary file or bound durable artifact.
+9. Run the validator. If it fails, repair the output or report its finding
    codes. Do not run downstream work from a failing report.
-8. Route typed source requests to Scanning or Capture under their own authority.
-   Do not execute retrieval from this playbook.
+10. Route typed source requests to Scanning or Capture under their own
+    authority. Do not execute retrieval from this playbook. Scanning decides
+    marginal acquisition, dominance, and closure; Capture fulfills the bounded
+    request or returns typed failure/route exhaustion.
 
 ## Validator Command
 
@@ -118,8 +130,12 @@ For `company_competitive_intelligence`, the validator checks:
 - `mode` and orthogonal `time_posture`;
 - deterministic recency tiers and age-use rules;
 - declared period and rationale for `longitudinal`;
-- source-family coverage, mandatory Reddit scout, initial-proving Quora scout,
-  category-aware forum discovery, typed gaps, and justified `not_applicable`;
+- source-family coverage, the Reddit `mandatory_bounded_scout` compatibility
+  row, the initial-proving Quora compatibility row, category-aware forum
+  discovery, typed gaps, and justified `not_applicable`. The Reddit/Quora rows
+  are search-hygiene considerations: they may document non-selection and do not
+  authorize acquisition or earn completion credit without a named
+  non-dominated information job;
 - observation-level URL, publisher, publication/event/access dates, evidence
   status, source class, fact domain, and syndication group;
 - shared source-family vocabulary, typed `effective_time_precision` and
@@ -137,13 +153,14 @@ For `company_competitive_intelligence`, the validator checks:
 
 A standard pass means its classifier-handoff rows are mechanically eligible
 under the board's own row table. A company pass means the report is mechanically
-complete under the conditional company contract. Neither pass means:
+complete under the conditional company planning contract. Neither pass means:
 
 - evidence is true;
 - evidence was retrieved;
 - demand exists;
 - the board is exhaustive;
 - graph construction is complete;
+- acquisition is complete or the participant packet is frozen;
 - classifier mapping is correct;
 - buyer proof, validation, readiness, forecast, or client-facing claims are allowed.
 

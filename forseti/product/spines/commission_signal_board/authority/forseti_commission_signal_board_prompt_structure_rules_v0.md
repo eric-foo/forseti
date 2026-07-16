@@ -145,6 +145,14 @@ operating moves; customer and community response; bounded competitor or
 substitute context; contradictions; and evidence gaps. It must not infer pain,
 buyer, ICP, priority, urgency, willingness to pay, outreach, offer, or wedge.
 
+Every included CSB item must perform a named, decision-material information job:
+it must have a credible route to changing the action, action ceiling, rival
+assessment, or hold condition. Do not include a source, row, observation, venue,
+or capture target when an equal-or-better included item performs the same job.
+Structural rows that document a rejected, dominated, unavailable, or
+`not_applicable` route are exclusion/accountability records, not evidence
+inclusion and not completion credit.
+
 Every material observation preserves source URL, publisher, publication date,
 event date, access date, evidence status, source class, fact domain, and
 syndication group. A current page is not evidence that every claim on it is a
@@ -152,20 +160,31 @@ current event. Community observations remain external/customer evidence and
 cannot establish representative demand or internal company fact. Syndicated
 copies are not independent corroboration.
 
-Company source coverage requires a bounded Reddit scout for every report; zero
-yield is valid. Initial proving runs also require an explicit experimental
-Quora scout, preserving yield, recency, access, and relevance without
-pre-labeling it stale or low-yield. Generic and specialist forums use
-category-aware hidden-venue discovery rather than a universal platform list.
-Blocked or missing coverage becomes a typed gap/request; `not_applicable` needs
-a rationale.
+Reddit and Quora remain explicit search-hygiene considerations in the company
+coverage ledger so their selection or rejection is visible. External scouting
+is commissioned only when the venue performs a named decision-material job and
+is not dominated by an equal-or-better included route. Zero yield is a route
+result, never completion. Generic and specialist forums use category-aware
+hidden-venue discovery rather than a universal platform list. Blocked, missing,
+dominated, or non-material coverage becomes a typed gap, exclusion, or
+`not_applicable` record with rationale.
 
 CSB owns profiles, source-family requirements, time posture, and typed
 gaps/requests. Scanning owns intelligent-walk selection. Capture owns venue
 access and preservation adapters. CSB does not contain either runtime.
 Company Surface references are `candidate_only` and `not_imported`. The report
-has no arbitrary length, page, source-count, or observation cap; remove
-duplication and ornament, not necessary completeness.
+has no arbitrary length, page, source-count, or observation cap. No numeric
+source, row, observation, venue, or capture target establishes completion.
+CSB completion means the material information jobs and candidate routes are
+defined, not that acquisition is complete or a participant packet is frozen.
+
+For a recurring or actively radarred source family, CSB should route Scanning
+or Capture to inspect the existing Data Lake before external acquisition:
+relevant Silver/current view first, then packet or catalog inventory, then raw
+material when necessary. This is a reuse, freshness, and coverage preflight,
+not proof of current external reality. Absence from Silver is not absence from
+the lake or the external world, and a missing read model does not block
+external acquisition.
 
 ## Current Source State
 
@@ -244,7 +263,7 @@ intelligence and graph-prep system, at prompt-first/manual-first speed and cost.
 The board should create a materially better handoff to retrieval, graph,
 demand-classifier, forecasting, and judgment lanes than an unstructured scan.
 
-Minimum MGT shape:
+Required MGT output shape (a structural contract, not a collection minimum):
 
 - hierarchical source-family and subfamily map;
 - source posture per subfamily: available now, planned lane, deferred,
@@ -284,7 +303,7 @@ noise, provenance, independence, and graph behavior.
 
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
-| Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Every company report requires a bounded Reddit scout; zero yield is valid. Initial proving runs require an experimental Quora scout that preserves yield, recency, access, and relevance without pre-labeling. Other forums use category-aware hidden-venue discovery, not a fixed universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
+| Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Keep Reddit/Quora as explicit search-hygiene considerations, but commission external scouting only for a named decision-material job with no equal-or-better included substitute. Record dominated, non-material, blocked, and zero-yield routes without treating them as completion. Other forums use category-aware hidden-venue discovery, not a fixed universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | IG has current adjacent capture/discovery work; TikTok/YouTube/Reddit creator profiles are planned/deferred seams. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
@@ -412,7 +431,7 @@ feeds:
 | --- | --- | --- | --- |
 | 3. Required mode contract | Adopt with modification | The `backtest` cutoff and future-information exclusion are directionally right and align with zero-spoiler backtest doctrine. For a board, the mode controls evidence admissibility and chronology, not verdict authority. | Carry into future prompt as required evidence preflight; client-facing mode stays deferred. |
 | 4. Intake schema | Modify | The schema is useful, but it should become a signal-board brief: candidate, decision context, time window, source families/subfamilies, known unknowns, and evidence constraints. It should not decide buyer proof or demand. | Rewrite through prompt-orchestration if owner accepts the direction. |
-| 5. Gate decision / allocation | Reject gate decision; keep allocation as collection guidance | The 70/20/10 allocation is useful search hygiene, not a gate rule. Commission can allocate evidence effort; it cannot pass or fail demand. | Rename this section in any future prompt to signal-collection allocation. |
+| 5. Gate decision / allocation | Reject gate decision; keep allocation as collection guidance | Effort allocation is search hygiene only. No ratio, count, or coverage target establishes inclusion, acquisition closure, or a demand outcome. | Rename this section in any future prompt to signal-collection allocation. |
 | 6. Decision-type playbooks | Adopt as signal-route cards | The playbooks are useful venue-routing cards for fragrance/beauty cases, but they are not proof doctrine or demand-classifier logic. | Keep as route cards that identify likely signal families. |
 | 7. Source registry | Adopt with guardrails | The public/repeatable/provenance admission rule fits Forseti's public-first posture and Data Capture source-family discipline. The registry should preserve family/subfamily/surface distinctions and capture posture. | Bind each source family and subfamily to capture/provenance fields before any implementation. |
 | 8. Creator routing | Adopt with guardrails | Manual creator routing is acceptable for v1 and the non-creator confirmation guardrail is important. Creator evidence should be tagged by platform, origin, graph role, and relation to non-creator signals, not treated as demand proof. | Use as source routing; IG can be first, TikTok/YouTube/Reddit creator profiles stay planned/deferred until their profiles are accepted. |
@@ -425,10 +444,10 @@ feeds:
 ## Owner Decisions Needed
 
 1. Ratify or replace the working name **Commission Signal Board**.
-2. Decide the minimum board fields for handoff to the demand classifier and
+2. Decide the required structural board fields for handoff to the demand classifier and
    graph/retrieval lanes: source-family/subfamily coverage, signal units,
    provenance, chronology, graph retrieval brief, graph-ready rows, conflicts,
-   gaps, and handoff notes are the recommended minimum.
+   gaps, and handoff notes are the recommended schema.
 3. Ratify the initial source-family/subfamily map, including ATS/careers pages
    as the preferred movement source, Reddit as a forums/community subfamily,
    AEO as visibility annotation, and Discord as noisy/deferred unless a public
@@ -470,3 +489,4 @@ prompt artifact or implementation should be created from the temp file.
 - Not a scoring engine.
 - Not implementation authorization.
 - Not authorization to run a scan, capture sources, contact buyers, or produce a client-facing artifact.
+- Not acquisition closure, final packet inclusion, or a frozen participant packet.

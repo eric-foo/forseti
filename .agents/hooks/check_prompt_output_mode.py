@@ -256,6 +256,14 @@ _DELIVERY_RE = re.compile(
     r"^\s*(?:[-*]\s*)?(?:\*{0,2})?delivery(?:\*{0,2})?\s*:\s*(.*?)\s*$",
     re.IGNORECASE,
 )
+_EXECUTION_ROUTE_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?execution_route(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
+_REVIEW_DIFF_ROUTE_RE = re.compile(
+    r"^\s*(?:[-*]\s*)?(?:\*{0,2})?review_diff_route(?:\*{0,2})?\s*:\s*(.*?)\s*$",
+    re.IGNORECASE,
+)
 _REVIEW_CLAIM_BOUNDARY_RE = re.compile(
     r"^\s*(?:[-*]\s*)?(?:\*{0,2})?review_claim_boundary(?:\*{0,2})?\s*:\s*(.*?)\s*$",
     re.IGNORECASE,
@@ -565,6 +573,12 @@ def evaluate_delegated_patch_lines(rel_source: str, lines: list[str]) -> list[Fi
     )
     access, access_lineno = one_value("access", _ACCESS_RE)
     delivery, delivery_lineno = one_value("delivery", _DELIVERY_RE)
+    execution_route, execution_route_lineno = one_value(
+        "execution_route", _EXECUTION_ROUTE_RE
+    )
+    review_diff_route, review_diff_route_lineno = one_value(
+        "review_diff_route", _REVIEW_DIFF_ROUTE_RE
+    )
 
     invalid_vendor_placeholders = {"", "unknown", "unrecorded"}
     delegate_is_placeholder = delegate_vendor.casefold() == "operator_to_fill"
@@ -621,6 +635,20 @@ def evaluate_delegated_patch_lines(rel_source: str, lines: list[str]) -> list[Fi
             "delegated_patch_delivery",
             delivery_lineno,
             "delegate patch authoring is prompt-only: delivery must equal operator_courier_only",
+        ))
+    if execution_route != "five_phase_fast_path_if_eligible":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_execution_route",
+            execution_route_lineno,
+            "execution_route must equal five_phase_fast_path_if_eligible",
+        ))
+    if review_diff_route != "review_report_mechanics_if_durable_report_embeds_diff":
+        findings.append(Finding(
+            rel_source,
+            "delegated_patch_review_diff_route",
+            review_diff_route_lineno,
+            "review_diff_route must equal review_report_mechanics_if_durable_report_embeds_diff",
         ))
 
     claim_values = _declared_values(lines, _REVIEW_CLAIM_BOUNDARY_RE)
@@ -1372,6 +1400,8 @@ def selftest() -> int:
         "delegate_eligibility: different_vendor_lineage_with_direct_repo_access",
         "access: repo",
         "delivery: operator_courier_only",
+        "execution_route: five_phase_fast_path_if_eligible",
+        "review_diff_route: review_report_mechanics_if_durable_report_embeds_diff",
         "receiver_binding:",
         "  receiver_class: receiver_to_bind",
         "  binding_state: receiver_to_bind",
@@ -1380,6 +1410,23 @@ def selftest() -> int:
         "courier-only cross-vendor delegated patch prompt is valid",
         evaluate_delegated_patch_lines("couriered_delegate.md", couriered_delegate),
         [],
+    )
+    missing_execution_route = [
+        line for line in couriered_delegate
+        if not line.startswith("execution_route:")
+    ]
+    check(
+        "delegated patch prompt without execution route is rejected",
+        any(
+            finding.kind in {
+                "delegated_patch_field_count",
+                "delegated_patch_execution_route",
+            }
+            for finding in evaluate_delegated_patch_lines(
+                "missing_execution_route.md", missing_execution_route
+            )
+        ),
+        True,
     )
 
     same_vendor_delegate = [

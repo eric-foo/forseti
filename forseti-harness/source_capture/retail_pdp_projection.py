@@ -11,6 +11,7 @@ from pydantic import Field, field_validator, model_validator
 from harness_utils import generate_ulid
 from schemas.case_models import StrictModel
 from source_capture.models import PreservedFile, SourceCapturePacket, SourceCaptureSlice, VisibleFactStatus
+from source_capture.projection_shared import is_forbidden_field_token_match
 
 if TYPE_CHECKING:
     from data_lake.root import DataLakeRoot
@@ -1631,6 +1632,7 @@ def _html_attr_value(tag: str, attr_name: str) -> str | None:
 
 
 def _string_or_none(value: object) -> str | None:
+    # helper-delta: does not strip and also renders float/bool, unlike harness_utils.string_or_none.
     if value is None:
         return None
     if isinstance(value, (str, int, float)):
@@ -1703,12 +1705,7 @@ def _compact_excerpt(text: str) -> str:
 
 
 def _is_forbidden_field_name(key: str) -> bool:
-    normalized = key.lower().replace("-", "_")
-    parts = normalized.split("_")
-    return any(
-        token == normalized or token in parts or token in normalized
-        for token in _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES
-    )
+    return is_forbidden_field_token_match(key, _FORBIDDEN_SOURCE_VISIBLE_FIELD_NAMES)
 
 
 __all__ = [

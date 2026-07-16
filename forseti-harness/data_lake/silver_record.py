@@ -13,6 +13,20 @@ generic ``data_lake.root.append_record`` stays payload-blind; this is a
 Silver-aware layer ABOVE it, so Cleaning audit packs and projection/ECR records
 keep writing generically.
 
+Validation is split into two obligations that must not be collapsed:
+
+- ``validate_silver_vault_record_stable`` checks only permanent facts about a
+  persisted record -- envelope identity, required stored identifiers, the
+  original canonical content hash, the no-blur/ledger boundary, and enough
+  structure to select semantics.  It never changes with semantic-rule
+  tightening, so immutable stored records stay readable.
+- Semantic validation is selected AFTER the stable layer: a record whose exact
+  ``(producer_id, producer_schema_version, lane_namespace)`` tuple is declared
+  in the closed ``data_lake.silver_compatibility`` registry is validated only
+  against that profile's persisted grammar (read-only compatibility); every
+  other record -- including every new write -- must satisfy the complete
+  current semantic grammar and strict canonical references.
+
 Companions that close the v0 residuals: the write-path guard
 ``.agents/hooks/check_silver_lane_registry.py`` (a producer writing a Silver lane
 through the raw writer instead of this front-door fails CI, save the named
@@ -33,6 +47,11 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from data_lake.canonical_json import canonical_record_bytes
 from data_lake.root import DataLakeRootError
+from data_lake.silver_compatibility import (
+    CREATOR_METRIC_LINEAGE_INDEX,
+    FRAGRANTICA_INFERRED_REFS,
+    compatibility_profile_for,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -57,6 +76,13 @@ HISTORICAL_COMPATIBLE_AUTHORITY = "historical_compatible"
 INVALID_SILVER_AUTHORITY = "invalid"
 UNRESOLVED_SILVER_AUTHORITY = "unresolved"
 PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS = "source_backed_complete"
+RAW_PACKET_TOMBSTONE_LANE = "raw_packet_tombstone_silver"
+RAW_PACKET_TOMBSTONE_PRODUCER_ID = (
+    "forseti-harness.data_lake.silver_record.append_raw_packet_tombstone"
+)
+RAW_PACKET_TOMBSTONE_SCHEMA_VERSION = "raw_packet_tombstone_relationship_v0"
+RAW_PACKET_TOMBSTONE_SOURCE_SURFACE = "operator_retention_action"
+RAW_PACKET_TOMBSTONE_SCOPE = "public_consumption"
 
 
 @dataclass(frozen=True)
@@ -68,45 +94,6 @@ class SilverSourceAuthority:
     error: str | None = None
 
 
-_LEGACY_REFERENCE_PROFILES = {
-    (
-        "orca-harness.cleaning.fragrantica_lake.derive_fragrantica_cleaning_into_lake#silver",
-        "fragrantica_cleaning_silver_textobservation_v0",
-        "cleaning_fragrantica_silver",
-    ): "fragrantica_v0",
-    (
-        "orca-harness.cleaning.fragrantica_lake.derive_fragrantica_cleaning_into_lake#silver",
-        "fragrantica_cleaning_silver_metricobservation_v0",
-        "cleaning_fragrantica_silver",
-    ): "fragrantica_v0",
-    (
-        "orca-harness.capture_spine.creator_profile_current.youtube_silver_metric_producer.derive_youtube_creator_metric_silver_records_from_seed#metric_observation",
-        "youtube_creator_metric_silver_metricobservation_v0",
-        "creator_metric_silver",
-    ): "creator_metric_observation_v0",
-    (
-        "orca-harness.capture_spine.creator_profile_current.silver_metric_producer.derive_creator_metric_silver_records_from_projections#metric_observation",
-        "creator_metric_silver_metricobservation_v0",
-        "creator_metric_silver",
-    ): "creator_metric_observation_v0",
-    (
-        "orca-harness.capture_spine.creator_profile_current.youtube_silver_metric_producer.derive_youtube_creator_metric_silver_records_from_seed#metric_rollup",
-        "youtube_creator_metric_silver_metricrollupobservation_v0",
-        "creator_metric_rollup_silver",
-    ): "creator_metric_rollup_v0",
-    (
-        "orca-harness.capture_spine.creator_profile_current.silver_metric_producer.derive_creator_metric_silver_records_from_projections#metric_rollup",
-        "creator_metric_silver_metricrollupobservation_v0",
-        "creator_metric_rollup_silver",
-    ): "creator_metric_rollup_v0",
-}
-_LEGACY_TEMPORAL_PROFILES = {
-    (
-        "forseti-harness.capture_spine.creator_profile_current.tiktok_comment_attention_producer",
-        "tiktok_comment_attention_metric_observation_v1",
-        "tiktok_comment_attention_silver",
-    ): "tiktok_comment_attention_v1",
-}
 # Keys that mark Cleaning processing evidence (the transform ledger). A Silver fact
 # must never carry them -- that is the evidence-vs-fact half of the no-blur invariant.
 _LEDGER_KEYS = ("cleaning_packet", "transform_ledger")
@@ -116,13 +103,16 @@ class SilverRecordError(ValueError):
     """A record violates the Silver Vault envelope contract (the no-blur invariant)."""
 
 
-def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
-    """Raise ``SilverRecordError`` if ``record`` is not a well-formed Silver Vault
-    record.
+def validate_silver_vault_record_stable(record: Mapping[str, Any]) -> None:
+    """Raise ``SilverRecordError`` unless ``record`` satisfies every PERMANENT
+    Silver Vault obligation: envelope identity, required stored identifiers,
+    the original canonical content hash, the no-blur/ledger boundary, and
+    enough structure to select either current semantics or one declared
+    compatibility profile.
 
-    Enforces the common header, integrity, lineage, no-blur, and supported
-    observation payload invariants.  Validation is deliberately fail-closed at
-    the write boundary.
+    This layer validates the original stored mapping without modifying it and
+    must stay stable as semantic rules evolve; profile- or grammar-specific
+    rules belong in the semantic layers, never here.
     """
     if not isinstance(record, Mapping):
         raise SilverRecordError("Silver record must be a mapping.")
@@ -162,7 +152,11 @@ def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
     content_hash = record.get("content_hash")
     if not isinstance(content_hash, str) or re.fullmatch(r"sha256:[0-9a-f]{64}", content_hash) is None:
         raise SilverRecordError("Silver content_hash must be sha256: followed by 64 lowercase hex characters.")
-    _validate_lineage_refs(record)
+
+    if not isinstance(record.get("raw_refs"), list) or not isinstance(
+        record.get("derived_refs"), list
+    ):
+        raise SilverRecordError("Silver raw_refs and derived_refs must both be lists.")
 
     record_kind = record.get("record_kind")
     if record_kind not in CLOSED_RECORD_KINDS:
@@ -189,6 +183,21 @@ def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
                 "An observation record must carry a payload.observation object."
             )
         _reject_ledger(observation, where="observation")
+
+    expected_hash = silver_content_hash(record)
+    if content_hash != f"sha256:{expected_hash}":
+        raise SilverRecordError("Silver content hash mismatch: content_hash does not match canonical record content.")
+
+
+def _validate_current_semantics(record: Mapping[str, Any]) -> None:
+    """The complete CURRENT semantic grammar: strict canonical references,
+    payload-specific observation invariants, and the observed-at contract."""
+    _validate_strict_lineage_refs(record)
+    record_kind = record["record_kind"]
+    payload = record["payload"]
+    if record_kind == "observation":
+        observation = payload["observation"]
+        payload_kind = record["payload_kind"]
         if payload_kind == "MetricObservation":
             _validate_metric_posture(observation)
         elif payload_kind == METRIC_OBSERVATION_SET_PAYLOAD_KIND:
@@ -197,70 +206,52 @@ def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
             _validate_text_observation(observation)
         elif payload_kind == TEXT_OBSERVATION_SET_PAYLOAD_KIND:
             _validate_text_observation_set(observation)
+    _validate_observed_at_contract(
+        record_kind=record_kind,
+        observed_at=record.get("observed_at"),
+        captured_at=record.get("captured_at"),
+        payload=payload,
+    )
 
-    expected_hash = silver_content_hash(record)
-    if content_hash != f"sha256:{expected_hash}":
-        raise SilverRecordError("Silver content hash mismatch: content_hash does not match canonical record content.")
 
-    temporal_profile = _legacy_temporal_profile(record)
-    if temporal_profile == "tiktok_comment_attention_v1" and observed_at is None:
-        _validate_legacy_tiktok_comment_attention_v1_time(record, payload=payload)
+def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
+    """Raise ``SilverRecordError`` if ``record`` is not a well-formed Silver Vault
+    record.
+
+    Runs the stable permanent layer first (envelope, identifiers, original
+    content hash, no-blur), then selects semantics on the exact producer
+    tuple: a tuple declared in the closed ``data_lake.silver_compatibility``
+    registry is validated only against its persisted profile; every other
+    record must satisfy the complete current semantic grammar.  Validation is
+    deliberately fail-closed.
+    """
+    validate_silver_vault_record_stable(record)
+    profile = compatibility_profile_for(record)
+    if profile is not None:
+        profile.validate_persisted(record)
     else:
-        _validate_observed_at_contract(
-            record_kind=record_kind,
-            observed_at=observed_at,
-            captured_at=captured_at,
-            payload=payload,
-        )
+        _validate_current_semantics(record)
 
 
 def validate_silver_vault_record_for_write(record: Mapping[str, Any]) -> None:
-    """Validate the canonical grammar required for every newly persisted record."""
-    validate_silver_vault_record(record)
-    if (
-        _legacy_lineage_profile(record) is not None
-        or _legacy_temporal_profile(record) is not None
-    ):
+    """Validate the canonical grammar required for every newly persisted record.
+
+    A declared compatibility profile can never become writable: any record
+    whose producer tuple is in the registry is rejected here regardless of how
+    well-formed it is.
+    """
+    validate_silver_vault_record_stable(record)
+    if compatibility_profile_for(record) is not None:
         raise SilverRecordError(
             "Legacy Silver producer schemas are read-only compatibility records."
         )
-    _validate_strict_lineage_refs(record)
+    _validate_current_semantics(record)
 
 
 def _require_non_empty_string(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise SilverRecordError(f"{field} must be a non-empty string.")
     return value
-
-
-def _legacy_lineage_profile(record: Mapping[str, Any]) -> str | None:
-    return _LEGACY_REFERENCE_PROFILES.get(
-        (
-            record.get("producer_id"),
-            record.get("producer_schema_version"),
-            record.get("lane_namespace"),
-        )
-    )
-
-
-def _legacy_temporal_profile(record: Mapping[str, Any]) -> str | None:
-    return _LEGACY_TEMPORAL_PROFILES.get(
-        (
-            record.get("producer_id"),
-            record.get("producer_schema_version"),
-            record.get("lane_namespace"),
-        )
-    )
-
-
-def _validate_lineage_refs(record: Mapping[str, Any]) -> None:
-    try:
-        _validate_strict_lineage_refs(record)
-    except SilverRecordError:
-        profile = _legacy_lineage_profile(record)
-        if profile is None:
-            raise
-        _validate_legacy_lineage_refs(record, profile=profile)
 
 
 def _validate_strict_lineage_refs(record: Mapping[str, Any]) -> None:
@@ -366,78 +357,6 @@ def _validate_strict_lineage_refs(record: Mapping[str, Any]) -> None:
 
 
 
-def _validate_legacy_lineage_refs(
-    record: Mapping[str, Any], *, profile: str
-) -> None:
-    raw_refs = record.get("raw_refs")
-    derived_refs = record.get("derived_refs")
-    if not isinstance(raw_refs, list) or not isinstance(derived_refs, list):
-        raise SilverRecordError("Legacy Silver raw_refs and derived_refs must be lists.")
-    if profile in {"fragrantica_v0", "creator_metric_observation_v0"}:
-        if not raw_refs:
-            raise SilverRecordError(f"{profile} requires raw_refs.")
-        for index, ref in enumerate(raw_refs):
-            if not isinstance(ref, Mapping) or ref.get("ref_type") is not None:
-                raise SilverRecordError(
-                    f"Legacy raw_refs[{index}] must use the declared pre-ref_type grammar."
-                )
-            for field in ("packet_id", "sha256", "hash_basis"):
-                _require_non_empty_string(
-                    ref.get(field), f"Legacy raw_refs[{index}].{field}"
-                )
-            allowed_bases = (
-                {RAW_STORED_BYTES_HASH_BASIS}
-                if profile == "fragrantica_v0"
-                else {
-                    RAW_STORED_BYTES_HASH_BASIS,
-                    "source_captured_watch_html_sha256",
-                }
-            )
-            if ref.get("hash_basis") not in allowed_bases:
-                raise SilverRecordError(
-                    f"Legacy raw_refs[{index}] has an unsupported hash basis."
-                )
-            if profile == "fragrantica_v0":
-                _require_non_empty_string(
-                    ref.get("file_id"), f"Legacy raw_refs[{index}].file_id"
-                )
-    if profile == "fragrantica_v0":
-        if not derived_refs:
-            raise SilverRecordError("fragrantica_v0 requires derived_refs.")
-        expected_lane = "cleaning_fragrantica_audit"
-    elif profile == "creator_metric_observation_v0":
-        if derived_refs:
-            raise SilverRecordError(
-                "creator_metric_observation_v0 must not carry derived_refs."
-            )
-        return
-    else:
-        if raw_refs or not derived_refs:
-            raise SilverRecordError(
-                "creator_metric_rollup_v0 requires only derived_refs."
-            )
-        expected_lane = "creator_metric_silver"
-    for index, ref in enumerate(derived_refs):
-        if not isinstance(ref, Mapping) or ref.get("raw_anchor") is not None:
-            raise SilverRecordError(
-                f"Legacy derived_refs[{index}] must use the declared address grammar."
-            )
-        lane = ref.get("lane_namespace", ref.get("lane"))
-        if lane != expected_lane:
-            raise SilverRecordError(
-                f"Legacy derived_refs[{index}] has an unexpected lane."
-            )
-        _require_non_empty_string(
-            ref.get("record_id"), f"Legacy derived_refs[{index}].record_id"
-        )
-        _require_non_empty_string(
-            ref.get("content_hash"), f"Legacy derived_refs[{index}].content_hash"
-        )
-        if ref.get("content_hash_basis") != CONTENT_HASH_BASIS:
-            raise SilverRecordError(
-                f"Legacy derived_refs[{index}].content_hash_basis must be {CONTENT_HASH_BASIS!r}."
-            )
-
 def verify_silver_vault_record_sources(
     data_root: "DataLakeRoot",
     record: Mapping[str, Any],
@@ -467,17 +386,37 @@ def classify_silver_vault_record_sources(
     record_path: "Path | None" = None,
     creator_metric_lineage: Any | None = None,
 ) -> SilverSourceAuthority:
-    """Classify current, compatible historical, invalid, and unresolved evidence."""
+    """Classify current, compatible historical, invalid, and unresolved evidence.
+
+    Read order, deliberately: the original stored envelope and content hash
+    validate first; the exact producer tuple then selects either the complete
+    current semantic grammar or one declared compatibility profile; physical
+    source verification runs only after the selected semantics pass.  Unknown,
+    contradictory, incomplete, or ambiguous legacy-looking records fail closed
+    as ``invalid``.
+    """
     try:
-        validate_silver_vault_record(record)
+        validate_silver_vault_record_stable(record)
     except (TypeError, ValueError) as exc:
         return SilverSourceAuthority(
             INVALID_SILVER_AUTHORITY,
             "invalid_silver_envelope",
             f"{type(exc).__name__}: {exc}",
         )
-    profile = _legacy_lineage_profile(record)
-    if profile in {"creator_metric_observation_v0", "creator_metric_rollup_v0"}:
+    profile = compatibility_profile_for(record)
+    try:
+        if profile is not None:
+            profile.validate_persisted(record)
+        else:
+            _validate_current_semantics(record)
+    except (TypeError, ValueError) as exc:
+        return SilverSourceAuthority(
+            INVALID_SILVER_AUTHORITY,
+            "invalid_silver_envelope",
+            f"{type(exc).__name__}: {exc}",
+        )
+    if profile is not None and profile.reference_strategy == CREATOR_METRIC_LINEAGE_INDEX:
+        # Status and reason pass through the cross-epoch lineage classification.
         if record_path is None:
             return SilverSourceAuthority(
                 UNRESOLVED_SILVER_AUTHORITY,
@@ -507,10 +446,9 @@ def classify_silver_vault_record_sources(
             UNRESOLVED_SILVER_AUTHORITY, lineage.reason_code
         )
     try:
-        if profile == "fragrantica_v0":
+        if profile is not None and profile.reference_strategy == FRAGRANTICA_INFERRED_REFS:
             _verify_legacy_fragrantica_sources(data_root, record)
         else:
-            _validate_strict_lineage_refs(record)
             _verify_canonical_sources(data_root, record)
     except (OSError, TypeError, ValueError, KeyError, DataLakeRootError) as exc:
         return SilverSourceAuthority(
@@ -518,15 +456,16 @@ def classify_silver_vault_record_sources(
             "source_ref_unresolved",
             f"{type(exc).__name__}: {exc}",
         )
-    temporal_profile = _legacy_temporal_profile(record)
-    if temporal_profile == "tiktok_comment_attention_v1" and record.get("observed_at") is None:
+    if profile is None:
         return SilverSourceAuthority(
-            HISTORICAL_COMPATIBLE_AUTHORITY,
-            "legacy_tiktok_comment_attention_v1_bytes_verified",
+            CURRENT_SOURCE_BACKED_AUTHORITY, "canonical_refs_verified"
+        )
+    if profile.may_classify_historical and record.get("observed_at") is None:
+        return SilverSourceAuthority(
+            HISTORICAL_COMPATIBLE_AUTHORITY, profile.historical_reason_code
         )
     return SilverSourceAuthority(
-        CURRENT_SOURCE_BACKED_AUTHORITY,
-        "legacy_bytes_verified" if profile else "canonical_refs_verified",
+        CURRENT_SOURCE_BACKED_AUTHORITY, profile.current_reason_code
     )
 
 
@@ -837,65 +776,6 @@ def _validate_observed_at_contract(
         )
 
 
-def _validate_legacy_tiktok_comment_attention_v1_time(
-    record: Mapping[str, Any], *, payload: Mapping[str, Any]
-) -> None:
-    """Accept only the exact immutable v1 null-time posture as historical."""
-    if record.get("record_kind") != "observation" or record.get("payload_kind") != "MetricObservation":
-        raise SilverRecordError(
-            "Legacy TikTok comment-attention v1 compatibility requires a MetricObservation."
-        )
-    if record.get("producer_row_kind") != "tiktok_comment_attention_metric":
-        raise SilverRecordError(
-            "Legacy TikTok comment-attention v1 producer_row_kind is invalid."
-        )
-    if record.get("source_surface") != "tiktok_creator_batch_comment_subtitle_admission":
-        raise SilverRecordError(
-            "Legacy TikTok comment-attention v1 source_surface is invalid."
-        )
-    observation = payload.get("observation")
-    if not isinstance(observation, Mapping):
-        raise SilverRecordError(
-            "Legacy TikTok comment-attention v1 requires payload.observation."
-        )
-    for forbidden in ("effective_interval", "recorded_at", "evidence_refs", "limitations"):
-        if forbidden in observation:
-            raise SilverRecordError(
-                "Legacy TikTok comment-attention v1 compatibility rejects "
-                f"partial current-time field {forbidden!r}."
-            )
-    if observation.get("metric_name") != "comment_like_to_video_like_ratio":
-        raise SilverRecordError(
-            "Legacy TikTok comment-attention v1 metric_name is invalid."
-        )
-    if observation.get("metric_value") is not None:
-        raise SilverRecordError(
-            "Legacy TikTok comment-attention v1 null-time metric_value must be null."
-        )
-    posture = observation.get("metric_posture")
-    if not isinstance(posture, Mapping) or (
-        posture.get("kind") != "unavailable_with_reason"
-        or posture.get("reason_code") != "temporal_alignment_unproven"
-    ):
-        raise SilverRecordError(
-            "Legacy TikTok comment-attention v1 requires temporal_alignment_unproven posture."
-        )
-    pairing = observation.get("temporal_pairing")
-    if not isinstance(pairing, Mapping) or (
-        pairing.get("alignment") != "unproven"
-        or pairing.get("comment_observed_at") is not None
-        or not isinstance(pairing.get("video_stats_observed_at"), str)
-        or not pairing["video_stats_observed_at"].strip()
-    ):
-        raise SilverRecordError(
-            "Legacy TikTok comment-attention v1 temporal_pairing is contradictory."
-        )
-    if observation.get("source_publication_or_event") is not None:
-        raise SilverRecordError(
-            "Legacy TikTok comment-attention v1 source_publication_or_event must be null."
-        )
-
-
 def _validate_metric_posture(observation: Mapping[str, Any]) -> None:
     """MetricObservation posture coupling, per the Silver Vault contract's metric
     posture table: observed => value present and BOTH reason fields null; non-observed
@@ -1122,6 +1002,88 @@ def silver_content_hash(record: Mapping[str, Any]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def build_raw_packet_tombstone_record(
+    *,
+    retained_packet_id: str,
+    tombstoned_packet_id: str,
+    captured_at: str,
+    reason: str,
+) -> dict[str, Any]:
+    """Build an append-only relationship that removes one raw packet from public reads."""
+    retained = _require_non_empty_string(retained_packet_id, "retained_packet_id")
+    tombstoned = _require_non_empty_string(
+        tombstoned_packet_id, "tombstoned_packet_id"
+    )
+    recorded_at = _require_non_empty_string(captured_at, "captured_at")
+    disposition_reason = _require_non_empty_string(reason, "reason")
+    if retained == tombstoned:
+        raise SilverRecordError("A raw packet cannot tombstone itself.")
+    identity = "\0".join(
+        (retained, tombstoned, recorded_at, disposition_reason)
+    ).encode("utf-8")
+    record_id = (
+        f"raw_packet_tombstone_{hashlib.sha256(identity).hexdigest()[:24]}.json"
+    )
+    record: dict[str, Any] = {
+        "record_id": record_id,
+        "raw_anchor": retained,
+        "lane_namespace": RAW_PACKET_TOMBSTONE_LANE,
+        "producer_id": RAW_PACKET_TOMBSTONE_PRODUCER_ID,
+        "schema_version": SILVER_VAULT_RECORD_SCHEMA_VERSION,
+        "producer_schema_version": RAW_PACKET_TOMBSTONE_SCHEMA_VERSION,
+        "record_kind": "relationship",
+        "payload_kind": "RelationshipEdge",
+        "producer_row_kind": "raw_packet_tombstone",
+        "source_surface": RAW_PACKET_TOMBSTONE_SOURCE_SURFACE,
+        "observed_at": None,
+        "captured_at": recorded_at,
+        "raw_refs": [
+            {"ref_type": "raw_packet", "packet_id": retained},
+            {"ref_type": "raw_packet", "packet_id": tombstoned},
+        ],
+        "derived_refs": [],
+        "content_hash": "",
+        "content_hash_basis": CONTENT_HASH_BASIS,
+        "payload": {
+            "relationship": {
+                "edge_type": "tombstones_record",
+                "from": {"ref_type": "record_id", "ref": retained},
+                "to": {"ref_type": "record_id", "ref": tombstoned},
+                "reason": disposition_reason,
+                "recorded_at": recorded_at,
+                "unavailability_scope": RAW_PACKET_TOMBSTONE_SCOPE,
+                "raw_bytes_retained": True,
+            }
+        },
+    }
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+    return record
+
+
+def append_raw_packet_tombstone(
+    data_root: "DataLakeRoot",
+    *,
+    retained_packet_id: str,
+    tombstoned_packet_id: str,
+    captured_at: str,
+    reason: str,
+) -> "Path":
+    """Persist a validated public-read tombstone while retaining both raw packets."""
+    record = build_raw_packet_tombstone_record(
+        retained_packet_id=retained_packet_id,
+        tombstoned_packet_id=tombstoned_packet_id,
+        captured_at=captured_at,
+        reason=reason,
+    )
+    return append_silver_record(
+        data_root,
+        raw_anchor=retained_packet_id,
+        lane=RAW_PACKET_TOMBSTONE_LANE,
+        record_id=record["record_id"],
+        record=record,
+    )
+
+
 def append_silver_record(
     data_root: "DataLakeRoot",
     *,
@@ -1229,15 +1191,23 @@ __all__ = [
     "INVALID_SILVER_AUTHORITY",
     "UNRESOLVED_SILVER_AUTHORITY",
     "PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS",
+    "RAW_PACKET_TOMBSTONE_LANE",
+    "RAW_PACKET_TOMBSTONE_PRODUCER_ID",
+    "RAW_PACKET_TOMBSTONE_SCHEMA_VERSION",
+    "RAW_PACKET_TOMBSTONE_SOURCE_SURFACE",
+    "RAW_PACKET_TOMBSTONE_SCOPE",
     "SilverSourceAuthority",
     "SILVER_VAULT_RECORD_SCHEMA_VERSION",
     "SilverRecordError",
+    "append_raw_packet_tombstone",
     "append_silver_record",
     "append_silver_record_set",
+    "build_raw_packet_tombstone_record",
     "classify_silver_vault_record_sources",
     "silver_content_hash",
     "silver_raw_refs_bound_to_own_anchor",
     "validate_silver_vault_record",
     "validate_silver_vault_record_for_write",
+    "validate_silver_vault_record_stable",
     "verify_silver_vault_record_sources",
 ]

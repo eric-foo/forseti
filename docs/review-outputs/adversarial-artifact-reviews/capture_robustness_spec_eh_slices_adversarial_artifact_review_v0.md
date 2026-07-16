@@ -1,6 +1,16 @@
 # Capture Robustness Spec E-H Slices Adversarial Artifact Review v0
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial artifact review of Capture Robustness Specification slices E through H.
+use_when:
+  - Inspecting the review findings or their advisory boundary.
+  - Tracing later patches or decisions back to this review.
+authority_boundary: retrieval_only
+```
+
+```yaml
 review_summary:
   report_path: docs/review-outputs/adversarial-artifact-reviews/capture_robustness_spec_eh_slices_adversarial_artifact_review_v0.md
   review_type: delegated_adversarial_artifact_review

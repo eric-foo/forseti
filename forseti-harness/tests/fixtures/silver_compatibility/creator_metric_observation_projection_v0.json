@@ -1,0 +1,75 @@
+{
+  "captured_at": "2026-01-01T00:00:00Z",
+  "content_hash": "sha256:35917bbdd4535a7651322f427537fceea4ba0acf7970bf0df81243a0b3d824a2",
+  "content_hash_basis": "canonical_json_excluding_content_hash",
+  "derived_refs": [],
+  "lane_namespace": "creator_metric_silver",
+  "non_claims": [
+    "not a follower graph or audience estimate",
+    "not a representative creator average",
+    "not buyer proof",
+    "not channel-wide creator influence",
+    "not cross-platform identity linkage"
+  ],
+  "observed_at": "2026-01-01T00:00:00Z",
+  "payload": {
+    "observation": {
+      "coverage_window": {
+        "end": "2026-01-01T00:00:00Z",
+        "start": null
+      },
+      "metric_name": "follower_count",
+      "metric_posture": {
+        "kind": "observed",
+        "reason_code": null,
+        "reason_detail": null
+      },
+      "metric_value": 1000,
+      "source_publication_or_event": null,
+      "source_surface": "web_profile_info_json_metadata",
+      "source_surface_count_candidates": [
+        {
+          "raw_text": null,
+          "source_surface": "web_profile_info_json_metadata",
+          "value": 1000
+        }
+      ],
+      "subject": {
+        "ref": {
+          "kind": "platform_public_account",
+          "namespace": "instagram",
+          "native_id": "fixture_creator",
+          "orca_platform_account_id": "acct_ig_fixture_001"
+        },
+        "ref_type": "entity_key"
+      },
+      "unit": "count"
+    }
+  },
+  "payload_kind": "MetricObservation",
+  "producer_id": "orca-harness.capture_spine.creator_profile_current.silver_metric_producer.derive_creator_metric_silver_records_from_projections#metric_observation",
+  "producer_row_kind": "ig_creator_metric",
+  "producer_schema_version": "creator_metric_silver_metricobservation_v0",
+  "provenance": {
+    "metric_registry_version": "creator_metric_seed_instagram_reels_grid_v0",
+    "projection_source_pointer": "derived/000/01J000000000000000000000P1/projection_ig_reels_grid/fixture_projection.json#/rows/0",
+    "projection_source_row_id": "01J000000000000000000000P1:ig_reels_profile_00:follower_count",
+    "seed_metric_observation_id": "ig_fixture_metric_obs_v0_001"
+  },
+  "raw_anchor": "01J000000000000000000000P1",
+  "raw_refs": [
+    {
+      "file_id": "file_01",
+      "hash_basis": "raw_stored_bytes",
+      "json_pointer": "/creator_profile_snapshot/follower_count",
+      "packet_id": "01J000000000000000000000P1",
+      "relative_packet_path": "raw/01_ig_reels_grid_capture.json",
+      "sha256": "dd5b6a730f6d6f1ddc8db5e9d56b36998cb1a7cd6b631bbbcf157ed3c92c91d2"
+    }
+  ],
+  "record_id": "01J00000000000000000000PO1.json",
+  "record_kind": "observation",
+  "schema_version": "silver_vault_record_v0",
+  "source_family": "social_media",
+  "source_surface": "web_profile_info_json_metadata"
+}

@@ -240,6 +240,14 @@ Use only supplied evidence/context unless the dispatcher separately authorizes
 retrieval. If no evidence is supplied, produce a collection board with
 `evidence_status: to_retrieve`; do not state that evidence exists.
 
+For any recurring or actively radarred source family that may be sent to
+Scanning or Capture, specify a lake-first preflight before external acquisition:
+inspect the relevant Silver/current view first, then packet or catalog inventory,
+then raw material when necessary. Treat that inspection as reuse, freshness,
+and coverage context only, not proof of current external reality. Absence from
+Silver is not absence from the lake or the external world, and lack of a
+relevant read model must not block acquisition.
+
 For every evidence-like claim, distinguish:
 
 - `provided`: supplied in the prompt or source pack;
@@ -339,7 +347,7 @@ requires them.
 
 | Source family | Subfamilies / surfaces | Signal role / content | Capture posture |
 | --- | --- | --- | --- |
-| Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | For every company report, commission a bounded Reddit scout; zero yield is valid. For initial proving runs, also commission an explicit experimental Quora scout and preserve yield, recency, access, and relevance without pre-labeling it stale or low-yield. Discover other forums by category and hidden-venue cues, not a universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
+| Forums / community | Reddit; Quora; category-relevant generic or specialist forums discovered for the subject | external/customer language, comparisons, objections, corrections, and response context | Keep Reddit and Quora as explicit search-hygiene considerations. Commission external scouting only when the venue performs a named decision-material job and is not dominated by an equal-or-better included route; otherwise record the exclusion or `not_applicable` rationale. Zero yield is a route result, not completion. Discover other forums by category and hidden-venue cues, not a universal platform list. Community evidence is never representative demand or internal company fact. Execution stays with Scanning/Capture. |
 | Reviews | retailer reviews, marketplace reviews, brand-site reviews, specialist fragrance reviews | experience claims, recency, complaints, repeat-use hints, contradiction checks | Do not collapse to aggregate stars; preserve recency and source conventions. |
 | Creator / social video | Instagram, TikTok, YouTube, shorts/reels, affiliate/creator posts, later Reddit creator/community personalities | attention spread, creator clusters, campaign risk, audience language, propagation timing | Instagram has current adjacent capture/discovery work. TikTok, YouTube, and Reddit creator profiles are planned/deferred seams unless separately authorized. |
 | Retail / PDP | Sephora, Ulta, Amazon, Nordstrom, brand PDPs, retailer search/category pages | availability, assortment, stock/discounting posture, review context, retailer corroboration | Retail/PDP is corroborative and operationally useful; it is not consumer-origin by itself. |
@@ -434,7 +442,11 @@ Use effort allocation as search hygiene, not a gate rule:
 - smaller effort: owned chronology and official claims.
 
 Do not express allocation as pass/fail thresholds. If a source family is absent,
-record it as a gap or not-applicable route.
+record it as a gap or not-applicable route. No numeric source, row, observation,
+venue, capture-target, or effort target establishes inclusion or completion.
+Include an item only when `Why check it`, `Row purpose`, or `Handoff note`
+names the decision-material job it performs and no equal-or-better included item
+performs the same job.
 
 ## Graph-Light Contract
 
@@ -501,6 +513,11 @@ Markdown table:
 Include all relevant families. Include non-relevant families only when their
 absence is decision-relevant.
 
+For each included route, `Why check it` must name how the route could change the
+action, action ceiling, rival assessment, or hold condition. If an equal-or-
+better included route performs the same job, omit the route or record it as a
+dominated exclusion rather than an acquisition target.
+
 When the commission has unresolved market-language,
 comparison/confusion, hidden-venue, or counterevidence-query questions, include
 `search_discovery / search_surface_mgt` in this plan even if no SERP packet exists
@@ -528,6 +545,9 @@ Rules:
 - For backtests, set `surface_cutoff_status` before assigning `evidence_status`.
   Post-cutoff surfaces are `excluded_future_info`, not ordinary `to_retrieve`.
 - Counterevidence rows are first-class rows, not footnotes.
+- `Row purpose` plus `Handoff note` must name the row's decision-material job.
+  Omit substitutable rows when an equal-or-better included row performs that job;
+  a dominance/exclusion note is not evidence inclusion or completion credit.
 - Use `recency_attention: high` for same-strength newer/current signals that
   should receive more downstream scan attention than older context; this does
   not make the row proof, demand classification, or graph weight.
@@ -541,7 +561,7 @@ Markdown table:
 
 `Path ID | What could disconfirm or weaken the signal | Source families to check | Why it matters | Evidence status | Cutoff rule`
 
-At minimum, consider:
+Consider these only when they perform a named decision-material job:
 
 - creator-only or affiliate-campaign concentration;
 - retailer/review contradiction;
@@ -646,9 +666,11 @@ next_authorized_step: <one sentence>
 Use `board_status` for the board's usefulness:
 
 - `READY_FOR_RETRIEVAL_HANDOFF` - the board is complete enough to hand to a
-  separately authorized retrieval/extraction lane. This is not a demand verdict or
-  demand-classification readiness signal; any classifier use remains separately
-  authorized under the demand classifier's own authority.
+  separately authorized retrieval/extraction lane. This is CSB planning
+  completeness only: it is not acquisition closure, a frozen participant
+  packet, a demand verdict, or demand-classification readiness signal; any
+  classifier use remains separately authorized under the demand classifier's
+  own authority.
 - `COLLECTION_BOARD_ONLY` - the board is useful as a collection map, but major
   gaps or cutoff uncertainties prevent a clean retrieval handoff.
 - `NEEDS_COMMISSION_INTAKE` - required intake fields are missing; return the
@@ -722,9 +744,12 @@ coverage_ledger:
     gap_id: GAP-001 | null
 ```
 
-Every company report includes a bounded Reddit row. Zero yield is valid. An
-initial proving run includes an experimental Quora row. Other forum discovery
-is category-aware. A blocked or missing row needs a typed gap/request;
+Every company report records the Reddit consideration row for compatibility and
+search-hygiene accountability; initial proving runs do the same for Quora. These
+rows may record `not_applicable` or non-selection when no named decision-material
+job survives the substitution test. External scouting is requested only for a
+non-dominated job. Zero yield is a route result, not completion. Other forum
+discovery is category-aware. A blocked or missing row needs a typed gap/request;
 `not_applicable` needs a rationale.
 
 ### 4. Observation Ledger
@@ -810,13 +835,14 @@ These rows are proposals only. This prompt never imports into Company Surface.
 
 ```yaml
 completion_ledger:
+  completion_scope: csb_planning_only_not_acquisition
   coverage_status: complete | complete_with_typed_gap
   observation_status: traceable
   candidate_status: candidate_only_not_imported
   completeness_policy: necessary_complete_no_arbitrary_caps
   hidden_venue_discovery: category_aware
-  reddit_scout_status: checked_positive_yield | checked_zero_yield | blocked_with_typed_gap | commissioned_not_yet_run
-  quora_scout_status: experimental_checked_positive_yield | experimental_checked_zero_yield | blocked_with_typed_gap | not_required | commissioned_not_yet_run
+  reddit_scout_status: checked_positive_yield | checked_zero_yield | blocked_with_typed_gap | not_required_no_decision_material_job | commissioned_not_yet_run
+  quora_scout_status: experimental_checked_positive_yield | experimental_checked_zero_yield | blocked_with_typed_gap | not_required_no_decision_material_job | commissioned_not_yet_run
   customer_community_boundary: external_evidence_not_representative_demand_or_internal_fact
   deep_competitor_treatment: separate_named_follow_up_required
   classifier_handoff: omitted
@@ -847,9 +873,11 @@ completion_ledger:
   next_authorized_step:
 ```
 
-Completeness is coverage of every required lens plus explicit typed gaps and
-requests, not a length, page, source-count, or observation cap. Remove
-duplication and ornament, not necessary completeness.
+CSB planning completeness is coverage of every required lens plus explicit
+typed gaps, exclusions, and requests. It is not acquisition closure or final
+packet inclusion, and no length, page, source-count, observation, venue, or
+capture-target number establishes it. Scanning owns marginal acquisition,
+dominance, and acquisition closure.
 
 Commission-stage rule: a company board sealed **before** its scan executes uses
 `run_boundary: COMMISSION_SEALED_PRE_SCAN`. That boundary is valid only while
@@ -865,14 +893,18 @@ In every stage, each scout status must match its corresponding coverage row:
 positive yield means `status: checked` plus `yield: evidence_found`; zero yield
 means `status: checked` plus `yield: zero_yield`; blocked means
 `status: blocked` plus `yield: blocked`; `commissioned_not_yet_run` means
-`status: not_checked` plus `yield: unknown`; and Quora `not_required` means no
-Quora row or a `not_applicable` / `not_applicable` row.
+`status: not_checked` plus `yield: unknown`; and
+`not_required_no_decision_material_job` (either venue) means no row for that
+venue, or a non-selection row recorded as `not_applicable` / `not_applicable`.
 
 ## Final Rules
 
 - Use the selected profile's ten-section contract only.
 - Do not impose report-length, source-count, page, or observation caps; remove
   duplication and ornament, not necessary completeness.
+- Do not freeze a participant packet or declare acquisition complete. CSB names
+  material information jobs and candidate routes; Scanning owns dominance and
+  value-based acquisition closure.
 - Prefer explicit gaps over invented completeness.
 - Preserve source family and subfamily identity.
 - Treat AEO as visibility annotation only.
