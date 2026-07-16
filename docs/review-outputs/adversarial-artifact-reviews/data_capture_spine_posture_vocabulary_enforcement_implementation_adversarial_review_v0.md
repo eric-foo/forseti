@@ -1,4 +1,16 @@
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial implementation review of Data Capture posture-vocabulary enforcement.
+use_when:
+  - Inspecting implementation findings before accepting or patching the enforcement change.
+  - Tracing posture-vocabulary enforcement decisions to their review evidence.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+```
+
+```yaml
 review_summary:
   status: completed
   report_path: docs/review-outputs/adversarial-artifact-reviews/data_capture_spine_posture_vocabulary_enforcement_implementation_adversarial_review_v0.md

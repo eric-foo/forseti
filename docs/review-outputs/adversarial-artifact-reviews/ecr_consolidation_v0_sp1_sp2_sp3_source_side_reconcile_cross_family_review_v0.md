@@ -1,6 +1,19 @@
 # ECR Consolidation v0 SP-1/SP-2/SP-3 Source-Side Reconcile Cross-Family Review v0
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Cross-family source-side reconciliation review of ECR Consolidation SP-1 through SP-3.
+use_when:
+  - Inspecting source-side reconciliation findings or residual friction.
+  - Tracing SP-1 through SP-3 consolidation decisions to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
+```
+
+```yaml
 review_summary:
   status: completed
   report_path: docs/review-outputs/adversarial-artifact-reviews/ecr_consolidation_v0_sp1_sp2_sp3_source_side_reconcile_cross_family_review_v0.md

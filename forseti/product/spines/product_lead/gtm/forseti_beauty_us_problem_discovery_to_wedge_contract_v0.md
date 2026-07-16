@@ -19,6 +19,8 @@ This contract supersedes earlier Beauty GTM working assumptions for this run. It
 
 The company-selection companion is [forseti_beauty_us_company_selection_v0.json](../../../../../docs/research/forseti_beauty_us_company_selection_v0.json). The human adjudication is [forseti_beauty_us_company_eligibility_pool_v0.md](../../../../../docs/research/forseti_beauty_us_company_eligibility_pool_v0.md).
 
+The active one-company research commission is [forseti_beauty_tower28_company_decision_pressure_csb_v0.md](../../../../../docs/research/forseti_beauty_tower28_company_decision_pressure_csb_v0.md).
+
 ## Frozen run decisions
 
 - Market: United States.
@@ -68,9 +70,9 @@ A selected Brand may be replaced only for failed eligibility, identity, access, 
 
 Company Surface is the factual history layer. It may later hold dated, sourced observations and identity/parent/channel facts. GTM owns the temporary eligibility label, stratum classification, comparator designation, selection hash, pool membership, and later hypotheses.
 
-This work unit does not depend on unmerged Company Surface PR #967 and does not implement a Company Surface schema, runtime, corpus, or write path. The selection JSON is a research companion, not a Company Surface logical record. Pool membership is administrative metadata and is never company evidence.
+The selection JSON is a research companion, not a Company Surface logical record. Pool membership is administrative metadata and is never company evidence.
 
-The first substantive company decision-pressure pass remains blocked until the minimal Company Surface-compatible proving slice is functional enough to preserve its factual outputs without mixing them with GTM judgment.
+One-company decision-pressure passes may proceed as research artifacts while Company Surface is being built, provided candidate factual observations remain separately identifiable from GTM interpretations. This route makes no Company Surface write, mapping, ingestion, schema-fit, compatibility, or readiness claim. Import into Company Surface is a later explicit commission.
 
 ## Research bounds and stop conditions
 
@@ -88,12 +90,55 @@ The first substantive company decision-pressure pass remains blocked until the m
 
 - the pool artifacts pass their validators and invariant checks;
 - a cold reader can trace every selected Brand from this contract to its source pointers and selection reason without chat history;
-- the minimal Company Surface-compatible proving slice can preserve facts separately from GTM interpretation; and
-- a later commission names one company at a time for a Company Decision-Pressure Pass.
+- a later commission names exactly one Brand for a Company Decision-Pressure Pass; and
+- that pass separately identifies sourced observations, GTM interpretation, and candidate facts for a possible future import.
 
 This contract authorizes neither outreach nor runtime, crawler, monitor, registry, or capture-runner construction.
 
 ## Direction change propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    One-company decision-pressure passes may proceed as bounded research artifacts
+    while Company Surface is being built, provided sourced observations, GTM
+    interpretation, and future-import candidate facts remain separate and no
+    Company Surface write, schema fit, compatibility, ingestion, or readiness is claimed.
+  trigger: lifecycle_boundary
+  related_triggers: [product_doctrine, output_authority]
+  controlling_sources_updated:
+    - forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/product-proof.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - docs/workflows/forseti_research_engine_map_v0.md
+    - docs/research/forseti_beauty_us_company_eligibility_pool_v0.md
+    - docs/research/forseti_beauty_us_company_selection_v0.json
+    - forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md
+    - forseti/product/spines/commission_signal_board/README.md
+    - forseti/product/spines/scanning/README.md
+  intentionally_not_updated:
+    - path: forseti/product/information/company_surface/
+      reason: Company Surface writes, mapping, ingestion, schema fit, compatibility, and readiness are outside this commission.
+    - path: docs/research/forseti_beauty_us_company_longlist_scan_v0.md, docs/research/forseti_beauty_us_company_eligibility_pool_v0.md, and docs/research/forseti_beauty_us_company_selection_v0.json
+      reason: These remain point-in-time Phase A scan/selection artifacts; the owning GTM contract now carries the later-work lifecycle rule and active commission link without rewriting their historical closeout state.
+  stale_language_search: >
+    rg -n -i "first substantive.*(blocked|hold)|Company Surface-compatible proving slice|later company work|decision-pressure pass" AGENTS.md .agents/workflow-overlay docs/workflows docs/research forseti/product/spines/product_lead/gtm forseti/product/satellites/beauty
+  stale_language_search_result: >
+    Executed 2026-07-16. Live controlling hits are the new one-company rule,
+    exact-Brand gate, active commission, and this receipt. The handoff names the
+    former hold only inside Superseded / Dangerous-To-Reuse Context. Remaining
+    old-hold wording is confined to the intentionally unchanged point-in-time
+    longlist and eligibility artifacts; no checked overlay, repo-map, current
+    thesis/profile, CSB, or Scanning owner routes later work through that hold.
+  non_claims:
+    - not Company Surface implementation, mapping, ingestion, schema compatibility, or readiness
+    - not company pain, buyer intent, urgency, willingness-to-pay, or wedge proof
+    - not outreach, runtime, crawler, monitor, registry, or capture-runner authorization
+```
 
 ```yaml
 direction_change_propagation:
