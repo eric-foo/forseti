@@ -8,12 +8,35 @@ scope: >
   oversized functions (>200 lines) found by the 2026-07-16 slop audit's
   decomposition lens, ranked by length x responsibilities x template risk.
 use_when:
-  - A fresh lane is commissioned to decompose these three functions.
+  - A fresh lane is commissioned to decompose function 3 (the only remaining scope; see Disposition).
   - Verifying decomposition scope, per-function test-coverage risk, and non-goals.
 authority_boundary: retrieval_only
 ```
 
 - output_mode: `file-write` (receiver implements source changes in its own worktree)
+
+## Disposition (2026-07-17 — packet partially executed)
+
+- Functions 1 and 2 are DELIVERED: decomposed behavior-preserving on branch
+  `claude/handoffs-decomp-context-97c95b`, PR #1040 to `main` (commits
+  `46376ec7` fn1, `009fc69e` fn2). Suites passed unmodified (57/57, 50/50);
+  full suite green; cross-vendor delegated review (delegate: OpenAI) returned
+  `no_material_defect_found` with an empty diff, adjudicated accepted.
+- Do NOT commission a new lane for functions 1 or 2 from this packet. Their
+  sections below are historical provenance only; check PR #1040 / `main` for
+  the current source shape.
+- Function 3 (`run_price_payload_capture`) is RESCOPED, not delivered: the
+  Open Decision closed as option (b) with a confirmed follow-up shape —
+  add characterization tests for the four untested failure branches
+  (`page_fetch_failed`, `byte_budget_exceeded`, `max_chunks_exhausted`,
+  `anchor_not_found_thin_page`; only `parser_no_chunks` and
+  `anchor_not_found_full_page` are tested today), then split 1:1 along the
+  author-marked `# --- N ---` seams. Its test files live in `tests/unit/`
+  (not `tests/contract/` as originally written). A fresh lane taking function 3
+  uses this packet's function-3 material plus this disposition as its scope.
+- This disposition records observed lane outcomes only; it is not validation,
+  readiness, or merge status — confirm PR #1040's state on origin before
+  relying on it.
 
 ## Load Contract
 
