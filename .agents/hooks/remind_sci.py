@@ -87,6 +87,15 @@ output to design the rest (harvest before cook) -- never just to look safe.
 abstractions, broad rewrites, extra workflow ceremony, or nice-to-have
 improvements.
 
+Watch for ceremony debt. A change that is small in diff can still install a
+recurring process cost -- a new required step, gate, receipt, field,
+checklist, or review pass that every future work unit must pay. That
+recurring cost is downstream lock-in under the rule below, not a free
+addition: prefer the path that does not add it, and when the requested
+outcome genuinely needs a recurring step, name what each future work unit
+pays and what real defect class it catches so the owner can weigh the toll
+before it becomes standing.
+
 When two candidate paths both satisfy the current request under this rule,
 prefer the one with materially lower downstream lock-in -- the durable data,
 schema, interface, or workflow shape that would be irreversible, costly to
