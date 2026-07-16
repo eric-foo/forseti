@@ -861,6 +861,13 @@ checked/blocked values. `COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION`
 remains the completed-report boundary; it may still carry `not_checked` rows
 only as explicitly typed gaps.
 
+In every stage, each scout status must match its corresponding coverage row:
+positive yield means `status: checked` plus `yield: evidence_found`; zero yield
+means `status: checked` plus `yield: zero_yield`; blocked means
+`status: blocked` plus `yield: blocked`; `commissioned_not_yet_run` means
+`status: not_checked` plus `yield: unknown`; and Quora `not_required` means no
+Quora row or a `not_applicable` / `not_applicable` row.
+
 ## Final Rules
 
 - Use the selected profile's ten-section contract only.

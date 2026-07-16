@@ -97,6 +97,9 @@ borrow the completed-report boundary (origin: adversarial-review finding AR-07
 against the Tower 28 Phase 1 commission). It changes lifecycle vocabulary only:
 no scan, capture, classification, or proof semantics change, and a completed
 company report must still carry earned checked/blocked scout values.
+Each completion-ledger scout value must agree with its corresponding coverage
+row's status and yield; the completion ledger cannot claim a checked, blocked,
+pending, or not-required result that the coverage ledger does not show.
 
 Public-reaction engagement belongs in the board as resonance context, not
 judgment. CSB may ask rows to preserve source-visible upvotes, helpful votes,

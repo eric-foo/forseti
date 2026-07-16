@@ -267,6 +267,14 @@ COMPANY_QUORA_SCOUT_STATUSES = {
     "not_required",
     COMMISSION_STAGE_SCOUT_STATUS,
 }
+COMPANY_SCOUT_STATUS_COVERAGE_STATES = {
+    "checked_positive_yield": ("checked", "evidence_found"),
+    "experimental_checked_positive_yield": ("checked", "evidence_found"),
+    "checked_zero_yield": ("checked", "zero_yield"),
+    "experimental_checked_zero_yield": ("checked", "zero_yield"),
+    "blocked_with_typed_gap": ("blocked", "blocked"),
+    COMMISSION_STAGE_SCOUT_STATUS: ("not_checked", "unknown"),
+}
 COMPANY_SOURCE_CLASSES = {
     "official_first_party",
     "official_regulatory",
@@ -1055,6 +1063,27 @@ def _validate_company_candidates(candidates: Any, observations: dict[str, dict[s
     return findings
 
 
+def _scout_status_matches_coverage(
+    rows: list[dict[str, Any]],
+    scout_status: str,
+) -> bool:
+    if scout_status == "not_required":
+        return not rows or all(
+            _normalize_vocab(row.get("status")) == "not_applicable"
+            and _normalize_vocab(row.get("yield")) == "not_applicable"
+            for row in rows
+        )
+    expected = COMPANY_SCOUT_STATUS_COVERAGE_STATES.get(scout_status)
+    if expected is None:
+        return False
+    expected_status, expected_yield = expected
+    return any(
+        _normalize_vocab(row.get("status")) == expected_status
+        and _normalize_vocab(row.get("yield")) == expected_yield
+        for row in rows
+    )
+
+
 def _validate_company_completion(
     completion: Any,
     coverage: dict[str, dict[str, Any]],
@@ -1105,6 +1134,25 @@ def _validate_company_completion(
                 + f"; got {completion.get('quora_scout_status') or '<blank>'}.",
             )
         )
+    scout_checks = (
+        ("reddit", "reddit_scout_status", reddit_scout, COMPANY_REDDIT_SCOUT_STATUSES),
+        ("quora", "quora_scout_status", quora_scout, COMPANY_QUORA_SCOUT_STATUSES),
+    )
+    for venue, label, scout_status, valid_statuses in scout_checks:
+        if scout_status not in valid_statuses:
+            continue
+        rows = [
+            row
+            for row in coverage.values()
+            if _normalize_vocab(row.get("venue")) == venue
+        ]
+        if not _scout_status_matches_coverage(rows, scout_status):
+            findings.append(
+                Finding(
+                    f"{label}_coverage_mismatch",
+                    f"{label} {scout_status} must match the {venue.title()} coverage row status and yield.",
+                )
+            )
     commission_stage = run_boundary == COMMISSION_STAGE_RUN_BOUNDARY
     if commission_stage and not any(
         _normalize_vocab(row.get("status")) == "not_checked" for row in coverage.values()

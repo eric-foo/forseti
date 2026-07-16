@@ -551,3 +551,43 @@ def test_company_scout_status_enums_are_constrained() -> None:
         1,
     )
     assert "invalid_reddit_scout_status" in _company_codes(text)
+
+    text = _valid_company_text().replace(
+        "  quora_scout_status: experimental_checked_zero_yield",
+        "  quora_scout_status: probably_checked_somewhere",
+        1,
+    )
+    assert "invalid_quora_scout_status" in _company_codes(text)
+
+
+def test_company_scout_status_fields_are_required() -> None:
+    text = _valid_company_text().replace("  reddit_scout_status: checked_zero_yield\n", "", 1)
+    text = text.replace("  quora_scout_status: experimental_checked_zero_yield\n", "", 1)
+    codes = _company_codes(text)
+    assert "invalid_reddit_scout_status" in codes
+    assert "invalid_quora_scout_status" in codes
+
+
+def test_company_scout_statuses_match_coverage_rows() -> None:
+    text = (FIXTURE_DIR / "valid_company_commission_stage_output.txt").read_text(encoding="utf-8")
+    text = text.replace(
+        "    status: checked\n    yield: zero_yield\n    recency: unknown",
+        "    status: not_checked\n    yield: unknown\n    recency: unknown",
+        1,
+    )
+    assert "reddit_scout_status_coverage_mismatch" in _company_codes(text)
+
+    text = (FIXTURE_DIR / "valid_company_commission_stage_output.txt").read_text(encoding="utf-8")
+    text = text.replace(
+        "    status: not_checked\n    yield: unknown\n    recency: unknown\n    access: accessible\n    relevance: mixed",
+        "    status: checked\n    yield: evidence_found\n    recency: unknown\n    access: accessible\n    relevance: mixed",
+        1,
+    )
+    assert "quora_scout_status_coverage_mismatch" in _company_codes(text)
+
+    text = _valid_company_text().replace(
+        "  reddit_scout_status: checked_zero_yield",
+        "  reddit_scout_status: checked_positive_yield",
+        1,
+    )
+    assert "reddit_scout_status_coverage_mismatch" in _company_codes(text)

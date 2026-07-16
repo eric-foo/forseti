@@ -164,13 +164,13 @@ coverage_ledger:
     source_family: reviews
     source_surface: retailer_reviews_and_qa
     venue: Ulta
-    relevance_rationale: "Carriage state was itself the fact to establish."
+    relevance_rationale: "Whether Ulta carriage surfaced was the channel fact to test."
     route_or_query: brand stores page plus retailer-expansion web search (EQ-015)
     requirement: conditional
     status: checked
     yield: zero_yield
     recency: current_as_of_2026-07-16
-    access: direct_site_read_bot_blocked_fact_established_via_first_party_list
+    access: direct_site_read_bot_blocked_no_carriage_observed_via_first_party_list_and_search
     relevance: relevant
     gap_id: null
   - coverage_id: COV-009
@@ -1099,7 +1099,7 @@ observation_ledger:
     source_url_or_packet_locator: https://www.tower28beauty.com/pages/stores
     source_family: owned_channels
     source_surface: brand_site
-    publisher_or_venue: Tower 28 Beauty stores page (Ulta carriage-absence check)
+    publisher_or_venue: Tower 28 Beauty stores page (bounded Ulta carriage check)
     source_class: official_first_party
     publication_date: null
     event_or_effective_date: null
@@ -1108,10 +1108,10 @@ observation_ledger:
     recency_tier: days_0_30
     age_anchor_date: "2026-07-16"
     age_anchor_basis: current_page_observation
-    exact_locator: "brand stores page (Ulta absent) plus EQ-015 retailer-expansion search corroboration"
-    evidence_excerpt: "Tower 28 is not carried at Ulta: the brand's own channel list omits Ulta and no retailer-expansion coverage names it — US specialty-retail exposure concentrates in the Sephora ecosystem."
+    exact_locator: "brand stores page (Ulta omitted) plus EQ-015 retailer-expansion search"
+    evidence_excerpt: "No Ulta carriage surfaced in the bounded checks: the brand's own channel list omits Ulta and the retailer-expansion search did not name it. US specialty-retail exposure observed in this pass concentrates in the Sephora ecosystem."
     lawful_access_route: public_web
-    access_limitation: "direct ulta.com read was bot-blocked; absence rests on first-party listing plus search corroboration"
+    access_limitation: "direct ulta.com read was bot-blocked; this is a bounded no-carriage-observed result, not proof of non-carriage"
     independence_syndication_group: tower28_owned
     independent_corroboration_ids: []
     ambiguity_limitation: "carriage could change without the stores page updating promptly"
@@ -1161,8 +1161,8 @@ points (with a $68 jumbo-refill ceiling) and bundles to $88 (OBS-004, OBS-008).
 Sephora US carries 25 items
 (OBS-008). The brand-listed channel set is DTC, the Sephora ecosystem (US,
 Canada, UK, Middle East, and Sephora at Kohl's), Credo, Mecca (Australia),
-TikTok Shop, and Revolve (OBS-005, OBS-010); Ulta is decisively absent
-(OBS-028), and Amazon flows exist (international store observed, OBS-011;
+TikTok Shop, and Revolve (OBS-005, OBS-010); no Ulta carriage surfaced in the
+bounded checks (OBS-028), and Amazon flows exist (international store observed, OBS-011;
 brand-attributed GMV includes Amazon, OBS-012) despite Amazon's absence from
 the brand's own channel list — an unresolved channel-control question
 (GAP-004). Sephora is the largest *observed* specialty-retail footprint, and
@@ -1337,7 +1337,7 @@ completion_ledger:
   required_lens_coverage:
     positioning: {status: complete, observation_ids: [OBS-001, OBS-002, OBS-003], rationale: "first-party positioning and claims architecture verified current"}
     offerings_and_claims: {status: complete, observation_ids: [OBS-003, OBS-004, OBS-008, OBS-007], rationale: "catalog, price, availability, claim versions, and SPF category entry dated"}
-    markets_and_channels: {status: complete, observation_ids: [OBS-005, OBS-008, OBS-010, OBS-011, OBS-012, OBS-028], rationale: "channel set, Sephora concentration, Ulta absence, Amazon ambiguity typed"}
+    markets_and_channels: {status: complete, observation_ids: [OBS-005, OBS-008, OBS-010, OBS-011, OBS-012, OBS-028], rationale: "channel set, Sephora concentration, bounded Ulta negative, and Amazon ambiguity typed"}
     strategic_and_operating_moves: {status: complete, observation_ids: [OBS-006, OBS-007, OBS-012, OBS-013, OBS-014, OBS-015], rationale: "dated chronology with observation/effective time separated"}
     customer_and_community_response: {status: gap, observation_ids: [OBS-016, OBS-017, OBS-018, OBS-019, OBS-020, OBS-021, OBS-022, OBS-023, OBS-024, OBS-025, OBS-009], rationale: "both poles captured with dates, but the lens is title-level and aggregate-level only — per-review text unsampled (GAP-008), thread bodies unread (GAP-002), TikTok content undated (GAP-003); adequate for company understanding, not for reception-dependent GTM interpretation"}
     competitor_and_substitute_context: {status: complete, observation_ids: [OBS-026, OBS-027, OBS-022], rationale: "bounded comparator pointers only"}

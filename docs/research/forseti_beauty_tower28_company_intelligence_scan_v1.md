@@ -61,8 +61,9 @@ community, registry, and deal-tracker surfaces; exact queries (folded into the
 ledger below, EQ-012, EQ-015, EQ-018, EQ-020 among them); venue evals for
 planned and unplanned surfaces; hidden venue pointers the board missed (Credo
 Beauty, Sephora at Kohl's, Mecca, Pvolve, National Eczema Association seal
-ecosystem, INCIDecoder, dupe aggregators); decisive negatives (Ulta carriage
-absent; coupon/deal trackers no intelligence value); access notes (WWD Tollbit
+ecosystem, INCIDecoder, dupe aggregators); decisive negatives (no Ulta carriage
+surfaced in the bounded checks; coupon/deal trackers had no intelligence value);
+access notes (WWD Tollbit
 paywall, uspto.report 403, community.sephora.com 403 to fetchers); and
 recency/current-state notes (2026-04-30 Sephora footprint doubling, 2026-02
 Pvolve partnership) with a ranked recommended main-deepening list. Main
@@ -86,7 +87,7 @@ board, so its rows are COV-prefixed).
 | SBR-005 (Quora experimental scout) | executed | M16 login wall + EQ-011 zero index → blocked_with_typed_gap |
 | SBR-006 (category-aware specialist forums) | executed | discovered: Sephora BIC (now read-only archive), Thingtesting, dupe aggregators, eczema blogs; MakeupAlley zero yield (EQ-019) |
 | SBR-007 (Sephora reviews/Q&A) | partially executed | review-count and rating state captured at brand-page level (M01); per-review text sampling deferred to report-stage need; BIC threads verified (M14, M15) |
-| SBR-008 (Ulta carriage check) | executed | not carried (EQ-015 + brand stores page M22); direct site read bot-blocked (M17) |
+| SBR-008 (Ulta carriage check) | executed | no carriage surfaced via EQ-015 + brand stores page M22; direct site read bot-blocked (M17), so this is a bounded negative rather than proof of non-carriage |
 | SBR-009 (Amazon presence) | partially executed | geo-vantage redirect to amazon.sg (M18): International Store carries Tower 28; US seller state → capture request CR-003 |
 | SBR-010 (Sephora PDP state) | partially executed | assortment/price/rating state via M01; per-PDP promotion/badge detail not separately read |
 | SBR-011 (brand PDP claims/prices) | executed | M22 catalog, prices, claims, sold-out flags |
@@ -153,7 +154,7 @@ human-rate).
 | EQ-012 | "dupe for Tower 28" (web search) | substitution language | yield | dupe aggregators (SkinSort, Brandefy, SkinsKool, Beautymasterlist, Temptalia) |
 | EQ-013 | "stopped using Tower 28" / "Tower 28 broke me out" (web search) | failure/switching language | yield | TikTok topic pages (titles only) + Sephora BIC threads → M14, M15 |
 | EQ-014 | "Tower 28 vs …" family (web search) | comparison set | yield | comparison pairs: Saie, Kosas, NARS, Hourglass, Ciele, Supergoop, NYX (dupe), Summer Fridays, Rhode, Merit |
-| EQ-015 | "Tower 28 Beauty Ulta Kohl's retailer expansion" (web search) | channel facts | yield | Ulta negative; Sephora at Kohl's positive |
+| EQ-015 | "Tower 28 Beauty Ulta Kohl's retailer expansion" (web search) | channel facts | yield | no Ulta carriage surfaced; Sephora at Kohl's positive |
 | EQ-016 | "Tower 28 Beauty funding investment 2025 2026" (web search) | ownership/funding events | zero (no new round/acquisition found) | negative recorded |
 | EQ-017 | "Tower 28 Beauty lawsuit OR National Advertising Division OR recall" (web search) | claims/regulatory events | zero | negative recorded |
 | EQ-018 | "is tower 28 clean" (web search) | claims language venues | yield | editorial/blog venues dominate; EWG and INCIDecoder surfaced |
@@ -537,7 +538,9 @@ observations:
 
 Negatives (decisive low/no yield, recorded so the report does not re-spend):
 
-- Ulta carriage: not carried; absent from brand's own channel list (EQ-015, SOBS-019).
+- Ulta carriage: no carriage surfaced in the bounded search and brand-list
+  checks; the direct Ulta read was bot-blocked, so non-carriage is not proven
+  (EQ-015, SOBS-019, M17).
 - Search engines return no usable reddit.com links for any Tower 28 query (EQ-010) — the snippet floor for Reddit is currently dead; the sanctioned old.reddit listing route works.
 - Quora: login-walled search plus zero index presence (EQ-007, EQ-011) — no lawful anonymous route this pass.
 - MakeupAlley: zero search-index yield (EQ-019).
