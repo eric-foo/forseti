@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "review_id": "silver-vault-pr1006-postmerge-delegated-code-review-v0",
+  "review_report_path": "docs/review-outputs/silver_vault_pr1006_postmerge_delegated_code_review_adjudication_v0.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "Claude Opus 4.8 (claude-opus-4-8)",
+  "authored_by": "OpenAI GPT-5 Codex",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "OpenAI Codex / GPT-5",
+  "accepted_net_new_material_findings": 0,
+  "decision_changed": "no",
+  "closure_state": "closed",
+  "report_lines": 134,
+  "turn_count": 2,
+  "evidence_pointers": [
+    "docs/review-outputs/silver_vault_pr1006_postmerge_delegated_code_review_adjudication_v0.md",
+    "forseti-harness/data_lake/silver_record.py",
+    "forseti-harness/runners/run_tiktok_creator_audience_triangulation.py",
+    "forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md"
+  ],
+  "completed_at": "2026-07-16"
+}
