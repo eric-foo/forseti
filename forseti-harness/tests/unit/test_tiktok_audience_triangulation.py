@@ -36,7 +36,9 @@ from runners.run_tiktok_creator_onboarding_coordinator import prepare_onboarding
 import runners.run_tiktok_creator_onboarding_coordinator as onboarding_coordinator
 from runners.run_tiktok_grid_observation_producer import run_tiktok_grid_observations
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
-from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
+from schemas.creator_audience_models import (
+    CreatorAudienceJudgmentOutcomeV1 as CreatorAudienceJudgmentOutcome,
+)
 from test_tiktok_batch_admission import (
     PROFILE_URL,
     _cadence_payload,

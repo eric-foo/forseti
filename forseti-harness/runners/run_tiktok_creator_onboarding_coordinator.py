@@ -23,7 +23,7 @@ from runners.run_tiktok_creator_audience_triangulation import (
     prepare_subscription_judgment,
 )
 from runners.run_tiktok_grid_observation_producer import run_tiktok_grid_observations
-from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
+from schemas.creator_audience_models import CreatorAudienceJudgmentOutcomeV1
 
 
 _ALLOWED_SILVER_STATUSES = {"derived", "already_current"}
@@ -119,7 +119,7 @@ def complete_onboarding(
 ) -> dict[str, Any]:
     """Materialize and verify a candidate before atomically publishing it."""
 
-    outcome = CreatorAudienceJudgmentOutcome.model_validate(load_json(outcome_path))
+    outcome = CreatorAudienceJudgmentOutcomeV1.model_validate(load_json(outcome_path))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     previous_output = output_path.read_bytes() if output_path.exists() else None
     with tempfile.NamedTemporaryFile(

@@ -34,11 +34,11 @@ from evidence_binding.tiktok_audience_triangulation import (
     build_assembly_receipt,
     build_creator_audience_evidence_bundle,
 )
-from judgment.tiktok_audience_triangulation import (
-    TriangulationValidationError,
-    build_triangulation_prompt,
-    parse_triangulation_response,
+from judgment.creator_audience import (
+    build_creator_audience_prompt,
+    parse_creator_audience_response,
 )
+from judgment.tiktok_audience_triangulation import TriangulationValidationError
 from source_capture.tiktok.batch_packet import (
     TIKTOK_BATCH_CAPTURE_JSON_NAME,
     TIKTOK_BATCH_CAPTURE_SURFACE,
@@ -46,10 +46,10 @@ from source_capture.tiktok.batch_packet import (
 
 from pydantic import ValidationError
 
-from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
+from schemas.creator_audience_models import CreatorAudienceJudgmentOutcomeV1
 
 
-JUDGMENT_OUTCOME_SCHEMA_VERSION = "creator_audience_judgment_outcome_v0"
+JUDGMENT_OUTCOME_SCHEMA_VERSION = "creator_audience_judgment_outcome_v1"
 JUDGMENT_OUTCOME_LANE = "creator_audience_judgment_outcome"
 
 
@@ -275,7 +275,7 @@ def prepare_subscription_judgment(
         silver_selection_residuals=silver_residuals,
     )
     _write_new_json(bundle_out, bundle)
-    _write_new(prompt_out, build_triangulation_prompt(bundle) + "\n")
+    _write_new(prompt_out, build_creator_audience_prompt(bundle) + "\n")
 
     receipt = build_assembly_receipt(bundle)
     receipt_path = data_root.record_path(
@@ -316,7 +316,7 @@ def validate_subscription_judgment(
 ) -> dict[str, Any]:
     bundle = _load_object(bundle_path)
     response_text = response_path.read_text(encoding="utf-8")
-    snapshot = parse_triangulation_response(response_text, bundle)
+    snapshot = parse_creator_audience_response(response_text, bundle)
     document = snapshot.model_dump(mode="json")
     _write_new_json(snapshot_out, document)
     return {
@@ -389,7 +389,7 @@ def submit_subscription_judgment(
     validation_errors: list[str] = []
     try:
         response_text = response_bytes.decode("utf-8-sig")
-        snapshot = parse_triangulation_response(response_text, bundle)
+        snapshot = parse_creator_audience_response(response_text, bundle)
         snapshot_document = snapshot.model_dump(mode="json")
         snapshot_text = (
             json.dumps(
@@ -421,7 +421,7 @@ def submit_subscription_judgment(
         )
     ).encode("utf-8")
     record_id = f"cajo_{hashlib.sha256(record_key).hexdigest()[:20]}"
-    outcome = CreatorAudienceJudgmentOutcome.model_validate(
+    outcome = CreatorAudienceJudgmentOutcomeV1.model_validate(
         {
             "schema_version": JUDGMENT_OUTCOME_SCHEMA_VERSION,
             "record_id": record_id,

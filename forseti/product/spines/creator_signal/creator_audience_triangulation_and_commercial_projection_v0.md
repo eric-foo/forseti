@@ -16,7 +16,7 @@ use_when:
   - Writing buyer-facing creator copy from transcript/content and captured-comment evidence.
 authority_boundary: retrieval_only
 open_next:
-  - forseti/product/spines/creator_signal/creator_commercial_projection_calibration_deck_v0.md
+  - forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md
   - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
   - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
   - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
@@ -46,7 +46,7 @@ separately authorized on 2026-07-15.
 
 Any actor that creates or materially rewrites the buyer-facing commercial panel
 must also read
-`creator_commercial_projection_calibration_deck_v0.md`. This contract remains
+`creator_ideal_audience_distillation_deck_v0.md`. This contract remains
 the authority for what may be claimed; the companion teaches the evidence-to-
 commercial-copy transformation and is not a substitute claim source. A cold
 actor must not draft from this contract alone.
@@ -103,32 +103,31 @@ does not move subjective audience conclusions into Silver.
 
 ## Runtime And Onboarding Binding
 
-The smallest complete runtime is now bound as follows:
+The smallest complete runtime is media-neutral at the Judgment boundary and
+platform-specific only at evidence admission:
 
-1. a user-authorized full TikTok onboarding admits one deep-capture packet to
-   Bronze;
-2. packet-scoped grid-observation and comment-attention producers write
-   persisted Silver mechanics for exactly that packet;
-3. `run_tiktok_creator_audience_triangulation.py prepare` creates a transient,
-   creator-isolated transcript/comment evidence bundle and prompt, while the
-   derived lake retains only its assembly receipt;
-4. one cold subscription-agent context returns one creator's JSON Judgment;
-   model API calls are forbidden;
-5. the validator closes claims over exact evidence IDs and the resulting
-   `creator_audience_triangulation_snapshot_v0` joins Creator Registry under
-   `audience_triangulation`.
+1. a platform adapter assembles one creator-isolated audit bundle from already
+   admitted transcript/content and captured top-level-comment evidence;
+2. the shared Judgment boundary emits a compact, lossless model view plus the
+   exact `creator_ideal_audience_distillation_deck_v0.md` content and hash;
+   named calibration examples are excluded;
+3. one cold subscription-agent context returns only semantic claims, evidence
+   aliases, and buyer-facing projection choices; model API calls are forbidden;
+4. one deterministic compiler, using the same capability manifest as the
+   prompt, derives durable evidence IDs, source-item closure, modality, support
+   scope, summaries, identity, hashes, and snapshot ID;
+5. new successful writes use `creator_audience_triangulation_snapshot_v1` and
+   `creator_audience_judgment_outcome_v1`; existing v0 snapshots/outcomes remain
+   readable; and
+6. the validated snapshot joins Creator Registry at the platform-account scope.
 
-Both transcript cues and captured top-level comments are mandatory. If either
-is absent, the run ends as `INCOMPLETE_AUDIENCE_EVIDENCE` and writes no partial
-Judgment or registry profile. On-demand refresh reuses an explicit or latest
-complete admitted packet and does not recapture by default.
-
-The Forseti-local firing-point source is
-`.agents/skills/creator-audience-triangulation/SKILL.md`. Its trigger is full
-onboarding or an explicit generate/refresh request; comparisons, copy critique,
-presentation review, generic comment analysis, and routine Silver work are
-negative triggers.
-
+TikTok retains its packet-scoped grid-observation and comment-attention Silver
+prerequisites. Instagram consumes its admitted Reel transcript and audience-
+comment Silver lanes through its own adapter. The platforms do not fuse into one
+inference context. Both content/transcript and captured comments are mandatory;
+missing either ends as `INCOMPLETE_AUDIENCE_EVIDENCE` without a partial snapshot.
+On-demand refresh reuses existing complete evidence and does not recapture by
+default.
 ## Evidence And Inference Rules
 
 - Use all admissible captured top-level comments from the selected videos after
@@ -280,56 +279,29 @@ record `not_stress_tested`. Never manufacture a stability claim.
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Creator Signal now distinguishes content-fit audience, observed participating
-    audience, and fused commercial creator fit; Silver/mechanical layers prepare
-    dated evidence while Judgment owns fusion and Creator Signal presents the
-    strongest evidence-supported buyer copy under a maximum-defensible-aggression
-    rule inside the complete creator registry. Commercial-panel authors must load
-    the subordinate calibration deck so routine cold actors can reproduce the
-    evidence-to-buyer-value transformation without treating examples as claims.
+    Creator ideal-audience Judgment now uses one media-neutral semantic core per
+    platform account. Routine prompts load the renamed method deck but exclude
+    named examples; deterministic compilation owns clerical schema fields and
+    shares one capability manifest with validation. TikTok and Instagram keep
+    separate evidence adapters, new writes are v1, and v0 remains readable.
   trigger: product_doctrine
-  related_triggers:
-    - architecture_doctrine
+  related_triggers: [architecture_doctrine]
   controlling_sources_updated:
     - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
-    - forseti/product/spines/creator_signal/creator_commercial_projection_calibration_deck_v0.md
-    - forseti/product/spines/creator_signal/creator_intelligence_profile_surface_v0.md
+    - forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md
+    - forseti/product/spines/creator_signal/creator_ideal_audience_calibration_examples_v0.md
   downstream_surfaces_checked:
     - forseti/product/spines/creator_signal/README.md
-    - forseti/product/spines/creator_signal/aphrodite_carveout_charter_v0.md
-    - forseti/product/spines/creator_signal/aphrodite_derived_claim_provenance_contract_v0.md
-    - forseti/product/spines/creator_signal/creator_signal_product_architecture_v0.md
-    - forseti/product/spines/capture/core/source_families/social_media/creator_registry/creator_profile_current_view_spec_v0.md
-    - forseti/product/spines/foundation/product_contract/core_spine_v0_data_and_cleaning_spine_boundary_v0.md
+    - .agents/skills/creator-audience-triangulation/SKILL.md
     - docs/workflows/forseti_repo_map_v0.md
-    - AGENTS.md
-    - .agents/workflow-overlay/README.md
+    - forseti-harness/judgment
+    - forseti-harness/schemas
+    - forseti-harness/runners
   intentionally_not_updated:
-    - path: historical Git revisions of the retired ideal-audience inference path
-      reason: Historical provenance remains in Git; current routing and executable authority were removed during direct cutover.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: The existing Creator Signal spine route and updated spine README are sufficient; a per-file T1 row would violate map economy.
-    - path: docs/prompts/handoffs/judgment_spine_read_machinery_architecture_handoff_v0.md
-      reason: Its distillation deck is an internal lesson-card membrane, not the buyer-facing creator registry surface.
+    - {path: YouTube creator capture and projection lanes, reason: "Explicitly excluded from this work unit."}
+    - {path: historical snapshots and outcomes, reason: "v0 remains readable and is not rewritten."}
   stale_language_search: >
-    rg -n -i "ideal audience|actual audience|commercial usefulness|audience triangulation|observed participating|maximum-defensible|generates engagement|makes products memorable"
-    forseti/product/spines/creator_signal
-    forseti/product/spines/capture/core/source_families/social_media/creator_registry
-    forseti/product/spines/capture/core/source_families/social_media/instagram
-    docs/workflows/forseti_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-14 after the patch. Creator Signal now routes audience
-    triangulation and aggressive commercial projection through this contract.
-    Remaining Capture/current-view and Instagram hits correctly keep their
-    narrower jobs: content-fit snapshots and current-view mechanics do not
-    themselves estimate the platform-wide actual audience or claim commercial
-    usefulness. The Creator Signal layer adds the observed-participant and
-    commercial projection without relaxing those Capture non-claims. The
-    existing Creator Signal spine route is sufficient, so no repo-map row was
-    added.
-  non_claims:
-    - not validation
-    - not readiness
-    - not buyer proof
-    - not implementation or schema authorization
+    rg -n -i "creator_commercial_projection_calibration_deck|TikTok onboarding|source_video_ids|snapshot_v0" forseti/product/spines/creator_signal .agents/skills/creator-audience-triangulation forseti-harness
+  stale_language_search_result: "Executed 2026-07-16; live routes use the v1 shared core and renamed method deck, while v0/source_video_ids remain only in compatibility code and historical tests."
+  non_claims: [not validation, not readiness, not buyer proof, not cross-platform audience fusion]
 ```
