@@ -34,8 +34,13 @@ named per item so the owner can weigh it.
 proof. `no-evidence-of-catch` means git history and durable docs show no
 verified real catch — it does not prove the item is useless (deterrence and
 silent prevention leave no receipts). Nothing here is validation, readiness,
-or acceptance. No gate, pin, or hook was removed by this lane; every
-`propose-*` row is owner-gated.
+or acceptance. Removal state (final): three hooks were removed AFTER owner adjudication of
+Section 5 (doc_terms, registry_list_sync, engagement_stale_phrases); the CSB
+board validator was also cut, then RESTORED when cross-vendor review found
+live consumers (a unit test, and the live_pilot_spine playbook that requires
+running it before routing) and the company-intelligence architecture's own
+`intentionally_not_updated` decision retaining it. Every remaining `propose-*`
+row stays owner-gated.
 
 **Verdict vocabulary.** `keep-as-is` / `simplify-internal (EXECUTED)` /
 `propose-simplify` (behavior-adjacent, not executed) / `propose-remove` /
@@ -186,11 +191,18 @@ check_ontology_tag_validity.
 ## Section 5 — Owner Decision List (kept/cut, ranked by surface at stake)
 
 Owner-gated. ADJUDICATED 2026-07-17 by the owner (recorded in the commissioning
-session): rows 1–3 CUT (executed on this branch — `check_doc_terms.py`,
-`check_registry_list_sync.py`, `check_engagement_stale_phrases.py`,
-`check_commission_signal_board_output.py` deleted, ~2,447 lines; README rows
-removed; historical doc references left intact as records). Rows 4–11 KEEP per
-recommendation. Original list preserved below as the decision record.
+session): rows 2–3 CUT (executed — `check_doc_terms.py`, `check_registry_list_sync.py`,
+`check_engagement_stale_phrases.py` deleted, ~1,183 lines; README rows removed).
+Row 1 (`check_commission_signal_board_output.py`) was cut on the same
+adjudication, then REVERSED 2026-07-17 after cross-vendor review (Critical):
+the validator is a shared surface of the live_pilot_spine
+(`forseti/product/spines/commission_signal_board/spine.yaml`), its playbook
+requires running it before routing, a unit test loads it directly, and the
+company-intelligence architecture decision explicitly retained it
+(`intentionally_not_updated`). The row-1 'unwired' evidence was hook-harness
+wiring only and missed the live manual-invocation consumer — recorded here as
+an audit-method limitation. Rows 4–11 KEEP per recommendation. Original list
+preserved below as the decision record.
 
 1. **check_commission_signal_board_output.py — WIRE or CUT** (1,264 unwired lines). Recommendation: decide with CSB workstream status; if kept, wire `--strict` on changed board outputs and merge the duplicated overclaim engine with the scanning checker.
 2. **check_doc_terms.py — CUT** (371 unwired report-only lines, fake-success selftest wrapper). Recommendation: cut.
