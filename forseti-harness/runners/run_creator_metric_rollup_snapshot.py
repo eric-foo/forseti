@@ -44,7 +44,6 @@ import argparse
 import json
 import sys
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -63,6 +62,7 @@ from capture_spine.creator_profile_current.silver_metric_snapshot import (
     validate_snapshot,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
+from harness_utils import utc_now_z
 
 ROOT = Path(__file__).resolve().parents[2]
 _SOCIAL_MEDIA = (
@@ -128,10 +128,6 @@ def _dump_json(obj: Any) -> str:
     # canonical-bytes equal), NOT raw file bytes, because the seed's key order is
     # independent of this dump.
     return json.dumps(obj, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
-
-
-def _now_utc() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _load_prior_manifest(snapshot_path: Path, manifest_path: Path) -> Mapping[str, Any] | None:
@@ -303,7 +299,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-    generated_at = args.generated_at_utc or _now_utc()
+    generated_at = args.generated_at_utc or utc_now_z()
     outputs = _PLATFORM_OUTPUTS[args.platform]
 
     try:

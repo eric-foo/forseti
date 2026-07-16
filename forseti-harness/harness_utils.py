@@ -26,6 +26,11 @@ def utc_now_z() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def utc_now_z_microseconds() -> str:
+    """Like utc_now_z() but keeps microsecond precision (no truncation)."""
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
 def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -36,6 +41,10 @@ def sha256_bytes(data: bytes) -> str:
 
 def hash_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
+
+
+def as_dict(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
 
 
 @contextmanager

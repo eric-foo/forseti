@@ -81,6 +81,7 @@ not changes to source precedence.
 | Prompt or review-prompt work | `.agents/workflow-overlay/prompt-orchestration.md` |
 | Current product direction and initial form | `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md` |
 | Beauty product application, decision admission, and proof boundary | `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md` |
+| One-company intelligence information requirements, paid-access choice, decision modules, and Company Surface boundary | `docs/decisions/forseti_company_intelligence_information_architecture_v0.md` |
 | Offer, ICP/wedge, buyer proof, or GTM | For the current US Beauty discovery run, start with `forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md`; otherwise start with the current thesis above, then the matching `forseti/product/spines/product_lead/` area. Buyer-specific bindings remain suspended until GTM rebinds them. |
 | Fragrance facts and per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` |
 | Ontology roster, namespaces, and typed links | `forseti/product/spines/foundation/ontology/ontology.yaml` |

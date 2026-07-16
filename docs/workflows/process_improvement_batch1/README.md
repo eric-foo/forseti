@@ -144,3 +144,8 @@ comparability:
 
 Record `DG-03` only when its required fields have exact evidence. Do not add a
 case merely because a gate was mentioned or a prompt was authored.
+
+A deep-think applied to an implementation-bound decision must leave one citable
+line (`path:line`) in the decision record or lane artifact; otherwise
+`deep_thinking.status` stays permanently `unknown` and the pilot cannot measure
+the gate it was built to measure.

@@ -8,7 +8,6 @@ deep captures, or mutate Creator Registry rows.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
@@ -17,7 +16,7 @@ from typing import Any, Callable, Mapping, Sequence
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from harness_utils import utc_now_z
+from harness_utils import hash_file, utc_now_z
 from runners.run_source_capture_ig_daily_heartbeat import run_ig_daily_heartbeat
 from source_capture import social_heartbeat_run_control as shared_control
 
@@ -105,8 +104,8 @@ def plan_day(
             }
         )
 
-    registry_sha256 = _sha256_file(registry_index_path)
-    sidecar_sha256 = _sha256_file(monitoring_sidecar_path)
+    registry_sha256 = hash_file(registry_index_path)
+    sidecar_sha256 = hash_file(monitoring_sidecar_path)
     return shared_control.freeze_plan(
         policy=SHARED_POLICY,
         creators=creators,
@@ -258,10 +257,6 @@ def _load_json_object(path: Path) -> dict[str, Any]:
     if not isinstance(parsed, dict):
         raise ValueError(f"JSON file must contain an object: {path}")
     return parsed
-
-
-def _sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _first_string(row: Mapping[str, Any], keys: Sequence[str]) -> str | None:
