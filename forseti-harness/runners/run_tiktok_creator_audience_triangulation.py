@@ -24,9 +24,8 @@ from capture_spine.creator_profile_current.tiktok_grid_observation_producer impo
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from data_lake.silver_record import (
-    SilverRecordError,
-    validate_silver_vault_record,
-    verify_silver_vault_record_sources,
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    classify_silver_vault_record_sources,
 )
 from evidence_binding.tiktok_audience_triangulation import (
     ASSEMBLY_RECEIPT_LANE,
@@ -34,11 +33,13 @@ from evidence_binding.tiktok_audience_triangulation import (
     build_assembly_receipt,
     build_creator_audience_evidence_bundle,
 )
-from judgment.tiktok_audience_triangulation import (
-    TriangulationValidationError,
-    build_triangulation_prompt,
-    parse_triangulation_response,
+from judgment.creator_audience import (
+    METHOD_DECK_RELATIVE_PATH,
+    build_creator_audience_prompt,
+    load_method_deck,
+    parse_creator_audience_response,
 )
+from judgment.tiktok_audience_triangulation import TriangulationValidationError
 from source_capture.tiktok.batch_packet import (
     TIKTOK_BATCH_CAPTURE_JSON_NAME,
     TIKTOK_BATCH_CAPTURE_SURFACE,
@@ -46,10 +47,10 @@ from source_capture.tiktok.batch_packet import (
 
 from pydantic import ValidationError
 
-from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
+from schemas.creator_audience_models import CreatorAudienceJudgmentOutcomeV1
 
 
-JUDGMENT_OUTCOME_SCHEMA_VERSION = "creator_audience_judgment_outcome_v0"
+JUDGMENT_OUTCOME_SCHEMA_VERSION = "creator_audience_judgment_outcome_v1"
 JUDGMENT_OUTCOME_LANE = "creator_audience_judgment_outcome"
 
 
@@ -96,20 +97,18 @@ def _record_id(record: Mapping[str, Any]) -> str:
 def _silver_eligibility_residual(
     data_root: DataLakeRoot, record: Mapping[str, Any], *, lane: str
 ) -> dict[str, Any] | None:
-    try:
-        validate_silver_vault_record(record)
-    except SilverRecordError:
-        return {"lane": lane, "record_id": _record_id(record), "status": "invalid_silver_envelope"}
-    try:
-        verify_silver_vault_record_sources(data_root, record)
-    except SilverRecordError as exc:
-        return {
-            "lane": lane,
-            "record_id": _record_id(record),
-            "status": "source_ref_unresolved",
-            "error": str(exc),
-        }
-    return None
+    authority = classify_silver_vault_record_sources(data_root, record)
+    if authority.status == CURRENT_SOURCE_BACKED_AUTHORITY:
+        return None
+    residual = {
+        "lane": lane,
+        "record_id": _record_id(record),
+        "status": authority.status,
+        "reason_code": authority.reason_code,
+    }
+    if authority.error:
+        residual["error"] = authority.error
+    return residual
 
 
 def _select_comment_attention_records(
@@ -263,6 +262,7 @@ def prepare_subscription_judgment(
         raise ValueError(
             "SILVER_AUDIENCE_EVIDENCE_REQUIRED: run the packet-scoped TikTok grid-observation producer"
         )
+    method_text, method_hash = load_method_deck()
     bundle = build_creator_audience_evidence_bundle(
         creator_id=creator_id,
         profile_subject_id=profile_subject_id,
@@ -272,10 +272,15 @@ def prepare_subscription_judgment(
         grid_observation_refs=_grid_refs(grid_records),
         question=question,
         evidence_cutoff=evidence_cutoff,
+        method_deck_path=METHOD_DECK_RELATIVE_PATH,
+        method_deck_sha256=method_hash,
         silver_selection_residuals=silver_residuals,
     )
     _write_new_json(bundle_out, bundle)
-    _write_new(prompt_out, build_triangulation_prompt(bundle) + "\n")
+    _write_new(
+        prompt_out,
+        build_creator_audience_prompt(bundle, method_text=method_text) + "\n",
+    )
 
     receipt = build_assembly_receipt(bundle)
     receipt_path = data_root.record_path(
@@ -316,7 +321,7 @@ def validate_subscription_judgment(
 ) -> dict[str, Any]:
     bundle = _load_object(bundle_path)
     response_text = response_path.read_text(encoding="utf-8")
-    snapshot = parse_triangulation_response(response_text, bundle)
+    snapshot = parse_creator_audience_response(response_text, bundle)
     document = snapshot.model_dump(mode="json")
     _write_new_json(snapshot_out, document)
     return {
@@ -389,7 +394,7 @@ def submit_subscription_judgment(
     validation_errors: list[str] = []
     try:
         response_text = response_bytes.decode("utf-8-sig")
-        snapshot = parse_triangulation_response(response_text, bundle)
+        snapshot = parse_creator_audience_response(response_text, bundle)
         snapshot_document = snapshot.model_dump(mode="json")
         snapshot_text = (
             json.dumps(
@@ -421,7 +426,7 @@ def submit_subscription_judgment(
         )
     ).encode("utf-8")
     record_id = f"cajo_{hashlib.sha256(record_key).hexdigest()[:20]}"
-    outcome = CreatorAudienceJudgmentOutcome.model_validate(
+    outcome = CreatorAudienceJudgmentOutcomeV1.model_validate(
         {
             "schema_version": JUDGMENT_OUTCOME_SCHEMA_VERSION,
             "record_id": record_id,

@@ -9,6 +9,7 @@ from dataclasses import fields
 from typing import Any, Callable
 from urllib.parse import urlparse
 
+from capture_spine import shared_validation as _spine_shared
 from capture_spine.creator_profile_current.registry_match_preflight import (
     RECEIPT_SCHEMA_VERSION as CREATOR_REGISTRY_PREFLIGHT_RECEIPT_SCHEMA_VERSION,
     RECEIPT_WRAPPER_KEY as CREATOR_REGISTRY_PREFLIGHT_RECEIPT_WRAPPER_KEY,
@@ -1031,29 +1032,22 @@ def _is_negated(claim: str) -> bool:
 
 
 def _assert_no_forbidden_output_fields(value: Any, *, path: str = "$") -> None:
-    if isinstance(value, Mapping):
-        for key, child in value.items():
-            key_name = str(key)
-            if key_name.lower() in _FORBIDDEN_OUTPUT_FIELDS:
-                _fail("forbidden_output_field", f"forbidden output field at {path}.{key_name}")
-            _assert_no_forbidden_output_fields(child, path=f"{path}.{key_name}")
-        return
-    if _is_list(value):
-        for index, child in enumerate(value):
-            _assert_no_forbidden_output_fields(child, path=f"{path}[{index}]")
-        return
-    if isinstance(value, str):
-        for marker, pattern in _FORBIDDEN_OUTPUT_VALUE_PATTERNS:
-            if pattern.search(value):
-                _fail("forbidden_output_value", f"forbidden value ({marker}) at {path}")
+    _spine_shared.assert_no_forbidden_output_fields(
+        value,
+        forbidden_fields=_FORBIDDEN_OUTPUT_FIELDS,
+        value_patterns=_FORBIDDEN_OUTPUT_VALUE_PATTERNS,
+        fail=_fail,
+        value_message_prefix="forbidden value",
+        path=path,
+    )
 
 
 def _reject_unknown_keys(value_map: Mapping[str, Any], allowed_keys: frozenset[str], label: str) -> None:
-    unknown = sorted(str(key) for key in value_map if str(key) not in allowed_keys)
-    if unknown:
-        _fail("unknown_field", f"{label} contains unknown field(s): {unknown}")
+    _spine_shared.reject_unknown_keys(value_map, allowed_keys, label, fail=_fail)
 
 
+# helper-delta: unlike shared require_fields (absent key OR explicit None OR blank
+# string = missing), this lane requires key PRESENCE but accepts an explicit None.
 def _require(value_map: Mapping[str, Any], field_names: Sequence[str], label: str) -> None:
     for field_name in field_names:
         if field_name not in value_map:
