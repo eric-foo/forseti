@@ -55,6 +55,8 @@ CASES = [
      [["--strict"], ["--selftest"]], [["--check"], ["--audit"]]),
     ("check_hash_pin_freshness.py",
      [["--strict"], ["--selftest"]], [["--check"], ["--audit"]]),
+    ("check_shared_helper_duplication.py",
+     [["--strict"], ["--selftest"]], [["--hook"]]),
 ]
 
 GATING = [(hook, mode) for hook, gating, _ in CASES for mode in gating]
