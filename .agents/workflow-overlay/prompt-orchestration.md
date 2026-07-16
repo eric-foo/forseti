@@ -34,7 +34,11 @@ govern when their task-specific triggers apply. The field vocabulary, per prompt
 2. **Template kind** — the bound template from `.agents/workflow-overlay/template-registry.md`, or `none`; template targets are prompt-shaping labels, never runtime-model routing.
 3. **Edit permission · targets · branch** — `read-only` | `docs-write` | `patch-only` | `implementation-authorized`; target files or dirs; workspace, branch, and dirty-state allowance when repository state matters. Planning or scoping is a phase, not an authority downgrade: preserve `implementation-authorized` when the commissioning instruction grants it, and apply the receiver-creation clause below when that commission selects a not-yet-verified Codex managed receiver.
 4. **Reviews** — findings-first by default; bind any formal verdict, severity, or patch queue explicitly; no runtime-model recommendation, ranking, or implication.
-5. **Doctrine change** — work that changes product, architecture, workflow, validation, review, or output doctrine, or a lifecycle boundary, carries a `direction_change_propagation` receipt or blocker (`.agents/workflow-overlay/source-of-truth.md`).
+5. **Doctrine change** — name the controlling source and propagation route when
+   the prompt itself changes durable doctrine. Evidence belongs in the
+   resulting PR/closeout by default; do not add a prompt-local receipt unless a
+   distinct future consumer requires it
+   (`.agents/workflow-overlay/source-of-truth.md`).
 6. **Destinations** — the input prompt source the receiver treats as run-authoritative (canonical artifact path, lane PR body/comment, or ignored scratch path), and the exact output-artifact path it writes when the mode writes a durable artifact.
 
 **Default elision.** A prompt states only fields whose value differs from the
@@ -186,28 +190,6 @@ gate with its ordinary timeout. Cleanup may target only a process tree launched
 by the current actor; otherwise stop for owner/tooling intervention rather than
 killing inferred unrelated system processes.
 
-## Thread Operating Target Continuity
-
-When a workflow prompt, wrapper, rerun, review prompt, patch prompt, or handoff
-continues the same workstream with a visible active `thread_operating_target`,
-preserve that target verbatim near the top of the generated prompt and include
-a compact continuity disclosure. The target is required only when the generated
-prompt continues the same workstream or claims the same anchor goal; explain
-any omission or the omission is a prompt-quality defect.
-
-Use this disclosure shape:
-
-```yaml
-thread_operating_target_continuity:
-  carried_forward: yes | no
-  reason: same_workstream | different_workstream | no_visible_active_target | retired_or_blocked | owner_omitted | conflict
-  changed_from_input: no | yes
-  lifecycle_status:
-  if_changed_reason:
-```
-
-`thread_operating_target` is thread-local orientation only — not source authority, validation evidence, readiness, approval, lifecycle completion, durable goal state, artifact authority, workflow sequencing authority, automatic routing, cross-thread memory, registry state, or permission to edit protected paths. Retirement requires explicit owner intent, achieved output satisfying the current `output_fit_check`, or a visible blocker; name the blocker and what remains allowed. Downstream lanes may recommend retirement but must not execute it without explicit prompt or owner authority.
-
 ## Project Template Registry
 
 Forseti-local prompt templates live under `docs/prompts/templates/`.
@@ -254,13 +236,14 @@ as an unnamed specialization of routine depth:
   below when eligible. Delegation, adversarial wording, patch authorization,
   executor-ready wording, multiple named files in one bounded technical diff,
   or a high-stakes label alone is not an escalation trigger.
-- **Full orchestration** applies when the prompt is fused, reusable/canonical,
-  novel or genuinely cross-lane, no-repo/portable, source-heavy,
-  doctrine-changing, materially ambiguous or dirty, complex-output-routing,
-  first-of-kind, or owner-invoked Mini God Tier. These are routing conditions,
-  not user-facing modes. A missing eligibility fact routes to the full
-   `workflow-prompt-orchestrator` contract or the nearest honest blocker; do not
-   invent it.
+- **Full orchestration** applies when explicitly invoked by `/fused` or
+  owner-invoked Mini God Tier, or when the prompt genuinely needs a portable
+  no-repo source capsule, multiple independent receivers or output lifecycles,
+  or resolution of material authority, target, dirty-state, or output-routing
+  ambiguity before it can be used safely. Reusable, canonical, novel,
+  cross-lane, source-heavy, doctrine-changing, high-stakes, or first-of-kind
+  labels do not escalate by themselves. When those prompts are otherwise
+  bounded, use the routine core plus the targeted family section.
 
 An unchanged same-lane prompt points to the active one-time writable-root
 binding in `decision-routing.md`; it does not repeat root, capability, or writer-
@@ -370,16 +353,13 @@ Render one compact pointer-first prompt containing:
 4. pointers to `AGENTS.md`, `.agents/workflow-overlay/README.md`, the targeted
    sections of `.agents/workflow-overlay/delegated-review-patch.md`, the
    relevant review skill or lane, and the `environment_baseline`,
-   `lifecycle_hard_stop`, `decorrelation_commission`, `execution_economy`, and
-   `review_diff_mechanics` constants in
+   `lifecycle_hard_stop`, and `decorrelation_commission` constants in
    `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` (cited,
    not restated);
-5. exactly `execution_route: five_phase_fast_path_if_eligible` and
-   `review_diff_route: review_report_mechanics_if_durable_report_embeds_diff`;
-6. named validation expectations with real failure and not-run reporting;
-7. the controller return: findings, bounded diff, neutral citations, validation
+5. named validation expectations with real failure and not-run reporting;
+6. the controller return: findings, bounded diff, neutral citations, validation
    evidence, verdict, and residual risk; and
-8. Chief Architect adjudication before any returned change is kept, plus
+7. Chief Architect adjudication before any returned change is kept, plus
    `NEEDS_ARCHITECTURE_PASS` for design-level blockers.
 
 Prompt rendering and execution are separate states. A prompt with
@@ -407,14 +387,15 @@ Mini God Tier is the only named assurance uplift for this prompt family. It is
 owner-invoked only and never inferred. It selects the bounded capability target
 defined by `docs/decisions/forseti_mini_god_tier_doctrine_v0.md`; it does not
 widen scope, establish readiness, or create a claim tier. Use full orchestration
-and add source-gated method sequencing, durable reporting, and
+and add deep-thinking, source-gated method sequencing, durable reporting, and
 provenance evidence only to the degree necessary for that target, remaining
 pointer-first and naming every accepted residual.
 
 The compact default deliberately retains four residuals: the receiver must
-still read the real diff and sources and run validation; genuine no-repo,
-canonical, doctrine-changing, source-heavy, ambiguous, or cross-lane cases
-still take the full route; eligibility remains a judgment rather than new
+still read the real diff and sources and run validation; cases matching the
+Full orchestration predicate (portable no-repo capsule, multiple independent
+receivers or output lifecycles, or material unresolved ambiguity) still take
+the full route; eligibility remains a judgment rather than new
 standing infrastructure; and Mini God Tier cannot guarantee cross-vendor
 availability or prove quality. Revisit the first two if repeated work shows
 duplicate receiver reads, the third after three confirmed misroutes or omitted
@@ -598,22 +579,32 @@ no`, and not the alignment-axis-not-pass-bar guardrail.
 
 ## Review Prompt Defaults
 
-Forseti review prompts do not reference-load, invoke, apply, or require
-`workflow-deep-thinking`. Review complexity, doctrine or authority surface,
-source volume, ambiguity, seam risk, delegation, patch authorization, formal
-verdicts, high-stakes labels, and Mini God Tier do not add it. Historical review
-prompts that say otherwise are superseded by this current overlay rule. A new
-current-turn owner instruction that explicitly names deep thinking may override
-this default for that one commission; prompt authors must never infer it.
+Forseti review prompts include a deep-thinking framing pass before the relevant
+review skill when the owner explicitly invokes `workflow-deep-thinking` or Mini
+God Tier, or when the review is doctrine- or authority-changing, source-heavy,
+materially ambiguous, or carries substantial seam risk whose framing could
+change the review route. Adversarial wording, a formal-verdict request,
+delegation, patch authorization, multiple named files in one bounded technical
+diff, or a high-stakes label alone does not trigger deep-thinking. A bounded
+technical review with an exact revision, file scope, authority, and validation
+route may omit it. For a review commission, the review lane's own internalized
+failure-mode-framing discipline satisfies the pass -- the adversarial review
+skill carries it and the review templates define it -- without a second skill
+load; a separate `workflow-deep-thinking` load remains the route for
+owner-invoked decision work.
 
-The relevant review method still performs its own ordinary analysis after source
-readiness: frame the boundary problem, identify failure modes, and establish
-decision criteria before listing findings. That is native review work, not a
-separate deep-thinking phase or skill dependency. It does not widen review
-scope, authorize patching, or turn a narrow review into product planning.
+When the framing pass is triggered, the reviewer may `REFERENCE-LOAD` the
+methods before source loading, but must not `APPLY` the framing pass or the
+review method until the required source context is ready. The step frames the
+boundary problem, failure modes, and decision criteria before findings are
+listed. It does not
+widen review scope, authorize patching, or turn a narrow review into product
+planning.
 
-Review prompts still return the requested review output shape: findings,
-non-findings, not-proven boundaries, and the next authorized step.
+Review prompts should still return the requested review output shape. The final
+answer remains a review result with findings, non-findings, not-proven
+boundaries, and next authorized step whether deep-thinking was triggered or
+explicitly omitted.
 
 Every Forseti review prompt and any review-return or courier prompt must also
 instruct the *adjudicator* -- the reviewer in a self-review, the commissioning
@@ -625,13 +616,13 @@ the smallest complete closure step only for an issue that needs another review
 round, another lane, an architecture pass, or an owner decision; once no
 unresolved material issue remains, batch all admin/lifecycle follow-ups
 (commit, push, PR, merge) into exactly one named land step. If a visible active
-goal, `thread_operating_target`, or accepted next objective exists, identify the
-1-5 material moves that best advance it in the same turn. If none exists, record
-that compactly and do not invent material moves. The closure/land step plus this
-goal-conditioned material-move check are a required closeout tail; do not defer
-the check to another turn. It uses ordinary next-step reasoning, does not invoke
-deep thinking, widen review scope, or authorize patching, and produces the
-closeout's next step. The exact shape is owned by
+goal or accepted next objective exists, identify the 1-5 material moves that
+best advance it in the same turn. If none exists, record that compactly and do
+not invent material moves. The closure/land step plus this goal-conditioned
+material-move check are a required closeout tail; do not defer the check to
+another turn. It uses ordinary next-step reasoning, does not invoke deep
+thinking, widen review scope, or authorize patching, and produces the closeout's
+next step. The exact shape is owned by
 `.agents/workflow-overlay/communication-style.md` (Review Adjudication Next
 Step); do not restate it here.
 
@@ -840,34 +831,23 @@ target and a valid external controller from blocking solely on its launch path.
 
 Rerun and patch prompts must also name the prior artifact, prior hash or revision, frozen decisions, mutable fields, and unresolved finding being retried.
 
-## Source-Heavy Prompt Economy
+## Source-Heavy Evidence Preservation
 
 Preflight is allowed to continue into the next step when it is limited to
 authority reads, path existence checks, hashes, branch state, and target-scope
 checks. Do not split a prompt solely because preflight exists.
 
-Split or stop before the work becomes source-heavy. A prompt is source-heavy
-when it requires public web/source research, multiple external page opens,
-case-by-case evidence ledgers, post-window comparisons, review of several large
-artifacts, or any other source-loading unit that can materially fill live
-context before its output is sealed.
+Source-heavy work uses bounded questions and targeted reads. Persist a unit
+artifact or checkpoint only when the evidence must survive compaction, cross a
+receiver boundary, or is itself the requested deliverable. Do not require a
+write-and-hash cycle between ordinary source reads.
 
-For source-heavy work:
-
-- define the source-loading unit before research starts, normally one case, one
-  artifact, one review target, or one bounded evidence question;
-- write and hash the unit artifact before moving to the next unit;
-- if context compacts before the current unit artifact is written and hashed,
-  stop as `BLOCKED_COMPACTION_BEFORE_ARTIFACT_SEAL` and treat any outputs from
-  that unit as contaminated scratch until archived or rerun cleanly;
-- do not carry full source text, full source ledgers, full artifact prose, or
-  long readbacks in chat after the unit artifact exists;
-- keep chat checkpoints to receipt-level facts: artifact path, SHA256, status,
-  blocker/leakage state, and a short summary needed by the next step;
-- synthesize later packets from explicit compact summary sections, artifact
-  paths, hashes, and statuses, not by rereading full source-heavy artifacts.
-
-Highest-token actions to carve out: external web page opens, search result pages, full artifact readbacks, pasted source-ledger rows, pasted Evidence Units, multi-case or multi-target accumulation in one live thread. Prefer artifact-local detail plus compact chat receipts.
+If compaction or handoff would otherwise lose load-bearing evidence, preserve
+the smallest reconstructable packet: source identities, decisive findings,
+unresolved gaps, and any required hash. If the evidence remains cheaply
+re-readable from its controlling source, point to it instead. Compaction does
+not automatically contaminate prior work; a claim becomes blocked only when
+its evidence can no longer be reconstructed or verified.
 
 ## Output Modes
 
@@ -876,7 +856,7 @@ Highest-token actions to carve out: external web page opens, search result pages
   report changed files and validation evidence. For substantial
   decision-bearing artifacts, chat closeout must include a concise headed human
   summary before the artifact receipt.
-- `review-report`: perform read-only review unless a patch-execution lane is explicitly assigned; write reports under `docs/review-outputs/` or a typed child folder, then return the compact YAML review summary in chat only after the report write succeeds. When the durable report embeds a target-file diff, assemble and verify it with `.github/scripts/review-report-mechanics.py`; do not hand-paste a default-context diff. If the required report write fails, return `status: failed`, `review_location: chat_only_current_thread`, and `recommendation: blocked` in chat without `report_path`, name the failed path, and include enough human-readable failure detail to route.
+- `review-report`: perform read-only review unless a patch-execution lane is explicitly assigned; write reports under `docs/review-outputs/` or a typed child folder, then return the compact YAML review summary in chat only after the report write succeeds. If the required report write fails, return `status: failed`, `review_location: chat_only_current_thread`, and `recommendation: blocked` in chat without `report_path`, name the failed path, and include enough human-readable failure detail to route.
 - `paste-ready-chat`: return one prompt, wrapper, handoff, or review request
   body in chat for copying into another model, agent, thread, or worktree. For a
   canonical prompt artifact the durable artifact of record is the filed
@@ -893,7 +873,7 @@ Highest-token actions to carve out: external web page opens, search result pages
 The general human-summary / agent-detail / optional courier-state chat shape is owned by `.agents/workflow-overlay/communication-style.md`. This file owns output-mode exceptions to that shape:
 
 - `review-report` may use YAML-only chat only after the required durable report has been successfully written; failed durable writes must use `review_location: chat_only_current_thread`, `status: failed`, `recommendation: blocked`, name the failed path, and include enough human-readable routing detail.
-- `file-write` may return a compact path/hash/status receipt when the durable artifact carries the human-readable value; substantial decision-bearing writes must close with a headed human summary first (recommendation, why it matters, material boundaries, next authorized step), then receipt. If the write fails or the chat carries a decision, return readable blocker detail. Doctrine-changing file writes must include a `direction_change_propagation` receipt or blocker from `.agents/workflow-overlay/source-of-truth.md`.
+- `file-write` may return a compact path/hash/status receipt when the durable artifact carries the human-readable value; substantial decision-bearing writes must close with a headed human summary first (recommendation, why it matters, material boundaries, next authorized step), then receipt. If the write fails or the chat carries a decision, return readable blocker detail. Doctrine-changing writes record propagation evidence in the PR or closeout by default under `.agents/workflow-overlay/source-of-truth.md`.
 - `paste-ready-chat` may prioritize the paste-ready body when that body is the deliverable; do not use this mode to hide a Chief Architect, planning, scoping, overlay gate, or completion decision.
 - `patch-queue` may use stable structured units, but applying patches requires separate execution authority and readable blocker routing.
 
@@ -927,9 +907,10 @@ Before using a generated Forseti prompt, apply these gates:
 4. Writable-root binding present when repository state matters: same-lane prompts point to the active one-time binding without repeating its root/capability recital; new/external receivers and materially changed bindings carry the single `receiver_binding`, and a not-yet-created managed receiver also carries the exact one-task `receiver_creation_authorization`. Collaboration remains same-root and unknown receivers remain preparation-only. The same actor may target its selected worktree when launch and target roots differ; a command `workdir` neither expands a collaboration subagent's sandbox nor proves failure by itself. A delegated review-and-patch courier remains operator-courier-only, direct-repo, and different-vendor, with no Codex-managed fallback. A prompt fails this gate when it invents task-creation authority, ignores an observed capability denial, claims dispatch readiness before a new binding exists, or repeats capability ceremony as if it were required for an unchanged active binding.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
-7. Source-capsule budget satisfied: source capsules stay within
-   `.agents/workflow-overlay/source-loading.md` budgets, or the prompt narrows
-   the task, splits the source-loading unit, or moves to a new-thread handoff.
+7. Source capsule remains decision-bounded under
+   `.agents/workflow-overlay/source-loading.md`; its default budgets are
+   exceeded only when omitting the additional source would make the prompt
+   incomplete, and the reason is stated.
 8. Source-gated method sequencing satisfied when triggered: prompts that
    orchestrate workflow methods as an explicit reasoning pipeline distinguish
    `REFERENCE-LOAD` from `APPLY`, include a `SOURCE_CONTEXT_READY` /
@@ -938,18 +919,11 @@ Before using a generated Forseti prompt, apply these gates:
    prompt may use its targeted review-lane or skill pointer without the magic
    phrase, while still requiring the receiver to read the real target sources
    before findings.
-9. Thread operating target continuity satisfied: when a same-workstream prompt
-   chain has a visible active `thread_operating_target`, the generated prompt
-   either carries it forward verbatim with continuity disclosure or explains a
-   valid omission, change, retirement, blocker, conflict, or owner omission.
-   The target remains thread-local orientation only and must not be treated as
-   authority, evidence, readiness, approval, lifecycle completion, sequencing
-   authority, routing state, durable memory, or edit permission.
-10. Retrieval metadata bounded: new or materially touched durable prompt
+9. Retrieval metadata bounded: new or materially touched durable prompt
    artifacts use retrieval metadata only for source loading and do not create
    authority, validation proof, approval, readiness, lifecycle completion,
    deployment/install/resolver status, or edit permission.
-11. Review doctrine satisfied (per Review Prompt Defaults above):
+10. Review doctrine satisfied (per Review Prompt Defaults above):
    (a) invoke `workflow-adversarial-artifact-review` after source readiness or block strict claims as advisory-only;
    (b) findings-first output by default; bind any formal verdict, severity contract, blocked/ready status, validation/readiness claim, mandatory remediation, patch queue, or executor-ready handoff;
    (c) include `minimum_closure_condition` and `next_authorized_action` for actionable findings; define closure conditions as required end states, not implementation instructions;
@@ -959,14 +933,11 @@ Before using a generated Forseti prompt, apply these gates:
    (g) for intent-bearing targets, anchor decision criteria to a bound fitness reference or require the review to name its absence as `no checkable success bar bound`;
    (h) record `reviewed_by` and `authored_by` on every new or materially touched review output — operator/CA-supplied, `unrecorded` allowed, never fabricated; a present `unrecorded` value is a visible measurement gap, not a captured measurement;
    (i) coverage-first find stage: reviewers report every issue found with severity and confidence labels; importance/confidence filtering happens at adjudication, not at find time; steelman-defeated candidates surface in `considered_and_defended`.
-12. Doctrine propagation satisfied: prompt, handoff, wrapper, review,
-   output-mode, or execution-contract changes that alter durable doctrine carry
-   a `direction_change_propagation` receipt or
-   `direction_change_propagation_blocker` under
-   `.agents/workflow-overlay/source-of-truth.md`, or block strict completion,
-   readiness, validation, `PASS`, `ADEQUATE_NOW`, acceptance, and
-   alignment-complete claims.
-13. Rerun economy satisfied: retry prompts preserve frozen decisions and avoid scope reset.
+11. Doctrine propagation satisfied: prompt, handoff, wrapper, review,
+    output-mode, or execution-contract changes that alter durable doctrine name
+    the controlling source and record targeted propagation evidence in the PR
+    or closeout under `.agents/workflow-overlay/source-of-truth.md`.
+12. Rerun economy satisfied: retry prompts preserve frozen decisions and avoid scope reset.
 
 ## Prompt Verdicts
 
@@ -980,157 +951,3 @@ Before using a generated Forseti prompt, apply these gates:
 - Do not copy `jb` prompt templates, skill files, GAP/CV Engine policy, compiler paths, handoff rules, product-lead rules, or repo-local lifecycle mechanics.
 - Do not claim `workflow-product-ultraplan`, `workflow-feature-ultraplan`, or `workflow-prompt-orchestrator` are executable unless a real resolver-visible `SKILL.md` exists and Forseti source-resolution/adoption checks pass.
 - Generic layout ideas may be reused only after binding to Forseti paths, artifact roles, output modes, and validation gates.
-
-## Direction Change Propagation
-
-```yaml
-# preflight smallest-complete reduction 2026-07-16 (owner-requested ceremony cut).
-direction_change_propagation:
-  doctrine_changed: >
-    The routine preflight core now uses default elision (only non-default
-    fields are stated; an omitted field asserts its named default) and a
-    constants-by-pointer mandate: repo-constant values (intake reads,
-    external-source boundary, environment baseline, retrieval-header defaults,
-    lifecycle hard stop, de-correlation commission constants) are owned by
-    forseti_preflight_defaults_v0.md and cited, never restated; restating one
-    in a new or materially touched prompt is a prompt-quality defect. The
-    escalated per-prompt delta list is single-owned here (the defaults
-    artifact's duplicate list, with its drifted 3-value edit_permission enum
-    and orphaned isolation_decision, is deleted); prompt bodies do not carry
-    validation receipts or gate checklists. Load-bearing fields are unchanged
-    and still stated inline: revision pins, named targets, dirty-state
-    allowance and byte pins, workspace root, validation route, output mode,
-    edit permission, and the CI-gated receiver/courier shells.
-  trigger: workflow_authority
-  related_triggers: [output_authority]
-  controlling_sources_updated:
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
-  downstream_surfaces_checked:
-    - AGENTS.md
-    - CLAUDE.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/template-registry.md
-    - .agents/hooks/check_prompt_provenance.py
-    - .agents/hooks/check_prompt_output_mode.py
-    - .agents/hooks/README.md
-    - docs/prompts/templates/review/adversarial_artifact_review_v0.md
-    - docs/prompts/templates/wrappers/thin_wrapper_v0.md
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        Its "~12-line core" descriptor and two-depth routing remain accurate;
-        the elided core is the same core with defaults made implicit.
-    - path: .agents/workflow-overlay/source-loading.md
-      reason: >
-        It still owns the forseti_start_preflight receipt shape and
-        edit_permission enum unchanged; single-ownership was restored by
-        deleting the drifted duplicate in the defaults artifact, not by
-        moving the owner.
-    - path: .agents/hooks/check_prompt_output_mode.py
-      reason: >
-        The CI gate checks exactly the surviving shape (output-mode token,
-        receiver_creation_authorization shell, delegated-courier shell); its
-        token-drift selftest still parses this file green after the edit.
-    - path: docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
-      reason: already compact and operative; no constant recital to cut.
-    - path: docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md
-      reason: >
-        It is a cited-not-copied shared contract that already defers to
-        owners; folding it is the separate CER-1/OVL dual-maintenance unit.
-    - path: historical prompts, handoffs, and review outputs
-      reason: forward-only; completed lane evidence is not rewritten.
-  stale_language_search: >
-    rg -n -i "six[-]field|Repo-constant fields may be referenc[e]d|REQUIRED
-    ESCALATED DELTA[S]|6[-]item|state, per promp[t]" AGENTS.md CLAUDE.md .agents
-    docs/prompts/templates docs/workflows/forseti_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-16 after the live-authority edits: zero hits on any
-    checked live surface. Both hook selftests pass, including the
-    output-mode gate's token-drift case that parses this file.
-  non_claims:
-    - not validation or readiness
-    - no numeric token or latency savings claim
-    - not a weakening of the output-mode CI gate, the receiver/courier shell
-      checks, the DCP contract, revision/dirty-state pinning, or the
-      protected-action guard
-    - does not change what escalated (Full orchestration) cases must prove,
-      only where constants live
-
-# handoff transport/publication split 2026-07-14 (owner-requested correction).
-direction_change_propagation:
-  doctrine_changed: >
-    Handoff-only packets now become dispatch-ready through an exact,
-    actual-route-verified commit pointer before couriering, while PR creation is
-    reserved for independently justified publication on main rather than packet
-    discovery or transport.
-  trigger: workflow_authority
-  related_triggers: [output_authority, lifecycle_boundary]
-  controlling_sources_updated:
-    - AGENTS.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-  downstream_surfaces_checked:
-    - CLAUDE.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-loading.md
-    - .agents/workflow-overlay/decision-routing.md
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/safety-rules.md
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/hooks/check_handoff_pointers.py
-    - .agents/hooks/README.md
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: CLAUDE.md
-      reason: >
-        It remains a shim importing AGENTS.md and must not duplicate the new
-        kernel pointer.
-    - path: .agents/workflow-overlay/source-loading.md
-      reason: >
-        Source packs and confirm-don't-trust loading are unchanged; this rule
-        governs how a packet reaches the receiver before source loading begins.
-    - path: .agents/workflow-overlay/decision-routing.md
-      reason: >
-        It still owns receiver-mechanism and write-root selection. The new
-        exact-byte transport proof is the prompt/handoff owner's downstream use
-        of that selected mechanism, not a competing receiver selector.
-    - path: .agents/workflow-overlay/validation-gates.md and .agents/hooks/check_handoff_pointers.py
-      reason: >
-        The existing gate correctly checks durable in-repo pointer resolution
-        and explicitly cannot observe chat, PR comments, or receiver access.
-        Extending it would create a fake actual-route check; resident dispatch
-        verification remains in prompt-orchestration.md.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: >
-        The map already routes prompt/handoff mechanics and developer workflow
-        to the changed controlling files; no file family or owner moved.
-    - path: historical prompts, handoffs, and review outputs
-      reason: >
-        Forward-only doctrine change; completed lane evidence is not rewritten.
-  stale_language_search: >
-    rg -n -i "handoff.{0,80}(standalone|whole).{0,30}PR|handoff.{0,80}(push|PR preparation)|PR.{0,80}(discover|transport).{0,40}handoff|commit.{0,40}handoff.{0,40}(landed|publication)"
-    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    docs/workflows/forseti_repo_map_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-14 after the live-authority edits. Hits were the new
-    handoff-only push condition, this receipt's query, and the retained prior
-    receipt describing the compatible no-standalone-doc-PR rule; no checked
-    live surface still requires a PR merely for packet discovery or transport.
-  non_claims:
-    - not validation or readiness
-    - not proof that a receiver actually has repository access
-    - not publication or landing authority
-    - not a weakening of normal implementation, doctrine, or code PR flow
-```
-
-Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
