@@ -143,3 +143,7 @@ publication and landing.
 Default allowed work is documentation, decisions, prompts, reviews, migration
 notes, and overlay maintenance. Implementation or runtime work requires
 explicit bounded authorization in the current turn or an accepted handoff.
+
+The canonical Forseti data lake root is `F:\forseti-data-lake`;
+`forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_physicality_location_contract_v0.md`
+owns lake physicality and location semantics.
