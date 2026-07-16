@@ -109,6 +109,8 @@ def build_creator_audience_evidence_bundle(
     grid_observation_refs: Sequence[Mapping[str, Any]],
     question: str,
     evidence_cutoff: str,
+    method_deck_path: str,
+    method_deck_sha256: str,
     silver_selection_residuals: Sequence[Mapping[str, Any]] = (),
     video_limit: int = 8,
 ) -> dict[str, Any]:
@@ -116,8 +118,18 @@ def build_creator_audience_evidence_bundle(
     handle = str(batch_payload.get("creator_handle") or "").strip()
     if not handle or normalized_creator(handle) != creator_id:
         raise ValueError("TikTok batch creator does not match requested creator")
-    if not profile_subject_id.strip() or not raw_anchor.strip() or not question.strip() or not evidence_cutoff.strip():
-        raise ValueError("profile_subject_id, raw_anchor, question, and evidence_cutoff are required")
+    required = (
+        profile_subject_id,
+        raw_anchor,
+        question,
+        evidence_cutoff,
+        method_deck_path,
+        method_deck_sha256,
+    )
+    if any(not value.strip() for value in required):
+        raise ValueError(
+            "profile_subject_id, raw_anchor, question, evidence_cutoff, and method deck binding are required"
+        )
 
     videos, excluded_count = _selected_videos(batch_payload, limit=video_limit)
     raw_video_indexes = {
@@ -199,6 +211,8 @@ def build_creator_audience_evidence_bundle(
         "raw_anchor": raw_anchor.strip(),
         "question": question.strip(),
         "evidence_cutoff": evidence_cutoff.strip(),
+        "method_deck_path": method_deck_path.strip(),
+        "method_deck_sha256": method_deck_sha256.strip(),
         "capture_scope": {
             "selected_video_ids": [str(video.get("video_id")) for video in videos],
             "selected_video_count": len(videos),
