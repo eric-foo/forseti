@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Sequence
 
@@ -14,6 +13,7 @@ from capture_spine.creator_profile_current.registry_match_preflight import (
     dump_creator_registry_match_preflight_receipt,
     has_blocking_preflight_results,
 )
+from harness_utils import utc_now_z
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,7 +48,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-    generated_at = args.generated_at_utc or _now_utc()
+    generated_at = args.generated_at_utc or utc_now_z()
     try:
         receipt = build_creator_registry_match_preflight_receipt_from_files(
             candidate_path=args.candidates,
@@ -65,10 +65,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2 if has_blocking_preflight_results(receipt) else 0
     except Exception as exc:
         parser.exit(status=2, message=f"creator registry match preflight failed: {exc}\n")
-
-
-def _now_utc() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 if __name__ == "__main__":

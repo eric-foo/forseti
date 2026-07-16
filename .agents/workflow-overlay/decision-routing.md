@@ -44,7 +44,10 @@ Architecture, planning, scoping, delegation, cross-thread continuity, review,
 patching, doctrine work, and messy worktrees are escalation cues because they
 often contain those unknowns. They are not sufficient triggers by themselves.
 If the outcome, authority, sources, touch points, and validation route are
-already bounded, proceed without a full-router artifact.
+already bounded, proceed without a full-router artifact. An explicit `/fused`
+invocation supersedes the `AGENTS.md` five-phase fast path for that work unit;
+a continuation that only executes already-cleared fused lanes runs under the
+fast path.
 
 ## Bypass Conditions
 

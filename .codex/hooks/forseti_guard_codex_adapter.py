@@ -174,17 +174,24 @@ def _apply_patch_paths(patch_text):
 
 
 def _check_apply_patch_paths(tool_input):
-    patch_text = tool_input.get("command") or ""
-    for path in _apply_patch_paths(patch_text):
-        reason = _nested_worktree_reason(_path_for_guard(path))
-        if reason:
-            return reason
-        event = json.dumps({"tool_name": "Edit", "tool_input": {"file_path": path}})
-        proc = _run_guard(event)
-        if proc.returncode == 2:
-            return _reason_from(proc)
-        if proc.returncode != 0:
-            return _reason_from(proc)
+    seen = set()
+    for key in ("command", "patch", "input"):
+        patch_text = tool_input.get(key)
+        if not isinstance(patch_text, str) or not patch_text:
+            continue
+        for path in _apply_patch_paths(patch_text):
+            if path in seen:
+                continue
+            seen.add(path)
+            reason = _nested_worktree_reason(_path_for_guard(path))
+            if reason:
+                return reason
+            event = json.dumps({"tool_name": "Edit", "tool_input": {"file_path": path}})
+            proc = _run_guard(event)
+            if proc.returncode == 2:
+                return _reason_from(proc)
+            if proc.returncode != 0:
+                return _reason_from(proc)
     return ""
 
 

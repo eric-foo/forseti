@@ -43,6 +43,9 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 REVIEW_LANES_AUTHORITY = ".agents/workflow-overlay/review-lanes.md"
 RETRIEVAL_METADATA_AUTHORITY = ".agents/workflow-overlay/retrieval-metadata.md"
 REVIEW_OUTPUT_PREFIX = "docs/review-outputs/"
@@ -99,10 +102,7 @@ class Finding:
     message: str
 
 
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
+# Kept local: drifted from _hooklib.to_relposix (no empty/rooted-path -> None handling; FIND-01 class).
 def to_relposix(target: str, root: Path) -> str | None:
     path = Path(target)
     if path.is_absolute():
@@ -122,6 +122,7 @@ class GitSelectionError(RuntimeError):
     """
 
 
+# Kept local: deliberately raises GitSelectionError on git failure instead of _hooklib.git_lines's silent [].
 def git_lines(root: Path, args: list[str]) -> list[str]:
     try:
         result = subprocess.run(
