@@ -4,7 +4,6 @@ import argparse
 import json
 import re
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Mapping, Sequence
 from urllib.parse import urlparse
@@ -12,6 +11,7 @@ from urllib.parse import urlparse
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import utc_now_z
 from runners.run_source_capture_cloakbrowser_packet import run_source_capture_cloakbrowser_packet
 from runners.run_source_capture_http_packet import run_source_capture_http_packet
 from source_capture import CaptureModeCategory, known_fact, not_applicable, unknown_with_reason
@@ -281,7 +281,7 @@ def build_fragrantica_mgt_capture_summary(
         "source_family": SOURCE_FAMILY,
         "source_url": url,
         "fragrantica_product_id": extract_fragrantica_product_id(url),
-        "summary_generated_at": _utc_now_z(),
+        "summary_generated_at": utc_now_z(),
         "packet_publication_mode": (
             "data_lake_raw_packets_with_local_summary"
             if data_root_path is not None
@@ -403,10 +403,6 @@ def _not_a_recapture():
 
 def _not_a_recapture_relationship():
     return not_applicable("Fragrantica MGT wrapper did not receive a prior packet relationship")
-
-
-def _utc_now_z() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _build_parser() -> argparse.ArgumentParser:

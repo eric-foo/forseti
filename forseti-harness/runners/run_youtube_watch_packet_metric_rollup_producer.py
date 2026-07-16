@@ -34,7 +34,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -54,6 +53,7 @@ from capture_spine.creator_profile_current.youtube_watch_packet_metric_document 
     build_youtube_watch_packet_metric_document,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
+from harness_utils import utc_now_z
 
 ROOT = Path(__file__).resolve().parents[2]
 _SOCIAL_MEDIA = (
@@ -69,10 +69,6 @@ DEFAULT_CREATOR_LEDGER = (
 
 def _load_json(path: str | Path) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8-sig"))
-
-
-def _now_utc() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def run_watch_packet_producer(
@@ -201,7 +197,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-    generated_at = args.generated_at_utc or _now_utc()
+    generated_at = args.generated_at_utc or utc_now_z()
 
     excluded_video_ids: dict[str, str] | None = None
     if args.excluded_videos:

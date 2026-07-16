@@ -23,7 +23,6 @@ is not located, the run fails visibly (no fake success).
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import sys
@@ -35,6 +34,7 @@ from urllib.parse import urljoin, urlparse
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import sha256_bytes
 from source_capture import (
     CaptureModeCategory,
     PacketTiming,
@@ -85,10 +85,6 @@ PRICE_PAYLOAD_NON_CLAIMS = [
 _MODULEPRELOAD_RE = re.compile(
     r'<link[^>]+(?:rel="modulepreload"|as="script")[^>]*href="([^"]+)"'
 )
-
-
-def _sha256(b: bytes) -> str:
-    return hashlib.sha256(b).hexdigest()
 
 
 def _rung1_fetch(url: str, *, timeout: float, max_bytes: int):
@@ -260,7 +256,7 @@ def run_price_payload_capture(
                 fclass = "parser_no_chunks"
                 attempts.append({"attempt": attempt_i, "failure_class": fclass,
                                  "status": pr.status, "final_url": burl,
-                                 "body_sha256": _sha256(pr.body), "byte_count": len(pr.body),
+                                 "body_sha256": sha256_bytes(pr.body), "byte_count": len(pr.body),
                                  "module_preload_count": 0})
             else:
                 curl, cres, ccls, slog, reason = _discover_prices_chunk(
@@ -273,7 +269,7 @@ def run_price_payload_capture(
                     page_module_preload_count = ncount
                     attempts.append({"attempt": attempt_i, "outcome": "found",
                                      "status": pr.status, "final_url": burl,
-                                     "body_sha256": _sha256(pr.body), "byte_count": len(pr.body),
+                                     "body_sha256": sha256_bytes(pr.body), "byte_count": len(pr.body),
                                      "module_preload_count": ncount, "prices_chunk_url": curl})
                     break
                 if reason in ("byte_budget_exceeded", "max_chunks_exhausted"):
@@ -284,7 +280,7 @@ def run_price_payload_capture(
                     fclass = "anchor_not_found_full_page"
                 attempts.append({"attempt": attempt_i, "failure_class": fclass,
                                  "status": pr.status, "final_url": burl,
-                                 "body_sha256": _sha256(pr.body), "byte_count": len(pr.body),
+                                 "body_sha256": sha256_bytes(pr.body), "byte_count": len(pr.body),
                                  "module_preload_count": ncount, "scan_log": slog})
         if fclass not in retryable:
             break  # terminal failure (likely a real vendor change / coverage limit)
@@ -426,7 +422,7 @@ def run_price_payload_capture(
         "page": {
             "requested_url": page_res.requested_url, "final_url": base_url,
             "status": page_res.status, "content_type": page_res.metadata.get("content_type"),
-            "byte_count": len(page_res.body), "sha256": _sha256(page_res.body),
+            "byte_count": len(page_res.body), "sha256": sha256_bytes(page_res.body),
             "block_shell": page_cls.classification.value,
             "block_shell_signal": page_cls.signal,
             "freshness": _response_freshness(page_res.response_headers),
@@ -434,7 +430,7 @@ def run_price_payload_capture(
         "prices_chunk": {
             "url": chunk_url, "status": chunk_res.status,
             "content_type": chunk_res.metadata.get("content_type"),
-            "byte_count": len(chunk_res.body), "sha256": _sha256(chunk_res.body),
+            "byte_count": len(chunk_res.body), "sha256": sha256_bytes(chunk_res.body),
             "block_shell": chunk_cls.classification.value,
             "module_preload_chunks_seen": page_module_preload_count,
             "chunk_scan_log": scan_log,
@@ -445,7 +441,7 @@ def run_price_payload_capture(
                 "url": announcement_url,
                 "block_shell": announcement_cls.classification.value if announcement_cls else None,
                 "byte_count": len(announcement_body) if announcement_body else None,
-                "sha256": _sha256(announcement_body) if announcement_body else None,
+                "sha256": sha256_bytes(announcement_body) if announcement_body else None,
                 "pro_effective_date_text": pro_effective_date,
             }
             if announcement_url else None
