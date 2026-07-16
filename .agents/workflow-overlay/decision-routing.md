@@ -137,6 +137,15 @@ branch nor worktree for read-only work; a current-checkout branch for clean
 solo/sequential writing; and a worktree off the required base for dirty-base,
 concurrent, or independent work.
 
+For Codex Desktop, launch each new concurrent repo-changing task directly in its
+own small worktree. Do not launch new lanes from legacy or aggregate checkouts,
+cache parents, or directories that contain multiple worktrees; those broad roots
+can amplify Windows sandbox ACL setup latency. This is performance containment,
+not a correctness or authority rule: launch-root mismatch alone remains not a
+blocker. If a correctly rooted Desktop lane still stalls or needs sustained
+shell-heavy parallelism, standalone CLI or WSL2 is an explicit fallback, not the
+standing default.
+
 The current actor may continue the same commissioned work unit directly in its
 selected worktree after one fresh snapshot records the exact target path,
 revision and dirty state, and whether another writer is active. Launch checkout
