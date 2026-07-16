@@ -370,13 +370,16 @@ Render one compact pointer-first prompt containing:
 4. pointers to `AGENTS.md`, `.agents/workflow-overlay/README.md`, the targeted
    sections of `.agents/workflow-overlay/delegated-review-patch.md`, the
    relevant review skill or lane, and the `environment_baseline`,
-   `lifecycle_hard_stop`, and `decorrelation_commission` constants in
+   `lifecycle_hard_stop`, `decorrelation_commission`, `execution_economy`, and
+   `review_diff_mechanics` constants in
    `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` (cited,
    not restated);
-5. named validation expectations with real failure and not-run reporting;
-6. the controller return: findings, bounded diff, neutral citations, validation
+5. exactly `execution_route: five_phase_fast_path_if_eligible` and
+   `review_diff_route: review_report_mechanics_if_durable_report_embeds_diff`;
+6. named validation expectations with real failure and not-run reporting;
+7. the controller return: findings, bounded diff, neutral citations, validation
    evidence, verdict, and residual risk; and
-7. Chief Architect adjudication before any returned change is kept, plus
+8. Chief Architect adjudication before any returned change is kept, plus
    `NEEDS_ARCHITECTURE_PASS` for design-level blockers.
 
 Prompt rendering and execution are separate states. A prompt with
@@ -873,7 +876,7 @@ Highest-token actions to carve out: external web page opens, search result pages
   report changed files and validation evidence. For substantial
   decision-bearing artifacts, chat closeout must include a concise headed human
   summary before the artifact receipt.
-- `review-report`: perform read-only review unless a patch-execution lane is explicitly assigned; write reports under `docs/review-outputs/` or a typed child folder, then return the compact YAML review summary in chat only after the report write succeeds. If the required report write fails, return `status: failed`, `review_location: chat_only_current_thread`, and `recommendation: blocked` in chat without `report_path`, name the failed path, and include enough human-readable failure detail to route.
+- `review-report`: perform read-only review unless a patch-execution lane is explicitly assigned; write reports under `docs/review-outputs/` or a typed child folder, then return the compact YAML review summary in chat only after the report write succeeds. When the durable report embeds a target-file diff, assemble and verify it with `.github/scripts/review-report-mechanics.py`; do not hand-paste a default-context diff. If the required report write fails, return `status: failed`, `review_location: chat_only_current_thread`, and `recommendation: blocked` in chat without `report_path`, name the failed path, and include enough human-readable failure detail to route.
 - `paste-ready-chat`: return one prompt, wrapper, handoff, or review request
   body in chat for copying into another model, agent, thread, or worktree. For a
   canonical prompt artifact the durable artifact of record is the filed
@@ -1128,89 +1131,6 @@ direction_change_propagation:
     - not proof that a receiver actually has repository access
     - not publication or landing authority
     - not a weakening of normal implementation, doctrine, or code PR flow
-
-# whale-first token/latency economy fixes 2026-07-12 (owner-approved insights follow-up).
-direction_change_propagation:
-  doctrine_changed: >
-    Four owner-approved efficiency rules: the AGENTS.md kernel now bans
-    uncommissioned adversarial self-review of an agent's own diff (CI plus any
-    commissioned review are the defect gate) and presumes untracked files are
-    authored artifacts requiring provenance confirmation before destructive
-    branch/worktree/PR actions; the lane-scoped filing rule now explicitly
-    covers handoff packets and closeout docs (no standalone doc PRs by
-    default); and a repo-constant Windows/PowerShell `environment_baseline`
-    is bound in the shared preflight defaults and pointed at by the compact
-    delegated prompt default.
-  trigger: workflow_authority
-  related_triggers: [review_authority]
-  controlling_sources_updated:
-    - AGENTS.md
-    - .agents/workflow-overlay/prompt-orchestration.md
-    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
-    - docs/decisions/dcp_receipts_archive_v0.md
-  downstream_surfaces_checked:
-    - CLAUDE.md
-    - .agents/workflow-overlay/README.md
-    - .agents/workflow-overlay/source-of-truth.md
-    - .agents/workflow-overlay/review-lanes.md
-    - .agents/workflow-overlay/delegated-review-patch.md
-    - .agents/workflow-overlay/communication-style.md
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/workflow-overlay/safety-rules.md
-    - .agents/workflow-overlay/source-loading.md
-    - docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-    - docs/workflows/forseti_repo_map_v0.md
-  intentionally_not_updated:
-    - path: CLAUDE.md
-      reason: >
-        It remains a shim importing AGENTS.md and must not duplicate kernel
-        rules.
-    - path: .agents/workflow-overlay/review-lanes.md
-      reason: >
-        Commissioned review lanes and CA adjudication of a self-review are
-        unchanged; the kernel ban covers only uncommissioned self-review of an
-        agent's own diff.
-    - path: .agents/workflow-overlay/delegated-review-patch.md
-      reason: >
-        Its fallback to source-read-only review plus CA self-review is a
-        commissioned review act and remains valid; de-correlation doctrine is
-        unchanged.
-    - path: .agents/workflow-overlay/source-of-truth.md
-      reason: >
-        Checkpoint-artifact lifecycle (non-authoritative, single-consumption)
-        is unchanged; the filing extension only decides which PR carries a
-        committed handoff doc.
-    - path: docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-      reason: >
-        It already rides planning/scoping artifacts with their work unit; the
-        handoff/closeout extension is same-direction and owned by the filing
-        section here.
-    - path: .agents/workflow-overlay/safety-rules.md
-      reason: >
-        The protected-action guard and deletion-evidence gate still enforce
-        destructive-command safety; the untracked-files presumption is
-        upstream always-loaded kernel behavior, not a guard change.
-    - path: docs/workflows/forseti_repo_map_v0.md
-      reason: no path, owner, or retrieval route changed.
-  stale_language_search: >
-    rg -n -i "self.review|untracked|standalone.{0,40}PR|python3|drive-letter"
-    AGENTS.md .agents/workflow-overlay docs/prompts/templates
-    docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md
-  stale_language_search_result: >
-    Executed 2026-07-12 after edits, before commit. All self-review hits are
-    commissioned lanes (CA adjudication in communication-style.md and this
-    file; the delegated-review-patch fallback), compatible with the
-    uncommissioned-only ban. Untracked hits are state-classification
-    vocabulary and the same-direction deletion-refusal safety in the dev
-    workflow doctrine; no surface labels untracked files disposable.
-    Standalone-PR hits are the existing planning-artifact and prompt filing
-    rules plus this edit; no surface mandates bash or python3 for Windows
-    work.
-  non_claims:
-    - not validation or readiness
-    - no numeric token or latency savings claim
-    - not a weakening of commissioned review, CI gates, the deletion-evidence
-      gate, or the protected-action guard
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
