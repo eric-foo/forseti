@@ -515,6 +515,7 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 
 
 def _utc_now(now_fn: Callable[[], datetime]) -> str:
+    # Diverges from harness_utils.utc_now_z: injected clock and keeps microsecond precision.
     return _format_utc(now_fn())
 
 

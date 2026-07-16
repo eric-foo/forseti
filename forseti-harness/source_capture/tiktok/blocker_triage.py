@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from harness_utils import as_dict
+
 
 TIKTOK_BLOCKER_CLASS_NO_BLOCKER = "no_blocker"
 TIKTOK_BLOCKER_CLASS_BENIGN_DISMISSIBLE_OVERLAY = "benign_dismissible_overlay"
@@ -112,7 +114,7 @@ def classify_tiktok_capture(
     dismiss_candidate_count: int = 0,
     reload_candidate_count: int = 0,
 ) -> TikTokBlockerTriage:
-    dom_observation = _as_dict(getattr(capture_result, "dom_observation", {}))
+    dom_observation = as_dict(getattr(capture_result, "dom_observation", {}))
     hydration_present = bool(_first_str(dom_observation.get("hydration_json_text")))
     return classify_tiktok_blocker(
         final_url=_first_str(getattr(capture_result, "final_url", None)) or "",
@@ -286,10 +288,6 @@ def _first_contained_marker(text: str, markers: tuple[str, ...]) -> str | None:
         if marker in text:
             return marker
     return None
-
-
-def _as_dict(value: Any) -> dict[str, Any]:
-    return value if isinstance(value, dict) else {}
 
 
 def _first_str(*values: Any) -> str | None:

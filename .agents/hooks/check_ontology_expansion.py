@@ -48,12 +48,10 @@ import shutil
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 BACKLOG_RELPATH = "forseti/product/spines/foundation/ontology/ontology_expansion_backlog_v0.json"
-
-
-def repo_root() -> Path:
-    """Repo root derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
 
 
 # ---------------------------------------------------------------------------

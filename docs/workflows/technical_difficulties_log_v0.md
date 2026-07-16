@@ -113,3 +113,86 @@ ACLs is outside this repository's ownership.
 - Not proof that PR #896 content was incorrect; its required CI completed green.
 - Not proof that every historical rebase caused delay or conflict.
 - Not validation, readiness, or merge approval for the corrective patch.
+
+## TD-2026-07-16-002 — Sandboxed tool completion stalls reopened after interruptions
+
+- **Observed:** 2026-07-16, Asia/Singapore.
+- **User-visible symptom:** small patch and read operations remained running for
+  roughly 80 to 265 seconds despite 20-second command budgets.
+- **Verified contrast:** equivalent read-only commands through per-operation
+  escalation completed in 0.3 to 0.6 seconds; same-worktree atomic edits
+  completed in 0.4 seconds; the Codex guard adapter self-test completed in 1.7
+  seconds.
+- **Patch result:** the manually stopped built-in patch changed none of its four
+  intended files.
+
+### Diagnosis and correction
+
+The dominant observed delay was the sandboxed tool route or its result-return
+lifecycle, not Git, Python, the atomic helper, or the Forseti guard runtime. The
+repository cannot repair that host component. A second process defect amplified
+the cost: the circuit breaker expired at the end of a turn, so an interruption
+or follow-up message reopened a route already observed to be stalled.
+
+`AGENTS.md` now keeps that circuit open for the task/thread and requires later
+context to inherit the observed stall. Safe shell work may use the one allowed
+per-operation escalated retry and then that working route. After a patch stall,
+the same-worktree atomic exact-edit helper remains the bounded fallback. No Luna
+or separate worktree is required for ordinary sequential editing.
+
+A related enforcement defect was also corrected: the Codex adapter now inspects
+patch text in `tool_input.command`, `.patch`, and `.input`, with focused coverage
+for all three forms. This closes a wrong-root guard gap; it does not repair the
+host patch executor.
+
+### Accepted residuals
+
+- Built-in `apply_patch` may still stall at the host level and remains outside
+  repository control.
+- Escalation remains per-operation and is not a standing permission.
+- A fresh task without inherited incident context may need one observed stall
+  before its circuit opens.
+
+### Validation observed
+
+- Two focused hook-wiring tests passed.
+- The Codex adapter self-test passed.
+- `git diff --check` passed for the bounded repair files.
+
+### Non-claims
+
+- Not proof of the product-side root cause.
+- Not a host-level patch-tool repair.
+- Not authority to weaken protected-action or worktree guards.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    A confirmed sandboxed tool stall now opens the tool-and-permission-route
+    circuit for the whole task/thread, including interruptions and automatic
+    continuations, instead of resetting at each turn.
+  trigger: workflow_authority
+  related_triggers: [lifecycle_boundary]
+  controlling_sources_updated:
+    - AGENTS.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/README.md
+    - docs/workflows/efficiency/tool_calling_efficiency_improvement_sequence_2026_07_15_v0.md
+  intentionally_not_updated:
+    - {path: CLAUDE.md, reason: "It imports AGENTS.md and must not duplicate the circuit rule."}
+    - {path: .agents/workflow-overlay/decision-routing.md, reason: "Receiver and writable-root routing are unchanged; the circuit remains owned by AGENTS.md Operating Economy."}
+    - {path: .agents/workflow-overlay/validation-gates.md, reason: "Validation and review gates are unchanged."}
+    - {path: docs/workflows/efficiency/tool_calling_efficiency_improvement_sequence_2026_07_15_v0.md, reason: "It is a dated evaluation record; rewriting history would obscure the newly observed incident."}
+  stale_language_search: >
+    rg -n -i "rest of the turn|stop the edit route for the turn|open (a |the )?circuit|sandboxed_tool_stall|atomic_exact_edit"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md
+    docs/workflows/efficiency docs/workflows/technical_difficulties_log_v0.md
+  stale_language_search_result: >
+    Executed after the correction. No live instruction retained a turn-scoped
+    circuit. Remaining atomic-helper hits describe the compatible fallback or
+    the dated efficiency record.
+  non_claims: [not validation, not readiness, not a host-level tool repair]
+```
