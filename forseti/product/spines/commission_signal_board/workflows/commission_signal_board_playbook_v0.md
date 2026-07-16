@@ -37,7 +37,8 @@ This playbook keeps four objects distinct:
 | --- | --- | --- |
 | Intake scaffold | A request for missing commission inputs | No |
 | Standard signal board | Existing standard Sections 1-10 with classifier handoff | Yes |
-| Company competitive-intelligence report | Conditional company Sections 1-10 with typed ledgers and no classifier handoff | Yes |
+| Commission-stage company board | Conditional company Sections 1-10 sealed before scanning: `run_boundary: COMMISSION_SEALED_PRE_SCAN`, `not_checked` coverage rows as the commissioned scan routes, scout statuses may be `commissioned_not_yet_run` | Yes |
+| Company competitive-intelligence report | Conditional company Sections 1-10 with typed ledgers, earned scout statuses, and no classifier handoff | Yes |
 | Scanning, Capture, or classifier work | Downstream execution under its owning spine | No |
 
 CSB owns the commission profile, source-family requirements, time posture, and
@@ -106,7 +107,14 @@ Run the validator only against a full output with profile-specific Sections
   `Demand-Classifier Handoff Packet`, and `Board Status And Run Boundary`.
 - `company_competitive_intelligence` requires `Company Commission And Identity
   Receipt` through `Completion Ledger And Run Boundary` and must not contain a
-  classifier handoff.
+  classifier handoff. This includes commission-stage company boards
+  (`run_boundary: COMMISSION_SEALED_PRE_SCAN`): they are full ten-section
+  outputs and are validated; the validator enforces that the commission-stage
+  boundary coexists with `not_checked` coverage rows and that
+  `commissioned_not_yet_run` scout statuses appear only at that stage. It also
+  cross-checks each Reddit/Quora scout status against the corresponding
+  coverage-row status and yield so the completion ledger cannot claim a result
+  the route ledger did not earn.
 
 Do not run it against `NEEDS_COMMISSION_INTAKE` or `NEEDS_CUTOFF_DATE`.
 
@@ -137,7 +145,8 @@ For `company_competitive_intelligence`, the validator checks:
 - decision-neutral company lenses and prohibited GTM keys;
 - Company Surface rows as `candidate_only` and `not_imported`;
 - completion ledger, explicit gaps/requests, no arbitrary caps, typed
-  `run_boundary` and `next_authorized_step`, and no classifier handoff;
+  `run_boundary` and `next_authorized_step`, Reddit/Quora scout-status
+  consistency with their coverage rows, and no classifier handoff;
 - the shared engagement/resonance overclaim ban, which applies to both profiles.
 
 ## What A Pass Means

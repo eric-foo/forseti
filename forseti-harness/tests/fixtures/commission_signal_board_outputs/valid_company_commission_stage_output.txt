@@ -1,0 +1,370 @@
+<!-- fixture_expected: pass -->
+<!-- fixture_purpose: commission-stage company board sealed pre-scan: COMMISSION_SEALED_PRE_SCAN with a not_checked coverage route and commissioned_not_yet_run scout status -->
+
+# Company Competitive Intelligence Fixture: Example Labs
+
+### 1. Company Commission And Identity Receipt
+
+```yaml
+company_commission_receipt:
+  commission_id: fixture_company_example_labs
+  mode: forward
+  commission_profile: company_competitive_intelligence
+  subject_count: 1
+  subject_identity:
+    raw_name: Example Labs
+    subject_kind: brand_or_org_unresolved
+    identity_state: unresolved
+  as_of_date: "2026-07-16"
+  time_posture: recency_first
+  longitudinal_period: null
+  longitudinal_rationale: not_applicable
+  initial_proving_run: true
+```
+
+### 2. Decision-Neutral Boundary
+
+This report records observable company and external-response evidence. It makes no GTM, demand, or intervention conclusion and keeps the Brand/Org identity unresolved.
+
+### 3. Source-Family And Venue Coverage Ledger
+
+```yaml
+coverage_ledger:
+  - coverage_id: COV-001
+    source_family: owned_channels
+    source_surface: company_site
+    venue: Example Labs website
+    relevance_rationale: Current first-party positioning and offering claims.
+    route_or_query: https://example.test/company
+    requirement: required
+    status: checked
+    yield: evidence_found
+    recency: current
+    access: accessible
+    relevance: relevant
+    gap_id: null
+  - coverage_id: COV-002
+    source_family: news_editorial_trade
+    source_surface: trade_article
+    venue: Example Trade
+    relevance_rationale: Independent context for a stated operating move.
+    route_or_query: https://example.test/trade/article
+    requirement: required
+    status: checked
+    yield: evidence_found
+    recency: current
+    access: accessible
+    relevance: relevant
+    gap_id: null
+  - coverage_id: COV-003
+    source_family: forums_community
+    source_surface: bounded_subreddit_scout
+    venue: Reddit
+    relevance_rationale: Mandatory bounded scout for customer and community response.
+    route_or_query: site:reddit.com "Example Labs"
+    requirement: mandatory_bounded_scout
+    status: checked
+    yield: zero_yield
+    recency: unknown
+    access: accessible
+    relevance: relevant
+    gap_id: null
+  - coverage_id: COV-004
+    source_family: forums_community
+    source_surface: answer_forum_scout
+    venue: Quora
+    relevance_rationale: Explicit experimental scout for the initial proving run.
+    route_or_query: site:quora.com "Example Labs"
+    requirement: experimental_initial_proving_run
+    status: not_checked
+    yield: unknown
+    recency: unknown
+    access: accessible
+    relevance: mixed
+    gap_id: null
+  - coverage_id: COV-005
+    source_family: forums_community
+    source_surface: category_specialist_forum
+    venue: Example Specialist Forum
+    relevance_rationale: Category-aware hidden-venue discovery surfaced a relevant specialist thread.
+    route_or_query: https://example.test/forum/thread
+    requirement: category_aware
+    status: checked
+    yield: evidence_found
+    recency: current
+    access: accessible
+    relevance: relevant
+    gap_id: null
+  - coverage_id: COV-006
+    source_family: retail_pdp
+    source_surface: retailer_product_page
+    venue: Example Retailer
+    relevance_rationale: Current availability and channel corroboration.
+    route_or_query: https://example.test/retailer/product
+    requirement: required
+    status: checked
+    yield: evidence_found
+    recency: current
+    access: accessible
+    relevance: relevant
+    gap_id: null
+  - coverage_id: COV-007
+    source_family: professional_org_motion
+    source_surface: public_filing
+    venue: Example Registry
+    relevance_rationale: Historical organization boundary and chronology.
+    route_or_query: https://example.test/registry/filing
+    requirement: required
+    status: checked
+    yield: evidence_found
+    recency: historical
+    access: accessible
+    relevance: relevant
+    gap_id: null
+  - coverage_id: COV-008
+    source_family: creator_social_video
+    source_surface: public_video_comments
+    venue: Example Video
+    relevance_rationale: Relevant public response surface, but preservation access was blocked.
+    route_or_query: https://example.test/video/item
+    requirement: conditional
+    status: blocked
+    yield: blocked
+    recency: unknown
+    access: blocked
+    relevance: relevant
+    gap_id: GAP-001
+```
+
+### 4. Observation Ledger
+
+```yaml
+observation_ledger:
+  - observation_id: OBS-001
+    subject_name: Example Labs
+    subject_kind: brand_or_org_unresolved
+    identity_state: unresolved
+    coverage_id: COV-001
+    source_url_or_packet_locator: https://example.test/company
+    source_family: owned_channels
+    source_surface: company_site
+    publisher_or_venue: Example Labs
+    source_class: official_first_party
+    publication_date: null
+    event_or_effective_date: null
+    observation_at: "2026-07-16T09:00:00Z"
+    effective_time_precision: current_page_observation
+    recency_tier: days_0_30
+    age_anchor_date: "2026-07-16"
+    age_anchor_basis: current_page_observation
+    exact_locator: page heading Current products
+    evidence_excerpt: Example Labs presents Product One as its current flagship.
+    lawful_access_route: public_direct_read
+    access_limitation: current page only; no historical snapshot claimed
+    independence_syndication_group: example_labs_owned_001
+    independent_corroboration_ids: []
+    ambiguity_limitation: Brand/Org identity remains unresolved.
+    contradiction_state: none_observed
+    fact_domain: company_fact
+    current_state_use: primary_current
+    consumed_by_sections: [5, 6, 9]
+  - observation_id: OBS-002
+    subject_name: Example Labs
+    subject_kind: brand_or_org_unresolved
+    identity_state: unresolved
+    coverage_id: COV-002
+    source_url_or_packet_locator: https://example.test/trade/article
+    source_family: news_editorial_trade
+    source_surface: trade_article
+    publisher_or_venue: Example Trade
+    source_class: independent
+    publication_date: "2026-06-01"
+    event_or_effective_date: "2026-06-01"
+    observation_at: "2026-07-16T09:10:00Z"
+    effective_time_precision: day
+    recency_tier: days_31_90
+    age_anchor_date: "2026-06-01"
+    age_anchor_basis: event_effective
+    exact_locator: paragraph 4
+    evidence_excerpt: The article reports a distribution expansion announced by Example Labs.
+    lawful_access_route: public_direct_read
+    access_limitation: article repeats announcement language
+    independence_syndication_group: distribution_announcement_001
+    independent_corroboration_ids: []
+    ambiguity_limitation: Independent publication, but the claim traces to the company announcement.
+    contradiction_state: syndication_risk_visible
+    fact_domain: company_fact
+    current_state_use: current_corroboration
+    consumed_by_sections: [5, 6, 8]
+  - observation_id: OBS-003
+    subject_name: Example Labs
+    subject_kind: brand_or_org_unresolved
+    identity_state: unresolved
+    coverage_id: COV-006
+    source_url_or_packet_locator: https://example.test/retailer/product
+    source_family: retail_pdp
+    source_surface: retailer_product_page
+    publisher_or_venue: Example Retailer
+    source_class: retailer
+    publication_date: "2026-06-02"
+    event_or_effective_date: null
+    observation_at: "2026-07-16T09:20:00Z"
+    effective_time_precision: current_page_observation
+    recency_tier: days_31_90
+    age_anchor_date: "2026-06-02"
+    age_anchor_basis: publication
+    exact_locator: product title and availability block
+    evidence_excerpt: The retailer lists Product One as available in the US channel.
+    lawful_access_route: public_direct_read
+    access_limitation: availability is an observed page state, not a dated launch event
+    independence_syndication_group: distribution_announcement_001
+    independent_corroboration_ids: []
+    ambiguity_limitation: Listing does not establish inventory depth or sales.
+    contradiction_state: none_observed
+    fact_domain: company_fact
+    current_state_use: current_corroboration
+    consumed_by_sections: [5, 6, 8]
+  - observation_id: OBS-004
+    subject_name: Example Labs
+    subject_kind: brand_or_org_unresolved
+    identity_state: unresolved
+    coverage_id: COV-005
+    source_url_or_packet_locator: https://example.test/forum/thread
+    source_family: forums_community
+    source_surface: category_specialist_forum
+    publisher_or_venue: Example Specialist Forum
+    source_class: customer_community
+    publication_date: "2026-07-10"
+    event_or_effective_date: null
+    observation_at: "2026-07-16T09:30:00Z"
+    effective_time_precision: day
+    recency_tier: days_0_30
+    age_anchor_date: "2026-07-10"
+    age_anchor_basis: publication
+    exact_locator: thread 42, post 3
+    evidence_excerpt: One participant describes Product One packaging as difficult to use.
+    lawful_access_route: public_direct_read
+    access_limitation: single attributable experience; not representative
+    independence_syndication_group: forum_thread_042_post_003
+    independent_corroboration_ids: []
+    ambiguity_limitation: Individual experience with unknown sampling context.
+    contradiction_state: external_response_only
+    fact_domain: external_customer_evidence
+    current_state_use: supporting_or_recurrence
+    consumed_by_sections: [7, 8, 9]
+  - observation_id: OBS-005
+    subject_name: Example Labs
+    subject_kind: brand_or_org_unresolved
+    identity_state: unresolved
+    coverage_id: COV-007
+    source_url_or_packet_locator: https://example.test/registry/filing
+    source_family: professional_org_motion
+    source_surface: public_filing
+    publisher_or_venue: Example Registry
+    source_class: official_regulatory
+    publication_date: "2025-12-01"
+    event_or_effective_date: "2025-11-30"
+    observation_at: "2026-07-16T09:40:00Z"
+    effective_time_precision: day
+    recency_tier: days_over_180
+    age_anchor_date: "2025-11-30"
+    age_anchor_basis: event_effective
+    exact_locator: filing section Organization
+    evidence_excerpt: The filing names Example Labs LLC as an operating organization.
+    lawful_access_route: public_direct_read
+    access_limitation: historical filing; does not resolve the current Brand/Org relationship
+    independence_syndication_group: registry_filing_2025_001
+    independent_corroboration_ids: []
+    ambiguity_limitation: Historical legal name does not establish current market-facing Brand identity.
+    contradiction_state: identity_boundary_open
+    fact_domain: company_fact
+    current_state_use: chronology_historical_baseline
+    consumed_by_sections: [6, 8, 9]
+```
+
+### 5. Positioning, Offerings, Markets, And Channels
+
+The current first-party page presents Product One as the flagship (OBS-001). A retailer page corroborates a US channel presence but not sales or inventory depth (OBS-003).
+
+### 6. Strategic And Operating Chronology
+
+A trade article and retailer page point to a recent distribution expansion, but both share a syndication group and therefore do not count as independent corroboration (OBS-002, OBS-003). The older filing is historical identity context only (OBS-005).
+
+### 7. Customer And Community Response
+
+The Reddit scout yielded no attributable material. One specialist-forum participant reported packaging friction; this remains an individual external experience, not representative demand or internal company fact (OBS-004).
+
+### 8. Competitor Context, Contradictions, And Gaps
+
+Comparator context is limited to interpreting the subject; no deep competitor treatment was commissioned. The open Brand/Org boundary and syndication risk remain visible (OBS-002, OBS-005), and the blocked video surface remains a typed gap rather than evidence.
+
+### 9. Company Surface Candidate Ledger
+
+```yaml
+company_surface_candidate_ledger:
+  - candidate_id: CSC-001
+    observation_ids: [OBS-001]
+    candidate_only: true
+    import_status: not_imported
+    candidate_fact_class: company_fact
+    bounded_fact: The observed current company page presents Product One as a current flagship.
+    identity_state: unresolved
+    time_scope: observed_current_page_at_2026-07-16
+    limitations: No Company Surface import or identity resolution occurred.
+  - candidate_id: CSC-002
+    observation_ids: [OBS-004]
+    candidate_only: true
+    import_status: not_imported
+    candidate_fact_class: external_customer_evidence
+    bounded_fact: One attributable specialist-forum participant reported packaging friction.
+    identity_state: unresolved
+    time_scope: published_2026-07-10
+    limitations: Individual external experience; not representative demand or internal company fact.
+```
+
+### 10. Completion Ledger And Run Boundary
+
+```yaml
+completion_ledger:
+  coverage_status: complete_with_typed_gap
+  observation_status: traceable
+  candidate_status: candidate_only_not_imported
+  completeness_policy: necessary_complete_no_arbitrary_caps
+  hidden_venue_discovery: category_aware
+  reddit_scout_status: checked_zero_yield
+  quora_scout_status: commissioned_not_yet_run
+  customer_community_boundary: external_evidence_not_representative_demand_or_internal_fact
+  deep_competitor_treatment: separate_named_follow_up_required
+  classifier_handoff: omitted
+  required_lens_coverage:
+    positioning: {status: complete, observation_ids: [OBS-001], rationale: current first-party statement}
+    offerings_and_claims: {status: complete, observation_ids: [OBS-001], rationale: bounded current offering claim}
+    markets_and_channels: {status: complete, observation_ids: [OBS-003], rationale: retailer channel observation}
+    strategic_and_operating_moves: {status: complete, observation_ids: [OBS-002, OBS-003], rationale: recent distribution pointer with syndication caveat}
+    customer_and_community_response: {status: complete, observation_ids: [OBS-004], rationale: zero-yield Reddit scout plus one specialist-forum experience}
+    competitor_and_substitute_context: {status: not_applicable_with_rationale, observation_ids: [], rationale: no comparator was needed to interpret the subject}
+    contradictions: {status: complete, observation_ids: [OBS-002, OBS-005], rationale: syndication and identity-boundary limitations are explicit}
+    evidence_gaps: {status: complete, observation_ids: [], rationale: blocked creator surface and unresolved identity are typed below}
+  gaps:
+    - gap_id: GAP-001
+      gap_type: capture_required
+      status: open
+      description: Public video comments could not be preserved through the observed route.
+      affected_coverage_ids: [COV-008]
+      request_ids: [REQ-001]
+    - gap_id: GAP-002
+      gap_type: identity
+      status: open
+      description: Brand and Org identity remain unresolved.
+      affected_coverage_ids: [COV-001, COV-007]
+      request_ids: []
+  requests:
+    - request_id: REQ-001
+      request_type: capture_preservation
+      owner: capture
+      status: requested
+      description: Inspect lawful preservation options for the exact public video item.
+      source_surface: public_video_comments
+  run_boundary: COMMISSION_SEALED_PRE_SCAN
+  next_authorized_step: A separately commissioned Scanning or Capture run may address the typed request; no import or classifier handoff occurred.
+```
