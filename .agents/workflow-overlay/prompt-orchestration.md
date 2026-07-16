@@ -649,22 +649,28 @@ it must not be presented as delegated patch authorship. Couriered or paste-ready
 delivery changes transport only, never the direct-repo requirement.
 
 Review prompts, wrappers, handoffs, and closeouts must not recommend,
-prescribe, rank, or imply runtime model choice for review lanes. They may route
-by review lane, method/skill, target, authority, output mode, destination, and
-prompt-template target only. Template targets are prompt-shaping guidance;
-runtime model choice for review work is outside Forseti review-lane authority.
+prescribe, rank, or imply runtime model choice; they may route by review lane,
+method/skill, target, authority, output mode, destination, and prompt-template
+target only. Model-neutrality semantics for review lanes and template
+retrieval are owned by `.agents/workflow-overlay/review-lanes.md` (Review
+Doctrine; Template Retrieval Binding); do not restate them here or in prompts.
 
-Review prompts must require the durable review output to record two provenance
-fields -- `reviewed_by` (the model and version that performed the review) and
-`authored_by` (the model and version that authored the reviewed artifact) --
-operator/tooling-supplied, value `unrecorded` when not supplied, never
-fabricated, on new or materially touched review outputs (not backfilled). They
-are set by the operator/CA on the durable record (a no-repo or portable reviewer
-need not self-emit them) and are observed provenance facts only; they must not
-be expressed as, or turned into, a runtime model recommendation, ranking, or
-selection. Same-family-vs-cross-family is computed by relating the two and is
-measured only when both carry real values, so a present `unrecorded` value is a
-visible measurement gap, not success.
+The receiver-facing review mechanics a review prompt binds are owned by
+`.agents/workflow-overlay/review-lanes.md` (Review Doctrine); prompts and this
+file point, never restate. That owner defines: the findings-first default and
+the strict-output catalog requiring explicit binding; severity
+(`critical`/`major`/`minor`) and `confidence` as priority-only labels;
+`minimum_closure_condition` and `next_authorized_action` on actionable
+findings; the coverage-first find stage with `considered_and_defended`;
+optional-hardening labeling; the `patch_queue_entry` exclusion for read-only
+reviews; the CA consumption order (exact order owned by
+`.agents/workflow-overlay/communication-style.md`) with no synthesis lane; the
+`reviewed_by`/`authored_by` provenance contract; and fitness-reference
+anchoring for intent-bearing targets (decision owner:
+`docs/decisions/work_unit_fitness_reference_v0.md`). A review prompt states
+only its prompt-specific deltas: which formal outputs, if any, it explicitly
+binds, and a prompt-specific severity contract when it departs from the
+Forseti-bound severity set.
 
 Every Forseti adversarial artifact review prompt must invoke
 `workflow-adversarial-artifact-review` after `SOURCE_CONTEXT_READY`. If that
@@ -674,87 +680,12 @@ authority, blocked/ready status, validation claims, readiness claims, mandatory
 remediation, patch queues, executor-ready handoffs, or alignment-complete
 claims.
 
-Review prompts are findings-first by default. Formal verdicts, blocked/ready
-status, validation pass/fail claims, approval, readiness, mandatory
-remediation, patch queues, and executor-ready handoffs must be explicitly bound
-by the prompt or `.agents/workflow-overlay/review-lanes.md`. If a prompt asks
-for severity labels, it must either use a Forseti-bound severity set such as
-`critical`, `major`, and `minor` for finding priority only, or define the
-prompt-specific severity contract.
-
-Actionable review findings should include:
-
-- `minimum_closure_condition`: what must become true before the finding can be
-  treated as closed. It states the required end state, not how to implement it;
-- `next_authorized_action`: what the current lane may do next under its
-  authority;
-- `confidence`: the reviewer's certainty the finding is real (`high`, `medium`,
-  or `low`) -- a priority label only, never a reporting threshold.
-
-Within the commission-bound target and purpose, adversarial review prompts
-should ask reviewers to be maximally adversarial and coverage-first: report
-every issue found, including uncertain and low-severity ones, each labeled
-with estimated severity and confidence; do not filter for importance or
-confidence at the find stage -- the adjudication pass ranks and filters.
-Low-confidence or minor findings may use a compact one-line form, and
-steelman-defeated candidates are listed one line each in a
-`considered_and_defended` section rather than silently dropped. Optional
-hardening may be named only when clearly labeled optional and non-required.
-
-For intent-bearing review targets, review prompts should bind or point at the
-`fitness_reference` (a goal plus an observable success signal, pointer-preferred)
-so the review's decision criteria are anchored to the work unit's intended
-outcome rather than re-derived from scratch. If no fitness reference exists, the
-prompt must ask the review to name the gap (`no checkable success bar bound`)
-rather than invent the goal. The reference is an alignment axis the reviewer must
-also attack, never a pass-if-matches bar. This applies to adversarial artifact
-review only; see `.agents/workflow-overlay/review-lanes.md` and
-`docs/decisions/work_unit_fitness_reference_v0.md`.
-
-Do not request `patch_queue_entry` from a read-only review. It means
-executor-ready how-to and belongs only in a patch-queue review or separately
-authorized patch/integration execution lane. Read-only review prompts may ask
-for advisory remediation direction, but must not turn that direction into
-patch authority.
-
-CA-facing review prompts, handoffs, and closeouts must preserve the consumption
-order from `.agents/workflow-overlay/communication-style.md`: commission ->
-target -> authority -> decision criteria -> evidence -> reviewer verdict or
-recommendation. Do not introduce a synthesis lane for multi-review
-reconciliation unless Forseti later binds one explicitly.
-
 Review prompts using `review-report` output mode must bind a durable report
 destination under `docs/review-outputs/` or a typed child folder unless the
-review is explicitly chat-only before review work starts. For `review-report`,
-the human-readable review value belongs in the durable report; chat YAML is
-courier output, not a substitute review artifact.
-
-YAML-only chat is valid for `review-report` only after the required durable
-report has been successfully written. The chat response then uses the compact
-YAML summary defined in `.agents/workflow-overlay/communication-style.md`, with
-`report_path` pointing to the written report and listing the core summary,
-findings, and next action.
-
-### No Runtime Model Routing
-
-Review prompts, wrappers, and handoffs must not recommend, prescribe, rank, or
-imply runtime model choice. Template retrieval never claims a prompt will run
-on a particular model.
-
-Template retrieval must not:
-
-- claim a prompt will run on a particular model;
-- recommend a runtime model;
-- rank models;
-- bind reviewer or executor selection;
-- create implementation, validation, readiness, or lifecycle authority.
-
-If the required durable report cannot be written after `review-report` is
-selected, do not treat the YAML as a substitute artifact. Return a failed
-blocked result in chat with `review_location: chat_only_current_thread`, do not
-use `report_path`, name the failed report path, and include enough human-
-readable failure detail to route. Use chat-only review only when write authority
-or report destination is not bound before the review begins.
+review is explicitly chat-only before review work starts. The human-readable
+review value belongs in the durable report; chat-YAML validity after a
+successful write and the failed-write blocked shape are owned by the Output
+Modes section below and `.agents/workflow-overlay/communication-style.md`.
 
 ## Escalated Preflight Fields
 
@@ -957,16 +888,16 @@ Before using a generated Forseti prompt, apply these gates:
    artifacts use retrieval metadata only for source loading and do not create
    authority, validation proof, approval, readiness, lifecycle completion,
    deployment/install/resolver status, or edit permission.
-11. Review doctrine satisfied (per Review Prompt Defaults above):
-   (a) invoke `workflow-adversarial-artifact-review` after source readiness or block strict claims as advisory-only;
-   (b) findings-first output by default; bind any formal verdict, severity contract, blocked/ready status, validation/readiness claim, mandatory remediation, patch queue, or executor-ready handoff;
-   (c) include `minimum_closure_condition` and `next_authorized_action` for actionable findings; define closure conditions as required end states, not implementation instructions;
-   (d) label optional hardening optional and non-required; exclude `patch_queue_entry` unless the lane is patch-queue or patch/integration execution;
-   (e) preserve Chief Architect consumption order for CA-facing reviews; do not add a synthesis lane;
-   (f) do not recommend, prescribe, rank, or imply a runtime model;
-   (g) for intent-bearing targets, anchor decision criteria to a bound fitness reference or require the review to name its absence as `no checkable success bar bound`;
-   (h) record `reviewed_by` and `authored_by` on every new or materially touched review output — operator/CA-supplied, `unrecorded` allowed, never fabricated; a present `unrecorded` value is a visible measurement gap, not a captured measurement;
-   (i) coverage-first find stage: reviewers report every issue found with severity and confidence labels; importance/confidence filtering happens at adjudication, not at find time; steelman-defeated candidates surface in `considered_and_defended`.
+11. Review doctrine satisfied (per Review Prompt Defaults above): the prompt
+   invokes `workflow-adversarial-artifact-review` after source readiness or
+   blocks strict claims as advisory-only; explicitly binds any formal output it
+   requests; states only its prompt-specific severity/output deltas; and
+   otherwise binds its receiver to the review mechanics owned by
+   `.agents/workflow-overlay/review-lanes.md` (Review Doctrine) by pointer —
+   finding fields, coverage-first find stage with `considered_and_defended`,
+   optional-hardening labeling, `patch_queue_entry` exclusion,
+   `reviewed_by`/`authored_by` provenance, fitness-reference anchoring, CA
+   consumption order, and model-neutrality — without restating them.
 12. Doctrine propagation satisfied: prompt, handoff, wrapper, review,
    output-mode, or execution-contract changes that alter durable doctrine carry
    a `direction_change_propagation` receipt or
@@ -992,6 +923,88 @@ Before using a generated Forseti prompt, apply these gates:
 ## Direction Change Propagation
 
 ```yaml
+# review-doctrine single-sourcing (CER-1) 2026-07-16 (owner-directed ceremony cut, second wave).
+direction_change_propagation:
+  doctrine_changed: >
+    The review-output mechanics formerly restated in this file's Review Prompt
+    Defaults and Prompt Validation Gate 11 -- findings-first default and
+    strict-output catalog, severity/confidence label semantics, finding fields
+    (minimum_closure_condition, next_authorized_action, confidence),
+    coverage-first find stage with considered_and_defended,
+    optional-hardening labeling, patch_queue_entry exclusion, CA consumption
+    order, reviewed_by/authored_by provenance contract, fitness-reference
+    anchoring, and review-lane/template model-neutrality (the whole "No
+    Runtime Model Routing" subsection) -- are now single-owned by
+    .agents/workflow-overlay/review-lanes.md (Review Doctrine; Template
+    Retrieval Binding), which already declared that ownership and whose text
+    was verified equal-or-richer rule-by-rule before deletion here. This file
+    keeps only prompt-authoring rules: the deep-thinking framing trigger,
+    adjudication-tail instruction, delegated direct-repo requirement,
+    adversarial-skill invocation, report-destination binding, and the
+    prompt-specific delta rule (explicitly bound formal outputs and
+    prompt-specific severity contracts). review-lanes.md is byte-unchanged.
+  trigger: review_authority
+  related_triggers: [workflow_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+  downstream_surfaces_checked:
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/hooks/check_prompt_output_mode.py
+    - .agents/hooks/check_prompt_provenance.py
+    - .agents/hooks/check_review_output_provenance.py
+    - docs/prompts/templates/review/adversarial_artifact_review_v0.md
+    - docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+    - docs/prompts/templates/portable/adversarial_artifact_review_portable_method_v0.md
+  intentionally_not_updated:
+    - path: .agents/workflow-overlay/review-lanes.md
+      reason: >
+        It becomes the single owner with zero edits: rule-by-rule comparison
+        found its Review Doctrine text equal-or-richer than every deleted
+        restatement, so ownership consolidates by deletion-and-pointer only.
+        Keeping it byte-identical also preserves the portable review method's
+        derived_from pin 2.
+    - path: docs/prompts/templates/review/adversarial_artifact_review_v0.md
+      reason: >
+        Its findings-first line cites Review Prompt Defaults, which still
+        states the default and now points to the owner; the chain resolves.
+        Its inline finding-shape text is receiver-facing template content
+        governed by the template's own re-derivation lifecycle.
+    - path: .agents/workflow-overlay/communication-style.md
+      reason: >
+        It still owns the Review Adjudication Next Step shape and the
+        review_summary courier YAML; pointers to it are unchanged.
+    - path: .agents/workflow-overlay/delegated-review-patch.md
+      reason: >
+        It still owns the de-correlation definition; its restatements of
+        adjudication order defer to communication-style.md and are that
+        file's concern, not this unit's.
+    - path: intra-review-lanes duplicate of the adversarial-skill invocation rule
+      reason: >
+        review-lanes.md states the skill-invocation rule twice internally
+        (Current Lanes and Rules); deduplicating inside the owner requires
+        editing the owner and is deferred to keep this unit zero-edit on
+        review-lanes.md. Accepted residual, noted for the next touch.
+  stale_language_search: >
+    rg -n "No Runtime Model Routin[g]|Actionable review findings should
+    includ[e]|must require the durable review output to recor[d]"
+    .agents docs/prompts/templates AGENTS.md CLAUDE.md
+  stale_language_search_result: >
+    Executed 2026-07-16 after the edits: zero hits on live overlay and
+    template surfaces for the deleted subsection heading and the two deleted
+    restatement stems (review-lanes.md's own text uses different stems and is
+    the owner). Both prompt-hook selftests pass after the edit, including the
+    output-mode token-drift case that parses this file.
+  non_claims:
+    - not validation or readiness
+    - no change to any review rule's semantics -- ownership and location only
+    - not a weakening of Gate 11, which still requires the same bindings by
+      pointer
+    - no numeric token or latency savings claim
+
 # preflight smallest-complete reduction 2026-07-16 (owner-requested ceremony cut).
 direction_change_propagation:
   doctrine_changed: >
