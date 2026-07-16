@@ -15,6 +15,7 @@ use_when:
   - Routing a bounded Reddit scan, candidate-intake seed, or exact-query walk toward the highest-yield beauty/fragrance venues.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_spec_v0.md
   - forseti/product/spines/scanning/README.md
   - forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/reddit/README.md

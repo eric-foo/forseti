@@ -12,6 +12,7 @@ use_when:
   - Checking where Reddit discovery/select/capture/read responsibilities split.
 authority_boundary: retrieval_only
 open_next:
+  - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_spec_v0.md
   - forseti/product/spines/capture/core/source_capture_toolbox/reddit_capture_operator_playbook_v0.md
   - forseti/product/spines/capture/core/source_capture_toolbox/reddit_precommercial_capture_consolidation_planning_thread_v0.md
   - docs/workflows/reddit_capture_to_ecr_consumption_probe_finding_v0.md
@@ -34,6 +35,15 @@ Reddit has separate stage owners. Do not collapse them into one crawler.
 | Capture | `reddit_capture_operator_playbook_v0.md` | `run_reddit_old_http_batch.py`; `run_reddit_consolidation.py`; `run_reddit_batch_quality_summary.py` | Exact old Reddit thread packets plus derived consolidation outputs. |
 | Fallback | Source Capture Playbook archive route and Reddit operator playbook | `run_source_capture_archive_packet.py`; one-URL CloakBrowser runner when explicitly needed | Same-thread archive/capture only; no discovery, profile capture, or broad crawl. |
 | ECR / downstream | `docs/workflows/reddit_capture_to_ecr_consumption_probe_finding_v0.md` plus ECR authority | `orca-harness/ecr/deriver.py`; Reddit consolidation/projection helpers | ECR consumes packets source-agnostically; no automatic cleared posture without a Decision Frame/cutoff posture. |
+
+## Known-Venue Preflight
+
+Before opening discovery, graph-frontier, or capture work on a subreddit,
+check `reddit_subreddit_registry_v0.json` (contract:
+`reddit_subreddit_registry_spec_v0.md`, same folder): known rows are
+refreshed, not re-explored, and dated size observations append there. The
+registry is routing/dedupe state only — it authorizes nothing and scores
+nothing.
 
 ## Current Operator Default
 
