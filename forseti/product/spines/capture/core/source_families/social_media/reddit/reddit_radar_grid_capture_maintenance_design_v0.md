@@ -93,11 +93,19 @@ or breakout claim.
 2. **Sanctioned API/licensing track** needs its own registration and
    commercial-terms work before it exists; nothing here registers or
    commits to terms.
-3. **Build items:** grid-packet schema + capture runner (mirror TikTok
-   grid contracts + old-Reddit HTTP route), the breakout rule (outlier
-   definition over registry baselines), and the registry materializer
-   runner. A one-off bounded grid dry run over a small registry filter is
-   the first probe before the cadence turns on.
+3. **Build state (2026-07-17):** the grid capture runner
+   (`forseti-harness/runners/run_reddit_grid_capture.py`,
+   `source_family="reddit_subreddit_grid"`), the lake-committing deep-dive
+   route (`run_reddit_old_http_batch.py --data-root`), and the registry
+   materializer (`run_reddit_subreddit_registry_refresh.py`) exist and were
+   exercised live against r/MakeupAddiction (grid packet + top-thread
+   deep-dive committed to Bronze; registry refreshed from the packet).
+   Still open: the breakout rule (outlier definition over registry
+   baselines), and venue subscriber counts on the public grid surface —
+   old Reddit no longer renders the titlebox subscriber block on listing
+   pages, so grid observations carry an honest absent reason and the
+   subscriber series continues via the `about.json`/sanctioned-API surface
+   (the API adapter needs a small `about` mode once credentials exist).
 
 ## Direction Change Propagation
 

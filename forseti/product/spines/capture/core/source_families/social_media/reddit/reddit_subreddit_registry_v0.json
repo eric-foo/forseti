@@ -942,7 +942,7 @@
           "hub"
         ],
         "discovery_state": "known_subreddit",
-        "capture_state": "no_packet_recorded",
+        "capture_state": "grid_packets_recorded",
         "observations": [
           {
             "observed_at": "2026-07-16",
@@ -959,10 +959,20 @@
             "source_surface": "reddit_about_json_same_context_browser_read",
             "provenance_pointer": "operator_browser_session_2026-07-16_no_packet",
             "absent_reason_or_none": null
+          },
+          {
+            "observed_at": "2026-07-16",
+            "subscriber_count_or_none": null,
+            "active_user_count_or_none": null,
+            "source_surface": "old_reddit_grid_packet",
+            "provenance_pointer": "F:\\forseti-data-lake\\raw\\9e6\\01KXNXWRAWR790CFEFGDKF24B4\\manifest.json",
+            "absent_reason_or_none": "visible_volume_not_present_on_declared_surface"
           }
         ],
         "first_seen_at": "2026-07-16",
-        "register_pointers": [],
+        "register_pointers": [
+          "F:\\forseti-data-lake\\raw\\9e6\\01KXNXWRAWR790CFEFGDKF24B4\\manifest.json"
+        ],
         "source_pointers": [
           "forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md"
         ]

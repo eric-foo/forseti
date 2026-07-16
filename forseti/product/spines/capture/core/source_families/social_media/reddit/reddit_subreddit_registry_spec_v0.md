@@ -64,7 +64,8 @@ Each `subreddits[]` row carries:
   `descriptive_observed_at`, `descriptive_changes[]`.
 - Routing: `niche_paths[]`, `venue_roles[]`, `discovery_state`
   (`known_subreddit` | `candidate_new_subreddit`), `capture_state`
-  (`no_packet_recorded` | `thread_packets_recorded`).
+  (`no_packet_recorded` | `grid_packets_recorded` |
+  `thread_packets_recorded`; grid never downgrades thread).
 - Time series (append-only): `observations[]`, each
   `{ observed_at, subscriber_count_or_none, active_user_count_or_none,
   source_surface, provenance_pointer, absent_reason_or_none }`.
@@ -112,15 +113,21 @@ and operator refreshes; once grid capture exists, registry state is
 materialized read-only from committed Bronze packets rather than
 hand-edited by capture runners:
 
-- A bounded Reddit run (candidate intake, graph frontier, capture, or a
-  radar/verification pass) that touches a subreddit adds or refreshes its row
-  under the two-speed rule and may add a `register_pointers[]` entry.
+- Grid evidence flows through the one authorized materializer,
+  `forseti-harness/runners/run_reddit_subreddit_registry_refresh.py`: it
+  hash-verifies committed `reddit_subreddit_grid` packets, appends one
+  observation per packet (deduped by provenance pointer, so re-runs are
+  no-ops), confirms liveness, and upgrades `capture_state` — capture runners
+  themselves never flip registry state. It reports unknown subreddits and
+  never silently adds rows. It deliberately does not touch
+  `public_description_or_none` (grid sidebar text and `about.json`
+  descriptions are different surfaces; cross-surface diffs would append
+  spurious change records).
+- Other bounded runs and operator refreshes apply the same two-speed rule by
+  hand where no materializer path exists yet.
 - Graph-frontier and discovery work check `subreddit` presence first and
   route repeat sightings as refreshes, not duplicate rows or duplicate work
   queues.
-- The checked-in registry is a hand-maintained JSON projection for now; a
-  future materializer must generate the same logical shape rather than teach
-  consumers a different one.
 
 ## Boundaries
 
