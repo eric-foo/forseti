@@ -1,6 +1,17 @@
 # Delegated Adversarial Artifact Review + Bounded Patch - Phase-1 Pilot Ledger Doctrine v0
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Delegated adversarial artifact review and bounded patch of the Phase-1 pilot ledger doctrine.
+use_when:
+  - Inspecting findings or the proposed bounded patch before CA adjudication.
+  - Tracing prospective-loop ledger changes to this review.
+authority_boundary: retrieval_only
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
+```
+
+```yaml
 review_summary:
   status: completed
   report_path: docs/review-outputs/adversarial-artifact-reviews/prospective_loop_phase1_pilot_ledger_delegated_adversarial_artifact_review_v0.md
@@ -105,7 +116,7 @@ index fedce6a..bd3a44e 100644
 --- a/docs/decisions/prospective_decision_loop_phase1_dogfood_pilot_ledger_v0.md
 +++ b/docs/decisions/prospective_decision_loop_phase1_dogfood_pilot_ledger_v0.md
 @@ -2,7 +2,7 @@
- 
+
  ```yaml
  retrieval_header_version: 1
 -artifact_role: DRAFT decision record (pre-declared dogfood shadow pilot ledger; binds nothing and authorizes no seal until the owner fixes the decision list and signs)
@@ -120,9 +131,9 @@ index fedce6a..bd3a44e 100644
 -sign-off block below. Until then nothing in the loop may be sealed.
 +sign-off block below + the ledger-home binding amendment. Until then nothing in
 +the loop may be sealed.
- 
+
  ## Authorization Basis And Cap
- 
+
 @@ -79,10 +80,11 @@ favorability:
    abandoned, and `breached_quarantined` outcomes. Selective reporting voids the
    pilot's anti-cherry-pick property.
@@ -140,7 +151,7 @@ index fedce6a..bd3a44e 100644
    into each call; it never authors or amends them. A decision whose outcome
    criterion cannot be pre-specified is admitted as `unscoreable_by_design` —
 @@ -94,26 +96,30 @@ A candidate decision qualifies for the pre-declared set only if **all** hold:
- 
+
  1. **Real and live** — an actual Orca operating decision with a genuine owner
     and a near-term `decision_deadline`, not a hypothetical.
 -2. **Scoreable** — its `expected_outcome` admits a named observable metric, a
@@ -168,15 +179,15 @@ index fedce6a..bd3a44e 100644
 -   favorability.
 +   any member's expected direction, actual path, or outcome signal is examined
 +   for favorable alignment, so membership cannot correlate with favorability.
- 
+
  ## Pre-Declared Decision Set (OWNER-FILL — do not fabricate)
- 
+
  > The agent has intentionally left this list empty. These are real Orca
  > operating decisions only the owner can name. Fill 3-5 rows (suggested range;
  > owner fixes N) at signature, fix the per-decision mode (`shadow` for Phase 1),
 -> then the set is frozen and amended only by dated note.
 +> bind the ledger home, then the set is frozen and amended only by dated note.
- 
+
  | # | Decision (one-line brief) | Decision family | Mode | Decision deadline | Scoreable? (Y / unscoreable_by_design) |
  | --- | --- | --- | --- | --- | --- |
 @@ -168,7 +174,8 @@ amendments (owner-gated); and the single-operator-residual honesty note.
@@ -190,7 +201,7 @@ index fedce6a..bd3a44e 100644
     of this ledger's doctrine (authorization basis, selection criteria,
     anti-cherry-pick completeness, firewall-preservation) plus a post-fill check
 @@ -180,7 +187,7 @@ amendments (owner-gated); and the single-operator-residual honesty note.
- 
+
  ```yaml
  pilot_signoff:
 -  status: DRAFT_PENDING_OWNER_SIGNOFF   # advance to PILOT_ACTIVE_OWNER_SIGNED on signature

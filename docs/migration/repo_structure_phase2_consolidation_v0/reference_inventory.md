@@ -1,5 +1,15 @@
 # Phase-2 Reference Inventory (generated)
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Migration reference inventory
+scope: Records live and historical inbound references considered by the Phase-2 product consolidation.
+use_when:
+  - Auditing which references the Phase-2 move rewrote or intentionally retained.
+  - Interpreting migration provenance cited by later deletion or consolidation work.
+authority_boundary: retrieval_only
+```
+
 Classes: `live` = rewritten by --apply; `historical` = never rewritten,
 covered by moved_paths_index.md; `moved_set` = references inside the moved
 files themselves - rewritten only under --rewrite-product-internal
