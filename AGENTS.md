@@ -130,17 +130,19 @@ guard, and owner steering all stay.
   call yields only a running/deferred handle with no output, wait at most once
   for any remaining original budget, then terminate it. Record
   `sandboxed_tool_stall`, the tool, timeout, and phase. Open the circuit for that
-  tool plus permission route for the rest of the turn: do not probe it again
+  tool plus permission route for the rest of the task/thread: do not probe it again
   merely because the next command differs. A safe, in-scope shell operation may
   be retried once through per-operation escalation; use that working route for
-  later shell calls. After a stalled patch primitive, do not probe its launcher;
+  later shell calls. A user interruption, follow-up message, or automatic
+  continuation does not reset an open circuit; if current context reports the
+  stall, inherit it. After a stalled patch primitive, do not probe its launcher;
   use `.agents/tools/atomic_exact_edit.py` with one version-1 exact-replacement
   operation built from freshly read live target text and one `--apply`
   invocation. Pass each change as `--replace PATH OLD NEW`, single-quoting each
   value in PowerShell and using the helper's documented `\\n`, `\\t`, and
   `\\\\` escapes when needed; do not hand-author a Git patch or create a
   temporary plan file. If the helper rejects the operation, preserve its
-  failure output and stop the edit route for the turn rather than reconstructing
+  failure output and stop the edit route for the task/thread rather than reconstructing
   or retrying it. Verify the final diff. Completion through this alternate route
   is a bounded mitigation signal, not proof that the ordinary tool route is
   repaired.
