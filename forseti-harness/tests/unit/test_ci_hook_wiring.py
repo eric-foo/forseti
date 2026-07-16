@@ -183,6 +183,31 @@ def test_one_time_binding_preserves_guard_and_limits_canary() -> None:
     assert "command workdir cannot reroot this task" in shell_reason
 
 
+def test_codex_apply_patch_guard_checks_all_payload_fields(monkeypatch) -> None:
+    guard = _load_codex_adapter()
+    current_root = guard._norm_path(guard.ROOT)
+    other_root = current_root + "/worktrees/other-lane"
+    monkeypatch.setattr(
+        guard,
+        "_registered_worktree_roots",
+        lambda: [current_root, other_root],
+    )
+    patch_text = "\n".join(
+        [
+            "*** Begin Patch",
+            f"*** Update File: {other_root}/docs/x.md",
+            "@@",
+            "-old",
+            "+new",
+            "*** End Patch",
+        ]
+    )
+
+    for payload_key in ("command", "patch", "input"):
+        reason = guard._check_apply_patch_paths({payload_key: patch_text})
+        assert "nested-worktree write blocked" in reason
+
+
 def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> None:
     routing = DECISION_ROUTING_PATH.read_text(encoding="utf-8")
     prompt_contract = PROMPT_ORCHESTRATION_PATH.read_text(encoding="utf-8")
