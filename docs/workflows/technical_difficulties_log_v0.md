@@ -270,3 +270,70 @@ direction_change_propagation:
     - not a host-level sandbox, hook, timeout, or executor repair
     - not permission for destructive Git, concurrent writers, or broader edits
 ```
+
+### Superseding diagnosis — Codex Desktop Windows sandbox setup (2026-07-16)
+
+Later dogfood isolated the dominant failure more precisely. The same trivial
+read took 18.6 milliseconds in direct PowerShell and 51.6 milliseconds inside
+the command process launched by Codex Desktop, while the Desktop tool call took
+112.7 seconds end to end. A fresh standalone Codex CLI session completed the
+same class of read in 15.7 seconds with hooks and 12.3 seconds with hooks
+disabled. Forseti hook execution therefore did not account for the Desktop
+stall.
+
+The local Desktop sandbox log showed synchronous Windows write-ACL refresh
+before command launch. One reproduced refresh took about 29.6 seconds; during
+concurrent Desktop activity, setup calls joined a shared singleflight wait and
+released together after roughly 98 to 161 seconds. The configured command
+timeout did not bound that pre-execution setup wait. The legacy `orca` launch
+root amplified the work: it contained about 202,000 files and 36,000
+directories, versus about 3,900 files in the canonical `forseti` checkout.
+
+This supersedes the process model in the circuit-state continuity and
+owner-reset addenda above. Those entries remain append-only evidence, but their
+cross-handoff circuit inheritance and special owner-reset protocol are no longer
+live obligations. A stall circuit is task-local; a fresh task launched directly
+in a separate small worktree is a new sandbox route. Concurrent Desktop lanes
+remain supported when each task owns a small worktree. Standalone CLI or WSL2 is
+the explicit fallback for a correctly rooted lane that still stalls or for
+sustained shell-heavy parallelism.
+
+Independent fixes remain valid: protected-action and nested-worktree guards,
+the direct Windows Python hook launcher, explicit hook timeouts, and inspection
+of all known Codex `apply_patch` payload fields. This repository mitigation does
+not repair Codex Desktop, weaken fail-closed protection, or make CLI/WSL2 the
+default interface.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    Sandboxed-tool stall containment is task-local rather than cross-handoff
+    lane state, while concurrent Codex Desktop writers launch directly in
+    separate small worktrees and use CLI or WSL2 only as an explicit fallback.
+  trigger: workflow_authority
+  related_triggers: [lifecycle_boundary]
+  controlling_sources_updated:
+    - AGENTS.md
+    - .agents/workflow-overlay/decision-routing.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/README.md
+    - .codex/hooks.json
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+  intentionally_not_updated:
+    - {path: CLAUDE.md, reason: "It imports AGENTS.md and must not duplicate the circuit rule."}
+    - {path: .agents/workflow-overlay/source-loading.md, reason: "Checkpoint and handoff mechanics no longer carry stall state; no compatible live obligation required an edit."}
+    - {path: .agents/workflow-overlay/validation-gates.md, reason: "Existing target, dirty-state, writer, and protected-action gates remain unchanged."}
+    - {path: .agents/hooks/README.md and .codex/hooks.json, reason: "Hook topology, launchers, timeouts, and guard behavior remain intentionally unchanged."}
+    - {path: forseti-harness/tests/unit/test_ci_hook_wiring.py, reason: "No live test enforced cross-handoff stall inheritance; independent guard coverage remains valid."}
+  stale_language_search: >
+    rg -n -i "sandboxed_tool_stall|fresh recovery route|owner-reset|owner reset|precompact.{0,80}stall|handoff.{0,80}stall|atomic_exact_edit"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/hooks/README.md .codex/hooks.json
+    forseti-harness/tests/unit/test_ci_hook_wiring.py docs/workflows/technical_difficulties_log_v0.md
+  non_claims:
+    - not validation, readiness, review, or approval
+    - not a Codex Desktop sandbox repair
+    - not authority to weaken protected-action or worktree guards
+```
