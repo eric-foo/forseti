@@ -10,6 +10,10 @@ WHAT THIS DOES
     ``def _hash_file`` / ``def _string_or_none`` /
     ``def _non_empty_string_or_none`` / ``def _int_or_none`` /
     ``def _bool_or_none``;
+  - in ``forseti-harness/`` only (projection-surface helpers; home
+    ``source_capture/projection_shared.py``): ``def _is_forbidden_field_name``
+    / ``def _first_match`` / ``def _dedupe_preserve_order`` /
+    ``def _read_packet_directory``;
   - in ``.agents/hooks/`` only: ``def repo_root`` / ``def _git(`` /
     ``def _git_lines`` / ``def porcelain_paths``.
 
@@ -22,7 +26,8 @@ WHAT THIS DOES
   ESCAPE HATCH (deliberate divergence is legitimate): the flag is suppressed
   when the def line, the line immediately above, or the first body line below
   carries a comment naming the delta vs the shared home (any comment containing
-  ``harness_utils``, ``_hooklib``, or ``helper-delta``). The body-line form is
+  ``harness_utils``, ``_hooklib``, ``projection_shared``, or ``helper-delta``).
+  The body-line form is
   the placement the 2026-07-16 adoption sweeps actually used, so re-added
   compliant defs (signature edits, file copies) stay suppressed.
 
@@ -57,12 +62,17 @@ from _hooklib import repo_root, to_relposix  # noqa: E402
 
 HARNESS_HOME = "forseti-harness/harness_utils.py"
 HOOKLIB_HOME = ".agents/hooks/_hooklib.py"
-DELTA_TOKENS = ("harness_utils", "_hooklib", "helper-delta")
+PROJECTION_HOME = "forseti-harness/source_capture/projection_shared.py"
+DELTA_TOKENS = ("harness_utils", "_hooklib", "projection_shared", "helper-delta")
 
 _GENERAL_HELPER_RE = re.compile(
     r"^\s*def\s+(?P<name>_utc_now_z|_utc_now_iso|_utc_now|_now_utc"
     r"|_sha256\w*|_as_dict|_hash_file"
     r"|_string_or_none|_non_empty_string_or_none|_int_or_none|_bool_or_none)\s*\("
+)
+_PROJECTION_HELPER_RE = re.compile(
+    r"^\s*def\s+(?P<name>_is_forbidden_field_name|_first_match"
+    r"|_dedupe_preserve_order|_read_packet_directory)\s*\("
 )
 _HOOKS_ONLY_HELPER_RE = re.compile(
     r"^\s*def\s+(?P<name>repo_root|_git_lines|_git|porcelain_paths)\s*\("
@@ -100,6 +110,10 @@ def helper_match(line: str, scope: str) -> tuple[str, str] | None:
     if match:
         home = HARNESS_HOME if scope == "harness" else HOOKLIB_HOME
         return match.group("name"), home
+    if scope == "harness":
+        match = _PROJECTION_HELPER_RE.match(line)
+        if match:
+            return match.group("name"), PROJECTION_HOME
     if scope == "hooks":
         match = _HOOKS_ONLY_HELPER_RE.match(line)
         if match:
@@ -369,6 +383,41 @@ def selftest() -> int:
     check("case2b coercion first-body-line delta comment suppresses",
           run("forseti-harness/source_capture/x.py", coercion_body[:1],
               file_lines=coercion_body), [])
+
+    # 2c. projection-surface helper names (2026-07-16 sweep): flagged add toward
+    # the projection_shared home + delta suppression; harness scope only.
+    for helper_name in (
+        "_is_forbidden_field_name",
+        "_first_match",
+        "_dedupe_preserve_order",
+        "_read_packet_directory",
+    ):
+        got = run(
+            "forseti-harness/source_capture/x.py",
+            [f"def {helper_name}(value):", "    pass"],
+        )
+        check(
+            f"case2c {helper_name} flagged",
+            [f.name for f in got],
+            [helper_name],
+        )
+        check(
+            f"case2c {helper_name} owning home",
+            got[0].home if got else None,
+            PROJECTION_HOME,
+        )
+    projection_body = [
+        "def _read_packet_directory(path):",
+        "    # helper-delta: returns a (packet, bytes, packet_dir) 3-tuple, unlike projection_shared",
+    ]
+    check("case2c projection first-body-line delta comment suppresses",
+          run("forseti-harness/source_capture/x.py", projection_body[:1],
+              file_lines=projection_body), [])
+    check("case2c projection name not flagged in hooks scope",
+          run(".agents/hooks/check_example.py", ["def _first_match(t):"]), [])
+    check("case2c longer-name def not prefix-flagged",
+          run("forseti-harness/source_capture/x.py",
+              ["def _first_matching_class(tokens):"]), [])
 
     # 3. excluded paths -> no findings.
     check("case3 harness tests excluded",
