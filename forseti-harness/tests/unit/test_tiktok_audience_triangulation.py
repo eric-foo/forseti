@@ -23,6 +23,7 @@ from judgment.creator_audience import (
     LEGACY_V0_METHOD_PATH,
     LEGACY_V0_METHOD_SHA256,
     METHOD_DECK_RELATIVE_PATH,
+    build_compact_judgment_view,
     load_method_deck,
     parse_creator_audience_response,
 )
@@ -295,13 +296,21 @@ def _response(bundle: dict) -> dict:
     }
 
 
-def test_bundle_uses_persisted_silver_and_preserves_duplicate_cluster() -> None:
+def test_bundle_preserves_raw_duplicate_lineage_and_compact_view_dedupes() -> None:
     bundle = _bundle(duplicate_text=True)
     assert len(bundle["transcript_evidence"]) == 2
     assert len(bundle["comment_evidence"]) == 2
     assert bundle["exact_duplicate_clusters"][0]["multiplicity"] == 2
     assert all(row["comment_attention_record_id"] for row in bundle["comment_evidence"])
     assert all(row["temporal_alignment"] == "same_capture_observation" for row in bundle["comment_evidence"])
+    view = build_compact_judgment_view(bundle)
+    compact_comments = [
+        row for row in view["evidence"] if row["kind"] == "observed_comment"
+    ]
+    assert len(compact_comments) == 1
+    assert compact_comments[0]["duplicate_multiplicity"] == 2
+    assert compact_comments[0]["source_item_ids"] == ["v1", "v2"]
+    assert len(compact_comments[0]["comment_mechanics"]) == 2
     receipt = build_assembly_receipt(bundle)
     assert receipt["judgment_status"] == "not_evaluated"
     assert len(receipt["evidence_index"]) == 4

@@ -1907,18 +1907,14 @@ def _read_observed_page_responses(
 
 
 def _response_request_metadata(response: object) -> tuple[str | None, str | None]:
+    # Narrow on purpose: a wrong-type caller (no .request) still gets (None, None),
+    # but any other failure now surfaces instead of being masked as absent metadata.
     try:
         request = getattr(response, "request")
-    except Exception:
+    except AttributeError:
         return None, None
-    try:
-        method = str(getattr(request, "method", "") or "").upper() or None
-    except Exception:
-        method = None
-    try:
-        resource_type = str(getattr(request, "resource_type", "") or "").lower() or None
-    except Exception:
-        resource_type = None
+    method = str(getattr(request, "method", "") or "").upper() or None
+    resource_type = str(getattr(request, "resource_type", "") or "").lower() or None
     return method, resource_type
 
 
@@ -2300,7 +2296,11 @@ def _find_visual_top_right_x_target(
         "width": crop_width,
         "height": crop_height,
     }
-    candidates = _visual_x_candidates(image, crop_x, crop_y, crop_width, crop_height)
+    try:
+        candidates = _visual_x_candidates(image, crop_x, crop_y, crop_width, crop_height)
+    except _VisualPixelReadError:
+        result["visual_fallback_failure"] = "visual_fallback_pixel_read_failed"
+        return result
     result["visual_fallback_candidate_count"] = len(candidates)
     modal_candidates: list[dict[str, float]] | None = None
     if target_zone == "center_modal":
@@ -2369,6 +2369,11 @@ def _center_modal_geometric_close_candidate(
     }
 
 
+class _VisualPixelReadError(RuntimeError):
+    """Every pixel read in the visual-X crop failed -- a systematic decode
+    failure that must not be reported as an empty candidate signal."""
+
+
 def _visual_x_candidates(
     image: object,
     crop_x: int,
@@ -2380,16 +2385,27 @@ def _visual_x_candidates(
     foreground_sets: list[set[tuple[int, int]]] = [set(), set()]
     x_end = crop_x + crop_width
     y_end = crop_y + crop_height
+    attempted_reads = 0
+    failed_reads = 0
     for y in range(crop_y, y_end):
         for x in range(crop_x, x_end):
+            attempted_reads += 1
             try:
                 value = int(pixels[x, y])
             except Exception:
+                # Single-pixel oddities stay skippable; only a 100% failure
+                # rate is surfaced below as systematic, not empty signal.
+                failed_reads += 1
                 continue
             if value <= 96:
                 foreground_sets[0].add((x, y))
             elif value >= 216:
                 foreground_sets[1].add((x, y))
+    if attempted_reads and failed_reads == attempted_reads:
+        raise _VisualPixelReadError(
+            f"all {attempted_reads} pixel reads failed in the visual-X crop: "
+            "systematic decode failure, not an empty signal"
+        )
 
     candidates: list[dict[str, float]] = []
     for foreground_pixels in foreground_sets:

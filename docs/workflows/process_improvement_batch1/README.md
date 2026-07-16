@@ -1,38 +1,30 @@
-# Process Improvement Batch 1 — Decision-Gate Economics
+# Process Improvement Batch 1 — Retired Decision-Gate Evidence
 
 ```yaml
 retrieval_header_version: 1
 artifact_role: Workflow record
-scope: Active case ledger for the temporary Batch 1 decision-gate economics pilot.
+scope: Preserved cases and retirement state for the former Batch 1 decision-gate economics pilot.
 use_when:
-  - Recording a closed implementation-bound decision in Batch 1.
-  - Checking sample comparability, evidence gaps, or closeout state.
+  - Interpreting the two preserved Batch 1 cases.
+  - Checking why the pilot stopped without a comparative conclusion.
 authority_boundary: retrieval_only
 open_next:
-  - .agents/workflow-overlay/batch1-decision-gate-economics.md
-stale_if:
-  - .agents/workflow-overlay/batch1-decision-gate-economics.md changes the case schema, outcome vocabulary, or lifecycle.
-  - A cited source is materially rewritten or superseded.
+  - .agents/workflow-overlay/source-of-truth.md
 ```
 
-## Operating state
+## Retirement state
 
-- `pilot_status`: `active`
+- `pilot_status`: `retired_2026-07-16`
 - `comparable_cases_observed`: `1`
-- `count_basis`: fresh 2026-07-11 re-derivation; DG-02 qualifies and DG-01 does not have source-backed method-use evidence
-- `closeout_eligible_at`: `8`
-- `hard_stop_at`: `12`
-- `authority`:
-  `.agents/workflow-overlay/batch1-decision-gate-economics.md`
+- `prior_closeout_eligible_at`: `8`
+- `prior_hard_stop_at`: `12`
+- `standing_obligations`: `none`
 
-Append a case only after the implementation-bound decision is closed enough to
-identify its route outcome. Use the overlay-owned case contract exactly. Unknown
-values remain unknown; this ledger does not infer method use, elapsed minutes,
-non-reversal, or causal savings.
-The observed count and each `comparability.status` are cached routing
-assessments. The closing Chief Architect re-resolves every counted case and
-re-derives comparability from the overlay criteria; these fields never clear a
-threshold by assertion alone.
+The pilot stopped below its own minimum comparative sample. DG-02 was the only
+comparable case; DG-01 lacked source-backed method-use evidence. Extending the
+collection indefinitely would add case-recording ceremony without a credible
+route to the requested economics conclusion. The cases below remain historical
+evidence and do not trigger any workflow method.
 
 ## DG-01 — EP-34 session-HEAD guard
 
@@ -140,12 +132,8 @@ comparability:
     without defeating comparability.
 ```
 
-## Next recording move
+## Retirement boundary
 
-Record `DG-03` only when its required fields have exact evidence. Do not add a
-case merely because a gate was mentioned or a prompt was authored.
-
-A deep-think applied to an implementation-bound decision must leave one citable
-line (`path:line`) in the decision record or lane artifact; otherwise
-`deep_thinking.status` stays permanently `unknown` and the pilot cannot measure
-the gate it was built to measure.
+Do not record DG-03 or infer a comparative economics result from this ledger.
+A future owner may commission a new bounded study, but that would be a new work
+unit with its own outcome and admission case, not continuation of this pilot.
