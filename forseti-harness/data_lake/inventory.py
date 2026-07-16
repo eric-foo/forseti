@@ -914,22 +914,69 @@ def producer_calls(
 def uses_scaffold_resolver(tree: ast.AST) -> bool:
     """True when the runner imports and calls the shared scaffold resolver.
 
-    AST detection (import binding + call), so a mention in help text or a
-    comment never falsely certifies the seam.
+    Require an unshadowed module-level import binding plus a call on a reachable
+    lexical path inside ``main``. A mention in help text/comment, an unused
+    helper, or a statically dead branch must not falsely certify the seam.
     """
     bound_names = {
         alias.asname or alias.name
-        for node in ast.walk(tree)
+        for node in getattr(tree, "body", ())
         if isinstance(node, ast.ImportFrom) and node.module == SCAFFOLD_MODULE
         for alias in node.names
         if alias.name == SCAFFOLD_RESOLVER_NAME
     }
     if not bound_names:
         return False
-    return any(
-        isinstance(node, ast.Call) and call_name(node) in bound_names
+
+    rebound_names = {
+        node.id
         for node in ast.walk(tree)
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store)
+    }
+    rebound_names.update(
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
     )
+    bound_names -= rebound_names
+    if not bound_names:
+        return False
+
+    class _MainResolverCallVisitor(ast.NodeVisitor):
+        found = False
+
+        def visit_Call(self, node: ast.Call) -> None:
+            if call_name(node) in bound_names:
+                self.found = True
+                return
+            self.generic_visit(node)
+
+        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+            return
+
+        def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+            return
+
+        def visit_ClassDef(self, node: ast.ClassDef) -> None:
+            return
+
+        def visit_If(self, node: ast.If) -> None:
+            if isinstance(node.test, ast.Constant) and isinstance(node.test.value, bool):
+                branch = node.body if node.test.value else node.orelse
+                for statement in branch:
+                    self.visit(statement)
+                return
+            self.generic_visit(node)
+
+    for node in getattr(tree, "body", ()):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) or node.name != "main":
+            continue
+        visitor = _MainResolverCallVisitor()
+        for statement in node.body:
+            visitor.visit(statement)
+        if visitor.found:
+            return True
+    return False
 
 
 def packet_producers() -> dict[str, RunnerSeam]:
