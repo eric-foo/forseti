@@ -24,6 +24,8 @@ You are launching a Forseti prompt from a thin wrapper.
 
 preflight_defaults: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md v0 - constants bound; deltas stated inline.
 
+Template kind: `thin-wrapper`
+
 Workspace:
 [FILL_WORKSPACE_ROOT]
 

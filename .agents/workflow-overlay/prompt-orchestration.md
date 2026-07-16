@@ -1056,8 +1056,8 @@ direction_change_propagation:
     - path: historical prompts, handoffs, and review outputs
       reason: forward-only; completed lane evidence is not rewritten.
   stale_language_search: >
-    rg -n -i "six-field|Repo-constant fields may be referenced|REQUIRED
-    ESCALATED DELTAS|6-item|state, per prompt" AGENTS.md CLAUDE.md .agents
+    rg -n -i "six[-]field|Repo-constant fields may be referenc[e]d|REQUIRED
+    ESCALATED DELTA[S]|6[-]item|state, per promp[t]" AGENTS.md CLAUDE.md .agents
     docs/prompts/templates docs/workflows/forseti_repo_map_v0.md
   stale_language_search_result: >
     Executed 2026-07-16 after the live-authority edits: zero hits on any

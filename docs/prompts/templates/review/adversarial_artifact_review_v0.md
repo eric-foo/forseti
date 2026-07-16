@@ -35,6 +35,8 @@ decision, or gate that already carries the signal):
 
 preflight_defaults: docs/prompts/templates/shared/forseti_preflight_defaults_v0.md v0 - constants bound; deltas stated inline.
 
+Template kind: `adversarial-artifact-review`
+
 Required authority sources:
 - intake constants per the preflight defaults above (`AGENTS.md`,
   `.agents/workflow-overlay/README.md`);
@@ -63,9 +65,7 @@ Edit permission:
 Read-only unless the launch instruction explicitly assigns patch execution.
 
 Required skill invocation:
-Use `workflow-deep-thinking` first.
-
-Then use `workflow-adversarial-artifact-review`.
+Use `workflow-adversarial-artifact-review` after source readiness.
 
 If `workflow-adversarial-artifact-review` is unavailable, unresolved, or cannot
 be applied after `SOURCE_CONTEXT_READY`, return a blocked or advisory-only
@@ -73,9 +73,11 @@ result. Do not emit formal verdicts, severity authority, blocked/ready status,
 validation claims, readiness claims, mandatory remediation, patch queues,
 executor-ready handoffs, or alignment-complete claims.
 
-The deep-thinking step should frame the boundary problem, failure modes, and
-decision criteria before findings are listed. It does not widen review scope or
-authorize patching.
+The review lane's internalized framing pass should frame the boundary problem,
+failure modes, and decision criteria before findings are listed. Do not load
+`workflow-deep-thinking` separately unless the launch instruction explicitly
+invokes it for owner-decision work. Neither the framing pass nor a separately
+triggered load widens review scope or authorizes patching.
 
 Review authority:
 Findings-first (the Review Prompt Defaults default in

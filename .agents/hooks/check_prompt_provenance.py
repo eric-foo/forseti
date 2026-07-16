@@ -3,10 +3,11 @@
 
 WHAT THIS DOES
   After a Write/Edit lands a file under docs/prompts/**, injects the Forseti Prompt
-  Preflight core in its elided form (always: output mode + destination ·
-  edit-permission+targets+branch · destinations when couriered/durable; omit
-  fields at their named default; cite repo constants from the shared preflight
-  defaults instead of restating them) so a routine prompt applies the prompt
+  Preflight core in its elided form (always: output mode with any applicable
+  write/report destination · edit-permission+targets+branch · run-authoritative
+  input source when couriered · exact output path when durable; omit fields at
+  their named default; cite repo constants from the shared preflight defaults
+  instead of restating them) so a routine prompt applies the prompt
   contract INLINE with no skill reload. An eligible lane-scoped delegated patch
   prompt uses the compact pointer-first default; prompts matching the project
   owner's Full orchestration predicate use the full orchestrator.
@@ -72,9 +73,9 @@ REMINDER = (
     "  2. Edit permission + targets + branch -- read-only/docs-write/patch-only/"
     "implementation-authorized; target files or dirs; workspace, branch, and "
     "dirty-state when repository state matters.\n"
-    "  3. Destinations -- run-authoritative input source and exact "
-    "output-artifact path -- when the prompt is couriered to another "
-    "model/agent/thread/worktree or writes a durable artifact.\n"
+    "  3. Destinations -- run-authoritative input source when the prompt is "
+    "couriered to another model/agent/thread/worktree; exact output-artifact "
+    "path when the mode writes a durable artifact.\n"
     "Omit fields at their named default (an omitted field asserts it): "
     "template kind none; reviews findings-first with no formal verdict, "
     "severity, or patch queue bound and no runtime-model routing; doctrine "
@@ -102,8 +103,9 @@ REMINDER = (
 SHORT_REMINDER = (
     "Prompt preflight (advisory) -- this write landed under docs/prompts/**. "
     "Re-apply the elided Forseti Prompt Preflight injected earlier this session "
-    "(output mode+destination; edit permission+targets+branch; destinations "
-    "when couriered/durable; defaulted fields omitted; constants cited from "
+    "(output mode with applicable write/report destination; edit "
+    "permission+targets+branch; courier input source; durable output path; "
+    "defaulted fields omitted; constants cited from "
     "forseti_preflight_defaults_v0.md). Rule owner: "
     ".agents/workflow-overlay/prompt-orchestration.md."
 )
@@ -185,6 +187,17 @@ def selftest() -> int:
          "--validate-stdin" in REMINDER
          and "codex_managed_worktree" in REMINDER
          and "delegated_code_review_and_patch" in REMINDER),
+        ("full reminder carries elision and constants-pointer invariants",
+         "an omitted field asserts it" in REMINDER
+         and "template kind none" in REMINDER
+         and "direction_change_propagation receipt or blocker" in REMINDER
+         and "forseti_preflight_defaults_v0.md" in REMINDER
+         and "do not restate them" in REMINDER),
+        ("full reminder separates courier input from durable output",
+         "input source when the prompt is couriered" in REMINDER
+         and "output-artifact path when the mode writes a durable artifact"
+         in REMINDER
+         and "input source and exact output-artifact path" not in REMINDER),
     ]
     for label, passed in throttle_cases:
         if not passed:
