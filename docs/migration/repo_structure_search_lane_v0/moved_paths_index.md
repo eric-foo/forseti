@@ -1,5 +1,15 @@
 # Moved Paths Index - Search lane migration (generated)
 
+```yaml
+retrieval_header_version: 1
+artifact_role: Migration moved-path index
+scope: Resolves historical search and demand-signal paths to their search-lane successors.
+use_when:
+  - Resolving historical paths retained after the search-lane migration.
+  - Routing from pre-migration references to the current search-lane locations.
+authority_boundary: retrieval_only
+```
+
 Historical records reference old paths by design; resolve them here.
 
 | Old path | New path |

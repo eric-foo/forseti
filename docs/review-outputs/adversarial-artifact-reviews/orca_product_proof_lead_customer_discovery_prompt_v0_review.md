@@ -1,6 +1,19 @@
 # Orca Product Proof Lead Customer Discovery Prompt v0 — Adversarial Artifact Review
 
 ```yaml
+retrieval_header_version: 1
+artifact_role: Review report
+scope: Adversarial artifact review of the Product Proof Lead customer-discovery prompt.
+use_when:
+  - Inspecting findings about the customer-discovery prompt.
+  - Tracing prompt revisions to this review.
+authority_boundary: retrieval_only
+reviewed_by: unrecorded
+authored_by: unrecorded
+review_use_boundary: Findings are decision input, not approval, validation, mandatory remediation, or patch authority.
+```
+
+```yaml
 report_version: 1
 review_date: 2026-05-21
 reviewer_mode: read-only adversarial artifact review
