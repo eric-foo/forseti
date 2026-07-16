@@ -257,6 +257,12 @@ The bounded legacy profiles are:
   orca-harness creator-metric producers. Their missing ref type/address fields
   resolve only through the cross-epoch creator-metric lineage index below,
   including exact record-id/content-hash reconciliation for rollups.
+- TikTok comment-attention v1 records produced by the exact declared Forseti
+  producer. The historical null-time shape is read-only and becomes
+  `historical_compatible` only after its original content hash and canonical raw
+  packet bytes verify. Its corrected v2 sibling remains current evidence.
+  Known-time v1 records may remain current-source-backed when their bytes verify,
+  but the entire v1 producer schema is closed to new writes.
 
 Unknown producer versions, contradictory fields, ambiguous matches, unsupported
 hash bases, or unresolved bytes fail closed. Compatibility never becomes a
@@ -733,6 +739,10 @@ The contract is satisfied when downstream scoping can prove, in principle, that:
     unknown-time interval, provenance, recorded/capture time, and limitation
     coupling above; ordinary observations remain time-required and relationship
     nullability is unchanged.
+22. Every new Silver destination lane is registered as `silver_envelope`, and
+    every record-set completion lane is registered as `completion_marker`, before
+    physical verification or persistence. A physically valid but census-invisible
+    undeclared Silver lane is not permitted.
 ## Mini God Tier Accepted Residuals
 
 This contract deliberately stops short of maximal infrastructure.
@@ -770,6 +780,13 @@ risk, and the upgrade trigger (per `docs/decisions/forseti_mini_god_tier_doctrin
   completeness). Risk: time-series or sentiment consumers over comments/
   transcripts may see gaps and must read posture/coverage. Upgrade trigger: a
   consumer needs guaranteed coverage, scoping a capture-completeness obligation.
+- **No checked-in byte-faithful fixture for every persisted compatibility profile.**
+  Exact profile code plus the mandatory read-only live census close the current
+  TikTok regression. Risk: a future semantic tightening could invalidate another
+  immutable producer version before a representative fixture exposes it. Upgrade
+  trigger: the next persisted compatibility profile or the next validator change
+  that affects an already-written producer schema; then add a closed profile-to-
+  fixture manifest and equality gate rather than a permissive compatibility framework.
 - **No client replica implementation in this contract.** It defines replica sync
   semantics only: any client carveout replica/export is generated from Silver
   records and read-model manifests, not a separate source of truth or duplicate
@@ -858,6 +875,11 @@ direction_change_propagation:
     captured_at is non-null in that unknown-time case and cannot substitute, relationship nullability
     is unchanged, record_kind stays closed, and Company Surface applies the
     non-empty limitations coupling only to its observation-mapped families.
+    Immutable TikTok comment-attention v1 null-time records are a closed read-only
+    compatibility profile: original hashes and source bytes must verify, they
+    remain historical-compatible, and their v2 replacements remain current. New
+    Silver writes must also target registered envelope/completion lanes so no
+    physically valid evidence can become census-invisible.
   trigger: architecture_doctrine
   controlling_sources_updated:
     - forseti/product/spines/data_lake/authority/core_spine_v0_data_lake_silver_vault_record_contract_v0.md
@@ -870,6 +892,7 @@ direction_change_propagation:
     - forseti/product/information/company_surface/company_surface_silver_mapping_contract_v0.md
   downstream_surfaces_checked:
     - forseti-harness/data_lake/silver_record.py
+    - forseti-harness/runners/run_tiktok_creator_audience_triangulation.py
     - forseti-harness/cleaning/transcript_product_lake.py
     - forseti-harness/runners/run_transcript_product_extract.py
     - forseti-harness/runners/run_ig_reels_product_extract.py
@@ -883,7 +906,7 @@ direction_change_propagation:
     - forseti-harness/data_lake/lane_registry.py
     - forseti-harness/data_lake/lake_touchpoint_inventory_v0.json
     - forseti-harness/data_lake/company_surface.py
-    - focused Silver, producer-family, and Company Surface tests
+    - focused Silver, producer-family, TikTok triangulation, lane-registry, and Company Surface tests
   intentionally_not_updated:
     - path: AGENTS.md and .agents/workflow-overlay/
       reason: Project workflow routes architecture doctrine to the owning contract and contains no competing Silver time grammar.
