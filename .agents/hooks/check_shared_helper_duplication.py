@@ -7,7 +7,9 @@ WHAT THIS DOES
 
   - anywhere in scope: ``def _utc_now`` / ``def _now_utc`` / ``def _utc_now_z``
     / ``def _utc_now_iso`` / ``def _sha256*`` / ``def _as_dict`` /
-    ``def _hash_file``;
+    ``def _hash_file`` / ``def _string_or_none`` /
+    ``def _non_empty_string_or_none`` / ``def _int_or_none`` /
+    ``def _bool_or_none``;
   - in ``.agents/hooks/`` only: ``def repo_root`` / ``def _git(`` /
     ``def _git_lines`` / ``def porcelain_paths``.
 
@@ -59,7 +61,8 @@ DELTA_TOKENS = ("harness_utils", "_hooklib", "helper-delta")
 
 _GENERAL_HELPER_RE = re.compile(
     r"^\s*def\s+(?P<name>_utc_now_z|_utc_now_iso|_utc_now|_now_utc"
-    r"|_sha256\w*|_as_dict|_hash_file)\s*\("
+    r"|_sha256\w*|_as_dict|_hash_file"
+    r"|_string_or_none|_non_empty_string_or_none|_int_or_none|_bool_or_none)\s*\("
 )
 _HOOKS_ONLY_HELPER_RE = re.compile(
     r"^\s*def\s+(?P<name>repo_root|_git_lines|_git|porcelain_paths)\s*\("
@@ -339,6 +342,16 @@ def selftest() -> int:
                  "    # Diverges from harness_utils.utc_now_z: naive utcnow(), keeps microseconds."]
     check("case2 first-body-line delta comment suppresses",
           run("forseti-harness/source_capture/x.py", body_form[:1], file_lines=body_form), [])
+
+    # 2b. coercion-helper names (2026-07-16 sweep): flagged add + delta suppression.
+    got = run("forseti-harness/source_capture/x.py", ["def _int_or_none(value):", "    pass"])
+    check("case2b coercion helper flagged", [f.name for f in got], ["_int_or_none"])
+    check("case2b coercion owning home", got[0].home if got else None, HARNESS_HOME)
+    coercion_body = ["def _string_or_none(value):",
+                     "    # helper-delta: does not strip, unlike harness_utils.string_or_none"]
+    check("case2b coercion first-body-line delta comment suppresses",
+          run("forseti-harness/source_capture/x.py", coercion_body[:1],
+              file_lines=coercion_body), [])
 
     # 3. excluded paths -> no findings.
     check("case3 harness tests excluded",

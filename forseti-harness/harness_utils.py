@@ -47,6 +47,52 @@ def as_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
+def string_or_none(value: Any) -> str | None:
+    """Coerce ``value`` to a non-empty string, else ``None``.
+
+    Contract: a ``str`` is stripped and returned, or ``None`` when the
+    stripped result is empty; an ``int`` (``bool`` excluded) is rendered
+    with ``str()``; every other type -- including ``bool``, ``float``, and
+    ``None`` -- returns ``None``.
+    """
+    if isinstance(value, str):
+        stripped = value.strip()
+        return stripped or None
+    if isinstance(value, int) and not isinstance(value, bool):
+        return str(value)
+    return None
+
+
+def int_or_none(value: Any) -> int | None:
+    """Coerce ``value`` to an ``int``, else ``None``.
+
+    Contract: ``bool`` is rejected (``None``); an ``int`` passes through;
+    a ``float`` is accepted only when integral (``value.is_integer()``);
+    a ``str`` has commas removed and whitespace stripped, then parses only
+    when the result ``isdigit()`` (so signed, decimal, or suffixed strings
+    return ``None``); every other type returns ``None``.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str):
+        stripped = value.replace(",", "").strip()
+        return int(stripped) if stripped.isdigit() else None
+    return None
+
+
+def bool_or_none(value: Any) -> bool | None:
+    """Return ``value`` when it is exactly a ``bool``, else ``None``.
+
+    Contract: no coercion -- truthy/falsy strings, ``0``/``1`` ints, and
+    every other non-``bool`` value (including ``None``) return ``None``.
+    """
+    return value if isinstance(value, bool) else None
+
+
 @contextmanager
 def staged_directory_publish(destination: Path) -> Iterator[Path]:
     """Build a complete directory off-tree, then publish it with one rename."""
