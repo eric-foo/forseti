@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import random
+from contextlib import nullcontext
 from hashlib import sha256
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -825,6 +826,26 @@ class _PlaywrightBrowserSnapshotEngine:
             return True
         return action_name in self.human_challenge_handoff_after_action_names
 
+    def _open_page_observation_runtime(self) -> object:
+        """Return a context manager yielding the runtime handle passed to
+        ``_launch_page_observation_browser`` (the Playwright driver here;
+        engines that own their runtime yield ``None``)."""
+        try:
+            sync_api = import_module("playwright.sync_api")
+        except ModuleNotFoundError as exc:
+            raise _BrowserSnapshotDependencyUnavailable(
+                "Playwright is not installed. Install the browser optional dependency before running browser page observations."
+            ) from exc
+        return sync_api.sync_playwright()
+
+    def _page_observation_missing_browser_binary_message(self) -> str:
+        """Dependency-unavailable message when the page-observation browser
+        launch fails with a missing browser binary."""
+        return (
+            "Playwright Chromium browser binary is not installed. "
+            "Run `python -m playwright install chromium` before running browser page observations."
+        )
+
     def capture_page_observation(
         self,
         *,
@@ -855,18 +876,13 @@ class _PlaywrightBrowserSnapshotEngine:
         headless: bool = True,
         browser_channel: str | None = None,
     ) -> BrowserPageObservationSuccess:
-        try:
-            sync_api = import_module("playwright.sync_api")
-        except ModuleNotFoundError as exc:
-            raise _BrowserSnapshotDependencyUnavailable(
-                "Playwright is not installed. Install the browser optional dependency before running browser page observations."
-            ) from exc
+        page_observation_runtime = self._open_page_observation_runtime()
 
         timeout_ms = timeout_seconds * 1000
         selector_timeout_ms = selector_timeout_seconds * 1000
         blocked_resource_types = set(block_resource_types)
         selected_responses: list[object] = []
-        with sync_api.sync_playwright() as playwright:
+        with page_observation_runtime as playwright:
             try:
                 browser = self._launch_page_observation_browser(
                     playwright=playwright,
@@ -877,8 +893,7 @@ class _PlaywrightBrowserSnapshotEngine:
             except Exception as exc:
                 if _looks_like_missing_browser_binary(exc):
                     raise _BrowserSnapshotDependencyUnavailable(
-                        "Playwright Chromium browser binary is not installed. "
-                        "Run `python -m playwright install chromium` before running browser page observations."
+                        self._page_observation_missing_browser_binary_message()
                     ) from exc
                 raise
             try:
@@ -1305,319 +1320,14 @@ class _CloakBrowserPageObservationEngine(_PlaywrightBrowserSnapshotEngine):
             "would otherwise run through the Playwright engine."
         )
 
-    def capture_page_observation(
-        self,
-        *,
-        url: str,
-        timeout_seconds: float,
-        wait_until: str,
-        viewport_width: int,
-        viewport_height: int,
-        dom_extract_script: str,
-        dom_extract_arg: object,
-        response_url_predicate: Callable[[str], bool],
-        post_load_action_script: str | None = None,
-        post_load_action_arg: object = None,
-        post_load_wheel_action: BrowserPageWheelAction | None = None,
-        post_load_pointer_action: BrowserPagePointerAction | None = None,
-        post_load_pointer_actions: Sequence[BrowserPagePointerAction] = (),
-        selector: str | None = None,
-        selector_timeout_seconds: float = 5.0,
-        max_response_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
-        settle_seconds: float = 0.0,
-        lazy_load_scroll_passes: int = 0,
-        lazy_load_scroll_step_px: int = 0,
-        lazy_load_response_stop_condition: BrowserPageResponseStopCondition | None = None,
-        dom_extract_after_lazy_load: bool = False,
-        block_resource_types: Sequence[str] = (),
-        proxy_profile: ProxyProfile | None = None,
-        storage_state_path: Path | None = None,
-        headless: bool = True,
-        browser_channel: str | None = None,
-    ) -> BrowserPageObservationSuccess:
-        timeout_ms = timeout_seconds * 1000
-        selector_timeout_ms = selector_timeout_seconds * 1000
-        blocked_resource_types = set(block_resource_types)
-        selected_responses: list[object] = []
-        try:
-            browser = self._launch_page_observation_browser(
-                playwright=None,
-                proxy_profile=proxy_profile,
-                headless=headless,
-                browser_channel=browser_channel,
-            )
-        except Exception as exc:
-            if _looks_like_missing_browser_binary(exc):
-                raise _BrowserSnapshotDependencyUnavailable(
-                    "CloakBrowser could not launch its browser binary. "
-                    "Reinstall or repair the CloakBrowser browser runtime before running CloakBrowser page observations."
-                ) from exc
-            raise
-        try:
-            context_kwargs: dict[str, object] = {
-                "viewport": {
-                    "width": viewport_width,
-                    "height": viewport_height,
-                }
-            }
-            if storage_state_path is not None:
-                context_kwargs["storage_state"] = str(storage_state_path)
-            if proxy_profile is not None and proxy_profile.timezone is not None:
-                context_kwargs["timezone_id"] = proxy_profile.timezone
-            if proxy_profile is not None and proxy_profile.locale is not None:
-                context_kwargs["locale"] = proxy_profile.locale
-            context = browser.new_context(**context_kwargs)
-            try:
-                page = context.new_page()
-                if blocked_resource_types:
-                    page.route(
-                        "**/*",
-                        lambda route: route.abort()
-                        if route.request.resource_type in blocked_resource_types
-                        else route.continue_(),
-                    )
-                page.on(
-                    "response",
-                    lambda response: selected_responses.append(response)
-                    if response_url_predicate(str(response.url))
-                    else None,
-                )
-                page.goto(url, wait_until=wait_until, timeout=timeout_ms)
-                if settle_seconds > 0:
-                    page.wait_for_timeout(settle_seconds * 1000)
+    def _open_page_observation_runtime(self) -> object:
+        return nullcontext()
 
-                warning_notes: list[str] = []
-                if lazy_load_scroll_passes > _MAX_SCROLL_PASSES:
-                    warning_notes.append(
-                        "browser_page_observation lazy_load_scroll_passes capped "
-                        f"from {lazy_load_scroll_passes} to {_MAX_SCROLL_PASSES}"
-                    )
-                if selector is not None:
-                    try:
-                        page.wait_for_selector(selector, timeout=selector_timeout_ms)
-                    except Exception as exc:
-                        warning_notes.append(
-                            f"browser_page_observation selector wait failed: {exc}"
-                        )
-                pointer_action_receipt: dict[str, object] | None = None
-                pointer_action_receipts: list[dict[str, object]] = []
-                wheel_action_receipt: dict[str, object] | None = None
-                pre_action_stop_receipts: list[dict[str, object]] = []
-
-                def maybe_stop_before_action(after_action_name: str) -> bool:
-                    receipt = _pre_action_stop_marker_receipt(
-                        page,
-                        markers=self.pre_action_stop_markers,
-                        after_action_name=after_action_name,
-                    )
-                    if receipt is None:
-                        return False
-                    pre_action_stop_receipts.append(receipt)
-                    warning_notes.append(
-                        "browser_page_observation terminal account-safety marker "
-                        "suppressed scripted actions"
-                    )
-                    return True
-                human_challenge_handoff_receipts: list[dict[str, object]] = []
-
-                def maybe_run_handoff(after_action_name: str) -> bool:
-                    if not self._should_run_human_challenge_handoff_after_action(
-                        after_action_name
-                    ):
-                        return False
-                    handoff_receipt = _run_human_challenge_handoff(
-                        page,
-                        markers=self.human_challenge_handoff_markers,
-                        timeout_seconds=self.human_challenge_handoff_timeout_seconds,
-                        prompt=self.human_challenge_handoff_prompt,
-                    )
-                    if handoff_receipt is None:
-                        return False
-                    handoff_receipt["after_action_name"] = after_action_name
-                    human_challenge_handoff_receipts.append(handoff_receipt)
-                    if handoff_receipt.get("cleared") is True:
-                        return False
-                    warning_notes.append(
-                        "browser_page_observation human challenge handoff did not clear visible markers"
-                    )
-                    return True
-
-                pointer_actions_suppressed_by_pre_action_stop = (
-                    maybe_stop_before_action(
-                        PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME
-                    )
-                )
-                pointer_actions_suppressed = (
-                    pointer_actions_suppressed_by_pre_action_stop
-                    or maybe_run_handoff(PAGE_LOAD_BEFORE_POINTER_ACTIONS_HANDOFF_NAME)
-                )
-                if pointer_actions_suppressed:
-                    warning_notes.append(
-                        "browser_page_observation scripted actions suppressed pending owner challenge clearance"
-                    )
-                else:
-                    if post_load_action_script is not None:
-                        page.evaluate(post_load_action_script, post_load_action_arg)
-                    if post_load_wheel_action is not None:
-                        wheel_action_receipt = _run_wheel_action(
-                            page, post_load_wheel_action
-                        )
-                    observed_response_count = lambda: len(selected_responses)
-                    if post_load_pointer_action is not None:
-                        pointer_action_receipt = _run_pointer_action(
-                            page,
-                            post_load_pointer_action,
-                            observed_response_count=observed_response_count,
-                        )
-                        pointer_action_receipts.append(pointer_action_receipt)
-                        pointer_actions_suppressed = (
-                            maybe_stop_before_action(post_load_pointer_action.action_name)
-                            or maybe_run_handoff(post_load_pointer_action.action_name)
-                        )
-                    for pointer_action in post_load_pointer_actions:
-                        pointer_action_receipt = _run_pointer_action(
-                            page,
-                            pointer_action,
-                            observed_response_count=observed_response_count,
-                        )
-                        pointer_action_receipts.append(pointer_action_receipt)
-                        if maybe_stop_before_action(pointer_action.action_name):
-                            pointer_actions_suppressed = True
-                            break
-                        if maybe_run_handoff(pointer_action.action_name):
-                            pointer_actions_suppressed = True
-                            break
-                        if _should_stop_pointer_action_sequence(
-                            pointer_action, pointer_action_receipt
-                        ):
-                            break
-                try:
-                    visible_text = page.locator("body").inner_text(timeout=timeout_ms)
-                except Exception as exc:
-                    visible_text = ""
-                    warning_notes.append(
-                        f"browser_page_observation visible_text extraction failed: {exc}"
-                    )
-                def response_stop_reached() -> bool:
-                    if lazy_load_response_stop_condition is None:
-                        return False
-                    try:
-                        observed = _read_observed_page_responses(
-                            selected_responses,
-                            max_response_bytes=max_response_bytes,
-                        )
-                        return bool(lazy_load_response_stop_condition(observed))
-                    except Exception as exc:
-                        warning_notes.append(
-                            f"browser_page_observation response stop check failed: {exc}"
-                        )
-                        return False
-
-                dom_observation: object = None
-                if not dom_extract_after_lazy_load:
-                    dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
-                if pointer_actions_suppressed:
-                    lazy_load_scroll_result = _LazyLoadScrollResult(
-                        executed_passes=0,
-                        stop_reason="scripted_actions_suppressed",
-                    )
-                else:
-                    lazy_load_scroll_result = _run_bounded_lazy_load_scrolls(
-                        page,
-                        scroll_passes=lazy_load_scroll_passes,
-                        scroll_step_px=lazy_load_scroll_step_px,
-                        stop_condition=response_stop_reached,
-                    )
-                if dom_extract_after_lazy_load:
-                    dom_observation = page.evaluate(dom_extract_script, dom_extract_arg)
-                responses = _read_observed_page_responses(
-                    selected_responses,
-                    max_response_bytes=max_response_bytes,
-                )
-                final_url = page.url
-                title = page.title()
-                if final_url != url:
-                    warning_notes.append(
-                        f"browser_page_observation landed at {final_url} from requested URL {url}"
-                    )
-                limitation_notes = [
-                    note
-                    for response in responses
-                    for note in response.limitation_notes
-                ]
-                metadata = {
-                    "requested_url": url,
-                    "final_url": final_url,
-                    "title": title,
-                    "capture_timestamp": utc_now_z(),
-                    "timeout_seconds": timeout_seconds,
-                    "wait_until": wait_until,
-                    "settle_seconds": settle_seconds,
-                    "dom_observation_stage": (
-                        "post_lazy_load_scroll"
-                        if dom_extract_after_lazy_load
-                        else "pre_lazy_load_scroll"
-                    ),
-                    "post_load_action_executed": post_load_action_script is not None
-                    or wheel_action_receipt is not None
-                    or bool(pointer_action_receipts),
-                    "post_load_wheel_action": wheel_action_receipt,
-                    "post_load_pointer_action": pointer_action_receipt,
-                    "post_load_pointer_actions": pointer_action_receipts,
-                    "lazy_load_scroll_passes": lazy_load_scroll_passes,
-                    "lazy_load_scroll_step_px": lazy_load_scroll_step_px,
-                    "lazy_load_scroll_passes_executed": lazy_load_scroll_result.executed_passes,
-                    "lazy_load_scroll_stop_reason": lazy_load_scroll_result.stop_reason,
-                    "lazy_load_response_stop_condition_configured": lazy_load_response_stop_condition is not None,
-                    "headless": headless,
-                    "browser_channel": browser_channel,
-                    "browser_backend": self.browser_backend,
-                    "cloakbrowser_humanize": (
-                        self.cloakbrowser_humanize
-                        if self.browser_backend == BROWSER_BACKEND_CLOAKBROWSER
-                        else False
-                    ),
-                    "human_challenge_handoff_marker_count": len(
-                        self.human_challenge_handoff_markers
-                    ),
-                    "human_challenge_handoff_after_action_names": list(
-                        self.human_challenge_handoff_after_action_names
-                    ),
-                    "human_challenge_handoff_timeout_seconds": (
-                        self.human_challenge_handoff_timeout_seconds
-                    ),
-                    "human_challenge_handoff_attempts": human_challenge_handoff_receipts,
-                    "pre_action_stop_marker_count": len(self.pre_action_stop_markers),
-                    "pre_action_stop_attempts": pre_action_stop_receipts,
-                    "pointer_actions_suppressed_by_pre_action_stop": bool(
-                        pre_action_stop_receipts
-                    ),
-                    "viewport_width": viewport_width,
-                    "viewport_height": viewport_height,
-                    "storage_state_loaded": storage_state_path is not None,
-                    "blocked_resource_types": sorted(blocked_resource_types),
-                    "max_response_bytes": max_response_bytes,
-                    "pointer_actions_suppressed_by_human_challenge_handoff": (
-                        pointer_actions_suppressed and bool(human_challenge_handoff_receipts)
-                    ),
-                    "response_count": len(responses),
-                    **_proxy_metadata(proxy_profile),
-                }
-                return BrowserPageObservationSuccess(
-                    requested_url=url,
-                    final_url=final_url,
-                    title=title,
-                    visible_text=visible_text,
-                    dom_observation=dom_observation,
-                    responses=responses,
-                    metadata=metadata,
-                    warning_notes=warning_notes,
-                    limitation_notes=limitation_notes,
-                )
-            finally:
-                context.close()
-        finally:
-            browser.close()
+    def _page_observation_missing_browser_binary_message(self) -> str:
+        return (
+            "CloakBrowser could not launch its browser binary. "
+            "Reinstall or repair the CloakBrowser browser runtime before running CloakBrowser page observations."
+        )
 
     def _launch_page_observation_browser(
         self,
