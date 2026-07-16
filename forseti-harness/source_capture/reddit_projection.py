@@ -451,6 +451,7 @@ def _row_id(slice_id: str, reddit_kind: str, reddit_id: str | None) -> str:
 
 
 def _string_or_none(value: object) -> str | None:
+    # helper-delta: does not strip and is str-only, unlike harness_utils.string_or_none.
     return value if isinstance(value, str) and value else None
 
 
