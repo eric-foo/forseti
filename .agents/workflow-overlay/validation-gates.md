@@ -73,13 +73,13 @@ inherit this floor.
 
   | Commission state | Acceptance result | Required evidence or recovery |
   | --- | --- | --- |
-  | Current work unit in its selected branch/worktree | `accepted` once | The task's registered root is the sole writable root; reuse through landing while receiver/root/target/material state remain unchanged. No synthetic write/index probe or hook canary. |
+  | Current actor in its selected branch/worktree | `accepted` after one snapshot | Observe exact target, revision and dirty state, and no competing writer. Continue unless a required tool actually denies access; launch-root mismatch alone is not failure. No synthetic write/index probe or hook canary. |
   | New managed-worktree receiver | `accepted` once after creation | The task is created and rooted in its app-managed worktree under explicit task-creation authority; exact/ancestor and dirty-state rules still apply. |
   | External controller targeting another worktree | `accepted` once after verification | Unique exact target and byte identity when dirty; demonstrated direct write; target-rooted operation; no concurrent writer. |
   | Collaboration subagent pointed at a separate worktree | `blocked` | Collaboration is same-root only; use a separately bound receiver rather than treating a named path as rerooting. |
-  | Local/base-rooted Codex task with command-level `workdir` set to another worktree | `blocked` | A per-command directory override does not change task, hook, sandbox-root, or receiver identity; create the correctly rooted managed task. |
+  | Same actor targeting its selected worktree from another launch checkout | `accepted` after the target snapshot | A directory override does not expand a collaboration subagent's sandbox, but launch-root mismatch alone is not failure. Reroot only after an observed required-tool denial or root-bound feature mismatch. |
   | Unknown future/manual courier | `preparation_allowed`, dispatch and source loading `blocked` | Keep `receiver_class: receiver_to_bind`; bind and verify a concrete receiver before claiming dispatch readiness. |
-  | Wrongly launched Codex task that creates or finds another worktree | route or `BLOCKED_RECEIVER_REROOT_REQUIRED` | Automatically use an already-authorized capable managed task; block only when none exists or new authority is required. |
+  | Observed target ambiguity, required-tool denial, or root-bound feature mismatch | route or `BLOCKED_RECEIVER_REROOT_REQUIRED` | Reroot only when the mismatch is real and no already-authorized capable route exists. |
   | Dirty, ambiguous, byte-mismatched, or concurrently written target | `blocked` | Resolve exact target/state and eliminate concurrent writing; missing evidence is not a pass. |
 
   The binding is re-resolved only when receiver/task/root or material target
@@ -87,8 +87,7 @@ inherit this floor.
   dirty-state change invalidates it. This matrix accepts semantic user
   authorization for a new task or handoff when the visible instruction
   explicitly requests it; generic `proceed` alone is
-  not task-creation authority. It does not weaken the Codex registered non-
-  current-worktree denial or turn receipt fields into self-certifying proof.
+  not task-creation authority. Receipt fields remain evidence pointers, not self-certifying proof.
   For clean repo-changing receivers, the `revision_mode` assertions are exact:
   `exact` requires a clean worktree and `HEAD == required_revision`; `ancestor`
   requires a clean worktree and a zero exit from
@@ -102,6 +101,7 @@ inherit this floor.
   or `docs/review-outputs/`, or a shape-valid `review_routing_status:` line in
   one of the change's commit messages:
   `review_routing_status: routed <existing docs/prompts/reviews/... or docs/review-outputs/... path>`,
+  `review_routing_status: routed -- chat_only_adjudicated: <review return and adjudication disposition>`,
   `review_routing_status: blocked -- <reason>`, or
   `review_routing_status: not_needed -- <reason>`.
   A carried recommended or required adversarial review may close only as
@@ -175,6 +175,25 @@ inherit this floor.
   Enforced diff-scoped and forward-only by
   `.agents/hooks/check_hash_pin_freshness.py` (CI `--strict`; local pre-push
   mirror; whole-repo advisory via `--audit`, never gated).
+- Shared-helper adoption gate: an added line in `forseti-harness/**/*.py`
+  (excluding `forseti-harness/tests/**` and `harness_utils.py` itself) or
+  `.agents/hooks/*.py` (excluding `_hooklib.py` and
+  `guard_protected_actions.py`, whose import-free duplication is the
+  documented deliberate exception) that privately re-defines a shared helper
+  — `_utc_now` / `_now_utc` / `_utc_now_z` / `_utc_now_iso` / `_sha256*` /
+  `_as_dict` / `_hash_file` anywhere in scope, plus `repo_root` / `_git` /
+  `_git_lines` / `porcelain_paths` in `.agents/hooks/` only — must either use
+  the owning shared home (`forseti-harness/harness_utils.py` /
+  `.agents/hooks/_hooklib.py`) or carry, on the def line or the line
+  immediately above, a comment naming the delta vs the shared home (any
+  comment containing `harness_utils`, `_hooklib`, or `helper-delta`). The
+  rule itself is owned by the adoption-rule paragraphs in
+  `.agents/hooks/README.md` and `forseti-harness/README.md`; this gate is
+  their mechanical backstop and is forward-only: pre-existing private copies
+  are never gated. Shape only: never helper correctness, divergence
+  justification, validation, or readiness. Enforced diff-scoped by
+  `.agents/hooks/check_shared_helper_duplication.py` (CI `--strict`;
+  write-time PostToolUse `--hook` advisory).
 - Ontology-tag validity gate: changed tracked Markdown files are scanned against
   the ontology SSOT roster over the CI event base (or local pre-push
   `origin/main...HEAD`); an additive annotation
@@ -347,15 +366,14 @@ triggers, not permission to add a telemetry ledger or silently change scope.
   `.agents/workflow-overlay/prompt-orchestration.md`.
 - Artifact role gate: every prompt role must be bound in `.agents/workflow-overlay/artifact-roles.md` or another accepted Forseti overlay file.
 - Source-resolution gate: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy must not be imported.
-- Writable-root gate: same-lane prompts point to the active one-time binding;
-  they do not repeat root receipts, write/index probes, canaries, or capability
-  recitals. A new/external receiver or changed binding carries the class-specific
-  evidence in `decision-routing.md`. Only `external_direct_write` may use the
-  two-root route; collaboration is same-root; an unknown courier is preparation-
-  only. Naming or reading another worktree is not a reroot. A pre-edit mismatch
-  routes automatically to an already-authorized managed task when available and
-  returns `BLOCKED_RECEIVER_REROOT_REQUIRED` only when no capable authorized
-  route exists or a new binding cannot be established.
+- Effective-target gate: same-lane prompts point to the active one-time target
+  snapshot and do not repeat root receipts, probes, canaries, or capability
+  recitals. The current actor may continue against its selected worktree when
+  launch and target roots differ. New/external receivers carry class-specific
+  evidence; collaboration remains same-root and unknown couriers preparation-
+  only. Reroot only after observed ambiguity, required-tool denial, root-bound
+  feature mismatch, or writer conflict leaves no authorized capable path.
+
   The mechanically checkable commission shell is enforced by the existing
   `.agents/hooks/check_prompt_output_mode.py`: changed filed prompts use its
   diff-scoped `--strict` mode, and chat/courier authoring gates the frozen
@@ -517,14 +535,13 @@ truth (cf. the receipt-field provenance gate above). The per-rule
 classification and the owner gate for building each substrate live in
 `docs/decisions/overlay_enforcement_placement_classification_v0.md`.
 
-Receiver-mechanism selection is one such judgment rule: whether a commission is
-read-only, safe same-root contribution, or an independent repo-changing lane
-depends on the requested act and live harness capability. The existing Codex
-adapter deterministically blocks registered non-current-worktree writes at the
-write boundary. An independent external controller may use a different launch
-checkout only when it proves direct access to the exact effective target under
-the owning two-root rule. Do not add a registry, daemon, or static prompt
-checker that pretends it can prove a future receiver's runtime capability.
+Receiver selection is one such judgment rule: whether a commission is read-only,
+a same-actor work unit in selected isolation, or an independent repo-changing
+lane depends on the requested act and live capability. Deterministic enforcement
+remains at protected actions, exact or dirty-byte identity, and actual tool or
+sandbox denial; do not add a blanket path-location guard that treats a valid
+selected worktree as an error. An independent external controller still proves
+direct access to the exact target once.
 
 The Codex live adoption probe remains available only when hook adoption testing
 is itself commissioned. In that test it is a fail-closed runtime assertion:
@@ -623,8 +640,9 @@ change validation; `--selftest` present.
 EP-35). Diff-scoped, forward-only CI gate plus a local commit-msg advisory: a
 change touching code roots must carry its review disposition — a review
 artifact filed in the same change, or a shape-valid `review_routing_status`
-line (grammar owned by the Current Gates bullet above), with `routed` paths
-verified to exist. Born from the 2026-07-02 fused-lane audit: most fused
+line (grammar owned by the Current Gates bullet above), with path-routed targets
+verified to exist and chat-only adjudication carrying a non-empty durable
+disposition rather than duplicated findings. Born from the 2026-07-02 fused-lane audit: most fused
 implementation lanes closed without filing the delegated-review handoff their
 contract carried, several claimed it in commit prose without filing it, and
 the disposition lived only in chat where nothing durable could check it
@@ -767,6 +785,27 @@ markdown sibling of the EP-37 JSON gate. Registered in
 `.github/workflows/ci.yml` and `.agents/hooks/pre_push_guard.py`;
 `--selftest` present.
 
+**Shared-helper duplication gate**
+(`.agents/hooks/check_shared_helper_duplication.py`). Diff-scoped,
+forward-only CI gate plus write-time PostToolUse advisory for the
+Shared-helper adoption gate bullet above. The mechanical backstop for the
+helper-adoption rule adopted by the 2026-07-16 helper-dedup lane (PRs
+#988–#992): the wired checkers and harness modules had accumulated diverged
+private copies of the same helpers, and the adopted rule — check the shared
+home first, import it when it already has the helper, and keep a deliberately
+divergent copy only with a one-line comment naming the delta — lived only in
+the two README paragraphs where nothing mechanical could catch the next
+private copy. Forward-only by design: only newly added def lines are gated;
+the escape hatch is the rule's own delta-comment convention (`harness_utils`
+/ `_hooklib` / `helper-delta` in a comment on the def line or the line
+above). `guard_protected_actions.py` stays excluded — its import-free
+duplication is the documented deliberate exception in the `_hooklib.py`
+docstring — as do `harness_utils.py`, `_hooklib.py`, and
+`forseti-harness/tests/**`. Registered in `.github/workflows/ci.yml` and
+`.claude/settings.json` (PostToolUse `--hook`); `--selftest` present.
+Adoption-rule shape only — a green run never proves imports are correct, a
+kept divergence is justified, validation, or readiness.
+
 
 ## Future Gates
 
@@ -775,6 +814,73 @@ markdown sibling of the EP-37 JSON gate. Registered in
 - Runtime or integration validation: UNKNOWN - requires owner input.
 
 ## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The shared-helper adoption rule (import the shared home; a deliberately
+    divergent copy stays only with a one-line comment naming the delta) now has
+    a mechanical backstop: a diff-scoped, forward-only CI gate plus write-time
+    advisory flags newly added private re-definitions of shared helpers in
+    forseti-harness Python and .agents/hooks checkers unless a comment on the
+    def line or the line above names the delta.
+  trigger: validation_philosophy
+  related_triggers:
+    - workflow_authority
+  controlling_sources_updated:
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/hooks/check_shared_helper_duplication.py
+    - .agents/hooks/README.md
+    - .github/workflows/ci.yml
+    - .claude/settings.json
+    - forseti-harness/tests/unit/test_ci_hook_wiring.py
+    - forseti-harness/tests/unit/test_hook_internal_error_gating.py
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - forseti-harness/README.md
+    - .agents/hooks/_hooklib.py
+    - .agents/hooks/pre_push_guard.py
+    - docs/decisions/overlay_enforcement_placement_classification_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        The kernel already routes validation placement and CI behavior to this
+        overlay file; restating the gate there would fork authority.
+    - path: forseti-harness/README.md
+      reason: >
+        The adoption-rule paragraph itself lands via the concurrent
+        helper-dedup lane (PRs #988-#992); this gate references that owner and
+        deliberately avoids editing the same region from a second lane.
+    - path: .agents/hooks/pre_push_guard.py
+      reason: >
+        The selected-gate mirror is chosen from observed CI failure frequency;
+        a brand-new gate has no failure history yet, and CI remains the
+        authoritative boundary.
+    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
+      reason: >
+        The backstop was commissioned by the helper-adoption work unit against
+        a README-owned rule, not by reclassifying an overlay rule already
+        registered there; adding an EP row is that registry's own maintenance.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        Its Active Hooks section routes generically to this overlay, the hooks
+        README, and the activation configs; no per-hook row exists to add.
+  stale_language_search: >
+    git grep -n -i -E "helper-delta|adoption rule|shared helper|private cop(y|ies)"
+    -- AGENTS.md .agents forseti-harness/README.md docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-16 on the authoring branch. Hits are the new gate text,
+    the _hooklib.py docstring (compatible: it documents the guard's deliberate
+    exception, which the gate excludes), and the unrelated skill-adoption
+    overlay rules. forseti-harness/README.md has no hits on this base because
+    its Shared Helpers paragraph lands via the concurrent helper-dedup lane.
+  non_claims:
+    - not validation, readiness, or approval
+    - not proof that shared-home imports are correct
+    - not proof a kept divergence is justified or a delta comment is truthful
+    - not a migration mandate for pre-existing private copies (forward-only)
+```
 
 ```yaml
 direction_change_propagation:
@@ -846,59 +952,6 @@ direction_change_propagation:
     - not a replacement for runtime receiver preflight
 ```
 
-```yaml
-direction_change_propagation:
-  doctrine_changed: >
-    Local pre-push now conditionally mirrors the existing data-lake inventory
-    and policy-module pin contract tests when outgoing changes touch harness
-    Python or the generated inventory snapshot; CI runs the identical
-    diff-scoped adapter before the full suite.
-  trigger: validation_philosophy
-  related_triggers:
-    - workflow_authority
-    - lifecycle_boundary
-  controlling_sources_updated:
-    - .agents/workflow-overlay/validation-gates.md
-    - .agents/hooks/check_harness_coupling.py
-    - .agents/hooks/pre_push_guard.py
-    - .github/workflows/ci.yml
-  downstream_surfaces_checked:
-    - .agents/hooks/README.md
-    - forseti-harness/tests/unit/test_ci_hook_wiring.py
-    - .agents/workflow-overlay/decision-routing.md
-    - docs/decisions/overlay_enforcement_placement_classification_v0.md
-    - AGENTS.md
-  intentionally_not_updated:
-    - path: AGENTS.md
-      reason: >
-        The kernel already routes validation and CI behavior to the overlay;
-        duplicating the trigger or test list there would fork authority.
-    - path: docs/decisions/overlay_enforcement_placement_classification_v0.md
-      reason: >
-        This is a placement extension of existing deterministic pytest
-        substrates, not a new rule or enforcement-placement handle.
-    - path: full-suite pre-push policy
-      reason: >
-        An approximately 79-second gate on every push is not justified by the
-        repeated approximately 8.6-second coupling failure class.
-    - path: retry policy
-      reason: >
-        The 100-run sample contained no same-SHA failure followed by success;
-        retry would hide deterministic defects without observed flake evidence.
-  stale_language_search: >
-    rg -n -i "nine strict CI gates|DOC_GATES|doc gate|harness coupling"
-    .agents .github forseti-harness/tests
-  stale_language_search_result: >
-    Executed 2026-07-15 on the authoring branch. No `nine strict CI gates` or
-    `DOC_GATES` hits remain. Harness-coupling hits are confined to the new
-    checker, selected-gate wiring, CI step, registry, doctrine, and focused
-    tests. The remaining `doc gate` hits are the independent existing
-    `.github/scripts/run-doc-gates.ps1` runner, not stale pre-push naming.
-  non_claims:
-    - not full test-suite validation
-    - not readiness or approval
-    - not proof all CI failures are prevented
-    - not a retry or flake-masking policy
-```
-
-Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`
+(frozen 2026-07-11); receipts rotated out since then are preserved by Git and PR
+history per the delete-oldest rule in `.agents/workflow-overlay/source-of-truth.md`.

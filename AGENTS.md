@@ -28,6 +28,25 @@ output to design the rest (harvest before cook) -- never just to look safe.
 abstractions, broad rewrites, extra workflow ceremony, or nice-to-have
 improvements.
 
+Weigh subtraction equally with addition. Additive fixes feel safe --
+nothing visibly breaks -- so unchecked drift runs additive and rules,
+steps, and surface only grow. When choosing the intervention, give
+removing or simplifying an existing rule, step, artifact, or special case
+the same standing as adding a new one, and when both satisfy the request,
+prefer the one that leaves the smaller total surface. This is a
+solution-choice rule inside the bound request: it never authorizes
+speculative cleanup beyond it, and removals keep their evidence gates.
+
+Watch for ceremony debt: the recurring process cost a change installs when
+it adds a required step, preflight, gate, receipt, field, checklist, sync
+obligation, or review pass that every future work unit must pay. A change
+that is small in diff can still carry a large recurring toll. That toll is
+downstream lock-in under the rule below, not a free addition: prefer the
+path that does not add it, and when the requested outcome genuinely needs
+a recurring step, name what each future work unit pays and what real
+defect class it catches so the owner can weigh the toll before it becomes
+standing.
+
 When two candidate paths both satisfy the current request under this rule,
 prefer the one with materially lower downstream lock-in -- the durable data,
 schema, interface, or workflow shape that would be irreversible, costly to
@@ -128,22 +147,36 @@ guard, and owner steering all stay.
   timeout from expected command duration plus launch allowance; absent better
   evidence, use 20 seconds for reads or patches and 60 seconds for tests. If a
   call yields only a running/deferred handle with no output, wait at most once
-  for any remaining original budget, then terminate it. Record
-  `sandboxed_tool_stall`, the tool, timeout, and phase. Open the circuit for that
-  tool plus permission route for the rest of the turn: do not probe it again
-  merely because the next command differs. A safe, in-scope shell operation may
-  be retried once through per-operation escalation; use that working route for
-  later shell calls. After a stalled patch primitive, do not probe its launcher;
-  use `.agents/tools/atomic_exact_edit.py` with one version-1 exact-replacement
-  operation built from freshly read live target text and one `--apply`
-  invocation. Pass each change as `--replace PATH OLD NEW`, single-quoting each
-  value in PowerShell and using the helper's documented `\\n`, `\\t`, and
-  `\\\\` escapes when needed; do not hand-author a Git patch or create a
-  temporary plan file. If the helper rejects the operation, preserve its
-  failure output and stop the edit route for the turn rather than reconstructing
-  or retrying it. Verify the final diff. Completion through this alternate route
-  is a bounded mitigation signal, not proof that the ordinary tool route is
-  repaired.
+  for any remaining original budget, then terminate it. Record one
+  `sandboxed_tool_stall` for that failed tool-plus-permission route and do not
+  probe the route again merely because the command differs. A user interruption,
+  follow-up message, or automatic continuation does not by itself reset an open
+  circuit; if current context reports the stall, inherit it. After the failed
+  routes and any mutation uncertainty have been reported, the owner may
+  explicitly authorize one named fresh recovery route, including a new task or
+  worktree. That reset applies only to the named route: it does not erase the
+  stall record, broaden edit authority, permit concurrent writers, or weaken
+  target-revision, dirty-state, or protected-action checks. Before any mutation,
+  the fresh route must inspect the intended targets, bind its receiver, and
+  re-confirm the target, revision, dirty state, writer state, and prior mutation
+  outcome. If the fresh route stalls or cannot establish those facts, stop.
+  Carry an open circuit's
+  `sandboxed_tool_stall` record in any precompact or handoff packet so the
+  receiving lane inherits it. Retry a safe in-scope operation at most once
+  through a distinct approved route and reuse that working
+  route for the task/thread. If the stalled operation might have written, inspect
+  only its intended targets once before any alternate mutation. Then perform at
+  most one bounded alternate mutation; `.agents/tools/atomic_exact_edit.py` is an
+  option for short exact edits, not mandatory infrastructure. A transport or
+  preflight rejection that proves no bytes changed may be corrected once or split
+  into file-scoped atomic edits. Do not autonomously reroot, reload sources,
+  create another task or worktree, or redo receiver ceremony merely because a
+  tool stalled. Stop when the
+  mutation outcome is unknown, target state drifted, another writer appeared, a
+  real guard denied the action, or the distinct alternate route also stalls and
+  the owner has not authorized the bounded fresh-route reset above.
+  Verify the final diff. Completion through an alternate route is mitigation, not
+  proof that the ordinary tool route is repaired.
 - **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.
@@ -185,7 +218,7 @@ Run the Forseti Cynefin Routing Layer before planning or delegation when uncerta
 
 Every durable prompt, handoff, wrapper, rerun, or patch prompt applies the prompt contract; do not author one that skips it. Routine prompts apply the **Forseti Prompt Preflight** core inline (the ~12-line core in `.agents/workflow-overlay/prompt-orchestration.md`) -- no skill reload. A lane-scoped, operator-couriered delegated review-and-patch prompt whose goal, clean target worktree, revision, named file scope, patch authority, and validation route are already bound uses that same pointer-first core plus one fresh target-state read; delegation or patch authorization alone does not trigger the full `workflow-prompt-orchestrator`. Use the full orchestrator only when the **Full orchestration** predicate in `.agents/workflow-overlay/prompt-orchestration.md` applies, including owner-invoked Mini God Tier. In Forseti, a resolver-loaded generic prompt or delegated-review skill must defer to this project-owned routing depth: its generic always-orchestrate default does not override an eligible compact route, while its review mechanics and safeguards still apply. In-session subagent dispatches that only gather and summarize are delegation under `.agents/workflow-overlay/decision-routing.md`, not prompt artifacts; durable or cross-lane prompt artifacts remain governed by this contract. The owning rule, eligibility test, required compact fields, MGT expansion, and fallback blockers are in `.agents/workflow-overlay/prompt-orchestration.md`.
 
-When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. Before dispatching parallel repo-changing work, also bind a receiver mechanism whose actual write scope can reach that isolation. A separate worktree normally uses a receiver launched there; an independent external controller may instead operate from another launch checkout only after it resolves the exact target worktree and proves direct write capability plus a no-concurrent-writer state. An in-session collaboration subagent cannot gain that capability merely by being pointed at a path. The owning selection, two-root preflight, and blocker rule are in `.agents/workflow-overlay/decision-routing.md`. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`. When a repo-changing work unit completes verified on its own lane branch or worktree, proceed to commit, push, PR preparation, and merge without waiting for a typed instruction; the harness permission prompts on push, PR, and merge actions are the owner gate. A handoff-only packet is the narrow exception: follow the dispatch-ready transport contract in `.agents/workflow-overlay/prompt-orchestration.md`; commit it, then verify discoverability through the receiver's actual route, push only when the receiver cannot access the authoring worktree or local ref, and open a PR only when the packet independently merits publication on `main`, another landing artifact requires it, or the owner requests landing. This exception does not weaken the normal implementation, doctrine, code, or other publication work-unit PR flow. The lane author self-merges its **own** PR by default after the work unit is complete, including all required validation and any commissioned review return and adjudication; for `/fused`, implementation alone is not complete before the delegated review returns and is adjudicated. The protected-action guard and server branch protection remain fail-closed. An agent does not merge another actor's PR, and leaves landing to a human when the owner explicitly holds it, completion cannot be verified, or a guard refuses. See `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
+When starting or "spinning up" a new unit of repo-changing work, decide and state the isolation before editing: use a worktree off `main` for writing work that runs alongside other active lanes or on a dirty base; a branch off `main` for solo, sequential writing; and neither for read-only work. The current actor may continue the same commissioned work unit in its selected worktree after one fresh target, revision, dirty-state, and writer snapshot. A separate receiver is required only for an independent concurrent actor or after an observed tool, sandbox, hook, or guard denial proves the current route cannot reach the target; launch-root mismatch alone is not a blocker. An independent external controller still proves exact target, direct write capability, and no concurrent writer once. An in-session collaboration subagent remains confined to the caller's writable root. The owning selection, two-root preflight, and blocker rule are in `.agents/workflow-overlay/decision-routing.md`. Land changes via the per-lane PR flow in `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`. When a repo-changing work unit completes verified on its own lane branch or worktree, proceed to commit, push, PR preparation, and merge without waiting for a typed instruction; the harness permission prompts on push, PR, and merge actions are the owner gate. For a bounded cold handoff, the receiving task's initial prompt is the default; create and commit a handoff-only packet only for a distinct persistence, reuse, or separate-consumer need, then follow the transport/publication split in `.agents/workflow-overlay/prompt-orchestration.md`. This exception does not weaken the normal implementation, doctrine, code, or other publication work-unit PR flow. The lane author self-merges its **own** PR by default after the work unit is complete, including all required validation and any commissioned review return and adjudication; for `/fused`, implementation alone is not complete before the delegated review returns and is adjudicated. The protected-action guard and server branch protection remain fail-closed. An agent does not merge another actor's PR, and leaves landing to a human when the owner explicitly holds it, completion cannot be verified, or a guard refuses. See `docs/decisions/dev_workflow_ci_branch_protection_doctrine_v0.md`.
 
 Do not treat `jb` rules, paths, handoffs, lifecycle mechanics, product policy, validation habits, or external workflow source as Forseti authority. Explicitly invoked or resolver-loaded skills may provide task-local mechanics only.
 

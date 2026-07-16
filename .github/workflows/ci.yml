@@ -39,6 +39,36 @@ jobs:
             exit 1
           fi
           echo "CI diff base: $FORSETI_DIFF_BASE"
+      - name: Classify pytest scope
+        id: pytest-scope
+        working-directory: ${{ github.workspace }}
+        shell: bash
+        run: |
+          run_pytest=true
+
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            # Capture the diff through command substitution (not process
+            # substitution) so a git failure is visible and fails the job
+            # instead of silently classifying from partial or empty output.
+            if ! changed_output="$(git diff --no-renames --name-only "$FORSETI_DIFF_BASE"...HEAD)"; then
+              echo "::error::git diff failed while classifying pytest scope against base $FORSETI_DIFF_BASE"
+              exit 1
+            fi
+            mapfile -t changed_paths < <(printf '%s' "$changed_output")
+
+            if (( ${#changed_paths[@]} > 0 )); then
+              run_pytest=false
+              for path in "${changed_paths[@]}"; do
+                if [[ ! "$path" =~ ^docs/.+\.md$ ]]; then
+                  run_pytest=true
+                  break
+                fi
+              done
+            fi
+          fi
+
+          echo "run_pytest=$run_pytest" >> "$GITHUB_OUTPUT"
+          echo "Run full pytest: $run_pytest" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.12"
@@ -111,6 +141,9 @@ jobs:
       - name: hash-pin freshness (markdown sha256 pins stay current)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_hash_pin_freshness.py --strict
+      - name: shared-helper duplication (added private helper copies name their delta)
+        working-directory: ${{ github.workspace }}
+        run: python .agents/hooks/check_shared_helper_duplication.py --strict
       - name: full-GT claim tripwire (new md claims stay bounded)
         working-directory: ${{ github.workspace }}
         run: python .agents/hooks/check_full_gt_claims.py --changed --strict
@@ -120,5 +153,6 @@ jobs:
           python .agents/hooks/check_harness_coupling.py --selftest
           python .agents/hooks/check_harness_coupling.py --strict
       - name: Run tests
+        if: steps.pytest-scope.outputs.run_pytest == 'true'
         # Public ubuntu-latest exposes four CPUs; file grouping keeps module-local tests together.
         run: python -m pytest --durations=50 --durations-min=0.25 -n 4 --dist=loadfile

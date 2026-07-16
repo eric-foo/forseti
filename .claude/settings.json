@@ -68,6 +68,11 @@
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_search_surface_google_route.py\" --hook",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.agents/hooks/check_shared_helper_duplication.py\" --hook",
+            "timeout": 10
           }
         ]
       }

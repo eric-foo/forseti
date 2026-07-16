@@ -32,13 +32,19 @@ from judgment.tiktok_audience_triangulation import (
     validate_triangulation_snapshot,
 )
 from data_lake.root import DataLakeRoot
-from data_lake.silver_record import append_silver_record, silver_content_hash
+from data_lake.silver_record import (
+    SilverSourceAuthority,
+    append_silver_record,
+    silver_content_hash,
+)
 from runners.run_tiktok_comment_attention_producer import run_comment_attention
 from runners.run_creator_profile_current_materialize import _verify_audience_judgment_outcomes
 from runners.run_tiktok_creator_audience_triangulation import (
+    _silver_eligibility_residual,
     prepare_subscription_judgment,
     submit_subscription_judgment,
 )
+import runners.run_tiktok_creator_audience_triangulation as triangulation_runner
 from runners.run_tiktok_creator_onboarding_coordinator import prepare_onboarding
 import runners.run_tiktok_creator_onboarding_coordinator as onboarding_coordinator
 from runners.run_tiktok_grid_observation_producer import run_tiktok_grid_observations
@@ -138,6 +144,31 @@ def _persist_assembly_receipt(data_root: DataLakeRoot, bundle: dict) -> None:
             + b"\n"
         ),
     )
+
+
+def test_silver_eligibility_preserves_historical_compatibility_reason(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    monkeypatch.setattr(
+        triangulation_runner,
+        "classify_silver_vault_record_sources",
+        lambda _root, _record: SilverSourceAuthority(
+            "historical_compatible",
+            "legacy_tiktok_comment_attention_v1_bytes_verified",
+        ),
+    )
+
+    residual = _silver_eligibility_residual(
+        root, {"record_id": "legacy-v1.json"}, lane=COMMENT_ATTENTION_LANE
+    )
+
+    assert residual == {
+        "lane": COMMENT_ATTENTION_LANE,
+        "record_id": "legacy-v1.json",
+        "status": "historical_compatible",
+        "reason_code": "legacy_tiktok_comment_attention_v1_bytes_verified",
+    }
 
 
 def _validated_submission(tmp_path: Path) -> tuple[Path, Path]:

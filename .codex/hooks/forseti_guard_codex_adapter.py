@@ -16,7 +16,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 GUARD = ROOT / ".agents" / "hooks" / "guard_protected_actions.py"
 PATCH_PATH = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$")
 PATCH_MOVE = re.compile(r"^\*\*\* Move to: (.+)$")
-WRITE_TOOLS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
+
 SHELL_TOOLS = {"Bash", "PowerShell"}
 DURABLE_EXT = r"(?:md|py|ya?ml|json|toml|ps1)"
 DURABLE_PATH = re.compile(r"[A-Za-z0-9_./\\:-]+\." + DURABLE_EXT + r"\b", re.I)
@@ -87,68 +87,6 @@ def _path_for_guard(path_text):
     return str(ROOT / path)
 
 
-def _norm_path(path):
-    try:
-        resolved = pathlib.Path(path).resolve()
-    except OSError:
-        resolved = pathlib.Path(path).absolute()
-    return str(resolved).replace("\\", "/").lower().rstrip("/")
-
-
-def _contains_path(parent, child):
-    parent = parent.rstrip("/")
-    child = child.rstrip("/")
-    return child == parent or child.startswith(parent + "/")
-
-
-def _registered_worktree_roots():
-    try:
-        out = subprocess.run(
-            ["git", "-C", str(ROOT), "worktree", "list", "--porcelain"],
-            text=True,
-            capture_output=True,
-            timeout=4,
-        )
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
-        return []
-    if out.returncode != 0:
-        return []
-    roots = []
-    for line in out.stdout.splitlines():
-        if line.startswith("worktree "):
-            roots.append(_norm_path(line[len("worktree "):].strip()))
-    return roots
-
-
-def _nested_worktree_reason(path_text, roots=None):
-    target = _norm_path(path_text)
-    current = _norm_path(ROOT)
-    roots = roots if roots is not None else _registered_worktree_roots()
-    for root in roots:
-        if root == current:
-            continue
-        if _contains_path(root, target):
-            return (
-                "Codex nested-worktree write blocked: target is under registered "
-                "worktree %s while this hook is rooted at %s. Use a Codex task "
-                "created and rooted in the target worktree, or route the frozen "
-                "commission to an already-authorized capable worktree-backed "
-                "task; a command workdir cannot reroot this task."
-            ) % (root, current)
-    return ""
-
-
-def _check_direct_write_path(tool_input):
-    target = (
-        tool_input.get("file_path")
-        or tool_input.get("notebook_path")
-        or tool_input.get("path")
-    )
-    if not target:
-        return ""
-    return _nested_worktree_reason(_path_for_guard(target))
-
-
 def _check_shell_durable_write(tool_input):
     command = tool_input.get("command") or ""
     if not command:
@@ -158,9 +96,8 @@ def _check_shell_durable_write(tool_input):
     if not DURABLE_PATH.search(command):
         return ""
     return (
-        "Codex raw shell durable-write blocked: use apply_patch from the active "
-        "worktree. For a registered non-current worktree, use a Codex task "
-        "created and rooted there; a command workdir cannot reroot this task."
+        "Codex raw shell durable-write blocked: use apply_patch so every edited "
+        "path is checked by the Forseti protected-action guard."
     )
 
 
@@ -174,17 +111,21 @@ def _apply_patch_paths(patch_text):
 
 
 def _check_apply_patch_paths(tool_input):
-    patch_text = tool_input.get("command") or ""
-    for path in _apply_patch_paths(patch_text):
-        reason = _nested_worktree_reason(_path_for_guard(path))
-        if reason:
-            return reason
-        event = json.dumps({"tool_name": "Edit", "tool_input": {"file_path": path}})
-        proc = _run_guard(event)
-        if proc.returncode == 2:
-            return _reason_from(proc)
-        if proc.returncode != 0:
-            return _reason_from(proc)
+    seen = set()
+    for key in ("command", "patch", "input"):
+        patch_text = tool_input.get(key)
+        if not isinstance(patch_text, str) or not patch_text:
+            continue
+        for path in _apply_patch_paths(patch_text):
+            if path in seen:
+                continue
+            seen.add(path)
+            event = json.dumps({"tool_name": "Edit", "tool_input": {"file_path": path}})
+            proc = _run_guard(event)
+            if proc.returncode == 2:
+                return _reason_from(proc)
+            if proc.returncode != 0:
+                return _reason_from(proc)
     return ""
 
 
@@ -412,21 +353,6 @@ def _selftest():
     except Exception:
         ok = False
 
-    current_root = _norm_path(ROOT)
-    fake_other = current_root + "/worktrees/other-lane"
-    fake_roots = [
-        current_root,
-        fake_other,
-        current_root + "/.codex/worktrees/another-lane",
-    ]
-    ok = ok and bool(
-        _nested_worktree_reason(
-            fake_other + "/docs/x.md",
-            roots=fake_roots,
-        )
-    )
-    ok = ok and not _nested_worktree_reason(current_root + "/docs/x.md", roots=fake_roots)
-
     print("CODEX ADAPTER SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 
@@ -451,10 +377,7 @@ def main():
         reason = _check_apply_patch_paths(event.get("tool_input") or {})
         if reason:
             return _deny(reason)
-    elif event.get("tool_name") in WRITE_TOOLS:
-        reason = _check_direct_write_path(event.get("tool_input") or {})
-        if reason:
-            return _deny(reason)
+
     elif event.get("tool_name") in SHELL_TOOLS:
         reason = _check_shell_durable_write(event.get("tool_input") or {})
         if reason:

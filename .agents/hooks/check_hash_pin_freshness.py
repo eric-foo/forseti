@@ -37,11 +37,16 @@ import hashlib
 import os
 import posixpath
 import re
-import subprocess
 import sys
 import tempfile
 from pathlib import Path, PureWindowsPath
 from typing import NamedTuple
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    git_out,
+    repo_root,
+)
 
 
 def _configure_stdio() -> None:
@@ -93,10 +98,6 @@ class Finding(NamedTuple):
     problem: str  # "pin_target_missing" | "pin_hash_mismatch"
     expected_hex: str | None = None
     actual_hex: str | None = None
-
-
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
 
 
 def normalize_relpath(value: str) -> str:
@@ -242,16 +243,10 @@ def parse_name_status(lines: list[str]) -> set[str]:
 
 
 def _git(root: Path, args: list[str], timeout: int = 20) -> tuple[int, str]:
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(root), *args],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        return result.returncode, result.stdout
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
-        return -1, ""
+    """Thin adapter over the shared _hooklib.git_out (keeps this file's 20s
+    default). git_out returns (1, "") on launch failure/timeout instead of
+    (-1, ""); callers here only test rc != 0, so the distinction is inert."""
+    return git_out(root, args, timeout=timeout)
 
 
 def resolve_base_ref(cli_base: str | None) -> str:

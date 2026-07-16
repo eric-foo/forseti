@@ -113,3 +113,160 @@ ACLs is outside this repository's ownership.
 - Not proof that PR #896 content was incorrect; its required CI completed green.
 - Not proof that every historical rebase caused delay or conflict.
 - Not validation, readiness, or merge approval for the corrective patch.
+
+## TD-2026-07-16-002 — Sandboxed tool completion stalls reopened after interruptions
+
+- **Observed:** 2026-07-16, Asia/Singapore.
+- **User-visible symptom:** small patch and read operations remained running for
+  roughly 80 to 265 seconds despite 20-second command budgets.
+- **Verified contrast:** equivalent read-only commands through per-operation
+  escalation completed in 0.3 to 0.6 seconds; same-worktree atomic edits
+  completed in 0.4 seconds; the Codex guard adapter self-test completed in 1.7
+  seconds.
+- **Patch result:** the manually stopped built-in patch changed none of its four
+  intended files.
+
+### Diagnosis and correction
+
+The dominant observed delay was the sandboxed tool route or its result-return
+lifecycle, not Git, Python, the atomic helper, or the Forseti guard runtime. The
+repository cannot repair that host component. A second process defect amplified
+the cost: the circuit breaker expired at the end of a turn, so an interruption
+or follow-up message reopened a route already observed to be stalled.
+
+`AGENTS.md` now keeps that circuit open for the task/thread and requires later
+context to inherit the observed stall. Safe shell work may use the one allowed
+per-operation escalated retry and then that working route. After a patch stall,
+the same-worktree atomic exact-edit helper remains the bounded fallback. No Luna
+or separate worktree is required for ordinary sequential editing.
+
+A related enforcement defect was also corrected: the Codex adapter now inspects
+patch text in `tool_input.command`, `.patch`, and `.input`, with focused coverage
+for all three forms. This closes a wrong-root guard gap; it does not repair the
+host patch executor.
+
+### Accepted residuals
+
+- Built-in `apply_patch` may still stall at the host level and remains outside
+  repository control.
+- Escalation remains per-operation and is not a standing permission.
+- A fresh task without inherited incident context may need one observed stall
+  before its circuit opens.
+
+### Validation observed
+
+- Two focused hook-wiring tests passed.
+- The Codex adapter self-test passed.
+- `git diff --check` passed for the bounded repair files.
+
+### Non-claims
+
+- Not proof of the product-side root cause.
+- Not a host-level patch-tool repair.
+- Not authority to weaken protected-action or worktree guards.
+
+
+### Delegated-review addendum — circuit-state continuity (2026-07-16)
+
+A commissioned cross-vendor delegated review confirmed one containment gap:
+the inheritance rule still depended on current context reporting the stall, but
+no rule required an open circuit's `sandboxed_tool_stall` record to travel in a
+precompact or handoff packet. Whenever such a packet is used, a receiving lane
+could therefore silently reopen a route already observed to be stalled.
+`AGENTS.md` now requires the record in either packet type.
+
+Additional accepted residuals from that review:
+
+- Automatic compaction that drops the stall record can silently close the
+  circuit; the bounded cost is one re-observed stall before it reopens.
+- The adapter inspects the three known Codex payload fields (`command`, `patch`,
+  `input`); an unrecognized or non-string payload shape is skipped rather than
+  denied, so a future host payload-schema change would reopen the inspection gap
+  until observed and patched.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    An open sandboxed-tool-stall circuit is now named lane state: precompact
+    and handoff packets must carry the `sandboxed_tool_stall` record so a
+    receiving lane inherits the open circuit.
+  trigger: workflow_authority
+  related_triggers: [lifecycle_boundary]
+  controlling_sources_updated:
+    - AGENTS.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - docs/workflows/technical_difficulties_log_v0.md
+  intentionally_not_updated:
+    - {path: CLAUDE.md, reason: "It imports AGENTS.md and must not duplicate the circuit rule."}
+    - {path: .agents/workflow-overlay/source-of-truth.md, reason: "Checkpoint packet mechanics remain compatible; circuit state stays owned by AGENTS.md."}
+    - {path: .agents/workflow-overlay/source-loading.md, reason: "Packet routing is unchanged; the packet-content obligation belongs with the circuit rule."}
+  stale_language_search: >
+    rg -n -i "precompact|handoff packet|sandboxed_tool_stall"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay docs/workflows/technical_difficulties_log_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-16 after home replay. Hits were the live AGENTS.md circuit
+    rule, this incident record, and compatible packet-mechanics references; no
+    live instruction said a packet continuation resets or discards an open circuit.
+  non_claims: [not validation, not readiness, not a host-level tool repair]
+```
+
+### Owner-reset correction — severe circuit overfix (2026-07-16)
+
+The persistent circuit correctly prevented repeated use of observed stalled
+routes, but its absolute prohibition on rerooting also refused required skill
+loading and an explicit owner instruction to continue in a new worktree. A
+subsequent `apply_patch` call stalled for 121.9 seconds; a bounded read proved it
+wrote no matching bytes. Two further `apply_patch` attempts with a clean
+worktree and a relative, file-scoped payload also stalled without writing. The
+rule was therefore a severe overfix: its containment cost exceeded the defect
+class and made it temporarily self-sealing against correction.
+
+`AGENTS.md` now preserves the automatic circuit while allowing the owner, after
+failed routes and mutation uncertainty are reported, to authorize one named
+fresh task or worktree route. The fresh route must re-establish target,
+revision, dirty-state, writer, and mutation-outcome facts before mutation. The
+reset is route-scoped and does not erase the incident, broaden authority, allow
+concurrent writers, weaken protected-action checks, or permit repeated recovery
+attempts.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    A sandboxed-tool-stall circuit remains persistent across ordinary
+    follow-ups, but explicit owner instruction may authorize one named fresh
+    recovery route after the failed routes and mutation uncertainty are
+    reported. The route must re-bind and re-confirm state before mutation, and
+    one failure closes it.
+  trigger: workflow_authority
+  related_triggers: [lifecycle_boundary]
+  controlling_sources_updated:
+    - AGENTS.md
+  downstream_surfaces_checked:
+    - CLAUDE.md
+    - .agents/workflow-overlay/decision-routing.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/technical_difficulties_log_v0.md
+  intentionally_not_updated:
+    - {path: CLAUDE.md, reason: "It imports AGENTS.md and must not duplicate the circuit rule."}
+    - {path: .agents/workflow-overlay/decision-routing.md, reason: "Its receiver binding and explicit task-creation authorization already govern the named fresh route."}
+    - {path: .agents/workflow-overlay/source-of-truth.md and .agents/workflow-overlay/source-loading.md, reason: "Source and checkpoint mechanics remain unchanged; the stall circuit stays owned by AGENTS.md."}
+    - {path: .agents/workflow-overlay/validation-gates.md, reason: "Revision, dirty-state, writer, and protected-action gates remain unchanged and are expressly preserved by the reset."}
+  stale_language_search: >
+    rg -n -i "does not (by itself )?reset|do not (autonomously )?reroot|fresh recovery route|sandboxed_tool_stall|severe overfix"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay
+    docs/workflows/technical_difficulties_log_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-16 in the owner-reset recovery worktree. Live hits are the
+    amended persistent circuit, its explicit named-route reset, and the dated
+    incident records. No checked live surface retains an absolute ban on an
+    owner-authorized fresh recovery task or worktree.
+  non_claims:
+    - not validation or readiness
+    - not a host-level sandbox, hook, timeout, or executor repair
+    - not permission for destructive Git, concurrent writers, or broader edits
+```

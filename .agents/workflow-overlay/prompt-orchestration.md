@@ -28,7 +28,7 @@ Routine Forseti prompts apply this core inline — no skill reload. For an
 ordinary, already-scoped, single-target prompt, this core is the complete
 preflight contract; it does not inherit the Escalated Preflight Fields or require
 a `forseti_start_preflight` receipt. Review Prompt Defaults and Output Modes still
-govern when their task-specific triggers apply. State, per prompt:
+govern when their task-specific triggers apply. The field vocabulary, per prompt:
 
 1. **Output mode** — exactly one of `chat-only` · `file-write` · `review-report` · `paste-ready-chat` · `patch-queue`, plus its write/report destination.
 2. **Template kind** — the bound template from `.agents/workflow-overlay/template-registry.md`, or `none`; template targets are prompt-shaping labels, never runtime-model routing.
@@ -37,15 +37,32 @@ govern when their task-specific triggers apply. State, per prompt:
 5. **Doctrine change** — work that changes product, architecture, workflow, validation, review, or output doctrine, or a lifecycle boundary, carries a `direction_change_propagation` receipt or blocker (`.agents/workflow-overlay/source-of-truth.md`).
 6. **Destinations** — the input prompt source the receiver treats as run-authoritative (canonical artifact path, lane PR body/comment, or ignored scratch path), and the exact output-artifact path it writes when the mode writes a durable artifact.
 
-Repo-constant fields (workspace path, required reads, external-source boundary,
-retrieval-header defaults) may be referenced via
-`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` when escalated
-preflight applies. Routine prompts state only the core above; do not add unused
-field placeholders or a start receipt for form completeness. Fused and
-genuinely escalated prompt work author through `workflow-prompt-orchestrator`
-and use the escalated contract below. A lane-scoped delegated review-and-patch
-prompt uses the compact default below when its eligibility conditions hold;
-delegation or patch authorization alone does not escalate it.
+**Default elision.** A prompt states only fields whose value differs from the
+named default; an omitted field asserts that default. Defaults: template kind
+`none`; reviews findings-first with no formal verdict, severity contract, or
+patch queue bound and no runtime-model routing; doctrine change `none`. Fields
+1 and 3 are always stated. Field 6 is stated when the prompt is handed to
+another model, agent, thread, or worktree, or when the mode writes a durable
+artifact; otherwise it is elided. Elision never overrides an applicable
+trigger: a prompt needing a non-default value states that field explicitly.
+
+**Constants by pointer, deltas inline.** Repo-constant values — intake reads,
+external-source boundary, environment baseline, retrieval-header defaults,
+delegate lifecycle hard stop, de-correlation commission constants — are owned
+by `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`. A prompt
+that relies on one cites that artifact instead of restating it; restating a
+constant owned there in a new or materially touched prompt is a prompt-quality
+defect. Per-prompt deltas — revision pins, named targets, dirty-state
+allowance and byte pins, workspace root, validation route — are always stated
+inline and never replaced by a pointer. Routine prompts state only the
+non-default core above; do not add unused field placeholders or a start
+receipt for form completeness. The Prompt Validation Gates below are applied
+by the author before use; the prompt body does not carry a validation receipt,
+gate checklist, or self-graded gate result. Fused and genuinely escalated
+prompt work author through `workflow-prompt-orchestrator` and use the
+escalated contract below. A lane-scoped delegated review-and-patch prompt uses
+the compact default below when its eligibility conditions hold; delegation or
+patch authorization alone does not escalate it.
 
 ## Source Boundary
 
@@ -257,7 +274,10 @@ Every durable or cross-recipient commission with edit permission
 begin in a task that is not the receiver must make the task-creation request
 explicit in the visible commission. Include this bounded block next to that new
 receiver's single `receiver_binding` receipt. A prompt continuing the active
-binding includes neither block merely for lifecycle continuity.
+binding includes neither block merely for lifecycle continuity. The current
+actor selecting or creating a Git worktree for the same commissioned work unit
+is not a new receiver and continues there unless an actual required capability
+is denied.
 
 ```yaml
 receiver_creation_authorization:
@@ -319,14 +339,14 @@ conditions hold:
 - there is no unresolved authority, target, state, or scope conflict.
 
 The author records the single inline `receiver_binding` receipt owned
-by `.agents/workflow-overlay/decision-routing.md`. A bound active receiver then
-performs exactly one fresh target-state read: worktree path, branch and HEAD,
-dirty state, named or changed files, and the material validation commands or
-evidence already bound to the lane. An unknown courier completes that read and
-the external direct-write capability proof as its first action, before source
-loading. The author does not pre-load the receiver's target sources, reconstruct the receiver's source
-ledger, traverse the template registry, or claim the delegated lane execution-
-ready before the binding is verified.
+by `.agents/workflow-overlay/decision-routing.md`. A bound active receiver uses
+one combined target-state and authority-pointer intake, then inspects the actual
+diff by its second latency-bearing tool call. Full overlay or source loading
+before diff inspection is a routing defect unless a named authority or target
+ambiguity blocks diff resolution. An unknown courier completes the same intake
+plus its external direct-write proof as its first action. The author does not
+pre-load target sources, reconstruct the source ledger, or traverse the template
+registry before the binding is verified.
 
 An explicit `delegate patch` invocation is an authoring request: return exactly
 one paste-ready prompt for the operator to courier. Do not inspect installed
@@ -349,15 +369,15 @@ Render one compact pointer-first prompt containing:
    operator-owned value;
 4. pointers to `AGENTS.md`, `.agents/workflow-overlay/README.md`, the targeted
    sections of `.agents/workflow-overlay/delegated-review-patch.md`, the
-   relevant review skill or lane, and the `environment_baseline` constant in
-   `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`;
+   relevant review skill or lane, and the `environment_baseline`,
+   `lifecycle_hard_stop`, and `decorrelation_commission` constants in
+   `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` (cited,
+   not restated);
 5. named validation expectations with real failure and not-run reporting;
 6. the controller return: findings, bounded diff, neutral citations, validation
-   evidence, verdict, and residual risk;
+   evidence, verdict, and residual risk; and
 7. Chief Architect adjudication before any returned change is kept, plus
-   `NEEDS_ARCHITECTURE_PASS` for design-level blockers; and
-8. the delegate hard stop: no commit, push, PR, merge, stash, reset, worktree
-   cleanup, or repository-hygiene action.
+   `NEEDS_ARCHITECTURE_PASS` for design-level blockers.
 
 Prompt rendering and execution are separate states. A prompt with
 `receiver_class: receiver_to_bind` may be returned for a manual unknown courier,
@@ -429,37 +449,28 @@ separate:
 
 ### Handoff Transport Versus Publication
 
-A handoff-only packet has two distinct lifecycle states:
+For a bounded cold handoff, the receiving task's initial prompt is the default
+authoritative handoff. It carries the objective, exact target and revision,
+allowed dirty state, bounded source pointers, edit authority, validation route,
+and real stop conditions. Create a durable packet only for a distinct
+persistence, reuse, or separate-consumer need. A courier is transport-only: it
+points to the prompt or packet and does not restate its body.
 
-- **Dispatch-ready / transport.** The receiving cold lane has a concrete,
-  `receiver_verified` binding and can resolve the exact packet bytes through
-  that receiver's actual mechanism before dispatch. A prepared unknown-receiver
-  courier remains preparation-only and cannot enter this state. Commit is
-  the stable local transport boundary; once its SHA is couriered as the packet's
-  revision handle, that commit is not rewritten (no amend, rebase, or squash) for
-  the packet's transport lifetime, and a required history change re-couriers the
-  new SHA, because a `git show <sha>:<path>` fallback resolves nothing against an
-  orphaned SHA. The courier/context identifies the
-  repository or worktree access route, repository-relative packet path,
-  branch/ref and commit SHA when revision access is needed, and an explicit
-  fallback such as `git show <sha>:<path>`. Include a same-filesystem absolute
-  path only when that is the receiver's actual route. The dispatcher verifies
-  discoverability by reading the packet through that actual route; path
-  existence in the author's checkout or a path merely written in chat is not
-  verification for a different receiver mechanism. If the receiver cannot use
-  the authoring worktree or local ref, push the branch and verify the remote ref
-  before dispatch. If no verified route exists, stop with a visible transport
-  blocker.
-- **Publication-ready / landing.** The packet independently merits durable
-  publication on `main`, another landing artifact requires it, or the owner
-  requests landing. Only this state opens a packet PR. A PR is never created
-  merely to make the packet discoverable; it publishes an independently
-  justified durable artifact.
+When a durable handoff-only packet is needed:
 
-This split is specific to handoff-only transport. A packet that rides an
-existing implementation, doctrine, code, or other publication work unit still
-lands in that work unit's normal PR. A handoff-only branch is pushed only when
-the receiving mechanism cannot reach the local worktree/ref, not by default.
+- **Dispatch-ready / transport.** Verify the receiver can resolve the packet by
+  its actual route once. For clean tracked sources, the packet commit SHA pins
+  the bytes; add per-file hashes only for dirty, external, generated, or
+  ambiguous content. A couriered SHA is not rewritten during the packet's
+  transport lifetime; a required history change re-couriers the new SHA. Push
+  only when the receiver cannot reach the local worktree
+  or ref. Stop visibly if no route exists.
+- **Publication-ready / landing.** Open a packet PR only when the packet
+  independently merits publication, another landing artifact requires it, or
+  the owner requests landing. A PR is not a discoverability mechanism.
+
+A packet riding an implementation, doctrine, code, or other publication work
+unit lands in that work unit's normal PR.
 
 The `docs/prompts/**` PostToolUse hook (`check_prompt_provenance.py`) fires only
 for canonical filed prompt writes and injects the preflight — output mode, edit
@@ -584,19 +595,25 @@ no`, and not the alignment-axis-not-pass-bar guardrail.
 
 ## Review Prompt Defaults
 
-Forseti review prompts include `workflow-deep-thinking` before the relevant
-review skill when the owner explicitly invokes it or Mini God Tier, or when the
-review is doctrine- or authority-changing, source-heavy, materially ambiguous,
-or carries substantial seam risk whose framing could change the review route.
-Adversarial wording, a formal-verdict request, delegation, patch authorization,
-multiple named files in one bounded technical diff, or a high-stakes label alone
-does not trigger deep-thinking. A bounded technical review with an exact
-revision, file scope, authority, and validation route may omit it.
+Forseti review prompts include a deep-thinking framing pass before the relevant
+review skill when the owner explicitly invokes `workflow-deep-thinking` or Mini
+God Tier, or when the review is doctrine- or authority-changing, source-heavy,
+materially ambiguous, or carries substantial seam risk whose framing could
+change the review route. Adversarial wording, a formal-verdict request,
+delegation, patch authorization, multiple named files in one bounded technical
+diff, or a high-stakes label alone does not trigger deep-thinking. A bounded
+technical review with an exact revision, file scope, authority, and validation
+route may omit it. For a review commission, the review lane's own internalized
+failure-mode-framing discipline satisfies the pass -- the adversarial review
+skill carries it and the review templates define it -- without a second skill
+load; a separate `workflow-deep-thinking` load remains the route for
+owner-invoked decision work.
 
-When deep-thinking is invoked, the reviewer may `REFERENCE-LOAD` the methods
-before source loading, but must not `APPLY` deep-thinking or the review method
-until the required source context is ready. The step frames the boundary problem,
-failure modes, and decision criteria before findings are listed. It does not
+When the framing pass is triggered, the reviewer may `REFERENCE-LOAD` the
+methods before source loading, but must not `APPLY` the framing pass or the
+review method until the required source context is ready. The step frames the
+boundary problem, failure modes, and decision criteria before findings are
+listed. It does not
 widen review scope, authorize patching, or turn a narrow review into product
 planning.
 
@@ -744,11 +761,14 @@ or report destination is not bound before the review begins.
 Prompts matching the **Full orchestration** predicate above include or reference
 the `forseti_start_preflight` receipt owned by
 `.agents/workflow-overlay/source-loading.md`. These cases must make their start
-state portable because another actor or later lane will rely on it. Repo-constant
-fields may be referenced via
-`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`; required
-escalated deltas in that artifact remain explicit. Routine prompts stop at the
-core above.
+state portable because another actor or later lane will rely on it. Constants
+bind by citing
+`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` — intake
+reads, external-source boundary, environment baseline, retrieval-header
+defaults, lifecycle hard stop, de-correlation commission constants — and are
+not restated. This section is the single owner of the per-prompt escalated
+delta list; the defaults artifact holds constant values only. Routine prompts
+stop at the core above.
 
 An eligible lane-scoped delegated review-and-patch prompt instead uses the
 compact default above: core prompt fields plus one fresh target-state read and
@@ -758,8 +778,6 @@ executor-ready wording, or a bounded multi-file target.
 
 Every escalated prompt must state:
 
-- whether `AGENTS.md` and `.agents/workflow-overlay/README.md` were read or
-  supplied in the current task context;
 - selected source pack from `.agents/workflow-overlay/source-loading.md`, or a
   bounded custom source pack;
 - `repo_map_decision: loaded | not_needed | unavailable`, plus `repo_map_reason`. Source-loading (`.agents/workflow-overlay/source-loading.md`) owns the read-pack rule; this field records the prompt author's routing decision and must not make the repo map a mandatory read;
@@ -780,14 +798,12 @@ Every escalated prompt must state:
   lifecycle boundary, and if so which propagation surfaces must be checked
   before closeout;
 - target files or directories;
-- source hierarchy for the task;
 - edit permission: `read-only`, `patch-only`, `docs-write`, or
   `implementation-authorized` (enum owned by `forseti_start_preflight` in
   `.agents/workflow-overlay/source-loading.md`);
 - output mode: `chat-only`, `file-write`, `review-report`,
   `paste-ready-chat`, or `patch-queue`;
-- required validation gates and where evidence is recorded;
-- external source boundary, including the rule that external workflow source is read-only from Forseti work and `jb` is not Forseti authority.
+- required validation gates and where evidence is recorded.
 
 ### Repo-Bound Review Target Resolution
 
@@ -905,7 +921,8 @@ Before using a generated Forseti prompt, apply these gates:
 
 1. Applicable preflight complete: `AGENTS.md` and
    `.agents/workflow-overlay/README.md` were read or supplied in the current
-   task context. Routine prompts carry the six-field core and no start receipt;
+   task context. Routine prompts carry the preflight core (required fields
+   stated, defaults elided, constants by pointer) and no start receipt;
    eligible compact delegated prompts carry that core, one fresh target-state
    read, and the eight commission fields above; escalated prompts carry the
    portable start receipt and fields above.
@@ -915,7 +932,7 @@ Before using a generated Forseti prompt, apply these gates:
    acceptance or controlling authority is explicit.
 2. Artifact roles bound: every prompt role maps to `.agents/workflow-overlay/artifact-roles.md` or another accepted overlay file.
 3. Source resolution clean: external workflow sources do not provide Forseti authority; installed skills are deployment copies; `jb` project policy is not imported.
-4. Writable-root binding present when repository state matters: same-lane prompts point to the active one-time binding without repeating its root/capability recital; new/external receivers and materially changed bindings carry the single `receiver_binding`, and a not-yet-created managed receiver also carries the exact one-task `receiver_creation_authorization`. Collaboration remains same-root, unknown receivers remain preparation-only, and a command `workdir` is never a reroot. A delegated review-and-patch courier remains operator-courier-only, direct-repo, and different-vendor, with no Codex-managed fallback. A prompt fails this gate when it invents task-creation authority, applies external two-root discovery to a wrongly launched Codex task, claims dispatch readiness before a new binding exists, or repeats capability ceremony as if it were required for an unchanged active binding.
+4. Writable-root binding present when repository state matters: same-lane prompts point to the active one-time binding without repeating its root/capability recital; new/external receivers and materially changed bindings carry the single `receiver_binding`, and a not-yet-created managed receiver also carries the exact one-task `receiver_creation_authorization`. Collaboration remains same-root and unknown receivers remain preparation-only. The same actor may target its selected worktree when launch and target roots differ; a command `workdir` neither expands a collaboration subagent's sandbox nor proves failure by itself. A delegated review-and-patch courier remains operator-courier-only, direct-repo, and different-vendor, with no Codex-managed fallback. A prompt fails this gate when it invents task-creation authority, ignores an observed capability denial, claims dispatch readiness before a new binding exists, or repeats capability ceremony as if it were required for an unchanged active binding.
 5. Output mode explicit: exactly one output mode is named, with write destination and report destination if applicable.
 6. Required checks named: validation gates can fail and include pass, fail, blocked, and not-run semantics.
 7. Source-capsule budget satisfied: source capsules stay within
@@ -975,6 +992,86 @@ Before using a generated Forseti prompt, apply these gates:
 ## Direction Change Propagation
 
 ```yaml
+# preflight smallest-complete reduction 2026-07-16 (owner-requested ceremony cut).
+direction_change_propagation:
+  doctrine_changed: >
+    The routine preflight core now uses default elision (only non-default
+    fields are stated; an omitted field asserts its named default) and a
+    constants-by-pointer mandate: repo-constant values (intake reads,
+    external-source boundary, environment baseline, retrieval-header defaults,
+    lifecycle hard stop, de-correlation commission constants) are owned by
+    forseti_preflight_defaults_v0.md and cited, never restated; restating one
+    in a new or materially touched prompt is a prompt-quality defect. The
+    escalated per-prompt delta list is single-owned here (the defaults
+    artifact's duplicate list, with its drifted 3-value edit_permission enum
+    and orphaned isolation_decision, is deleted); prompt bodies do not carry
+    validation receipts or gate checklists. Load-bearing fields are unchanged
+    and still stated inline: revision pins, named targets, dirty-state
+    allowance and byte pins, workspace root, validation route, output mode,
+    edit permission, and the CI-gated receiver/courier shells.
+  trigger: workflow_authority
+  related_triggers: [output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/hooks/check_prompt_provenance.py
+    - .agents/hooks/check_prompt_output_mode.py
+    - .agents/hooks/README.md
+    - docs/prompts/templates/review/adversarial_artifact_review_v0.md
+    - docs/prompts/templates/wrappers/thin_wrapper_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Its "~12-line core" descriptor and two-depth routing remain accurate;
+        the elided core is the same core with defaults made implicit.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        It still owns the forseti_start_preflight receipt shape and
+        edit_permission enum unchanged; single-ownership was restored by
+        deleting the drifted duplicate in the defaults artifact, not by
+        moving the owner.
+    - path: .agents/hooks/check_prompt_output_mode.py
+      reason: >
+        The CI gate checks exactly the surviving shape (output-mode token,
+        receiver_creation_authorization shell, delegated-courier shell); its
+        token-drift selftest still parses this file green after the edit.
+    - path: docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+      reason: already compact and operative; no constant recital to cut.
+    - path: docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md
+      reason: >
+        It is a cited-not-copied shared contract that already defers to
+        owners; folding it is the separate CER-1/OVL dual-maintenance unit.
+    - path: historical prompts, handoffs, and review outputs
+      reason: forward-only; completed lane evidence is not rewritten.
+  stale_language_search: >
+    rg -n -i "six[-]field|Repo-constant fields may be referenc[e]d|REQUIRED
+    ESCALATED DELTA[S]|6[-]item|state, per promp[t]" AGENTS.md CLAUDE.md .agents
+    docs/prompts/templates docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-16 after the live-authority edits: zero hits on any
+    checked live surface. Both hook selftests pass, including the
+    output-mode gate's token-drift case that parses this file.
+  non_claims:
+    - not validation or readiness
+    - no numeric token or latency savings claim
+    - not a weakening of the output-mode CI gate, the receiver/courier shell
+      checks, the DCP contract, revision/dirty-state pinning, or the
+      protected-action guard
+    - does not change what escalated (Full orchestration) cases must prove,
+      only where constants live
+
 # handoff transport/publication split 2026-07-14 (owner-requested correction).
 direction_change_propagation:
   doctrine_changed: >

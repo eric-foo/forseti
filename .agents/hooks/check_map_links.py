@@ -73,13 +73,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple
 
-# ---------------------------------------------------------------------------
-# Repo root (this file lives at .agents/hooks/check_map_links.py)
-# ---------------------------------------------------------------------------
-
-def repo_root() -> Path:
-    """Repo root derived from this file's location (parents[2])."""
-    return Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
 
 
 # ---------------------------------------------------------------------------

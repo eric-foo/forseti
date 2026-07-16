@@ -10,7 +10,7 @@ from typing import Any, Callable, Mapping, Sequence
 from urllib.parse import parse_qsl, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from harness_utils import utc_now_z
+from harness_utils import sha256_text, utc_now_z
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
@@ -465,6 +465,7 @@ def run_tiktok_live_batch_probe(
     grid_candidates_by_video_id: Mapping[str, JsonObject] | None = None,
     profile_grid_subtitle_sources_by_video_id: Mapping[str, JsonObject] | None = None,
 ) -> JsonObject:
+    call_kwargs = dict(locals())
     normalized_browser_backend = browser_backend.strip().lower()
     if engine is None and normalized_browser_backend == TIKTOK_BROWSER_BACKEND_CLOAKBROWSER:
         observation_engine = CloakBrowserPageObservationSessionEngine(
@@ -483,57 +484,56 @@ def run_tiktok_live_batch_probe(
             ),
             human_challenge_handoff_prompt=TIKTOK_HUMAN_CHALLENGE_HANDOFF_PROMPT,
         )
+        call_kwargs["browser_backend"] = normalized_browser_backend
+        call_kwargs["engine"] = observation_engine
         try:
-            result = run_tiktok_live_batch_probe(
-                creator_handle=creator_handle,
-                creator_profile_url=creator_profile_url,
-                video_urls=video_urls,
-                state_label=state_label,
-                session_mode=session_mode,
-                logged_out=logged_out,
-                auth_state_root=auth_state_root,
-                timeout_seconds=timeout_seconds,
-                wait_until=wait_until,
-                viewport_width=viewport_width,
-                viewport_height=viewport_height,
-                max_response_bytes=max_response_bytes,
-                settle_seconds=settle_seconds,
-                selector_timeout_seconds=selector_timeout_seconds,
-                browser_channel=browser_channel,
-                browser_backend=normalized_browser_backend,
-                required_harness_proxy_profile_posture=(
-                    required_harness_proxy_profile_posture
-                ),
-                cloakbrowser_humanize=cloakbrowser_humanize,
-                human_challenge_handoff=human_challenge_handoff,
-                human_challenge_handoff_timeout_seconds=(
-                    human_challenge_handoff_timeout_seconds
-                ),
-                cadence_min_gap_seconds=cadence_min_gap_seconds,
-                cadence_max_gap_seconds=cadence_max_gap_seconds,
-                cadence_window_seconds=cadence_window_seconds,
-                random_seed=random_seed,
-                allow_challenge_close_diagnostic=allow_challenge_close_diagnostic,
-                allow_challenge_close_followthrough=(
-                    allow_challenge_close_followthrough
-                ),
-                engine=observation_engine,
-                sleep_fn=sleep_fn,
-                subtitle_fetcher=subtitle_fetcher,
-                capture_route=capture_route,
-                page_capture_sequence_fn=page_capture_sequence_fn,
-                grid_candidates_by_video_id=grid_candidates_by_video_id,
-                profile_grid_subtitle_sources_by_video_id=(
-                    profile_grid_subtitle_sources_by_video_id
-                ),
-            )
+            result = _run_tiktok_live_batch_probe_with_engine(**call_kwargs)
         finally:
             observation_engine.close()
         result["cadence_result"]["browser_lifecycle"] = (
             observation_engine.lifecycle_receipt
         )
         return result
+    return _run_tiktok_live_batch_probe_with_engine(**call_kwargs)
 
+
+def _run_tiktok_live_batch_probe_with_engine(
+    *,
+    creator_handle: str,
+    creator_profile_url: str,
+    video_urls: Sequence[str],
+    state_label: str | None,
+    session_mode: AuthenticatedSessionMode | None,
+    logged_out: bool,
+    auth_state_root: Path | None,
+    timeout_seconds: float,
+    wait_until: str,
+    viewport_width: int,
+    viewport_height: int,
+    max_response_bytes: int,
+    settle_seconds: float,
+    selector_timeout_seconds: float,
+    browser_channel: str | None,
+    browser_backend: str,
+    required_harness_proxy_profile_posture: str | HarnessProxyProfilePosture | None,
+    cloakbrowser_humanize: bool,
+    human_challenge_handoff: bool,
+    human_challenge_handoff_timeout_seconds: float,
+    cadence_min_gap_seconds: float,
+    cadence_max_gap_seconds: float,
+    cadence_window_seconds: float | None,
+    random_seed: int | None,
+    allow_challenge_close_diagnostic: bool,
+    allow_challenge_close_followthrough: bool,
+    engine: BrowserPageObservationEngine | None,
+    sleep_fn: SleepFn,
+    subtitle_fetcher: SubtitleFetchFn | None,
+    capture_route: str,
+    page_capture_sequence_fn: PageCaptureSequenceFn | None,
+    grid_candidates_by_video_id: Mapping[str, JsonObject] | None,
+    profile_grid_subtitle_sources_by_video_id: Mapping[str, JsonObject] | None,
+) -> JsonObject:
+    normalized_browser_backend = browser_backend.strip().lower()
     normalized_handle = _normalize_handle(creator_handle)
     normalized_profile_url = _normalize_profile_url(creator_profile_url, normalized_handle)
     normalized_video_urls = [
@@ -1833,8 +1833,8 @@ def _cadence_row_from_capture(
     grid_view_count = _as_dict(grid_candidate.get("grid_view_count"))
     dom_view_count_used = grid_view_count.get("used_for_play_count") is True
     capture_receipt = {
-        "page_url_sha256": _sha256_text(video_url),
-        "final_url_sha256": _sha256_text(capture_result.final_url),
+        "page_url_sha256": sha256_text(video_url),
+        "final_url_sha256": sha256_text(capture_result.final_url),
         "response_count": len(capture_result.responses),
         "blocker_triage": _blocker_triage_receipt(blocker_triage),
         "benign_overlay_action": _benign_overlay_action_summary(capture_result),
@@ -1944,7 +1944,7 @@ def _dom_visible_comment_candidates(
         candidate = {
             "source_order": len(candidates),
             "text": text,
-            "text_sha256": _sha256_text(text),
+            "text_sha256": sha256_text(text),
             "text_char_count": len(text),
             "selector": _first_str(item.get("selector")),
             "capture_posture": "visible_dom_after_comment_route",
@@ -2337,7 +2337,7 @@ def _grid_candidate_from_item_struct(
         "music": _normalize_music(_as_dict(item_struct.get("music"))),
         "url_path": urlparse(video_url).path,
         "source_response_path": urlparse(video_url).path,
-        "source_response_url_sha256": _sha256_text(video_url),
+        "source_response_url_sha256": sha256_text(video_url),
         "decoded_aweme_id_create_time_utc": decoded_aweme_id_create_time_utc(video_id),
     }
     return _drop_none(item)
@@ -2380,7 +2380,7 @@ def _grid_candidate_from_profile_grid_item(
             ),
             "source_response_url_sha256": _first_str(
                 source_item.get("source_response_url_sha256"),
-                _sha256_text(video_url),
+                sha256_text(video_url),
             ),
             "decoded_aweme_id_create_time_utc": decoded_aweme_id_create_time_utc(
                 video_id
@@ -2607,7 +2607,7 @@ def _subtitle_capture_from_item_struct(
         }
     subtitle_url_host = (urlparse(subtitle_url).hostname or "").lower().rstrip(".")
     subtitle_url_host_supported = _is_supported_subtitle_url(subtitle_url)
-    url_sha256 = _sha256_text(subtitle_url)
+    url_sha256 = sha256_text(subtitle_url)
     base: JsonObject = {
         "attempted": False,
         "success": False,
@@ -2652,7 +2652,7 @@ def _subtitle_capture_from_item_struct(
         "parsed_webvtt": {
             "cue_count": len(cues),
             "transcript_char_count": len(transcript_text),
-            "transcript_text_sha256": _sha256_text(transcript_text),
+            "transcript_text_sha256": sha256_text(transcript_text),
             "transcript_text": transcript_text,
             "cues": [
                 {
@@ -2795,9 +2795,9 @@ def _failure_entry(
         "observed_utc": observed_utc,
         "reason": reason,
         "detail": safe_detail,
-        "detail_sha256": _sha256_text(detail),
+        "detail_sha256": sha256_text(detail),
         "detail_length": len(detail),
-        "page_url_sha256": _sha256_text(video_url),
+        "page_url_sha256": sha256_text(video_url),
     }
     if blocker_triage is not None:
         entry["blocker_triage"] = blocker_triage
@@ -2906,7 +2906,7 @@ def _url_summary(url: str) -> JsonObject:
     return {
         "path": parsed.path,
         "query_key_count": len(query_keys),
-        "url_sha256": _sha256_text(url),
+        "url_sha256": sha256_text(url),
     }
 
 
@@ -2954,10 +2954,6 @@ def _video_id_from_tiktok_url(video_url: str) -> str:
     if match is None:
         raise ValueError("video_url must have /@handle/video/<id> path")
     return match.group("video_id")
-
-
-def _sha256_text(value: str) -> str:
-    return sha256(value.encode("utf-8")).hexdigest()
 
 
 def _as_dict(value: Any) -> JsonObject:

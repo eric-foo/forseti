@@ -42,6 +42,7 @@ DIFF_BASE_RESOLVERS = (
     ("check_prompt_output_mode.py", "resolve_base_ref", False),
     ("check_review_summary.py", "resolve_base_ref", False),
     ("check_hash_pin_freshness.py", "resolve_base_ref", False),
+    ("check_shared_helper_duplication.py", "resolve_base_ref", False),
     ("check_full_gt_claims.py", "resolve_base_ref", False),
 )
 
@@ -158,29 +159,75 @@ def test_one_time_binding_preserves_guard_and_limits_canary() -> None:
     assert "revision_mode: exact | ancestor" in routing
     assert "`HEAD` equals `required_revision`" in routing
     assert "git merge-base --is-ancestor <required_revision> HEAD" in routing
-    assert "sole writable root" in routing
-    assert "synthetic file-write or Git-index probes" in routing
-    assert "while that binding remains valid" in routing
-    assert "ordinary work does not run that canary" in routing
+    assert "one effective target" in routing
+    assert "Launch-root mismatch alone is not a blocker" in routing
+    assert "ordinary work does not run it" in routing
     assert probe_command in hook_readme
     assert "only when hook adoption testing is itself" in hook_readme
-    assert "lane-start writeability" not in adapter
-    assert "already-authorized capable worktree-backed" in adapter
+    assert "_nested_worktree_reason" not in adapter
+    assert "registered non-current worktree" not in adapter
 
-    # Retiring the routine probes leaves the registered non-current-worktree
-    # denial as the deterministic backstop, so assert the enforcement itself and
-    # not just the reworded guidance above.
     guard = _load_codex_adapter()
-    current_root = guard._norm_path(guard.ROOT)
-    other_root = current_root + "/worktrees/other-lane"
-    roots = [current_root, other_root]
-    assert guard._nested_worktree_reason(other_root + "/docs/x.md", roots=roots)
-    assert not guard._nested_worktree_reason(current_root + "/docs/x.md", roots=roots)
+    other_target = REPO_ROOT.parent / "forseti-worktrees" / "other-lane" / "docs" / "x.md"
+    patch_text = (
+        "*** Begin Patch\n"
+        f"*** Update File: {other_target}\n"
+        "@@\n-old\n+new\n"
+        "*** End Patch\n"
+    )
+    assert guard._check_apply_patch_paths({"command": patch_text}) == ""
+    protected_target = Path.home() / ".codex" / "skills" / "x" / "SKILL.md"
+    protected_patch = patch_text.replace(str(other_target), str(protected_target))
+    assert "EP-01 protected-path write" in guard._check_apply_patch_paths(
+        {"command": protected_patch}
+    )
     shell_reason = guard._check_shell_durable_write(
         {"command": "Set-Content docs/x.md 'x'"}
     )
-    assert "created and rooted there" in shell_reason
-    assert "command workdir cannot reroot this task" in shell_reason
+    assert "raw shell durable-write blocked" in shell_reason
+    assert "created and rooted there" not in shell_reason
+
+    direct = subprocess.run(
+        [sys.executable, str(CODEX_ADAPTER_PATH)],
+        cwd=REPO_ROOT,
+        input=json.dumps(
+            {
+                "tool_name": "Write",
+                "tool_input": {"file_path": str(protected_target)},
+            }
+        ),
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+    denial = json.loads(direct.stdout)
+    assert direct.returncode == 0
+    assert denial["hookSpecificOutput"]["permissionDecision"] == "deny"
+    assert "EP-01 protected-path write" in denial["hookSpecificOutput"][
+        "permissionDecisionReason"
+    ]
+
+def test_codex_apply_patch_guard_checks_all_payload_fields() -> None:
+    guard = _load_codex_adapter()
+    protected_target = Path.home() / ".codex" / "skills" / "x" / "SKILL.md"
+    patch_text = f"""*** Begin Patch
+*** Update File: {protected_target}
+@@
+-old
++new
+*** End Patch
+"""
+
+    for payload_key in ("command", "patch", "input"):
+        reason = guard._check_apply_patch_paths({payload_key: patch_text})
+        assert "EP-01 protected-path write" in reason
+
+    # Allow path: a benign repository target must pass through every payload
+    # field, so a regression that denies all apply_patch calls cannot pass.
+    benign_target = REPO_ROOT / "docs" / "x.md"
+    benign_patch = patch_text.replace(str(protected_target), str(benign_target))
+    for payload_key in ("command", "patch", "input"):
+        assert guard._check_apply_patch_paths({payload_key: benign_patch}) == ""
 
 
 def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> None:
@@ -198,9 +245,9 @@ def test_implementation_commission_authorizes_one_immediate_managed_reroot() -> 
         assert required in prompt_contract
 
     assert "already-authorized capable worktree-backed task" in routing
-    assert "the task's mere existence is never authority" in routing
-    assert "registered root equals the commissioned target worktree" in routing
-    assert "read-only/scoping-only/review-only" in routing
+    assert "a task's mere existence is never authority" in routing
+    assert "does not require launch-root equality" in routing
+    assert "read-only/scoping/review work" in routing
     assert "Creating a user-visible Codex task still requires explicit product/user" in routing
     assert "do not create that authority" in routing
 
