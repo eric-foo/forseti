@@ -69,6 +69,13 @@ EXPLICIT_PAIR_REJECT_TOKENS = (
     "output_directory is not None and args.data_root is not None",
     "add_mutually_exclusive_group",
 )
+# Shared runner scaffold (runners/_scaffold.py): its resolve_output_root owns
+# the env-fallback read gated on --output being omitted, the explicit
+# --output + --data-root rejection, and DataLakeRoot.resolve. A runner that
+# imports and calls it carries those seam parts without the literal per-file
+# tokens above.
+SCAFFOLD_MODULE = "runners._scaffold"
+SCAFFOLD_RESOLVER_NAME = "resolve_output_root"
 
 # Packet-producing runners that intentionally do NOT route into the lake yet.
 # Each MUST carry a reason; entries surface in the inventory record as
@@ -904,6 +911,27 @@ def producer_calls(
     return tuple(calls)
 
 
+def uses_scaffold_resolver(tree: ast.AST) -> bool:
+    """True when the runner imports and calls the shared scaffold resolver.
+
+    AST detection (import binding + call), so a mention in help text or a
+    comment never falsely certifies the seam.
+    """
+    bound_names = {
+        alias.asname or alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom) and node.module == SCAFFOLD_MODULE
+        for alias in node.names
+        if alias.name == SCAFFOLD_RESOLVER_NAME
+    }
+    if not bound_names:
+        return False
+    return any(
+        isinstance(node, ast.Call) and call_name(node) in bound_names
+        for node in ast.walk(tree)
+    )
+
+
 def packet_producers() -> dict[str, RunnerSeam]:
     """Map each packet-producing runner filename to its lake seam shape."""
     producers: dict[str, RunnerSeam] = {}
@@ -914,18 +942,24 @@ def packet_producers() -> dict[str, RunnerSeam]:
         env_names = environment_get_names(tree)
         writer_names, module_aliases = source_capture_imports(tree)
         calls = producer_calls(tree, writer_names, module_aliases)
+        scaffold_seam = uses_scaffold_resolver(tree)
         if calls:
             producers[path.name] = RunnerSeam(
                 exposes_output_arg="--output" in flags,
                 exposes_data_root_arg="--data-root" in flags,
                 exposes_env_fallback=(
                     "FORSETI_DATA_ROOT" in env_names
+                    or scaffold_seam
                     or ("--output" not in flags and "--admit-output" not in flags)
                 ),
                 explicit_data_root_only=path.name in EXPLICIT_DATA_ROOT_RUNNERS,
-                resolves_data_root="DataLakeRoot.resolve" in src,
-                rejects_output_and_data_root=has_any_token(src, EXPLICIT_PAIR_REJECT_TOKENS),
-                env_fallback_uses_output_omitted=has_any_token(src, ENV_OUTPUT_OMITTED_TOKENS),
+                resolves_data_root="DataLakeRoot.resolve" in src or scaffold_seam,
+                rejects_output_and_data_root=(
+                    has_any_token(src, EXPLICIT_PAIR_REJECT_TOKENS) or scaffold_seam
+                ),
+                env_fallback_uses_output_omitted=(
+                    has_any_token(src, ENV_OUTPUT_OMITTED_TOKENS) or scaffold_seam
+                ),
                 producer_calls=calls,
             )
     return producers

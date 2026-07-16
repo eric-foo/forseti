@@ -337,7 +337,10 @@ For record-authoring guidance, see
 
 `harness_utils.py` (package root) is the owning home for helpers shared across
 this package — hashing, UTC timestamps, staged directory publish, and version
-constants. Before writing a private helper in a `forseti-harness/` module,
+constants. `runners/_scaffold.py` is the owning home for runner-CLI scaffolding:
+new runners import `resolve_output_root` (the `--output`/`--data-root`/env
+target resolution) and `exit_on_failure` (the exception→`parser.exit` exit-code
+wrapper) instead of re-copying those blocks. Before writing a private helper in a `forseti-harness/` module,
 check it; if the shared home already has it, import it. When touching a module,
 migrate a stale private copy in the same work unit only when the bound change
 already touches or depends on that helper contract (behavior-preserving only);

@@ -14,6 +14,9 @@ from capture_spine.capture_request_lifecycle import (
     validate_capture_request_lifecycle,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
+from runners._scaffold import exit_on_failure
+
+_RUNNER_NAME = "capture-request lifecycle"
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -29,7 +32,15 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-    try:
+    with exit_on_failure(
+        parser,
+        runner_name=_RUNNER_NAME,
+        expected=(OSError, ValueError, json.JSONDecodeError, DataLakeRootError, CaptureRequestLifecycleError),
+        format_expected=lambda exc: (
+            f"{_RUNNER_NAME} invalid [{getattr(exc, 'code', type(exc).__name__)}]: {exc}"
+        ),
+        unexpected_status=None,  # deliberately no catch-all: unexpected bugs stay loud tracebacks
+    ):
         payload = json.loads(args.ledger.read_text(encoding="utf-8"))
         root = DataLakeRoot.resolve(explicit=args.data_root)
         validate_capture_request_lifecycle(
@@ -39,9 +50,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             data_root=root,
             require_packet_verification=True,
         )
-    except (OSError, ValueError, json.JSONDecodeError, DataLakeRootError, CaptureRequestLifecycleError) as exc:
-        code = getattr(exc, "code", type(exc).__name__)
-        parser.exit(status=2, message=f"capture-request lifecycle invalid [{code}]: {exc}\n")
 
     # A ledger whose requests all declined verifies no packets; say so rather than
     # reporting a verification that never happened.
