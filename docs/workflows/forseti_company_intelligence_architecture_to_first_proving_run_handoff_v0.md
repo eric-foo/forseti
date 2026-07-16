@@ -29,9 +29,9 @@ stale_if:
 - `workspace`: `C:\Users\vmon7\Desktop\projects\orca`
 - `authoring_worktree`: `C:\tmp\forseti-company-intelligence-information-architecture`
 - `handoff_path`: `docs/workflows/forseti_company_intelligence_architecture_to_first_proving_run_handoff_v0.md`
-- `expected_branch`: `codex/company-intelligence-outcome-contribution-handoff`
+- `expected_branch`: `codex/company-intelligence-contribution-test`
 - `expected_head`: the immutable couriered commit containing this packet; verify from the courier rather than substituting the source baseline
-- `source_baseline`: `origin/main` observed at `e300f2c96b1e21c5ba0940be1d76cad9f8cdd180` before this refresh
+- `source_baseline`: `origin/main` observed at `8a3c3dacd04560ce5124419a22dc579bb410fc4f` before this refresh
 - `load_rule`: confirm-don't-trust; reread current authority and classify drift before making strict or actionable claims
 
 ## Goal Handoff
@@ -64,7 +64,8 @@ Compare no more than three candidates on:
 4. observable later action or outcome;
 5. leakage-resistant cutoff/reveal feasibility;
 6. repeated-work potential without inventing a monitoring product; and
-7. an evidence path that distinguishes input use, plausible outcome contribution, and causal magnitude.
+7. a feasible contribution design that distinguishes input use, outcome-aligned
+   response, material contribution, and causal magnitude.
 
 Recommend one or return `NO_PROVING_DECISION_CLEARS`.
 
@@ -78,7 +79,46 @@ Keep three claim levels separate:
 2. `MATERIAL_CONTRIBUTION_SUPPORTED`: time-ordered evidence supports the inference that the input materially helped or hurt the outcome after plausible alternative drivers and counterevidence are considered.
 3. `CAUSAL_MAGNITUDE_ESTABLISHED`: a credible counterfactual or equivalent design supports how much outcome change the input caused. This will often remain unavailable.
 
-The proving plan should seek the strongest feasible support for level 2 without pretending level 3 is always obtainable. Depending on the decision, useful support may include pre-decision prevalence and specificity of the input, whether the resulting action actually implemented it, adoption by the intended segment, sell-through or conversion against an appropriate baseline, repeat behavior, substitution, price response, and contemporaneous company attribution. It must also test alternative explanations such as distribution, promotion, creator spend, novelty, availability, seasonality, brand strength, or unrelated portfolio effects.
+Level 2 is an inference from a contribution chain, not a fact found in one
+source. The plan must seek evidence for all four links:
+
+1. **Input before decision:** the input was observable before the decision,
+   specific enough to act on, and attributable to the relevant customer or
+   market segment.
+2. **Decision translation:** the resulting product or action materially
+   implemented that input rather than merely using similar marketing language.
+3. **Mechanism-aligned response:** the intended segment adopted, repeated,
+   switched, paid, or otherwise responded for reasons consistent with the
+   implemented input.
+4. **Comparative outcome and alternatives:** the response differs from an
+   appropriate baseline or comparator, and distribution, promotion, creator
+   spend, novelty, availability, seasonality, brand strength, and unrelated
+   portfolio effects have been tested as rival explanations.
+
+Useful evidence designs, strongest first when feasible, include:
+
+- staggered rollout or variation across retailers, regions, channels, prices,
+  promotions, or customer cohorts;
+- a matched launch, product, SKU, feature, or pre-period comparison;
+- customer-authorized conversion, repeat, return, margin, or cohort data;
+- paid sell-through, panel, search, or market data with a defined denominator;
+- mechanism evidence from customer language, substitution, use, repurchase, or
+  price response; and
+- contemporaneous company, retailer, or partner attribution corroborated by
+  independent outcome evidence.
+
+No single design is universally mandatory. The smallest-complete contribution
+case must, however, contain a credible baseline or contrast, mechanism-aligned
+evidence, and an explicit alternative-driver assessment. If any of those three
+is absent, remain at `INPUT_USE_ESTABLISHED` or return
+`CONTRIBUTION_PLAUSIBLE_NOT_ESTABLISHED`; do not clear level 2.
+
+For the e.l.f. example, the existing statements clear input use. A level-2 case
+would still need evidence that Bronzing Drops implemented the requested
+attributes and price position, that the requesting customer segment bought or
+repeated for those reasons, and that performance was unusually strong against
+a suitable e.l.f. or category comparison after accounting for distribution,
+promotion, novelty, and brand strength.
 
 ## Drift Guard
 
@@ -89,6 +129,8 @@ The proving plan should seek the strongest feasible support for level 2 without 
 - Do not treat paid evidence as inherently stronger than open evidence.
 - Do not replace a decisive unavailable fact with a proxy.
 - Do not infer above-normal outcome impact merely because an input entered the decision.
+- Do not clear material contribution from company attribution plus a strong
+  outcome alone; require the contribution chain and a baseline or contrast.
 - Do not demand experimental causal proof when a bounded material-contribution claim is the strongest feasible ceiling; preserve that ceiling explicitly.
 - Do not implement or mutate Company Surface.
 - Do not run research before the owner accepts the Decision Frame and smallest-complete information requirements.
@@ -99,7 +141,11 @@ The proving plan should seek the strongest feasible support for level 2 without 
 2. Confirm current CSB and Scanning boundaries only as needed to ensure the proposed plan is commissionable.
 3. Return one load outcome: `REUSE`, `PARTIAL_REUSE`, `STALE_REREAD_REQUIRED`, `BLOCKED_DRIFT`, `BLOCKED_MISSING_PACKET`, or `BLOCKED_UNVERIFIABLE`.
 4. After source readiness, present at most three candidate proving decisions on the seven comparison criteria above.
-5. Recommend one candidate and write its proposed Decision Frame plus atomic information-requirements register, including open/paid/internal/unavailable access classes, rights needs, proxy ceilings, missing behavior, reveal path, and the evidence needed to distinguish input use from material outcome contribution.
+5. Recommend one candidate and write its proposed Decision Frame plus atomic
+   information-requirements register, including open/paid/internal/unavailable
+   access classes, rights needs, proxy ceilings, missing behavior, reveal path,
+   and a feasible contribution design naming its baseline or contrast,
+   mechanism evidence, alternative-driver tests, and claim ceiling.
 6. Stop for owner adjudication. Do not commission or execute research.
 
 ## Forseti Prompt Preflight
