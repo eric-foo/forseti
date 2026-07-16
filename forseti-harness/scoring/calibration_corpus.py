@@ -84,11 +84,15 @@ class _WorklistRow(StrictModel):
     note: str = ""
 
 
-def _brand_line_key(brand: str, line: str) -> tuple[str, str]:
-    """Normalized grouping key (casing/whitespace-insensitive).
+def brand_line_key(brand: str, line: str) -> tuple[str, str]:
+    """Canonical normalized (brand, line) grouping key (casing/whitespace-insensitive).
 
-    Mirrors the product-fusion grouping so worklist products line up with fusion verdicts; Phase C
-    normalizes both sides identically when matching a label to a verdict.
+    The ONE shared normalization for product identity: worklist grouping here and the
+    product-fusion grouping (``scoring.product_fusion`` imports this) both use it, so Phase C
+    matches a label to a verdict under identical normalization. It lives HERE rather than in
+    ``product_fusion`` because structural blindness forbids this module importing anything from
+    ``scoring.product_fusion`` (see ``test_module_never_imports_the_fusion_verdict``); the
+    reverse import leaks nothing into the worklist.
     """
     return (brand.strip().lower(), line.strip().lower())
 
@@ -120,7 +124,7 @@ def build_blind_labeling_worklist(mentions: list[ProductMention], *, creator_id:
     grouped: dict[tuple[str, str], list[ProductMention]] = defaultdict(list)
     display: dict[tuple[str, str], tuple[str, str]] = {}
     for mention in mentions:
-        key = _brand_line_key(mention.brand, mention.line)
+        key = brand_line_key(mention.brand, mention.line)
         grouped[key].append(mention)
         display.setdefault(key, (mention.brand, mention.line))  # first-seen original casing
 
@@ -185,10 +189,10 @@ def load_labels_from_worklist(source: str, *, labeler: str) -> list[CalibrationL
 
     rows = [_WorklistRow.model_validate(row) for row in raw_products]
 
-    present = [_brand_line_key(row.brand, row.line) for row in rows]
+    present = [brand_line_key(row.brand, row.line) for row in rows]
     if len(set(present)) != len(present):
         raise ValueError("worklist has duplicate products (same normalized brand/line)")
-    expected = {_brand_line_key(brand, line) for brand, line in _expected_pairs(parsed["expected_products"])}
+    expected = {brand_line_key(brand, line) for brand, line in _expected_pairs(parsed["expected_products"])}
     present_set = set(present)
     missing = expected - present_set
     extra = present_set - expected
