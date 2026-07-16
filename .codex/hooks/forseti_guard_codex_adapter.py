@@ -143,216 +143,124 @@ def _run_guard_event(event_text):
 
 
 def _selftest():
-    ok = True
+    failures = []
+
+    def _run_adapter(event):
+        return subprocess.run(
+            [sys.executable, str(pathlib.Path(__file__))],
+            input=json.dumps(event),
+            text=True,
+            capture_output=True,
+        )
+
+    def _shell_event(tool_name, command):
+        return {"tool_name": tool_name, "tool_input": {"command": command}}
+
+    def _expect_denied(name, event, *, reason=None):
+        # Fail-safe: an unexpected exception (no JSON, missing keys) records a
+        # named failure instead of being silently swallowed.
+        proc = _run_adapter(event)
+        try:
+            output = json.loads(proc.stdout)["hookSpecificOutput"]
+            decision = output["permissionDecision"]
+            got_reason = output["permissionDecisionReason"]
+        except Exception as exc:
+            failures.append(f"{name}: no denial JSON ({type(exc).__name__}: {exc})")
+            return
+        if proc.returncode != 0:
+            failures.append(f"{name}: exit {proc.returncode}, expected 0")
+        elif decision != "deny":
+            failures.append(f"{name}: permissionDecision {decision!r}, expected 'deny'")
+        elif reason is not None and got_reason != reason:
+            failures.append(f"{name}: unexpected denial reason {got_reason!r}")
+
+    def _expect_allowed(name, event):
+        proc = _run_adapter(event)
+        if proc.returncode != 0 or proc.stdout.strip():
+            failures.append(
+                f"{name}: expected silent allow "
+                f"(exit {proc.returncode}, stdout {proc.stdout.strip()!r})"
+            )
+
     guard = subprocess.run([sys.executable, str(GUARD), "--selftest"], text=True)
-    ok = ok and guard.returncode == 0
+    if guard.returncode != 0:
+        failures.append(f"guard --selftest: exit {guard.returncode}, expected 0")
 
     direct_canary = subprocess.run(
         [sys.executable, str(pathlib.Path(__file__)), HOOK_ADOPTION_CANARY_ARG],
         text=True,
         capture_output=True,
     )
-    ok = ok and direct_canary.returncode == 3
-    ok = ok and direct_canary.stderr.strip() == HOOK_ADOPTION_NOT_INTERCEPTED
+    if direct_canary.returncode != 3:
+        failures.append(f"direct canary: exit {direct_canary.returncode}, expected 3")
+    if direct_canary.stderr.strip() != HOOK_ADOPTION_NOT_INTERCEPTED:
+        failures.append("direct canary: NOT_INTERCEPTED marker missing on stderr")
 
-    hooked_canary = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "PowerShell",
-                "tool_input": {
-                    "command": (
-                        "python .codex/hooks/forseti_guard_codex_adapter.py "
-                        f"{HOOK_ADOPTION_CANARY_ARG}"
-                    )
-                },
-            }
+    _expect_denied(
+        "hooked canary",
+        _shell_event(
+            "PowerShell",
+            "python .codex/hooks/forseti_guard_codex_adapter.py "
+            f"{HOOK_ADOPTION_CANARY_ARG}",
         ),
-        text=True,
-        capture_output=True,
+        reason=HOOK_ADOPTION_ADOPTED,
     )
-    try:
-        denial = json.loads(hooked_canary.stdout)
-        ok = ok and hooked_canary.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-        ok = ok and (
-            denial["hookSpecificOutput"]["permissionDecisionReason"]
-            == HOOK_ADOPTION_ADOPTED
-        )
-    except Exception:
-        ok = False
 
-    chained_canary = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "PowerShell",
-                "tool_input": {
-                    "command": (
-                        "python .codex/hooks/forseti_guard_codex_adapter.py "
-                        f"{HOOK_ADOPTION_CANARY_ARG}; git status --short"
-                    )
-                },
-            }
+    _expect_allowed(
+        "chained canary",
+        _shell_event(
+            "PowerShell",
+            "python .codex/hooks/forseti_guard_codex_adapter.py "
+            f"{HOOK_ADOPTION_CANARY_ARG}; git status --short",
         ),
-        text=True,
-        capture_output=True,
     )
-    ok = ok and chained_canary.returncode == 0 and not chained_canary.stdout.strip()
 
-    blocked = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps({"tool_name": "Bash", "tool_input": {"command": "git clean -n"}}),
-        text=True,
-        capture_output=True,
-    )
-    try:
-        denial = json.loads(blocked.stdout)
-        ok = ok and blocked.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
+    _expect_denied("git clean", _shell_event("Bash", "git clean -n"))
 
     protected = pathlib.Path.home() / "Desktop" / "projects" / "jb" / "x.md"
-    patch_event = {
-        "tool_name": "apply_patch",
-        "tool_input": {
-            "command": (
-                "*** Begin Patch\n"
-                f"*** Update File: {protected}\n"
-                "@@\n"
-                "-old\n"
-                "+new\n"
-                "*** End Patch\n"
-            )
+    _expect_denied(
+        "apply_patch protected path",
+        {
+            "tool_name": "apply_patch",
+            "tool_input": {
+                "command": (
+                    "*** Begin Patch\n"
+                    f"*** Update File: {protected}\n"
+                    "@@\n"
+                    "-old\n"
+                    "+new\n"
+                    "*** End Patch\n"
+                )
+            },
         },
-    }
-    patch = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(patch_event),
-        text=True,
-        capture_output=True,
     )
-    try:
-        denial = json.loads(patch.stdout)
-        ok = ok and patch.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
 
-    allowed = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps({"tool_name": "Bash", "tool_input": {"command": "git status --short"}}),
-        text=True,
-        capture_output=True,
+    _expect_allowed("git status", _shell_event("Bash", "git status --short"))
+
+    _expect_denied(
+        "powershell WriteAllText",
+        _shell_event("PowerShell", "[System.IO.File]::WriteAllText('docs/x.md', 'bad')"),
     )
-    ok = ok and allowed.returncode == 0 and not allowed.stdout.strip()
-
-    ps_write = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "PowerShell",
-                "tool_input": {
-                    "command": "[System.IO.File]::WriteAllText('docs/x.md', 'bad')"
-                },
-            }
-        ),
-        text=True,
-        capture_output=True,
+    _expect_denied(
+        "powershell Set-Content",
+        _shell_event("PowerShell", "Set-Content docs/x.md 'bad'"),
     )
-    try:
-        denial = json.loads(ps_write.stdout)
-        ok = ok and ps_write.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
-
-    set_content = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "PowerShell",
-                "tool_input": {"command": "Set-Content docs/x.md 'bad'"},
-            }
-        ),
-        text=True,
-        capture_output=True,
+    _expect_denied("shell redirect", _shell_event("Bash", "echo bad > docs/x.md"))
+    _expect_denied(
+        "shell redirect no space", _shell_event("Bash", "echo bad>docs/x.md")
     )
-    try:
-        denial = json.loads(set_content.stdout)
-        ok = ok and set_content.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
-
-    redirect = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "echo bad > docs/x.md"},
-            }
-        ),
-        text=True,
-        capture_output=True,
+    _expect_allowed(
+        "python open read",
+        _shell_event("Bash", "python -c \"open('docs/x.md').read()\""),
     )
-    try:
-        denial = json.loads(redirect.stdout)
-        ok = ok and redirect.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
-
-    redirect_no_space = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "echo bad>docs/x.md"},
-            }
-        ),
-        text=True,
-        capture_output=True,
+    _expect_denied(
+        "python open write",
+        _shell_event("Bash", "python -c \"open('docs/x.md', 'w').write('bad')\""),
     )
-    try:
-        denial = json.loads(redirect_no_space.stdout)
-        ok = ok and redirect_no_space.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
 
-    py_open_read = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "python -c \"open('docs/x.md').read()\""},
-            }
-        ),
-        text=True,
-        capture_output=True,
-    )
-    ok = ok and py_open_read.returncode == 0 and not py_open_read.stdout.strip()
-
-    py_open_write = subprocess.run(
-        [sys.executable, str(pathlib.Path(__file__))],
-        input=json.dumps(
-            {
-                "tool_name": "Bash",
-                "tool_input": {"command": "python -c \"open('docs/x.md', 'w').write('bad')\""},
-            }
-        ),
-        text=True,
-        capture_output=True,
-    )
-    try:
-        denial = json.loads(py_open_write.stdout)
-        ok = ok and py_open_write.returncode == 0
-        ok = ok and denial["hookSpecificOutput"]["permissionDecision"] == "deny"
-    except Exception:
-        ok = False
-
+    for failure in failures:
+        print(f"SELFTEST FAILURE: {failure}", file=sys.stderr)
+    ok = not failures
     print("CODEX ADAPTER SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 

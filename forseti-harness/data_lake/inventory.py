@@ -477,6 +477,12 @@ SILVER_READER_SELECTION_POSTURES: dict[str, dict[str, str]] = {
         "posture": "fail_closed_singleton",
         "reason": "exactly one transcribed transcript_asr record per anchor or raise",
     },
+    "runners/run_instagram_creator_audience_triangulation.py": {
+        "detection": "lane_dir",
+        "posture": "selection_rule",
+        "mechanism": "local:prepare_instagram_subscription_judgment",
+        "reason": "the caller supplies explicit admitted comment/transcript record paths; the runner verifies data-root containment, requested lane, canonical record path, raw-anchor identity, and current source validity, while lane_dir is used only for path-shape validation and never to select an arbitrary sibling",
+    },
     "runners/run_tiktok_creator_audience_triangulation.py": {
         "detection": "lane_dir",
         "posture": "selection_rule",

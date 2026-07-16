@@ -54,10 +54,23 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
         # the same packet-grain metric set and prior not-applicable acks resurface.
         "77cc704f5c618c6e57140eb2df91e673480f1ff4308e809cfb2a0f3baa7cf1d9",
     ),
+    "cleaning/_shared.py": (
+        (
+            "the cleaning method / producer schema tokens of all three cleaning "
+            "lanes (fragrantica, parfumo, basenotes) -- shared helper home",
+        ),
+        # Initial pin: byte-identical helpers consolidated out of the three
+        # cleaning adapters and *_lake modules; not output-shaping.
+        # Pin bumped: raw_refs None-first sort key (bugfix -- mixed None/str ref
+        # keys raised TypeError; previously-successful inputs order identically),
+        # not output-shaping.
+        "99aee399f1a989c50c3c100ad6aebd84daef3fcfaa6fb62dcc8ce4eddc182f0f",
+    ),
     "cleaning/basenotes.py": (
         ("BASENOTES_CLEANING_METHOD_ID (cleaning/basenotes_lake.py)",),
         # Admission-shaping v1: user-cleared persistent Chrome replaces the retired proxy surface.
-        "ce5aa38b1105044bfadd8aa7dd081136b7ac14db2fe2325a5994782f34476f3a",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py; not output-shaping.
+        "c1f3fa8e66d16551e585c734cb2fa76da1bf44f69a31499807104afb7794f734",
     ),
     "cleaning/basenotes_lake.py": (
         (
@@ -66,11 +79,14 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "BASENOTES_CLEANING_METHOD_ID",
         ),
         # Cleaning method v1 re-fingerprints obligations for the changed source admission.
-        "afaaa619a3bcb2388188c3f1414e16f1de0cc61b22beac46b6d858cd113f4f44",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py and
+        # data_lake/canonical_json.py; not output-shaping.
+        "a44fe51c0908f38b53a48092e12c9c4c1c75f0c2528941b18c60b3f4a98467ad",
     ),
     "cleaning/fragrantica.py": (
         ("FRAGRANTICA_CLEANING_METHOD_ID (cleaning/fragrantica_lake.py)",),
-        "21a0f124bd42972285eb1cea7a07861bf79cf2dcda4819d612762481d220d1b7",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py; not output-shaping.
+        "b90d7f269cdd6c159b168f128f3a7e4511e5f930f8fd1d26bf6ec73a8c508371",
     ),
     "cleaning/fragrantica_lake.py": (
         (
@@ -80,7 +96,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "FRAGRANTICA_REVIEW_VOTE_POLICY_VERSION",
             "FRAGRANTICA_CLEANING_METHOD_ID",
         ),
-        "bf581aaa83ce319370d6bd045934c689f2053150e859f6f03062f4d953887c60",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py and
+        # data_lake/canonical_json.py; not output-shaping.
+        "7eb76831994b33ec2115e7d447128765c15eb8239f47a63860a3bfb96da38f9b",
     ),
     "cleaning/models.py": (
         ("CLEANING_CORE_VERSION",),
@@ -88,7 +106,8 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
     "cleaning/parfumo.py": (
         ("PARFUMO_RATING_CARRY_RULE", "PARFUMO_CLEANING_METHOD_ID (cleaning/parfumo_lake.py)"),
-        "65a13d65228ed78737664d023a6d498b8703a294dc133ee0db7d6035cd6a1e32",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py; not output-shaping.
+        "6f4c4cda538e94056eb124d6006c8e5c7ea4749df4fe4bfe22ec92d57009b176",
     ),
     "cleaning/parfumo_lake.py": (
         (
@@ -97,7 +116,9 @@ POLICY_MODULE_PINS: dict[str, tuple[tuple[str, ...], str]] = {
             "PARFUMO_SILVER_METRIC_PRODUCER_SCHEMA_VERSION",
             "PARFUMO_CLEANING_METHOD_ID",
         ),
-        "e596bf4c379018df74385b1e024faebce96319fc7e02922da0de3cf8981c3dc5",
+        # Pin bumped: byte-identical helper dedup onto cleaning/_shared.py and
+        # data_lake/canonical_json.py; not output-shaping.
+        "d19fd40113b4410530804fcadab0689db125885af9af058477deaf1a6fe59911",
     ),
     "cleaning/transcript_product_extractor.py": (
         ("EXTRACTOR_RUBRIC_VERSION",),

@@ -1,43 +1,12 @@
+from _ecr_builders import build_packet
 from ecr.deriver import derive_identity_postures
 from ecr.models import IdentityState
 from source_capture.models import (
-    OBLIGATION_CONTRACT_VERSION,
-    SOURCE_CAPTURE_MANIFEST_VERSION,
-    CaptureModeCategory,
-    PacketTiming,
-    PreservedFile,
-    ReceiptMetadata,
     SourceCapturePacket,
-    SourceCaptureSlice,
     VisibleFact,
     known_fact,
-    not_applicable,
     not_attempted,
 )
-
-
-def _timing() -> PacketTiming:
-    na = not_applicable("test")
-    return PacketTiming(
-        source_publication_or_event=na,
-        source_edit_or_version=na,
-        capture_time=na,
-        recapture_time=na,
-        cutoff_posture=na,
-    )
-
-
-def _slice() -> SourceCaptureSlice:
-    return SourceCaptureSlice(
-        slice_id="s0",
-        locator=not_applicable("test"),
-        timing=_timing(),
-        access_posture=not_applicable("test"),
-        archive_history_posture=not_applicable("test"),
-        media_modality_posture=not_applicable("test"),
-        re_capture_relationship=not_applicable("test"),
-        preserved_file_ids=["f0"],
-    )
 
 
 def _packet(
@@ -51,38 +20,11 @@ def _packet(
     A fixed minimal slice + preserved file satisfy the packet's structural
     invariants; only the identity fields vary per test.
     """
-    return SourceCapturePacket(
-        packet_id="pkt-test",
-        manifest_version=SOURCE_CAPTURE_MANIFEST_VERSION,
-        obligation_contract_version=OBLIGATION_CONTRACT_VERSION,
+    return build_packet(
+        [{"id": "s0", "files": [("f0", "a" * 64)]}],
         source_family=source_family,
         source_surface=source_surface,
-        source_locator=(locator if locator is not None else known_fact("https://x/1")),
-        requested_decision_context=not_applicable("test"),
-        capture_context=not_applicable("test"),
-        actor_audience_context=not_applicable("test"),
-        capture_mode=CaptureModeCategory.MIXED,
-        operator_category="test",
-        session_identity="test",
-        timing=_timing(),
-        access_posture=not_applicable("test"),
-        archive_history_posture=not_applicable("test"),
-        media_modality_posture=not_applicable("test"),
-        re_capture_relationship=not_applicable("test"),
-        source_slices=[_slice()],
-        preserved_files=[
-            PreservedFile(
-                file_id="f0",
-                original_path="/tmp/x",
-                relative_packet_path="f0",
-                sha256="a" * 64,
-                hash_basis="raw_stored_bytes",
-                size_bytes=0,
-            )
-        ],
-        receipt_metadata=ReceiptMetadata(
-            title="t", generated_at="2026-01-01T00:00:00Z", summary="s"
-        ),
+        source_locator=locator,
     )
 
 

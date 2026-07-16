@@ -28,7 +28,7 @@ Routine Forseti prompts apply this core inline — no skill reload. For an
 ordinary, already-scoped, single-target prompt, this core is the complete
 preflight contract; it does not inherit the Escalated Preflight Fields or require
 a `forseti_start_preflight` receipt. Review Prompt Defaults and Output Modes still
-govern when their task-specific triggers apply. State, per prompt:
+govern when their task-specific triggers apply. The field vocabulary, per prompt:
 
 1. **Output mode** — exactly one of `chat-only` · `file-write` · `review-report` · `paste-ready-chat` · `patch-queue`, plus its write/report destination.
 2. **Template kind** — the bound template from `.agents/workflow-overlay/template-registry.md`, or `none`; template targets are prompt-shaping labels, never runtime-model routing.
@@ -37,15 +37,32 @@ govern when their task-specific triggers apply. State, per prompt:
 5. **Doctrine change** — work that changes product, architecture, workflow, validation, review, or output doctrine, or a lifecycle boundary, carries a `direction_change_propagation` receipt or blocker (`.agents/workflow-overlay/source-of-truth.md`).
 6. **Destinations** — the input prompt source the receiver treats as run-authoritative (canonical artifact path, lane PR body/comment, or ignored scratch path), and the exact output-artifact path it writes when the mode writes a durable artifact.
 
-Repo-constant fields (workspace path, required reads, external-source boundary,
-retrieval-header defaults) may be referenced via
-`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` when escalated
-preflight applies. Routine prompts state only the core above; do not add unused
-field placeholders or a start receipt for form completeness. Fused and
-genuinely escalated prompt work author through `workflow-prompt-orchestrator`
-and use the escalated contract below. A lane-scoped delegated review-and-patch
-prompt uses the compact default below when its eligibility conditions hold;
-delegation or patch authorization alone does not escalate it.
+**Default elision.** A prompt states only fields whose value differs from the
+named default; an omitted field asserts that default. Defaults: template kind
+`none`; reviews findings-first with no formal verdict, severity contract, or
+patch queue bound and no runtime-model routing; doctrine change `none`. Fields
+1 and 3 are always stated. Field 6 is stated when the prompt is handed to
+another model, agent, thread, or worktree, or when the mode writes a durable
+artifact; otherwise it is elided. Elision never overrides an applicable
+trigger: a prompt needing a non-default value states that field explicitly.
+
+**Constants by pointer, deltas inline.** Repo-constant values — intake reads,
+external-source boundary, environment baseline, retrieval-header defaults,
+delegate lifecycle hard stop, de-correlation commission constants — are owned
+by `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`. A prompt
+that relies on one cites that artifact instead of restating it; restating a
+constant owned there in a new or materially touched prompt is a prompt-quality
+defect. Per-prompt deltas — revision pins, named targets, dirty-state
+allowance and byte pins, workspace root, validation route — are always stated
+inline and never replaced by a pointer. Routine prompts state only the
+non-default core above; do not add unused field placeholders or a start
+receipt for form completeness. The Prompt Validation Gates below are applied
+by the author before use; the prompt body does not carry a validation receipt,
+gate checklist, or self-graded gate result. Fused and genuinely escalated
+prompt work author through `workflow-prompt-orchestrator` and use the
+escalated contract below. A lane-scoped delegated review-and-patch prompt uses
+the compact default below when its eligibility conditions hold; delegation or
+patch authorization alone does not escalate it.
 
 ## Source Boundary
 
@@ -352,15 +369,15 @@ Render one compact pointer-first prompt containing:
    operator-owned value;
 4. pointers to `AGENTS.md`, `.agents/workflow-overlay/README.md`, the targeted
    sections of `.agents/workflow-overlay/delegated-review-patch.md`, the
-   relevant review skill or lane, and the `environment_baseline` constant in
-   `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`;
+   relevant review skill or lane, and the `environment_baseline`,
+   `lifecycle_hard_stop`, and `decorrelation_commission` constants in
+   `docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` (cited,
+   not restated);
 5. named validation expectations with real failure and not-run reporting;
 6. the controller return: findings, bounded diff, neutral citations, validation
-   evidence, verdict, and residual risk;
+   evidence, verdict, and residual risk; and
 7. Chief Architect adjudication before any returned change is kept, plus
-   `NEEDS_ARCHITECTURE_PASS` for design-level blockers; and
-8. the delegate hard stop: no commit, push, PR, merge, stash, reset, worktree
-   cleanup, or repository-hygiene action.
+   `NEEDS_ARCHITECTURE_PASS` for design-level blockers.
 
 Prompt rendering and execution are separate states. A prompt with
 `receiver_class: receiver_to_bind` may be returned for a manual unknown courier,
@@ -744,11 +761,14 @@ or report destination is not bound before the review begins.
 Prompts matching the **Full orchestration** predicate above include or reference
 the `forseti_start_preflight` receipt owned by
 `.agents/workflow-overlay/source-loading.md`. These cases must make their start
-state portable because another actor or later lane will rely on it. Repo-constant
-fields may be referenced via
-`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md`; required
-escalated deltas in that artifact remain explicit. Routine prompts stop at the
-core above.
+state portable because another actor or later lane will rely on it. Constants
+bind by citing
+`docs/prompts/templates/shared/forseti_preflight_defaults_v0.md` — intake
+reads, external-source boundary, environment baseline, retrieval-header
+defaults, lifecycle hard stop, de-correlation commission constants — and are
+not restated. This section is the single owner of the per-prompt escalated
+delta list; the defaults artifact holds constant values only. Routine prompts
+stop at the core above.
 
 An eligible lane-scoped delegated review-and-patch prompt instead uses the
 compact default above: core prompt fields plus one fresh target-state read and
@@ -758,8 +778,6 @@ executor-ready wording, or a bounded multi-file target.
 
 Every escalated prompt must state:
 
-- whether `AGENTS.md` and `.agents/workflow-overlay/README.md` were read or
-  supplied in the current task context;
 - selected source pack from `.agents/workflow-overlay/source-loading.md`, or a
   bounded custom source pack;
 - `repo_map_decision: loaded | not_needed | unavailable`, plus `repo_map_reason`. Source-loading (`.agents/workflow-overlay/source-loading.md`) owns the read-pack rule; this field records the prompt author's routing decision and must not make the repo map a mandatory read;
@@ -780,14 +798,12 @@ Every escalated prompt must state:
   lifecycle boundary, and if so which propagation surfaces must be checked
   before closeout;
 - target files or directories;
-- source hierarchy for the task;
 - edit permission: `read-only`, `patch-only`, `docs-write`, or
   `implementation-authorized` (enum owned by `forseti_start_preflight` in
   `.agents/workflow-overlay/source-loading.md`);
 - output mode: `chat-only`, `file-write`, `review-report`,
   `paste-ready-chat`, or `patch-queue`;
-- required validation gates and where evidence is recorded;
-- external source boundary, including the rule that external workflow source is read-only from Forseti work and `jb` is not Forseti authority.
+- required validation gates and where evidence is recorded.
 
 ### Repo-Bound Review Target Resolution
 
@@ -905,7 +921,8 @@ Before using a generated Forseti prompt, apply these gates:
 
 1. Applicable preflight complete: `AGENTS.md` and
    `.agents/workflow-overlay/README.md` were read or supplied in the current
-   task context. Routine prompts carry the six-field core and no start receipt;
+   task context. Routine prompts carry the preflight core (required fields
+   stated, defaults elided, constants by pointer) and no start receipt;
    eligible compact delegated prompts carry that core, one fresh target-state
    read, and the eight commission fields above; escalated prompts carry the
    portable start receipt and fields above.
@@ -975,6 +992,86 @@ Before using a generated Forseti prompt, apply these gates:
 ## Direction Change Propagation
 
 ```yaml
+# preflight smallest-complete reduction 2026-07-16 (owner-requested ceremony cut).
+direction_change_propagation:
+  doctrine_changed: >
+    The routine preflight core now uses default elision (only non-default
+    fields are stated; an omitted field asserts its named default) and a
+    constants-by-pointer mandate: repo-constant values (intake reads,
+    external-source boundary, environment baseline, retrieval-header defaults,
+    lifecycle hard stop, de-correlation commission constants) are owned by
+    forseti_preflight_defaults_v0.md and cited, never restated; restating one
+    in a new or materially touched prompt is a prompt-quality defect. The
+    escalated per-prompt delta list is single-owned here (the defaults
+    artifact's duplicate list, with its drifted 3-value edit_permission enum
+    and orphaned isolation_decision, is deleted); prompt bodies do not carry
+    validation receipts or gate checklists. Load-bearing fields are unchanged
+    and still stated inline: revision pins, named targets, dirty-state
+    allowance and byte pins, workspace root, validation route, output mode,
+    edit permission, and the CI-gated receiver/courier shells.
+  trigger: workflow_authority
+  related_triggers: [output_authority]
+  controlling_sources_updated:
+    - .agents/workflow-overlay/prompt-orchestration.md
+    - docs/prompts/templates/shared/forseti_preflight_defaults_v0.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/source-of-truth.md
+    - .agents/workflow-overlay/review-lanes.md
+    - .agents/workflow-overlay/delegated-review-patch.md
+    - .agents/workflow-overlay/communication-style.md
+    - .agents/workflow-overlay/validation-gates.md
+    - .agents/workflow-overlay/template-registry.md
+    - .agents/hooks/check_prompt_provenance.py
+    - .agents/hooks/check_prompt_output_mode.py
+    - .agents/hooks/README.md
+    - docs/prompts/templates/review/adversarial_artifact_review_v0.md
+    - docs/prompts/templates/wrappers/thin_wrapper_v0.md
+    - docs/workflows/forseti_repo_map_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md
+      reason: >
+        Its "~12-line core" descriptor and two-depth routing remain accurate;
+        the elided core is the same core with defaults made implicit.
+    - path: .agents/workflow-overlay/source-loading.md
+      reason: >
+        It still owns the forseti_start_preflight receipt shape and
+        edit_permission enum unchanged; single-ownership was restored by
+        deleting the drifted duplicate in the defaults artifact, not by
+        moving the owner.
+    - path: .agents/hooks/check_prompt_output_mode.py
+      reason: >
+        The CI gate checks exactly the surviving shape (output-mode token,
+        receiver_creation_authorization shell, delegated-courier shell); its
+        token-drift selftest still parses this file green after the edit.
+    - path: docs/prompts/templates/review/delegated_review_return_adjudication_v0.md
+      reason: already compact and operative; no constant recital to cut.
+    - path: docs/prompts/templates/shared/forseti_prompt_behavior_contract_v0.md
+      reason: >
+        It is a cited-not-copied shared contract that already defers to
+        owners; folding it is the separate CER-1/OVL dual-maintenance unit.
+    - path: historical prompts, handoffs, and review outputs
+      reason: forward-only; completed lane evidence is not rewritten.
+  stale_language_search: >
+    rg -n -i "six[-]field|Repo-constant fields may be referenc[e]d|REQUIRED
+    ESCALATED DELTA[S]|6[-]item|state, per promp[t]" AGENTS.md CLAUDE.md .agents
+    docs/prompts/templates docs/workflows/forseti_repo_map_v0.md
+  stale_language_search_result: >
+    Executed 2026-07-16 after the live-authority edits: zero hits on any
+    checked live surface. Both hook selftests pass, including the
+    output-mode gate's token-drift case that parses this file.
+  non_claims:
+    - not validation or readiness
+    - no numeric token or latency savings claim
+    - not a weakening of the output-mode CI gate, the receiver/courier shell
+      checks, the DCP contract, revision/dirty-state pinning, or the
+      protected-action guard
+    - does not change what escalated (Full orchestration) cases must prove,
+      only where constants live
+
 # handoff transport/publication split 2026-07-14 (owner-requested correction).
 direction_change_propagation:
   doctrine_changed: >

@@ -221,10 +221,6 @@ def build_youtube_shorts_fragrance_creator_metric_seed_from_files(
     return {YOUTUBE_SHORTS_FRAGRANCE_CREATOR_METRIC_SEED_WRAPPER: seed}
 
 
-def dump_youtube_shorts_fragrance_creator_metric_seed(document: Mapping[str, Any]) -> str:
-    return json.dumps(document, indent=2, ensure_ascii=False) + "\n"
-
-
 def _source_document(path: str | Path) -> dict[str, Any]:
     resolved = _resolve_path(path)
     source_pointer = _source_pointer(resolved)
