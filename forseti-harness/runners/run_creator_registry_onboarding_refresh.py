@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Sequence
 
@@ -17,6 +16,7 @@ from capture_spine.creator_profile_current.creator_registry_onboarding import (
     sha256_repo_text,
 )
 from data_lake.root import DataLakeRoot
+from harness_utils import utc_now_z
 from runners.run_creator_profile_current_materialize import _enforce_new_account_preflight
 
 
@@ -79,7 +79,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             current_document=current_document,
             account_ledger=ledger,
             onboarding_by_account=onboarding_snapshot["accounts"],
-            generated_at_utc=args.generated_at_utc or _existing_generated_at(args.output) or _now_utc(),
+            generated_at_utc=args.generated_at_utc or _existing_generated_at(args.output) or utc_now_z(),
             data_root_uuid=data_root.root_uuid,
             account_ledger_sha256=sha256_repo_text(args.account_ledger),
             derivation_diagnostics=onboarding_snapshot["diagnostics"],
@@ -125,10 +125,6 @@ def _json(path: Path) -> dict:
     if not isinstance(value, dict):
         raise ValueError(f"JSON document must be an object: {path}")
     return value
-
-
-def _now_utc() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _existing_generated_at(path: Path) -> str | None:

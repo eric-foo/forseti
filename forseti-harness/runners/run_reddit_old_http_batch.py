@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-from datetime import UTC, datetime
 import json
 import sys
 import time
@@ -13,6 +12,7 @@ from urllib.parse import urlparse
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import utc_now_z_microseconds
 from runners.run_source_capture_http_packet import run_source_capture_http_packet
 from source_capture import CaptureModeCategory
 from source_capture.cadence import CadenceMode, build_cadence_plan
@@ -93,7 +93,7 @@ def run_reddit_old_http_batch(
         }
 
         try:
-            row["capture_started_at"] = _utc_now()
+            row["capture_started_at"] = utc_now_z_microseconds()
             capture_exit, capture_message = run_source_capture_http_packet(
                 url=slot.url,
                 source_family="reddit_thread",
@@ -130,7 +130,7 @@ def run_reddit_old_http_batch(
             row["capture_exit"] = 2
             row["capture_message"] = f"{type(exc).__name__}: {exc}"
         finally:
-            row["capture_finished_at"] = _utc_now()
+            row["capture_finished_at"] = utc_now_z_microseconds()
 
         if row["capture_exit"] == 0:
             try:
@@ -184,10 +184,6 @@ def run_reddit_old_http_batch(
         newline="\n",
     )
     return 0, str(summary_path)
-
-
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def load_slots(path: Path) -> list[BatchSlot]:

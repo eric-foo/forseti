@@ -23,7 +23,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -38,6 +37,7 @@ from capture_spine.creator_profile_current.silver_subject_ref import (
     platform_account_id_from_subject_ref as _platform_account_id_from_subject_ref,
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
+from harness_utils import utc_now_z
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ACCOUNT_LEDGER = (
@@ -52,10 +52,6 @@ DEFAULT_ACCOUNT_LEDGER = (
     / "creator_registry"
     / "creator_public_handle_linkage_ledger_v0.json"
 )
-
-
-def _now_utc() -> str:
-    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _load_account_ledger(path: Path) -> Mapping[str, Any]:
@@ -128,7 +124,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-    generated_at = args.generated_at_utc or _now_utc()
+    generated_at = args.generated_at_utc or utc_now_z()
 
     try:
         data_root = DataLakeRoot.resolve(explicit=args.data_root)
