@@ -18,7 +18,7 @@ is harness-specific.
 | Script | When | Effect |
 |---|---|---|
 | `guard_protected_actions.py` | **pre-tool** (before a shell/write tool runs) | **HARD-blocks** (exit 2) direct push-to-main, force-push, `reset --hard`, `git clean`, protected external-root writes, explicit rebase starts on a mechanically confirmed published lane, and `gh pr merge --admin`. A direct `gh pr merge <N>` is allowed only for the current lane branch when the PR targets `main`, is same-repo, `CLEAN`, all checks are green, carries `agent-automerge`, and has no `risk/blocked-for-merge-policy` hold. `risk/manual-review-required` keeps the unattended bot out but does not choose a human actor after the resident completion/review and home/Chief Architect adjudication gate closes; that judgment completion is not mechanically certified by the label. Benign lane pushes, published-lane fetch-plus-merge updates, and rebase recovery remain allowed. Fires in **all** permission modes. Non-merge probes fail open on internal error; merge authorization fails closed. |
-| `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps Codex `apply_patch` patch targets through the existing EP-01 protected-path check, blocks writes into registered non-current worktrees, blocks raw shell durable-write primitives for repo source/docs files, and exposes the fail-closed live adoption probe below. |
+| `.codex/hooks/forseti_guard_codex_adapter.py` | Codex **PreToolUse** adapter | Runs `guard_protected_actions.py`, converts guard denials into Codex's native JSON `permissionDecision: deny` response, maps every Codex `apply_patch` target through the existing EP-01 protected-path check, blocks raw shell durable-write primitives for repo source/docs files, and exposes the fail-closed live adoption probe below. |
 | `pre_push_guard.py` | local Git **pre-push** adapter policy | Blocks pushes targeting `main`, branch deletes, non-fast-forward updates, and unverifiable update safety when `.githooks/pre-push` is installed through `core.hooksPath`; for allowed lane pushes it mirrors ten selected strict CI gates over local `origin/main...HEAD`, including the conditional harness coupling contracts. CI runs the same gate modes against its exact event base SHA. A gate failure or launch error blocks the push. Bypassable with `--no-verify`; misses GitHub API merges; CI stays authoritative. |
 | `check_harness_coupling.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped adapter over existing inventory and policy-pin contract tests. It runs only when the outgoing change touches `forseti-harness/**/*.py` or `forseti-harness/data_lake/lake_touchpoint_inventory_v0.json`; an unresolvable diff or unlaunchable test fails closed. Coupling preflight only: not the full harness suite, validation, readiness, or proof that every CI failure is prevented. `--selftest` present. |
 | `check_source_input_hashes.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: list-style JSON `source_inputs[]` records with repo-local `source_pointer` + `sha256` must match current file bytes (CRLF-normalized), and source-capture packet manifests (top-level `manifest_version`) must have top-level `preserved_files[]` records whose `relative_packet_path` + `sha256` match current raw stored bytes resolved against the manifest's own directory, when the artifact or referenced file changed. Provenance freshness only; never semantic validation, generated-artifact completeness, readiness, or source quality. Backlog via `--audit`; `--selftest` present. |
@@ -34,6 +34,7 @@ is harness-specific.
 | `check_prompt_output_mode.py` | **CI** (`--strict`) | Diff-scoped, forward-only: changed prompt artifacts under `docs/prompts/**` (templates and READMEs excluded) must carry an output-mode declaration naming at least one closed-set token (`chat-only` / `file-write` / `review-report` / `paste-ready-chat` / `patch-queue`). Presence + token shape only; "exactly one, correctly scoped to this artifact" stays resident judgment; never prompt quality or mode correctness. Backlog via `--audit` (never gated). |
 | `check_review_summary.py` | **CI** (`--strict`) | Diff-scoped, forward-only over changed `docs/review-outputs/**` files: real `review_summary` blocks must not carry forbidden process keys, `report_path` must resolve on disk, failed-write blocks keep the bound failed shape, and `recommendation` is non-blank when present. Full `recommendation` enum membership is `--audit` advisory only (known extended vocabulary in delegated-review-patch lanes). Shape only; never review quality or truth. Non-overlap: header/provenance/fencing stays with `check_review_output_provenance.py`. |
 | `check_hash_pin_freshness.py` | manual + **CI** (`--strict`) + local pre-push | Diff-scoped, forward-only: markdown freshness hash pins (labeled `path:` + `sha256:` bullet pairs; `source_captures/**/receipt.md` preserved-file bullets) must match current CRLF-normalized file bytes when the pin-carrying doc or its target changed. The markdown analog of `check_source_input_hashes.py` (JSON); provenance-style manifest tables and source-read ledgers are deliberately not parsed as pins. Pin freshness only; never semantic validity, source quality, or skill correctness. Backlog via `--audit` (never gated). |
+| `check_shared_helper_duplication.py` | manual + **CI** (`--strict`) + **post-tool** (`--hook` advisory) | Diff-scoped, forward-only: an added line privately re-defining a shared helper (`_utc_now` / `_now_utc` / `_utc_now_z` / `_utc_now_iso` / `_sha256*` / `_as_dict` / `_hash_file` / `_string_or_none` / `_non_empty_string_or_none` / `_int_or_none` / `_bool_or_none` anywhere in scope; `repo_root` / `_git` / `_git_lines` / `porcelain_paths` in `.agents/hooks/` only) is flagged toward the owning home (`forseti-harness/harness_utils.py` / `.agents/hooks/_hooklib.py`) unless the def line or the line immediately above carries a comment naming the delta (any comment containing `harness_utils`, `_hooklib`, or `helper-delta`). Scope excludes `forseti-harness/tests/**`, `harness_utils.py`, `_hooklib.py`, and `guard_protected_actions.py` (its duplication is the documented deliberate exception). Adoption-rule shape only; never helper correctness, divergence justification, validation, or readiness. `--selftest` present. |
 | `check_repo_map_freshness.py` | **post-tool** (after a write) | Reports structural drift vs the repo map as advisory output; exits 2 when the repo map itself is dirty after edit so the next action is an explicit-path commit; has a `--strict` gate for commit/CI use. |
 | `check_search_surface_google_route.py` | **post-tool** (after a write) + CI | Advisory on live writes and strict in CI for the checkable Google search-surface route shell: Google Search URLs use `hl=en&gl=us&pws=0`, US-parameterized artifacts carry the physical-locality non-claim, and Google sorry/IP pages are not preserved in durable docs. |
 | `remind_sci.py` | **pre-tool** (before a `git commit`) | Advisory (exit 0): when the commit includes durable-artifact changes, re-injects the Smallest Complete Intervention rule (verbatim from AGENTS.md) as a nudge before scope is locked in. Never blocks; silent for code/scratch/config-only commits. |
@@ -79,6 +80,14 @@ directory, not individual scripts. **Deliberate exception:**
 checker costs one advisory, but in the hard guard it would disable the gate
 (including its fail-closed merge path). Do not refactor the guard onto
 `_hooklib`.
+
+**Adoption rule:** before writing a private helper in a checker, check
+`_hooklib.py`; if the shared home already has it, import it. When touching a
+checker, migrate a stale private copy in the same work unit only when the bound
+change already touches or depends on that helper contract (behavior-preserving
+only); otherwise leave the unrelated migration for a separately scoped work
+unit. A deliberately divergent copy stays, with a one-line comment naming the
+delta.
 
 ## The contract (harness-agnostic)
 
@@ -145,6 +154,8 @@ python .agents/hooks/check_prompt_output_mode.py --selftest
 python .agents/hooks/check_review_summary.py --selftest
 python .agents/hooks/check_hash_pin_freshness.py --selftest
 python .agents/hooks/check_hash_pin_freshness.py --strict
+python .agents/hooks/check_shared_helper_duplication.py --selftest
+python .agents/hooks/check_shared_helper_duplication.py --strict
 python .agents/hooks/check_repo_map_freshness.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --strict --base main
@@ -181,9 +192,10 @@ shape:
 }
 ```
 
-Before a Codex managed-worktree task relies on the tracked project hook for a
-protected gate, run this exact command as a top-level shell tool call from that
-task's root, without a command-level `workdir` override:
+Run the live-adoption probe only when hook adoption testing is itself the
+commissioned task. It is not routine work-unit preflight. For that test, use
+this exact top-level command from the task root without a command-level
+`workdir` override:
 
 ```powershell
 python .codex/hooks/forseti_guard_codex_adapter.py --live-adoption-probe
@@ -204,19 +216,17 @@ and reload flow, then rerun the probe; Forseti cannot synthesize trust and must
 not edit Codex trust metadata.
 
 It also parses Codex `apply_patch` headers (`*** Add/Update/Delete File:` and
-`*** Move to:`) and checks those paths through the EP-01 protected-path rule,
+`*** Move to:`) from the supported `tool_input.command`, `.patch`, and `.input`
+payload fields and checks those paths through the EP-01 protected-path rule,
 because Codex reports patch edits as `tool_name: "apply_patch"` rather than
 Claude-style `Write` / `Edit` events.
 
-The adapter additionally blocks Codex write tools when the target is inside a
-registered git worktree other than the one running the hook. If a lane needs
-that worktree, reroot Codex in the target worktree and rerun the lane-start
-writeability preflight; do not edit nested worktrees from the parent checkout.
-Registering, discovering, or naming another worktree does not change the
-running receiver's root, and this adapter does not reroot collaboration
-subagents. Select a receiver actually rooted in the target before repo-changing
-dispatch under `.agents/workflow-overlay/decision-routing.md`; the adapter is
-the later deterministic denial boundary, not the receiver selector.
+The adapter does not reject a valid selected worktree merely because the hook
+launched from another checkout. Every `apply_patch` target and direct write event
+still reaches the EP-01 protected-path guard. Target identity, revision or dirty-
+byte state, writer isolation, and any actual tool, sandbox, hook, or guard denial
+remain owned by `.agents/workflow-overlay/decision-routing.md`. Collaboration
+subagents do not gain write scope merely by naming another path.
 
 For `Bash` / `PowerShell`, the adapter blocks raw durable-write primitives when
 the command text names repo source/docs file types (`.md`, `.py`, `.yml`,
@@ -249,6 +259,8 @@ python .agents/hooks/check_prompt_output_mode.py --selftest
 python .agents/hooks/check_review_summary.py --selftest
 python .agents/hooks/check_hash_pin_freshness.py --selftest
 python .agents/hooks/check_hash_pin_freshness.py --strict
+python .agents/hooks/check_shared_helper_duplication.py --selftest
+python .agents/hooks/check_shared_helper_duplication.py --strict
 python .agents/hooks/check_repo_map_freshness.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --selftest
 python .agents/hooks/check_search_surface_google_route.py --strict --base main

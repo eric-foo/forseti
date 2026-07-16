@@ -18,6 +18,7 @@ from cleaning.raw_model_transport import RawApiProvider
 from cleaning.transcript_product_extractor import TranscriptInput, parse_mentions
 from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
+    PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
     PRODUCT_MENTIONS_SET_LANE,
     build_transcript_source_lineage,
     cues_from_asr_record,
@@ -37,6 +38,7 @@ from source_capture.transcript.caption_packet import write_caption_packet
 
 _ANCHOR = "ANCHORTEST0123456789ABCDEF"
 _PROVIDER = RawApiProvider.ANTHROPIC_MESSAGES
+_CAPTURED_AT = "2026-07-15T00:00:00Z"
 
 
 def _cues() -> list[dict]:
@@ -129,6 +131,7 @@ def _transcript(data_root: DataLakeRoot | None = None) -> TranscriptInput:
         source_surface="youtube_audio",
         video_id="vid12345678",
         derived_ref=_source_ref(data_root),
+        captured_at=_CAPTURED_AT,
     )
     return TranscriptInput("vid12345678", _ANCHOR, "asr", _cues(), source_lineage=lineage)
 
@@ -218,8 +221,15 @@ def test_driver_persists_to_silver_lane(tmp_path) -> None:
         subtree="derived", raw_anchor=_ANCHOR, record_id=rid, completion_lane=PRODUCT_MENTIONS_SET_LANE,
     )
     written = json.loads(paths[PRODUCT_MENTIONS_LANE].read_text(encoding="utf-8"))
-    assert written["payload"]["observation"]["row_count"] == 1
+    observation = written["payload"]["observation"]
+    assert observation["row_count"] == 1
     assert _stored_mentions(written)[0]["start_ms"] == 3000  # CE5 timestamp from the cue
+    assert written["observed_at"] is None
+    assert written["captured_at"] == _CAPTURED_AT
+    assert observation["effective_interval"]["start_precision"] == "unknown"
+    assert observation["recorded_at"] == _CAPTURED_AT
+    assert observation["evidence_refs"]
+    assert observation["limitations"]
 
 
 def test_operator_result_writer_reuses_silver_lane_shape(tmp_path) -> None:
@@ -531,6 +541,37 @@ def test_mentions_record_id_keys_on_content_model_source_and_policy() -> None:
 
 
     assert mentions_record_id(t1, "m", policy_fingerprint_sha256="1" * 64) != mentions_record_id(t1, "m", policy_fingerprint_sha256="2" * 64)
+
+
+def test_product_mentions_policy_fingerprint_is_schema_bound_and_deterministic() -> None:
+    transcript = _transcript()
+    v2_fingerprint = product_mentions_policy_fingerprint(
+        "rubric_v0",
+        record_schema_version="transcript_product_mentions_record_v2",
+    )
+    v3_fingerprint = product_mentions_policy_fingerprint("rubric_v0")
+
+    assert PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION == "transcript_product_mentions_record_v3"
+    assert v3_fingerprint == product_mentions_policy_fingerprint(
+        "rubric_v0",
+        record_schema_version=PRODUCT_MENTIONS_RECORD_SCHEMA_VERSION,
+    )
+    assert v2_fingerprint == product_mentions_policy_fingerprint(
+        "rubric_v0",
+        record_schema_version="transcript_product_mentions_record_v2",
+    )
+    assert v2_fingerprint != v3_fingerprint
+    assert mentions_record_id(
+        transcript,
+        "m",
+        policy_fingerprint_sha256=v2_fingerprint,
+    ) != mentions_record_id(
+        transcript,
+        "m",
+        policy_fingerprint_sha256=v3_fingerprint,
+    )
+
+
 def test_runner_marks_zero_mention_transcript_done(tmp_path) -> None:
     # D5 filler-drop: the model finds no products -> still persisted + marked complete (idempotent).
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
@@ -605,6 +646,7 @@ def test_driver_persists_silver_lineage_in_place(tmp_path) -> None:
     lineage = build_transcript_source_lineage(
         namespace="youtube", source_surface="youtube_audio", video_id="vid12345678",
         derived_ref=_derived_ref(data_root),
+        captured_at=_CAPTURED_AT,
     )
     transcript = TranscriptInput("vid12345678", _ANCHOR, "asr", _cues(), source_lineage=lineage)
     paths = extract_products_into_lake(

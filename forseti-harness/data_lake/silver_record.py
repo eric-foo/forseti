@@ -100,6 +100,13 @@ _LEGACY_REFERENCE_PROFILES = {
         "creator_metric_rollup_silver",
     ): "creator_metric_rollup_v0",
 }
+_LEGACY_TEMPORAL_PROFILES = {
+    (
+        "forseti-harness.capture_spine.creator_profile_current.tiktok_comment_attention_producer",
+        "tiktok_comment_attention_metric_observation_v1",
+        "tiktok_comment_attention_silver",
+    ): "tiktok_comment_attention_v1",
+}
 # Keys that mark Cleaning processing evidence (the transform ledger). A Silver fact
 # must never carry them -- that is the evidence-vs-fact half of the no-blur invariant.
 _LEDGER_KEYS = ("cleaning_packet", "transform_ledger")
@@ -137,12 +144,16 @@ def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
         "source_surface",
     ):
         _require_non_empty_string(record.get(field), f"Silver {field}")
-    for field in ("observed_at", "captured_at"):
-        if field not in record:
-            raise SilverRecordError(f"Silver common header requires {field} (nullable when unknown).")
-        value = record.get(field)
-        if value is not None:
-            _require_non_empty_string(value, f"Silver {field}")
+    if "observed_at" not in record:
+        raise SilverRecordError("Silver common header requires observed_at.")
+    observed_at = record.get("observed_at")
+    if observed_at is not None:
+        _require_non_empty_string(observed_at, "Silver observed_at")
+    if "captured_at" not in record:
+        raise SilverRecordError("Silver common header requires captured_at.")
+    captured_at = record.get("captured_at")
+    if captured_at is not None:
+        _require_non_empty_string(captured_at, "Silver captured_at")
 
     if record.get("content_hash_basis") != CONTENT_HASH_BASIS:
         raise SilverRecordError(
@@ -191,10 +202,25 @@ def validate_silver_vault_record(record: Mapping[str, Any]) -> None:
     if content_hash != f"sha256:{expected_hash}":
         raise SilverRecordError("Silver content hash mismatch: content_hash does not match canonical record content.")
 
+    temporal_profile = _legacy_temporal_profile(record)
+    if temporal_profile == "tiktok_comment_attention_v1" and observed_at is None:
+        _validate_legacy_tiktok_comment_attention_v1_time(record, payload=payload)
+    else:
+        _validate_observed_at_contract(
+            record_kind=record_kind,
+            observed_at=observed_at,
+            captured_at=captured_at,
+            payload=payload,
+        )
+
+
 def validate_silver_vault_record_for_write(record: Mapping[str, Any]) -> None:
     """Validate the canonical grammar required for every newly persisted record."""
     validate_silver_vault_record(record)
-    if _legacy_lineage_profile(record) is not None:
+    if (
+        _legacy_lineage_profile(record) is not None
+        or _legacy_temporal_profile(record) is not None
+    ):
         raise SilverRecordError(
             "Legacy Silver producer schemas are read-only compatibility records."
         )
@@ -209,6 +235,16 @@ def _require_non_empty_string(value: Any, field: str) -> str:
 
 def _legacy_lineage_profile(record: Mapping[str, Any]) -> str | None:
     return _LEGACY_REFERENCE_PROFILES.get(
+        (
+            record.get("producer_id"),
+            record.get("producer_schema_version"),
+            record.get("lane_namespace"),
+        )
+    )
+
+
+def _legacy_temporal_profile(record: Mapping[str, Any]) -> str | None:
+    return _LEGACY_TEMPORAL_PROFILES.get(
         (
             record.get("producer_id"),
             record.get("producer_schema_version"),
@@ -482,6 +518,12 @@ def classify_silver_vault_record_sources(
             "source_ref_unresolved",
             f"{type(exc).__name__}: {exc}",
         )
+    temporal_profile = _legacy_temporal_profile(record)
+    if temporal_profile == "tiktok_comment_attention_v1" and record.get("observed_at") is None:
+        return SilverSourceAuthority(
+            HISTORICAL_COMPATIBLE_AUTHORITY,
+            "legacy_tiktok_comment_attention_v1_bytes_verified",
+        )
     return SilverSourceAuthority(
         CURRENT_SOURCE_BACKED_AUTHORITY,
         "legacy_bytes_verified" if profile else "canonical_refs_verified",
@@ -717,6 +759,141 @@ def _reject_ledger(container: Mapping[str, Any], *, where: str) -> None:
                 f"A Silver fact must not carry a transform ledger (found {ledger_key!r} in "
                 f"{where}); processing evidence belongs in the audit-pack sibling, not a fact."
             )
+
+
+def _validate_observed_at_contract(
+    *,
+    record_kind: str,
+    observed_at: Any,
+    captured_at: Any,
+    payload: Mapping[str, Any],
+) -> None:
+    """Keep unknown source-effective time explicit without a generic null escape hatch."""
+    if record_kind == "relationship":
+        return
+    if record_kind != "observation":
+        if observed_at is None:
+            raise SilverRecordError(
+                "Silver observed_at may be null only for relationships or an explicitly "
+                "unknown-time observation."
+            )
+        return
+
+    observation = payload.get("observation")
+    if not isinstance(observation, Mapping):
+        return  # The observation-shape error is raised by the caller above.
+    interval = observation.get("effective_interval")
+    declares_unknown_start = isinstance(interval, Mapping) and (
+        interval.get("start_precision") == "unknown"
+        or ("start" in interval and interval.get("start") is None)
+    )
+    if observed_at is not None:
+        if declares_unknown_start:
+            raise SilverRecordError(
+                "An observation with explicitly unknown source-effective time must keep "
+                "observed_at null; captured_at or recorded_at must not substitute for it."
+            )
+        return
+
+    if not isinstance(interval, Mapping):
+        raise SilverRecordError(
+            "A null observation observed_at requires payload.observation.effective_interval."
+        )
+    if "start" not in interval or interval.get("start") is not None:
+        raise SilverRecordError(
+            "An explicitly unknown observation time requires effective_interval.start=null."
+        )
+    if interval.get("start_precision") != "unknown":
+        raise SilverRecordError(
+            "An explicitly unknown observation time requires "
+            "effective_interval.start_precision='unknown'."
+        )
+    _require_non_empty_string(
+        interval.get("unknown_reason"),
+        "Unknown-time observation effective_interval.unknown_reason",
+    )
+    _require_non_empty_string(
+        observation.get("recorded_at"), "Unknown-time observation recorded_at"
+    )
+    _require_non_empty_string(captured_at, "Unknown-time observation captured_at")
+
+    evidence_refs = observation.get("evidence_refs")
+    if (
+        not isinstance(evidence_refs, list)
+        or not evidence_refs
+        or any(not isinstance(ref, Mapping) or not ref for ref in evidence_refs)
+    ):
+        raise SilverRecordError(
+            "An explicitly unknown observation time requires non-empty evidence_refs provenance."
+        )
+    limitations = observation.get("limitations")
+    if (
+        not isinstance(limitations, list)
+        or not limitations
+        or any(not isinstance(item, str) or not item.strip() for item in limitations)
+    ):
+        raise SilverRecordError(
+            "An explicitly unknown observation time requires non-empty limitations."
+        )
+
+
+def _validate_legacy_tiktok_comment_attention_v1_time(
+    record: Mapping[str, Any], *, payload: Mapping[str, Any]
+) -> None:
+    """Accept only the exact immutable v1 null-time posture as historical."""
+    if record.get("record_kind") != "observation" or record.get("payload_kind") != "MetricObservation":
+        raise SilverRecordError(
+            "Legacy TikTok comment-attention v1 compatibility requires a MetricObservation."
+        )
+    if record.get("producer_row_kind") != "tiktok_comment_attention_metric":
+        raise SilverRecordError(
+            "Legacy TikTok comment-attention v1 producer_row_kind is invalid."
+        )
+    if record.get("source_surface") != "tiktok_creator_batch_comment_subtitle_admission":
+        raise SilverRecordError(
+            "Legacy TikTok comment-attention v1 source_surface is invalid."
+        )
+    observation = payload.get("observation")
+    if not isinstance(observation, Mapping):
+        raise SilverRecordError(
+            "Legacy TikTok comment-attention v1 requires payload.observation."
+        )
+    for forbidden in ("effective_interval", "recorded_at", "evidence_refs", "limitations"):
+        if forbidden in observation:
+            raise SilverRecordError(
+                "Legacy TikTok comment-attention v1 compatibility rejects "
+                f"partial current-time field {forbidden!r}."
+            )
+    if observation.get("metric_name") != "comment_like_to_video_like_ratio":
+        raise SilverRecordError(
+            "Legacy TikTok comment-attention v1 metric_name is invalid."
+        )
+    if observation.get("metric_value") is not None:
+        raise SilverRecordError(
+            "Legacy TikTok comment-attention v1 null-time metric_value must be null."
+        )
+    posture = observation.get("metric_posture")
+    if not isinstance(posture, Mapping) or (
+        posture.get("kind") != "unavailable_with_reason"
+        or posture.get("reason_code") != "temporal_alignment_unproven"
+    ):
+        raise SilverRecordError(
+            "Legacy TikTok comment-attention v1 requires temporal_alignment_unproven posture."
+        )
+    pairing = observation.get("temporal_pairing")
+    if not isinstance(pairing, Mapping) or (
+        pairing.get("alignment") != "unproven"
+        or pairing.get("comment_observed_at") is not None
+        or not isinstance(pairing.get("video_stats_observed_at"), str)
+        or not pairing["video_stats_observed_at"].strip()
+    ):
+        raise SilverRecordError(
+            "Legacy TikTok comment-attention v1 temporal_pairing is contradictory."
+        )
+    if observation.get("source_publication_or_event") is not None:
+        raise SilverRecordError(
+            "Legacy TikTok comment-attention v1 source_publication_or_event must be null."
+        )
 
 
 def _validate_metric_posture(observation: Mapping[str, Any]) -> None:
@@ -961,6 +1138,7 @@ def append_silver_record(
     """
     validate_silver_vault_record_for_write(record)
     _validate_write_binding(record, raw_anchor=raw_anchor, lane=lane, record_id=record_id)
+    _validate_registered_silver_lane(lane)
     verify_silver_vault_record_sources(data_root, record)
     return data_root.append_record(
         subtree="derived",
@@ -986,6 +1164,8 @@ def append_silver_record_set(
     for lane, record in records.items():
         validate_silver_vault_record_for_write(record)
         _validate_write_binding(record, raw_anchor=raw_anchor, lane=lane, record_id=record_id)
+        _validate_registered_silver_lane(lane)
+    _validate_registered_completion_lane(completion_lane)
     for lane, record in records.items():
         verify_silver_vault_record_sources(data_root, record)
         members[lane] = canonical_record_bytes(record)
@@ -1012,6 +1192,30 @@ def _validate_write_binding(
                 f"Silver write binding mismatch: record {field}={record.get(field)!r}, "
                 f"write target={value!r}."
             )
+
+
+def _validate_registered_silver_lane(lane: str) -> None:
+    from data_lake.lane_registry import LaneRole, role_of
+
+    role = role_of(lane)
+    if role is not LaneRole.SILVER_ENVELOPE:
+        declared = role.value if role is not None else "undeclared"
+        raise SilverRecordError(
+            f"Silver write lane {lane!r} must be registered as silver_envelope; "
+            f"got {declared!r}."
+        )
+
+
+def _validate_registered_completion_lane(lane: str) -> None:
+    from data_lake.lane_registry import LaneRole, role_of
+
+    role = role_of(lane)
+    if role is not LaneRole.COMPLETION_MARKER:
+        declared = role.value if role is not None else "undeclared"
+        raise SilverRecordError(
+            f"Silver completion lane {lane!r} must be registered as completion_marker; "
+            f"got {declared!r}."
+        )
 
 
 __all__ = [

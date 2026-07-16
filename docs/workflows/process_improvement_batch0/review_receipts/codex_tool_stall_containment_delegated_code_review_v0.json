@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "review_id": "codex-tool-stall-containment-delegated-code-review-v0",
+  "review_report_path": "docs/review-outputs/adversarial-artifact-reviews/codex_tool_stall_containment_delegated_code_review_v0.md",
+  "status": "completed",
+  "material_review": true,
+  "reviewed_by": "claude-fable-5",
+  "authored_by": "unrecorded",
+  "ca_adjudication_status": "completed",
+  "ca_adjudicator": "OpenAI Codex / GPT-5",
+  "accepted_net_new_material_findings": 2,
+  "decision_changed": "yes",
+  "closure_state": "partially_closed",
+  "report_lines": 138,
+  "turn_count": "unknown",
+  "evidence_pointers": [
+    "docs/review-outputs/adversarial-artifact-reviews/codex_tool_stall_containment_delegated_code_review_v0.md",
+    "AGENTS.md",
+    "forseti-harness/tests/unit/test_ci_hook_wiring.py",
+    "docs/workflows/technical_difficulties_log_v0.md"
+  ],
+  "completed_at": "2026-07-16"
+}

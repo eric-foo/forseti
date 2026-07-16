@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 from urllib.parse import parse_qs, urlparse
 
+from harness_utils import int_or_none as _int_or_none, string_or_none as _string_or_none
 from source_capture.models import (
     CaptureModeCategory,
     CoverageWindow,
@@ -458,29 +459,8 @@ def _nonempty_string_sequence(value: object) -> bool:
     return any(_string_or_none(item) is not None for item in value)
 
 
-def _int_or_none(value: object) -> int | None:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value
-    if isinstance(value, float) and value.is_integer():
-        return int(value)
-    if isinstance(value, str):
-        stripped = value.replace(",", "").strip()
-        return int(stripped) if stripped.isdigit() else None
-    return None
-
-
-def _string_or_none(value: object) -> str | None:
-    if isinstance(value, str):
-        stripped = value.strip()
-        return stripped or None
-    if isinstance(value, int) and not isinstance(value, bool):
-        return str(value)
-    return None
-
-
 def _utc_now_z() -> str:
+    # Diverges from harness_utils.utc_now_z: naive utcnow() and keeps microsecond precision.
     return datetime.datetime.utcnow().isoformat() + "Z"
 
 

@@ -160,6 +160,29 @@ def _rehash(record: dict) -> None:
     record["content_hash"] = f"sha256:{silver_content_hash(record)}"
 
 
+def _explicit_unknown_time_observation() -> dict:
+    record = _metric_record()
+    record["payload_kind"] = "UnknownSourceTimeObservation"
+    record["observed_at"] = None
+    record["payload"] = {
+        "observation": {
+            "effective_interval": {
+                "start": None,
+                "start_precision": "unknown",
+                "end": None,
+                "end_precision": "unknown",
+                "end_state": "unknown",
+                "unknown_reason": "the source exposes no effective timestamp",
+            },
+            "recorded_at": "2026-07-14T01:00:00Z",
+            "evidence_refs": [{"packet_id": _PACKET_ID}],
+            "limitations": ["Source-effective time is absent from the cited material."],
+        }
+    }
+    _rehash(record)
+    return record
+
+
 def _commit_source(root: DataLakeRoot, *, body: bytes = b"source") -> Path:
     container = root.path / "raw" / raw_shard(_PACKET_ID) / _PACKET_ID
     preserved = container / "preserved" / "source.bin"
@@ -189,6 +212,74 @@ def test_validate_accepts_well_formed_text_and_metric_observations() -> None:
     validate_silver_vault_record(_text_record())
     validate_silver_vault_record(_metric_record())
     validate_silver_vault_record(_metric_set_record())
+
+
+def test_validate_accepts_explicit_unknown_time_observation() -> None:
+    validate_silver_vault_record(_explicit_unknown_time_observation())
+
+
+def test_validate_rejects_ordinary_observation_without_observed_at() -> None:
+    record = _metric_record()
+    record["observed_at"] = None
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match="requires payload.observation.effective_interval"):
+        validate_silver_vault_record(record)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            lambda observation: observation["effective_interval"].pop("start_precision"),
+            "start_precision='unknown'",
+        ),
+        (
+            lambda observation: observation["effective_interval"].update(unknown_reason=""),
+            "unknown_reason",
+        ),
+        (lambda observation: observation.update(evidence_refs=[]), "evidence_refs"),
+        (lambda observation: observation.update(limitations=[]), "limitations"),
+        (lambda observation: observation.pop("recorded_at"), "recorded_at"),
+    ],
+)
+def test_validate_rejects_partial_unknown_time_observation(mutation, message: str) -> None:
+    record = _explicit_unknown_time_observation()
+    mutation(record["payload"]["observation"])
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match=message):
+        validate_silver_vault_record(record)
+
+
+def test_validate_rejects_capture_or_record_time_substituted_for_unknown_observed_at() -> None:
+    record = _explicit_unknown_time_observation()
+    record["observed_at"] = record["captured_at"]
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match="must not substitute"):
+        validate_silver_vault_record(record)
+
+
+def test_validate_preserves_nullable_relationship_observed_at() -> None:
+    record = _metric_record()
+    record["record_kind"] = "relationship"
+    record["payload_kind"] = "RelationshipEdge"
+    record["observed_at"] = None
+    record["payload"] = {
+        "relationship": {
+            "edge_type": "derived_from_record",
+            "from": {"ref_type": "record_id", "ref": "source"},
+            "to": {"ref_type": "record_id", "ref": "target"},
+        }
+    }
+    _rehash(record)
+    validate_silver_vault_record(record)
+
+
+def test_validate_requires_non_null_captured_at() -> None:
+    record = _explicit_unknown_time_observation()
+    record["captured_at"] = None
+    _rehash(record)
+    with pytest.raises(SilverRecordError, match="captured_at"):
+        validate_silver_vault_record(record)
 
 
 def test_validate_metric_set_rejects_row_count_drift() -> None:
@@ -497,7 +588,7 @@ def test_append_silver_record_set_validates_all_members_before_write(tmp_path: P
     valid = _text_record()
     invalid = _text_record()
     invalid["record_id"] = valid["record_id"]
-    invalid["lane_namespace"] = "second_silver"
+    invalid["lane_namespace"] = "cleaning_parfumo_silver"
     invalid["raw_refs"] = []
     _rehash(invalid)
     with pytest.raises(SilverRecordError, match="at least one resolvable"):
@@ -505,8 +596,8 @@ def test_append_silver_record_set_validates_all_members_before_write(tmp_path: P
             root,
             raw_anchor=_PACKET_ID,
             record_id=valid["record_id"],
-            records={_SILVER_LANE: valid, "second_silver": invalid},
-            completion_lane="silver_test_completion",
+            records={_SILVER_LANE: valid, "cleaning_parfumo_silver": invalid},
+            completion_lane="transcript_product_mentions_completion",
         )
     assert not root.lane_dir(
         subtree="derived", raw_anchor=_PACKET_ID, lane=_SILVER_LANE
@@ -559,7 +650,7 @@ def test_append_silver_record_verifies_exact_derived_ref_and_hash(tmp_path: Path
         record=source,
     )
     dependent = _metric_record()
-    dependent["lane_namespace"] = "derived_metric_silver"
+    dependent["lane_namespace"] = "cleaning_parfumo_silver"
     dependent["raw_refs"] = []
     dependent["derived_refs"] = [
         {
@@ -599,7 +690,7 @@ def test_append_silver_record_rejects_wrong_derived_hash_before_write(
         record=source,
     )
     dependent = _metric_record()
-    dependent["lane_namespace"] = "derived_metric_silver"
+    dependent["lane_namespace"] = "cleaning_parfumo_silver"
     dependent["raw_refs"] = []
     ref = {
         "raw_anchor": _PACKET_ID,
@@ -638,7 +729,7 @@ def test_append_silver_record_set_rejects_unresolved_member_before_any_write(
     first = _text_record()
     second = _metric_record()
     second["record_id"] = first["record_id"]
-    second["lane_namespace"] = "second_silver"
+    second["lane_namespace"] = "cleaning_parfumo_silver"
     second["raw_refs"] = [
         {"ref_type": "raw_packet", "packet_id": "01J00000000000000000000002"}
     ]
@@ -649,8 +740,8 @@ def test_append_silver_record_set_rejects_unresolved_member_before_any_write(
             root,
             raw_anchor=_PACKET_ID,
             record_id=first["record_id"],
-            records={_SILVER_LANE: first, "second_silver": second},
-            completion_lane="silver_test_completion",
+            records={_SILVER_LANE: first, "cleaning_parfumo_silver": second},
+            completion_lane="transcript_product_mentions_completion",
         )
     assert not root.lane_dir(
         subtree="derived", raw_anchor=_PACKET_ID, lane=_SILVER_LANE
@@ -759,3 +850,135 @@ def test_unknown_producer_cannot_claim_legacy_missing_ref_fields(
     authority = classify_silver_vault_record_sources(root, record)
     assert authority.status == INVALID_SILVER_AUTHORITY
     assert authority.reason_code == "invalid_silver_envelope"
+
+
+def _legacy_tiktok_comment_attention_v1_record(root: DataLakeRoot) -> dict:
+    source_body = b"legacy TikTok comment-attention source"
+    _commit_source(root, body=source_body)
+    record = _metric_record()
+    record.update({
+        "lane_namespace": "tiktok_comment_attention_silver",
+        "producer_id": "forseti-harness.capture_spine.creator_profile_current.tiktok_comment_attention_producer",
+        "producer_schema_version": "tiktok_comment_attention_metric_observation_v1",
+        "producer_row_kind": "tiktok_comment_attention_metric",
+        "source_surface": "tiktok_creator_batch_comment_subtitle_admission",
+        "observed_at": None,
+        "raw_refs": [{
+            "ref_type": "raw_packet", "packet_id": _PACKET_ID, "file_id": "source",
+            "relative_packet_path": "preserved/source.bin",
+            "sha256": hashlib.sha256(source_body).hexdigest(),
+            "hash_basis": "raw_stored_bytes",
+            "anchor": {"kind": "json_pointer", "value": "/videos/0"},
+            "relation": "observed_from",
+        }],
+        "payload": {"observation": {
+            "metric_name": "comment_like_to_video_like_ratio",
+            "metric_value": None,
+            "metric_posture": {
+                "kind": "unavailable_with_reason",
+                "reason_code": "temporal_alignment_unproven",
+                "reason_detail": "comment and video observations were not aligned",
+            },
+            "source_publication_or_event": None,
+            "temporal_pairing": {
+                "comment_observed_at": None,
+                "video_stats_observed_at": "2026-07-15T12:54:07Z",
+                "alignment": "unproven",
+            },
+        }},
+    })
+    _rehash(record)
+    return record
+
+
+def test_legacy_tiktok_v1_null_time_is_historical_after_byte_verification(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    record = _legacy_tiktok_comment_attention_v1_record(root)
+    original = deepcopy(record)
+    authority = classify_silver_vault_record_sources(root, record)
+    root.append_record(
+        subtree="derived",
+        raw_anchor=record["raw_anchor"],
+        lane=record["lane_namespace"],
+        record_id=record["record_id"],
+        data=(json.dumps(record, sort_keys=True) + "\n").encode("utf-8"),
+    )
+    census = build_silver_observation_census(root)
+
+    assert record == original
+    assert authority.status == "historical_compatible"
+    assert authority.reason_code == "legacy_tiktok_comment_attention_v1_bytes_verified"
+    assert census["totals"]["historical_compatible_silver_records"] == 1
+    assert census["totals"]["current_source_backed_silver_records"] == 0
+    assert census["errors"] == []
+
+
+def test_legacy_tiktok_v1_is_read_only_and_exactly_bounded(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    record = _legacy_tiktok_comment_attention_v1_record(root)
+    with pytest.raises(SilverRecordError, match="read-only compatibility"):
+        validate_silver_vault_record_for_write(record)
+
+    changed = deepcopy(record)
+    changed["producer_id"] = "unknown.producer"
+    _rehash(changed)
+    authority = classify_silver_vault_record_sources(root, changed)
+    assert authority.status == INVALID_SILVER_AUTHORITY
+
+    partial = deepcopy(record)
+    partial["payload"]["observation"]["effective_interval"] = {
+        "start": None, "start_precision": "unknown"
+    }
+    _rehash(partial)
+    authority = classify_silver_vault_record_sources(root, partial)
+    assert authority.status == INVALID_SILVER_AUTHORITY
+
+
+def test_legacy_tiktok_v1_known_time_remains_current_but_read_only(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    record = _legacy_tiktok_comment_attention_v1_record(root)
+    record["observed_at"] = "2026-07-15T12:54:07Z"
+    _rehash(record)
+
+    authority = classify_silver_vault_record_sources(root, record)
+    assert authority.status == CURRENT_SOURCE_BACKED_AUTHORITY
+    with pytest.raises(SilverRecordError, match="read-only compatibility"):
+        validate_silver_vault_record_for_write(record)
+
+
+def test_append_silver_record_rejects_undeclared_lane_before_write(tmp_path: Path) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    _commit_source(root)
+    record = _text_record()
+    record["lane_namespace"] = "undeclared_silver"
+    _rehash(record)
+
+    with pytest.raises(SilverRecordError, match="registered as silver_envelope"):
+        append_silver_record(
+            root, raw_anchor=_PACKET_ID, lane="undeclared_silver",
+            record_id=record["record_id"], record=record,
+        )
+    assert not root.lane_dir(
+        subtree="derived", raw_anchor=_PACKET_ID, lane="undeclared_silver"
+    ).exists()
+
+
+@pytest.mark.parametrize("completion_lane", ["undeclared_completion", "cleaning_fragrantica_audit"])
+def test_append_silver_record_set_rejects_invalid_completion_lane_before_any_write(
+    tmp_path: Path, completion_lane: str
+) -> None:
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    _commit_source(root)
+    record = _text_record()
+
+    with pytest.raises(SilverRecordError, match="registered as completion_marker"):
+        append_silver_record_set(
+            root,
+            raw_anchor=_PACKET_ID,
+            record_id=record["record_id"],
+            records={_SILVER_LANE: record},
+            completion_lane=completion_lane,
+        )
+    assert not root.lane_dir(
+        subtree="derived", raw_anchor=_PACKET_ID, lane=_SILVER_LANE
+    ).exists()

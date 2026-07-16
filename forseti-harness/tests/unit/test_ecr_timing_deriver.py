@@ -1,16 +1,10 @@
 import pytest
 
+from _ecr_builders import build_packet
 from ecr.deriver import derive_timing_postures
 from source_capture.models import (
     CUTOFF_POSTURE_VALUES,
-    OBLIGATION_CONTRACT_VERSION,
-    SOURCE_CAPTURE_MANIFEST_VERSION,
-    CaptureModeCategory,
-    PacketTiming,
-    PreservedFile,
-    ReceiptMetadata,
     SourceCapturePacket,
-    SourceCaptureSlice,
     VisibleFact,
     VisibleFactStatus,
     known_fact,
@@ -20,68 +14,27 @@ from source_capture.models import (
 )
 
 
-def _timing(cutoff: VisibleFact) -> PacketTiming:
-    return PacketTiming(
-        source_publication_or_event=not_applicable("test"),
-        source_edit_or_version=not_applicable("test"),
-        capture_time=not_applicable("test"),
-        recapture_time=not_applicable("test"),
-        cutoff_posture=cutoff,
-    )
-
-
 def _packet(cutoffs: list[VisibleFact]) -> SourceCapturePacket:
     """Build a minimal valid packet whose slices carry the given cutoff facts.
 
     One preserved file is referenced by the first slice so the packet's
     preserved-file-reference invariants are satisfied without coupling the test
-    to file plumbing.
+    to file plumbing. Cutoff facts pass through ``build_packet`` unchanged.
     """
-    slices = [
-        SourceCaptureSlice(
-            slice_id=f"s{i}",
-            locator=not_applicable("test"),
-            timing=_timing(cutoff),
-            access_posture=not_applicable("test"),
-            archive_history_posture=not_applicable("test"),
-            media_modality_posture=not_applicable("test"),
-            re_capture_relationship=not_applicable("test"),
-            preserved_file_ids=(["f1"] if i == 0 else []),
-        )
-        for i, cutoff in enumerate(cutoffs)
-    ]
-    return SourceCapturePacket(
-        packet_id="pkt-test",
-        manifest_version=SOURCE_CAPTURE_MANIFEST_VERSION,
-        obligation_contract_version=OBLIGATION_CONTRACT_VERSION,
+    # helper-delta vs _ecr_builders.build_packet defaults: this file keeps its
+    # original neutral packet identity (test_family / test_surface / n-a locator).
+    return build_packet(
+        [
+            {
+                "id": f"s{i}",
+                "files": ([("f1", "0" * 64)] if i == 0 else []),
+                "cutoff": cutoff,
+            }
+            for i, cutoff in enumerate(cutoffs)
+        ],
         source_family="test_family",
         source_surface="test_surface",
         source_locator=not_applicable("test"),
-        requested_decision_context=not_applicable("test"),
-        capture_context=not_applicable("test"),
-        actor_audience_context=not_applicable("test"),
-        capture_mode=CaptureModeCategory.MIXED,
-        operator_category="test",
-        session_identity="test",
-        timing=_timing(known_fact("pre_cutoff")),
-        access_posture=not_applicable("test"),
-        archive_history_posture=not_applicable("test"),
-        media_modality_posture=not_applicable("test"),
-        re_capture_relationship=not_applicable("test"),
-        source_slices=slices,
-        preserved_files=[
-            PreservedFile(
-                file_id="f1",
-                original_path="/tmp/x",
-                relative_packet_path="x",
-                sha256="0" * 64,
-                hash_basis="raw_stored_bytes",
-                size_bytes=0,
-            )
-        ],
-        receipt_metadata=ReceiptMetadata(
-            title="t", generated_at="2026-01-01T00:00:00Z", summary="s"
-        ),
     )
 
 

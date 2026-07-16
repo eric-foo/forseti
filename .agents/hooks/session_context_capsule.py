@@ -46,6 +46,12 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import os
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    porcelain_paths,
+    repo_root,
+)
+
 # Config-surface paths whose dirt matters to every lane (repo-relative POSIX).
 CONFIG_SURFACE = ("CLAUDE.md", "AGENTS.md", ".claude", ".agents")
 
@@ -53,11 +59,6 @@ ENTRY_POINTERS = (
     "docs/workflows/forseti_repo_map_v0.md",
     ".agents/workflow-overlay/README.md",
 )
-
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
 
 
 def tree_counts(porcelain: str) -> tuple[int, int]:
@@ -77,18 +78,11 @@ def tree_counts(porcelain: str) -> tuple[int, int]:
 
 
 def config_dirt(porcelain: str) -> list[str]:
-    """Paths from config-surface-scoped porcelain output (pure function)."""
-    out: list[str] = []
-    for line in porcelain.splitlines():
-        if len(line) < 4:
-            continue
-        path = line[3:]
-        if " -> " in path:  # rename: take the destination
-            path = path.split(" -> ", 1)[1]
-        path = path.strip().strip('"')
-        if path and path not in out:
-            out.append(path)
-    return out
+    """Paths from config-surface-scoped porcelain output (pure function).
+
+    Parsing is shared (_hooklib.porcelain_paths, which keeps a rename's
+    destination)."""
+    return porcelain_paths(porcelain)
 
 
 def doctrine_lag_line(diff_output: str | None) -> str | None:
@@ -143,6 +137,7 @@ def build_capsule(source: str, root: str, branch: str, head: str,
     return "\n".join(lines)
 
 
+# Kept local: deliberate delta from _hooklib.git_out (--no-optional-locks, 5s timeout, stdout-str-or-'' contract).
 def _git(root: Path, *args: str) -> str:
     """Run a git command with a short timeout; '' on any failure (fail open).
 

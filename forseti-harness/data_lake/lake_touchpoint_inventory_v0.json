@@ -256,6 +256,24 @@
       "a2_fork_impact": "none",
       "call": "append_record",
       "count": 1,
+      "module": "runners/run_instagram_creator_audience_triangulation.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "lane_dir",
+      "count": 1,
+      "module": "runners/run_instagram_creator_audience_triangulation.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "record_path",
+      "count": 2,
+      "module": "runners/run_instagram_creator_audience_triangulation.py"
+    },
+    {
+      "a2_fork_impact": "none",
+      "call": "append_record",
+      "count": 2,
       "module": "runners/run_tiktok_creator_audience_triangulation.py"
     },
     {
@@ -267,7 +285,7 @@
     {
       "a2_fork_impact": "none",
       "call": "record_path",
-      "count": 1,
+      "count": 3,
       "module": "runners/run_tiktok_creator_audience_triangulation.py"
     },
     {
@@ -429,6 +447,15 @@
   ],
   "raw_packet_writers": {
     "runner_seams": [
+      {
+        "a2_fork_impact": "manifest_shape",
+        "identity_binding": {
+          "mechanism": "before packet write, the bundle metadata requested_url and final_url must equal the caller-supplied Basenotes product URL, and the rendered DOM must contain the exact caller-bound product path plus Product/review/reviewBody JSON-LD markers; challenge-only content fails closed",
+          "status": "bound"
+        },
+        "kind": "direct_packet_writer",
+        "runner": "run_basenotes_mgt_capture.py"
+      },
       {
         "a2_fork_impact": "manifest_shape",
         "identity_binding": {

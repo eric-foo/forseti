@@ -3,7 +3,7 @@
 ```yaml
 retrieval_header_version: 1
 artifact_role: Spine README
-scope: Entry point for the live Commission Signal Board pilot spine.
+scope: Entry point for the live Commission Signal Board spine, including standard and one-company competitive-intelligence profiles.
 use_when:
   - Starting Commission Signal Board prompt, playbook, validator, or migration work.
   - Checking which CSB artifacts are canonical after the spine-first pilot authorization.
@@ -39,6 +39,26 @@ stale_if:
 
 Naming note: **Prompt Structure** is the runnable CSB prompt/template. **Prompt Structure Rules** is the durable authority/rules doc for that prompt structure. File paths now use role-aligned names.
 
+## Commission Profiles And Time Postures
+
+CSB keeps the existing `mode: backtest | forward` axis unchanged and adds two
+orthogonal fields:
+
+- `commission_profile: standard_signal_board | company_competitive_intelligence`;
+- `time_posture: recency_first | longitudinal`.
+
+`recency_first` is the universal default and uses the canonical prompt's
+deterministic 0-30, 31-90, 91-180, and over-180-day ladder. `longitudinal` is an
+explicit override only for change, recurrence, or trajectory across a declared
+period and requires both the period and rationale. A named event is a route or
+query inside one of these two postures, not another posture.
+
+A commission for one company subject defaults to
+`company_competitive_intelligence` when the subject is a Brand or Org, including
+an unresolved Brand/Org identity. That profile produces the conditional
+ten-section company report and no demand-classifier handoff. Other commissions
+continue to use the existing standard Sections 1-10 and classifier handoff.
+
 ## Legacy Non-Controlling Artifacts
 
 | Artifact | Status | Current authority |
@@ -46,6 +66,12 @@ Naming note: **Prompt Structure** is the runnable CSB prompt/template. **Prompt 
 | `forseti/product/spines/commission_signal_board/dispatch_rules/forseti_demand_gate_run_commission_criteria_v0.md` | Historical only; not a live CSB dispatch rule | Use the CSB prompt and playbook. CSB is an evidence/signals-only board and must not emit admit/hold/fail gate verdicts. |
 
 ## Boundaries
+
+CSB owns commission profiles, source-family requirements, time posture, and
+typed gaps/requests. Scanning owns the intelligent walk, exact-query and
+category-aware hidden-venue discovery, negatives, access notes, and frontier
+closeout. Capture owns lawful source access and preservation adapters. CSB does
+not contain venue or research modules and does not fake either downstream act.
 
 This spine does not authorize retrieval, scraping, capture, graph construction,
 demand classification, forecasting, judgment, buyer proof, validation,
@@ -57,6 +83,12 @@ final resonance weight, and Action Ceiling.
 The executable validator remains at
 `.agents/hooks/check_commission_signal_board_output.py`. The executable tests
 and fixtures remain under `forseti-harness/tests/`.
+
+Company reports remain one-company-at-a-time and decision-neutral. They may use
+bounded comparator pointers to interpret the subject, but deep competitor
+treatment requires a separately named follow-up commission. Their Company
+Surface ledger is candidate-only: no import, identity resolution, stored
+corpus, or Company Surface mutation occurs in CSB.
 
 ## Old Paths
 

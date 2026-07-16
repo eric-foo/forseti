@@ -111,6 +111,12 @@ Every family makes these concepts recoverable:
 | Limitations and alternatives | Keeps unknowns, conflicts, gaps, and unsupported relations visible. |
 | Correction and supersession | Appends change without deleting earlier evidence or as-known history. |
 
+When an observation-mapped family (subject assertion or coverage/failure
+marker) declares an unknown effective start, its limitations must be non-empty
+so the missing time boundary remains inspectable. Relationship-mapped families
+(relationship assertion and company-activity link) retain nullable observed-time
+behavior and do not inherit this observation-only coupling.
+
 ## Time And View Contract
 
 Every view declares two independent boundaries:

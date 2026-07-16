@@ -86,7 +86,9 @@ from source_capture.basenotes_projection import (
 _ACK_NAMESPACE = BASENOTES_CLEANING_AUDIT_LANE
 _SEAM_CONSUMER = "basenotes_cleaning_catchup"
 _SOURCE_FAMILY = "fragrance_native_database"
-_BASENOTES_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_BASENOTES_SURFACE = (
+    "basenotes_product_page_user_cleared_persistent_chrome_current_window"
+)
 _KNOWN_OUT_OF_SCOPE_SURFACES = frozenset(
     {
         "fragrantica_product_page_direct_http",

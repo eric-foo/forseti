@@ -512,6 +512,7 @@ def _write_product_mentions(
                 lane=lane,
                 record_id=asr_record_id or "asr_unknown.json",
             ),
+            captured_at=_CAPTURE_TIME,
         )
         transcript = TranscriptInput(
             video_id=_SHORTCODE,

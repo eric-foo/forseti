@@ -14,11 +14,13 @@ Each slice spec drives the slice-grain inputs the three derivers read::
         "id": str,                     # slice_id
         "files": [(file_id, sha256)],  # SP-2 inspectability inputs
         "locator_known": bool,         # SP-2: is the slice locator KNOWN?
-        "cutoff": str | None,          # SP-3: cutoff_posture
+        "cutoff": str | VisibleFact | None,  # SP-3: cutoff_posture
     }
 
-``cutoff`` is a closed ``CUTOFF_POSTURE_VALUES`` token (carried as a KNOWN fact)
-or ``None`` (carried as a ``not_attempted`` residual, status != KNOWN).
+``cutoff`` is a closed ``CUTOFF_POSTURE_VALUES`` token (carried as a KNOWN fact),
+a ``VisibleFact`` carried through unchanged (for tests that pin exact non-KNOWN
+statuses and reasons), or ``None`` (carried as a ``not_attempted`` residual,
+status != KNOWN).
 Packet-level identity (``source_family`` / ``source_surface`` /
 ``source_locator``) drives SP-1 and is set per call; defaults are fully specific
 (SP-1 resolved). Reach the other SP-1 states by override: empty ``source_family``
@@ -59,14 +61,17 @@ _VERIFIABLE_SHA = "a" * 64  # 64 hex, not all-zero -> SP-2 verifiable
 _PLACEHOLDER_SHA = "0" * 64  # all-zero sentinel -> SP-2 not verifiable
 
 
-def _cutoff_fact(cutoff: str | None) -> VisibleFact:
-    """A KNOWN closed cutoff token, or a ``not_attempted`` residual when ``None``."""
+def _cutoff_fact(cutoff: str | VisibleFact | None) -> VisibleFact:
+    """A KNOWN closed cutoff token, a ``VisibleFact`` passed through unchanged,
+    or a ``not_attempted`` residual when ``None``."""
     if cutoff is None:
         return not_attempted("no cutoff posture captured")
+    if isinstance(cutoff, VisibleFact):
+        return cutoff
     return known_fact(cutoff)
 
 
-def _slice_timing(cutoff: str | None) -> PacketTiming:
+def _slice_timing(cutoff: str | VisibleFact | None) -> PacketTiming:
     """Slice timing whose only decision-bearing fact is ``cutoff_posture``."""
     na = not_applicable("test")
     return PacketTiming(

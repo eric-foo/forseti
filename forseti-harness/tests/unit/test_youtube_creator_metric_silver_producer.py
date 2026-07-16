@@ -16,6 +16,7 @@ from collections import Counter
 from copy import deepcopy
 import hashlib
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -37,7 +38,7 @@ from capture_spine.creator_profile_current.youtube_silver_metric_producer import
 from data_lake.attachment_record_entry import ATTACHMENT_RECORD_SCHEMA_VERSION
 from data_lake.catalog import rebuild_catalog
 from data_lake.root import DataLakeRoot, raw_shard
-from data_lake.silver_record import SilverRecordError, verify_silver_vault_record_sources
+from data_lake.silver_record import SilverRecordError, validate_silver_vault_record, verify_silver_vault_record_sources
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
 from source_capture.youtube_watch_packet import YoutubeWatchFetch, write_youtube_watch_packet
@@ -249,6 +250,16 @@ def _run(tmp_path: Path):
     return result, seed_document[YOUTUBE_SEED_WRAPPER_KEY]
 
 
+@pytest.fixture(scope="module")
+def committed_seed_run(harness_tmp_root: Path):
+    path = harness_tmp_root / "youtube_creator_metric_silver_committed_seed"
+    path.mkdir()
+    try:
+        yield _run(path)
+    finally:
+        shutil.rmtree(path, ignore_errors=True)
+
+
 def _materialize_seed_sources(data_root: DataLakeRoot, seed_document: dict) -> None:
     """Give the committed metric fixture real verified temp-lake raw sources.
 
@@ -294,8 +305,8 @@ def _materialize_seed_sources(data_root: DataLakeRoot, seed_document: dict) -> N
         observation["source_file"] = "preserved/source.json"
 
 
-def test_producer_emits_conformant_metric_observation_records(tmp_path: Path) -> None:
-    result, seed = _run(tmp_path)
+def test_producer_emits_conformant_metric_observation_records(committed_seed_run) -> None:
+    result, seed = committed_seed_run
     assert len(result.observation_records) == EXPECTED_OBSERVATIONS == len(seed["metric_observations"])
 
     seed_by_id = {o["metric_observation_id"]: o for o in seed["metric_observations"]}
@@ -478,6 +489,27 @@ def test_bronze_attachment_ref_rejects_altered_body_bytes(tmp_path: Path) -> Non
         verify_silver_vault_record_sources(data_root, result.observation_records[0])
 
 
+def test_unknown_source_time_uses_explicit_unknown_grammar() -> None:
+    seed_document = _committed_seed_document()
+    seed = seed_document[YOUTUBE_SEED_WRAPPER_KEY]
+    seed_observation = deepcopy(seed["metric_observations"][0])
+    seed_observation["observed_at"] = None
+
+    record = build_metric_observation_record(
+        seed_observation=seed_observation,
+        recorded_at=seed["generated_at_utc"],
+    )
+    validate_silver_vault_record(record)
+
+    observation = record["payload"]["observation"]
+    assert record["observed_at"] is None
+    assert record["captured_at"] == seed["generated_at_utc"]
+    assert observation["effective_interval"]["start_precision"] == "unknown"
+    assert observation["recorded_at"] == seed["generated_at_utc"]
+    assert observation["evidence_refs"]
+    assert observation["limitations"]
+
+
 def test_missing_bronze_attachment_record_stays_visible_when_requested(tmp_path: Path) -> None:
     data_root = DataLakeRoot.for_test(tmp_path / "lake")
     packet_id, preserved = _commit_unrelated_packet(data_root, tmp_path)
@@ -532,8 +564,8 @@ def test_ambiguous_bronze_attachment_record_stays_visible_when_requested(tmp_pat
         {"reason": "other", "detail": "typed_attachment_record_ambiguous_for_raw_ref"}
     ]
 
-def test_observation_no_drift_against_committed_seed(tmp_path: Path) -> None:
-    result, seed = _run(tmp_path)
+def test_observation_no_drift_against_committed_seed(committed_seed_run) -> None:
+    result, seed = committed_seed_run
     seed_by_id = {o["metric_observation_id"]: o for o in seed["metric_observations"]}
     for record in result.observation_records:
         seed_obs = seed_by_id[record["provenance"]["seed_metric_observation_id"]]
@@ -547,8 +579,8 @@ def test_observation_no_drift_against_committed_seed(tmp_path: Path) -> None:
         assert observation["metric_posture"]["reason_detail"] == seed_obs["posture_reason_or_none"]
 
 
-def test_observation_records_written_and_reload_with_stable_hash(tmp_path: Path) -> None:
-    result, _ = _run(tmp_path)
+def test_observation_records_written_and_reload_with_stable_hash(committed_seed_run) -> None:
+    result, _ = committed_seed_run
     assert len(result.observation_paths) == len(result.observation_records) == EXPECTED_OBSERVATIONS
     # Spot-check the first/last 5 reload with a self-reproducing hash (full set is
     # already covered by the conformance test; this proves the bytes-on-disk path).
@@ -561,8 +593,8 @@ def test_observation_records_written_and_reload_with_stable_hash(tmp_path: Path)
         assert on_disk["content_hash"] == f"sha256:{_content_hash(on_disk)}"
 
 
-def test_rollup_records_lineage_and_no_drift(tmp_path: Path) -> None:
-    result, seed = _run(tmp_path)
+def test_rollup_records_lineage_and_no_drift(committed_seed_run) -> None:
+    result, seed = committed_seed_run
     assert len(result.rollup_records) == EXPECTED_ROLLUPS == len(seed["metric_rollups"])
 
     seed_by_id = {r["metric_rollup_id"]: r for r in seed["metric_rollups"]}
@@ -620,8 +652,8 @@ def test_rollup_records_lineage_and_no_drift(tmp_path: Path) -> None:
             assert rollup_metric["metric_posture"]["reason_detail"] == seed_metric.get("posture_reason_or_none")
 
 
-def test_rollup_metric_posture_value_coupling(tmp_path: Path) -> None:
-    result, _ = _run(tmp_path)
+def test_rollup_metric_posture_value_coupling(committed_seed_run) -> None:
+    result, _ = committed_seed_run
     saw_observed = False
     saw_non_observed = False
     for rollup in result.rollup_records:
@@ -641,8 +673,8 @@ def test_rollup_metric_posture_value_coupling(tmp_path: Path) -> None:
     assert saw_observed and saw_non_observed
 
 
-def test_observations_anchor_to_distinct_packets_rollups_to_accounts(tmp_path: Path) -> None:
-    result, seed = _run(tmp_path)
+def test_observations_anchor_to_distinct_packets_rollups_to_accounts(committed_seed_run) -> None:
+    result, seed = committed_seed_run
     # Each observation anchors to its own distinct per-Short packet.
     obs_anchors = [r["raw_anchor"] for r in result.observation_records]
     assert len(set(obs_anchors)) == EXPECTED_OBSERVATIONS

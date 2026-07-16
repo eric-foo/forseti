@@ -59,6 +59,9 @@ Before persistence, the Silver front door verifies:
 - closed record kind, payload kind, and no Cleaning transform ledger in the fact;
 - Text/Metric observation posture, row counts, row identity, inline-text hashes, and
   policy fingerprints;
+- known-time observations carry `observed_at`; null is accepted only with the
+  generic explicit-unknown interval plus recorded/capture time, evidence, and
+  visible limitations;
 - every Silver member of a detectable record set before any member is written.
 
 ## Immutable legacy-read compatibility
@@ -66,9 +69,9 @@ Before persistence, the Silver front door verifies:
 Strict new writes and compatible historical reads are separate obligations. The
 write front doors require canonical reference types, closed hash bases, and exact
 derived addresses. Read-time compatibility is limited to the exact declared
-Fragrantica and creator-metric v0 producer/schema profiles. The original envelope
-and content hash validate before any in-memory address inference; the stored
-record is never mutated.
+Fragrantica, creator-metric v0, and TikTok comment-attention v1 producer/schema
+profiles. The original envelope and content hash validate before any in-memory
+address or semantic compatibility inference; the stored record is never mutated.
 
 Legacy Fragrantica refs may infer only the unambiguous raw-packet type and the
 record's validated anchor for its declared cleaning-audit source. Legacy creator
@@ -77,6 +80,12 @@ index, including exact rollup record-id/content-hash matching. Unknown,
 contradictory, ambiguous, or unresolved forms fail closed. Absence of
 lineage_schema_version alone is not evidence failure; a present value must
 validate.
+
+TikTok comment-attention v1 is read-only. Its exact null-time historical shape
+classifies as historical-compatible only after its original content hash and
+canonical raw packet bytes verify. The corrected v2 record with the explicit
+unknown-time grammar remains current evidence, preventing double counting.
+Known-time v1 records remain current-source-backed when their bytes verify.
 ## Reader selection
 
 Current `by_mention` and share-of-voice readers scan only
@@ -88,14 +97,18 @@ explicit lane/path lookup only.
 ## Re-derivation and idempotency
 
 The product and audience runner obligations include their output record-schema
-versions. The envelope migration therefore changes the obligation fingerprint and
-re-surfaces previously acknowledged packets without recapture. Deterministic record
-ids plus completion markers preserve second-cycle-zero behavior after successful
-re-derivation. Partial sets remain visible and are never acknowledged as complete.
+versions. Envelope or explicit-unknown-time migrations therefore change the
+obligation fingerprint and re-surface previously acknowledged packets without
+recapture. Deterministic record ids plus completion markers preserve
+second-cycle-zero behavior after successful re-derivation. Partial sets remain
+visible and are never acknowledged as complete.
 
 ## Accepted residuals
 
-- The 226 declared historical creator records remain audit-readable but not current; owner: creator-metric Silver owner; upgrade trigger: source recapture or newly mounted exact cited bytes.
+- The 226 declared historical creator records and 93 replaced TikTok
+  comment-attention v1 null-time records remain audit-readable but not current;
+  owner: creator-metric/TikTok Silver owners; upgrade trigger: source recapture
+  for the creator records, or invalidation of a corrected v2 TikTok replacement.
 - The 40 historical deep-capture records and 92 retired-lane records remain audit-only; owner: Silver lane owners; upgrade trigger: separately authorized source-backed rederivation, never byte rewriting.
 - Rejected LLM rows remain processing telemetry and are not copied into Silver
   facts. Historical grammar-B records retain their old rejection detail.
@@ -109,24 +122,26 @@ re-derivation. Partial sets remain visible and are never acknowledged as complet
 
 ## Success signals
 
-- strict front doors reject nonexistent, tampered, non-canonical, and declared
-  legacy read-only refs before any write;
-- exact declared legacy Fragrantica and creator records classify without mutating
-  their stored mapping, while unknown or ambiguous forms fail closed;
+- strict front doors reject nonexistent, tampered, non-canonical, declared
+  legacy read-only refs, undeclared Silver lanes, and invalid completion lanes
+  before any write;
+- exact declared legacy Fragrantica, creator, and TikTok v1 records classify
+  without mutating their stored mapping, while unknown, partial, or ambiguous
+  forms fail closed;
 - census and authority readers agree on current, historical, invalid, and
   unresolved outcomes through the shared physical classifier;
 - no authority reader uses structural lineage completeness as physical proof;
 - packet-first IG deep capture remains current and cross-anchor substitution
   cannot inflate current totals;
 - at live acceptance fingerprint
-  `ef1566100296e0d53d48904e144fb6e84765f2cc886a828194683178a3c620df`:
-  7,836 stored Silver records, 7,478 current-source-backed, 226 creator
-  historical-compatible, and zero unexplained errors, with 40 historical deep
-  capture and 92 retired-lane records excluded from current evidence;
-- the +94 records since the prior 7,742-record snapshot reconcile exactly to
-  TikTok comment-attention Silver: the unchanged 5,040 Fragrantica and 1,306
-  creator records plus 10 social-metric observation sets leave 1,348 TikTok
-  records now versus 1,254 in the prior 1,264 token-bearing pool;
+  `07f5e0caeaf23720a9e33271d945279f72fac290382eb64e4d5b122b720b611d`
+  (`2026-07-16T11:17:16Z`): 8,518 stored Silver records, 8,067 current-source-
+  backed, 319 historical-compatible, zero unclassified, and zero errors, with 40
+  historical deep-capture and 92 retired-lane records excluded from current
+  evidence;
+- the 319 historical-compatible records reconcile exactly to 226 creator records
+  plus 93 replaced TikTok comment-attention v1 null-time records; the 93 exact v2
+  replacements remain current and no v1/v2 pair is double-counted;
 - no live-lake write, migration, recapture, or immutable-record rewrite occurs;
 - focused tests, full harness CI, contract/inventory gates, final read-only live
   census, and PR checks all pass at one final pushed head.
@@ -136,7 +151,7 @@ re-derivation. Partial sets remain visible and are never acknowledged as complet
 ```yaml
 direction_change_propagation:
   doctrine_changed: >
-    Silver authority now separates immutable envelope validation, strict canonical new writes, root-aware physical resolution, bounded declared legacy reads, and lane-specific selection. Packet-first IG deep capture remains current; historical deep-capture and retired-lane bytes remain audit-only. Structural lineage status cannot establish physical authority.
+    Silver authority now separates immutable envelope validation, strict canonical new writes, root-aware physical resolution, bounded declared legacy reads, and lane-specific selection. TikTok comment-attention v1 null-time records are a byte-verified historical profile whose v2 replacements stay current. Silver front doors also require registered envelope and completion lanes so new evidence cannot become census-invisible. Packet-first IG deep capture remains current; historical deep-capture and retired-lane bytes remain audit-only. Structural lineage status cannot establish physical authority.
   trigger: architecture_doctrine
   related_triggers:
     - lifecycle_boundary

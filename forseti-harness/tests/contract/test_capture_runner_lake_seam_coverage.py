@@ -51,6 +51,7 @@ from data_lake.inventory import (
 # sub-runners and are tested separately below.
 EXPECTED_BRONZE_WRITER_RUNNERS = frozenset(
     {
+        "run_basenotes_mgt_capture.py",
         "run_fragrance_review_lake_packet.py",
         "run_fragrantica_mgt_capture.py",
         "run_ig_reels_lane_orchestrator.py",
@@ -158,9 +159,12 @@ EXPECTED_NON_RAW_LAKE_TOUCHPOINTS = Counter(
         ("runners/run_ig_reels_product_extract.py", "record_path"): 1,
         ("runners/run_tiktok_product_extract.py", "is_record_set_complete"): 1,
         ("runners/run_tiktok_product_extract.py", "record_path"): 1,
-        ("runners/run_tiktok_creator_audience_triangulation.py", "append_record"): 1,
+        ("runners/run_instagram_creator_audience_triangulation.py", "append_record"): 1,
+        ("runners/run_instagram_creator_audience_triangulation.py", "lane_dir"): 1,
+        ("runners/run_instagram_creator_audience_triangulation.py", "record_path"): 2,
+        ("runners/run_tiktok_creator_audience_triangulation.py", "append_record"): 2,
         ("runners/run_tiktok_creator_audience_triangulation.py", "lane_dir"): 1,
-        ("runners/run_tiktok_creator_audience_triangulation.py", "record_path"): 1,
+        ("runners/run_tiktok_creator_audience_triangulation.py", "record_path"): 3,
         ("cleaning/transcript_product_lake.py", "append_silver_record_set"): 1,
         ("runners/run_transcript_product_extract.py", "is_record_set_complete"): 1,
         ("runners/run_transcript_product_extract.py", "lane_dir"): 2,

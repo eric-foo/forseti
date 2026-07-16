@@ -81,6 +81,7 @@ not changes to source precedence.
 | Prompt or review-prompt work | `.agents/workflow-overlay/prompt-orchestration.md` |
 | Current product direction and initial form | `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md` |
 | Beauty product application, decision admission, and proof boundary | `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md` |
+| One-company intelligence information requirements, paid-access choice, decision modules, and Company Surface boundary | `docs/decisions/forseti_company_intelligence_information_architecture_v0.md` |
 | Offer, ICP/wedge, buyer proof, or GTM | For the current US Beauty discovery run, start with `forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md`; otherwise start with the current thesis above, then the matching `forseti/product/spines/product_lead/` area. Buyer-specific bindings remain suspended until GTM rebinds them. |
 | Fragrance facts and per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` |
 | Ontology roster, namespaces, and typed links | `forseti/product/spines/foundation/ontology/ontology.yaml` |
@@ -92,6 +93,7 @@ not changes to source precedence.
 | Source-capture access / anti-blocking components | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` |
 | ECR source-side orientation | `docs/workflows/ecr_spine_submap_v0.md` |
 | Judgment Spine orientation or claim/gate routing | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` |
+| Creator ideal audience or commercial creator-fit method | `forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md` |
 | Cross-spine research-engine grouping | `docs/workflows/forseti_research_engine_map_v0.md` |
 | Repo-map architecture and T1/T2/T3 boundary | `docs/decisions/forseti_repo_map_architecture_mgt_v0.md` |
 | Rename compatibility boundary | `docs/decisions/forseti_compatibility_migration_boundary_v0.md` |
@@ -148,6 +150,7 @@ nearest index/submap, retrieval headers, or generated header index.
 | `CLAUDE.md` | Thin Claude compatibility shim importing `AGENTS.md`. |
 | `.agents/workflow-overlay/` | Forseti workflow authority: source rules, folders, routing, prompts, validation, review, and safety. |
 | `.agents/hooks/` | Portable enforcement and advisory scripts; use the Active Hooks routes above. |
+| `.agents/tools/` | Bounded agent-operated utilities; currently the exact-text fallback editor used only after the native patch route stalls. |
 | `.github/` | CI workflows and local operational scripts. |
 | `.githooks/` | Tracked local Git hook adapters; bypassable and not server-side protection. |
 | `.codex/` | Codex-local tracked hook configuration and adapters. |
