@@ -29,9 +29,9 @@ stale_if:
 - `workspace`: `C:\Users\vmon7\Desktop\projects\orca`
 - `authoring_worktree`: `C:\tmp\forseti-company-intelligence-information-architecture`
 - `handoff_path`: `docs/workflows/forseti_company_intelligence_architecture_to_first_proving_run_handoff_v0.md`
-- `expected_branch`: `codex/company-intelligence-information-architecture`
+- `expected_branch`: `codex/company-intelligence-outcome-contribution-handoff`
 - `expected_head`: the immutable couriered commit containing this packet; verify from the courier rather than substituting the source baseline
-- `source_baseline`: `origin/main` observed at `6f80d5ecfae9a0a55dc83c0847755a1f8f52230f` before authoring
+- `source_baseline`: `origin/main` observed at `e300f2c96b1e21c5ba0940be1d76cad9f8cdd180` before this refresh
 - `load_rule`: confirm-don't-trust; reread current authority and classify drift before making strict or actionable claims
 
 ## Goal Handoff
@@ -62,10 +62,23 @@ Compare no more than three candidates on:
 2. whether public or paid web evidence can establish a useful external baseline;
 3. decisive internal facts and whether their absence causes a hold;
 4. observable later action or outcome;
-5. leakage-resistant cutoff/reveal feasibility; and
-6. repeated-work potential without inventing a monitoring product.
+5. leakage-resistant cutoff/reveal feasibility;
+6. repeated-work potential without inventing a monitoring product; and
+7. an evidence path that distinguishes input use, plausible outcome contribution, and causal magnitude.
 
 Recommend one or return `NO_PROVING_DECISION_CLEARS`.
+
+## Outcome-Contribution Evidence Rule
+
+Knowing that a company used an input makes that input more decision-relevant than a generic public clue. It does **not** establish that the input had a higher-than-normal effect on the final outcome.
+
+Keep three claim levels separate:
+
+1. `INPUT_USE_ESTABLISHED`: contemporaneous evidence shows the company used the information in the decision.
+2. `MATERIAL_CONTRIBUTION_SUPPORTED`: time-ordered evidence supports the inference that the input materially helped or hurt the outcome after plausible alternative drivers and counterevidence are considered.
+3. `CAUSAL_MAGNITUDE_ESTABLISHED`: a credible counterfactual or equivalent design supports how much outcome change the input caused. This will often remain unavailable.
+
+The proving plan should seek the strongest feasible support for level 2 without pretending level 3 is always obtainable. Depending on the decision, useful support may include pre-decision prevalence and specificity of the input, whether the resulting action actually implemented it, adoption by the intended segment, sell-through or conversion against an appropriate baseline, repeat behavior, substitution, price response, and contemporaneous company attribution. It must also test alternative explanations such as distribution, promotion, creator spend, novelty, availability, seasonality, brand strength, or unrelated portfolio effects.
 
 ## Drift Guard
 
@@ -75,6 +88,8 @@ Recommend one or return `NO_PROVING_DECISION_CLEARS`.
 - Do not treat Reddit, reviews, paid databases, or any other source as a fact.
 - Do not treat paid evidence as inherently stronger than open evidence.
 - Do not replace a decisive unavailable fact with a proxy.
+- Do not infer above-normal outcome impact merely because an input entered the decision.
+- Do not demand experimental causal proof when a bounded material-contribution claim is the strongest feasible ceiling; preserve that ceiling explicitly.
 - Do not implement or mutate Company Surface.
 - Do not run research before the owner accepts the Decision Frame and smallest-complete information requirements.
 
@@ -83,8 +98,8 @@ Recommend one or return `NO_PROVING_DECISION_CLEARS`.
 1. Re-read `AGENTS.md`, the overlay front door and source-loading rules, this packet, the accepted architecture, current product thesis, beauty profile, and Core product contract.
 2. Confirm current CSB and Scanning boundaries only as needed to ensure the proposed plan is commissionable.
 3. Return one load outcome: `REUSE`, `PARTIAL_REUSE`, `STALE_REREAD_REQUIRED`, `BLOCKED_DRIFT`, `BLOCKED_MISSING_PACKET`, or `BLOCKED_UNVERIFIABLE`.
-4. After source readiness, present at most three candidate proving decisions on the six comparison criteria above.
-5. Recommend one candidate and write its proposed Decision Frame plus atomic information-requirements register, including open/paid/internal/unavailable access classes, rights needs, proxy ceilings, missing behavior, and reveal path.
+4. After source readiness, present at most three candidate proving decisions on the seven comparison criteria above.
+5. Recommend one candidate and write its proposed Decision Frame plus atomic information-requirements register, including open/paid/internal/unavailable access classes, rights needs, proxy ceilings, missing behavior, reveal path, and the evidence needed to distinguish input use from material outcome contribution.
 6. Stop for owner adjudication. Do not commission or execute research.
 
 ## Forseti Prompt Preflight
