@@ -114,12 +114,15 @@ For `company_competitive_intelligence`, the validator checks:
   category-aware forum discovery, typed gaps, and justified `not_applicable`;
 - observation-level URL, publisher, publication/event/access dates, evidence
   status, source class, fact domain, and syndication group;
-- current-page versus dated-event separation and no old evidence relabeled current;
+- shared source-family vocabulary, typed `effective_time_precision` and
+  `age_anchor_basis`, current-page versus dated-event separation, and no old
+  evidence relabeled current;
 - community evidence as external/customer evidence only;
 - decision-neutral company lenses and prohibited GTM keys;
 - Company Surface rows as `candidate_only` and `not_imported`;
-- completion ledger, explicit gaps/requests, no arbitrary caps, and no
-  classifier handoff.
+- completion ledger, explicit gaps/requests, no arbitrary caps, typed
+  `run_boundary` and `next_authorized_step`, and no classifier handoff;
+- the shared engagement/resonance overclaim ban, which applies to both profiles.
 
 ## What A Pass Means
 
@@ -216,10 +219,10 @@ direction_change_propagation:
   stale_language_search_result: >
     Executed 2026-07-16. The scoped profile/posture/venue/classifier search
     returned expected live-contract and non-claim hits; the exact forbidden
-    posture search returned no hits. Live instructions preserve the standard
-    classifier handoff, omit it from company reports, and do not treat validator
-    pass as truth, demand classification, proof, graph weight, recency proof,
-    or readiness.
+    posture search returned only quoted receipt literals, not live contract
+    usage. Live instructions preserve the standard classifier handoff, omit it
+    from company reports, and do not treat validator pass as truth, demand
+    classification, proof, graph weight, recency proof, or readiness.
   non_claims:
     - not validation
     - not readiness

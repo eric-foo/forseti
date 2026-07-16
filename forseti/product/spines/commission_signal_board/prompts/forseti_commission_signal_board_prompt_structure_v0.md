@@ -673,7 +673,9 @@ in one sentence.
 
 Use this contract only when
 `commission_profile: company_competitive_intelligence`. Do not reuse the
-standard classifier handoff. All ten sections require one YAML document.
+standard classifier handoff. Sections 1, 3, 4, 9, and 10 require the typed YAML
+documents below. Sections 2 and 5-8 are concise narrative sections that cite
+the applicable `OBS-NNN` rows and preserve their named boundaries.
 
 ### 1. Company Commission And Identity Receipt
 
@@ -696,37 +698,17 @@ company_commission_receipt:
 
 ### 2. Decision-Neutral Boundary
 
-```yaml
-decision_neutral_boundary:
-  permitted:
-    - observable_positioning
-    - offerings_and_claims
-    - markets_and_channels
-    - recent_strategic_and_operating_moves
-    - customer_and_community_response
-    - bounded_competitor_or_substitute_context
-    - contradictions
-    - evidence_gaps
-  prohibited:
-    - pain
-    - buyer
-    - icp
-    - priority
-    - urgency
-    - willingness_to_pay
-    - outreach
-    - offer
-    - wedge
-  one_company_at_a_time: true
-  deep_competitor_treatment: separately_named_follow_up_required
-```
+State the permitted decision-neutral lenses and explicitly preserve these
+boundaries: one company at a time; deep competitor treatment requires a
+separately named follow-up; no pain, buyer, ICP, priority, urgency, willingness
+to pay, outreach, offer, or wedge conclusion.
 
 ### 3. Source-Family And Venue Coverage Ledger
 
 ```yaml
 coverage_ledger:
   - coverage_id: COV-001
-    source_family:
+    source_family: forums_community | reviews | creator_social_video | retail_pdp | search_discovery | aeo_answer_engines | news_editorial_trade | professional_org_motion | owned_channels | other
     source_surface:
     venue:
     relevance_rationale:
@@ -755,7 +737,7 @@ observation_ledger:
     identity_state: resolved | provisional | ambiguous | unresolved
     coverage_id: COV-001
     source_url_or_packet_locator:
-    source_family:
+    source_family: forums_community | reviews | creator_social_video | retail_pdp | search_discovery | aeo_answer_engines | news_editorial_trade | professional_org_motion | owned_channels | other
     source_surface:
     publisher_or_venue:
     source_class: official_first_party | official_regulatory | independent | retailer | customer_community | creator_social | unknown
@@ -786,43 +768,26 @@ demand or internal company fact.
 
 ### 5. Positioning, Offerings, Markets, And Channels
 
-```yaml
-positioning_offerings_markets_channels:
-  observation_ids: []
-  contradictions: []
-  evidence_gaps: []
-```
+Summarize observable positioning, offerings/claims, markets, and channels.
+Cite the supporting observation IDs and name contradictions and evidence gaps.
 
 ### 6. Strategic And Operating Chronology
 
-```yaml
-strategic_operating_chronology:
-  observation_ids: []
-  change_recurrence_or_trajectory: []
-  evidence_gaps: []
-```
+Summarize strategic and operating chronology with observation IDs. Under
+`longitudinal`, name the bounded change, recurrence, or trajectory; otherwise
+do not manufacture one. Preserve evidence gaps.
 
 ### 7. Customer And Community Response
 
-```yaml
-customer_community_response:
-  observation_ids: []
-  representativeness_claim: none
-  internal_company_fact_claim: none
-  contradictions: []
-  evidence_gaps: []
-```
+Summarize customer and community response with observation IDs. State that the
+evidence is not representative demand and not internal company fact. Preserve
+contradictions and evidence gaps.
 
 ### 8. Competitor Context, Contradictions, And Gaps
 
-```yaml
-competitor_context_contradictions_gaps:
-  observation_ids: []
-  comparator_pointers: []
-  deep_competitor_treatment: separately_named_follow_up_required
-  contradictions: []
-  evidence_gaps: []
-```
+Use bounded comparator pointers only where they interpret the subject. Cite
+observation IDs, contradictions, and gaps. State that deep competitor treatment
+requires a separately named follow-up commission.
 
 ### 9. Company Surface Candidate Ledger
 
@@ -976,7 +941,8 @@ direction_change_propagation:
     Executed 2026-07-16. The scoped contract search returned 295 expected
     profile, posture, venue, classifier-boundary, validator, fixture, and
     non-claim hits. A separate exact search for historical_window,
-    event_bounded, and wider_history returned no hits. Live company surfaces
+    event_bounded, and wider_history returned only the quoted search/result
+    literals in this receipt, not live contract usage. Live company surfaces
     keep candidates non-importing and classifier handoff omitted; the standard
     classifier handoff remains in its unchanged profile contract.
   non_claims:

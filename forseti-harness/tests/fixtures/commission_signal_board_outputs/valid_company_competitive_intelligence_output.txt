@@ -31,7 +31,7 @@ This report records observable company and external-response evidence. It makes 
 ```yaml
 coverage_ledger:
   - coverage_id: COV-001
-    source_family: official_company
+    source_family: owned_channels
     source_surface: company_site
     venue: Example Labs website
     relevance_rationale: Current first-party positioning and offering claims.
@@ -44,7 +44,7 @@ coverage_ledger:
     relevance: relevant
     gap_id: null
   - coverage_id: COV-002
-    source_family: independent_trade_editorial
+    source_family: news_editorial_trade
     source_surface: trade_article
     venue: Example Trade
     relevance_rationale: Independent context for a stated operating move.
@@ -57,7 +57,7 @@ coverage_ledger:
     relevance: relevant
     gap_id: null
   - coverage_id: COV-003
-    source_family: customer_community
+    source_family: forums_community
     source_surface: bounded_subreddit_scout
     venue: Reddit
     relevance_rationale: Mandatory bounded scout for customer and community response.
@@ -70,7 +70,7 @@ coverage_ledger:
     relevance: relevant
     gap_id: null
   - coverage_id: COV-004
-    source_family: customer_community
+    source_family: forums_community
     source_surface: answer_forum_scout
     venue: Quora
     relevance_rationale: Explicit experimental scout for the initial proving run.
@@ -83,7 +83,7 @@ coverage_ledger:
     relevance: mixed
     gap_id: null
   - coverage_id: COV-005
-    source_family: customer_community
+    source_family: forums_community
     source_surface: category_specialist_forum
     venue: Example Specialist Forum
     relevance_rationale: Category-aware hidden-venue discovery surfaced a relevant specialist thread.
@@ -96,7 +96,7 @@ coverage_ledger:
     relevance: relevant
     gap_id: null
   - coverage_id: COV-006
-    source_family: retail_catalog
+    source_family: retail_pdp
     source_surface: retailer_product_page
     venue: Example Retailer
     relevance_rationale: Current availability and channel corroboration.
@@ -109,7 +109,7 @@ coverage_ledger:
     relevance: relevant
     gap_id: null
   - coverage_id: COV-007
-    source_family: official_regulatory
+    source_family: professional_org_motion
     source_surface: public_filing
     venue: Example Registry
     relevance_rationale: Historical organization boundary and chronology.
@@ -122,7 +122,7 @@ coverage_ledger:
     relevance: relevant
     gap_id: null
   - coverage_id: COV-008
-    source_family: creator_social
+    source_family: creator_social_video
     source_surface: public_video_comments
     venue: Example Video
     relevance_rationale: Relevant public response surface, but preservation access was blocked.
@@ -146,7 +146,7 @@ observation_ledger:
     identity_state: unresolved
     coverage_id: COV-001
     source_url_or_packet_locator: https://example.test/company
-    source_family: official_company
+    source_family: owned_channels
     source_surface: company_site
     publisher_or_venue: Example Labs
     source_class: official_first_party
@@ -174,7 +174,7 @@ observation_ledger:
     identity_state: unresolved
     coverage_id: COV-002
     source_url_or_packet_locator: https://example.test/trade/article
-    source_family: independent_trade_editorial
+    source_family: news_editorial_trade
     source_surface: trade_article
     publisher_or_venue: Example Trade
     source_class: independent
@@ -202,7 +202,7 @@ observation_ledger:
     identity_state: unresolved
     coverage_id: COV-006
     source_url_or_packet_locator: https://example.test/retailer/product
-    source_family: retail_catalog
+    source_family: retail_pdp
     source_surface: retailer_product_page
     publisher_or_venue: Example Retailer
     source_class: retailer
@@ -230,7 +230,7 @@ observation_ledger:
     identity_state: unresolved
     coverage_id: COV-005
     source_url_or_packet_locator: https://example.test/forum/thread
-    source_family: customer_community
+    source_family: forums_community
     source_surface: category_specialist_forum
     publisher_or_venue: Example Specialist Forum
     source_class: customer_community
@@ -258,7 +258,7 @@ observation_ledger:
     identity_state: unresolved
     coverage_id: COV-007
     source_url_or_packet_locator: https://example.test/registry/filing
-    source_family: official_regulatory
+    source_family: professional_org_motion
     source_surface: public_filing
     publisher_or_venue: Example Registry
     source_class: official_regulatory

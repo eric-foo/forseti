@@ -239,6 +239,18 @@ COMPANY_RECENCY_TIERS = {
     "days_over_180",
     "undated_unknown",
 }
+COMPANY_EFFECTIVE_TIME_PRECISIONS = {"day", "current_page_observation", "undated"}
+COMPANY_AGE_ANCHOR_BASES = {
+    "event_effective",
+    "publication",
+    "current_page_observation",
+    "unknown",
+}
+COMPANY_RUN_BOUNDARIES = {
+    "COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION",
+    "INTAKE_ONLY",
+    "OWNER_DECISION_NEEDED",
+}
 COMPANY_SOURCE_CLASSES = {
     "official_first_party",
     "official_regulatory",
@@ -852,6 +864,15 @@ def _validate_company_coverage(
             findings.append(Finding("missing_coverage_fields", "Coverage row is missing: " + ", ".join(missing), coverage_id))
         status = _normalize_vocab(row.get("status"))
         requirement = _normalize_vocab(row.get("requirement"))
+        source_family = _normalize_vocab(row.get("source_family"))
+        if source_family not in VALID_SOURCE_FAMILIES:
+            findings.append(
+                Finding(
+                    "invalid_company_source_family",
+                    f"Invalid source_family {source_family or '<blank>'}.",
+                    coverage_id,
+                )
+            )
         if status not in COMPANY_COVERAGE_STATUSES:
             findings.append(Finding("invalid_coverage_status", f"Invalid coverage status {status or '<blank>'}.", coverage_id))
         if requirement not in COMPANY_COVERAGE_REQUIREMENTS:
@@ -909,6 +930,15 @@ def _validate_company_observations(
         elif _normalize_vocab(coverage[coverage_id].get("status")) != "checked":
             findings.append(Finding("observation_from_unchecked_coverage", "Evidence cannot come from blocked, unchecked, or not-applicable coverage.", observation_id))
         source_class = _normalize_vocab(row.get("source_class"))
+        source_family = _normalize_vocab(row.get("source_family"))
+        if source_family not in VALID_SOURCE_FAMILIES:
+            findings.append(
+                Finding(
+                    "invalid_company_source_family",
+                    f"Invalid source_family {source_family or '<blank>'}.",
+                    observation_id,
+                )
+            )
         if source_class not in COMPANY_SOURCE_CLASSES:
             findings.append(Finding("invalid_company_source_class", f"Invalid source_class {source_class or '<blank>'}.", observation_id))
         fact_domain = _normalize_vocab(row.get("fact_domain"))
@@ -928,8 +958,27 @@ def _validate_company_observations(
             findings.append(Finding("invalid_corroboration_ids", "independent_corroboration_ids must be a list.", observation_id))
 
         precision = _normalize_vocab(row.get("effective_time_precision"))
+        if precision not in COMPANY_EFFECTIVE_TIME_PRECISIONS:
+            findings.append(
+                Finding(
+                    "invalid_effective_time_precision",
+                    f"effective_time_precision must be one of {', '.join(sorted(COMPANY_EFFECTIVE_TIME_PRECISIONS))}; "
+                    f"got {precision or '<blank>'}.",
+                    observation_id,
+                )
+            )
         if precision == "current_page_observation" and _parse_date(row.get("event_or_effective_date")) is not None:
             findings.append(Finding("current_page_as_dated_event", "A current-page observation must not be silently converted into a dated event.", observation_id))
+        age_anchor_basis = _normalize_vocab(row.get("age_anchor_basis"))
+        if age_anchor_basis not in COMPANY_AGE_ANCHOR_BASES:
+            findings.append(
+                Finding(
+                    "invalid_age_anchor_basis",
+                    f"age_anchor_basis must be one of {', '.join(sorted(COMPANY_AGE_ANCHOR_BASES))}; "
+                    f"got {age_anchor_basis or '<blank>'}.",
+                    observation_id,
+                )
+            )
         anchor = _parse_date(row.get("age_anchor_date"))
         declared_tier = _normalize_vocab(row.get("recency_tier"))
         expected_tier = _expected_recency_tier(as_of, anchor) if as_of else "undated_unknown"
@@ -1007,6 +1056,18 @@ def _validate_company_completion(
         findings.append(Finding("invalid_competitor_boundary", "Deep competitor treatment requires a separately named follow-up."))
     if _normalize_vocab(completion.get("classifier_handoff")) != "omitted":
         findings.append(Finding("company_classifier_handoff_forbidden", "Company reports must omit classifier handoff."))
+    run_boundary = str(completion.get("run_boundary", "")).strip()
+    if run_boundary not in COMPANY_RUN_BOUNDARIES:
+        findings.append(
+            Finding(
+                "invalid_company_run_boundary",
+                "completion_ledger.run_boundary must be one of " + ", ".join(sorted(COMPANY_RUN_BOUNDARIES)) + ".",
+            )
+        )
+    if "next_authorized_step" not in completion:
+        findings.append(
+            Finding("missing_company_next_authorized_step", "completion_ledger must include next_authorized_step.")
+        )
 
     lens = completion.get("required_lens_coverage")
     if not isinstance(lens, dict) or set(lens) != COMPANY_LENS_KEYS:
@@ -1045,6 +1106,7 @@ def _validate_company_completion(
 
 def validate_company_report(text: str) -> list[Finding]:
     findings = _validate_company_sections(text)
+    findings.extend(_validate_engagement_overclaims(text))
     section_specs = [
         (1, EXPECTED_COMPANY_SECTIONS[0], "company_commission_receipt"),
         (3, EXPECTED_COMPANY_SECTIONS[2], "coverage_ledger"),

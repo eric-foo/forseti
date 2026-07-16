@@ -181,6 +181,74 @@ def test_longitudinal_is_a_valid_declared_override() -> None:
     assert validator.validate_text(text) == []
 
 
+def test_company_report_rejects_engagement_overclaim() -> None:
+    text = _valid_company_text().replace(
+        "The Reddit scout yielded no attributable material.",
+        "The Reddit scout yielded no attributable material. High engagement proves demand.",
+        1,
+    )
+    assert "engagement_as_proof" in _company_codes(text)
+
+
+def test_company_source_family_uses_shared_vocabulary() -> None:
+    text = _valid_company_text().replace(
+        "    source_family: owned_channels",
+        "    source_family: official_company",
+        1,
+    )
+    assert "invalid_company_source_family" in _company_codes(text)
+
+
+def test_company_effective_time_precision_vocabulary_is_enforced() -> None:
+    text = _valid_company_text().replace(
+        "    effective_time_precision: current_page_observation",
+        "    effective_time_precision: current_page",
+        1,
+    )
+    assert "invalid_effective_time_precision" in _company_codes(text)
+
+
+def test_unknown_effective_time_precision_cannot_bypass_dated_event_guard() -> None:
+    text = _valid_company_text().replace(
+        "    effective_time_precision: current_page_observation",
+        "    effective_time_precision: current_page",
+        1,
+    ).replace(
+        "    event_or_effective_date: null\n    observation_at: \"2026-07-16T09:00:00Z\"",
+        "    event_or_effective_date: \"2026-07-16\"\n    observation_at: \"2026-07-16T09:00:00Z\"",
+        1,
+    )
+    assert "invalid_effective_time_precision" in _company_codes(text)
+
+
+def test_company_age_anchor_basis_vocabulary_is_enforced() -> None:
+    text = _valid_company_text().replace(
+        "    age_anchor_basis: current_page_observation",
+        "    age_anchor_basis: currentish",
+        1,
+    )
+    assert "invalid_age_anchor_basis" in _company_codes(text)
+
+
+def test_company_run_boundary_values_are_constrained() -> None:
+    text = _valid_company_text().replace(
+        "  run_boundary: COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION",
+        "  run_boundary: IMPORTED_TO_COMPANY_SURFACE_AND_RAN_CLASSIFIER",
+        1,
+    )
+    assert "invalid_company_run_boundary" in _company_codes(text)
+
+
+def test_company_completion_requires_next_authorized_step() -> None:
+    text = _valid_company_text().replace(
+        "  next_authorized_step: A separately commissioned Scanning or Capture run may address the typed request;"
+        " no import or classifier handoff occurred.\n",
+        "",
+        1,
+    )
+    assert "missing_company_next_authorized_step" in _company_codes(text)
+
+
 
 def test_signal_board_nonclaim_sentence_does_not_mask_later_overclaim() -> None:
     text = (FIXTURE_DIR / "valid_source_backed_backtest_output.txt").read_text(encoding="utf-8")
