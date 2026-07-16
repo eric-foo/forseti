@@ -13,13 +13,19 @@ use_when:
 authority_boundary: retrieval_only
 open_next:
   - docs/research/forseti_research_engine_p0_capture_request_lifecycle_v0.json
+  - docs/research/forseti_research_engine_first_peach_repeatability_receipt_v0.md
   - docs/research/forseti_research_engine_p0_golden_thread_commission_v0.md
   - docs/research/forseti_research_engine_god_tier_strategy_v0.md
 stale_if:
   - Either referenced Data Lake packet fails hash/schema verification.
   - Scan receipt v1 or capture-request lifecycle v0 changes.
-  - A later repeatability run supersedes this first-run P0 evidence.
 ```
+
+## Currentness
+
+This remains the historical first-run P0 baseline. The later First Peach
+repeatability receipt compares against it; it does not supersede or rewrite the
+evidence from this run.
 
 ## Result
 
