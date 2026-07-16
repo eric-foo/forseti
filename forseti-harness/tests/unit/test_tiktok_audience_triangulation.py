@@ -18,6 +18,13 @@ from evidence_binding.tiktok_audience_triangulation import (
     build_assembly_receipt,
     build_creator_audience_evidence_bundle,
 )
+from judgment.creator_audience import (
+    LEGACY_V0_METHOD_PATH,
+    LEGACY_V0_METHOD_SHA256,
+    METHOD_DECK_RELATIVE_PATH,
+    load_method_deck,
+    parse_creator_audience_response,
+)
 from judgment.tiktok_audience_triangulation import (
     TriangulationValidationError,
     build_triangulation_prompt,
@@ -42,7 +49,9 @@ from runners.run_tiktok_creator_onboarding_coordinator import prepare_onboarding
 import runners.run_tiktok_creator_onboarding_coordinator as onboarding_coordinator
 from runners.run_tiktok_grid_observation_producer import run_tiktok_grid_observations
 from source_capture.tiktok.batch_packet import write_tiktok_batch_packet
-from schemas.tiktok_audience_evidence_models import CreatorAudienceJudgmentOutcome
+from schemas.creator_audience_models import (
+    CreatorAudienceJudgmentOutcomeV1 as CreatorAudienceJudgmentOutcome,
+)
 from test_tiktok_batch_admission import (
     PROFILE_URL,
     _cadence_payload,
@@ -53,6 +62,7 @@ from test_tiktok_batch_admission import (
 
 OBSERVED = "2026-07-12T00:00:00Z"
 RAW_ANCHOR = "01TESTAUDIENCEPACKET"
+_, METHOD_DECK_SHA256 = load_method_deck()
 
 
 def _video(video_id: str, comment_id: str, text: str, likes: int) -> dict:
@@ -109,9 +119,15 @@ def _bundle(*, duplicate_text: bool = False, transcript: bool = True) -> dict:
         grid_observation_refs=[{"record_id": "grid-1", "video_id": "v1"}],
         question="Who is this creator commercially useful for?",
         evidence_cutoff=OBSERVED,
+        method_deck_path=METHOD_DECK_RELATIVE_PATH,
+        method_deck_sha256=METHOD_DECK_SHA256,
     )
 
 
+def test_tiktok_bundle_carries_prepare_time_method_binding() -> None:
+    bundle = _bundle()
+    assert bundle["method_deck_path"] == METHOD_DECK_RELATIVE_PATH
+    assert bundle["method_deck_sha256"] == METHOD_DECK_SHA256
 
 
 def _persist_assembly_receipt(data_root: DataLakeRoot, bundle: dict) -> None:
@@ -252,6 +268,8 @@ def test_bundle_fails_loud_when_either_modality_is_missing() -> None:
             grid_observation_refs=[],
             question="q",
             evidence_cutoff=OBSERVED,
+            method_deck_path=METHOD_DECK_RELATIVE_PATH,
+            method_deck_sha256=METHOD_DECK_SHA256,
         )
 
 
@@ -450,6 +468,8 @@ def test_bundle_incomplete_when_comments_absent_but_transcript_present() -> None
             grid_observation_refs=[{"record_id": "grid-1", "video_id": "v1"}],
             question="Who is this creator commercially useful for?",
             evidence_cutoff=OBSERVED,
+            method_deck_path=METHOD_DECK_RELATIVE_PATH,
+            method_deck_sha256=METHOD_DECK_SHA256,
         )
 
 
@@ -763,3 +783,80 @@ def test_validator_rejects_source_video_ids_that_do_not_close_over_support() -> 
 
     with pytest.raises(TriangulationValidationError, match="do not close over support"):
         validate_triangulation_snapshot(tampered, bundle)
+
+
+def test_legacy_v0_upgrade_does_not_claim_current_method_deck() -> None:
+    bundle = _bundle()
+    snapshot = parse_creator_audience_response(json.dumps(_response(bundle)), bundle)
+
+    assert snapshot.schema_version == "creator_audience_triangulation_snapshot_v1"
+    assert snapshot.method_deck_path == LEGACY_V0_METHOD_PATH
+    assert snapshot.method_deck_sha256 == LEGACY_V0_METHOD_SHA256
+    assert snapshot.method_deck_path != METHOD_DECK_RELATIVE_PATH
+
+
+def _legacy_v0_outcome(tmp_path: Path, bundle: dict) -> tuple[Path, Path]:
+    """Hand-build a persisted pre-cutover v0 Judgment outcome document."""
+
+    response_bytes = json.dumps(_response(bundle)).encode("utf-8")
+    snapshot = parse_triangulation_response(response_bytes.decode("utf-8"), bundle)
+    snapshot_document = snapshot.model_dump(mode="json")
+    snapshot_text = (
+        json.dumps(snapshot_document, ensure_ascii=False, indent=2, sort_keys=True)
+        + "\n"
+    )
+    outcome = {
+        "schema_version": "creator_audience_judgment_outcome_v0",
+        "record_id": "cajo_" + "0" * 20,
+        "raw_anchor": bundle["raw_anchor"],
+        "creator_id": bundle["creator_id"],
+        "profile_subject_id": bundle["profile_subject_id"],
+        "bundle_id": bundle["bundle_id"],
+        "bundle_hash": bundle["bundle_hash"],
+        "status": "validated",
+        "response_sha256": f"sha256:{hashlib.sha256(response_bytes).hexdigest()}",
+        "response_size_bytes": len(response_bytes),
+        "response_bytes_b64": base64.b64encode(response_bytes).decode("ascii"),
+        "validation_errors": [],
+        "snapshot_id_or_none": snapshot_document["snapshot_id"],
+        "snapshot_sha256_or_none": (
+            f"sha256:{hashlib.sha256(snapshot_text.encode('utf-8')).hexdigest()}"
+        ),
+        "snapshot_or_none": snapshot_document,
+        "model_api_calls": 0,
+    }
+    outcome_path = tmp_path / "outcome_v0.json"
+    outcome_path.write_text(
+        json.dumps(outcome, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    snapshot_path = tmp_path / "snapshot_v0.json"
+    snapshot_path.write_text(snapshot_text, encoding="utf-8")
+    return snapshot_path, outcome_path
+
+
+def test_complete_onboarding_still_reads_persisted_v0_outcome(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    snapshot_path, outcome_path = _legacy_v0_outcome(tmp_path, _bundle())
+    output_path = tmp_path / "creator_profile_current.json"
+
+    def fake_materialize(argv: list[str]) -> int:
+        candidate = Path(argv[argv.index("--output") + 1])
+        candidate.write_text('{"creator_profile_current_view":{}}', encoding="utf-8")
+        return 0
+
+    monkeypatch.setattr(onboarding_coordinator, "materialize_main", fake_materialize)
+    # Reaching the materialized-view check proves the v0 outcome document was
+    # accepted; before the version dispatch this failed at outcome validation.
+    with pytest.raises(ValueError, match="no profiles list"):
+        onboarding_coordinator.complete_onboarding(
+            snapshot_path=snapshot_path,
+            outcome_path=outcome_path,
+            output_path=output_path,
+            account_ledger_path=tmp_path / "ledger.json",
+            creator_registry_index_path=tmp_path / "registry.json",
+            metric_seed_paths=(),
+            generated_at_utc=None,
+            preflight_receipt_path=None,
+        )
