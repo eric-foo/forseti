@@ -244,8 +244,9 @@ new managed task is sufficient. A durable commission may carry the bounded
 do not create that authority; a task's mere existence is never authority.
 
 When a real pre-edit mismatch invalidates the binding, route to an already-
-authorized capable receiver when one exists, including a valid one-task creation
-authorization without chat-double-asking. Return
+authorized capable receiver when one exists.
+An already-authorized capable worktree-backed task is such a receiver. A valid
+one-task creation authorization may be used without chat-double-asking. Return
 `BLOCKED_RECEIVER_REROOT_REQUIRED` only when target identity, revision or dirty-
 byte identity, writer isolation, or required capability cannot be established,
 no authorized capable route exists, or the one allowed creation fails. Capable
