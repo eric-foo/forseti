@@ -72,6 +72,17 @@ typed gaps/requests. Scanning owns the intelligent walk, exact-query and
 category-aware hidden-venue discovery, negatives, access notes, and frontier
 closeout. Capture owns lawful source access and preservation adapters. CSB does
 not contain venue or research modules and does not fake either downstream act.
+CSB defines material information jobs and candidate routes; it does not freeze a
+participant packet, decide final inclusion, or declare acquisition complete.
+Every included item needs a named decision-material job and no equal-or-better
+included substitute.
+
+For recurring or actively radarred source families, CSB routes a lake-first
+preflight before external Scanning or Capture: relevant Silver/current view,
+then packet or catalog inventory, then raw material when needed. Lake inspection
+tests reuse, freshness, and coverage only. It is not proof of current external
+reality; absence from Silver is not absence from the lake or the world, and a
+missing read model does not block acquisition.
 
 This spine does not authorize retrieval, scraping, capture, graph construction,
 demand classification, forecasting, judgment, buyer proof, validation,
