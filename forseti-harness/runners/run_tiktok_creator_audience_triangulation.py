@@ -24,9 +24,8 @@ from capture_spine.creator_profile_current.tiktok_grid_observation_producer impo
 )
 from data_lake.root import DataLakeRoot, DataLakeRootError
 from data_lake.silver_record import (
-    SilverRecordError,
-    validate_silver_vault_record,
-    verify_silver_vault_record_sources,
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    classify_silver_vault_record_sources,
 )
 from evidence_binding.tiktok_audience_triangulation import (
     ASSEMBLY_RECEIPT_LANE,
@@ -96,20 +95,18 @@ def _record_id(record: Mapping[str, Any]) -> str:
 def _silver_eligibility_residual(
     data_root: DataLakeRoot, record: Mapping[str, Any], *, lane: str
 ) -> dict[str, Any] | None:
-    try:
-        validate_silver_vault_record(record)
-    except SilverRecordError:
-        return {"lane": lane, "record_id": _record_id(record), "status": "invalid_silver_envelope"}
-    try:
-        verify_silver_vault_record_sources(data_root, record)
-    except SilverRecordError as exc:
-        return {
-            "lane": lane,
-            "record_id": _record_id(record),
-            "status": "source_ref_unresolved",
-            "error": str(exc),
-        }
-    return None
+    authority = classify_silver_vault_record_sources(data_root, record)
+    if authority.status == CURRENT_SOURCE_BACKED_AUTHORITY:
+        return None
+    residual = {
+        "lane": lane,
+        "record_id": _record_id(record),
+        "status": authority.status,
+        "reason_code": authority.reason_code,
+    }
+    if authority.error:
+        residual["error"] = authority.error
+    return residual
 
 
 def _select_comment_attention_records(
