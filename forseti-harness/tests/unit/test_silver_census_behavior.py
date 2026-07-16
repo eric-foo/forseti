@@ -10,7 +10,11 @@ from data_lake.silver_census import (
     _observation_window,
     build_silver_observation_census,
 )
-from data_lake.silver_record import append_silver_record, silver_content_hash
+from data_lake.silver_record import (
+    append_raw_packet_tombstone,
+    append_silver_record,
+    silver_content_hash,
+)
 from schemas.audience_comment_models import AudienceComment
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
 from source_capture.ig_reels_deep_capture_lake import (
@@ -407,6 +411,31 @@ def test_census_is_deterministic_reconciled_and_counts_observation_units(tmp_pat
     assert states["transcript_product_mentions_silver"] == "pending_backlog"
     assert states["tiktok_audience_evidence_silver"] == "retired"
     assert states["silver__cleaning__product_mentions"] == "retired"
+
+
+def test_relationship_records_count_as_edges_not_unclassified(tmp_path: Path) -> None:
+    """A valid relationship-kind Silver record (the raw-packet tombstone shape)
+    is counted as a relationship edge, never as an unclassified observation."""
+    root = DataLakeRoot.for_test(tmp_path / "forseti-data")
+    retained = "01KW2MJM01Y0936VNECWB3MHSH"
+    tombstoned = "01KW2MJM01Y0936VNECWB3MHSJ"
+    _manifest(root, retained, "tiktok", "tiktok_creator_batch_comment_subtitle_admission")
+    _manifest(root, tombstoned, "tiktok", "tiktok_creator_batch_comment_subtitle_admission")
+
+    append_raw_packet_tombstone(
+        root,
+        retained_packet_id=retained,
+        tombstoned_packet_id=tombstoned,
+        captured_at=OBSERVED_AT,
+        reason="census relationship-arm fixture",
+    )
+    census = build_silver_observation_census(root)
+
+    assert census["totals"]["silver_records"] == 1
+    assert census["totals"]["relationship_edge_records"] == 1
+    assert census["totals"]["unclassified_silver_records"] == 0
+    assert census["totals"]["current_source_backed_silver_records"] == 1
+    assert census["errors"] == []
 
 
 def test_duplicate_unit_is_suppressed_but_both_files_remain_stored(tmp_path: Path) -> None:
