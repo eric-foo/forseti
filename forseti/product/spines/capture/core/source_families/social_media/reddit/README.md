@@ -56,16 +56,27 @@ capture is explicitly needed or Direct HTTP is unsuitable/blocked.
 The source family string used by the old HTTP batch runner is `reddit_thread`
 with source surface `old_reddit_direct_http`.
 
+## Radar Cadence and Access Posture
+
+Registry-scoped radar grid capture is an accepted direction
+(owner-directed 2026-07-16; design:
+`reddit_radar_grid_capture_maintenance_design_v0.md`): roughly daily grid
+passes per tracked subreddit, stepped to 2–4x daily for trending subs,
+following the TikTok grid→deep-dive pattern. Access is dual-track: bounded
+public capture under the measured-risk ToS-gated posture AND a sanctioned
+commercial/enterprise API or data-licensing path pursued in parallel;
+commercial-grade product use lands on the sanctioned path. Every pass
+still records its per-run robots/source-policy posture receipt, and the
+lane must be built before anything runs.
+
 ## Hard Stops
 
-- No broad subreddit crawling, source discovery expansion, user/profile capture,
-  link following, monitoring, production crawler, scheduler, dashboard, or
-  commercial Reddit authority from this lane.
+- No broad subreddit crawling beyond registry-tracked grid passes and
+  their selected deep dives; no source-discovery expansion outside bounded
+  runs; no user/profile capture; no dashboards.
 - Candidate URL Intake rows do not auto-promote into Capture units.
 - Cold anonymous `.json` is not the default target; warm same-context JSON is a
   future/specialized path only after exact old Reddit HTML is visible.
-- Commercial Reddit work requires a sanctioned commercial/enterprise API or
-  data-licensing path.
 
 ## Non-Claims
 

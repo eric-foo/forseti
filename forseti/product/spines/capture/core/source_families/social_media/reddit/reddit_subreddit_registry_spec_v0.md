@@ -106,8 +106,11 @@ observation.
 
 ## Feed Contract
 
-Writers are bounded runs and operator refreshes, never a scheduler or
-standing monitor:
+Writers are radar grid passes (cadenced per
+`reddit_radar_grid_capture_maintenance_design_v0.md`), other bounded runs,
+and operator refreshes; once grid capture exists, registry state is
+materialized read-only from committed Bronze packets rather than
+hand-edited by capture runners:
 
 - A bounded Reddit run (candidate intake, graph frontier, capture, or a
   radar/verification pass) that touches a subreddit adds or refreshes its row

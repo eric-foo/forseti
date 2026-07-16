@@ -2,15 +2,16 @@
 
 ```yaml
 retrieval_header_version: 1
-artifact_role: Design lane artifact (Reddit radar/registry maintenance pipeline; applies existing doctrine, changes none; designed-not-executed)
+artifact_role: Design lane artifact (accepted Reddit radar/registry maintenance pipeline; designed-not-executed)
 scope: >
-  Owner-directed design for how the Reddit subreddit registry and thread-level
+  Accepted design for how the Reddit subreddit registry and thread-level
   radar are maintained: registry-filtered grid capture of subreddit
-  best/top/rising pages into data-lake Bronze, breakout selection against
-  registry baselines, deep-dive thread capture (TikTok-lane pattern), and a
-  read-only registry materializer from committed Bronze. Records the owner's
-  2026-07-16 cadence and dual-track access directions and names the gates
-  still required before execution.
+  best/top/rising pages into data-lake Bronze at the accepted cadence
+  (roughly daily; 2-4x daily for trending subs), breakout selection against
+  registry baselines, deep-dive thread capture (TikTok-lane pattern), a
+  read-only registry materializer from committed Bronze, and the dual-track
+  access posture (bounded public capture AND a sanctioned API/licensing
+  path in parallel).
 use_when:
   - Scoping or building the Reddit grid-capture runner, breakout rule, or registry materializer.
   - Checking the owner-directed cadence target and dual-track access posture for Reddit radar.
@@ -22,7 +23,7 @@ open_next:
   - forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
   - forseti/product/spines/capture/core/source_families/social_media/instagram/ig_daily_heartbeat_operating_policy_v0.md
 stale_if:
-  - The Reddit source-access doctrine is amended (monitoring hard stop, robots/ToS posture, or commercial/API path) — then that amendment supersedes the gate list here.
+  - The Reddit lane README amends the radar cadence, hard stops, or dual-track access posture again.
   - A fresh Reddit policy re-check (robots.txt, Data API terms, Public Content Policy) changes what grid capture may touch.
   - The TikTok grid/deep-dive contracts this design mirrors change their packet or admission shape.
   - The registry spec changes its feed contract or observation shape.
@@ -30,27 +31,24 @@ stale_if:
 
 ## Status and non-claims
 
-`DESIGN — DESIGNED_NOT_EXECUTED`. This is a maintenance **plan** applying
-existing patterns (TikTok grid→deep-dive lane, creator-registry
-materializer rule, bounded-run envelopes); it changes no doctrine and
-authorizes no capture, no scheduler, no cadence, and no API registration.
-Claims are `product_learning`-capped.
+`DESIGN_ACCEPTED — DESIGNED_NOT_EXECUTED` (owner, 2026-07-16). The cadence
+and access posture below are the current doctrine, carried by the Reddit
+lane README; this artifact is their design record. Nothing is built or
+running: no runner, no scheduler, no API registration exists yet, and
+claims are `product_learning`-capped.
 
-## Owner directions recorded (2026-07-16, in-thread)
+## Accepted design parameters
 
-1. **Cadence target: follow the TikTok lane pattern.** Roughly daily grid
-   capture per tracked subreddit; trending/hot subreddits stepped up to
-   2–4x daily. This is the design target, not an authorization — see the
-   execution gates below.
-2. **Access posture: dual-track, "we'll do both."** Public bounded capture
-   AND a sanctioned Reddit API / licensing path are pursued together, not
-   as either/or. Public capture carries the measured-risk ToS-gated
-   posture; the sanctioned path covers cadenced/commercial-grade needs.
-3. **The recorded Reddit policy check is stale.** The 2026-06-08 external
-   posture check (robots.txt, Data API terms, Public Content Policy) in the
-   graph-frontier architecture is ~1 month old per the owner; a fresh
-   re-check is required at the execution gate, not assumed from that
-   record.
+1. **Cadence: TikTok lane pattern.** Roughly daily grid capture per
+   tracked subreddit; trending/hot subreddits stepped up to 2–4x daily.
+2. **Access: dual-track.** Bounded public capture under the measured-risk
+   ToS-gated posture AND a sanctioned Reddit API / licensing path,
+   pursued in parallel; commercial-grade product use lands on the
+   sanctioned path.
+3. **Policy currency.** The 2026-06-08 external posture check (robots.txt,
+   Data API terms, Public Content Policy) is superseded as a currency
+   basis; each run records its own fresh robots/source-policy posture
+   receipt, and the build gate re-checks the three policy surfaces.
 
 ## The maintenance pipeline
 
@@ -87,26 +85,81 @@ waves are breaking out). The registry supplies routing (which subs get a
 pass) and baseline (velocity denominator); it never stores a computed trend
 or breakout claim.
 
-## Execution gates (named, still closed)
+## Remaining gates before execution
 
-1. **Monitoring hard stop.** The Reddit lane README currently hard-stops
-   monitoring/production-crawler behavior. Cadenced daily/intraday grid
-   capture is that class. Executing the cadence requires amending the
-   owning source-access doctrine (DCP receipt, owner sign-off), which this
-   design does not do.
-2. **Fresh ToS/robots re-check** at build/execution time (direction 3
-   above), recorded per bounded run as the existing envelopes require.
-3. **Sanctioned API/licensing track** needs its own commercial decision and
-   registration work before it exists; nothing here registers or commits to
-   terms.
-4. **Build items when commissioned:** grid-packet schema + capture runner
-   (mirror TikTok grid contracts + old-Reddit HTTP route), the breakout
-   rule (outlier definition over registry baselines), and the registry
-   materializer runner. One-off bounded dry runs fit existing envelopes and
-   are the right first probe before any cadence.
+1. **Fresh policy re-check at build time** (robots.txt, Data API terms,
+   Public Content Policy), plus the per-run robots/source-policy posture
+   receipt every pass already owes.
+2. **Sanctioned API/licensing track** needs its own registration and
+   commercial-terms work before it exists; nothing here registers or
+   commits to terms.
+3. **Build items:** grid-packet schema + capture runner (mirror TikTok
+   grid contracts + old-Reddit HTTP route), the breakout rule (outlier
+   definition over registry baselines), and the registry materializer
+   runner. A one-off bounded grid dry run over a small registry filter is
+   the first probe before the cadence turns on.
+
+## Direction Change Propagation
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The Reddit capture lane's blanket monitoring/scheduler/cadence hard stop
+    and single-track commercial posture are replaced: registry-scoped radar
+    grid capture at roughly daily cadence (2-4x daily for trending subs,
+    TikTok-lane pattern) is an accepted direction, and access is dual-track
+    (bounded public capture under the measured-risk ToS-gated posture AND a
+    sanctioned commercial/enterprise API or licensing path in parallel,
+    with commercial-grade product use landing on the sanctioned path).
+    Broad crawling beyond registry-tracked grid passes, user/profile
+    capture, and dashboards remain hard-stopped; the 2026-06-08 policy
+    check is superseded as a currency basis by build-time and per-run
+    posture receipts.
+  trigger: architecture_doctrine
+  related_triggers:
+    - lifecycle_boundary
+  controlling_sources_updated:
+    - forseti/product/spines/capture/core/source_families/social_media/reddit/README.md
+    - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_radar_grid_capture_maintenance_design_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_spec_v0.md
+  downstream_surfaces_checked:
+    - forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
+    - forseti/product/spines/scanning/source_families/reddit/reddit_beauty_fragrance_subreddit_inventory_v0.md
+    - forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_v0.json
+    - forseti/product/spines/scanning/README.md
+  intentionally_not_updated:
+    - path: forseti/product/spines/scanning/source_families/reddit/data_capture_spine_reddit_graph_frontier_lane_architecture_v0.md
+      reason: >
+        Its 2026-06-08 policy observations are a dated point-in-time receipt,
+        not a live rule; its stale_if already fires on source-access posture
+        change, and the frontier lane's own boundaries (no same-run
+        traversal, bounded hops) are untouched by the radar cadence.
+    - path: forseti/product/spines/capture/core/source_families/social_media/reddit/reddit_subreddit_registry_v0.json
+      reason: >
+        Registry non-claims ("not a crawl queue or standing monitor") remain
+        true: the radar lane does the cadenced capture; the registry stays a
+        derived state projection.
+  stale_language_search: >
+    rg -n -i "monitoring|scheduler|standing monitor|sanctioned|hard stop"
+    forseti/product/spines/capture/core/source_families/social_media/reddit
+    forseti/product/spines/scanning/source_families/reddit
+  stale_language_search_result: >
+    Executed 2026-07-16 after the amendment. Remaining hits are the new
+    cadence/dual-track text itself, still-true artifact non-claims (the
+    registry, inventory, and README each still authorize no monitoring
+    themselves), and the graph-frontier lane's own untouched
+    no-scheduler-in-this-lane boundaries. No live rule contradicting the
+    accepted radar cadence or dual-track posture remains.
+  non_claims:
+    - not validation or readiness
+    - not capture execution authorization for an unbuilt lane
+    - not ToS sufficiency or legal advice
+    - not API registration or commercial terms
+    - not demand proof or judgment evidence
+```
 
 ## Non-claims
 
-Not validation, readiness, capture/scan/monitoring authorization, scheduler
-authorization, API registration, commercial permission, ToS sufficiency,
-doctrine amendment, demand proof, or judgment evidence.
+Not validation, readiness, execution authorization for the unbuilt lane,
+scheduler existence, API registration, commercial permission, ToS
+sufficiency, demand proof, or judgment evidence.
