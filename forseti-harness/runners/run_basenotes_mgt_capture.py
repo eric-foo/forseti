@@ -147,22 +147,24 @@ def run_basenotes_mgt_capture(
         recapture_time=_not_a_recapture(),
         cutoff_posture=_unknown_cutoff_posture(),
     )
-    direct_observed_access = (
+    bundle_originated_from_cdp = (
         bundle.metadata.get("capture_transport") == "credential_free_loopback_cdp"
     )
-    if direct_observed_access:
+    capture_performed_this_run = cdp_endpoint is not None
+    if bundle_originated_from_cdp:
         access_posture = known_fact(
-            "accepted public Basenotes product content was observed at the exact requested URL "
-            "in a persistent Chrome session; challenge markers were absent and source-detail "
-            "sufficiency passed; no current-run human access action is asserted"
+            "bundle metadata records that accepted public Basenotes product content was observed "
+            "at the exact requested URL in a persistent Chrome session at capture time; challenge "
+            "markers were absent and source-detail sufficiency passed; no current-run human access "
+            "action is asserted"
         )
         warnings = [
-            "accepted_access_observed: exact final URL, challenge-free rendered content, and "
-            "source-detail sufficiency passed"
+            "accepted_access_observed_at_bundle_capture: exact final URL, challenge-free rendered "
+            "content, and source-detail sufficiency passed"
         ]
         capture_context = (
-            "existing Chrome CDP public-page observation; rendered DOM, visible text, viewport "
-            "screenshot, and non-secret metadata only"
+            "bundle originating from an existing Chrome CDP public-page observation; rendered DOM, "
+            "visible text, viewport screenshot, and non-secret metadata only"
         )
         visible_mode_changes = ["persistent_user_session", "accepted_access_observed"]
         receipt_summary = (
@@ -256,8 +258,16 @@ def run_basenotes_mgt_capture(
             "cookies_or_credentials_exported": False,
             "proxy_used": False,
             "capture_transport": (
-                "existing_chrome_cdp_loopback" if direct_observed_access else "manual_bundle"
+                "existing_chrome_cdp_loopback"
+                if capture_performed_this_run
+                else "none_existing_bundle"
             ),
+            "bundle_origin_transport": (
+                "credential_free_loopback_cdp"
+                if bundle_originated_from_cdp
+                else "manual_bundle"
+            ),
+            "capture_performed_this_run": capture_performed_this_run,
         },
     )
     summary_path = output_root / SUMMARY_FILENAME
@@ -342,7 +352,8 @@ def preflight_basenotes_mgt_capture(
     )
     slug = extract_basenotes_product_slug(url) or "unknown"
     capture_clause = (
-        "direct loopback CDP capture observed accepted challenge-free source content"
+        "direct loopback CDP capture observed accepted challenge-free source content and wrote "
+        "a reusable exact four-file bundle; publish that bundle later without --cdp-endpoint"
         if cdp_endpoint is not None
         else "no network capture attempted"
     )
@@ -544,6 +555,7 @@ def _validate_png_bytes(body: bytes) -> None:
         raise ValueError("persistent Chrome screenshot is not a genuine PNG")
     offset = 8
     seen_ihdr = False
+    seen_idat = False
     seen_iend = False
     while offset + 12 <= len(body):
         chunk_length = int.from_bytes(body[offset : offset + 4], "big")
@@ -564,13 +576,15 @@ def _validate_png_bytes(body: bytes) -> None:
             if width <= 0 or height <= 0:
                 raise ValueError("persistent Chrome screenshot is not a genuine PNG")
             seen_ihdr = True
+        if chunk_type == b"IDAT" and chunk_length > 0:
+            seen_idat = True
         if chunk_type == b"IEND":
             if chunk_length != 0 or chunk_end != len(body):
                 raise ValueError("persistent Chrome screenshot is not a genuine PNG")
             seen_iend = True
             break
         offset = chunk_end
-    if not seen_ihdr or not seen_iend:
+    if not seen_ihdr or not seen_idat or not seen_iend:
         raise ValueError("persistent Chrome screenshot is not a genuine PNG")
 
 
@@ -785,7 +799,9 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "Validate URL, exact four-file public-page bundle, route metadata, sufficiency, and "
-            "output-root availability, then exit without publishing a packet."
+            "output-root availability, then exit without publishing a packet. With "
+            "--cdp-endpoint this performs live capture and writes the reusable fresh bundle; "
+            "publish it in a later run without --cdp-endpoint."
         ),
     )
     return parser

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import zlib
 from pathlib import Path
 
 import pytest
@@ -23,6 +24,19 @@ _FIXTURE = (
 )
 _PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+)
+
+
+def _png_chunk(chunk_type: bytes, data: bytes) -> bytes:
+    crc = zlib.crc32(chunk_type + data) & 0xFFFFFFFF
+    return len(data).to_bytes(4, "big") + chunk_type + data + crc.to_bytes(4, "big")
+
+
+# Structurally well-formed PNG with correct CRCs but no image data at all.
+_PNG_WITHOUT_IMAGE_DATA = (
+    b"\x89PNG\r\n\x1a\n"
+    + _png_chunk(b"IHDR", (1).to_bytes(4, "big") + (1).to_bytes(4, "big") + bytes([8, 0, 0, 0, 0]))
+    + _png_chunk(b"IEND", b"")
 )
 
 
@@ -63,6 +77,9 @@ def test_runner_writes_packet_and_proves_projection_cleaning_silver_sources(
     assert role["source_surface"] == runner.PERSISTENT_CHROME_SURFACE
     assert summary["capture_parameters"]["persistent_user_session"] is True
     assert summary["capture_parameters"]["cookies_or_credentials_exported"] is False
+    assert summary["capture_parameters"]["capture_transport"] == "none_existing_bundle"
+    assert summary["capture_parameters"]["bundle_origin_transport"] == "manual_bundle"
+    assert summary["capture_parameters"]["capture_performed_this_run"] is False
 
     packet_id = role["packet_id"]
     loaded = root.load_raw_packet(packet_id)
@@ -105,6 +122,10 @@ def test_direct_cdp_writes_packet_projection_cleaning_and_six_verified_silver(
     assert engine.capture_kwargs["headless"] is False
     summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
     assert summary["capture_parameters"]["capture_transport"] == "existing_chrome_cdp_loopback"
+    assert summary["capture_parameters"]["bundle_origin_transport"] == (
+        "credential_free_loopback_cdp"
+    )
+    assert summary["capture_parameters"]["capture_performed_this_run"] is True
     assert summary["capture_parameters"]["human_cleared_access_gate"] is False
     assert summary["capture_parameters"]["access_readiness_basis"] == (
         "observed_exact_url_challenge_free_sufficient_content"
@@ -139,6 +160,42 @@ def test_direct_cdp_observes_access_without_manual_readiness_confirmation(tmp_pa
         "observed_exact_url_challenge_free_sufficient_content"
     )
     assert "--human-access-ready" not in runner._build_parser().format_help()
+
+
+def test_direct_preflight_bundle_can_publish_later_without_false_current_run_transport(
+    tmp_path: Path,
+) -> None:
+    bundle = tmp_path / "bundle"
+    preflight_message = runner.preflight_basenotes_mgt_capture(
+        url=_URL,
+        bundle_directory=bundle,
+        output_root=tmp_path / "preflight-output",
+        cdp_endpoint=runner.DEFAULT_CDP_ENDPOINT,
+        cdp_engine=_FakeCdpEngine(),
+    )
+    assert "wrote a reusable exact four-file bundle" in preflight_message
+    assert "publish that bundle later without --cdp-endpoint" in preflight_message
+
+    root = DataLakeRoot.for_test(tmp_path / "lake")
+    exit_code, summary_path = runner.run_basenotes_mgt_capture(
+        url=_URL,
+        bundle_directory=bundle,
+        output_root=tmp_path / "publish-output",
+        data_root=root,
+    )
+
+    assert exit_code == 0
+    summary = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+    assert summary["capture_parameters"]["capture_transport"] == "none_existing_bundle"
+    assert summary["capture_parameters"]["bundle_origin_transport"] == (
+        "credential_free_loopback_cdp"
+    )
+    assert summary["capture_parameters"]["capture_performed_this_run"] is False
+    packet_id = summary["packet_roles"][runner.PERSISTENT_CHROME_SLOT]["packet_id"]
+    loaded = root.load_raw_packet(packet_id)
+    access_posture = loaded.manifest["access_posture"]
+    assert "bundle metadata records" in access_posture["value"]
+    assert "no current-run human access action is asserted" in access_posture["value"]
 
 
 @pytest.mark.parametrize("endpoint", ["https://example.com:9222", "http://user@127.0.0.1:9222"])
@@ -179,6 +236,7 @@ def test_direct_cdp_rejects_challenge_or_insufficient_content_before_bytes(
     [
         ({"final_url": "https://basenotes.com/fragrances/other.1"}, "final_url"),
         ({"screenshot": b"\xff\xd8\xffnot-png"}, "genuine PNG"),
+        ({"screenshot": _PNG_WITHOUT_IMAGE_DATA}, "genuine PNG"),
     ],
 )
 def test_direct_cdp_rejects_wrong_final_url_or_non_png_before_bytes(
