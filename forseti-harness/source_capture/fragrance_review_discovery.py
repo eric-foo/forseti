@@ -437,6 +437,7 @@ def _store_base(store_domain: str) -> str:
 
 
 def _int_or_none(value: object) -> int | None:
+    # helper-delta: int(float(...)) truncation accepts bool/signed/decimal strings, unlike harness_utils.int_or_none.
     if value is None or value == "":
         return None
     try:

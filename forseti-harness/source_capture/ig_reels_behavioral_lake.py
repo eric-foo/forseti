@@ -516,6 +516,7 @@ def _mapping_or_empty(value: Any) -> dict[str, Any]:
 
 
 def _string_or_none(value: Any) -> str | None:
+    # helper-delta: str-only -- no int-to-str coercion, unlike harness_utils.string_or_none.
     if isinstance(value, str) and value.strip():
         return value.strip()
     return None

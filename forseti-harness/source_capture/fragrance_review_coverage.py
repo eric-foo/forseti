@@ -1045,6 +1045,7 @@ def _compact_text(text: str) -> str:
     return " ".join(text.split())
 
 def _bool_or_none(value: object) -> bool | None:
+    # helper-delta: also parses truthy/falsy strings ("true"/"1"/"yes"/...), unlike harness_utils.bool_or_none.
     if value is None or value == "":
         return None
     if isinstance(value, bool):
@@ -1057,6 +1058,7 @@ def _bool_or_none(value: object) -> bool | None:
     return None
 
 def _int_or_none(value: object) -> int | None:
+    # helper-delta: int(float(...)) truncation accepts bool/signed/decimal strings, unlike harness_utils.int_or_none.
     if value is None or value == "":
         return None
     try:
@@ -1073,6 +1075,7 @@ def _float_or_none(value: object) -> float | None:
         return None
 
 def _string_or_none(value: object) -> str | None:
+    # helper-delta: does not strip and coerces any non-None value via str(), unlike harness_utils.string_or_none.
     if value is None:
         return None
     text = str(value)
