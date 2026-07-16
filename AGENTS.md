@@ -155,10 +155,12 @@ guard, and owner steering all stay.
   through a distinct approved route and reuse that working route for the task.
   Stop when mutation outcome is unknown, target state drifted, another writer
   appeared, a real guard denied the action, or the distinct alternate route also
-  stalls. A fresh task launched directly in a separate small worktree is a new
-  sandbox route and does not inherit the prior task's circuit. Verify the final
-  diff. Completion through an alternate route is mitigation, not proof that the
-  ordinary tool route is repaired.
+  stalls. A fresh task is a new sandbox route and does not inherit a prior
+  task's circuit, even when carried context reports the earlier stall; the
+  separate-small-worktree launch shape is performance containment owned by
+  `.agents/workflow-overlay/decision-routing.md`, not a route-freshness
+  condition. Verify the final diff. Completion through an alternate route is
+  mitigation, not proof that the ordinary tool route is repaired.
 - **Load each skill once per thread.** A skill whose contract is already in
   context is not re-invoked to redo by hand what the loaded contract already
   states; apply it.
