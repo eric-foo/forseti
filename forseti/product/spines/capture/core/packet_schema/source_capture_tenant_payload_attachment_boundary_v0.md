@@ -6,9 +6,10 @@ artifact_role: Product architecture contract
 scope: >
   Defines the accepted logical attachment boundary for tenant/source-family typed
   payloads on Source Capture packets: current slice-attached fields are
-  transitional/incumbent, while new payload families target packet/slice-keyed
-  extension envelopes. Physical storage, migration, runner work, and projection
-  cache implementation are out of scope.
+  transitional/incumbent, while new payload families target stable raw-handle-
+  keyed extension envelopes. Exact envelope scopes, physical storage,
+  serialization, migration, runner work, projection, and query behavior are out
+  of scope.
 use_when:
   - Deciding whether a new source-family payload may add fields directly to SourceCaptureSlice.
   - Designing capture, projection, ECR, Signal Content, or Cleaning inputs that need tenant payloads.
@@ -79,7 +80,10 @@ Loaded source basis:
 ## Decision
 
 New tenant/source-family typed payloads target a **logical extension envelope**
-keyed to `packet_id` and, when the payload belongs to a slice, `slice_id`.
+keyed to stable raw capture identity. Every envelope identifies its `packet_id`;
+when its logical ownership is more granular, it also carries the applicable
+scope key. Packet and slice are current expected scopes, not a closed or exact
+allowed-scope set.
 
 Current slice-attached payload fields remain valid incumbent reality:
 
@@ -99,12 +103,13 @@ families, not merely convenient for the next tenant.
 
 ## Target Boundary
 
-The accepted target is **packet/slice-keyed typed extension envelopes**.
+The accepted target is **stable raw-handle-keyed typed extension envelopes**.
 
 At the architecture-boundary level, an extension envelope must preserve:
 
 - packet identity: the `packet_id` the payload belongs to;
-- slice identity when applicable: the `slice_id` the payload belongs to;
+- subordinate scope identity when applicable: for example the `slice_id` the
+  payload belongs to, without closing the exact allowed scope set here;
 - source-family identity: for example IG, Reddit, Retail/PDP, demand-durability,
   or a later family;
 - payload kind: the tenant-owned shape being carried;
@@ -115,17 +120,22 @@ At the architecture-boundary level, an extension envelope must preserve:
 - limitations, warnings, absence/refusal posture, or residual state when the
   payload was expected but not observed.
 
-This is a **logical attachment boundary**, not a physical storage decision. The
-later physical design may embed envelopes in the packet manifest, store them as
-packet-bundle sidecars, or choose another immutable/hash-pinned representation.
-That physical choice remains open and must not be inferred from this document.
+This logical boundary prevents each new family from forcing bespoke fields into
+the core packet schema. It does **not** solve physical storage, serialization,
+migration, projection, or query behavior. Before any new family implements
+envelopes, one shared physicalization decision must cover every envelope scope
+used by that implementation. A family-local storage workaround is not an
+implementation of this logical boundary. The shared decision may later choose
+embedded manifest records, packet-bundle sidecars, or another immutable/hash-
+pinned representation; the exact scopes and physical representation remain
+open. This implementation gate grants no build or migration authority.
 
 ## Core vs Satellite
 
 Core owns:
 
 - raw packet/slice/file identity and provenance;
-- the rule that tenant payloads attach by stable packet/slice key;
+- the rule that tenant payloads attach by stable raw packet and applicable scope key;
 - payload schema-version pinning and immutable rebuild inputs;
 - the typed value/posture coupling discipline for observed values;
 - the rule that absence, blocked access, out-of-window, not-attempted, and
@@ -189,7 +199,7 @@ projection cache engine, storage plane, materialization strategy, or runtime.
 Capture writes immutable SourceCapturePacket (CapturePacket) bundle
   -> packet has SourceCaptureSlice records
   -> current fields may still appear on slices as transitional/incumbent
-  -> new tenant payloads attach as logical extension envelopes keyed to packet/slice
+  -> new tenant payloads attach as logical extension envelopes keyed to stable raw handles
   -> projection reads raw packet + current fields/envelopes and emits a derived view
   -> ECR / Signal Content / series derivations read raw-keyed inputs and write receipts
   -> Cleaning consumes one raw-keyed handle with optional projection/ECR/SCR refs
@@ -205,7 +215,7 @@ for the raw packet bundle.
 | --- | --- | --- |
 | Keep adding direct `SourceCaptureSlice` fields | Rejected as the default target | Fits incumbent code, but turns each new tenant into lake-core field pressure. |
 | Sidecar payload records | Deferred physical option | Acceptable only if governed as immutable/hash-pinned packet-bundle material, not mutable external truth. |
-| Extension envelopes | Accepted target logical boundary | Stable keying and version pins remain core while family payload meaning stays satellite. |
+| Extension envelopes | Accepted target logical boundary | Stable raw-handle keying and version pins remain core while family payload meaning stays satellite. |
 | Transitional incumbent fields + target boundary | Accepted transition stance | Preserves current fields without blessing them as the future universal schema. |
 
 ## Non-Goals
@@ -216,6 +226,7 @@ This artifact does not:
 - authorize adding, removing, or migrating any `SourceCaptureSlice` field;
 - choose embedded-manifest vs sidecar physical storage;
 - choose envelope serialization;
+- choose migration, projection, or query behavior for envelopes;
 - choose projection cache engine or materialization;
 - design ECR, Signal Content, Cleaning, Evidence Binding, or Judgment schema;
 - admit fixtures, validate packets, prove source-family coverage, or claim
@@ -233,8 +244,8 @@ Still owner-owned or separately scoped:
   are frozen as legacy/transitional.
 - Whether demand pins remain core capture facts, transitional fields, or later
   move into demand-family envelopes.
-- Exact allowed envelope scopes beyond packet and slice, such as preserved file,
-  series, or observation.
+- Exact allowed envelope scopes, such as packet, slice, preserved file, series,
+  or observation, and the subordinate keys each scope requires.
 - Whether one core posture enum is sufficient or families may use their own
   posture vocabularies while satisfying the common coupling discipline.
 - Whether any non-IG family proves a genuinely shared typed-observation schema.

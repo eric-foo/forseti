@@ -46,18 +46,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-function Stop-WithError([string]$Message) {
-    Write-Host "ABORTED: $Message" -ForegroundColor Red
-    exit 1
-}
-
-if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Stop-WithError 'git not found on PATH.'
-}
+. (Join-Path $PSScriptRoot '_common.ps1')
 
 # Resolve repo root and default worktree path.
-$repoRoot = git rev-parse --show-toplevel 2>$null
-if ($LASTEXITCODE -ne 0 -or -not $repoRoot) { Stop-WithError 'not inside a git repository.' }
+$repoRoot = Resolve-RepoRoot
 if (-not $Path) {
     $Path = Join-Path (Split-Path -Parent $repoRoot) "wt-$Lane"
 }

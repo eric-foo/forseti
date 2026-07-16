@@ -15,6 +15,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 
 INVENTORY_PATH = "forseti-harness/data_lake/lake_touchpoint_inventory_v0.json"
 CONTRACT_TESTS = (
@@ -26,10 +29,6 @@ TIMEOUT_SECONDS = 120
 
 class GateInfrastructureError(RuntimeError):
     """The gate could not determine or execute its required scope."""
-
-
-def repo_root() -> Path:
-    return Path(__file__).resolve().parents[2]
 
 
 def resolve_base_ref(explicit_base: str | None = None) -> str:

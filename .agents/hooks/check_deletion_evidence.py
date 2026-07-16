@@ -14,10 +14,11 @@ WHAT THIS DOES
   PR diff: a governed deletion with no complete record, or a successor that does
   not resolve in the committed tree, turns CI red, and a red rollup blocks both
   merge paths (the bot honors the router label; the self-merge guard requires a
-  green rollup). SUBSTANTIVE adjudication -- is the recorded evidence true? -- is
-  the human merger's job: the router routes every governed-deletion PR to
-  `risk/manual-review-required`, and the protected-action guard refuses to
-  self-merge a manual-flagged PR, so a human always reads the evidence.
+  green rollup). SUBSTANTIVE review -- is the recorded evidence true? -- plus
+  home/Chief Architect adjudication is a resident completion gate. The router
+  sends every governed-deletion PR to `risk/manual-review-required`, excluding
+  unattended auto-merge and signaling that gate; the label does not mechanically
+  certify completion or choose a human merge actor.
 
 WHAT THIS GATE DOES NOT COVER (named boundaries)
   - It is a PRE-MERGE PR gate. A direct push to main is NOT caught (the push-event
@@ -25,7 +26,8 @@ WHAT THIS GATE DOES NOT COVER (named boundaries)
     separate, bypassable control (.githooks/pre-push + the protected-action guard).
   - It enforces evidence PRESENCE + machine-checkable facts (targets match the
     diff; successor resolves as a committed file), NOT the truth of the
-    human-judged fields -- that is the human adjudicator's job (above).
+    judgment-bearing fields -- that is the independent reviewer and home/Chief
+    Architect adjudicator's job (above).
 
 WHY STRICT (not report-mode)
   Report-mode (exit 0) gives no safety here: a green CI lets the self-merge
@@ -74,9 +76,14 @@ Doctrine + register:
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 from pathlib import Path, PurePosixPath
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    git_out,
+    repo_root,
+)
 
 # Governed scope -- code-owned SSOT (see "WHY THE GOVERNED SCOPE IS CODE-OWNED").
 # A trailing slash means "this directory and everything under it".
@@ -87,11 +94,6 @@ EVIDENCE_FIELDS = ("reverse_ref_check", "successor", "semantic_delta", "rollback
 # Explicit literal that declares "there is no replacement -- this is pure bloat".
 # Any other successor value must resolve to a real path in the tree.
 NO_SUCCESSOR = "none -- pure bloat"
-
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
 
 
 # ---------------------------------------------------------------------------
@@ -183,16 +185,12 @@ def successor_resolves(rec: dict, root: Path) -> bool:
 # ---------------------------------------------------------------------------
 
 def _git(root: Path, args: list[str], timeout: int = 15) -> tuple[int, str]:
-    """Run a git command; return (returncode, stdout). Never raises; returns
-    (-1, "") on any git failure (an infra gap -> fail-open upstream)."""
-    try:
-        res = subprocess.run(
-            ["git", "-C", str(root), *args],
-            capture_output=True, text=True, timeout=timeout,
-        )
-        return res.returncode, res.stdout
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
-        return -1, ""
+    """Run a git command; return (returncode, stdout). Never raises.
+
+    Thin adapter over the shared _hooklib.git_out (keeps this file's 15s
+    default). git_out returns (1, "") on any git failure (an infra gap ->
+    fail-open upstream) instead of (-1, ""); callers only test rc != 0."""
+    return git_out(root, args, timeout=timeout)
 
 
 def resolve_base_ref(cli_base: str | None) -> str:

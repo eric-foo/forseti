@@ -77,8 +77,8 @@ if TYPE_CHECKING:
 
 SEED_WRAPPER_KEY = "instagram_reels_creator_metric_seed"
 
-METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "creator_metric_silver_metricobservation_v0"
-METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "creator_metric_silver_metricrollupobservation_v0"
+METRIC_OBSERVATION_PRODUCER_SCHEMA_VERSION = "creator_metric_silver_metricobservation_v2"
+METRIC_ROLLUP_PRODUCER_SCHEMA_VERSION = "creator_metric_silver_metricrollupobservation_v1"
 
 _OBS_PRODUCER_ID = (
     "forseti-harness.capture_spine.creator_profile_current.silver_metric_producer"
@@ -148,6 +148,7 @@ def derive_creator_metric_silver_records_from_projections(
     for seed_observation in seed["metric_observations"]:
         record = build_metric_observation_record(
             seed_observation=seed_observation,
+            recorded_at=seed.get("generated_at_utc"),
             bronze_attachment_records_by_raw_ref=bronze_attachment_records_by_raw_ref,
             use_bronze_attachment_records=use_bronze_attachment_records,
         )
@@ -161,6 +162,7 @@ def derive_creator_metric_silver_records_from_projections(
         observation_records.append(record)
         observation_paths.append(path)
         ref_by_seed_observation_id[seed_observation["metric_observation_id"]] = {
+            "raw_anchor": record["raw_anchor"],
             "lane_namespace": METRIC_OBSERVATION_LANE,
             "record_id": record["record_id"],
             "content_hash": record["content_hash"],
@@ -198,6 +200,7 @@ def derive_creator_metric_silver_records_from_projections(
 def build_metric_observation_record(
     *,
     seed_observation: Mapping[str, Any],
+    recorded_at: str | None = None,
     bronze_attachment_records_by_raw_ref: Mapping[tuple[str, str, str, str], Mapping[str, Any]] | None = None,
     use_bronze_attachment_records: bool = False,
 ) -> dict[str, Any]:
@@ -234,7 +237,7 @@ def build_metric_observation_record(
         "source_family": _SOURCE_FAMILY,
         "source_surface": seed_observation.get("chosen_source_surface_or_none") or "instagram_reels_grid",
         "observed_at": observed_at,
-        "captured_at": observed_at,
+        "captured_at": observed_at if observed_at is not None else recorded_at,
         "raw_refs": [raw_ref],
         "derived_refs": [],
         "payload": {
@@ -263,6 +266,27 @@ def build_metric_observation_record(
     }
     if lineage_limitations:
         record["lineage_limitations"] = lineage_limitations
+    if observed_at is None:
+        if not isinstance(recorded_at, str) or not recorded_at.strip():
+            raise ValueError("Unknown-time IG metric observation requires recorded_at")
+        observation = record["payload"]["observation"]
+        observation.update(
+            {
+                "effective_interval": {
+                    "start": None,
+                    "start_precision": "unknown",
+                    "unknown_reason": (
+                        "The selected Instagram projection row has no known capture_time."
+                    ),
+                },
+                "recorded_at": recorded_at,
+                "evidence_refs": [raw_ref],
+                "limitations": [
+                    "Source-effective time is unknown; recorded_at is the metric-seed "
+                    "generation time and is not observed_at."
+                ],
+            }
+        )
     record["content_hash"] = f"sha256:{_content_hash(record)}"
     return record
 
@@ -291,6 +315,7 @@ def build_metric_rollup_record(
         derived_refs.append(
             {
                 "edge_type": "derived_from_record",
+                "raw_anchor": ref["raw_anchor"],
                 "lane_namespace": ref["lane_namespace"],
                 "record_id": ref["record_id"],
                 "content_hash": ref["content_hash"],
@@ -416,6 +441,7 @@ def _raw_ref(
 ) -> dict[str, Any]:
     anchor = seed_observation.get("raw_anchor") or {}
     raw_ref = {
+        "ref_type": "raw_packet",
         "packet_id": seed_observation.get("source_packet_id_or_none"),
         "file_id": anchor.get("file_id"),
         "relative_packet_path": anchor.get("relative_packet_path"),
@@ -433,7 +459,6 @@ def _raw_ref(
     if attachment_record is None:
         raw_ref.update(
             {
-                "raw_ref_kind": _RAW_PACKET_FALLBACK_REF_KIND,
                 "typed_attachment_record_status": "missing",
                 "attachment_record_residual": _MISSING_AR_LIMITATION,
             }
@@ -442,7 +467,7 @@ def _raw_ref(
 
     raw_ref.update(
         {
-            "raw_ref_kind": _BRONZE_AR_RAW_REF_KIND,
+            "ref_type": _BRONZE_AR_RAW_REF_KIND,
             "attachment_record_id": attachment_record.get("attachment_record_id"),
             "attachment_record_schema_version": attachment_record.get(
                 "attachment_record_schema_version"

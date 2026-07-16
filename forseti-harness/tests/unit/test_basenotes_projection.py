@@ -16,7 +16,7 @@ from source_capture.writer import write_local_source_capture_packet
 
 
 _LOCATOR = "https://basenotes.com/fragrances/mojave-ghost-by-byredo.26143979"
-_SOURCE_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_SOURCE_SURFACE = "basenotes_product_page_user_cleared_persistent_chrome_current_window"
 _FIXTURE = (
     Path(__file__).resolve().parents[1]
     / "fixtures"
@@ -29,7 +29,7 @@ def _fixture_html() -> str:
     return _FIXTURE.read_text(encoding="utf-8")
 
 
-def test_builds_basenotes_projection_from_cloakbrowser_packet(tmp_path: Path) -> None:
+def test_builds_basenotes_projection_from_persistent_chrome_packet(tmp_path: Path) -> None:
     result = _write_packet(tmp_path)
     projection = build_basenotes_projection(
         packet=result.packet,
@@ -200,9 +200,9 @@ def _write_packet(
     source_surface: str = _SOURCE_SURFACE,
     html: str | None = None,
 ):
-    body_path = tmp_path / "cloakbrowser_rendered_dom.html"
+    body_path = tmp_path / "browser_rendered_dom.html"
     body_path.write_text(_fixture_html() if html is None else html, encoding="utf-8")
-    metadata_path = tmp_path / "cloakbrowser_snapshot_metadata.json"
+    metadata_path = tmp_path / "browser_snapshot_metadata.json"
     metadata_path.write_text('{"capture_timestamp": "2026-06-30T00:00:00Z"}\n', encoding="utf-8")
     return write_local_source_capture_packet(
         output_directory=tmp_path / "packet",

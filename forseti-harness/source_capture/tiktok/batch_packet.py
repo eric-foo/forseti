@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 from urllib.parse import urlparse
 
+from harness_utils import as_dict, utc_now_z
 from source_capture.models import (
     CaptureModeCategory,
     PacketTiming,
@@ -289,7 +290,7 @@ def _validate_onboarding_evidence(
 
     grid_ids: list[str] = []
     for index, raw_item in enumerate(grid_items):
-        item = _as_dict(raw_item)
+        item = as_dict(raw_item)
         video_id = _first_str(item.get("video_id"))
         video_url = _first_str(item.get("video_url"))
         if video_id is None or video_url is None:
@@ -306,7 +307,7 @@ def _validate_onboarding_evidence(
             )
         grid_ids.append(video_id)
 
-    binding = _as_dict(selection.get("onboarding_binding"))
+    binding = as_dict(selection.get("onboarding_binding"))
     if (
         (_first_str(binding.get("creator_handle"), "") or "").lstrip("@").lower()
         != creator_handle.lower()
@@ -327,7 +328,7 @@ def _validate_onboarding_evidence(
             "selection_result_json grid_window_file is not the onboarding grid artifact"
         )
 
-    coverage = _as_dict(selection.get("coverage"))
+    coverage = as_dict(selection.get("coverage"))
     if coverage.get("complete") is not True:
         raise ValueError("selection_result_json coverage must indicate complete=true")
     if (
@@ -338,7 +339,7 @@ def _validate_onboarding_evidence(
             "selection_result_json coverage does not match grid window size"
         )
 
-    ranked_rows = [_as_dict(row) for row in _as_list(selection.get("ranked_items"))]
+    ranked_rows = [as_dict(row) for row in _as_list(selection.get("ranked_items"))]
     ranked_ids = [_first_str(row.get("video_id")) for row in ranked_rows]
     if (
         any(video_id is None for video_id in ranked_ids)
@@ -352,7 +353,7 @@ def _validate_onboarding_evidence(
             "selection_result_json ranked_items do not cover the supplied grid window"
         )
 
-    selection_summary = _as_dict(selection.get("selection_summary"))
+    selection_summary = as_dict(selection.get("selection_summary"))
     selected_ids = [
         str(video_id)
         for video_id in _as_list(
@@ -442,7 +443,7 @@ def _build_payload(
         raise ValueError("No valid videos could be normalized from cadence results")
 
     summary = _summarize_batch(videos, cadence_payloads)
-    timestamp = capture_timestamp or _latest_run_complete_utc(cadence_payloads) or _utc_now_iso()
+    timestamp = capture_timestamp or _latest_run_complete_utc(cadence_payloads) or utc_now_z()
     staging_contract_summary = _summarize_contracts(grid_payload, cadence_payloads)
     staging_contract_summary["superseded_failures"] = superseded_failures
     payload: JsonObject = {
@@ -476,16 +477,16 @@ def _normalize_video_row(
     if not video_id:
         return None
 
-    grid_candidate = _as_dict(row.get("grid_candidate"))
+    grid_candidate = as_dict(row.get("grid_candidate"))
     source_item = grid_item or grid_candidate
-    source_stats = _as_dict(source_item.get("stats") if source_item else None) or _as_dict(grid_candidate.get("stats"))
+    source_stats = as_dict(source_item.get("stats") if source_item else None) or as_dict(grid_candidate.get("stats"))
     create_time = _first_int(source_item.get("createTime") if source_item else None, grid_candidate.get("createTime"))
     desc = _first_str(source_item.get("desc") if source_item else None, grid_candidate.get("desc"), "")
     hashtags = _dedupe_preserve_order(_HASHTAG_RE.findall(desc or ""))
     comments = _normalize_comments(row)
     subtitles = _normalize_subtitles(row)
     extraction_seed = _build_extraction_seed(desc or "", hashtags, _extract_mentions(desc or ""), comments, subtitles)
-    access_intervention = _normalize_access_intervention(_as_dict(row.get("capture_receipt")))
+    access_intervention = _normalize_access_intervention(as_dict(row.get("capture_receipt")))
 
     video: JsonObject = {
         "source_index": source_index,
@@ -509,7 +510,7 @@ def _normalize_video_row(
             "desc": desc,
             "hashtags": hashtags,
             "mentions": extraction_seed["source_mentions"],
-            "music": _normalize_music(_as_dict(source_item.get("music") if source_item else None) or _as_dict(grid_candidate.get("music"))),
+            "music": _normalize_music(as_dict(source_item.get("music") if source_item else None) or as_dict(grid_candidate.get("music"))),
         },
         "comments": comments,
         "subtitles": subtitles,
@@ -527,14 +528,14 @@ def _normalize_video_row(
 
 
 def _normalize_access_intervention(receipt: JsonObject) -> JsonObject:
-    action = _as_dict(receipt.get("challenge_close_action")) or _as_dict(
+    action = as_dict(receipt.get("challenge_close_action")) or as_dict(
         receipt.get("challenge_close_diagnostic")
     )
     followthrough = _as_bool(receipt.get("challenge_close_followthrough")) is True
     handoff_attempts = [
-        _as_dict(attempt)
+        as_dict(attempt)
         for attempt in _as_list(receipt.get("human_challenge_handoff_attempts"))
-        if _as_dict(attempt)
+        if as_dict(attempt)
     ]
     human_handoff = _as_bool(receipt.get("human_challenge_handoff")) is True or bool(
         handoff_attempts
@@ -573,7 +574,7 @@ def _normalize_access_intervention(receipt: JsonObject) -> JsonObject:
         "visual_fallback_screenshot_sha256": _first_str(
             action.get("visual_fallback_screenshot_sha256")
         ),
-        "visual_fallback_crop_box": _as_dict(action.get("visual_fallback_crop_box")) or None,
+        "visual_fallback_crop_box": as_dict(action.get("visual_fallback_crop_box")) or None,
         "post_click_absence_verified": _as_bool(
             action.get("post_click_absence_verified")
         ),
@@ -656,11 +657,11 @@ def _normalize_comments(row: JsonObject) -> JsonObject:
             "comments": [],
         }
 
-    assessment = _as_dict(best.get("body_assessment"))
+    assessment = as_dict(best.get("body_assessment"))
     parsed_comments = [_normalize_comment(comment, index) for index, comment in enumerate(_as_list(assessment.get("comments")))]
     parsed_comments = [comment for comment in parsed_comments if comment is not None]
-    envelope = _normalize_comment_envelope(_as_dict(assessment.get("envelope")))
-    url_summary = _as_dict(best.get("url_summary"))
+    envelope = _normalize_comment_envelope(as_dict(assessment.get("envelope")))
+    url_summary = as_dict(best.get("url_summary"))
     result: JsonObject = {
         "posture": "captured_page_owned_response",
         "observed_utc": _first_str(best.get("observed_utc")),
@@ -670,7 +671,7 @@ def _normalize_comments(row: JsonObject) -> JsonObject:
         "captured_comment_count": len(parsed_comments),
         "assessment_comment_count": _first_int(assessment.get("comment_count"), len(parsed_comments)),
         "envelope": envelope,
-        "field_coverage": _json_safe_scalar_map(_as_dict(assessment.get("field_coverage"))),
+        "field_coverage": _json_safe_scalar_map(as_dict(assessment.get("field_coverage"))),
         "endpoint_receipt": {
             "path": _first_str(url_summary.get("path")),
             "url_sha256": _first_str(url_summary.get("url_sha256")),
@@ -683,10 +684,10 @@ def _normalize_comments(row: JsonObject) -> JsonObject:
 
 
 def _normalize_comment(comment: Any, source_order: int) -> JsonObject | None:
-    item = _as_dict(comment)
+    item = as_dict(comment)
     if not item:
         return None
-    user = _as_dict(item.get("user"))
+    user = as_dict(item.get("user"))
     result: JsonObject = {
         "source_order": source_order,
         "cid": _first_str(item.get("cid"), item.get("comment_id")),
@@ -708,7 +709,7 @@ def _normalize_comment(comment: Any, source_order: int) -> JsonObject | None:
 def _normalize_dom_visible_comment_candidates(row: JsonObject) -> list[JsonObject]:
     comments: list[JsonObject] = []
     for raw in _as_list(row.get("dom_visible_comment_candidates")):
-        item = _as_dict(raw)
+        item = as_dict(raw)
         text = _first_str(item.get("text"), "")
         if not text:
             continue
@@ -731,11 +732,11 @@ def _normalize_dom_visible_comment_candidates(row: JsonObject) -> list[JsonObjec
 
 
 def _normalize_subtitles(row: JsonObject) -> JsonObject:
-    hydration = _as_dict(row.get("hydration"))
+    hydration = as_dict(row.get("hydration"))
     subtitle_info_count = _first_int(hydration.get("subtitle_info_count"), 0)
     subtitle_infos = _normalize_subtitle_infos(_as_list(hydration.get("subtitle_infos_sanitized")))
-    subtitle = _as_dict(row.get("subtitle"))
-    parsed = _as_dict(subtitle.get("parsed_webvtt"))
+    subtitle = as_dict(row.get("subtitle"))
+    parsed = as_dict(subtitle.get("parsed_webvtt"))
 
     if subtitle.get("success") is True and parsed:
         cues = [_normalize_cue(cue, index) for index, cue in enumerate(_as_list(parsed.get("cues")))]
@@ -782,7 +783,7 @@ def _build_extraction_seed(desc: str, hashtags: Sequence[str], mentions: Sequenc
     desc_lower = (desc or "").lower()
     hashtag_lowers = [tag.lower() for tag in hashtags]
     disclosure_hits = _disclosure_hits(desc_lower, hashtag_lowers)
-    comment_texts = [_first_str(_as_dict(comment).get("text"), "") or "" for comment in _as_list(comments.get("comments"))]
+    comment_texts = [_first_str(as_dict(comment).get("text"), "") or "" for comment in _as_list(comments.get("comments"))]
     question_comment_count = sum(1 for text in comment_texts if "?" in text)
     intent_counts = Counter()
     for text in comment_texts:
@@ -821,25 +822,25 @@ def _summarize_batch(videos: Sequence[JsonObject], cadence_payloads: Sequence[Js
     stats_sums: JsonObject = {}
     for key in ("playCount", "diggCount", "commentCount", "shareCount", "collectCount"):
         observed_values = [
-            _first_int(_as_dict(video.get("stats")).get(key)) for video in videos
+            _first_int(as_dict(video.get("stats")).get(key)) for video in videos
         ]
         if videos and all(value is not None for value in observed_values):
             stats_sums[key] = sum(
                 value for value in observed_values if value is not None
             )
-    comment_success_count = sum(1 for video in videos if _as_dict(video.get("comments")).get("posture") == "captured_page_owned_response")
-    dom_visible_comment_count = sum(1 for video in videos if _as_dict(video.get("comments")).get("posture") == "captured_visible_dom")
-    captured_comment_count = sum(_first_int(_as_dict(video.get("comments")).get("captured_comment_count"), 0) or 0 for video in videos)
-    envelope_total = sum(_first_int(_as_dict(_as_dict(video.get("comments")).get("envelope")).get("total"), 0) or 0 for video in videos)
-    subtitle_success_count = sum(1 for video in videos if _as_dict(video.get("subtitles")).get("posture") == "source_native_webvtt_captured")
-    subtitle_info_count = sum(1 for video in videos if (_first_int(_as_dict(video.get("subtitles")).get("subtitle_info_count"), 0) or 0) > 0)
-    transcript_count = sum(1 for video in videos if _as_dict(video.get("typed_extraction_seed")).get("has_transcript_text") is True)
-    cue_count = sum(_first_int(_as_dict(video.get("subtitles")).get("cue_count"), 0) or 0 for video in videos)
-    disclosure_count = sum(1 for video in videos if _as_dict(video.get("typed_extraction_seed")).get("has_disclosure_signal") is True)
+    comment_success_count = sum(1 for video in videos if as_dict(video.get("comments")).get("posture") == "captured_page_owned_response")
+    dom_visible_comment_count = sum(1 for video in videos if as_dict(video.get("comments")).get("posture") == "captured_visible_dom")
+    captured_comment_count = sum(_first_int(as_dict(video.get("comments")).get("captured_comment_count"), 0) or 0 for video in videos)
+    envelope_total = sum(_first_int(as_dict(as_dict(video.get("comments")).get("envelope")).get("total"), 0) or 0 for video in videos)
+    subtitle_success_count = sum(1 for video in videos if as_dict(video.get("subtitles")).get("posture") == "source_native_webvtt_captured")
+    subtitle_info_count = sum(1 for video in videos if (_first_int(as_dict(video.get("subtitles")).get("subtitle_info_count"), 0) or 0) > 0)
+    transcript_count = sum(1 for video in videos if as_dict(video.get("typed_extraction_seed")).get("has_transcript_text") is True)
+    cue_count = sum(_first_int(as_dict(video.get("subtitles")).get("cue_count"), 0) or 0 for video in videos)
+    disclosure_count = sum(1 for video in videos if as_dict(video.get("typed_extraction_seed")).get("has_disclosure_signal") is True)
     challenge_close_followthrough_count = sum(
         1
         for video in videos
-        if _as_dict(video.get("source_access_intervention")).get("posture")
+        if as_dict(video.get("source_access_intervention")).get("posture")
         == "owner_authorized_challenge_x_close_followthrough"
     )
 
@@ -866,8 +867,8 @@ def _summarize_batch(videos: Sequence[JsonObject], cadence_payloads: Sequence[Js
 def _validate_staging_contracts(
     grid_payload: JsonObject, cadence_payloads: Sequence[JsonObject]
 ) -> list[JsonObject]:
-    contracts = [_as_dict(grid_payload.get("capture_contract"))]
-    contracts.extend(_as_dict(payload.get("capture_contract")) for payload in cadence_payloads)
+    contracts = [as_dict(grid_payload.get("capture_contract"))]
+    contracts.extend(as_dict(payload.get("capture_contract")) for payload in cadence_payloads)
     forbidden_true = (
         "captcha_solving",
         "challenge_close_counts_as_success",
@@ -936,7 +937,7 @@ def _validate_staging_contracts(
                 "failed cadence cannot be admitted"
             )
         for row_index, row in enumerate(_as_list(payload.get("results"))):
-            receipt = _as_dict(_as_dict(row).get("capture_receipt"))
+            receipt = as_dict(as_dict(row).get("capture_receipt"))
             if not receipt:
                 continue
             if _as_bool(receipt.get("agent_may_solve_challenge")) is True:
@@ -957,7 +958,7 @@ def _validate_staging_contracts(
             for attempt_index, attempt in enumerate(
                 _as_list(receipt.get("human_challenge_handoff_attempts"))
             ):
-                attempt_receipt = _as_dict(attempt)
+                attempt_receipt = as_dict(attempt)
                 if _as_bool(attempt_receipt.get("captcha_solving_by_agent")) is True:
                     raise ValueError(
                         f"cadence_result_json[{index}].results[{row_index}]"
@@ -984,7 +985,7 @@ def _classify_cadence_failures(
         if run_complete_utc is None:
             continue
         for raw_row in _as_list(payload.get("results")):
-            row = _as_dict(raw_row)
+            row = as_dict(raw_row)
             video_id = _first_str(row.get("video_id"))
             if video_id and _first_str(row.get("status")) == "completed":
                 completed_runs_by_video.setdefault(video_id, []).append(run_complete_utc)
@@ -994,7 +995,7 @@ def _classify_cadence_failures(
     for payload_index, payload in enumerate(cadence_payloads):
         failed_run_complete_utc = _first_str(payload.get("run_complete_utc"))
         for raw_failure in _as_list(payload.get("failures")):
-            failure = _as_dict(raw_failure)
+            failure = as_dict(raw_failure)
             video_id = _first_str(failure.get("video_id"))
             if video_id is None or failed_run_complete_utc is None:
                 unsuperseded_by_payload[payload_index] = (
@@ -1028,7 +1029,7 @@ def _classify_cadence_failures(
     return superseded, unsuperseded_by_payload
 
 def _summarize_contracts(grid_payload: JsonObject, cadence_payloads: Sequence[JsonObject]) -> JsonObject:
-    contracts = [_as_dict(grid_payload.get("capture_contract")), *[_as_dict(payload.get("capture_contract")) for payload in cadence_payloads]]
+    contracts = [as_dict(grid_payload.get("capture_contract")), *[as_dict(payload.get("capture_contract")) for payload in cadence_payloads]]
     keys = (
         "captcha_solving",
         "challenge_close_diagnostic_allowed",
@@ -1053,7 +1054,7 @@ def _summarize_contracts(grid_payload: JsonObject, cadence_payloads: Sequence[Js
 def _iter_cadence_results(cadence_payloads: Sequence[JsonObject]) -> list[JsonObject]:
     rows: list[JsonObject] = []
     for payload in cadence_payloads:
-        rows.extend(_as_dict(row) for row in _as_list(payload.get("results")) if _as_dict(row))
+        rows.extend(as_dict(row) for row in _as_list(payload.get("results")) if as_dict(row))
     return rows
 
 
@@ -1061,7 +1062,7 @@ def _profile_items_by_video_id(grid_payload: JsonObject, video_ids: Sequence[str
     wanted = set(video_ids)
     items_by_id: dict[str, JsonObject] = {}
     for raw in _as_list(grid_payload.get("response_items")):
-        item = _as_dict(raw)
+        item = as_dict(raw)
         video_id = str(item.get("id") or item.get("video_id") or "").strip()
         if video_id not in wanted:
             continue
@@ -1075,8 +1076,8 @@ def _profile_items_by_video_id(grid_payload: JsonObject, video_ids: Sequence[str
 def _best_comment_response(row: JsonObject) -> JsonObject | None:
     candidates = []
     for raw in _as_list(row.get("comment_responses")):
-        response = _as_dict(raw)
-        assessment = _as_dict(response.get("body_assessment"))
+        response = as_dict(raw)
+        assessment = as_dict(response.get("body_assessment"))
         if not response:
             continue
         score = (2 if response.get("ok") is True else 0) + (2 if assessment.get("json_parse_ok") is True else 0) + (_first_int(assessment.get("comment_count"), 0) or 0)
@@ -1094,7 +1095,7 @@ def _normalize_comment_envelope(envelope: JsonObject) -> JsonObject:
 def _normalize_subtitle_infos(infos: Sequence[Any]) -> list[JsonObject]:
     safe_infos: list[JsonObject] = []
     for raw in infos:
-        info = _as_dict(raw)
+        info = as_dict(raw)
         if not info:
             continue
         safe = {
@@ -1114,7 +1115,7 @@ def _normalize_subtitle_infos(infos: Sequence[Any]) -> list[JsonObject]:
 
 
 def _normalize_cue(cue: Any, source_order: int) -> JsonObject | None:
-    item = _as_dict(cue)
+    item = as_dict(cue)
     if not item:
         return None
     result = {
@@ -1266,10 +1267,6 @@ def _parse_capture_timestamp(value: str) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
-def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-
-
 def _iso_from_unix(value: int | None) -> str | None:
     if value is None:
         return None
@@ -1280,11 +1277,8 @@ def _iso_from_unix(value: int | None) -> str | None:
 
 
 def _sha256_text(value: str) -> str | None:
+    # Diverges from harness_utils.sha256_text: returns None for empty input.
     return hashlib.sha256(value.encode("utf-8")).hexdigest() if value else None
-
-
-def _as_dict(value: Any) -> JsonObject:
-    return value if isinstance(value, dict) else {}
 
 
 def _as_list(value: Any) -> list[Any]:

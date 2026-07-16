@@ -17,11 +17,12 @@ from cleaning.transcript_product_lake import (
     PRODUCT_MENTIONS_LANE,
     PRODUCT_MENTIONS_SET_LANE,
 )
-from data_lake.silver_lineage import (
-    SOURCE_BACKED_COMPLETE_STATUS,
-    silver_record_source_backed_status,
+from data_lake.silver_record import (
+    PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS,
+    SILVER_VAULT_RECORD_SCHEMA_VERSION,
+    validate_silver_vault_record,
+    verify_silver_vault_record_sources,
 )
-from data_lake.silver_record import SILVER_VAULT_RECORD_SCHEMA_VERSION
 from source_capture.ig_reels_behavioral_projection import project_ig_reels_behavioral_item
 from source_capture.ig_reels_deep_capture_lake import (
     AUDIENCE_COMMENTS_LANE,
@@ -194,6 +195,26 @@ def _collect_grid_packet_inputs(
         index.setdefault(shortcode, _BehavioralInputs()).grid_rows.append(row_data)
 
 
+def _append_unresolved_deep_capture_residual(
+    index: dict[str, _BehavioralInputs],
+    global_residuals: list[str],
+    *,
+    raw_anchor: str,
+    residual: str,
+) -> None:
+    """Route a residual for a set whose reel identity could not be resolved.
+
+    A current set is anchored on its packet id, so ``raw_anchor`` must never be
+    allowed to key the shortcode index. Only an anchor another collector already
+    established -- which makes it a real shortcode -- is a safe local target;
+    otherwise the residual stays global rather than inventing a reel.
+    """
+    if raw_anchor in index:
+        _append_once(index[raw_anchor].adapter_residuals, residual)
+    else:
+        _append_once(global_residuals, residual)
+
+
 def _collect_deep_capture_inputs(
     data_root: Any,
     index: dict[str, _BehavioralInputs],
@@ -202,9 +223,6 @@ def _collect_deep_capture_inputs(
     for raw_anchor, record_id, marker_path in _iter_derived_lane_records(data_root, DEEP_CAPTURE_SET_LANE):
         marker = _read_json_file(marker_path)
         member_lanes = set(marker.get("member_lanes", [])) if isinstance(marker, dict) else set()
-        provisional_shortcode = raw_anchor
-        created_provisional = provisional_shortcode not in index
-        bucket = index.setdefault(provisional_shortcode, _BehavioralInputs())
         try:
             complete = data_root.is_record_set_complete(
                 subtree="derived",
@@ -215,7 +233,12 @@ def _collect_deep_capture_inputs(
         except Exception:  # noqa: BLE001 - preserve target-visible failure without aborting index
             complete = False
         if not complete:
-            _append_once(bucket.adapter_residuals, f"ig_deep_capture_record_set_incomplete:{raw_anchor}:{record_id}")
+            _append_unresolved_deep_capture_residual(
+                index,
+                global_residuals,
+                raw_anchor=raw_anchor,
+                residual=f"ig_deep_capture_record_set_incomplete:{raw_anchor}:{record_id}",
+            )
             continue
 
         records: dict[str, dict[str, Any] | None] = {
@@ -243,8 +266,6 @@ def _collect_deep_capture_inputs(
             and lane not in current
         }
         if not current:
-            if created_provisional:
-                index.pop(provisional_shortcode, None)
             posture = (
                 "current_source_invalid"
                 if invalid_current_lanes
@@ -257,13 +278,14 @@ def _collect_deep_capture_inputs(
             None,
         )
         if shortcode is None:
-            _append_once(bucket.adapter_residuals, f"ig_deep_capture_shortcode_absent:{raw_anchor}:{record_id}")
+            _append_unresolved_deep_capture_residual(
+                index,
+                global_residuals,
+                raw_anchor=raw_anchor,
+                residual=f"ig_deep_capture_shortcode_absent:{raw_anchor}:{record_id}",
+            )
             continue
-        if shortcode != provisional_shortcode:
-            provisional = index.get(provisional_shortcode)
-            if provisional is not None and not provisional.grid_rows and not provisional.comment_sets and not provisional.deep_capture_transcript_records:
-                index.pop(provisional_shortcode, None)
-            bucket = index.setdefault(shortcode, _BehavioralInputs())
+        bucket = index.setdefault(shortcode, _BehavioralInputs())
         for lane in sorted(invalid_current_lanes):
             _append_once(
                 bucket.adapter_residuals,
@@ -311,9 +333,19 @@ def _collect_product_extraction_results(
             )
         except Exception:  # noqa: BLE001
             complete = False
-        source_backed_status = silver_record_source_backed_status(body)
+        try:
+            validate_silver_vault_record(body)
+        except (TypeError, ValueError):
+            source_backed_status = "invalid_silver_envelope"
+        else:
+            try:
+                verify_silver_vault_record_sources(data_root, body)
+            except (TypeError, ValueError):
+                source_backed_status = "source_ref_unresolved"
+            else:
+                source_backed_status = PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS
         provenance = body.get("provenance") if isinstance(body.get("provenance"), dict) else {}
-        if complete and source_backed_status != SOURCE_BACKED_COMPLETE_STATUS:
+        if complete and source_backed_status != PHYSICALLY_SOURCE_BACKED_COMPLETE_STATUS:
             status = source_backed_status
         else:
             status = "extracted" if complete else "partial_needs_cleanup"

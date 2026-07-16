@@ -22,6 +22,8 @@ EXTRACTION_PROBLEM_STATUSES = {
     "source_lineage_missing",
     "source_lineage_incomplete",
     "source_lineage_invalid",
+    "invalid_silver_envelope",
+    "source_ref_unresolved",
 }
 SOURCE_COMPLETION_PROBLEMS = {
     "partial_needs_cleanup",

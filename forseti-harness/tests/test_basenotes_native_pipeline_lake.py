@@ -25,7 +25,7 @@ from source_capture.writer import write_local_source_capture_packet
 
 
 _LOCATOR = "https://basenotes.com/fragrances/mojave-ghost-by-byredo.26143979"
-_SOURCE_SURFACE = "basenotes_product_page_cloakbrowser_deep_scroll_current_window"
+_SOURCE_SURFACE = "basenotes_product_page_user_cleared_persistent_chrome_current_window"
 _REVIEW_TEXT = "Ectoplasmic. A wisp of something and then poof, it's gone. Spooky."
 _FIXTURE = (
     Path(__file__).resolve().parent
@@ -154,9 +154,9 @@ def _raw_html_body(root: DataLakeRoot, packet_id: str) -> str:
 
 
 def _commit_packet(root: DataLakeRoot, tmp_path: Path) -> str:
-    body_path = tmp_path / "cloakbrowser_rendered_dom.html"
+    body_path = tmp_path / "browser_rendered_dom.html"
     body_path.write_text(_fixture_html(), encoding="utf-8")
-    metadata_path = tmp_path / "cloakbrowser_snapshot_metadata.json"
+    metadata_path = tmp_path / "browser_snapshot_metadata.json"
     metadata_path.write_text('{"capture_timestamp": "2026-06-30T00:00:00Z"}\n', encoding="utf-8")
     result = write_local_source_capture_packet(
         data_root=root,

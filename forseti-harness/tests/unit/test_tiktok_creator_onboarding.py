@@ -665,6 +665,12 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
             }
         ],
     )
+    suggested.dom_observation.update(
+        {
+            "profile_bio_text_or_none": "Budget fragrance reviews 🇬🇧",
+            "profile_bio_element_detected": True,
+        }
+    )
     grid_items = [
         _item("1", 400, 20),
         _item("2", 300, 60),
@@ -755,6 +761,13 @@ def test_onboarding_writes_selection_before_same_engine_deep_capture(
         "https://www.tiktok.com/@creator/video/2",
     ]
     assert "cloakbrowser_humanize" not in deep_calls[0]
+    suggested_receipt = json.loads(
+        paths.suggested_accounts_json_path.read_text(encoding="utf-8")
+    )
+    assert suggested_receipt["profile_bio_text_or_none"] == (
+        "Budget fragrance reviews 🇬🇧"
+    )
+    assert suggested_receipt["profile_bio_status"] == "captured"
     receipt = json.loads(paths.onboarding_receipt_json_path.read_text(encoding="utf-8"))
     assert receipt["status"] == "complete"
     assert receipt["session_profile"] == "chowdakr_sg_tiktok"
@@ -1549,8 +1562,12 @@ def test_grid_window_accepts_available_rows_below_cap() -> None:
     assert [item["video_id"] for item in window["items"]] == ["1", "2", "3"]
 
 
-def test_suggested_receipt_preserves_clean_profile_external_links() -> None:
+def test_suggested_receipt_preserves_profile_bio_and_clean_external_links() -> None:
     capture = _capture(ordered_ids=[], items=[], suggested=[])
+    capture.dom_observation["profile_bio_text_or_none"] = (
+        "  Honest reviews • hidden gems 🇬🇧\nFragrance for less  "
+    )
+    capture.dom_observation["profile_bio_element_detected"] = True
     capture.dom_observation["profile_external_links"] = [
         {
             "url": "https://beacons.ai/topfrag",
@@ -1563,6 +1580,10 @@ def test_suggested_receipt_preserves_clean_profile_external_links() -> None:
         creator_handle="creator", capture=capture
     )
 
+    assert receipt["profile_bio_status"] == "captured"
+    assert receipt["profile_bio_text_or_none"] == (
+        "Honest reviews • hidden gems 🇬🇧\nFragrance for less"
+    )
     assert receipt["profile_external_links_status"] == "captured"
     assert receipt["profile_external_links"] == [
         {
@@ -1589,6 +1610,10 @@ def test_suggested_dom_contract_targets_the_profile_surface_only() -> None:
     assert "followers_dialog_suggested_tab" in script
     assert "suggested accounts" in (
         onboarding.TIKTOK_SUGGESTED_ACCOUNTS_FALLBACK_DOM_EXTRACT_SCRIPT.lower()
+    )
+    assert '[data-e2e="user-bio"]' in script
+    assert '[data-e2e="user-bio"]' in (
+        onboarding.TIKTOK_SUGGESTED_ACCOUNTS_FALLBACK_DOM_EXTRACT_SCRIPT
     )
     assert (
         onboarding.TIKTOK_FOLLOWERS_ACTION.action_name
@@ -1877,10 +1902,39 @@ def test_suggested_receipt_distinguishes_visible_empty_from_not_visible() -> Non
     assert not_visible_receipt["status"] == "not_visible"
 
 
+def test_suggested_receipt_distinguishes_empty_bio_from_missing_bio() -> None:
+    empty_bio = _capture(ordered_ids=[], items=[], suggested=[])
+    empty_bio.dom_observation.update(
+        {
+            "profile_bio_text_or_none": None,
+            "profile_bio_element_detected": True,
+        }
+    )
+    missing_bio = _capture(ordered_ids=[], items=[], suggested=[])
+
+    empty_receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator", capture=empty_bio
+    )
+    missing_receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator", capture=missing_bio
+    )
+
+    assert empty_receipt["profile_bio_text_or_none"] is None
+    assert empty_receipt["profile_bio_status"] == "visible_empty"
+    assert missing_receipt["profile_bio_text_or_none"] is None
+    assert missing_receipt["profile_bio_status"] == "not_visible"
+
+
 def test_suggested_capture_uses_profile_view_all_only_after_primary_not_visible(
     tmp_path: Path,
 ) -> None:
     primary_not_visible = _capture(ordered_ids=[], items=[])
+    primary_not_visible.dom_observation.update(
+        {
+            "profile_bio_text_or_none": "Profile bio from the primary route",
+            "profile_bio_element_detected": True,
+        }
+    )
     fallback_captured = _capture(
         ordered_ids=[],
         items=[],
@@ -1919,6 +1973,60 @@ def test_suggested_capture_uses_profile_view_all_only_after_primary_not_visible(
     assert result.metadata["suggested_outer_ui_route"] == (
         "profile_suggested_accounts_view_all_fallback"
     )
+    assert result.dom_observation["profile_bio_text_or_none"] == (
+        "Profile bio from the primary route"
+    )
+    assert result.dom_observation["profile_bio_element_detected"] is True
+
+
+def test_primary_bio_absence_does_not_overwrite_observed_fallback_bio(
+    tmp_path: Path,
+) -> None:
+    primary_bio_absent = _capture(ordered_ids=[], items=[])
+    primary_bio_absent.dom_observation.update(
+        {
+            "profile_bio_text_or_none": None,
+            "profile_bio_element_detected": True,
+        }
+    )
+    fallback_bio_observed = _capture(
+        ordered_ids=[],
+        items=[],
+        suggested=[
+            {
+                "handle": "fallback_creator",
+                "profile_url": "https://www.tiktok.com/@fallback_creator",
+            }
+        ],
+    )
+    fallback_bio_observed.dom_observation.update(
+        {
+            "profile_bio_text_or_none": "Budget fragrance reviews | daily uploads",
+            "profile_bio_element_detected": True,
+        }
+    )
+    engine = _FakeEngine([primary_bio_absent, fallback_bio_observed])
+
+    result = onboarding._capture_suggested_accounts(
+        profile_url="https://www.tiktok.com/@creator",
+        creator_handle="creator",
+        storage_state_path=tmp_path / "state.json",
+        timeout_seconds=10.0,
+        settle_seconds=0.0,
+        engine=engine,
+    )
+
+    assert isinstance(result, BrowserPageObservationSuccess)
+    receipt = onboarding._build_suggested_accounts_receipt(
+        creator_handle="creator", capture=result
+    )
+    assert receipt["profile_bio_text_or_none"] == (
+        "Budget fragrance reviews | daily uploads"
+    )
+    assert receipt["profile_bio_status"] == "captured"
+    assert [row["handle"] for row in receipt["suggested_accounts"]] == [
+        "fallback_creator"
+    ]
 
 
 def test_suggested_frontier_write_anchors_to_admitted_bronze_packet(
@@ -2072,7 +2180,7 @@ def test_runner_registry_preflight_enforces_new_vs_existing_intent(
         assert expected_blocker in result["action_blockers"]
 
 
-def test_suggested_failure_receipt_carries_external_link_failure_status() -> None:
+def test_suggested_failure_receipt_carries_profile_evidence_failure_status() -> None:
     receipt = onboarding._build_suggested_accounts_receipt(
         creator_handle="creator",
         capture=BrowserSnapshotFailure(
@@ -2083,5 +2191,7 @@ def test_suggested_failure_receipt_carries_external_link_failure_status() -> Non
     )
 
     assert receipt["status"] == "failed"
+    assert receipt["profile_bio_text_or_none"] is None
+    assert receipt["profile_bio_status"] == "failed"
     assert receipt["profile_external_links"] == []
     assert receipt["profile_external_links_status"] == "failed"

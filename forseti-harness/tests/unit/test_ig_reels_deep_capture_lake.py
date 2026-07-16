@@ -7,7 +7,11 @@ from pathlib import Path
 import pytest
 
 from data_lake.root import DataLakeRoot
-from data_lake.silver_lineage import SOURCE_BACKED_COMPLETE_STATUS, silver_record_source_backed_status
+from data_lake.silver_record import (
+    CURRENT_SOURCE_BACKED_AUTHORITY,
+    silver_content_hash,
+    verify_silver_vault_record_sources,
+)
 from runners import run_source_capture_ig_reels_deep_capture as deep_capture_runner
 from schemas.audience_comment_models import AudienceComment
 from source_capture.ig_reels_deep_capture import ReelDeepCaptureResult
@@ -25,10 +29,12 @@ def _root(tmp_path: Path) -> DataLakeRoot:
     return DataLakeRoot.for_test(tmp_path / "forseti-data")
 
 
-def _comment(cid: str = "c1", *, text: str = "love this") -> AudienceComment:
+def _comment(
+    cid: str = "c1", *, text: str = "love this", shortcode: str = "DaA8n7EhqTR"
+) -> AudienceComment:
     return AudienceComment(
         comment_id=cid,
-        reel_shortcode="DaA8n7EhqTR",
+        reel_shortcode=shortcode,
         author_username="zoe",
         text=text,
         like_count=9,
@@ -53,10 +59,13 @@ def _result(
     media_url: str | None = "https://x.fbcdn.net/o1/v/clip.mp4",
     audio: bytes | None = b"mp4data",
     posture: str = "transcribed",
+    shortcode: str = "DaA8n7EhqTR",
+    comment_id: str = "c1",
+    text: str = "love this",
 ) -> ReelDeepCaptureResult:
-    comment = _comment()
+    comment = _comment(comment_id, text=text, shortcode=shortcode)
     return ReelDeepCaptureResult(
-        reel_shortcode="DaA8n7EhqTR",
+        reel_shortcode=shortcode,
         comments=(comment,),
         transcript_posture=posture,
         transcript_cues=({"start_ms": 0, "end_ms": 90, "text": "hi there"},) if posture == "transcribed" else (),
@@ -93,7 +102,8 @@ def test_writes_packet_backed_envelopes_and_marks_complete(tmp_path: Path) -> No
         record = json.loads(written[lane].read_text(encoding="utf-8"))
         assert record["schema_version"] == "silver_vault_record_v0"
         assert record["raw_anchor"] == written.packet_id
-        assert silver_record_source_backed_status(record) == SOURCE_BACKED_COMPLETE_STATUS
+        authority = verify_silver_vault_record_sources(root, record)
+        assert authority.status == CURRENT_SOURCE_BACKED_AUTHORITY
         assert current_deep_capture_record(
             root,
             record=record,
@@ -101,6 +111,83 @@ def test_writes_packet_backed_envelopes_and_marks_complete(tmp_path: Path) -> No
             lane=lane,
             record_id=written.record_id,
         )
+
+
+def test_current_record_uses_physical_gate_without_legacy_lineage_version(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    written = write_reel_deep_capture_into_lake(
+        data_root=root,
+        result=_result(),
+        generated_at="2026-06-27T00:00:00Z",
+    )
+    record = json.loads(written[AUDIENCE_COMMENTS_LANE].read_text(encoding="utf-8"))
+    record.pop("lineage_schema_version")
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+
+    assert current_deep_capture_record(
+        root,
+        record=record,
+        raw_anchor=written.packet_id,
+        lane=AUDIENCE_COMMENTS_LANE,
+        record_id=written.record_id,
+    )
+
+
+def test_current_record_rejects_altered_preserved_packet_bytes(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    written = write_reel_deep_capture_into_lake(
+        data_root=root,
+        result=_result(),
+        generated_at="2026-06-27T00:00:00Z",
+    )
+    record = json.loads(written[AUDIENCE_COMMENTS_LANE].read_text(encoding="utf-8"))
+    packet_dir = root.find_packet(written.packet_id)
+    assert packet_dir is not None
+    source_path = packet_dir / record["raw_refs"][0]["relative_packet_path"]
+    assert source_path.is_file()
+    source_path.write_bytes(b"tampered\n")
+
+    assert not current_deep_capture_record(
+        root,
+        record=record,
+        raw_anchor=written.packet_id,
+        lane=AUDIENCE_COMMENTS_LANE,
+        record_id=written.record_id,
+    )
+
+
+def test_current_record_rejects_refs_bound_to_another_packet(tmp_path: Path) -> None:
+    """A record anchored at packet A must not claim currency from packet B's bytes.
+
+    The refs below resolve and hash-verify perfectly -- they are simply another
+    packet's. Only the anchor binding separates "these bytes are real" from
+    "these bytes are this record's source".
+    """
+    root = _root(tmp_path)
+    first = write_reel_deep_capture_into_lake(
+        data_root=root,
+        result=_result(),
+        generated_at="2026-06-27T00:00:00Z",
+    )
+    second = write_reel_deep_capture_into_lake(
+        data_root=root,
+        result=_result(shortcode="DbB9m6FiqSQ", comment_id="c2", text="other reel"),
+        generated_at="2026-06-27T00:00:00Z",
+    )
+    assert first.packet_id != second.packet_id
+
+    record = json.loads(first[AUDIENCE_COMMENTS_LANE].read_text(encoding="utf-8"))
+    donor = json.loads(second[AUDIENCE_COMMENTS_LANE].read_text(encoding="utf-8"))
+    record["raw_refs"] = donor["raw_refs"]
+    record["content_hash"] = f"sha256:{silver_content_hash(record)}"
+
+    assert not current_deep_capture_record(
+        root,
+        record=record,
+        raw_anchor=first.packet_id,
+        lane=AUDIENCE_COMMENTS_LANE,
+        record_id=first.record_id,
+    )
 
 
 def test_signed_media_url_is_never_persisted(tmp_path: Path) -> None:

@@ -188,7 +188,7 @@ _PROFILES = {
             scroll_passes=1,
             scroll_step_px=350,
             requirements=_requirements(
-                visible_text_contains=("Lip Sleeping Mask", "Ratings & Reviews", "Color:"),
+                visible_text_contains=("Lip Sleeping Mask", "Ratings & Reviews", "Color"),
                 visible_text_regexes=(r"Ratings & Reviews \([^)]+\)", r"\$\d+\.\d{2}"),
             ),
         ),
@@ -207,7 +207,7 @@ _PROFILES = {
                 visible_text_contains=(
                     "Lip Sleeping Mask",
                     "Ratings & Reviews",
-                    "Color:",
+                    "Color",
                     "Summary",
                     "Verified Purchase",
                 ),

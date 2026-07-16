@@ -66,6 +66,15 @@ producer; YouTube vs Instagram records stay distinguishable by `source_family`
 (`social_media`), `source_surface` (`youtube_shorts`), `producer_id`, and the
 subject `namespace` (`youtube`).
 
+A committed seed observation with a known caption/attempt time keeps that time in
+`observed_at`. If that source-effective time is genuinely unknown, the producer
+keeps `observed_at: null` and uses the generic Silver explicit-unknown grammar:
+`effective_interval.start: null`, `start_precision: unknown`, a non-empty
+reason, seed `generated_at_utc` as `recorded_at`/`captured_at`, the observation's
+exact raw evidence in `evidence_refs`, and a visible limitation that recorded
+time is not source-effective time. The producer schema token changes; no
+committed seed value is rewritten.
+
 ## YouTube-specific anchoring (the reviewable delta)
 
 The Instagram observation carries a `raw_anchor` dict

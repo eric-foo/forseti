@@ -9,6 +9,7 @@ from pathlib import Path
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from harness_utils import as_dict
 from source_capture.auth_state import AuthenticatedSessionMode
 from source_capture.session_profiles import (
     OWNER_HANDOFF_BEFORE_ACTION,
@@ -478,15 +479,15 @@ def _staging_summary(
     admitted_comment_response_count = 0
     dom_visible_comment_candidate_count = 0
     for row in results:
-        row_dict = _as_dict(row)
-        receipt = _as_dict(row_dict.get("capture_receipt"))
+        row_dict = as_dict(row)
+        receipt = as_dict(row_dict.get("capture_receipt"))
         admitted_comment_response_count += _first_int(
             receipt.get("admitted_comment_response_count"), 0
         )
         dom_visible_comment_candidate_count += _first_int(
             receipt.get("dom_visible_comment_candidate_count"), 0
         )
-        subtitle = _as_dict(row_dict.get("subtitle"))
+        subtitle = as_dict(row_dict.get("subtitle"))
         reason = _first_str(subtitle.get("reason"))
         if _as_bool(subtitle.get("success")) is True:
             subtitle_success_count += 1
@@ -494,7 +495,7 @@ def _staging_summary(
             subtitle_reason_counts[reason] = subtitle_reason_counts.get(reason, 0) + 1
     first_failure_reason = None
     if failures:
-        first_failure_reason = _first_str(_as_dict(failures[0]).get("reason"))
+        first_failure_reason = _first_str(as_dict(failures[0]).get("reason"))
     return {
         "schema_version": SUMMARY_SCHEMA_VERSION,
         "stage": "staging",
@@ -560,13 +561,13 @@ def _staging_outcome(
 
 def _owner_attention_required(*, results: list[object], failures: list[object]) -> bool:
     for row in results:
-        receipt = _as_dict(_as_dict(row).get("capture_receipt"))
+        receipt = as_dict(as_dict(row).get("capture_receipt"))
         if _as_bool(receipt.get("owner_attention_required")) is True:
             return True
         if _as_bool(receipt.get("manual_challenge_attention_required")) is True:
             return True
     for failure in failures:
-        triage = _as_dict(_as_dict(failure).get("blocker_triage"))
+        triage = as_dict(as_dict(failure).get("blocker_triage"))
         if _as_bool(triage.get("owner_attention_required")) is True:
             return True
         if _as_bool(triage.get("manual_challenge_attention_required")) is True:
@@ -579,10 +580,6 @@ def _read_json_object(path: Path) -> dict[str, object]:
     if not isinstance(value, dict):
         raise ValueError(f"{path.name} must contain a JSON object")
     return value
-
-
-def _as_dict(value: object) -> dict[str, object]:
-    return value if isinstance(value, dict) else {}
 
 
 def _as_list(value: object) -> list[object]:

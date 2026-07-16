@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 from urllib.parse import urlparse
 
+from harness_utils import hash_file
 from source_capture.adapters.browser_snapshot import (
     BrowserPageObservationEngine,
     BrowserPageObservationSuccess,
@@ -186,6 +187,10 @@ TIKTOK_SUGGESTED_ACCOUNTS_DOM_EXTRACT_SCRIPT = r"""
       });
     }
   }
+  const profileBioNode = document.querySelector('[data-e2e="user-bio"]');
+  const profileBioText = profileBioNode
+    ? String(profileBioNode.innerText || profileBioNode.textContent || '').trim()
+    : '';
   const externalLinks = [];
   const seenExternal = new Set();
   for (const anchor of Array.from(document.querySelectorAll('a[href]'))) {
@@ -207,6 +212,8 @@ TIKTOK_SUGGESTED_ACCOUNTS_DOM_EXTRACT_SCRIPT = r"""
   }
   return {
     suggested_accounts: rows,
+    profile_bio_text_or_none: profileBioText || null,
+    profile_bio_element_detected: Boolean(profileBioNode),
     profile_external_links: externalLinks,
     suggested_surface_detected: Boolean(dialog && suggestedTab),
     suggested_surface_root_count: dialog && suggestedTab ? 1 : 0,
@@ -347,8 +354,14 @@ TIKTOK_SUGGESTED_ACCOUNTS_FALLBACK_DOM_EXTRACT_SCRIPT = r"""
       });
     }
   }
+  const profileBioNode = document.querySelector('[data-e2e="user-bio"]');
+  const profileBioText = profileBioNode
+    ? String(profileBioNode.innerText || profileBioNode.textContent || '').trim()
+    : '';
   return {
     suggested_accounts: rows,
+    profile_bio_text_or_none: profileBioText || null,
+    profile_bio_element_detected: Boolean(profileBioNode),
     profile_external_links: [],
     suggested_surface_detected: roots.length > 0,
     suggested_surface_root_count: roots.length,
@@ -502,6 +515,7 @@ ProgressFn = Callable[[str, dict[str, object]], None]
 
 
 def _utc_now() -> datetime:
+    # Not harness_utils.utc_now_z: returns an aware datetime (for injectable clocks), not a Z string.
     return datetime.now(UTC)
 
 
@@ -691,7 +705,7 @@ def run_tiktok_creator_onboarding(
         selection["onboarding_binding"] = {
             "creator_handle": normalized_handle,
             "grid_window_file": paths.grid_window_json_path.name,
-            "grid_window_sha256": _sha256_path(paths.grid_window_json_path),
+            "grid_window_sha256": hash_file(paths.grid_window_json_path),
         }
         _write_json(paths.selection_json_path, selection)
         artifacts_written.append(paths.selection_json_path.name)
@@ -1034,6 +1048,15 @@ def _capture_suggested_accounts(
             fallback.dom_observation["profile_external_links"] = (
                 primary.dom_observation.get("profile_external_links", [])
             )
+            primary_bio_text = primary.dom_observation.get(
+                "profile_bio_text_or_none"
+            )
+            if isinstance(primary_bio_text, str) and primary_bio_text.strip():
+                fallback.dom_observation["profile_bio_text_or_none"] = (
+                    primary_bio_text
+                )
+            if primary.dom_observation.get("profile_bio_element_detected") is True:
+                fallback.dom_observation["profile_bio_element_detected"] = True
         fallback.metadata["suggested_outer_ui_route"] = (
             "profile_suggested_accounts_view_all_fallback"
         )
@@ -2068,6 +2091,8 @@ def _build_suggested_accounts_receipt(
             "suggested_surface_detected": False,
             "suggested_surface_root_count": 0,
             "suggested_profile_anchor_count": 0,
+            "profile_bio_text_or_none": None,
+            "profile_bio_status": "failed",
             "profile_external_links": [],
             "profile_external_links_status": "failed",
             "failure_kind_or_none": capture.failure_kind.value,
@@ -2077,6 +2102,8 @@ def _build_suggested_accounts_receipt(
             "non_claims": ["not an exhaustive suggested-account graph"],
         }
     rows: list[dict[str, Any]] = []
+    profile_bio_text_or_none: str | None = None
+    profile_bio_element_detected = False
     profile_external_links: list[dict[str, Any]] = []
     suggested_surface_detected = False
     suggested_surface_root_count = 0
@@ -2088,6 +2115,13 @@ def _build_suggested_accounts_receipt(
         candidate_rows = capture.dom_observation.get("suggested_accounts")
         if isinstance(candidate_rows, list):
             rows = [row for row in candidate_rows if isinstance(row, dict)]
+        raw_profile_bio = capture.dom_observation.get("profile_bio_text_or_none")
+        if isinstance(raw_profile_bio, str) and raw_profile_bio.strip():
+            profile_bio_text_or_none = raw_profile_bio.strip()
+        profile_bio_element_detected = (
+            capture.dom_observation.get("profile_bio_element_detected") is True
+            or profile_bio_text_or_none is not None
+        )
         external_rows = capture.dom_observation.get("profile_external_links")
         if isinstance(external_rows, list):
             profile_external_links = [
@@ -2135,6 +2169,14 @@ def _build_suggested_accounts_receipt(
         ),
         "candidate_profiles_opened": 0,
         "account_mutations_taken": 0,
+        "profile_bio_text_or_none": profile_bio_text_or_none,
+        "profile_bio_status": (
+            "captured"
+            if profile_bio_text_or_none is not None
+            else "visible_empty"
+            if profile_bio_element_detected
+            else "not_visible"
+        ),
         "profile_external_links": profile_external_links,
         "profile_external_links_status": "captured" if profile_external_links else "none_visible",
         "attempt_receipt": {
@@ -2550,12 +2592,6 @@ def _output_paths(output_dir: Path) -> TikTokCreatorOnboardingOutputPaths:
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     assert_no_sensitive_tiktok_material(payload)
     path.write_bytes(json_dumps_sanitized(payload))
-
-
-def _sha256_path(path: Path) -> str:
-    import hashlib
-
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _normalize_handle(handle: str) -> str:

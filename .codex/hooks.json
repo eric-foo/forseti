@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "python \"$(git rev-parse --show-toplevel)/.codex/hooks/forseti_guard_codex_adapter.py\"",
-            "commandWindows": "python \"$(git rev-parse --show-toplevel)/.codex/hooks/forseti_guard_codex_adapter.py\"",
+            "commandWindows": "python -c \"import pathlib, runpy; cwd = pathlib.Path.cwd(); root = next((p for p in (cwd, *cwd.parents) if (p / '.codex/hooks/forseti_guard_codex_adapter.py').is_file()), None); assert root is not None, 'Forseti Codex guard adapter not found'; runpy.run_path(str(root / '.codex/hooks/forseti_guard_codex_adapter.py'), run_name='__main__')\"",
             "timeout": 10,
             "statusMessage": "Checking Forseti protected action policy"
           }

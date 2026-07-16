@@ -12,6 +12,7 @@ engagement/resonance language into a mechanical proof or authority shortcut.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
 import re
 import sys
@@ -50,6 +51,18 @@ EXPECTED_SECTIONS = [
     "Demand-Classifier Handoff Packet",
     "Visible Limitations",
     "Board Status And Run Boundary",
+]
+EXPECTED_COMPANY_SECTIONS = [
+    "Company Commission And Identity Receipt",
+    "Decision-Neutral Boundary",
+    "Source-Family And Venue Coverage Ledger",
+    "Observation Ledger",
+    "Positioning, Offerings, Markets, And Channels",
+    "Strategic And Operating Chronology",
+    "Customer And Community Response",
+    "Competitor Context, Contradictions, And Gaps",
+    "Company Surface Candidate Ledger",
+    "Completion Ledger And Run Boundary",
 ]
 REQUIRED_ROW_COLUMNS = {
     "row_id",
@@ -212,6 +225,117 @@ REQUIRED_HANDOFF_PACKET_FIELDS = {
     "prohibited_claims",
 }
 ROW_ID_RE = re.compile(r"^SBR-(\d{3})$")
+COMPANY_REPORT_MARKER_RE = re.compile(
+    r"^###\s+1\.\s+Company Commission And Identity Receipt\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+COMPANY_SUBJECT_KINDS = {"brand", "org", "brand_or_org_unresolved"}
+COMPANY_IDENTITY_STATES = {"resolved", "provisional", "ambiguous", "unresolved"}
+COMPANY_TIME_POSTURES = {"recency_first", "longitudinal"}
+COMPANY_RECENCY_TIERS = {
+    "days_0_30",
+    "days_31_90",
+    "days_91_180",
+    "days_over_180",
+    "undated_unknown",
+}
+COMPANY_EFFECTIVE_TIME_PRECISIONS = {"day", "current_page_observation", "undated"}
+COMPANY_AGE_ANCHOR_BASES = {
+    "event_effective",
+    "publication",
+    "current_page_observation",
+    "unknown",
+}
+COMPANY_RUN_BOUNDARIES = {
+    "COMPANY_REPORT_COMPLETE_NO_DOWNSTREAM_EXECUTION",
+    "INTAKE_ONLY",
+    "OWNER_DECISION_NEEDED",
+}
+COMPANY_SOURCE_CLASSES = {
+    "official_first_party",
+    "official_regulatory",
+    "independent",
+    "retailer",
+    "customer_community",
+    "creator_social",
+    "unknown",
+}
+COMPANY_FACT_DOMAINS = {
+    "company_fact",
+    "external_customer_evidence",
+    "competitor_context",
+    "contradiction",
+    "unknown",
+}
+COMPANY_COVERAGE_STATUSES = {"checked", "blocked", "not_applicable", "not_checked"}
+COMPANY_COVERAGE_REQUIREMENTS = {
+    "required",
+    "mandatory_bounded_scout",
+    "experimental_initial_proving_run",
+    "category_aware",
+    "conditional",
+}
+COMPANY_LENS_KEYS = {
+    "positioning",
+    "offerings_and_claims",
+    "markets_and_channels",
+    "strategic_and_operating_moves",
+    "customer_and_community_response",
+    "competitor_and_substitute_context",
+    "contradictions",
+    "evidence_gaps",
+}
+COMPANY_REQUIRED_OBSERVATION_FIELDS = {
+    "observation_id",
+    "subject_name",
+    "subject_kind",
+    "identity_state",
+    "coverage_id",
+    "source_url_or_packet_locator",
+    "source_family",
+    "source_surface",
+    "publisher_or_venue",
+    "source_class",
+    "publication_date",
+    "event_or_effective_date",
+    "observation_at",
+    "effective_time_precision",
+    "recency_tier",
+    "age_anchor_date",
+    "age_anchor_basis",
+    "exact_locator",
+    "evidence_excerpt",
+    "lawful_access_route",
+    "access_limitation",
+    "independence_syndication_group",
+    "independent_corroboration_ids",
+    "ambiguity_limitation",
+    "contradiction_state",
+    "fact_domain",
+    "current_state_use",
+    "consumed_by_sections",
+}
+COMPANY_PROHIBITED_GTM_KEYS = {
+    "pain",
+    "buyer",
+    "icp",
+    "priority",
+    "urgency",
+    "willingness_to_pay",
+    "wtp",
+    "outreach",
+    "offer",
+    "wedge",
+}
+COMPANY_PROHIBITED_CAP_KEYS = {
+    "max_pages",
+    "max_sources",
+    "max_observations",
+    "page_limit",
+    "source_limit",
+    "observation_limit",
+    "report_length_limit",
+}
 
 
 @dataclass(frozen=True)
@@ -563,7 +687,478 @@ def _validate_board_status_shape(status_packet: dict[str, Any]) -> list[Finding]
     return findings
 
 
+def _parse_date(value: Any) -> date | None:
+    if value in (None, "", "unknown", "not_applicable"):
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(str(value).strip()[:10])
+    except ValueError:
+        return None
+
+
+def _expected_recency_tier(as_of_date: date, anchor_date: date | None) -> str:
+    if anchor_date is None:
+        return "undated_unknown"
+    age_days = (as_of_date - anchor_date).days
+    if age_days < 0:
+        return "undated_unknown"
+    if age_days <= 30:
+        return "days_0_30"
+    if age_days <= 90:
+        return "days_31_90"
+    if age_days <= 180:
+        return "days_91_180"
+    return "days_over_180"
+
+
+def _company_section_pattern(number: int, title: str) -> re.Pattern[str]:
+    return re.compile(
+        rf"^###\s+{number}\.\s+{re.escape(title)}\s*$"
+        r"(?P<body>.*?)"
+        r"(?=^###\s+\d+\.|\Z)",
+        re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
+
+
+def _parse_company_yaml_section(
+    text: str,
+    number: int,
+    title: str,
+    root_key: str,
+) -> tuple[Any, list[Finding]]:
+    section, findings = _extract_section(
+        _company_section_pattern(number, title),
+        text,
+        f"missing_company_section_{number}",
+        f"Missing company report Section {number} {title}.",
+    )
+    if findings:
+        return None, findings
+    fence = YAML_FENCE_RE.search(section)
+    if not fence:
+        return None, [Finding(f"missing_company_yaml_{number}", f"Company report Section {number} has no yaml fence.")]
+    try:
+        data = yaml.safe_load(fence.group("body")) or {}
+    except yaml.YAMLError as exc:
+        return None, [Finding(f"invalid_company_yaml_{number}", f"Company report Section {number} YAML is invalid: {exc}")]
+    value = data.get(root_key) if isinstance(data, dict) else None
+    if value is None:
+        return None, [Finding(f"missing_{root_key}", f"Company report Section {number} YAML lacks {root_key}.")]
+    return value, []
+
+
+def _walk_mapping_keys(value: Any) -> list[str]:
+    keys: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            keys.append(_normalize_vocab(key))
+            keys.extend(_walk_mapping_keys(child))
+    elif isinstance(value, list):
+        for child in value:
+            keys.extend(_walk_mapping_keys(child))
+    return keys
+
+
+def _validate_company_sections(text: str) -> list[Finding]:
+    headings = [
+        (int(match.group("number")), _normalize_header(match.group("title")))
+        for match in re.finditer(r"^###\s+(?P<number>\d+)\.\s+(?P<title>.+?)\s*$", text, re.MULTILINE)
+    ]
+    expected = [
+        (index, _normalize_header(title))
+        for index, title in enumerate(EXPECTED_COMPANY_SECTIONS, start=1)
+    ]
+    if headings == expected:
+        return []
+    return [
+        Finding(
+            "invalid_company_section_contract",
+            "Company report must contain its conditional Sections 1-10 in the prompt-defined order.",
+        )
+    ]
+
+
+def _validate_company_receipt(receipt: Any) -> tuple[dict[str, Any], list[Finding]]:
+    if not isinstance(receipt, dict):
+        return {}, [Finding("invalid_company_commission_receipt", "company_commission_receipt must be a mapping.")]
+    findings: list[Finding] = []
+    required = {
+        "commission_id",
+        "mode",
+        "commission_profile",
+        "subject_count",
+        "subject_identity",
+        "as_of_date",
+        "time_posture",
+        "longitudinal_period",
+        "longitudinal_rationale",
+        "initial_proving_run",
+    }
+    missing = sorted(required - set(receipt))
+    if missing:
+        findings.append(Finding("missing_company_receipt_fields", "company_commission_receipt is missing: " + ", ".join(missing)))
+    if _normalize_vocab(receipt.get("mode")) not in VALID_HANDOFF_MODES:
+        findings.append(Finding("invalid_company_mode", "Company report mode must remain backtest or forward."))
+    if _normalize_vocab(receipt.get("commission_profile")) != "company_competitive_intelligence":
+        findings.append(Finding("invalid_company_profile", "A one-company Brand/Org report must use company_competitive_intelligence."))
+    if receipt.get("subject_count") != 1:
+        findings.append(Finding("one_company_only", "Company reports must keep subject_count: 1."))
+    identity = receipt.get("subject_identity")
+    if not isinstance(identity, dict):
+        findings.append(Finding("invalid_subject_identity", "subject_identity must be a mapping."))
+    else:
+        if _normalize_vocab(identity.get("subject_kind")) not in COMPANY_SUBJECT_KINDS:
+            findings.append(Finding("invalid_company_subject_kind", "subject_identity.subject_kind must be Brand, Org, or unresolved Brand/Org."))
+        if _normalize_vocab(identity.get("identity_state")) not in COMPANY_IDENTITY_STATES:
+            findings.append(Finding("invalid_company_identity_state", "subject_identity.identity_state is invalid."))
+        if not str(identity.get("raw_name", "")).strip():
+            findings.append(Finding("missing_company_subject_name", "subject_identity.raw_name is required."))
+    as_of = _parse_date(receipt.get("as_of_date"))
+    if as_of is None:
+        findings.append(Finding("invalid_company_as_of_date", "as_of_date must be an ISO date."))
+    posture = _normalize_vocab(receipt.get("time_posture"))
+    if posture not in COMPANY_TIME_POSTURES:
+        findings.append(Finding("invalid_time_posture", "time_posture must be recency_first or longitudinal."))
+    period = receipt.get("longitudinal_period")
+    rationale = str(receipt.get("longitudinal_rationale", "")).strip()
+    if posture == "longitudinal":
+        if not isinstance(period, dict) or _parse_date(period.get("start")) is None or _parse_date(period.get("end")) is None:
+            findings.append(Finding("missing_longitudinal_period", "longitudinal requires a declared start and end date."))
+        if not rationale or _normalize_vocab(rationale) == "not_applicable":
+            findings.append(Finding("missing_longitudinal_rationale", "longitudinal requires a rationale."))
+    elif posture == "recency_first":
+        if period not in (None, "not_applicable"):
+            findings.append(Finding("unexpected_longitudinal_period", "recency_first must not declare a longitudinal period."))
+    return receipt, findings
+
+
+def _validate_company_coverage(
+    coverage: Any,
+    initial_proving_run: bool,
+) -> tuple[dict[str, dict[str, Any]], list[Finding]]:
+    if not isinstance(coverage, list):
+        return {}, [Finding("invalid_coverage_ledger", "coverage_ledger must be a list.")]
+    rows: dict[str, dict[str, Any]] = {}
+    findings: list[Finding] = []
+    for index, row in enumerate(coverage, start=1):
+        if not isinstance(row, dict):
+            findings.append(Finding("invalid_coverage_row", "Each coverage_ledger row must be a mapping."))
+            continue
+        coverage_id = str(row.get("coverage_id", "")).strip()
+        if coverage_id != f"COV-{index:03d}":
+            findings.append(Finding("invalid_coverage_id", f"Expected COV-{index:03d}, got {coverage_id or '<blank>'}."))
+        if coverage_id in rows:
+            findings.append(Finding("duplicate_coverage_id", f"Duplicate coverage ID {coverage_id}."))
+            continue
+        rows[coverage_id] = row
+        required = {
+            "coverage_id", "source_family", "source_surface", "venue", "relevance_rationale",
+            "route_or_query", "requirement", "status", "yield", "recency", "access", "relevance", "gap_id",
+        }
+        missing = sorted(required - set(row))
+        if missing:
+            findings.append(Finding("missing_coverage_fields", "Coverage row is missing: " + ", ".join(missing), coverage_id))
+        status = _normalize_vocab(row.get("status"))
+        requirement = _normalize_vocab(row.get("requirement"))
+        source_family = _normalize_vocab(row.get("source_family"))
+        if source_family not in VALID_SOURCE_FAMILIES:
+            findings.append(
+                Finding(
+                    "invalid_company_source_family",
+                    f"Invalid source_family {source_family or '<blank>'}.",
+                    coverage_id,
+                )
+            )
+        if status not in COMPANY_COVERAGE_STATUSES:
+            findings.append(Finding("invalid_coverage_status", f"Invalid coverage status {status or '<blank>'}.", coverage_id))
+        if requirement not in COMPANY_COVERAGE_REQUIREMENTS:
+            findings.append(Finding("invalid_coverage_requirement", f"Invalid coverage requirement {requirement or '<blank>'}.", coverage_id))
+        if status == "not_applicable" and not str(row.get("relevance_rationale", "")).strip():
+            findings.append(Finding("not_applicable_missing_rationale", "not_applicable coverage requires a relevance rationale.", coverage_id))
+        if status == "blocked" and not str(row.get("gap_id", "")).strip():
+            findings.append(Finding("blocked_coverage_missing_gap", "Blocked coverage must reference a typed gap.", coverage_id))
+
+    reddit = [row for row in rows.values() if _normalize_vocab(row.get("venue")) == "reddit"]
+    if not reddit:
+        findings.append(Finding("missing_reddit_scout", "Every company report requires a bounded Reddit scout."))
+    elif not any(_normalize_vocab(row.get("requirement")) == "mandatory_bounded_scout" for row in reddit):
+        findings.append(Finding("invalid_reddit_scout_requirement", "Reddit must be marked mandatory_bounded_scout."))
+    quora = [row for row in rows.values() if _normalize_vocab(row.get("venue")) == "quora"]
+    if initial_proving_run:
+        if not quora:
+            findings.append(Finding("missing_quora_experimental_scout", "Initial proving runs require an explicit experimental Quora scout."))
+        elif not any(_normalize_vocab(row.get("requirement")) == "experimental_initial_proving_run" for row in quora):
+            findings.append(Finding("invalid_quora_scout_requirement", "Quora must be marked experimental_initial_proving_run."))
+    return rows, findings
+
+
+def _validate_company_observations(
+    observations: Any,
+    receipt: dict[str, Any],
+    coverage: dict[str, dict[str, Any]],
+) -> tuple[dict[str, dict[str, Any]], list[Finding]]:
+    if not isinstance(observations, list):
+        return {}, [Finding("invalid_observation_ledger", "observation_ledger must be a list.")]
+    rows: dict[str, dict[str, Any]] = {}
+    findings: list[Finding] = []
+    as_of = _parse_date(receipt.get("as_of_date"))
+    posture = _normalize_vocab(receipt.get("time_posture"))
+    period = receipt.get("longitudinal_period") if isinstance(receipt.get("longitudinal_period"), dict) else {}
+    period_start = _parse_date(period.get("start"))
+    period_end = _parse_date(period.get("end"))
+    for index, row in enumerate(observations, start=1):
+        if not isinstance(row, dict):
+            findings.append(Finding("invalid_observation_row", "Each observation_ledger row must be a mapping."))
+            continue
+        observation_id = str(row.get("observation_id", "")).strip()
+        if observation_id != f"OBS-{index:03d}":
+            findings.append(Finding("invalid_observation_id", f"Expected OBS-{index:03d}, got {observation_id or '<blank>'}."))
+        if observation_id in rows:
+            findings.append(Finding("duplicate_observation_id", f"Duplicate observation ID {observation_id}."))
+            continue
+        rows[observation_id] = row
+        missing = sorted(COMPANY_REQUIRED_OBSERVATION_FIELDS - set(row))
+        if missing:
+            findings.append(Finding("missing_observation_fields", "Observation is missing: " + ", ".join(missing), observation_id))
+        coverage_id = str(row.get("coverage_id", "")).strip()
+        if coverage_id not in coverage:
+            findings.append(Finding("unknown_observation_coverage", f"Observation references unknown coverage {coverage_id}.", observation_id))
+        elif _normalize_vocab(coverage[coverage_id].get("status")) != "checked":
+            findings.append(Finding("observation_from_unchecked_coverage", "Evidence cannot come from blocked, unchecked, or not-applicable coverage.", observation_id))
+        source_class = _normalize_vocab(row.get("source_class"))
+        source_family = _normalize_vocab(row.get("source_family"))
+        if source_family not in VALID_SOURCE_FAMILIES:
+            findings.append(
+                Finding(
+                    "invalid_company_source_family",
+                    f"Invalid source_family {source_family or '<blank>'}.",
+                    observation_id,
+                )
+            )
+        if source_class not in COMPANY_SOURCE_CLASSES:
+            findings.append(Finding("invalid_company_source_class", f"Invalid source_class {source_class or '<blank>'}.", observation_id))
+        fact_domain = _normalize_vocab(row.get("fact_domain"))
+        if fact_domain not in COMPANY_FACT_DOMAINS:
+            findings.append(Finding("invalid_company_fact_domain", f"Invalid fact_domain {fact_domain or '<blank>'}.", observation_id))
+        if source_class == "customer_community" and fact_domain != "external_customer_evidence":
+            findings.append(Finding("community_as_company_fact", "Customer/community evidence must remain external_customer_evidence.", observation_id))
+        if _normalize_vocab(row.get("subject_kind")) not in COMPANY_SUBJECT_KINDS:
+            findings.append(Finding("invalid_observation_subject_kind", "Observation subject_kind is invalid.", observation_id))
+        if _normalize_vocab(row.get("identity_state")) not in COMPANY_IDENTITY_STATES:
+            findings.append(Finding("invalid_observation_identity_state", "Observation identity_state is invalid.", observation_id))
+        if not str(row.get("source_url_or_packet_locator", "")).strip() or not str(row.get("exact_locator", "")).strip():
+            findings.append(Finding("unresolvable_observation_evidence", "Observation requires a source/packet locator and exact locator.", observation_id))
+        if not isinstance(row.get("consumed_by_sections"), list) or not row.get("consumed_by_sections"):
+            findings.append(Finding("invalid_observation_consumers", "consumed_by_sections must be a non-empty list.", observation_id))
+        if not isinstance(row.get("independent_corroboration_ids"), list):
+            findings.append(Finding("invalid_corroboration_ids", "independent_corroboration_ids must be a list.", observation_id))
+
+        precision = _normalize_vocab(row.get("effective_time_precision"))
+        if precision not in COMPANY_EFFECTIVE_TIME_PRECISIONS:
+            findings.append(
+                Finding(
+                    "invalid_effective_time_precision",
+                    f"effective_time_precision must be one of {', '.join(sorted(COMPANY_EFFECTIVE_TIME_PRECISIONS))}; "
+                    f"got {precision or '<blank>'}.",
+                    observation_id,
+                )
+            )
+        if precision == "current_page_observation" and _parse_date(row.get("event_or_effective_date")) is not None:
+            findings.append(Finding("current_page_as_dated_event", "A current-page observation must not be silently converted into a dated event.", observation_id))
+        age_anchor_basis = _normalize_vocab(row.get("age_anchor_basis"))
+        if age_anchor_basis not in COMPANY_AGE_ANCHOR_BASES:
+            findings.append(
+                Finding(
+                    "invalid_age_anchor_basis",
+                    f"age_anchor_basis must be one of {', '.join(sorted(COMPANY_AGE_ANCHOR_BASES))}; "
+                    f"got {age_anchor_basis or '<blank>'}.",
+                    observation_id,
+                )
+            )
+        anchor = _parse_date(row.get("age_anchor_date"))
+        declared_tier = _normalize_vocab(row.get("recency_tier"))
+        expected_tier = _expected_recency_tier(as_of, anchor) if as_of else "undated_unknown"
+        if declared_tier not in COMPANY_RECENCY_TIERS or declared_tier != expected_tier:
+            findings.append(Finding("invalid_recency_tier", f"recency_tier must be {expected_tier} for the declared as_of/anchor dates, got {declared_tier or '<blank>'}.", observation_id))
+        current_use = _normalize_vocab(row.get("current_state_use"))
+        allowed_uses = {
+            "days_0_30": {"primary_current", "current_corroboration", "supporting_or_recurrence", "contradiction"},
+            "days_31_90": {"current_corroboration", "supporting_or_recurrence", "contradiction"},
+            "days_91_180": {"supporting_or_recurrence", "chronology_historical_baseline", "contradiction"},
+            "days_over_180": {"chronology_historical_baseline", "contradiction"},
+            "undated_unknown": {"not_applicable", "contradiction"},
+        }
+        if current_use == "longitudinal_primary":
+            if posture != "longitudinal" or anchor is None or period_start is None or period_end is None or not (period_start <= anchor <= period_end):
+                findings.append(Finding("invalid_longitudinal_primary", "longitudinal_primary requires evidence inside the declared longitudinal period.", observation_id))
+        elif current_use not in allowed_uses.get(declared_tier, set()):
+            code = "older_evidence_as_current" if declared_tier in {"days_91_180", "days_over_180"} else "invalid_current_state_use"
+            findings.append(Finding(code, "current_state_use conflicts with the deterministic recency ladder.", observation_id))
+
+    for observation_id, row in rows.items():
+        group = str(row.get("independence_syndication_group", "")).strip()
+        if not group:
+            findings.append(Finding("missing_syndication_group", "Every observation requires an independence/syndication group.", observation_id))
+        for corroboration_id in row.get("independent_corroboration_ids", []) if isinstance(row.get("independent_corroboration_ids"), list) else []:
+            other = rows.get(str(corroboration_id))
+            if other is None:
+                findings.append(Finding("unknown_corroboration_observation", f"Unknown corroboration observation {corroboration_id}.", observation_id))
+            elif group == str(other.get("independence_syndication_group", "")).strip():
+                findings.append(Finding("syndicated_as_independent", "Observations in the same syndication group are not independent corroboration.", observation_id))
+    return rows, findings
+
+
+def _validate_company_candidates(candidates: Any, observations: dict[str, dict[str, Any]]) -> list[Finding]:
+    if not isinstance(candidates, list):
+        return [Finding("invalid_company_surface_candidate_ledger", "company_surface_candidate_ledger must be a list.")]
+    findings: list[Finding] = []
+    for index, row in enumerate(candidates, start=1):
+        if not isinstance(row, dict):
+            findings.append(Finding("invalid_candidate_row", "Each candidate row must be a mapping."))
+            continue
+        candidate_id = str(row.get("candidate_id", "")).strip()
+        if candidate_id != f"CSC-{index:03d}":
+            findings.append(Finding("invalid_candidate_id", f"Expected CSC-{index:03d}, got {candidate_id or '<blank>'}."))
+        if row.get("candidate_only") is not True or _normalize_vocab(row.get("import_status")) != "not_imported":
+            findings.append(Finding("company_surface_import_forbidden", "Company Surface rows must be candidate_only and not_imported.", candidate_id))
+        observation_ids = row.get("observation_ids")
+        if not isinstance(observation_ids, list) or not observation_ids:
+            findings.append(Finding("invalid_candidate_observations", "Candidate rows require observation_ids.", candidate_id))
+            continue
+        source_rows = [observations.get(str(item)) for item in observation_ids]
+        if any(source is None for source in source_rows):
+            findings.append(Finding("unknown_candidate_observation", "Candidate references an unknown observation.", candidate_id))
+            continue
+        if any(_normalize_vocab(source.get("source_class")) == "customer_community" for source in source_rows if source):
+            if _normalize_vocab(row.get("candidate_fact_class")) != "external_customer_evidence":
+                findings.append(Finding("community_candidate_as_company_fact", "Community-derived candidates must remain external_customer_evidence.", candidate_id))
+    return findings
+
+
+def _validate_company_completion(
+    completion: Any,
+    coverage: dict[str, dict[str, Any]],
+) -> list[Finding]:
+    if not isinstance(completion, dict):
+        return [Finding("invalid_completion_ledger", "completion_ledger must be a mapping.")]
+    findings: list[Finding] = []
+    if _normalize_vocab(completion.get("completeness_policy")) != "necessary_complete_no_arbitrary_caps":
+        findings.append(Finding("invalid_completeness_policy", "Company reports require necessary_complete_no_arbitrary_caps."))
+    if _normalize_vocab(completion.get("hidden_venue_discovery")) != "category_aware":
+        findings.append(Finding("invalid_hidden_venue_discovery", "Hidden-venue discovery must be category_aware."))
+    if _normalize_vocab(completion.get("customer_community_boundary")) != "external_evidence_not_representative_demand_or_internal_fact":
+        findings.append(Finding("invalid_community_boundary", "Community evidence boundary is missing or invalid."))
+    if _normalize_vocab(completion.get("deep_competitor_treatment")) != "separate_named_follow_up_required":
+        findings.append(Finding("invalid_competitor_boundary", "Deep competitor treatment requires a separately named follow-up."))
+    if _normalize_vocab(completion.get("classifier_handoff")) != "omitted":
+        findings.append(Finding("company_classifier_handoff_forbidden", "Company reports must omit classifier handoff."))
+    run_boundary = str(completion.get("run_boundary", "")).strip()
+    if run_boundary not in COMPANY_RUN_BOUNDARIES:
+        findings.append(
+            Finding(
+                "invalid_company_run_boundary",
+                "completion_ledger.run_boundary must be one of " + ", ".join(sorted(COMPANY_RUN_BOUNDARIES)) + ".",
+            )
+        )
+    if "next_authorized_step" not in completion:
+        findings.append(
+            Finding("missing_company_next_authorized_step", "completion_ledger must include next_authorized_step.")
+        )
+
+    lens = completion.get("required_lens_coverage")
+    if not isinstance(lens, dict) or set(lens) != COMPANY_LENS_KEYS:
+        findings.append(Finding("invalid_required_lens_coverage", "required_lens_coverage must contain the eight company-report lenses."))
+    else:
+        for key, value in lens.items():
+            if not isinstance(value, dict) or _normalize_vocab(value.get("status")) not in {"complete", "gap", "not_applicable_with_rationale"}:
+                findings.append(Finding("invalid_lens_coverage_status", f"Lens {key} has invalid status."))
+
+    gaps = completion.get("gaps")
+    requests = completion.get("requests")
+    if not isinstance(gaps, list) or not all(isinstance(item, dict) for item in gaps):
+        findings.append(Finding("invalid_typed_gaps", "completion_ledger.gaps must be a list of typed mappings."))
+        gaps = []
+    if not isinstance(requests, list) or not all(isinstance(item, dict) for item in requests):
+        findings.append(Finding("invalid_typed_requests", "completion_ledger.requests must be a list of typed mappings."))
+        requests = []
+    gap_ids = {str(item.get("gap_id", "")).strip() for item in gaps}
+    request_ids = {str(item.get("request_id", "")).strip() for item in requests}
+    for item in gaps:
+        required = {"gap_id", "gap_type", "status", "description", "affected_coverage_ids", "request_ids"}
+        if required - set(item):
+            findings.append(Finding("invalid_typed_gap_shape", "Each typed gap requires identity, type, status, description, coverage, and request fields."))
+        for request_id in item.get("request_ids", []) if isinstance(item.get("request_ids"), list) else []:
+            if str(request_id) not in request_ids:
+                findings.append(Finding("unknown_gap_request", f"Gap references unknown request {request_id}."))
+    for item in requests:
+        required = {"request_id", "request_type", "owner", "status", "description", "source_surface"}
+        if required - set(item):
+            findings.append(Finding("invalid_typed_request_shape", "Each typed request requires identity, type, owner, status, description, and source_surface."))
+    for coverage_id, row in coverage.items():
+        if _normalize_vocab(row.get("status")) == "blocked" and str(row.get("gap_id", "")).strip() not in gap_ids:
+            findings.append(Finding("blocked_coverage_gap_unresolved", "Blocked coverage must resolve to completion_ledger.gaps.", coverage_id))
+    return findings
+
+
+def validate_company_report(text: str) -> list[Finding]:
+    findings = _validate_company_sections(text)
+    findings.extend(_validate_engagement_overclaims(text))
+    section_specs = [
+        (1, EXPECTED_COMPANY_SECTIONS[0], "company_commission_receipt"),
+        (3, EXPECTED_COMPANY_SECTIONS[2], "coverage_ledger"),
+        (4, EXPECTED_COMPANY_SECTIONS[3], "observation_ledger"),
+        (9, EXPECTED_COMPANY_SECTIONS[8], "company_surface_candidate_ledger"),
+        (10, EXPECTED_COMPANY_SECTIONS[9], "completion_ledger"),
+    ]
+    parsed: dict[str, Any] = {}
+    for number, title, root_key in section_specs:
+        value, parse_findings = _parse_company_yaml_section(text, number, title, root_key)
+        parsed[root_key] = value
+        findings.extend(parse_findings)
+    if any(value is None for value in parsed.values()):
+        return findings
+
+    receipt, receipt_findings = _validate_company_receipt(parsed["company_commission_receipt"])
+    findings.extend(receipt_findings)
+    coverage, coverage_findings = _validate_company_coverage(
+        parsed["coverage_ledger"],
+        receipt.get("initial_proving_run") is True,
+    )
+    findings.extend(coverage_findings)
+    observations, observation_findings = _validate_company_observations(
+        parsed["observation_ledger"], receipt, coverage
+    )
+    findings.extend(observation_findings)
+    findings.extend(_validate_company_candidates(parsed["company_surface_candidate_ledger"], observations))
+    findings.extend(_validate_company_completion(parsed["completion_ledger"], coverage))
+
+    keys = _walk_mapping_keys(parsed)
+    for key in sorted(set(keys) & COMPANY_PROHIBITED_GTM_KEYS):
+        findings.append(Finding("prohibited_company_field", f"Company report contains prohibited GTM field: {key}."))
+    for key in sorted(set(keys) & COMPANY_PROHIBITED_CAP_KEYS):
+        findings.append(Finding("arbitrary_company_cap", f"Company report contains a prohibited arbitrary cap field: {key}."))
+    if re.search(r"(?m)^\s*classifier_handoff_packet\s*:", text):
+        findings.append(Finding("company_classifier_handoff_forbidden", "Company reports must not contain classifier_handoff_packet."))
+    for number in range(5, 9):
+        section, section_findings = _extract_section(
+            _company_section_pattern(number, EXPECTED_COMPANY_SECTIONS[number - 1]),
+            text,
+            f"missing_company_section_{number}",
+            f"Missing company report Section {number}.",
+        )
+        findings.extend(section_findings)
+        if section and not re.search(r"\bOBS-\d{3}\b", section):
+            findings.append(Finding("uncited_company_synthesis", f"Company report Section {number} must cite observation IDs."))
+    return findings
+
+
 def validate_text(text: str) -> list[Finding]:
+    if COMPANY_REPORT_MARKER_RE.search(text):
+        return validate_company_report(text)
     section_findings = validate_section_contract(text)
     rows, row_findings = parse_signal_rows(text)
     packet, packet_findings = parse_classifier_handoff(text)

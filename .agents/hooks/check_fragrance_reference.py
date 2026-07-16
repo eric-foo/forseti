@@ -42,15 +42,13 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import repo_root  # noqa: E402  (sys.path pin must precede the import)
+
 ONT_DIR = "forseti/product/spines/foundation/ontology"
 YAML_REL = ONT_DIR + "/fragrance_reference_v0.yaml"
 
 MARKER = "operator_asserted_pending_source"
-
-
-def repo_root() -> Path:
-    """Repo root, derived from this file's location (.agents/hooks/<this>)."""
-    return Path(__file__).resolve().parents[2]
 
 
 def _has_provenance(value: object) -> bool:

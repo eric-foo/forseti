@@ -143,7 +143,7 @@ behavior was not proven in-thread.
 
 - `creator-audience-triangulation`
   - Source path: `.agents/skills/creator-audience-triangulation/SKILL.md`.
-  - Normalized LF sha256: `947c70e002fcc4e6609d1eef4765e86511d30b4c3c9720285962e90036992318`
+  - Normalized LF sha256: `e8508b1bc374dbe4c37f23dd935a66cfc9f176ffd16321844c757281ef8863dd`
     (observed 2026-07-15 after source creation).
   - Scope: full TikTok creator onboarding after Bronze admission, or explicit
     generation/refresh of one creator's transcript-plus-comment audience
@@ -320,3 +320,63 @@ direction_change_propagation:
 ```
 
 Older receipts archived verbatim in `docs/decisions/dcp_receipts_archive_v0.md`.
+
+```yaml
+direction_change_propagation:
+  doctrine_changed: >
+    The owner-authorized creator-audience candidate skill now routes the
+    post-Bronze onboarding lifecycle through one executable prepare / submit /
+    complete coordinator: exact response bytes receive append-only Judgment
+    outcomes, clerical video closure is derived, validation reports all visible
+    defects, blocked attempts remain resumable without recapture, and
+    materialization requires the successful outcome paired to the exact
+    snapshot.
+  trigger: workflow_authority
+  related_triggers: [lifecycle_boundary, validation_philosophy]
+  controlling_sources_updated:
+    - .agents/skills/creator-audience-triangulation/SKILL.md
+    - .agents/workflow-overlay/skill-adoption.md
+  downstream_surfaces_checked:
+    - AGENTS.md
+    - CLAUDE.md
+    - .agents/workflow-overlay/README.md
+    - .agents/workflow-overlay/source-loading.md
+    - .agents/workflow-overlay/validation-gates.md
+    - docs/workflows/forseti_repo_map_v0.md
+    - forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+  intentionally_not_updated:
+    - path: AGENTS.md and CLAUDE.md
+      reason: >
+        They route reusable-skill and lifecycle detail to the owning overlay;
+        the TikTok-specific executable sequence does not belong in the kernel.
+    - path: .agents/workflow-overlay/README.md, source-loading.md, and validation-gates.md
+      reason: >
+        Their section ownership, source-loading budgets, and global validation
+        doctrine do not restate this candidate skill's TikTok sequence.
+    - path: docs/workflows/forseti_repo_map_v0.md
+      reason: >
+        The repo map does not carry this candidate skill's command sequence, so
+        no stale route required replacement.
+    - path: forseti/product/spines/creator_signal/creator_audience_triangulation_and_commercial_projection_v0.md
+      reason: >
+        The product source already delegates the onboarding firing point to the
+        candidate skill and carries no conflicting runtime command sequence.
+  stale_language_search: >
+    rg -n -i
+    "run_tiktok_creator_audience_triangulation\.py validate|scratch bundle,
+    prompt, and response|SUBSCRIPTION_JUDGMENT_REQUIRED|creator-audience-triangulation"
+    AGENTS.md CLAUDE.md .agents/workflow-overlay .agents/skills
+    docs/workflows/forseti_repo_map_v0.md
+    forseti/product/spines/creator_signal
+  stale_language_search_result: >
+    Executed 2026-07-15 after the source edit. No obsolete validate command,
+    transient-response authority, or old terminal-status wording remains in
+    the checked live routing surfaces. Remaining candidate-name hits are the
+    updated skill, its adoption record, and the product source that delegates
+    the firing point to it.
+  non_claims:
+    - not validation
+    - not readiness
+    - not skill acceptance or deployment
+    - not resolver activation proof
+```

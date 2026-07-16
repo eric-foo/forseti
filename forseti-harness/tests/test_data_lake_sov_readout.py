@@ -59,12 +59,17 @@ def _commit_packet(root: DataLakeRoot, tmp_path: Path, body: str) -> str:
 
 
 def _lineage_fields(
+    root: DataLakeRoot,
     packet_id: str,
     native_id: str,
     *,
     captured_at: str | None = None,
     observed_at: str | None = None,
 ) -> dict:
+    manifest = json.loads(
+        (root.find_packet(packet_id) / "manifest.json").read_text(encoding="utf-8")
+    )
+    preserved = manifest["preserved_files"][0]
     lineage = SilverLineage(
         producer_id="test.producer",
         producer_schema_version="v0",
@@ -77,9 +82,9 @@ def _lineage_fields(
         raw_refs=[
             SilverRawRef(
                 packet_id=packet_id,
-                file_id="f1",
-                relative_packet_path="preserved/f1.json",
-                sha256="a" * 64,
+                file_id=preserved["file_id"],
+                relative_packet_path=preserved["relative_packet_path"],
+                sha256=preserved["sha256"],
                 hash_basis="raw_stored_bytes",
                 anchor=SilverAnchor(kind="file"),
                 relation="consumed",
@@ -151,6 +156,21 @@ def _write_record(root: DataLakeRoot, raw_anchor: str, record_id: str, record: d
             "transcript_source_key": record.get("transcript_source_key", record_id),
         },
     }
+    if record["observed_at"] is None and record["captured_at"] is not None:
+        record["payload"]["observation"].update(
+            {
+                "effective_interval": {
+                    "start": None,
+                    "start_precision": "unknown",
+                    "unknown_reason": "The transcript fixture has no source-effective time.",
+                },
+                "recorded_at": record["captured_at"],
+                "evidence_refs": list(record["raw_refs"]),
+                "limitations": [
+                    "Source-effective time is unknown; recorded_at is capture time."
+                ],
+            }
+        )
     record["content_hash"] = "sha256:" + silver_content_hash(record)
     root.append_record(
         subtree="derived",
@@ -209,7 +229,7 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
                 _mention("m-2", "Dior", "Sauvage", 900),
                 _mention("m-3", "Chanel", "Bleu", 500),
             ],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     _write_record(
@@ -219,7 +239,7 @@ def test_observed_readout_mention_level_refs_and_shares(tmp_path: Path) -> None:
         {
             "rubric_version": "rubric_v0",
             "mentions": [_mention("m-4", "unknown", "mystery scent")],
-            **_lineage_fields(second, "vid2", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, second, "vid2", captured_at=_IN_WINDOW),
         },
     )
 
@@ -293,7 +313,7 @@ def test_lineage_gate_excludes_and_counts(tmp_path: Path) -> None:
         "m_ok.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     # Gate-failing record: carries a cohort identity but no lineage fields.
@@ -326,7 +346,7 @@ def test_cohort_scoping_and_residuals(tmp_path: Path) -> None:
         "m_member.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     # A committed record from a NON-member source object: out of scope entirely.
@@ -336,7 +356,7 @@ def test_cohort_scoping_and_residuals(tmp_path: Path) -> None:
         "m_other.json",
         {
             "mentions": [_mention("m-2", "Chanel", "Bleu")],
-            **_lineage_fields(first, "vid_other", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid_other", captured_at=_IN_WINDOW),
         },
     )
 
@@ -360,7 +380,7 @@ def test_capture_time_window_excludes_out_of_window(tmp_path: Path) -> None:
         "m_in.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     _write_record(
@@ -369,7 +389,7 @@ def test_capture_time_window_excludes_out_of_window(tmp_path: Path) -> None:
         "m_out.json",
         {
             "mentions": [_mention("m-2", "Chanel", "Bleu")],
-            **_lineage_fields(first, "vid1", captured_at="2020-06-01T00:00:00Z"),
+            **_lineage_fields(root, first, "vid1", captured_at="2020-06-01T00:00:00Z"),
         },
     )
 
@@ -392,7 +412,7 @@ def test_capture_time_falls_back_to_packet_manifest(tmp_path: Path) -> None:
         "m_fallback.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1"),
+            **_lineage_fields(root, first, "vid1", observed_at=_IN_WINDOW),
         },
     )
 
@@ -417,7 +437,7 @@ def test_publication_basis_missing_is_counted_and_can_empty_the_scope(tmp_path: 
         "m_no_basis.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
 
@@ -443,7 +463,7 @@ def test_publication_basis_missing_is_counted_and_can_empty_the_scope(tmp_path: 
         "m_observed.json",
         {
             "mentions": [_mention("m-2", "Chanel", "Bleu")],
-            **_lineage_fields(first, "vid1", observed_at="2026-02-01T00:00:00Z"),
+            **_lineage_fields(root, first, "vid1", observed_at="2026-02-01T00:00:00Z"),
         },
     )
     view, _refs = compute_sov_readout(root, spec)
@@ -462,7 +482,7 @@ def test_zero_rows_exist_only_under_declared_comparison_set(tmp_path: Path) -> N
         "m1.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
 
@@ -522,7 +542,7 @@ def test_zero_mention_and_malformed_and_unreadable_are_disclosed(tmp_path: Path)
                 {**_mention("m-3", "Broken", "")},
                 {**_mention("m-4", "Broken", "Bad Span", 200), "end_ms": 100},
             ],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     _write_record(
@@ -531,7 +551,7 @@ def test_zero_mention_and_malformed_and_unreadable_are_disclosed(tmp_path: Path)
         "m_zero.json",
         {
             "mentions": [],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     root.append_record(
@@ -588,7 +608,7 @@ def test_materialize_and_prove_rebuildability(tmp_path: Path) -> None:
         "m1.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     spec = _spec(members=("vid1",))
@@ -639,7 +659,7 @@ def test_materialize_and_prove_rebuildability(tmp_path: Path) -> None:
         "m2.json",
         {
             "mentions": [_mention("m-2", "Chanel", "Bleu")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     proof = prove_sov_rebuildability(root)
@@ -675,7 +695,7 @@ def test_runner_cli_compute_materialize_prove(tmp_path: Path, capsys, monkeypatc
         "m1.json",
         {
             "mentions": [_mention("m-1", "Dior", "Sauvage")],
-            **_lineage_fields(first, "vid1", captured_at=_IN_WINDOW),
+            **_lineage_fields(root, first, "vid1", captured_at=_IN_WINDOW),
         },
     )
     spec_path = tmp_path / "spec.json"

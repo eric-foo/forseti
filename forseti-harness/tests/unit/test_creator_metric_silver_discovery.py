@@ -31,12 +31,16 @@ from capture_spine.creator_profile_current.silver_subject_ref import (
     platform_account_id_from_subject_ref,
 )
 from capture_spine.creator_profile_current.youtube_silver_metric_producer import (
-    derive_youtube_creator_metric_silver_records_from_seed_file,
+    DEFAULT_YOUTUBE_SEED_PATH,
+    YOUTUBE_SEED_WRAPPER_KEY,
 )
 from data_lake.creator_metric_lineage import AUDIT_COMPATIBLE
 from data_lake.root import DataLakeRoot, EPOCH_MARKER_FILENAME, raw_shard
 from source_capture.models import known_fact
 from source_capture.writer import write_local_source_capture_packet
+from tests.unit._creator_metric_silver_fixtures import (
+    seed_preexisting_youtube_creator_metric_records,
+)
 
 IG_ACCOUNT = "acct_ig_reels_001"
 IG_HANDLE = "hyram"
@@ -187,9 +191,13 @@ def _write_ig_rollup(
 # -- YouTube (account-anchored) fixture -------------------------------------
 
 def _write_yt_rollups(data_root: DataLakeRoot, tmp_path: Path) -> set[str]:
-    """Derive YT rollups from the real committed seed (account-anchored). Returns
-    the set of YT account ids the seed covers."""
-    result = derive_youtube_creator_metric_silver_records_from_seed_file(data_root=data_root)
+    """Seed pre-contract YT bytes for read-side audit classification only."""
+    seed_document = json.loads(DEFAULT_YOUTUBE_SEED_PATH.read_text(encoding="utf-8-sig"))
+    result = seed_preexisting_youtube_creator_metric_records(
+        data_root,
+        seed_document,
+        wrapper_key=YOUTUBE_SEED_WRAPPER_KEY,
+    )
     archive = tmp_path / "youtube_seed_archive"
     archive.mkdir()
     (archive / ".orca-data-root").write_text(

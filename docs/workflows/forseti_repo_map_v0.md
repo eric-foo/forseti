@@ -81,7 +81,8 @@ not changes to source precedence.
 | Prompt or review-prompt work | `.agents/workflow-overlay/prompt-orchestration.md` |
 | Current product direction and initial form | `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md` |
 | Beauty product application, decision admission, and proof boundary | `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md` |
-| Offer, ICP/wedge, buyer proof, or GTM | Start with the current thesis above, then the matching `forseti/product/spines/product_lead/` area; buyer-specific bindings remain suspended until GTM rebinds them. |
+| One-company intelligence information requirements, paid-access choice, decision modules, and Company Surface boundary | `docs/decisions/forseti_company_intelligence_information_architecture_v0.md` |
+| Offer, ICP/wedge, buyer proof, or GTM | For the current US Beauty discovery run, start with `forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md`; otherwise start with the current thesis above, then the matching `forseti/product/spines/product_lead/` area. Buyer-specific bindings remain suspended until GTM rebinds them. |
 | Fragrance facts and per-fact provenance | `forseti/product/spines/foundation/ontology/fragrance_reference_v0.yaml` |
 | Ontology roster, namespaces, and typed links | `forseti/product/spines/foundation/ontology/ontology.yaml` |
 | Scanning, answer-engine, or search-interest work | `forseti/product/spines/scanning/README.md` |
@@ -92,6 +93,7 @@ not changes to source precedence.
 | Source-capture access / anti-blocking components | `forseti/product/spines/capture/core/source_capture_toolbox/README.md` |
 | ECR source-side orientation | `docs/workflows/ecr_spine_submap_v0.md` |
 | Judgment Spine orientation or claim/gate routing | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md` |
+| Creator ideal audience or commercial creator-fit method | `forseti/product/spines/creator_signal/creator_ideal_audience_distillation_deck_v0.md` |
 | Cross-spine research-engine grouping | `docs/workflows/forseti_research_engine_map_v0.md` |
 | Repo-map architecture and T1/T2/T3 boundary | `docs/decisions/forseti_repo_map_architecture_mgt_v0.md` |
 | Rename compatibility boundary | `docs/decisions/forseti_compatibility_migration_boundary_v0.md` |
@@ -148,6 +150,7 @@ nearest index/submap, retrieval headers, or generated header index.
 | `CLAUDE.md` | Thin Claude compatibility shim importing `AGENTS.md`. |
 | `.agents/workflow-overlay/` | Forseti workflow authority: source rules, folders, routing, prompts, validation, review, and safety. |
 | `.agents/hooks/` | Portable enforcement and advisory scripts; use the Active Hooks routes above. |
+| `.agents/tools/` | Bounded agent-operated utilities; currently the exact-text fallback editor used only after the native patch route stalls. |
 | `.github/` | CI workflows and local operational scripts. |
 | `.githooks/` | Tracked local Git hook adapters; bypassable and not server-side protection. |
 | `.codex/` | Codex-local tracked hook configuration and adapters. |
@@ -164,7 +167,12 @@ nearest index/submap, retrieval headers, or generated header index.
 | `forseti/` | Product-tree root. Product substance lives under `forseti/product/`. |
 | `forseti-harness/` | Bounded implementation root; area routes are below. |
 
-## Product Spine Axis And Major Areas
+## Product Axes And Major Areas
+
+`forseti/product/information/` is admitted here as a T1 product-area front door.
+The existing spine routes are insufficient because Company Surface is shared,
+decision-agnostic information rather than an operational owner; `shared/` is a
+transitional registry/doctrine area, not a durable home for this contract.
 
 | Path | Role / front door |
 | --- | --- |
@@ -181,6 +189,7 @@ nearest index/submap, retrieval headers, or generated header index.
 | `forseti/product/satellites/beauty/` | Beauty satellite artifacts and venue-card surfaces. |
 | `forseti/product/satellites/fragrance/` | Fragrance satellite and Judgment Level 1 product-learning artifacts. |
 | `forseti/product/case_families/product_learning/` | Product-learning case families across fragrance and other verticals. |
+| `forseti/product/information/` | Reusable, decision-agnostic product information; open `forseti/product/information/README.md`, then the current `company_surface/README.md` domain front door. |
 | `forseti/product/shared/engagement_registry/` | Shared engagement registry and logic. |
 | `forseti/product/shared/projection_doctrine/` | Shared projection boundaries and doctrine. |
 
@@ -243,7 +252,7 @@ section only selects the entry point.
 | Data Capture setup, source access, or pressure testing | `docs/workflows/data_capture_spine_consolidation_map_v0.md`, then the matching source-loading pack. |
 | Product direction or initial form | `docs/decisions/forseti_product_thesis_decision_adjudication_v0.md`, the Core Spine product contract, and `.agents/workflow-overlay/product-proof.md`. |
 | Beauty product application | `forseti/product/satellites/beauty/beauty_decision_adjudication_product_profile_v0.md`, then the current thesis and nearest evidence-owner maps. |
-| Offer, ICP/wedge, buyer proof, or GTM | Start with the current thesis, then the matching `forseti/product/spines/product_lead/` area and `.agents/workflow-overlay/product-proof.md`; do not reactivate historical buyer bindings without a current GTM decision. |
+| Offer, ICP/wedge, buyer proof, or GTM | For the current US Beauty discovery run, open `forseti/product/spines/product_lead/gtm/forseti_beauty_us_problem_discovery_to_wedge_contract_v0.md`; otherwise start with the current thesis, then the matching `forseti/product/spines/product_lead/` area and `.agents/workflow-overlay/product-proof.md`. Do not reactivate historical buyer bindings without a current GTM decision. |
 | Judgment run, evidence tier, or gate ownership | `docs/research/judgment-spine/judgment_spine_consolidation_map_v0.md`. |
 | Prompt or review-prompt work | `.agents/workflow-overlay/prompt-orchestration.md`, `.agents/workflow-overlay/template-registry.md`, then the target. |
 | Artifact retrievability or hygiene | `docs/workflows/artifact_retrievability_guide.md` and the owning overlay section. |
