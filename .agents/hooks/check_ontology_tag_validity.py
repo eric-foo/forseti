@@ -11,14 +11,19 @@ from __future__ import annotations
 import argparse
 import os
 import re
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _hooklib import (  # noqa: E402  (sys.path pin must precede the import)
+    git_out,
+    repo_root,
+)
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+
+REPO_ROOT = repo_root()
 ONTOLOGY_PATH = REPO_ROOT / "forseti/product/spines/foundation/ontology/ontology.yaml"
 FORSETI_HOOK_TMPDIR_ENV = "FORSETI_HOOK_TMPDIR"
 LEGACY_ORCA_HOOK_TMPDIR_ENV = "ORCA_HOOK_TMPDIR"
@@ -222,17 +227,10 @@ def resolve_base_ref(cli_base: str | None) -> str:
 
 
 def _git(root: Path, args: list[str]) -> tuple[int, str]:
-    try:
-        result = subprocess.run(
-            ["git", *args],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=20,
-        )
-        return result.returncode, result.stdout
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
-        return -1, ""
+    """Thin adapter over the shared _hooklib.git_out (keeps this file's 20s
+    timeout; `git -C <root>` is equivalent to the old cwd=root). git_out
+    returns (1, "") on failure instead of (-1, ""); callers only test rc != 0."""
+    return git_out(root, args, timeout=20)
 
 
 def changed_markdown_files(root: Path, base_ref: str) -> list[Path] | None:
