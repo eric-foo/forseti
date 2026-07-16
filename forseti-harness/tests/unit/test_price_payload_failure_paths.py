@@ -21,6 +21,11 @@ future maintainers:
 - DO keep failure-path evidence: every all-attempts miss in output-directory
   mode writes per-attempt records; data-lake mode writes nothing before a
   complete packet exists (asserted below).
+
+Also pins the success-path packet wiring (previously untested end-to-end):
+exit code 0/4 selection from the certification verdict, the staged artifact
+set, and the certified-vs-uncertified limitation/mode-change surface handed
+to stage_and_write_packet.
 """
 import json
 import types
@@ -228,3 +233,96 @@ def test_discovery_distinguishes_scan_limit_from_full_scan_miss(monkeypatch):
     )
     assert reason == "anchor_not_found"
     assert len(scanned) == 3
+
+
+def _fake_success(body=b"<html>page</html>"):
+    return types.SimpleNamespace(
+        body=body,
+        final_url="https://x/pricing/",
+        requested_url="https://x/pricing/",
+        status=200,
+        metadata={"capture_timestamp": "2026-07-17T00:00:00Z",
+                  "content_type": "text/html"},
+        response_headers={},
+        warning_notes=[],
+        impersonation_profile="test_profile",
+    )
+
+
+def _fake_classification():
+    return types.SimpleNamespace(
+        classification=types.SimpleNamespace(value="content_unverified"),
+        signal=None,
+    )
+
+
+def _wire_success_path(monkeypatch, verdict):
+    # Discovery succeeds with fakes; extraction/certification are stubbed so
+    # the pin isolates the RUNNER's wiring, not the extraction library (which
+    # has its own 12 certification tests).
+    monkeypatch.setattr(
+        runner, "_rung1_fetch",
+        lambda url, **k: (_fake_success(), _fake_classification()),
+    )
+    monkeypatch.setattr(runner, "_chunk_urls", lambda html, base: ["https://x/c.js"])
+    monkeypatch.setattr(runner, "chunk_contains_prices", lambda text: True)
+    monkeypatch.setattr(runner, "decode_react_router_stream", lambda html: {})
+    monkeypatch.setattr(runner, "extract_tier_structure", lambda root: [])
+    monkeypatch.setattr(runner, "extract_prices_object", lambda text: {})
+    monkeypatch.setattr(runner, "extract_token_list", lambda text: [])
+    monkeypatch.setattr(
+        runner, "join_tiers_with_amounts", lambda tiers, prices, currency: []
+    )
+    monkeypatch.setattr(runner, "certify_extraction", lambda **k: verdict)
+    calls = {}
+
+    def fake_write(**kwargs):
+        calls.update(kwargs)
+        return types.SimpleNamespace(output_directory="written_dir")
+
+    monkeypatch.setattr(runner, "stage_and_write_packet", fake_write)
+    return calls
+
+
+def test_success_path_certified_wiring(tmp_path, monkeypatch):
+    verdict = types.SimpleNamespace(
+        certified=True, priced_tier_count=0, checks=[],
+        as_dict=lambda: {"certified": True},
+    )
+    calls = _wire_success_path(monkeypatch, verdict)
+
+    code, out = _run(tmp_path)
+
+    assert (code, out) == (0, "written_dir")
+    assert [name for name, _body in calls["staged_artifacts"]] == [
+        "rung15_pricing_page_body.bin",
+        "rung15_prices_payload_chunk.js",
+        "rung15_price_extraction.json",
+        "rung15_extraction_metadata.json",
+        "rung15_certification.json",
+    ]  # no announcement body when announcement_url is None
+    assert len(calls["source_slices"]) == 2
+    assert calls["limitations"] == []
+    assert "content_certification:certified" in calls["visible_mode_changes"]
+    assert "discriminator=certified" in calls["receipt_summary"]
+    assert calls["source_surface"] == "openai_chatgpt_pricing_rung15"
+
+
+def test_success_path_uncertified_wiring(tmp_path, monkeypatch):
+    # An uncertified verdict still writes the packet (payloads preserved) but
+    # exits 4 and surfaces the failed checks as an explicit limitation.
+    verdict = types.SimpleNamespace(
+        certified=False, priced_tier_count=0,
+        checks=[types.SimpleNamespace(name="tiers_nonempty", passed=False)],
+        as_dict=lambda: {"certified": False},
+    )
+    calls = _wire_success_path(monkeypatch, verdict)
+
+    code, out = _run(tmp_path)
+
+    assert (code, out) == (4, "written_dir")
+    assert calls["limitations"] == [
+        "content_certification_failed: rung15_price_payload_v0 checks ['tiers_nonempty']"
+    ]
+    assert "content_certification:uncertified" in calls["visible_mode_changes"]
+    assert "discriminator=uncertified" in calls["receipt_summary"]
