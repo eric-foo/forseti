@@ -344,9 +344,26 @@ def selftest() -> int:
           run("forseti-harness/source_capture/x.py", body_form[:1], file_lines=body_form), [])
 
     # 2b. coercion-helper names (2026-07-16 sweep): flagged add + delta suppression.
-    got = run("forseti-harness/source_capture/x.py", ["def _int_or_none(value):", "    pass"])
-    check("case2b coercion helper flagged", [f.name for f in got], ["_int_or_none"])
-    check("case2b coercion owning home", got[0].home if got else None, HARNESS_HOME)
+    for helper_name in (
+        "_string_or_none",
+        "_non_empty_string_or_none",
+        "_int_or_none",
+        "_bool_or_none",
+    ):
+        got = run(
+            "forseti-harness/source_capture/x.py",
+            [f"def {helper_name}(value):", "    pass"],
+        )
+        check(
+            f"case2b {helper_name} flagged",
+            [f.name for f in got],
+            [helper_name],
+        )
+        check(
+            f"case2b {helper_name} owning home",
+            got[0].home if got else None,
+            HARNESS_HOME,
+        )
     coercion_body = ["def _string_or_none(value):",
                      "    # helper-delta: does not strip, unlike harness_utils.string_or_none"]
     check("case2b coercion first-body-line delta comment suppresses",
