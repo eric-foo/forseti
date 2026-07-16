@@ -14,8 +14,8 @@ use_when:
   - Cross-family, external, couriered, paste-ready, or portable delivery by itself does not select this method; use repo-bound review when repository access exists.
 authority_boundary: retrieval_only
 derived_from:
-  - docs/prompts/templates/review/adversarial_artifact_review_v0.md@23cb112c0a1f55c9c069e8cde82c360d92d6139432c0e9eb8480daf5b3ea0055   # re-derived 2026-07-17: review commissions no longer load or invoke workflow-deep-thinking; native reasoning-before-findings remains. Non-material to the PORTABLE METHOD body, whose section 3 already embeds that analysis without a skill dependency. (Prior pin b6ab8b23…40d6c.)
-  - .agents/workflow-overlay/review-lanes.md@310b966c2f300aa138c302d20d19c5c14e34a3cb9d19e5b5159ace23ebb8e700   # re-pinned 2026-07-17: review-lane authority now explicitly removes workflow-deep-thinking from review prompts while retaining native failure-mode analysis. Non-material to the distilled no_repo method body. (Prior pin 23518fe4…1b20e0a.)
+  - docs/prompts/templates/review/adversarial_artifact_review_v0.md@64b66cb00e25ba8bdcf2717bcb35ef15fdeac580a827a1ecb9eba9bf162b60e2   # re-derived 2026-07-17: the repo-bound template names its review method and native reasoning-before-findings. Non-material to the PORTABLE METHOD body. (Prior pin 23cb112c…a0055.)
+  - .agents/workflow-overlay/review-lanes.md@961a828035c953950355a19f0ab2b8bcde35a840d5a808394d5989299fc03797   # re-pinned 2026-07-17: the live lane carries current review rules. Non-material to the distilled no_repo method body. (Prior pin 310b966c…8e700.)
 # Hash convention (recorded 2026-06-13 after an observed false-stale on a CRLF checkout): the
 # derived_from pins are SHA256 over git BLOB bytes (LF as stored; e.g. `git cat-file blob <rev>:<path>`),
 # NOT over CRLF working-tree bytes. Run the freshness gate like-for-like: a Get-FileHash mismatch on a
