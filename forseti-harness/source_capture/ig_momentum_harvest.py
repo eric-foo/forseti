@@ -427,6 +427,7 @@ def _first_int(container: dict[str, object], keys: tuple[str, ...]) -> int | Non
 
 
 def _int_or_none(value: object) -> int | None:
+    # helper-delta: no integral-float acceptance, unlike harness_utils.int_or_none.
     if isinstance(value, bool):
         return None
     if isinstance(value, int):
@@ -438,6 +439,7 @@ def _int_or_none(value: object) -> int | None:
 
 
 def _string_or_none(value: object) -> str | None:
+    # helper-delta: int branch lacks the bool guard (True -> "True"), unlike harness_utils.string_or_none.
     if isinstance(value, str):
         stripped = value.strip()
         return stripped or None
